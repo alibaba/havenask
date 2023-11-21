@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEGMENTDIRECTORYTEST_H
-#define __INDEXLIB_SEGMENTDIRECTORYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/Directory.h"
@@ -46,5 +45,3 @@ INDEXLIB_UNIT_TEST_CASE(SegmentDirectoryTest, TestInitIndexFormatVersion);
 INDEXLIB_UNIT_TEST_CASE(SegmentDirectoryTest, TestClone);
 INDEXLIB_UNIT_TEST_CASE(SegmentDirectoryTest, TestRollbackToCurrentVersion);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SEGMENTDIRECTORYTEST_H

@@ -15,8 +15,17 @@
  */
 #include "indexlib/merger/merge_plan_meta.h"
 
-#include "autil/StringUtil.h"
+#include <iosfwd>
+#include <vector>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/framework/SegmentInfo.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

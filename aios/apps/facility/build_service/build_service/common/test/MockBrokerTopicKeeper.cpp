@@ -1,6 +1,12 @@
 #include "build_service/common/test/MockBrokerTopicKeeper.h"
 
-#include "build_service/config/ResourceReaderManager.h"
+#include <iosfwd>
+#include <memory>
+
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/SwiftAdminFacade.h"
+#include "build_service/common/test/MockSwiftAdminFacade.h"
+#include "build_service/config/CounterConfig.h"
 
 using namespace std;
 using namespace build_service::config;

@@ -19,13 +19,10 @@
 #include <set>
 #include <string>
 
+#include "iquan/common/catalog/FunctionModel.h"
 #include "navi/common.h"
 #include "navi/engine/Resource.h"
 #include "navi/engine/ResourceConfigContext.h"
-
-namespace iquan {
-class TvfModels;
-} // namespace iquan
 namespace navi {
 class ResourceDefBuilder;
 class ResourceInitContext;
@@ -49,7 +46,7 @@ public:
 
 public:
     TvfFunc *createTvfFunction(const std::string &tvfName) const;
-    bool fillTvfModels(iquan::TvfModels &tvfModels);
+    bool fillTvfModels(std::vector<iquan::FunctionModel> &tvfModels);
     const std::map<std::string, TvfFuncCreatorR *> &getTvfNameToCreator() const {
         return _tvfNameToCreator;
     }

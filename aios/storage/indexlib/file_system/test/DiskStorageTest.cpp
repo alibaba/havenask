@@ -1,5 +1,7 @@
 
 
+#include "indexlib/file_system/DiskStorage.h"
+
 #include <assert.h>
 #include <iosfwd>
 #include <memory>

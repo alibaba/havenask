@@ -1,8 +1,17 @@
 #include "build_service/config/ConfigParser.h"
 
-#include "autil/legacy/jsonizable.h"
+#include <iosfwd>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

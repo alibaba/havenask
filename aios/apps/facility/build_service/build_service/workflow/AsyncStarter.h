@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ASYNCSTARTER_H
-#define ISEARCH_BS_ASYNCSTARTER_H
+#pragma once
 
 #include <functional>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Thread.h"
-#include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace workflow {
@@ -61,5 +60,3 @@ private:
 };
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_ASYNCSTARTER_H

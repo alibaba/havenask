@@ -1,8 +1,28 @@
 #include "build_service/document/ExtendDocument.h"
 
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "build_service/document/RawDocument.h"
+#include "build_service/document/RawDocumentHashMapManager.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/extend_document/indexlib_extend_document.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
+#include "indexlib/document/normal/Field.h"
 #include "indexlib/document/raw_document/default_raw_document.h"
+#include "indexlib/indexlib.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

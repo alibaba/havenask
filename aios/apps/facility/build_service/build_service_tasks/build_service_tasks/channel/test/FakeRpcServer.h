@@ -1,12 +1,14 @@
-#ifndef ISEARCH_BS_FAKERPCSERVER_H
-#define ISEARCH_BS_FAKERPCSERVER_H
+#pragma once
 
+#include <google/protobuf/service.h>
+#include <google/protobuf/stubs/callback.h>
+#include <memory>
 #include <thread>
 
 #include "build_service/proto/Admin.pb.h"
 #include "build_service/util/Log.h"
 #include "build_service_tasks/channel/Master.pb.h"
-#include "worker_framework/LeaderedWorkerBase.h"
+#include "worker_framework/WorkerBase.h"
 
 namespace build_service { namespace task_base {
 
@@ -85,5 +87,3 @@ private:
 };
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_FAKERPCSERVER_H

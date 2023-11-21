@@ -15,9 +15,35 @@
  */
 #include "build_service/builder/KVSortDocConvertor.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <stdint.h>
+#include <string>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/ConstString.h"
+#include "autil/Span.h"
+#include "indexlib/base/BinaryStringUtil.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/common/field_format/attribute/attribute_convertor.h"
 #include "indexlib/common/field_format/attribute/attribute_convertor_factory.h"
 #include "indexlib/common/field_format/attribute/var_num_attribute_formatter.h"
+#include "indexlib/common/field_format/pack_attribute/attribute_reference.h"
 #include "indexlib/common/field_format/pack_attribute/pack_attribute_formatter.h"
+#include "indexlib/common/field_format/pack_attribute/plain_format_encoder.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/attribute_schema.h"
+#include "indexlib/config/field_config.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/config/kv_index_config.h"
+#include "indexlib/config/pack_attribute_config.h"
+#include "indexlib/config/value_config.h"
+#include "indexlib/document/kv_document/kv_index_document.h"
+#include "indexlib/index/kkv/kkv_define.h"
 #include "indexlib/util/ByteSimilarityHasher.h"
 
 using namespace std;

@@ -128,6 +128,7 @@ public:
     bool unpublish(const std::vector<SignatureTy> &signatureVec);
     std::vector<ServerBizTopoInfo> getPublishInfos() const;
     std::string getTopoInfoStr() const;
+    Spec getRpcSpec();
 
 private:
     std::shared_ptr<GrpcServerWorker> createGrpcServer(const GrpcServerDescription &desc);
@@ -141,7 +142,6 @@ private:
                              const ThreadPoolRep &poolRep);
     bool registerHeartbeat();
     void stopHeartbeat();
-    Spec getRpcSpec();
 
 private:
     std::shared_ptr<arpc::ANetRPCServer> _arpcServer;

@@ -30,7 +30,10 @@ struct AithetaBuildConfig {
     bool storePrimaryKey {false};
     bool storeEmbedding {false};
     bool ignoreFieldCountMismatch {false};
-    bool ignoreBuildError {true};
+    bool ignoreInvalidDoc {false};
+    bool distributedBuild {false};
+    size_t centroidCount {64};
+    size_t parallelNum {8};
     std::string indexParams {"{}"};
 
     void Parse(const indexlib::util::KeyValueMap& parameters);
@@ -39,8 +42,6 @@ struct AithetaBuildConfig {
 struct AithetaSearchConfig {
     std::string searcherName {};
     size_t scanCount {10000};
-    // TODO: optimize it
-    float scanProportion {1.0f};
     std::string indexParams {"{}"};
 
     void Parse(const indexlib::util::KeyValueMap& parameters);
@@ -50,7 +51,6 @@ struct AithetaRealtimeConfig {
     bool enable {false};
     std::string streamerName {};
     bool storePrimaryKey {false};
-    bool storeEmbedding {false};
     std::string indexParams {"{}"};
 
     void Parse(const indexlib::util::KeyValueMap& parameters);

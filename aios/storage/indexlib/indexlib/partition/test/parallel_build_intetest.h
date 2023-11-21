@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARALLELBUILDINTETEST_H
-#define __INDEXLIB_PARALLELBUILDINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -81,5 +80,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(ParallelBuildInteTest, TestKKVMerge_bugfix_ao
 
 INSTANTIATE_TEST_CASE_P(BuildMode, ParallelBuildInteTest, testing::Values(0, 1, 2));
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARALLELBUILDINTETEST_H

@@ -1,21 +1,14 @@
 package com.taobao.search.iquan.core.rel.convert.physical;
 
-import com.google.common.collect.ImmutableList;
-import com.taobao.search.iquan.core.api.common.IquanErrorCode;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.Distribution;
+import java.util.ArrayList;
+
 import com.taobao.search.iquan.core.rel.convention.IquanConvention;
-import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanUnionOp;
 import org.apache.calcite.plan.Convention;
 import org.apache.calcite.plan.RelTraitSet;
-import org.apache.calcite.rel.RelDistributions;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.convert.ConverterRule;
 import org.apache.calcite.rel.logical.LogicalUnion;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public class IquanUnionConverterRule extends ConverterRule {
     public static IquanUnionConverterRule INSTANCE = new IquanUnionConverterRule();

@@ -15,7 +15,14 @@
  */
 #include "indexlib/framework/TabletMemoryCalculator.h"
 
+#include <set>
+#include <vector>
+
+#include "indexlib/base/Types.h"
+#include "indexlib/framework/Segment.h"
+#include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/TabletReaderContainer.h"
+#include "indexlib/framework/Version.h"
 
 namespace indexlibv2::framework {
 

@@ -15,6 +15,8 @@
  */
 #include "indexlib/merger/partition_merger.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace merger {

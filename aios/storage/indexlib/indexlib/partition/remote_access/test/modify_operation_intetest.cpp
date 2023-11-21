@@ -6,6 +6,8 @@
 
 #include "indexlib/config/field_type_traits.h"
 #include "indexlib/config/module_info.h"
+#include "indexlib/config/test/modify_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/file/BufferedFileWriter.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
@@ -29,9 +31,7 @@
 #include "indexlib/partition/remote_access/attribute_patch_data_writer.h"
 #include "indexlib/partition/remote_access/partition_resource_provider_factory.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/modify_schema_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/testlib/indexlib_partition_creator.h"
 #include "indexlib/util/PathUtil.h"
 using namespace std;
@@ -638,11 +638,11 @@ void ModifyOperationInteTest::PreparePatchIndex(const IndexPartitionSchemaPtr& n
     resourceProvider->DumpDeployIndexForPatchSegments(newSchema);
 }
 
-void ModifyOperationInteTest::CheckLatestVersion(const file_system::DirectoryPtr& rootDir, schemavid_t expectSchemaId,
+void ModifyOperationInteTest::CheckLatestVersion(const file_system::DirectoryPtr& rootDir, schemaid_t expectSchemaId,
                                                  const vector<schema_opid_t>& ongoingOpIds)
 {
     Version version;
-    VersionLoader::GetVersion(rootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDir, version, INVALID_VERSIONID);
     ASSERT_EQ(expectSchemaId, version.GetSchemaVersionId());
     ASSERT_EQ(ongoingOpIds, version.GetOngoingModifyOperations());
 }
@@ -651,7 +651,7 @@ void ModifyOperationInteTest::CheckQuery(const file_system::DirectoryPtr& rootDi
                                          const string& result, const string& pluginPath)
 {
     Version onDiskVersion;
-    VersionLoader::GetVersion(rootDir, onDiskVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDir, onDiskVersion, INVALID_VERSIONID);
     IndexPartitionSchemaPtr schema = SchemaAdapter::LoadSchemaForVersion(rootDir, onDiskVersion.GetVersionId());
     ASSERT_NE(schema, nullptr);
 

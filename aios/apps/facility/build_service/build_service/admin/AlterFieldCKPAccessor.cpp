@@ -15,8 +15,18 @@
  */
 #include "build_service/admin/AlterFieldCKPAccessor.h"
 
+#include <iosfwd>
+#include <memory>
+#include <set>
+#include <stdint.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 #include "build_service/admin/taskcontroller/AlterFieldTask.h"
+#include "build_service/common/IndexCheckpointAccessor.h"
 
 using namespace std;
 using namespace autil;

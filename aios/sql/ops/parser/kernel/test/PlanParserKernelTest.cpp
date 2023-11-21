@@ -20,6 +20,7 @@
 #include "fslib/util/FileUtil.h"
 #include "iquan/common/Common.h"
 #include "iquan/common/Status.h"
+#include "iquan/common/catalog/DatabaseDef.h"
 #include "iquan/common/catalog/TableModel.h"
 #include "iquan/jni/DynamicParams.h"
 #include "iquan/jni/Iquan.h"
@@ -33,11 +34,13 @@
 #include "navi/engine/Data.h"
 #include "navi/tester/KernelTester.h"
 #include "navi/tester/KernelTesterBuilder.h"
+#include "navi/tester/NaviResourceHelper.h"
 #include "sql/common/common.h"
 #include "sql/data/SqlPlanData.h"
 #include "sql/data/SqlQueryRequest.h"
 #include "sql/data/SqlRequestData.h"
 #include "sql/ops/parser/SqlParseKernel.h"
+#include "sql/resource/Ha3TableInfoR.h"
 #include "sql/resource/IquanR.h"
 #include "sql/resource/SqlConfig.h"
 #include "sql/resource/SqlConfigResource.h"
@@ -62,7 +65,7 @@ public:
     void tearDown() override {}
 
 private:
-    bool loadTableModels(iquan::TableModels &config);
+    bool loadTableModels(std::vector<iquan::TableModel> &config, const string &tableModelFilePath);
 
 private:
     std::unique_ptr<iquan::Iquan> _sqlClient;
@@ -84,35 +87,58 @@ void SqlParseKernelTest::setUp() {
     });
 }
 
-bool SqlParseKernelTest::loadTableModels(iquan::TableModels &config) {
-    string simpleTableFile = GET_TEST_DATA_PATH() + "sql_test/table_model_json/simple_table.json";
+bool SqlParseKernelTest::loadTableModels(std::vector<iquan::TableModel> &config,
+                                         const string &tableModelFilePath) {
+    string simpleTableFile = GET_TEST_DATA_PATH() + tableModelFilePath;
     string content;
     if (!fslib::util::FileUtil::readFile(simpleTableFile, content)) {
         AUTIL_LOG(WARN, "read file failed, path: %s", simpleTableFile.c_str());
         return false;
     }
+    iquan::DatabaseDef databaseDef;
     try {
-        FastFromJsonString(config, content);
+        FastFromJsonString(databaseDef, content);
     } catch (const std::exception &e) {
         AUTIL_LOG(WARN, "parse table model failed, content: %s", content.c_str());
         return false;
     }
+    config = databaseDef.tables;
     return true;
 }
 
 TEST_F(SqlParseKernelTest, testCompute) {
-    string simpleTableFile = GET_TEST_DATA_PATH() + "sql_test/table_model_json/simple_table.json";
-    std::string iquanConfigStr;
-    ASSERT_TRUE(IquanR::getIquanConfigFromFile(simpleTableFile, iquanConfigStr));
-    string sqlConfigStr
-        = string(R"json({"iquan_sql_config":{"catalog_name":"default", "db_name":"default"}})json");
+    // prepare gig_meta_r
+    auto gigMetaRPtr = make_unique<GigMetaR>();
+    auto &bizMetaInfos = gigMetaRPtr->_bizMetaInfos;
+    string catalogName = SQL_DEFAULT_CATALOG_NAME;
+    string dbName = "db1";
+    vector<iquan::TableModel> tableModels;
+    loadTableModels(tableModels, "sql_test/table_model_json/simple_table.json");
+    ASSERT_FALSE(tableModels.empty());
+    const auto &tableModel = tableModels[0];
+    CatalogDefs catalogDefs;
+    ASSERT_TRUE(catalogDefs.catalog(catalogName).database(dbName).addTable(tableModel));
+    multi_call::VersionInfo versionInfo;
+    string metaStr = FastToJsonString(catalogDefs);
+    versionInfo.metas.reset(new multi_call::MetaMap({{sql::Ha3TableInfoR::RESOURCE_ID, metaStr}}));
+    multi_call::BizMetaInfo bizMetaInfo;
+    bizMetaInfo.bizName = "default_biz";
+    bizMetaInfo.versions = {{1, versionInfo}};
+    bizMetaInfos.emplace_back(bizMetaInfo);
+
+    // prepare iquan_r
+    auto iquanRPtr = make_shared<IquanR>();
+    iquanRPtr->_gigMetaR = gigMetaRPtr.get();
+    ASSERT_TRUE(iquanRPtr->initIquanClient());
+    ASSERT_TRUE(iquanRPtr->updateCatalogDef());
+
+    // test
     navi::KernelTesterBuilder builder;
-    builder.resourceConfig(IquanR::RESOURCE_ID, iquanConfigStr);
-    builder.resourceConfig(SqlConfigResource::RESOURCE_ID, sqlConfigStr);
+    builder.resource(iquanRPtr);
     builder.kernel("sql.SqlParseKernel");
     builder.input("input0");
     builder.output("output0");
-    builder.attrsFromMap({{"db_name", "default"}});
+    builder.attrsFromMap({{"db_name", "db1"}});
     kmonitor::MetricsReporterPtr metricsReporter(new kmonitor::MetricsReporter("", {}, ""));
     kmonitor::MetricsReporterRPtr metricsReporterR(new kmonitor::MetricsReporterR(metricsReporter));
     builder.resource(metricsReporterR);
@@ -141,16 +167,35 @@ TEST_F(SqlParseKernelTest, testParseSqlPlan) {
     iquanR->_sqlClient.reset(new Iquan());
     iquan::Status status = iquanR->_sqlClient->init(iquanR->_jniConfig, iquanR->_clientConfig);
     ASSERT_TRUE(status.ok());
-    iquan::TableModels tableModels;
-    ASSERT_TRUE(loadTableModels(tableModels));
-    ASSERT_EQ(1, tableModels.tables.size());
-    status = iquanR->_sqlClient->updateTables(tableModels);
-    ASSERT_TRUE(status.ok());
+    vector<iquan::TableModel> tableModels;
+    ASSERT_TRUE(loadTableModels(tableModels, "sql_test/table_model_json/simple_table.json"));
+    ASSERT_EQ(1, tableModels.size());
+
+    // prepare gig_meta_r
+    auto gigMetaRPtr = make_unique<GigMetaR>();
+    auto &bizMetaInfos = gigMetaRPtr->_bizMetaInfos;
+    string catalogName = SQL_DEFAULT_CATALOG_NAME;
+    string dbName = "db1";
+    const auto &tableModel = tableModels[0];
+    CatalogDefs catalogDefs;
+    ASSERT_TRUE(catalogDefs.catalog(catalogName).database(dbName).addTable(tableModel));
+    multi_call::VersionInfo versionInfo;
+    string metaStr = FastToJsonString(catalogDefs);
+    versionInfo.metas.reset(new multi_call::MetaMap({{sql::Ha3TableInfoR::RESOURCE_ID, metaStr}}));
+    multi_call::BizMetaInfo bizMetaInfo;
+    bizMetaInfo.bizName = "default_biz";
+    bizMetaInfo.versions = {{1, versionInfo}};
+    bizMetaInfos.emplace_back(bizMetaInfo);
+
+    // fill catalog info
+    iquanR->_gigMetaR = gigMetaRPtr.get();
+    ASSERT_TRUE(iquanR->updateCatalogDef());
+
     SqlParseKernel sqlParser;
     sqlParser._sqlConfigResource = sqlConfigResource.get();
     sqlParser._iquanR = iquanR.get();
     sql::SqlQueryRequest sqlRequest;
-    sqlRequest.setSqlParams({{SQL_DATABASE_NAME, "default"}});
+    sqlRequest.setSqlParams({{SQL_DATABASE_NAME, "db1"}});
     sqlRequest._sqlStr = "select i1 from simple";
     iquan::SqlPlanPtr sqlPlan;
     iquan::IquanDqlRequestPtr iquanRequest;
@@ -312,6 +357,8 @@ TEST_F(SqlParseKernelTest, testAddIquanDynamicParams) {
         EXPECT_EQ(100, JsonNumberCast<int>(dynamicParams.at(0)));
         EXPECT_EQ(qinfo, AnyCast<string>(dynamicParams.at(1)));
         EXPECT_EQ("v1", AnyCast<string>(dynamicParams.at(2)));
+
+        sqlParser.addIquanHintParams(&sqlRequest, dynamicParams);
         ASSERT_EQ("1,2", dynamicParams.getHintParam("part"));
         ASSERT_EQ("3,4", dynamicParams.getHintParam("id"));
     }

@@ -11,7 +11,7 @@ def config(config_path, meta_info):
     enableTurboJet = sql_utils.get_enable_turbojet(config_path)
     only_qrs = False
     has_qrs = False
-    if localAccess and localAccess.lower() == "true":
+    if localAccess:
         has_qrs = True
         kernel_blacklist = []
     elif roleType == "qrs":
@@ -38,6 +38,8 @@ def config(config_path, meta_info):
     install_root = meta_info["install_root"]
     service_info = meta_info["service_info"]
     zone_name = service_info["zone_name"]
+    part_count = service_info["part_count"]
+
     config = {
         "kernel_list": [
             "sql\\..*",
@@ -85,6 +87,7 @@ def config(config_path, meta_info):
                 "name": "sql.table_info_r",
                 "config": ({
                     "zone_name": zone_name,
+                    "part_count": part_count,
                     "inner_docid_optimize_enable": sql_utils.get_enable_inner_docid_optimize(config_path)
                 } if not only_qrs else {})
             },
@@ -129,7 +132,8 @@ def config(config_path, meta_info):
                 "name": "sql.udf_model_r",
                 "config": {
                     "default_udf": sql_utils.get_default_udf_function_models(install_root),
-                    "zone_udf_map": sql_utils.get_zone_function_map(config_path),
+                    "system_udf": sql_utils.get_system_udf_function_models(config_path),
+                    "db_udf_map": sql_utils.get_db_function_map(config_path),
                     "special_catalogs": sql_utils.get_special_catalogs()
                 }
             },
@@ -142,8 +146,10 @@ def config(config_path, meta_info):
             {
                 "name": "sql.iquan_r",
                 "config": {
-                    "summary_tables": sql_utils.get_summary_tables(config_path),
-                    "table_name_alias": sql_utils.get_table_name_alias(config_path),
+                    "iquan_jni_config": sql_utils.get_iquan_jni_config(config_path),
+                    "iquan_client_config": sql_utils.get_iquan_client_config(config_path),
+                    "iquan_warmup_config": sql_utils.get_iquan_warmup_config(config_path),
+                    "iquan_disable_warmup": sql_envs.get_disable_sql_warmup(),
                     "logic_tables": sql_utils.get_logic_table_config(config_path),
                     "layer_tables": sql_utils.get_layer_table_config(config_path)
                 }

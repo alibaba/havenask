@@ -49,7 +49,7 @@ class ServiceNode
 {
 public:
     int32_t _groupId;                     ///< 列号
-    char _ip[IP_LEN];                     ///< ip
+    char _ip[cm_basic::IP_LEN];           ///< ip
     cm_basic::ProtocolPort _protoPort;    ///< 协议和端口
     cm_basic::NodeStatus _nodeStatus;     ///< 节点的存活状态
     cm_basic::OnlineStatus _onlineStatus; ///< 节点的在线状态

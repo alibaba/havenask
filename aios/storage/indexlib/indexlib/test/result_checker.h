@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_RESULT_CHECKER_H
-#define __INDEXLIB_RESULT_CHECKER_H
+#pragma once
 
 #include <memory>
 
@@ -31,5 +30,3 @@ private:
 
 DEFINE_SHARED_PTR(ResultChecker);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_RESULT_CHECKER_H

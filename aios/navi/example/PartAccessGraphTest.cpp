@@ -47,10 +47,9 @@ private:
 
 void PartAccessGraphTest::setUp()
 {
-    _naviPythonHome.reset(new autil::EnvGuard(
-                    "NAVI_PYTHON_HOME",
-                    TEST_ROOT_PATH() + "config_loader/python:/usr/lib64/python3.6/"));
-    _loader = GET_PRIVATE_TEST_DATA_PATH() + "test_config_loader.py";
+    _naviPythonHome.reset(
+        new autil::EnvGuard("NAVI_PYTHON_HOME", NAVI_TEST_PYTHON_HOME));
+    _loader = NAVI_TEST_DATA_PATH + "test_config_loader.py";
     _graphDef.reset(new GraphDef());
 }
 
@@ -61,8 +60,8 @@ void PartAccessGraphTest::buildCluster(NaviTestCluster &cluster)
 {
     ResourceMapPtr rootResourceMap(new ResourceMap());
     rootResourceMap->addResource(std::make_shared<External>());
-    std::string configPath = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/";
-    std::string biz1Config = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/biz1.py";
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
 
     ASSERT_TRUE(cluster.addServer("host_0", _loader, configPath, rootResourceMap));
     ASSERT_TRUE(cluster.addServer("host_1", _loader, configPath, rootResourceMap));
@@ -157,10 +156,7 @@ TEST_F(PartAccessGraphTest, testBizA2BizQ)
 
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
 }
 
 void PartAccessGraphTest::checkGraphDef(GraphDef* graphDef) {
@@ -269,16 +265,17 @@ TEST_F(PartAccessGraphTest, testSimple)
         }
     }
     auto naviResult = userResult->getNaviResult();
-    naviResult->show();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
+    ASSERT_TRUE(naviResult);
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
 
     // qrs * biz_a * biz_b * biz_a * qrs
     // 1 * 1 * 2 * 1 * 1 = 2
     ASSERT_EQ(2, dataVec.size());
 
-    auto &rpcInfoMap = naviResult->rpcInfoMap;
+    auto rpcInfoMapPtr = naviResult->getRpcInfoMap();
+    ASSERT_TRUE(rpcInfoMapPtr);
+    auto &rpcInfoMap = *rpcInfoMapPtr;
     ASSERT_NO_FATAL_FAILURE(sortRpcInfoMap(rpcInfoMap));
     {
         auto it = rpcInfoMap.find(make_pair("(-1)", "biz_a"));
@@ -354,16 +351,16 @@ TEST_F(PartAccessGraphTest, testRunForkGraph)
     }
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
+    ASSERT_TRUE(naviResult);
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
 
     // qrs(fork_node) * biz_a * biz_b * biz_a * qrs
     // 1 * 1 * 2 * 1 * 1 = 2
     EXPECT_EQ(2, dataVec.size());
 
-    auto &rpcInfoMap = naviResult->rpcInfoMap;
+    auto rpcInfoMapPtr = naviResult->getRpcInfoMap();
+    ASSERT_TRUE(rpcInfoMapPtr);
+    auto &rpcInfoMap = *rpcInfoMapPtr;
     ASSERT_NO_FATAL_FAILURE(sortRpcInfoMap(rpcInfoMap));
     {
         auto it = rpcInfoMap.find(make_pair("biz_qrs(1)", "biz_a"));
@@ -405,6 +402,7 @@ TEST_F(PartAccessGraphTest, testBizA2BizQ_Error_PartIdOverflow)
     builder.newSubGraph("biz_qrs");
     auto identityQrs = builder.node("identity_qrs").kernel("IdentityTestKernel");
     identityQrs.out("output1").asGraphOutput("GraphOutput1");
+    builder.errorHandleStrategy(EHS_ERROR_AS_EOF);
 
     auto aBizGraph = builder.newSubGraph("biz_a");
     builder.subGraph(aBizGraph).partIds({1, 2});
@@ -425,8 +423,9 @@ TEST_F(PartAccessGraphTest, testBizA2BizQ_Error_PartIdOverflow)
                                 autil::ScopeGuard guard([&waitClosure]() { waitClosure.notify(); });
                                 ASSERT_NE(nullptr, naviUserResult);
                                 auto naviResult = naviUserResult->getNaviResult();
-                                ASSERT_EQ(EC_INIT_GRAPH, naviResult->ec) << naviResult->errorEvent.message;
-                                ASSERT_EQ("init gig stream failed, biz: biz_a", naviResult->errorEvent.message);
+                                EXPECT_EQ(EC_INIT_GRAPH, naviResult->getErrorCode());
+                                ASSERT_EQ("init gig stream failed, biz: biz_a",
+                                          naviResult->getErrorMessage());
                             });
     navi->runLocalGraphAsync(_graphDef.release(), params, {}, &closure);
     waitClosure.wait();
@@ -476,16 +475,16 @@ TEST_F(PartAccessGraphTest, testRunForkGraphOnLocalBiz)
     }
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
+    ASSERT_TRUE(naviResult);
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
 
     // qrs(fork_node) * biz_a * biz_b * biz_a * qrs
     // 1 * 1 * 2 * 1 * 1 = 2
     EXPECT_EQ(2, dataVec.size());
 
-    auto &rpcInfoMap = naviResult->rpcInfoMap;
+    auto rpcInfoMapPtr = naviResult->getRpcInfoMap();
+    ASSERT_TRUE(rpcInfoMapPtr);
+    auto &rpcInfoMap = *rpcInfoMapPtr;
     ASSERT_NO_FATAL_FAILURE(sortRpcInfoMap(rpcInfoMap));
     {
         auto it = rpcInfoMap.find(make_pair("biz_qrs(1)", "biz_a"));
@@ -568,11 +567,7 @@ TEST_F(PartAccessGraphTest, testRunForkGraphWithOverride)
     }
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
-
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
     EXPECT_EQ(10, dataVec.size());
 }
 
@@ -618,11 +613,7 @@ TEST_F(PartAccessGraphTest, testResourceOverride1)
     }
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
-
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
     EXPECT_EQ(9, dataVec.size());
 }
 
@@ -668,11 +659,7 @@ TEST_F(PartAccessGraphTest, testResourceOverride2)
     }
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
-
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
     EXPECT_EQ(9, dataVec.size());
 }
 
@@ -718,11 +705,7 @@ TEST_F(PartAccessGraphTest, testResourceOverride3)
     }
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
-
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
     EXPECT_EQ(9, dataVec.size());
 }
 
@@ -767,11 +750,7 @@ TEST_F(PartAccessGraphTest, testResourceOverride4)
     }
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
-
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
     EXPECT_EQ(9, dataVec.size());
 }
 
@@ -810,8 +789,8 @@ TEST_F(PartAccessGraphTest, testGraphTimeout)
     }
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_TIMEOUT", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("session timeout", naviResult->errorEvent.message);
+    EXPECT_EQ(EC_TIMEOUT, naviResult->getErrorCode());
+    ASSERT_EQ("session timeout", naviResult->getErrorMessage());
 }
 
 } // namespace navi

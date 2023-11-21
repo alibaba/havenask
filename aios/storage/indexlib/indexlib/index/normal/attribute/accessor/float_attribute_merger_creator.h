@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_FLOAT_ATTRIBUTE_MERGER_CREATOR_H
-#define __INDEXLIB_FLOAT_ATTRIBUTE_MERGER_CREATOR_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_merger_creator.h"
@@ -43,5 +42,4 @@ public:
         return new SingleValueAttributeMerger<int8_t>(needMergePatch);
     }
 };
-}}     // namespace indexlib::index
-#endif //__INDEXLIB_FLOAT_ATTRIBUTE_MERGER_CREATOR_H
+}} // namespace indexlib::index

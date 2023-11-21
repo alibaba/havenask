@@ -47,6 +47,8 @@ bool QueryMetricReporterR::config(navi::ResourceConfigContext &ctx) {
 }
 
 navi::ErrorCode QueryMetricReporterR::init(navi::ResourceInitContext &ctx) {
+    _tagsMap["biz"] = ctx.getBizName();
+    _tagsMap["sub_part_id"] = std::to_string(ctx.getPartId());
     const auto &reporter = _metricsReporterR->getQueryMetricsReporter(_tagsMap, _path);
     if (!reporter) {
         NAVI_KERNEL_LOG(ERROR, "init QueryMetricReporterR failed, path: [%s]", _path.c_str());

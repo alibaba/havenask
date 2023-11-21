@@ -8,6 +8,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_normal_unittest',
     srcs=glob(['*.cpp']),
+    copts=['-fno-access-control'],
     data=glob(['testdata/**']),
     shard_count=2,
     deps=[

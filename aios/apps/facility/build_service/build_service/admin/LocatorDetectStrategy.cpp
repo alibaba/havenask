@@ -15,6 +15,12 @@
  */
 #include "build_service/admin/LocatorDetectStrategy.h"
 
+#include <assert.h>
+#include <cstdint>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+
 namespace build_service { namespace admin {
 BS_LOG_SETUP(admin, LocatorDetectStrategy);
 

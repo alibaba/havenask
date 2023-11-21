@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONTROL_FLOW_TASK_FLOW_MANAGER_H
-#define ISEARCH_BS_CONTROL_FLOW_TASK_FLOW_MANAGER_H
-
-#include <memory>
+#pragma once
 
 #include "autil/Lock.h"
 #include "autil/legacy/jsonizable.h"
@@ -26,12 +23,24 @@
 #include "build_service/admin/taskcontroller/TaskMaintainer.h"
 #include "build_service/common_define.h"
 #include "build_service/proto/Admin.pb.h"
-#include "build_service/util/Log.h"
 
-BS_DECLARE_REFERENCE_CLASS(admin, TaskContainer);
-BS_DECLARE_REFERENCE_CLASS(admin, FlowContainer);
 BS_DECLARE_REFERENCE_CLASS(admin, FlowFactory);
-BS_DECLARE_REFERENCE_CLASS(admin, TaskResourceManager);
+#include <map>
+#include <string>
+#include <vector>
+
+#include "autil/Lock.h"
+#include "autil/legacy/jsonizable.h"
+#include "build_service/admin/CounterCollector.h"
+#include "build_service/admin/WorkerTable.h"
+#include "build_service/admin/controlflow/TaskFlow.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/admin/taskcontroller/TaskMaintainer.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common_define.h"
+#include "build_service/proto/Admin.pb.h"
+
+BS_DECLARE_REFERENCE_CLASS(admin, FlowFactory);
 
 namespace build_service { namespace admin {
 
@@ -134,5 +143,3 @@ private:
 BS_TYPEDEF_PTR(TaskFlowManager);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CONTROL_FLOW_TASK_FLOW_MANAGER_H

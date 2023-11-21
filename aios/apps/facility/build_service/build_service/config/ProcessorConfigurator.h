@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORCONFIGURATOR_H
-#define ISEARCH_BS_PROCESSORCONFIGURATOR_H
+#pragma once
 
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "build_service/common_define.h"
 #include "build_service/config/BuilderClusterConfig.h"
 #include "build_service/config/ProcessorConfigReader.h"
-#include "build_service/config/ProcessorRuleConfig.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/config/SchemaUpdatableClusterConfig.h"
-#include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/proto/DataDescriptions.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/util/Log.h"
 
 BS_DECLARE_REFERENCE_CLASS(config, SwiftConfig);
@@ -93,5 +96,3 @@ private:
 BS_TYPEDEF_PTR(ProcessorConfigurator);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_PROCESSORCONFIGURATOR_H

@@ -83,7 +83,7 @@ SingleSwiftWriter::SingleSwiftWriter(SwiftAdminAdapterPtr adminAdapter,
     , _lastSendRequestTime(TimeUtility::currentTime())
     , _checkpointId(INVALID_CHECK_POINT_ID)
     , _refreshTime(-1)
-    , _brokerBusyNextTimestamp(-1)
+    , _retreatNextTimestamp(-1)
     , _lastErrorCode(ERROR_NONE)
     , _writeBuffer(blockPool, mergeThreadPool, limiter, config.oneRequestSendByteCount)
     , _sessionId(sessionId)
@@ -169,28 +169,33 @@ ErrorCode SingleSwiftWriter::write(MessageInfo &msgInfo, bool isSynchronous) {
 ErrorCode SingleSwiftWriter::addMsgFail() {
     ErrorCode ec = getLastErrorCode();
     if (ec == ERROR_BROKER_BUSY || ec == ERROR_NONE) {
+        size_t inWriteCount, toSendCount, leftMergeCount, uncommittedCount;
+        _writeBuffer.getMsgInBufferInfo(inWriteCount, toSendCount, leftMergeCount, uncommittedCount);
         AUTIL_INTERVAL_LOG(100,
                            WARN,
-                           "Partition [%s %u] Send buffer is full, "
+                           "Partition [%s %u] Send buffer is full or merge queue not empty, "
                            "partition send buffer is [%lu], total use buffer[%ld], "
-                           "uncommitted message count[%lu], unsend message count[%lu]",
+                           "uncommitted message count[%lu], unsend message count[%lu], "
+                           "write queue count[%lu], left merge count[%lu]",
                            _config.topicName.c_str(),
                            _partitionId,
                            _writeBuffer.getSize(),
                            _blockPool->getBlockSize() * _blockPool->getUsedBlockCount(),
-                           _writeBuffer.getUncommittedCount(),
-                           _writeBuffer.getUnsendCount());
+                           uncommittedCount,
+                           toSendCount,
+                           inWriteCount,
+                           leftMergeCount);
 
         return ERROR_CLIENT_SEND_BUFFER_FULL;
     }
-    AUTIL_LOG(WARN,
-              "Partition [%s %u] write message failed, error code[%s], "
-              "send buffer is [%lu], total use buffer[%ld].",
-              _config.topicName.c_str(),
-              _partitionId,
-              ErrorCode_Name(ec).c_str(),
-              _writeBuffer.getSize(),
-              _blockPool->getBlockSize() * _blockPool->getMaxBlockCount());
+    AUTIL_MASSIVE_LOG(WARN,
+                      "Partition [%s %u] write message failed, error code[%s], "
+                      "send buffer is [%lu], total use buffer[%ld].",
+                      _config.topicName.c_str(),
+                      _partitionId,
+                      ErrorCode_Name(ec).c_str(),
+                      _writeBuffer.getSize(),
+                      _blockPool->getBlockSize() * _blockPool->getMaxBlockCount());
     return ec;
 }
 
@@ -237,10 +242,13 @@ ErrorCode SingleSwiftWriter::sendRequest(int64_t now, bool force) {
         }
         return ERROR_BROKER_WRITE_VERSION_INVALID;
     }
+    if (_lastErrorCode == ERROR_CLIENT_ARPC_ERROR) {
+        collector.rpcError = true;
+    }
     if (_writeBuffer.getUnsendSize() >= (size_t)_config.oneRequestSendByteCount ||
         now >= _lastSendRequestTime + (int64_t)_config.maxKeepInBufferTime || force == true) {
         if (_lastErrorCode != ERROR_NONE &&
-            (now < _lastSendRequestTime + (int64_t)_config.retryTimeInterval || needWaitForBrokerBusy(now))) {
+            (now < _lastSendRequestTime + (int64_t)_config.retryTimeInterval || needRetreat(now))) {
             AUTIL_INTERVAL_LOG(100,
                                INFO,
                                "[%s %d] suspend send request for ec[%s],"
@@ -289,13 +297,18 @@ void SingleSwiftWriter::sendSyncRequest(int64_t now, uint32_t retryTimes, Client
     _writeBuffer.clear();
 }
 
-bool SingleSwiftWriter::needWaitForBrokerBusy(int64_t currentTime) {
-    if (ERROR_BROKER_BUSY != _lastErrorCode) {
-        _brokerBusyNextTimestamp = -1;
+bool SingleSwiftWriter::needRetreat(int64_t currentTime) {
+    if (ERROR_BROKER_BUSY != _lastErrorCode && ERROR_CLIENT_INVALID_RESPONSE != _lastErrorCode &&
+        ERROR_CLIENT_ARPC_ERROR != _lastErrorCode && ERROR_BROKER_INVALID_USER != _lastErrorCode) {
+        _retreatNextTimestamp = -1;
+        return false;
+    }
+    if (ERROR_CLIENT_ARPC_ERROR == _lastErrorCode && !_transportAdapter->brokerAddressIsSameAsLast()) {
+        _retreatNextTimestamp = -1;
         return false;
     }
     // first busy, so set next timestamp
-    if (_brokerBusyNextTimestamp < 0) {
+    if (_retreatNextTimestamp < 0) {
         int64_t interval = 0;
         if (_config.brokerBusyWaitIntervalMin == _config.brokerBusyWaitIntervalMax) {
             interval = _config.brokerBusyWaitIntervalMin;
@@ -305,11 +318,11 @@ bool SingleSwiftWriter::needWaitForBrokerBusy(int64_t currentTime) {
             interval = _config.brokerBusyWaitIntervalMin +
                        (rand() % (_config.brokerBusyWaitIntervalMax - _config.brokerBusyWaitIntervalMin + 1));
         }
-        _brokerBusyNextTimestamp = _lastSendRequestTime + interval;
+        _retreatNextTimestamp = _lastSendRequestTime + interval;
         return true;
     }
-    if (currentTime >= _brokerBusyNextTimestamp) {
-        _brokerBusyNextTimestamp = -1;
+    if (currentTime >= _retreatNextTimestamp) {
+        _retreatNextTimestamp = -1;
         return false;
     }
     return true;
@@ -403,6 +416,10 @@ bool SingleSwiftWriter::postSendMessageRequest(int64_t now, ClientMetricsCollect
     if (_metricsReporter) {
         collector.unsendCount = getUnsendMessageCount();
         collector.uncommitCount = getUncommittedMsgCount();
+        collector.usedBlockCount = _blockPool->getUsedBlockCount();
+        auto blockSize = _blockPool->getBlockSize();
+        collector.usedTotalPoolSize = blockSize * collector.usedBlockCount;
+        collector.totalPoolSize = blockSize * (collector.usedBlockCount + _blockPool->getUnusedBlockCount());
         _metricsReporter->reportWriterMetrics(collector, &_metricsTags);
     }
     return ret;
@@ -622,7 +639,12 @@ bool SingleSwiftWriter::stealUnsendMessage(std::vector<common::MessageInfo> &msg
 
 size_t SingleSwiftWriter::getOneRequestSendBytes() {
     if (getLastErrorCode() != ERROR_NONE) {
-        return _config.oneRequestSendByteCount / 100;
+        int64_t adjustByteCount = _config.oneRequestSendByteCount / 100;
+        AUTIL_LOG(INFO,
+                  "adjust send request byte limit from [%ld] to [%ld]",
+                  _config.oneRequestSendByteCount,
+                  adjustByteCount);
+        return adjustByteCount;
     } else {
         return _config.oneRequestSendByteCount;
     }

@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <bits/functexcept.h>
+#pragma once
 #include <cstddef>
 #include <exception>
 #include <new>
 #include <utility>
 
 #include "autil/mem_pool/PoolBase.h"
-#ifndef AUTIL_POOL_ALLOCATOR
-#define AUTIL_POOL_ALLOCATOR
 
 namespace autil {
 namespace mem_pool {
@@ -82,16 +80,14 @@ public:
 };
 
 template <typename _Tp>
-inline bool operator==(const pool_allocator<_Tp> &, const pool_allocator<_Tp> &) {
-    return true;
+inline bool operator==(const pool_allocator<_Tp> &lhs, const pool_allocator<_Tp> &rhs) {
+    return lhs._pool == rhs._pool;
 }
 
 template <typename _Tp>
-inline bool operator!=(const pool_allocator<_Tp> &, const pool_allocator<_Tp> &) {
-    return false;
+inline bool operator!=(const pool_allocator<_Tp> &lhs, const pool_allocator<_Tp> &rhs) {
+    return !(lhs == rhs);
 }
 
 } // namespace mem_pool
 } // namespace autil
-
-#endif

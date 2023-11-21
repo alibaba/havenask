@@ -15,6 +15,9 @@
  */
 #include "indexlib/util/MMapAllocator.h"
 
+#include <iosfwd>
+#include <string>
+
 #include "autil/EnvUtil.h"
 
 using namespace std;

@@ -27,16 +27,14 @@ class MetricsGroupManager;
 namespace navi {
 
 struct NaviStat;
-struct NaviSnapshotStat;
 
 struct RunGraphMetricsCollector {
-    int64_t runStartTime = 0;
-    int64_t createTime = 0;
+    int64_t newSessionLatency = 0;
+    int64_t sessionBeginTime = 0;
     int64_t initScheduleTime = 0;
     int64_t fillResultTime = 0;
     int64_t totalQueueLatency = 0;
     int64_t totalComputeLatency = 0;
-    int64_t allocatedPoolSize = 0;
     bool hasError = false;
     bool hasLack = false;
 };
@@ -52,7 +50,6 @@ private:
     kmonitor::MutableMetric *_totalQueueLatency = nullptr;
     kmonitor::MutableMetric *_totalComputeLatency = nullptr;
     kmonitor::MutableMetric *_newSessionLatency = nullptr;
-    kmonitor::MutableMetric *_allocatedPoolSize = nullptr;
     kmonitor::MutableMetric *_naviRunSuccessQps = nullptr;
     kmonitor::MutableMetric *_naviRunFailedQps = nullptr;
     kmonitor::MutableMetric *_naviRunQps = nullptr;
@@ -67,14 +64,16 @@ private:
     kmonitor::MutableMetric *_serviceStatus = nullptr;
 };
 
+struct TaskQueueStat;
 
-class NaviSnapshotStatMetrics : public kmonitor::MetricsGroup {
+class TaskQueueStatMetrics : public kmonitor::MetricsGroup {
 public:
     bool init(kmonitor::MetricsGroupManager *manager) override;
-    void report(const kmonitor::MetricsTags *tags, const NaviSnapshotStat *stat);
+    void report(const kmonitor::MetricsTags *tags, const TaskQueueStat *stat);
 private:
     kmonitor::MutableMetric *_activeThreadCount = nullptr;
     kmonitor::MutableMetric *_activeThreadQueueCount = nullptr;
+    kmonitor::MutableMetric *_idleThreadQueueCount = nullptr;
     kmonitor::MutableMetric *_processingCount = nullptr;
     kmonitor::MutableMetric *_processingCountRatio = nullptr;
     kmonitor::MutableMetric *_queueCount = nullptr;

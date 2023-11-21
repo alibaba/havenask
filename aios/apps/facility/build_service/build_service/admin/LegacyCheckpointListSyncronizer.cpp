@@ -15,9 +15,20 @@
  */
 #include "build_service/admin/LegacyCheckpointListSyncronizer.h"
 
+#include <cstddef>
+#include <memory>
+#include <stdint.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/CheckpointCreator.h"
 #include "build_service/admin/CheckpointMetricReporter.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/config/AgentGroupConfig.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "worker_framework/WorkerState.h"
 #include "worker_framework/ZkState.h"
 
 using namespace std;

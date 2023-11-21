@@ -1,7 +1,6 @@
 package(default_visibility=['//aios/apps/facility/swift:__subpackages__'])
 cc_library(
     name='fake_client_part',
-    include_prefix='swift/client/fake_client',
     srcs=glob([
         'FakeSwiftAdminClient.cpp', 'FakeSwiftTransportClient.cpp',
         'FakeChannelManager.cpp', 'FakeRpcChannel.cpp',
@@ -16,6 +15,7 @@ cc_library(
         'FakeClientHelper.h', 'SwiftWriterImplMock.h',
         'FakeSwiftTransportAdapter.h'
     ]),
+    include_prefix='swift/client/fake_client',
     deps=[
         '//aios/apps/facility/swift/client:swift_client_no_transport',
         '//aios/apps/facility/swift/client:transport_client_without_creator'
@@ -23,8 +23,8 @@ cc_library(
 )
 cc_library(
     name='fake_client_minimal',
-    include_prefix='swift/client/fake_client',
     srcs=['FakeSwiftTransportClientCreator.cpp'],
-    deps=[':fake_client_part'],
-    visibility=['//visibility:public']
+    include_prefix='swift/client/fake_client',
+    visibility=['//visibility:public'],
+    deps=[':fake_client_part']
 )

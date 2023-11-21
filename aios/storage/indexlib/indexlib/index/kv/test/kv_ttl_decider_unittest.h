@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVTTLDECIDERTEST_H
-#define __INDEXLIB_KVTTLDECIDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kv/kv_ttl_decider.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(KvTtlDeciderTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KVTTLDECIDERTEST_H

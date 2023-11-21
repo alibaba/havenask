@@ -1,9 +1,23 @@
 #include "build_service/common/SourceEnd2EndLatencyReporter.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+
 #include "autil/legacy/any.h"
 #include "autil/legacy/json.h"
 #include "build_service/test/unittest.h"
+#include "indexlib/config/field_config.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/index_partition_schema_maker.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace indexlib::util;

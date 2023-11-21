@@ -15,7 +15,8 @@
  */
 #include "indexlib/index/summary/SummaryIndexFactory.h"
 
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/SummaryDiskIndexer.h"
 #include "indexlib/index/summary/SummaryMemIndexer.h"
@@ -28,21 +29,21 @@ AUTIL_LOG_SETUP(indexlib.index, SummaryIndexFactory);
 
 std::shared_ptr<IDiskIndexer>
 SummaryIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                       const IndexerParameter& indexerParam) const
+                                       const DiskIndexerParameter& indexerParam) const
 {
     return std::make_shared<SummaryDiskIndexer>(indexerParam);
 }
 
 std::shared_ptr<IMemIndexer>
 SummaryIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                      const IndexerParameter& indexerParam) const
+                                      const MemIndexerParameter&) const
 {
     return std::make_shared<SummaryMemIndexer>();
 }
 
 std::unique_ptr<IIndexReader>
 SummaryIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                       const IndexerParameter& indexerParam) const
+                                       const IndexReaderParameter&) const
 {
     return std::make_unique<SummaryReader>();
 }

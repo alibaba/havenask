@@ -43,7 +43,7 @@ CompressBlockDataRetriever::CompressBlockDataRetriever(const ReadOption& option,
 
 CompressBlockDataRetriever::~CompressBlockDataRetriever() { IE_POOL_COMPATIBLE_DELETE_CLASS(_pool, _compressor); }
 
-void CompressBlockDataRetriever::DecompressBlockData(size_t blockIdx) noexcept(false)
+FSResult<void> CompressBlockDataRetriever::DecompressBlockData(size_t blockIdx) noexcept
 {
     size_t compressBlockOffset = _compressAddrMapper->CompressBlockAddress(blockIdx);
     size_t compressBlockSize = _compressAddrMapper->CompressBlockLength(blockIdx);
@@ -51,16 +51,20 @@ void CompressBlockDataRetriever::DecompressBlockData(size_t blockIdx) noexcept(f
 
     _compressor->Reset();
     autil::DynamicBuf& inBuffer = _compressor->GetInBuffer();
-    if (compressBlockSize !=
-        _dataFileReader->Read(inBuffer.getBuffer(), compressBlockSize, compressBlockOffset, _readOption).GetOrThrow()) {
-        INDEXLIB_FATAL_ERROR(IndexCollapsed, "decompress file[%s] failed", _dataFileReader->DebugString().c_str());
+    auto ret = _dataFileReader->Read(inBuffer.getBuffer(), compressBlockSize, compressBlockOffset, _readOption);
+    RETURN_IF_FS_ERROR(ret.Code(), "read compress file [%s] failed", _dataFileReader->DebugString().c_str());
+    if (compressBlockSize != ret.Value()) {
+        AUTIL_LOG(ERROR, "decompress file[%s] failed", _dataFileReader->DebugString().c_str());
+        return {FSEC_ERROR};
     }
     inBuffer.movePtr(compressBlockSize);
 
     ScopedDecompressMetricReporter scopeReporter(_reporter, _readOption.trace);
     if (!_compressor->Decompress(hintData, _blockSize)) {
-        INDEXLIB_FATAL_ERROR(IndexCollapsed, "decompress file [%s] failed, offset [%lu], compress len [%lu]",
-                             _dataFileReader->DebugString().c_str(), compressBlockOffset, compressBlockSize);
+        AUTIL_LOG(ERROR, "decompress file [%s] failed, offset [%lu], compress len [%lu]",
+                  _dataFileReader->DebugString().c_str(), compressBlockOffset, compressBlockSize);
+        return {FSEC_ERROR};
     }
+    return {FSEC_OK};
 }
 }} // namespace indexlib::file_system

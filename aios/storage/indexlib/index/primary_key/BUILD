@@ -31,6 +31,7 @@ strict_cc_library(
 strict_cc_library(
     name='PrimaryKeyIndexFactory',
     deps=[
+        ':PrimaryKeyIndexFieldsParser',
         '//aios/storage/indexlib/index:IIndexFactory',
         '//aios/storage/indexlib/index/primary_key:primary_key_indexer',
         '//aios/storage/indexlib/index/primary_key:primary_key_reader',
@@ -41,7 +42,7 @@ strict_cc_library(
 strict_cc_library(
     name='PrimaryKeyIndexReader',
     srcs=[],
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
         '//aios/autil:multi_value', '//aios/autil:string_type',
         '//aios/storage/indexlib/base:Types',
@@ -65,8 +66,8 @@ strict_cc_library(
         'SortedPrimaryKeyFileWriter.h'
     ],
     deps=[
-        '//aios/autil:NoCopyable', '//aios/autil:bloom_filter',
-        '//aios/autil:log', '//aios/future_lite',
+        ':PrimaryKeyIndexFields', '//aios/autil:NoCopyable',
+        '//aios/autil:bloom_filter', '//aios/autil:log', '//aios/future_lite',
         '//aios/storage/indexlib/base:NoExceptionWrapper',
         '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/document:interface',
@@ -185,5 +186,23 @@ strict_cc_library(
     deps=[
         ':SinglePrimaryKeyBuilder',
         '//aios/storage/indexlib/index/common:BuildWorkItem'
+    ]
+)
+strict_cc_library(
+    name='PrimaryKeyIndexFields',
+    deps=[
+        ':Common', '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/document:IIndexFields'
+    ]
+)
+strict_cc_library(
+    name='PrimaryKeyIndexFieldsParser',
+    deps=[
+        ':PrimaryKeyIndexFields', '//aios/storage/indexlib/config:FieldConfig',
+        '//aios/storage/indexlib/document:ExtendDocument',
+        '//aios/storage/indexlib/document:IIndexFieldsParser',
+        '//aios/storage/indexlib/document:RawDocument',
+        '//aios/storage/indexlib/index/primary_key/config:PrimaryKeyIndexConfig',
+        '//aios/storage/indexlib/util:PooledUniquePtr'
     ]
 )

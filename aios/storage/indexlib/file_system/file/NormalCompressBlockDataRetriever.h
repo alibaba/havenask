@@ -36,8 +36,8 @@ public:
     NormalCompressBlockDataRetriever& operator=(NormalCompressBlockDataRetriever&&) = delete;
 
 public:
-    uint8_t* RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
-                               size_t& blockDataLength) noexcept(false) override;
+    FSResult<uint8_t*> RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
+                                         size_t& blockDataLength) noexcept override;
     void Reset() noexcept override;
     future_lite::coro::Lazy<ErrorCode> Prefetch(size_t fileOffset, size_t length) noexcept override;
 

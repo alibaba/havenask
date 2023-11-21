@@ -40,6 +40,7 @@ public:
     }
 
 public:
+    std::string toString() const;
     void reset() {
         TermMatchData *curMatchData = _termMatchData + 1;
         TermMatchData *end = _termMatchData + _numTerms;

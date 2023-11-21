@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_FILEOUTPUT_H
-#define ISEARCH_BS_FILEOUTPUT_H
+#pragma once
 
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
+#include "autil/legacy/any.h"
 #include "build_service/common_define.h"
 #include "build_service/config/TaskOutputConfig.h"
 #include "build_service/io/IODefine.h"
@@ -89,5 +94,3 @@ private:
 BS_TYPEDEF_PTR(FileOutputCreator);
 
 }} // namespace build_service::io
-
-#endif // ISEARCH_BS_FILEOUTPUT_H

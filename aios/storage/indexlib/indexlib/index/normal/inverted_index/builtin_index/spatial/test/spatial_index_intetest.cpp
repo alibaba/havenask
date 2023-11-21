@@ -3,6 +3,7 @@
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "indexlib/config/spatial_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/file/CompressFileReader.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/inverted_index/SeekAndFilterIterator.h"
@@ -11,7 +12,6 @@
 #include "indexlib/partition/online_partition.h"
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/FutureExecutor.h"
 
 using namespace std;

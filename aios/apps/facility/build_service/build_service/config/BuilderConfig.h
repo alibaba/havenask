@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDERCONFIG_H
-#define ISEARCH_BS_BUILDERCONFIG_H
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
 
 #include "autil/legacy/jsonizable.h"
-#include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 #include "indexlib/config/SortDescription.h"
 
@@ -71,5 +72,3 @@ private:
 };
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_BUILDERCONFIG_H

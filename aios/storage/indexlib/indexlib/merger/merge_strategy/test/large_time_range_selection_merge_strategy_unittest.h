@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TIMESERIESMERGESTRATEGYTEST_H
-#define __INDEXLIB_TIMESERIESMERGESTRATEGYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/merge_strategy/large_time_range_selection_merge_strategy.h"
@@ -39,5 +38,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(LargeTimeRangeSelectionMergeStrategyTest, TestSimpleProcess);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TIMESERIESMERGESTRATEGYTEST_H

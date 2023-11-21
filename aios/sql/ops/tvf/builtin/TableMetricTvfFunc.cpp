@@ -69,7 +69,7 @@ bool TableMetricTvfFunc::compute(const TablePtr &input, bool eof, TablePtr &outp
             = _metricReporter->getSubReporter("sql.user_define", {{{"table_name", _tagName}}});
         reporter->report<TableMetricTvfOpMetrics, size_t>(nullptr, &counter);
     }
-    SQL_LOG(DEBUG, "Metric reporter: [%p], tag name: [%s]", _metricReporter, _tagName.c_str());
+    SQL_LOG(TRACE1, "Metric reporter: [%p], tag name: [%s]", _metricReporter, _tagName.c_str());
 
     return true;
 }

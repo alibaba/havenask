@@ -15,8 +15,23 @@
  */
 #include "build_service/processor/LineDataDocumentProcessor.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/RawDocument.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/FieldConfig.h"
 #include "indexlib/config/ITabletSchema.h"
-#include "indexlib/index/attribute/Common.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/attribute_schema.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 using namespace autil;

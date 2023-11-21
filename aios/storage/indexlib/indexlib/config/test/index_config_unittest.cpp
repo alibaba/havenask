@@ -1,13 +1,14 @@
 #include "indexlib/config/test/index_config_unittest.h"
 
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_config.h"
 #include "indexlib/config/test/schema_loader.h"
+#include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/archive/ArchiveFolder.h"
 #include "indexlib/index/inverted_index/config/HighFreqVocabularyCreator.h"
-#include "indexlib/test/unittest.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/testutil/unittest.h"
 
 using namespace std;
 using namespace autil;
@@ -40,17 +41,20 @@ public:
 
 private:
     FieldConfigPtr mFieldConfig;
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-void IndexConfigTest::CaseSetUp() {}
+void IndexConfigTest::CaseSetUp()
+{
+    mRootDir = IDirectory::Get(FileSystemCreator::Create("", GET_TEMP_DATA_PATH()).GetOrThrow());
+}
 
 void IndexConfigTest::CaseTearDown() {}
 
 void IndexConfigTest::GenerateTruncateMetaFile(uint32_t lineNum, string fileName, uint32_t repeatNum)
 {
     ArchiveFolderPtr folder(new ArchiveFolder(true));
-    ASSERT_EQ(FSEC_OK, folder->Open(GET_PARTITION_DIRECTORY()->GetIDirectory(), ""));
+    ASSERT_EQ(FSEC_OK, folder->Open(mRootDir, ""));
     string content;
     for (uint32_t k = 0; k < repeatNum; k++) {
         for (uint32_t i = 0; i < lineNum; i++) {
@@ -76,7 +80,7 @@ void IndexConfigTest::TestCaseForIsTruncateTerm()
 {
     {
         IndexConfigMock indexConfig;
-        INDEXLIB_TEST_TRUE(!indexConfig.IsTruncateTerm(index::DictKeyInfo(1)));
+        ASSERT_TRUE(!indexConfig.IsTruncateTerm(index::DictKeyInfo(1)));
     }
 
     {
@@ -86,14 +90,14 @@ void IndexConfigTest::TestCaseForIsTruncateTerm()
         vector<string> truncIndexNames;
         truncIndexNames.push_back("truncate_meta");
         ArchiveFolderPtr folder(new ArchiveFolder(true));
-        ASSERT_EQ(FSEC_OK, folder->Open(GET_PARTITION_DIRECTORY()->GetIDirectory(), ""));
+        ASSERT_EQ(FSEC_OK, folder->Open(mRootDir, ""));
         ASSERT_TRUE(indexConfig.LoadTruncateTermVocabulary(folder, truncIndexNames).IsOK());
         ASSERT_EQ(FSEC_OK, folder->Close());
-        INDEXLIB_TEST_TRUE(indexConfig.IsTruncateTerm(index::DictKeyInfo(1)));
-        INDEXLIB_TEST_TRUE(indexConfig.IsTruncateTerm(index::DictKeyInfo(2)));
-        INDEXLIB_TEST_TRUE(indexConfig.IsTruncateTerm(index::DictKeyInfo(0)));
-        INDEXLIB_TEST_TRUE(indexConfig.IsTruncateTerm(index::DictKeyInfo::NULL_TERM));
-        INDEXLIB_TEST_TRUE(!indexConfig.IsTruncateTerm(index::DictKeyInfo(3)));
+        ASSERT_TRUE(indexConfig.IsTruncateTerm(index::DictKeyInfo(1)));
+        ASSERT_TRUE(indexConfig.IsTruncateTerm(index::DictKeyInfo(2)));
+        ASSERT_TRUE(indexConfig.IsTruncateTerm(index::DictKeyInfo(0)));
+        ASSERT_TRUE(indexConfig.IsTruncateTerm(index::DictKeyInfo::NULL_TERM));
+        ASSERT_TRUE(!indexConfig.IsTruncateTerm(index::DictKeyInfo(3)));
     }
 }
 
@@ -102,8 +106,8 @@ void IndexConfigTest::TestCaseForGetTruncatePostingCount()
     int32_t count;
     {
         IndexConfigMock indexConfig;
-        INDEXLIB_TEST_TRUE(!indexConfig.GetTruncatePostingCount(index::DictKeyInfo(1), count));
-        INDEXLIB_TEST_EQUAL(0, count);
+        ASSERT_TRUE(!indexConfig.GetTruncatePostingCount(index::DictKeyInfo(1), count));
+        ASSERT_EQ(0, count);
     }
 
     {
@@ -112,20 +116,20 @@ void IndexConfigTest::TestCaseForGetTruncatePostingCount()
         vector<string> truncIndexNames;
         truncIndexNames.push_back("truncate_meta");
         ArchiveFolderPtr folder(new ArchiveFolder(true));
-        ASSERT_EQ(FSEC_OK, folder->Open(GET_PARTITION_DIRECTORY()->GetIDirectory(), ""));
+        ASSERT_EQ(FSEC_OK, folder->Open(mRootDir, ""));
         ASSERT_TRUE(indexConfig.LoadTruncateTermVocabulary(folder, truncIndexNames).IsOK());
         ASSERT_EQ(FSEC_OK, folder->Close());
-        INDEXLIB_TEST_TRUE(indexConfig.GetTruncatePostingCount(index::DictKeyInfo(1), count));
-        INDEXLIB_TEST_EQUAL(2, count);
-        INDEXLIB_TEST_TRUE(indexConfig.GetTruncatePostingCount(index::DictKeyInfo(2), count));
-        INDEXLIB_TEST_EQUAL(2, count);
-        INDEXLIB_TEST_TRUE(indexConfig.GetTruncatePostingCount(index::DictKeyInfo(0), count));
-        INDEXLIB_TEST_EQUAL(2, count);
-        INDEXLIB_TEST_TRUE(indexConfig.GetTruncatePostingCount(index::DictKeyInfo::NULL_TERM, count));
-        INDEXLIB_TEST_EQUAL(2, count);
+        ASSERT_TRUE(indexConfig.GetTruncatePostingCount(index::DictKeyInfo(1), count));
+        ASSERT_EQ(2, count);
+        ASSERT_TRUE(indexConfig.GetTruncatePostingCount(index::DictKeyInfo(2), count));
+        ASSERT_EQ(2, count);
+        ASSERT_TRUE(indexConfig.GetTruncatePostingCount(index::DictKeyInfo(0), count));
+        ASSERT_EQ(2, count);
+        ASSERT_TRUE(indexConfig.GetTruncatePostingCount(index::DictKeyInfo::NULL_TERM, count));
+        ASSERT_EQ(2, count);
 
-        INDEXLIB_TEST_TRUE(!indexConfig.GetTruncatePostingCount(index::DictKeyInfo(3), count));
-        INDEXLIB_TEST_EQUAL(0, count);
+        ASSERT_TRUE(!indexConfig.GetTruncatePostingCount(index::DictKeyInfo(3), count));
+        ASSERT_EQ(0, count);
     }
 }
 
@@ -133,7 +137,7 @@ void IndexConfigTest::TestCaseForIsBitmapOnlyTerm()
 {
     {
         IndexConfigMock indexConfig;
-        INDEXLIB_TEST_TRUE(!indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(1)));
+        ASSERT_TRUE(!indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(1)));
     }
 
     {
@@ -143,7 +147,7 @@ void IndexConfigTest::TestCaseForIsBitmapOnlyTerm()
             /*content =*/""));
         indexConfig.SetDictConfig(dictConfig);
         indexConfig.SetHighFreqencyTermPostingType(indexlib::index::hp_both);
-        INDEXLIB_TEST_TRUE(!indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(1)));
+        ASSERT_TRUE(!indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(1)));
     }
 
     {
@@ -160,11 +164,11 @@ void IndexConfigTest::TestCaseForIsBitmapOnlyTerm()
 
         indexConfig.SetHighFreqencyTermPostingType(indexlib::index::hp_bitmap);
 
-        INDEXLIB_TEST_TRUE(indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(0)));
-        INDEXLIB_TEST_TRUE(indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(2)));
-        INDEXLIB_TEST_TRUE(indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(1)));
-        INDEXLIB_TEST_TRUE(indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo::NULL_TERM));
-        INDEXLIB_TEST_TRUE(!indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(3)));
+        ASSERT_TRUE(indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(0)));
+        ASSERT_TRUE(indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(2)));
+        ASSERT_TRUE(indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(1)));
+        ASSERT_TRUE(indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo::NULL_TERM));
+        ASSERT_TRUE(!indexConfig.IsBitmapOnlyTerm(index::DictKeyInfo(3)));
     }
 }
 

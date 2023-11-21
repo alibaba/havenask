@@ -15,6 +15,13 @@
  */
 #include "build_service/proto/DataDescription.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <utility>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/CLIOptionNames.h"
 
 using namespace std;

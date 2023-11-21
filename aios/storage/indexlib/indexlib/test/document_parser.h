@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TEST_DOCUMENT_PARSER_H
-#define __INDEXLIB_TEST_DOCUMENT_PARSER_H
+#pragma once
 
 #include <memory>
 
@@ -43,5 +42,3 @@ private:
 
 DEFINE_SHARED_PTR(DocumentParser);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_TEST_DOCUMENT_PARSER_H

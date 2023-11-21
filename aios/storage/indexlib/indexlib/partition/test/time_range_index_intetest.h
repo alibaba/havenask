@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TIMERANGEINDEXINTETEST_H
-#define __INDEXLIB_TIMERANGEINDEXINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -89,5 +88,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(TimeRangeIndexInteTest, TestSearchNullTimesta
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(TimeRangeIndexInteTest, TestSearchTimeByBlockCache);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(TimeRangeIndexInteTest, TestSearchTimeByBlockCacheConcurrency);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_TIMERANGEINDEXINTETEST_H

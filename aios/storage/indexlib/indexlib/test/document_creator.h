@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCUMENT_CREATOR_H
-#define __INDEXLIB_DOCUMENT_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -69,5 +68,3 @@ private:
 
 DEFINE_SHARED_PTR(DocumentCreator);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_DOCUMENT_CREATOR_H

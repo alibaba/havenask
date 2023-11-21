@@ -8,7 +8,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_section_attribute_unittest',
     srcs=glob(['*unittest.cpp']),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     flaky=True,
     deps=[

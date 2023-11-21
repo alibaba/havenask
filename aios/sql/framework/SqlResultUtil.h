@@ -94,6 +94,7 @@ public:
                              const std::map<std::string, bool> &leaderInfo,
                              const std::map<std::string, int64_t> &watermarkInfo,
                              bool hasSoftFailure,
+                             const std::vector<int64_t> &softFailureCodes,
                              autil::mem_pool::Pool *pool);
 
     flatbuffers::Offset<isearch::fbs::SqlResult>
@@ -105,10 +106,12 @@ public:
                       const std::map<std::string, bool> &leaderInfo,
                       const std::map<std::string, int64_t> &watermarkInfo,
                       bool hasSoftFailure,
+                      const std::vector<int64_t> &softFailureCodes,
                       flatbuffers::FlatBufferBuilder &fbb);
     bool FromFBSqlResult(const isearch::fbs::SqlResult *fbsSqlResult,
                          ErrorResult &errorResult,
                          bool &hasSoftFailure,
+                         std::vector<int64_t> &softFailureCodes,
                          std::shared_ptr<table::Table> &table);
     flatbuffers::Offset<isearch::fbs::SqlErrorResult>
     CreateSqlErrorResult(const ErrorResult &errorResult, flatbuffers::FlatBufferBuilder &fbb);
@@ -132,6 +135,11 @@ public:
     void CreateSqlTableColumnByMultiString(
         const std::string &columnName,
         table::ColumnData<autil::MultiString> *columnData,
+        flatbuffers::FlatBufferBuilder &fbb,
+        std::vector<flatbuffers::Offset<isearch::fbs::Column>> &sqlTableColumns);
+    void CreateSqlTableColumnByBool(
+        const std::string &columnName,
+        table::ColumnData<bool> *column,
         flatbuffers::FlatBufferBuilder &fbb,
         std::vector<flatbuffers::Offset<isearch::fbs::Column>> &sqlTableColumns);
 
@@ -187,6 +195,9 @@ public:
     bool FromSqlTableColumnByMultiByteString(autil::mem_pool::Pool *pool,
                                              const isearch::fbs::Column *fbsColumn,
                                              table::ColumnData<autil::MultiString> *columnData);
+    bool FromSqlTableColumnByBool(autil::mem_pool::Pool *pool,
+                                  const isearch::fbs::Column *fbsColumn,
+                                  table::ColumnData<bool> *columnData);
 
 private:
     bool _useByteString = false;

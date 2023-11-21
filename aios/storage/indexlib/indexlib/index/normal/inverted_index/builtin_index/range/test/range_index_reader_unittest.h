@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_RANGEINDEXREADERTEST_H
-#define __INDEXLIB_RANGEINDEXREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -68,5 +67,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(RangeIndexReaderTestMode, TestRangeIndexReade
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(RangeIndexReaderTestMode, TestMultiValueDocNumber);
 
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_RANGEINDEXREADERTEST_H

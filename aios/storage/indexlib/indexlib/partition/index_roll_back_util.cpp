@@ -46,10 +46,10 @@ versionid_t IndexRollBackUtil::GetLatestOnDiskVersion(const std::string& indexRo
 {
     Version version;
     try {
-        VersionLoader::GetVersionS(indexRoot, version, INVALID_VERSION);
+        VersionLoader::GetVersionS(indexRoot, version, INVALID_VERSIONID);
     } catch (const ExceptionBase& e) {
         IE_LOG(ERROR, "get latest version from [%s] failed", indexRoot.c_str());
-        return INVALID_VERSION;
+        return INVALID_VERSIONID;
     }
     return version.GetVersionId();
 }
@@ -103,7 +103,7 @@ bool IndexRollBackUtil::CreateRollBackVersion(const std::string& rootPath, versi
         }
 
         Version latestVersion;
-        VersionLoader::GetVersionS(rootPath, latestVersion, INVALID_VERSION);
+        VersionLoader::GetVersionS(rootPath, latestVersion, INVALID_VERSIONID);
 
         Version targetVersion(sourceVersion);
         targetVersion.SetVersionId(targetVersionId);

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CLOSEDHASHPREFIXKEYTABLETEST_H
-#define __INDEXLIB_CLOSEDHASHPREFIXKEYTABLETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/closed_hash_prefix_key_table.h"
@@ -35,5 +34,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(ClosedHashPrefixKeyTableTest, TestReadAndWriteTable);
 INDEXLIB_UNIT_TEST_CASE(ClosedHashPrefixKeyTableTest, TestRWTable);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_CLOSEDHASHPREFIXKEYTABLETEST_H

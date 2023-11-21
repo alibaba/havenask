@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIVALUEATTRIBUTEFORNULLTEST_H
-#define __INDEXLIB_MULTIVALUEATTRIBUTEFORNULLTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -35,5 +34,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(MultiValueAttributeForNullTest, TestMultiValu
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(MultiValueAttributeForNullTest, TestMultiValueForNull_4);
 INSTANTIATE_TEST_CASE_P(BuildMode, MultiValueAttributeForNullTest, testing::Values(0, 1, 2));
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_MULTIVALUEATTRIBUTEFORNULLTEST_H

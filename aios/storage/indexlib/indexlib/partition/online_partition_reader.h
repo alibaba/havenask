@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ONLINE_PARTITION_READER_H
-#define __INDEXLIB_ONLINE_PARTITION_READER_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -239,5 +238,3 @@ void OnlinePartitionReader::AddAttributeReader(const std::shared_ptr<index::Inve
     compositeReader->AddAttributeReader(attrReader);
 }
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINE_PARTITION_READER_H

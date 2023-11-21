@@ -24,14 +24,17 @@ using namespace std;
 using namespace aitheta2;
 namespace indexlibv2::index::ann {
 
-bool SegmentBuilder::DumpPrimaryKey(const PkDataHolder& pkDataHolder, Segment& segment)
+bool SegmentBuilder::DumpPrimaryKey(PkDataHolder& pkHolder, Segment& segment)
 {
     if (!_indexConfig.buildConfig.storePrimaryKey) {
         AUTIL_LOG(INFO, "not need to store primary key");
         return true;
     }
     PkDumper pkDumper;
-    return pkDumper.Dump(pkDataHolder, segment);
+
+    bool ret = pkDumper.Dump(pkHolder, segment);
+    pkHolder.Clear();
+    return ret;
 }
 
 AUTIL_LOG_SETUP(indexlib.index, SegmentBuilder);

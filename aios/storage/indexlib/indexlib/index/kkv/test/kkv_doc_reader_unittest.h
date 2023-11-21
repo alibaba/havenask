@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KKVDOCREADERTEST_H
-#define __INDEXLIB_KKVDOCREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -89,5 +88,3 @@ INDEXLIB_UNIT_TEST_CASE(KKVDocReaderTest, TestReadWithNotOptimizedStoreFloatSKey
 INDEXLIB_UNIT_TEST_CASE(KKVDocReaderTest, TestReadWithNotOptimizedStoreDoubleSKey);
 INDEXLIB_UNIT_TEST_CASE(KKVDocReaderTest, TestReadWithNotOptimizedStoreStringSKey);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KKVDOCREADERTEST_H

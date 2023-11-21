@@ -15,19 +15,31 @@
  */
 #include "build_service_tasks/syncIndex/SyncIndexTask.h"
 
+#include <algorithm>
+#include <functional>
+#include <google/protobuf/stubs/port.h>
+#include <iosfwd>
+#include <unistd.h>
+
+#include "alog/Logger.h"
 #include "autil/LoopThread.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
-#include "build_service/config/ControlConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
-#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
-#include "build_service/util/MemUtil.h"
 #include "build_service/util/RangeUtil.h"
 #include "build_service_tasks/channel/MadroxChannel.h"
-#include "google/protobuf/util/json_util.h"
+#include "build_service_tasks/channel/Master.pb.h"
 
 using namespace std;
 using namespace google::protobuf;

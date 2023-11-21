@@ -39,7 +39,7 @@ IE_LOG_SETUP(partition, RealtimeIndexSynchronizer);
 const size_t RealtimeIndexSynchronizer::DEFAULT_SYNC_THREAD_COUNT = 10;
 const string RealtimeIndexSynchronizer::SYNC_INC_VERSION_TIMESTAMP = "sync_inc_version_timestamp";
 RealtimeIndexSynchronizer::RealtimeIndexSynchronizer(SyncMode mode)
-    : mLastSyncVersion(INVALID_VERSION)
+    : mLastSyncVersion(INVALID_VERSIONID)
     , mLastSyncSegment(INVALID_SEGMENTID)
     , mSyncMode(mode)
     , mLastSyncFailTimestamp(-1)
@@ -103,7 +103,7 @@ void RealtimeIndexSynchronizer::Reset()
     mRemotePartitionData.reset();
     mRemoteFileSystem.reset();
     mLastSyncSegment = INVALID_SEGMENTID;
-    mLastSyncVersion = index_base::Version(INVALID_VERSION);
+    mLastSyncVersion = index_base::Version(INVALID_VERSIONID);
 }
 
 bool RealtimeIndexSynchronizer::CanSync() const
@@ -164,8 +164,8 @@ bool RealtimeIndexSynchronizer::SyncFromRemote(const file_system::DirectoryPtr& 
         string remoteTsStr;
         if (!originRemoteVersion.GetDescription(SYNC_INC_VERSION_TIMESTAMP, remoteTsStr) ||
             !autil::StringUtil::fromString(remoteTsStr, remoteIncTs) || incVersionTs < remoteIncTs) {
-            remoteRtVersion = index_base::Version(INVALID_VERSION);
-            originRemoteVersion = index_base::Version(INVALID_VERSION);
+            remoteRtVersion = index_base::Version(INVALID_VERSIONID);
+            originRemoteVersion = index_base::Version(INVALID_VERSIONID);
             stringstream ss;
             ss << "inc ts [" << incVersionTs << "] smaller than remote ts [" << remoteTsStr
                << "], clean all local segment, not use remote index";
@@ -352,7 +352,7 @@ bool RealtimeIndexSynchronizer::SyncToRemote(const index_base::PartitionDataPtr&
                 remoteDirectory->RemoveDirectory(remoteRtVersion.GetSegmentDirName(remoteRtVersion[i]));
             }
 
-            if (remoteRtVersion.GetVersionId() != INVALID_VERSION &&
+            if (remoteRtVersion.GetVersionId() != INVALID_VERSIONID &&
                 targetVersion.GetVersionId() != remoteRtVersion.GetVersionId()) {
                 remoteDirectory->RemoveFile(remoteRtVersion.GetVersionFileName());
             }

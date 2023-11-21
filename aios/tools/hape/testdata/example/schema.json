@@ -1,0 +1,38 @@
+{
+"columns": [
+    {
+        "name": "price",
+        "type": "DOUBLE",
+        "multiValue": false
+    },
+    {
+        "name": "company_id",
+        "type": "INT64",
+        "multiValue": false
+    }
+],
+"indexes": [
+    {
+        "name": "company_id",
+        "indexType": "PRIMARY_KEY64",
+        "indexConfig": {
+            "indexFields": [
+                {
+                    "fieldName": "company_id"
+                }
+            ]
+        }
+    },
+    {
+        "name": "price",
+        "indexType": "ATTRIBUTE",
+        "indexConfig": {
+            "indexFields": [
+                {
+                    "fieldName": "price"
+                }
+            ]
+        }
+    }
+]
+}

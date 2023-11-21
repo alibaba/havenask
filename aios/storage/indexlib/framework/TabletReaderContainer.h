@@ -17,11 +17,19 @@
 
 #include <memory>
 #include <mutex>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <tuple>
 #include <vector>
 
 #include "autil/Log.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/ITabletReader.h"
 #include "indexlib/framework/TabletData.h"
+#include "indexlib/framework/Version.h"
 
 namespace indexlibv2::framework {
 struct VersionDeployDescription;

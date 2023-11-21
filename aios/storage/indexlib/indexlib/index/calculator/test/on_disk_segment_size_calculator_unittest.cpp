@@ -1,5 +1,6 @@
 #include "indexlib/index/calculator/test/on_disk_segment_size_calculator_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/normal/source/source_define.h"
 #include "indexlib/index_base/deploy_index_wrapper.h"
@@ -7,7 +8,6 @@
 #include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/index_base/segment/segment_data.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/single_field_partition_data_provider.h"
 #include "indexlib/util/PathUtil.h"
 
@@ -174,7 +174,7 @@ void OnDiskSegmentSizeCalculatorTest::TestCalculateWithPackageFile()
 
     RESET_FILE_SYSTEM();
     Version version;
-    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
     merger::SegmentDirectory segDir(GET_PARTITION_DIRECTORY(), version);
     segDir.Init(false);
     SegmentData segmentData = segDir.GetPartitionData()->GetSegmentData(0);

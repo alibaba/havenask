@@ -15,7 +15,9 @@
  */
 #include "build_service/workflow/DocProcessorProducer.h"
 
-#include "build_service/document/ProcessedDocument.h"
+#include <iosfwd>
+
+#include "build_service/document/ClassifiedDocument.h"
 
 using namespace std;
 using namespace build_service::document;

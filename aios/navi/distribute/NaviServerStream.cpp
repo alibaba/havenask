@@ -23,8 +23,9 @@ namespace navi {
 NaviServerStream::NaviServerStream(NaviServerStreamCreator *creator,
                                    Navi *navi)
     : NaviStreamBase(nullptr)
+    , _createTime(autil::TimeUtility::currentTime())
     , _creator(creator)
-    , _navi(navi)
+    , _snapshot(navi ? navi->getSnapshot() : nullptr)
 {
     _logger.addPrefix("server");
     initThreadPool();
@@ -35,19 +36,9 @@ NaviServerStream::~NaviServerStream() {
 }
 
 void NaviServerStream::initThreadPool() {
-    auto snapshot = getSnapshot();
-    if (snapshot) {
-        setThreadPool(snapshot->getDestructThreadPool());
+    if (_snapshot) {
+        setThreadPool(_snapshot->getDestructThreadPool());
     }
-}
-
-std::shared_ptr<NaviSnapshot> NaviServerStream::getSnapshot() const {
-    auto navi = getNavi();
-    if (!navi) {
-        NAVI_LOG(ERROR, "navi is null");
-        return nullptr;
-    }
-    return navi->getSnapshot();
 }
 
 google::protobuf::Message *NaviServerStream::newReceiveMessage(
@@ -88,8 +79,48 @@ void NaviServerStream::notifyIdle(multi_call::PartIdTy partId) {
     NaviStreamBase::notifyIdleBase(partId);
 }
 
+bool NaviServerStream::notifyInitReceive(multi_call::PartIdTy partId) {
+    multi_call::GigStreamMessage message;
+    multi_call::MultiCallErrorCode ec = multi_call::MULTI_CALL_ERROR_NONE;
+    if (!peekMessage(partId, message, ec)) {
+        return false;
+    }
+    if (multi_call::MULTI_CALL_ERROR_NONE != ec) {
+        return false;
+    }
+    if (!message.message) {
+        return false;
+    }
+    auto naviRequest = dynamic_cast<NaviMessage *>(message.message);
+    if (!naviRequest) {
+        NAVI_LOG(ERROR, "invalid message type");
+        return false;
+    }
+    if (!_snapshot) {
+        NAVI_LOG(ERROR, "navi snapshot is null");
+        return false;
+    }
+    auto &pbParams = naviRequest->params();
+    const auto &taskQueueName = pbParams.task_queue_name();
+    SessionId sessionId;
+    sessionId.instance = pbParams.id().instance();
+    sessionId.queryId = pbParams.id().query_id();
+    auto item = new NaviStreamReceiveItem(shared_from_this(), partId);
+    {
+        NaviLoggerScope _(nullptr);
+        _snapshot->runStreamSession(taskQueueName, sessionId, item, _logger.logger);
+    }
+    return true;
+}
+
 bool NaviServerStream::notifyReceive(multi_call::PartIdTy partId) {
-    return NaviStreamBase::notifyReceiveBase(shared_from_this(), partId);
+    if (_initMessage && isAsyncMode()) {
+        _initMessage = false;
+        return notifyInitReceive(partId);
+    } else {
+        _initMessage = false;
+        return NaviStreamBase::notifyReceiveBase(shared_from_this(), partId);
+    }
 }
 
 bool NaviServerStream::runGraph(NaviMessage *request, const ArenaPtr &arena) {
@@ -97,36 +128,20 @@ bool NaviServerStream::runGraph(NaviMessage *request, const ArenaPtr &arena) {
         NAVI_LOG(ERROR, "graph is running");
         return false;
     }
-    auto snapshot = getSnapshot();
-    if (!snapshot) {
-        NAVI_LOG(ERROR, "navi snapshot is null");
-        return false;
-    }
-    // ATTENTION:
-    // trace log will not be collected before runGraph return
-    auto oldLogger = NAVI_TLS_LOGGER;
-    NAVI_TLS_LOGGER = nullptr;
-    if (!snapshot->runGraph(request, arena, request->params(),
-                            shared_from_this(), _logger.logger))
+    assert(_snapshot && "snapshot must not be nullptr");
     {
-        NAVI_LOG(WARN, "snapshot run graph failed");
-        return false;
+        NaviLoggerScope _(_logger);
+        if (!_snapshot->doRunStreamSession(request, arena, request->params(), shared_from_this())) {
+            NAVI_LOG(WARN, "snapshot run graph failed");
+            return false;
+        }
     }
-    NAVI_TLS_LOGGER = oldLogger;
     if (!initialized()) {
         NAVI_LOG(ERROR, "run graph failed");
         return false;
     }
     NAVI_LOG(SCHEDULE1, "end run graph");
     return true;
-}
-
-void NaviServerStream::doFinish() {
-    _navi = nullptr;
-}
-
-Navi *NaviServerStream::getNavi() const {
-    return _navi;
 }
 
 }

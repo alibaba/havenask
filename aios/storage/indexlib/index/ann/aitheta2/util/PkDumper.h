@@ -30,7 +30,7 @@ public:
     ~PkDumper() = default;
 
 public:
-    bool Dump(const PkDataHolder& pkDataHolder, Segment& segment);
+    bool Dump(const PkDataHolder& pkHolder, Segment& segment);
 
 private:
     AUTIL_LOG_DECLARE();

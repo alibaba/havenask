@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEPARATECHAINPREFIXKEYTABLETEST_H
-#define __INDEXLIB_SEPARATECHAINPREFIXKEYTABLETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/separate_chain_prefix_key_table.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(SeparateChainPrefixKeyTableTest, TestReadAndWriteTable);
 INDEXLIB_UNIT_TEST_CASE(SeparateChainPrefixKeyTableTest, TestRWTable);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SEPARATECHAINPREFIXKEYTABLETEST_H

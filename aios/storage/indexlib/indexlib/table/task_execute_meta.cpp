@@ -15,8 +15,12 @@
  */
 #include "indexlib/table/task_execute_meta.h"
 
+#include <cstddef>
+#include <cstdint>
+
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 
 using namespace std;
 using namespace autil;

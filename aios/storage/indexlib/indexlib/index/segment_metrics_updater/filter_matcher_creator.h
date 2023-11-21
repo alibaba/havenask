@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_FILTER_MATCHER_CREATOR_H
-#define __INDEXLIB_FILTER_MATCHER_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -105,5 +104,3 @@ FilterMatcher* FilterMatcherCreator::InnerCreate(const FieldType& fieldType)
 
 DEFINE_SHARED_PTR(FilterMatcherCreator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_FILTER_MATCHER_CREATOR_H

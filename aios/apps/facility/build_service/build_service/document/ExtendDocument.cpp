@@ -15,7 +15,10 @@
  */
 #include "build_service/document/ExtendDocument.h"
 
+#include <iosfwd>
+
 #include "ExtendDocument.h"
+#include "indexlib/document/normal/Field.h"
 #include "indexlib/document/normal/NormalExtendDocument.h"
 
 using namespace std;
@@ -55,13 +58,46 @@ ExtendDocument::~ExtendDocument() {}
         return nullptr;                                                                                                \
     } while (0)
 
-TokenizeDocumentPtr ExtendDocument::getTokenizeDocument() const { ADAPTIVE_EXTEND_DOC_FUNC(getTokenizeDocument); }
+TokenizeDocumentPtr ExtendDocument::getTokenizeDocument() const
+{
+    auto tokenizedDocument = [this]() -> TokenizeDocumentPtr { ADAPTIVE_EXTEND_DOC_FUNC(getTokenizeDocument); }();
+    if (!tokenizedDocument) {
+        tokenizedDocument = _indexExtendDoc->GetResource<TokenizeDocument>("tokenized_document");
+        if (!tokenizedDocument) {
+            tokenizedDocument.reset(new TokenizeDocument);
+            if (!_indexExtendDoc->AddResource("tokenized_document", tokenizedDocument)) {
+                return nullptr;
+            }
+        }
+    }
+    return tokenizedDocument;
+}
 
 ClassifiedDocumentPtr ExtendDocument::getClassifiedDocument() const { ADAPTIVE_EXTEND_DOC_FUNC(getClassifiedDocument); }
 
 TokenizeDocumentPtr ExtendDocument::getLastTokenizeDocument() const
 {
-    ADAPTIVE_EXTEND_DOC_FUNC(getLastTokenizeDocument);
+    auto tokenizedDocument = [this]() -> TokenizeDocumentPtr { ADAPTIVE_EXTEND_DOC_FUNC(getLastTokenizeDocument); }();
+    if (!tokenizedDocument) {
+        tokenizedDocument = _indexExtendDoc->GetResource<TokenizeDocument>("last_tokenized_document");
+        if (!tokenizedDocument) {
+            tokenizedDocument.reset(new TokenizeDocument);
+            if (!_indexExtendDoc->AddResource("last_tokenized_document", tokenizedDocument)) {
+                return nullptr;
+            }
+        }
+    }
+    return tokenizedDocument;
+}
+
+std::shared_ptr<indexlibv2::document::RawDocument::Snapshot> ExtendDocument::getOriginalSnapshot() const
+{
+    return getClassifiedDocument()->getOriginalSnapshot();
+}
+
+void ExtendDocument::setOriginalSnapshot(const std::shared_ptr<indexlibv2::document::RawDocument::Snapshot>& snapshot)
+{
+    return getClassifiedDocument()->setOriginalSnapshot(snapshot);
 }
 
 #undef ADAPTIVE_EXTEND_DOC_FUNC

@@ -17,7 +17,7 @@
 
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/framework/Segment.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/attribute/AttributeFactory.h"
 #include "indexlib/index/attribute/Common.h"
 namespace indexlibv2::index {
@@ -28,12 +28,11 @@ std::pair<Status, std::shared_ptr<IDiskIndexer>>
 AttributeDefaultDiskIndexerFactory::CreateDefaultDiskIndexer(const std::shared_ptr<framework::Segment>& segment,
                                                              const std::shared_ptr<config::IIndexConfig>& indexConfig)
 {
-    index::IndexerParameter indexerParam;
+    index::DiskIndexerParameter indexerParam;
     indexerParam.segmentId = segment->GetSegmentId();
     indexerParam.docCount = segment->GetSegmentInfo()->docCount;
     indexerParam.segmentInfo = segment->GetSegmentInfo();
-    indexerParam.segmentMetrics = segment->GetSegmentMetrics();
-    indexerParam.readerOpenType = index::IndexerParameter::READER_DEFAULT_VALUE;
+    indexerParam.readerOpenType = index::DiskIndexerParameter::READER_DEFAULT_VALUE;
 
     AttributeDiskIndexerCreator* creator =
         AttributeFactory<AttributeDiskIndexer, AttributeDiskIndexerCreator>::GetInstance()->GetAttributeInstanceCreator(

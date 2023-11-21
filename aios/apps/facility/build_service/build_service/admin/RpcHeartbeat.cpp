@@ -15,10 +15,19 @@
  */
 #include "build_service/admin/RpcHeartbeat.h"
 
+#include <arpc/ANetRPCController.h>
+#include <arpc/CommonMacros.h>
+#include <cstddef>
+#include <functional>
+#include <google/protobuf/stubs/port.h>
+#include <stdint.h>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
 #include "build_service/common/PathDefine.h"
 #include "build_service/proto/ProtoUtil.h"
-#include "worker_framework/LeaderLocator.h"
-#include "worker_framework/LeaderedWorkerBase.h"
+#include "build_service/proto/WorkerNode.h"
 #include "worker_framework/ZkState.h"
 
 using namespace std;

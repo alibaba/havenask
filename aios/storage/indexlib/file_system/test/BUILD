@@ -32,22 +32,21 @@ strict_cc_library(
 strict_cc_fast_test(
     name='file_system_unittest',
     srcs=[
-        'IndexFileDeployerTest.cpp', 'ByteSliceWriterTest.cpp',
-        'DirectoryTest.cpp', 'FenceDirectoryTest.cpp', 'DiskStorageTest.cpp',
-        'EntryTableTest.cpp', 'FileBlockCacheTest.cpp',
-        'FileBlockCacheContainerTest.cpp', 'FileSystemFileTest.cpp',
-        'FileSystemListFileTest.cpp', 'FileSystemRemoveTest.cpp',
-        'FileSystemStorageTest.cpp', 'MemDirectoryTest.cpp',
-        'IFileSystemTest.cpp', 'LifecycleTableTest.cpp',
-        'LifecycleConfigTest.cpp', 'LoadConfigListTest.cpp',
-        'LocalDirectoryTest.cpp', 'MemStorageTest.cpp',
-        'StorageMetricsTest.cpp', 'ResourceFileTest.cpp',
-        'FileSystemIntetest.cpp', 'LogicalFileSystemIntetest.cpp',
-        'FileSystemMetricsReporterTest.cpp'
+        'ByteSliceWriterTest.cpp', 'DirectoryTest.cpp', 'DiskStorageTest.cpp',
+        'EntryTableTest.cpp', 'FenceDirectoryTest.cpp',
+        'FileBlockCacheContainerTest.cpp', 'FileBlockCacheTest.cpp',
+        'FileSystemFileTest.cpp', 'FileSystemIntetest.cpp',
+        'FileSystemListFileTest.cpp', 'FileSystemMetricsReporterTest.cpp',
+        'FileSystemRemoveTest.cpp', 'FileSystemStorageTest.cpp',
+        'IFileSystemTest.cpp', 'IndexFileDeployerTest.cpp',
+        'LifecycleConfigTest.cpp', 'LifecycleTableTest.cpp',
+        'LoadConfigListTest.cpp', 'LocalDirectoryTest.cpp',
+        'LogicalFileSystemIntetest.cpp', 'MemDirectoryTest.cpp',
+        'MemStorageTest.cpp', 'ResourceFileTest.cpp', 'StorageMetricsTest.cpp'
     ],
     copts=['-fno-access-control'],
     data=glob(['testdata/*']),
-    shard_count=20,
+    shard_count=5,
     deps=[
         ':test-util', '//aios/storage/indexlib/file_system:byte_slice_rw',
         '//aios/storage/indexlib/util/testutil:unittest'
@@ -56,6 +55,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='file_system_dadi_cache_unittest',
     srcs=['FileBlockCacheWithDadiTest.cpp'],
+    copts=['-fno-access-control'],
     data=glob(['testdata/*']),
     deps=[':test-util', '//aios/storage/indexlib/util/testutil:unittest']
 )

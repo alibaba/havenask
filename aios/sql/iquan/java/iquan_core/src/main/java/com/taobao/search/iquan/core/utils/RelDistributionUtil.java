@@ -1,15 +1,33 @@
 package com.taobao.search.iquan.core.utils;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.*;
+import com.taobao.search.iquan.core.api.schema.Distribution;
+import com.taobao.search.iquan.core.api.schema.HashType;
+import com.taobao.search.iquan.core.api.schema.HashValues;
+import com.taobao.search.iquan.core.api.schema.IndexType;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
+import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.catalog.function.internal.TableValueFunction;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.metadata.IquanMetadata;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
+import com.taobao.search.iquan.core.rel.ops.physical.Scope;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
 import com.taobao.search.iquan.core.rel.visitor.relvisitor.ExchangeVisitor;
 import org.apache.calcite.plan.RelOptTable;
@@ -30,22 +48,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
-
 public class RelDistributionUtil {
-    private static int MAX_STAGE = 3;
     private static final Logger logger = LoggerFactory.getLogger(RelDistributionUtil.class);
+    private static int MAX_STAGE = 3;
 
-    public static Map<String, String> getPartFixKeyMap(List<String> tablePath, Table table) {
+    public static Map<String, String> getPartFixKeyMap(List<String> tablePath, IquanTable iquanTable) {
         /*
         Map<String, String> partFixKeyMap = table.getPrimaryMap().keySet().stream()
                 .map(PlanWriteUtils::unFormatFieldName)
                 .collect(Collectors.toMap(pk -> pk, pk -> String.join(".", tablePath) + "." + pk));
         */
         Map<String, String> partFixKeyMap = new TreeMap<>();
-        for (Map.Entry<String, IndexType> entry : table.getFieldToIndexMap().entrySet()) {
+        for (Map.Entry<String, IndexType> entry : iquanTable.getFieldToIndexMap().entrySet()) {
             switch (entry.getValue()) {
                 case IT_PART_FIX:
                 case IT_PRIMARY_KEY:
@@ -61,7 +75,7 @@ public class RelDistributionUtil {
     }
 
     public static IquanRelNode checkIquanRelType(RelNode relNode) {
-        if (! (relNode instanceof IquanRelNode)) {
+        if (!(relNode instanceof IquanRelNode)) {
             throw new SqlQueryException(IquanErrorCode.IQUAN_EC_DISTRIBUTION_RELNODE_INVALID,
                     String.format("not support rel node: %s", relNode));
         }
@@ -109,41 +123,56 @@ public class RelDistributionUtil {
     }
     */
 
-    public static ComputeNode getSingleComputeNode(GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public static Location getSingleLocationNode(GlobalCatalog catalog, IquanConfigManager config) {
         if (config.getBoolean(SqlConfigOptions.IQUAN_USE_DEFAULT_QRS)) {
-            return new ComputeNode(dbName, Location.DEFAULT_QRS);
+            return Location.DEFAULT_QRS;
         }
-        ComputeNode targetNode = null;
-        List<ComputeNode> computeNodes = catalog.getComputeNodes(dbName);
-        if (computeNodes != null) {
-            for (ComputeNode candidateNode : computeNodes) {
-                if (candidateNode.isSingle()) {
-                    targetNode = candidateNode;
-                    break;
+
+        List<Location> qrsNodes = catalog.getLocationNodeManager().getQrsLocations();
+        if (qrsNodes != null) {
+            for (Location qrs : qrsNodes) {
+                if (qrs.isSingle()) {
+                    return qrs;
                 }
             }
         }
-        if (targetNode == null) {
-            throw new SqlQueryException(IquanErrorCode.IQUAN_EC_DISTRIBUTION_NO_SINGLE_COMPUTE_NODE,
-                    String.format("has no single compute nodes in db : %s", dbName));
+
+        List<Location> computeNodes = catalog.getLocationNodeManager().getComputeNodeLocation();
+        if (computeNodes != null) {
+            for (Location candidateNode : computeNodes) {
+                if (candidateNode.isSingle()) {
+                    return candidateNode;
+                }
+            }
         }
-        return targetNode;
+
+        List<Location> searchers = catalog.getLocationNodeManager().getSearcherLocations();
+        if (searchers != null) {
+            for (Location searcher : searchers) {
+                if (searcher.isSingle()) {
+                    return searcher;
+                }
+            }
+        }
+
+        throw new SqlQueryException(IquanErrorCode.IQUAN_EC_DISTRIBUTION_NO_SINGLE_COMPUTE_NODE,
+                String.format("has no single compute nodes in catalog : %s", catalog.getCatalogName()));
     }
 
-    public static ComputeNode getNearComputeNode(int upLimitNum, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public static Location getNearComputeNode(int upLimitNum, GlobalCatalog catalog, IquanConfigManager config) {
         if (config.getBoolean(SqlConfigOptions.IQUAN_USE_DEFAULT_QRS)) {
-            return new ComputeNode(dbName, Location.DEFAULT_QRS);
+            return Location.DEFAULT_QRS;
         }
-        List<ComputeNode> computeNodes = catalog.getComputeNodes(dbName);
+        List<Location> computeNodes = catalog.getLocationNodeManager().getComputeNodeLocation();
         if ((computeNodes == null) || computeNodes.isEmpty()) {
             throw new SqlQueryException(IquanErrorCode.IQUAN_EC_DISTRIBUTION_EMPTY_COMPUTE_NODES,
-                    String.format("has no compute node and default qrs node in db : %s", dbName));
+                    String.format("has no compute node and default qrs node in catalog : %s", catalog.getCatalogName()));
         } else {
             // if db only has single compute node, targetNode must be single compute node
-            ComputeNode targetNode = null;
+            Location targetNode = null;
             int minDiff = 0;
-            for (ComputeNode candidateNode : computeNodes) {
-                int curDiff = upLimitNum - candidateNode.getLocation().getPartitionCnt();
+            for (Location candidateNode : computeNodes) {
+                int curDiff = upLimitNum - candidateNode.getPartitionCnt();
                 if (curDiff < 0) {
                     continue;
                 }
@@ -152,7 +181,7 @@ public class RelDistributionUtil {
                     minDiff = curDiff;
                     continue;
                 }
-                if (curDiff  < minDiff) {
+                if (curDiff < minDiff) {
                     targetNode = candidateNode;
                     minDiff = curDiff;
                 }
@@ -187,7 +216,7 @@ public class RelDistributionUtil {
                                                 IquanRelNode input,
                                                 List<AggregateCall> aggCalls,
                                                 List<List<String>> aggCallAccNames,
-                                                ComputeNode computeNode) {
+                                                Location computeNode) {
         IquanExchangeOp exchangeOp;
         if ((computeNode.isSingle()) || (getExchangeCount(input) >= MAX_STAGE - 1)) {
             exchangeOp = new IquanExchangeOp(
@@ -198,7 +227,7 @@ public class RelDistributionUtil {
             );
         } else {
             Distribution distribution = Distribution.newBuilder(RelDistribution.Type.HASH_DISTRIBUTED, Distribution.EMPTY)
-                    .partitionCnt(computeNode.getLocation().getPartitionCnt())
+                    .partitionCnt(computeNode.getPartitionCnt())
                     .hashFunction(HashType.HF_HASH.getName())
                     .hashFields(iquanAggregateOp.getGroupKeyNames())
                     .build();
@@ -221,7 +250,7 @@ public class RelDistributionUtil {
                 iquanAggregateOp.deriveRowType(),
                 Scope.FINAL
         );
-        finalAgg.setLocation(computeNode.getLocation());
+        finalAgg.setLocation(computeNode);
         finalAgg.setOutputDistribution(exchangeOp.getOutputDistribution());
         return finalAgg;
     }
@@ -245,7 +274,7 @@ public class RelDistributionUtil {
         return localSortOp;
     }
 
-    public static IquanRelNode genGlobalSort(IquanRelNode input, IquanSortOp output, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public static IquanRelNode genGlobalSort(IquanRelNode input, IquanSortOp output, GlobalCatalog catalog, IquanConfigManager config) {
         if (input.isSingle() || input.isBroadcast()) {
             output.replaceInput(0, input);
             return output.simpleRelDerive(input);
@@ -257,16 +286,16 @@ public class RelDistributionUtil {
                 Distribution.SINGLETON
         );
         output.replaceInput(0, exchangeOp);
-        ComputeNode computeNode = RelDistributionUtil.getSingleComputeNode(catalog, dbName, config);
+        Location computeNode = RelDistributionUtil.getSingleLocationNode(catalog, config);
         output.setOutputDistribution(Distribution.SINGLETON);
-        output.setLocation(computeNode.getLocation());
+        output.setLocation(computeNode);
         return output;
     }
 
     public static boolean isTvfNormalScope(IquanTableFunctionScanOp functionScan) {
         boolean isNormalScope = true;
         SqlOperator operator = ((RexCall) functionScan.getCall()).getOperator();
-        if (! (operator instanceof TableValueFunction)) {
+        if (!(operator instanceof TableValueFunction)) {
             return isNormalScope;
         }
         TableValueFunction tableValueFunction = (TableValueFunction) operator;
@@ -295,15 +324,16 @@ public class RelDistributionUtil {
         return isNormalScope;
     }
 
-    public static void getTableFieldExpr(RelNode relNode, Map<String, Object> outputFieldExprMap) {
+    public static void getTableFieldExpr(RelNode relNode, Map<String, Object> outputFieldExprMap, boolean judgeFuncProperty) {
         while (!(relNode instanceof TableScan)) {
             if (relNode instanceof Calc) {
                 RexProgram rexProgram = ((Calc) relNode).getProgram();
-                outputFieldExprMap.putAll((Map<String, Object>) PlanWriteUtils.formatOutputRowExpr(rexProgram));
+                outputFieldExprMap.putAll(PlanWriteUtils.innerFormatOutputRowExpr(rexProgram, judgeFuncProperty));
             }
             List<RelNode> inputs = relNode.getInputs();
-            if (inputs.size() != 1)
+            if (inputs.size() != 1) {
                 break;
+            }
             relNode = IquanRelOptUtils.toRel(inputs.get(0));
         }
         if (relNode instanceof IquanTableScanBase) {
@@ -311,17 +341,18 @@ public class RelDistributionUtil {
             for (IquanRelNode iquanRelNode : pushDownOps) {
                 if (iquanRelNode instanceof Calc) {
                     RexProgram rexProgram = ((Calc) iquanRelNode).getProgram();
-                    outputFieldExprMap.putAll((Map<String, Object>) PlanWriteUtils.formatOutputRowExpr(rexProgram));
+                    outputFieldExprMap.putAll(PlanWriteUtils.innerFormatOutputRowExpr(rexProgram, judgeFuncProperty));
                 }
             }
         }
     }
 
     public static TableScan getBottomScan(RelNode relNode) {
-        while(!(relNode instanceof TableScan)) {
+        while (!(relNode instanceof TableScan)) {
             List<RelNode> inputs = relNode.getInputs();
-            if (inputs.size() != 1)
+            if (inputs.size() != 1) {
                 break;
+            }
             if (inputs.get(0) instanceof Exchange) {
                 break;
             }
@@ -352,7 +383,7 @@ public class RelDistributionUtil {
         return -1;
     }
 
-    public static Map<String, Object> formatDistribution(IquanRelNode iquanRelNode, boolean checkExchange) {
+    public static Map<String, Object> formatDistribution(IquanRelNode iquanRelNode, boolean needHashValues) {
         Map<String, Object> tableDistribution = new TreeMap<>();
         Distribution distribution = iquanRelNode.getOutputDistribution();
         if (distribution == null) {
@@ -363,51 +394,51 @@ public class RelDistributionUtil {
         IquanRelOptUtils.addMapIfNotEmpty(tableDistribution, ConstantDefine.EQUAL_HASH_FIELDS, distribution.getEqualHashFields());
         IquanRelOptUtils.addMapIfNotEmpty(tableDistribution, ConstantDefine.PART_FIX_FIELDS, distribution.getPartFixKeyMap());
         IquanRelOptUtils.addMapIfNotEmpty(tableDistribution, ConstantDefine.HASH_MODE, PlanWriteUtils.formatTableHashMode(distribution));
-        if (checkExchange && !existExchange(iquanRelNode)) {
+        if (needHashValues) {
             RelMetadataQuery mq = iquanRelNode.getCluster().getMetadataQuery();
             IquanMetadata.ScanNode mdScanNode = iquanRelNode.metadata(IquanMetadata.ScanNode.class, mq);
-            List<TableScan> scanList = mdScanNode.getScanNode();
+            List<TableScan> scanList = mdScanNode.getScanNodes();
             formatHashValues(tableDistribution, scanList);
         }
         return tableDistribution;
     }
 
     private static void formatHashValues(Map<String, Object> attrMap, List<TableScan> scanList) {
-        Map<Table, HashValues> tableHashValuesMap = new HashMap<>();
+        Map<IquanTable, HashValues> tableHashValuesMap = new HashMap<>();
         for (TableScan tableScan : scanList) {
             if (!(tableScan instanceof IquanTableScanBase)) {
                 continue;
             }
-            Table table = IquanRelOptUtils.getIquanTable(tableScan.getTable());
+            IquanTable iquanTable = IquanRelOptUtils.getIquanTable(tableScan.getTable());
             RexProgram rexProgram = ((IquanTableScanBase) tableScan).getNearestRexProgram();
-            PlanWriteUtils.getTableScanHashValues(table.getDistribution(), (IquanTableScanBase) tableScan, rexProgram);
+            PlanWriteUtils.getTableScanHashValues(iquanTable.getDistribution(), (IquanTableScanBase) tableScan, rexProgram);
             HashValues hashValues = ((IquanTableScanBase) tableScan).getHashValues();
             if (hashValues.isEmpty()) {
                 continue;
             }
-            if (table.getDistribution().getPartitionCnt() == 1) {
+            if (iquanTable.getDistribution().getPartitionCnt() == 1) {
                 continue;
             }
-            if (tableHashValuesMap.containsKey(table)) {
-                if (!tableHashValuesMap.get(table).merge(table.getDistribution().getPosHashFields(), hashValues)) {
+            if (tableHashValuesMap.containsKey(iquanTable)) {
+                if (!tableHashValuesMap.get(iquanTable).merge(iquanTable.getDistribution().getPosHashFields(), hashValues)) {
                     throw new SqlQueryException(IquanErrorCode.IQUAN_EC_PLAN_HASH_VALUES_MERGE_ERROR, "can not reach here");
                 }
             } else {
-                tableHashValuesMap.put(table, hashValues.copy());
+                tableHashValuesMap.put(iquanTable, hashValues.copy());
             }
         }
         if (tableHashValuesMap.size() >= 1) {
             //if size > 1, maybe join or multi table union, only output one
-            Map.Entry<Table, HashValues> entry = tableHashValuesMap.entrySet().iterator().next();
-            Table table = entry.getKey();
+            Map.Entry<IquanTable, HashValues> entry = tableHashValuesMap.entrySet().iterator().next();
+            IquanTable iquanTable = entry.getKey();
             HashValues hashValues = entry.getValue();
             String partitionIds = hashValues.getAssignedPartitionIds();
             if (StringUtils.isNotBlank(partitionIds)) {
                 IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.ASSIGNED_PARTITION_IDS, partitionIds);
             } else {
                 PlanWriteUtils.outputTableScanHashValues(attrMap, hashValues);
-                if (!hashValues.getHashValuesMap().isEmpty()) {
-                    IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.HASH_MODE, PlanWriteUtils.formatTableHashMode(table.getDistribution()));
+                if (!hashValues.getHashValuesMap().isEmpty() || StringUtils.isNotEmpty(hashValues.getAssignedHashValues())) {
+                    IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.HASH_MODE, PlanWriteUtils.formatTableHashMode(iquanTable.getDistribution()));
                 }
             }
         }

@@ -1,11 +1,27 @@
-#ifndef ISEARCH_BS_DOCUMENTTESTHELPER_H
-#define ISEARCH_BS_DOCUMENTTESTHELPER_H
+#pragma once
 
-#include "autil/mem_pool/Pool.h"
+#include <algorithm>
+#include <assert.h>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/DataBuffer.h"
+#include "autil/StringUtil.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common_define.h"
 #include "build_service/document/ProcessedDocument.h"
+#include "build_service/document/RawDocument.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/IDocument.h"
+#include "indexlib/document/document.h"
 #include "indexlib/document/raw_document/default_raw_document.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace document {
 
@@ -100,7 +116,7 @@ public:
         indexlib::document::DefaultRawDocument::setDocTimestamp(timestamp);
         indexlib::document::Document::SetTimestamp(timestamp);
     }
-    void SetDocInfo(const indexlibv2::document::IDocument::DocInfo& docInfo) override
+    void SetDocInfo(const indexlibv2::framework::Locator::DocInfo& docInfo) override
     {
         indexlib::document::DefaultRawDocument::SetDocInfo(docInfo);
         indexlib::document::Document::SetDocInfo(docInfo);
@@ -129,10 +145,7 @@ public:
 
     static ProcessedDocumentPtr createProcessedDocument(const FakeProcessedDoc& fakeProcessedDoc);
 
-    static void checkDocument(uint32_t seed, const ProcessedDocumentVecPtr& doc, bool checkSource);
     static void checkDocument(uint32_t seed, const ProcessedDocumentVecPtr& doc);
-
-    static void checkDocumentSource(const ProcessedDocumentVecPtr& docs);
 
 private:
     BS_LOG_DECLARE();
@@ -141,5 +154,3 @@ private:
 BS_TYPEDEF_PTR(DocumentTestHelper);
 
 }} // namespace build_service::document
-
-#endif // ISEARCH_BS_DOCUMENTTESTHELPER_H

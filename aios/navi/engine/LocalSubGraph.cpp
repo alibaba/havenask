@@ -55,7 +55,9 @@ LocalSubGraph::~LocalSubGraph() {
 
 ErrorCode LocalSubGraph::init() {
     if (!doInit()) {
-        return EC_INIT_GRAPH;
+        auto ec = EC_INIT_GRAPH;
+        setErrorCode(ec);
+        return ec;
     }
     return EC_NONE;
 }
@@ -63,6 +65,9 @@ ErrorCode LocalSubGraph::init() {
 bool LocalSubGraph::doInit() {
     NaviLoggerScope scope(_logger);
     initSubGraphOption();
+    if (!initScopeMap()) {
+        return false;
+    }
     if (!createNodes()) {
         return false;
     }
@@ -162,27 +167,24 @@ bool LocalSubGraph::schedule(Node *node) {
         return true;
     }
     auto worker = _param->worker;
+    bool collectPerf = _param->runParams.collectPerf();
     if (inlineCompute(worker, node)) {
         worker->inlineBegin();
         NAVI_LOG(DEBUG, "inline compute, node [%s] kernel [%s]",
                  node->getName().c_str(), node->getKernelName().c_str());
-        auto time = CommonUtil::getTimelineTimeNs();
-        auto threadId = current_thread_id;
-        ScheduleInfo schedInfo;
-        schedInfo.enqueueTime = time;
-        schedInfo.dequeueTime = time;
-        schedInfo.schedTid = threadId;
-        schedInfo.signalTid = threadId;
-        schedInfo.processTid = threadId;
-        schedInfo.runningThread = worker->getRunningThreadCount();
-        schedInfo.threadCounter = current_thread_counter;
-        schedInfo.threadWaitCounter = current_thread_wait_counter;
-        schedInfo.queueSize = worker->getQueueSize();
+        auto schedInfo = worker->makeInlineSchedInfo();
+        bool enableSuccess = false;
+        if (collectPerf) {
+            enableSuccess = worker->enablePerf();
+        }
         node->compute(schedInfo);
+        if (collectPerf && enableSuccess) {
+            worker->disablePerf();
+        }
         worker->inlineEnd();
         return true;
     }
-    auto item = new KernelWorkItem(worker, node);
+    auto item = new KernelWorkItem(worker, node, collectPerf);
     auto ret = worker->schedule(item);
     if (unlikely(!ret)) {
         if (worker->isFinished()) {
@@ -193,7 +195,9 @@ bool LocalSubGraph::schedule(Node *node) {
         } else {
             NAVI_LOG(ERROR, "schedule kernel failed, node[%s]",
                      node->getName().c_str());
-            notifyFinish(node, EC_UNKNOWN);
+            auto error =
+                _param->graphResult->makeError(_logger.logger, EC_UNKNOWN);
+            notifyFinish(node, error);
         }
     }
     return true;
@@ -202,7 +206,7 @@ bool LocalSubGraph::schedule(Node *node) {
 bool LocalSubGraph::inlineCompute(NaviWorkerBase * worker,
                                   Node * node)
 {
-    if (unlikely(getTestMode() != TM_NOT_TEST)) {
+    if (unlikely(getTestMode() != TM_NONE)) {
         return true;
     }
     if (!worker->canInline()) {
@@ -223,6 +227,47 @@ bool LocalSubGraph::inlineCompute(NaviWorkerBase * worker,
 
 void LocalSubGraph::initSubGraphOption() {
     _inlineMode = _subGraphDef->option().inline_mode();
+    _errorHandleStrategy = _subGraphDef->option().error_handle_strategy();
+}
+
+bool LocalSubGraph::initScopeMap() {
+    auto count = _subGraphDef->scopes_size();
+    for (int32_t i = 0; i < count; ++i) {
+        const auto &scopeDef = _subGraphDef->scopes(i);
+        auto id = scopeDef.id();
+        auto it = _scopeInfoMap.find(id);
+        if (_scopeInfoMap.end() != it) {
+            NAVI_LOG(ERROR, "duplicate scope id [%d]", id);
+            return false;
+        }
+        auto scopeInfo = &_scopeInfoMap[id];
+        scopeInfo->def = &scopeDef;
+        if (!scopeDef.has_terminator()) {
+            scopeInfo->logger = _logger.logger;
+        } else {
+            scopeInfo->logger = std::make_shared<NaviLogger>(*_logger.logger);
+        }
+    }
+    return true;
+}
+
+ScopeInfo *LocalSubGraph::getScopeInfo(int32_t scopeIndex) {
+    auto it = _scopeInfoMap.find(scopeIndex);
+    if (_scopeInfoMap.end() == it) {
+        NAVI_LOG(ERROR, "scope not exist id [%d]", scopeIndex);
+        return nullptr;
+    }
+    return &it->second;
+}
+
+void LocalSubGraph::addToScopeInfo(ScopeInfo *scopeInfo, NodeType nodeType,
+                                   Node *node)
+{
+    if (NT_SCOPE_TERMINATOR == nodeType) {
+        scopeInfo->terminator = node;
+    } else if (NT_SCOPE_TERMINATOR_SPLIT != nodeType && NT_TERMINATOR != nodeType) {
+        scopeInfo->nodes.push_back(node);
+    }
 }
 
 bool LocalSubGraph::createNodes() {
@@ -389,19 +434,38 @@ Node *LocalSubGraph::getNode(const std::string &nodeName) const {
     return it->second;
 }
 
-void LocalSubGraph::notifyFinish(Node *node, ErrorCode ec) {
+void LocalSubGraph::setScopeError(int32_t scopeIndex,
+                                  const NaviErrorPtr &error)
+{
+    auto scopeInfoPtr = getScopeInfo(scopeIndex);
+    if (!scopeInfoPtr) {
+        return;
+    }
+    auto &scopeInfo = *scopeInfoPtr;
+    scopeInfo.setError(error);
+    if (!scopeInfo.terminator) {
+        _param->graphResult->updateError(error);
+        return;
+    }
+}
+
+void LocalSubGraph::notifyFinish(Node *node, const NaviErrorPtr &error) {
     auto def = node->getDef();
     auto nodeType = def->type();
     auto scope = def->scope();
     if (NT_SCOPE_TERMINATOR == nodeType || NT_SCOPE_TERMINATOR_SPLIT == nodeType) {
-        terminateScope(node, scope, ec);
+        terminateScope(node, scope, error);
     } else if (NT_TERMINATOR != nodeType) {
-        if (terminateScope(node, scope, ec)) {
+        if (terminateScope(node, scope, error)) {
             return;
         }
     }
-    if (EC_NONE != ec || isForkDomain()) {
-        _graph->notifyFinish(ec);
+    if ((error && EC_NONE != error->ec) || isForkDomain()) {
+        if (EHS_ERROR_AS_FATAL == _errorHandleStrategy) {
+            _graph->notifyFinish(error);
+        } else {
+            forceStopNodes(node, _nodeVec);
+        }
     }
 }
 
@@ -485,17 +549,21 @@ Node *LocalSubGraph::createNode(const NodeDef &nodeDef) {
         NAVI_LOG(ERROR, "duplicate node [%s]", nodeName.c_str());
         return nullptr;
     }
-    auto graphMetric = _param->graphMetric;
-    auto metric = graphMetric->getKernelMetric(getBizName(), getGraphId(),
-                                               nodeName, nodeDef.kernel_name());
-    Node *node = new Node(_logger.logger, _biz.get(), metric, this);
-    if (!node->init(nodeDef)) {
+    auto scopeInfo = getScopeInfo(nodeDef.scope());
+    if (!scopeInfo) {
+        NAVI_LOG(ERROR, "get scope info failed, node [%s]", nodeName.c_str());
+        return nullptr;
+    }
+    auto isResourceNode = (nodeDef.kernel_name() == RESOURCE_CREATE_KERNEL);
+    Node *node =
+        new Node(nodeDef, scopeInfo->logger, _biz.get(), this, isResourceNode);
+    if (!node->init()) {
         delete node;
         return nullptr;
     }
     _nodeMap.insert(std::make_pair(nodeName, node));
     _nodeVec.emplace_back(node);
-    addToScopeInfoMap(node);
+    addToScopeInfo(scopeInfo, nodeDef.type(), node);
     return node;
 }
 
@@ -521,21 +589,17 @@ bool LocalSubGraph::createEdge(const EdgeDef &edgeDef) {
     }
 }
 
-void LocalSubGraph::addToScopeInfoMap(Node *node) {
-    auto def = node->getDef();
-    auto nodeType = def->type();
-    auto scope = def->scope();
-    auto it = _scopeInfoMap.find(scope);
-    ScopeInfo *scopeInfo = nullptr;
-    if (_scopeInfoMap.end() == it) {
-        scopeInfo = &_scopeInfoMap[scope];
-    } else {
-        scopeInfo = &it->second;
+void LocalSubGraph::collectMetric(GraphMetric *graphMetric) {
+    const auto &bizName = getBizName();
+    for (const auto &node : _nodeVec) {
+        const auto &metric = node->getMetric()->cloneAndClearEvent();
+        graphMetric->addKernelMetric(bizName, metric);
     }
-    if (NT_SCOPE_TERMINATOR == nodeType) {
-        scopeInfo->terminator = node;
-    } else if (NT_SCOPE_TERMINATOR_SPLIT != nodeType && NT_TERMINATOR != nodeType) {
-        scopeInfo->nodes.push_back(node);
+}
+
+void LocalSubGraph::collectForkGraphMetric() {
+    for (const auto &node : _nodeVec) {
+        node->collectForkGraphMetric();
     }
 }
 
@@ -565,12 +629,14 @@ bool LocalSubGraph::bindPortToNode() {
     return true;
 }
 
-bool LocalSubGraph::terminateScope(Node *node, int32_t scopeIndex, ErrorCode ec) {
-    auto it = _scopeInfoMap.find(scopeIndex);
-    if (_scopeInfoMap.end() == it) {
+bool LocalSubGraph::terminateScope(Node *node, int32_t scopeIndex,
+                                   const NaviErrorPtr &error)
+{
+    auto scopeInfoPtr = getScopeInfo(scopeIndex);
+    if (!scopeInfoPtr) {
         return false;
     }
-    auto &scopeInfo = it->second;
+    auto &scopeInfo = *scopeInfoPtr;
     if (!scopeInfo.terminator) {
         return false;
     }
@@ -578,20 +644,37 @@ bool LocalSubGraph::terminateScope(Node *node, int32_t scopeIndex, ErrorCode ec)
     if (!scopeInfo.terminated.compare_exchange_weak(expect, true)) {
         return true;
     }
-    const auto &nodes = scopeInfo.nodes;
-    for (auto n : nodes) {
-        n->forceStop(node);
-    }
-    scopeInfo.ec = ec;
+    scopeInfo.setError(error);
+    NAVI_MEMORY_BARRIER();
+    forceStopNodes(node, scopeInfo.nodes);
     return true;
 }
 
-ErrorCode LocalSubGraph::getScopeErrorCode(int32_t scopeIndex) const {
-    auto it = _scopeInfoMap.find(scopeIndex);
-    if (_scopeInfoMap.end() == it) {
-        return EC_NONE;
+void LocalSubGraph::forceStopNodes(Node *stopBy, const std::vector<Node *> &nodes) {
+    for (auto n : nodes) {
+        n->setForceStopFlag(stopBy);
     }
-    return it->second.ec;
+    for (auto n : nodes) {
+        n->forceStop();
+    }
+}
+
+NaviErrorPtr LocalSubGraph::getScopeError(int32_t scopeIndex) {
+    auto scopeInfoPtr = getScopeInfo(scopeIndex);
+    if (!scopeInfoPtr) {
+        return nullptr;
+    }
+    return scopeInfoPtr->getError();
+}
+
+ErrorHandleStrategy LocalSubGraph::getScopeErrorHandleStrategy(
+        int32_t scopeIndex)
+{
+    auto scopeInfoPtr = getScopeInfo(scopeIndex);
+    if (!scopeInfoPtr) {
+        return EHS_ERROR_AS_FATAL;
+    }
+    return scopeInfoPtr->def->error_handle_strategy();
 }
 
 TestMode LocalSubGraph::getTestMode() const { return _param->worker->getTestMode(); }

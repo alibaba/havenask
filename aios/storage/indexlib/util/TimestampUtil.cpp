@@ -15,8 +15,16 @@
  */
 #include "indexlib/util/TimestampUtil.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <stdio.h>
+#include <string.h>
+#include <vector>
+
+#include "autil/CommonMacros.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

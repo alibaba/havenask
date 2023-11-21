@@ -15,9 +15,15 @@
  */
 #include "build_service/common/BrokerTopicAccessor.h"
 
-#include "autil/StringUtil.h"
+#include <iosfwd>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/util/SwiftClientCreator.h"
 
 using namespace std;

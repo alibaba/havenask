@@ -1,0 +1,73 @@
+/*
+ * Copyright 2014-present Alibaba Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#pragma once
+#include <stdint.h>
+#include <string>
+
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/admin/taskcontroller/DefaultTaskController.h"
+#include "build_service/admin/taskcontroller/TaskController.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common_define.h"
+#include "build_service/config/TaskConfig.h"
+
+namespace build_service { namespace admin {
+
+// reset index to specified versionId, indexes which belong to larger versions will cleaned.
+// noted that checkpoint version will not be saved
+class ResetVersionTaskController : public DefaultTaskController
+{
+public:
+    ResetVersionTaskController(const std::string& taskId, const std::string& taskName,
+                               const TaskResourceManagerPtr& resMgr);
+    ~ResetVersionTaskController();
+
+private:
+    ResetVersionTaskController(const ResetVersionTaskController&) = delete;
+    ResetVersionTaskController& operator=(const ResetVersionTaskController&) = delete;
+    ResetVersionTaskController(ResetVersionTaskController&&) = delete;
+    ResetVersionTaskController& operator=(ResetVersionTaskController&&) = delete;
+
+public:
+    bool doInit(const std::string& clusterName, const std::string& taskConfigPath,
+                const std::string& initParam) override;
+    bool updateConfig() override;
+    bool start(const KeyValueMap& kvMap) override;
+    bool operate(TaskController::Nodes& taskNodes) override;
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override;
+    // TODO: may need add label info
+    //  void supplementLableInfo(KeyValueMap& info) const override;
+
+private:
+    bool validateCluster(const config::ResourceReaderPtr& resourceReader) const;
+    bool readIndexRoot(const config::ResourceReaderPtr& resourceReader, std::string& indexRoot) const;
+    bool readPartitionCount(const config::ResourceReaderPtr& resourceReader, uint32_t& indexPartitionCount) const;
+
+private:
+    bool _isFinished = false;
+    std::string _buildId;
+    std::string _indexRoot;
+    std::string _versionId;
+    uint32_t _indexPartitionCount;
+
+private:
+    BS_LOG_DECLARE();
+};
+
+BS_TYPEDEF_PTR(ResetVersionTaskController);
+
+}} // namespace build_service::admin

@@ -103,8 +103,8 @@ private:
         ss << SEGMENT_FILE_NAME_PREFIX << "_" << segmentId;
         file_system::DirectoryPtr segmentDir
             = _rootDirectory->MakeDirectory(ss.str(), file_system::DirectoryOption::Mem());
-        file_system::DirectoryPtr primaryKeyDir
-            = segmentDir->MakeDirectory(std::string(INDEX_DIR_NAME) + "/primaryKey");
+        auto indexDir = segmentDir->MakeDirectory(std::string(INDEX_DIR_NAME));
+        file_system::DirectoryPtr primaryKeyDir = indexDir->MakeDirectory("primaryKey");
 
         file_system::FileWriterPtr fileWriter
             = primaryKeyDir->CreateFileWriter(PRIMARY_KEY_DATA_FILE_NAME);
@@ -115,12 +115,12 @@ private:
         fileWriter->Close().GetOrThrow();
 
         config::PrimaryKeyIndexConfigPtr pkIndexConfig = createIndexConfig();
-        indexlibv2::index::IndexerParameter parameter;
+        indexlibv2::index::DiskIndexerParameter parameter;
         parameter.docCount = pairVec.size();
         SegmentReaderPtr segReader(new SegmentReader(parameter));
         std::shared_ptr<indexlibv2::index::PrimaryKeyIndexConfig> pkIndexConfigV2(
             pkIndexConfig->MakePrimaryIndexConfigV2());
-        auto status = segReader->Open(pkIndexConfigV2, primaryKeyDir->GetIDirectory());
+        auto status = segReader->Open(pkIndexConfigV2, indexDir->GetIDirectory());
         assert(status.IsOK());
         this->_segmentReaderList.push_back(
             {std::make_pair(baseDocId, segReader), std::vector<segmentid_t> {segmentId}});

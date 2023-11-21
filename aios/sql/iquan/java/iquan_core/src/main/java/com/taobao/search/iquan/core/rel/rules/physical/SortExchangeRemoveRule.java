@@ -1,8 +1,8 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
+import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
 import com.taobao.search.iquan.core.rel.visitor.relvisitor.ExchangeVisitor;
-import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.core.RelFactories;

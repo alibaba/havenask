@@ -280,29 +280,58 @@ bool MessageReadBuffer::read(protocol::Message &msg) {
         _unReadMsgCount.decrement();
         return true;
     }
+    if (!fillMessage()) {
+        return false;
+    }
+    if (_readOffset < _unpackMsgVec.size()) {
+        msg.Swap(&_unpackMsgVec[_readOffset++]);
+        _unReadMsgCount.decrement();
+        return true;
+    }
+    return false;
+}
+
+int64_t MessageReadBuffer::getFirstMsgTimestamp() {
+    if (_readOffset < _unpackMsgVec.size()) {
+        return _unpackMsgVec[_readOffset].timestamp();
+    }
+    if (!fillMessage()) {
+        return -1;
+    }
+    if (_readOffset < _unpackMsgVec.size()) {
+        return _unpackMsgVec[_readOffset].timestamp();
+    }
+    return -1;
+}
+
+bool MessageReadBuffer::fillMessage() {
+    if (_readOffset < _unpackMsgVec.size()) {
+        return true;
+    }
+    if (_unReadMsgCount.get() <= 0) {
+        return false;
+    }
     do {
+        protocol::Message msg;
         if (!doRead(msg)) {
             return false;
         }
         if (!msg.merged()) {
+            _readOffset = 0;
+            _unpackMsgVec.clear();
+            _unpackMsgVec.emplace_back(msg);
             return true;
         } else {
             int32_t totalCount = 0;
             if (unpackMessage(msg, totalCount)) {
-                _unReadMsgCount.add(int32_t(_unpackMsgVec.size()) - totalCount + 1);
+                _unReadMsgCount.add(int32_t(_unpackMsgVec.size()) - totalCount);
             }
         }
     } while (_unpackMsgVec.empty());
-    msg.Swap(&_unpackMsgVec[_readOffset++]);
-    _unReadMsgCount.decrement();
     return true;
 }
 
 bool MessageReadBuffer::doRead(protocol::Message &msg) {
-    if (_unReadMsgCount.get() <= 0) {
-        return false;
-    }
-    _unReadMsgCount.decrement();
     if (_frontResponse != NULL && _frontResponse->read(msg)) {
         return true;
     }
@@ -398,40 +427,6 @@ SingleResponse *MessageReadBuffer::getNextResponse() {
         }
     }
     return single;
-}
-
-int64_t MessageReadBuffer::getFirstMsgTimestamp() {
-    if (_readOffset < _unpackMsgVec.size()) {
-        return _unpackMsgVec[_readOffset].timestamp();
-    }
-    if (_unReadMsgCount.get() <= 0) {
-        return -1;
-    }
-    if (_frontResponse != NULL) {
-        int64_t retTimeStamp = _frontResponse->getFirstMsgTimestamp();
-        if (retTimeStamp != -1) {
-            return retTimeStamp;
-        }
-    }
-    if (_frontResponse != NULL) {
-        DELETE_AND_SET_NULL(_frontResponse);
-    }
-    _frontResponse = getNextResponse();
-    if (_frontResponse == NULL) {
-        AUTIL_LOG(ERROR,
-                  "[%s %u] response list size is [%lu], unread msg count [%d]",
-                  _topicName.c_str(),
-                  _partitionId,
-                  _responseList.size(),
-                  _unReadMsgCount.get());
-        autil::ScopedLock lock(_mutex);
-        if (_responseList.size() == 0) {
-            AUTIL_LOG(ERROR, "[%s %u] reset unread msg count.", _topicName.c_str(), _partitionId);
-            _unReadMsgCount.getAndSet(0);
-        }
-        return -1;
-    }
-    return _frontResponse->getFirstMsgTimestamp();
 }
 
 void MessageReadBuffer::updateFilter(const Filter &filter,

@@ -1,19 +1,17 @@
 package com.taobao.search.iquan.core.rel.hint;
 
+import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.hint.HintPredicate;
 import org.apache.calcite.rel.hint.HintPredicates;
 import org.apache.calcite.rel.hint.RelHint;
-import com.google.common.collect.ImmutableList;
-
-import java.util.List;
 
 public class IquanNormalAggHint implements IquanHint {
-    private static List<HintPredicate> precedingPredicates = ImmutableList.of(HintPredicates.AGGREGATE);
-
     public static final IquanNormalAggHint INSTANCE = new IquanNormalAggHint(ConstantDefine.NORMAL_AGG_HINT);
-
+    private static List<HintPredicate> precedingPredicates = ImmutableList.of(HintPredicates.AGGREGATE);
     private final String name;
 
     public IquanNormalAggHint(String name) {

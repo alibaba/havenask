@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_LEGACY_KV_INDEX_DOCUMENT_H
-#define __INDEXLIB_LEGACY_KV_INDEX_DOCUMENT_H
+#pragma once
 
 #include <memory>
 
@@ -73,5 +72,3 @@ private:
 DEFINE_SHARED_PTR(KVIndexDocument);
 
 }}} // namespace indexlib::document::legacy
-
-#endif //__INDEXLIB_KV_INDEX_DOCUMENT_H

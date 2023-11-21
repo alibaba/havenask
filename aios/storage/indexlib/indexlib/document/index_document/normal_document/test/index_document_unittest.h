@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXDOCUMENTTEST_H
-#define __INDEXLIB_INDEXDOCUMENTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/index_document/normal_document/index_document.h"
@@ -58,5 +57,3 @@ INDEXLIB_UNIT_TEST_CASE(IndexDocumentTest, TestCaseSerializeIndexDocument);
 INDEXLIB_UNIT_TEST_CASE(IndexDocumentTest, TestCaseForSerializeSectionAttribute);
 INDEXLIB_UNIT_TEST_CASE(IndexDocumentTest, TestCaseForSerializeCompatibility);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_INDEXDOCUMENTTEST_H

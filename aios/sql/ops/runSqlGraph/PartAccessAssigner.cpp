@@ -77,8 +77,13 @@ bool PartAccessAssigner::process(GraphDef *def) {
     size_t processed = 0;
     for (size_t i = 1; i < def->sub_graphs_size(); ++i) {
         auto *subGraphDef = def->mutable_sub_graphs(i);
-        if (subGraphDef->location().biz_name() == def->sub_graphs(0).location().biz_name()) {
-            // same as main graph biz
+        const std::string &bizName = subGraphDef->location().biz_name();
+        if (bizName == def->sub_graphs(0).location().biz_name()) {
+            // local biz: same as main graph biz
+            SQL_LOG(TRACE3,
+                    "treat subGraph[%lu] bizName[%s] as local biz, skip process",
+                    i,
+                    bizName.c_str());
             continue;
         }
         if (!processSubGraph(subGraphDef)) {

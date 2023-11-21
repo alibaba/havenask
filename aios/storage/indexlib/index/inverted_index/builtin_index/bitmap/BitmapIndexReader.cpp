@@ -36,14 +36,14 @@ BitmapIndexReader::~BitmapIndexReader() {}
 
 Status BitmapIndexReader::Open(
     const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig,
-    const std::vector<std::pair<docid_t, std::shared_ptr<BitmapLeafReader>>>& diskSegmentReaders,
-    const std::vector<std::pair<docid_t, std::shared_ptr<InMemBitmapIndexSegmentReader>>>& memSegmentReaders)
+    const std::vector<std::pair<docid64_t, std::shared_ptr<BitmapLeafReader>>>& diskSegmentReaders,
+    const std::vector<std::pair<docid64_t, std::shared_ptr<InMemBitmapIndexSegmentReader>>>& memSegmentReaders)
 {
     _indexConfig = indexConfig;
     _indexFormatOption.Init(_indexConfig);
     _dictHasher = IndexDictHasher(_indexConfig->GetDictHashParams(), _indexConfig->GetInvertedIndexType());
     std::vector<std::shared_ptr<BitmapLeafReader>> segmentReaders;
-    std::vector<docid_t> baseDocIds;
+    std::vector<docid64_t> baseDocIds;
     for (auto& [baseDocId, diskReader] : diskSegmentReaders) {
         segmentReaders.emplace_back(diskReader);
         baseDocIds.emplace_back(baseDocId);
@@ -56,7 +56,7 @@ Status BitmapIndexReader::Open(
     return Status::OK();
 }
 
-void BitmapIndexReader::AddInMemSegmentReader(docid_t baseDocId,
+void BitmapIndexReader::AddInMemSegmentReader(docid64_t baseDocId,
                                               const std::shared_ptr<InMemBitmapIndexSegmentReader>& bitmapSegReader)
 {
     if (!_buildingIndexReader) {
@@ -141,8 +141,8 @@ index::ErrorCode BitmapIndexReader::FillSegmentPostingVector(
         bool currentSegmentFilled = false;
         while (currentSegmentIdx < _segmentReaders.size() && currentRangeIdx < ranges.size()) {
             const auto& range = ranges[currentRangeIdx];
-            docid_t segBegin = _baseDocIds[currentSegmentIdx];
-            docid_t segEnd = _baseDocIds[currentSegmentIdx] + _segmentReaders[currentSegmentIdx]->GetDocCount();
+            docid64_t segBegin = _baseDocIds[currentSegmentIdx];
+            docid64_t segEnd = _baseDocIds[currentSegmentIdx] + _segmentReaders[currentSegmentIdx]->GetDocCount();
             if (segEnd <= range.first) {
                 ++currentSegmentIdx;
                 currentSegmentFilled = false;
@@ -165,7 +165,7 @@ index::ErrorCode BitmapIndexReader::FillSegmentPostingVector(
                 currentSegmentFilled = true;
             }
 
-            auto minEnd = std::min(segEnd, range.second);
+            auto minEnd = std::min(segEnd, (docid64_t)range.second);
             if (segEnd == minEnd) {
                 ++currentSegmentIdx;
                 currentSegmentFilled = false;

@@ -15,6 +15,10 @@
  */
 #include "indexlib/table/merge_task_description.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+
 using namespace std;
 
 namespace indexlib { namespace table {

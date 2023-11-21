@@ -15,6 +15,8 @@
  */
 #include "build_service/analyzer/IdleTokenizer.h"
 
+#include <string>
+
 namespace build_service { namespace analyzer {
 BS_LOG_SETUP(analyzer, IdleTokenizer);
 

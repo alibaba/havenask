@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_TTL_DECIDER_H
-#define __INDEXLIB_KV_TTL_DECIDER_H
+#pragma once
 
 #include <memory>
 
@@ -56,5 +55,3 @@ private:
 
 DEFINE_SHARED_PTR(KVTTLDecider);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_TTL_DECIDER_H

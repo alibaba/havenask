@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "navi/engine/GraphMetric.h"
+#include "navi/engine/NaviResult.h"
 #include "autil/TimeUtility.h"
 #include "navi/perf/NaviSymbolTable.h"
 #include "navi/proto/GraphVis.pb.h"
@@ -28,135 +29,87 @@ GraphMetric::GraphMetric() {
 }
 
 GraphMetric::~GraphMetric() {
-    for (const auto &pair : _kernelMetricMap) {
-        for (const auto &metric : pair.second) {
-            delete metric;
-        }
-    }
 }
 
-KernelMetric *GraphMetric::getKernelMetric(const std::string &bizName,
-                                           GraphId graphId,
-                                           const std::string &node,
-                                           const std::string &kernel)
-{
-    auto metric = new KernelMetric(graphId, node, kernel);
-    autil::ScopedLock lock(_metricLock);
+void GraphMetric::addKernelMetric(const std::string &bizName, const KernelMetricPtr &metric) {
     auto &metricVec = _kernelMetricMap[bizName];
     metricVec.push_back(metric);
-    return metric;
 }
 
-void GraphMetric::serialize(autil::DataBuffer &dataBuffer) const {
-    dataBuffer.write(_kernelMetricMap.size());
-    for (const auto &pair : _kernelMetricMap) {
-        dataBuffer.write(pair.first);
-        dataBuffer.write(pair.second.size());
-        for (auto metric : pair.second) {
-            dataBuffer.write(*metric);
-        }
+void GraphMetric::end() {
+    if (_endTime != _beginTime) {
+        return;
     }
-}
-
-void GraphMetric::deserialize(autil::DataBuffer &dataBuffer) {
-    size_t bizCount = 0;
-    dataBuffer.read(bizCount);
-    for (size_t i = 0; i < bizCount; i++) {
-        std::string bizName;
-        size_t metricCount = 0;
-        dataBuffer.read(bizName);
-        dataBuffer.read(metricCount);
-        auto &metricVec = _kernelMetricMap[bizName];
-        for (size_t i = 0; i < metricCount; i++) {
-            auto metric = new KernelMetric();
-            try {
-                dataBuffer.read(*metric);
-            } catch (const autil::legacy::ExceptionBase &e) {
-                delete metric;
-                return;
-            }
-            metricVec.push_back(metric);
-        }
-    }
-}
-
-void GraphMetric::merge(GraphMetric &other) {
-    autil::ScopedLock lock(_metricLock);
-    for (const auto &pair : other._kernelMetricMap) {
-        auto it = _kernelMetricMap.find(pair.first);
-        if (_kernelMetricMap.end() == it) {
-            _kernelMetricMap.insert(pair);
-        } else {
-            it->second.insert(it->second.end(), pair.second.begin(), pair.second.end());
-        }
-    }
-    other._kernelMetricMap.clear();
-}
-
-GraphMetricTime GraphMetric::end() {
     _endTime = autil::TimeUtility::currentTime();
-    
     GraphMetricTime time;
     for (const auto &pair : _kernelMetricMap) {
-        const auto &metrics = pair.second;
-        for (auto metric : metrics) {
+        for (const auto &metric : pair.second) {
             time.queueUs += metric->queueLatencyUs();
             time.computeUs += metric->totalLatencyUs();
         }
     }
-    return time;
+    _graphMetricTime = time;
+}
+
+const GraphMetricTime &GraphMetric::getGraphMetricTime() const {
+    return _graphMetricTime;
 }
 
 int64_t GraphMetric::getLatency() const {
     return _endTime - _beginTime;
 }
 
-void GraphMetric::setNaviSymbolTable(
-    const NaviSymbolTablePtr &naviSymbolTable)
+void GraphMetric::fillKernelProto(GraphMetricDef *metricDef,
+                                  std::unordered_map<uint64_t, uint32_t> &addrMap,
+                                  int64_t &computeLatencyUs,
+                                  int64_t &queueLatencyUs) const
 {
-    _naviSymbolTable = naviSymbolTable;
-}
-
-void GraphMetric::fillProto(GraphMetricDef *metricDef) const {
-    int64_t computeLatencyUs = 0;
-    int64_t queueLatencyUs = 0;
-    std::unordered_map<uint64_t, uint32_t> addrMap;
-    autil::ScopedLock lock(_metricLock);
     for (const auto &pair : _kernelMetricMap) {
-        for (auto metric : pair.second) {
-            computeLatencyUs += metric->totalLatencyUs();
-            queueLatencyUs += metric->queueLatencyUs();
+        for (const auto &metric : pair.second) {
             metric->fillProto(metricDef->add_metrics(), addrMap);
         }
     }
+}
+
+void GraphMetric::toProto(GraphMetricDef *metricDef,
+                          StringHashTable *stringHashTable) const
+{
+    int64_t computeLatencyUs = 0;
+    int64_t queueLatencyUs = 0;
+    std::unordered_map<uint64_t, uint32_t> addrMap;
+    fillKernelProto(metricDef, addrMap, computeLatencyUs, queueLatencyUs);
     if (_naviSymbolTable) {
-        _naviSymbolTable->resolveSymbol(addrMap,
-                                        metricDef->mutable_perf_symbol_table());
+        _naviSymbolTable->resolveSymbol(
+            addrMap, metricDef->mutable_perf_symbol_table(), stringHashTable);
     }
+    auto graphMetricTime = getGraphMetricTime();
     metricDef->set_begin_time(_beginTime);
     metricDef->set_end_time(_endTime);
     metricDef->set_begin_time_mono_ns(_beginTimeMonoNs);
-    metricDef->set_compute_latency_us(computeLatencyUs);
-    metricDef->set_queue_latency_us(queueLatencyUs);
+    metricDef->set_compute_latency_us(graphMetricTime.computeUs);
+    metricDef->set_queue_latency_us(graphMetricTime.queueUs);
+}
+
+void GraphMetric::fillResult(NaviResult &result) const {
+    result.beginTime = _beginTime;
+    result.endTime = _endTime;
+    result.queueUs = _graphMetricTime.queueUs;
+    result.computeUs = _graphMetricTime.computeUs;
 }
 
 void GraphMetric::show() const {
-    int64_t computeLatencyUs = 0;
-    int64_t queueLatencyUs = 0;
+    auto graphMetricTime = getGraphMetricTime();
     std::cout << "graph metric:" << std::endl;
     for (const auto &pair : _kernelMetricMap) {
         std::cout << "biz: " << pair.first << std::endl;
-        for (auto metric : pair.second) {
+        for (const auto &metric : pair.second) {
             std::cout << metric->toString() << std::endl;
-            computeLatencyUs += metric->totalLatencyUs();
-            queueLatencyUs += metric->queueLatencyUs();
         }
     }
     std::cout << "latency: " << getLatency() / 1000.0 << std::endl;
-    std::cout << "total time: " << computeLatencyUs / 1000.0 << std::endl;
-    std::cout << "total queue time: " << queueLatencyUs / 1000.0 << std::endl;
+    std::cout << "total time: " << graphMetricTime.computeUs / 1000.0 << std::endl;
+    std::cout << "total queue time: " << graphMetricTime.queueUs / 1000.0 << std::endl;
     std::cout << "graph metric end" << std::endl;
 }
 
 }
-

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CUSTOMIZEDINDEXFIELDENCODERTEST_H
-#define __INDEXLIB_CUSTOMIZEDINDEXFIELDENCODERTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/customized_index/customized_index_field_encoder.h"
 #include "indexlib/common_define.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(CustomizedIndexFieldEncoderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(CustomizedIndexFieldEncoderTest, TestEncodeDouble);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CUSTOMIZEDINDEXFIELDENCODERTEST_H

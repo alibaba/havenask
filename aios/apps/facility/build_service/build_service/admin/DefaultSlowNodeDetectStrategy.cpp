@@ -15,8 +15,6 @@
  */
 #include "build_service/admin/DefaultSlowNodeDetectStrategy.h"
 
+#include <iosfwd>
+
 using namespace std;
-
-namespace build_service { namespace admin {
-
-}} // namespace build_service::admin

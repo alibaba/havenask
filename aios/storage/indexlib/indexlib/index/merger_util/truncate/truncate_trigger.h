@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TRUNCATE_TRIGGER_H
-#define __INDEXLIB_TRUNCATE_TRIGGER_H
+#pragma once
 
 #include <memory>
 
@@ -41,5 +40,3 @@ private:
 
 DEFINE_SHARED_PTR(TruncateTrigger);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_TRUNCATE_TRIGGER_H

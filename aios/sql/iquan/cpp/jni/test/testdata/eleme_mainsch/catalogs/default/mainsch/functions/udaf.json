@@ -1,8 +1,6 @@
 {
   "functions": [
     {
-      "catalog_name": "default",
-      "database_name": "mainsch",
       "function_version": 300,
       "function_name": "ARBITRARY",
       "function_type": "UDAF",
@@ -315,8 +313,6 @@
       }
     },
     {
-      "catalog_name": "default",
-      "database_name": "mainsch",
       "function_version": 300,
       "function_name": "shop_word",
       "function_type": "UDAF",
@@ -357,8 +353,6 @@
       }
     },
     {
-      "catalog_name": "default",
-      "database_name": "mainsch",
       "function_version": 300,
       "function_name": "upc_sku",
       "function_type": "UDAF",
@@ -438,8 +432,6 @@
       }
     },
     {
-      "catalog_name": "default",
-      "database_name": "mainsch",
       "function_version": 300,
       "function_name": "distinct_id",
       "function_type": "UDAF",

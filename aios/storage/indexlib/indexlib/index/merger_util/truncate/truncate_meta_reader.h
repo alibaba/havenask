@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TRUNCATE_META_READER_H
-#define __INDEXLIB_TRUNCATE_META_READER_H
+#pragma once
 
 #include <memory>
 #include <stdlib.h>
@@ -61,5 +60,3 @@ private:
 
 DEFINE_SHARED_PTR(TruncateMetaReader);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_TRUNCATE_META_READER_H

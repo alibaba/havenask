@@ -102,46 +102,55 @@ strict_cc_library(
 strict_cc_fast_test(
     name='FixedLenOffsetNoTTLTest',
     srcs=['FixedLenOffsetNoTTLTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':fixedlen_read_write_test_base', ':kv_index_config_builder']
 )
 strict_cc_fast_test(
     name='FixedLenOffsetTTLTest',
     srcs=['FixedLenOffsetTTLTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':fixedlen_read_write_test_base', ':kv_index_config_builder']
 )
 strict_cc_fast_test(
     name='FixedLenValueCompressTest',
     srcs=['FixedLenValueCompressTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':fixedlen_read_write_test_base', ':kv_index_config_builder']
 )
 strict_cc_fast_test(
     name='VarLenShortOffsetNoTTLTest',
     srcs=['VarLenShortOffsetNoTTLTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
 )
 strict_cc_fast_test(
     name='VarLenShortOffsetTTLTest',
     srcs=['VarLenShortOffsetTTLTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
 )
 strict_cc_fast_test(
     name='VarLenOffsetNoTTLTest',
     srcs=['VarLenOffsetNoTTLTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
 )
 strict_cc_fast_test(
     name='VarLenOffsetTTLTest',
     srcs=['VarLenOffsetTTLTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
 )
 strict_cc_fast_test(
     name='VarLenValueCompressionTest',
     srcs=['VarLenValueCompressionTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
 )
 strict_cc_fast_test(
     name='KVMergerTest',
     srcs=['KVMergerTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/document',
         '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
@@ -154,6 +163,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='FixedLenKVMergerTest',
     srcs=['FixedLenKVMergerTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         ':kv_index_config_builder',
         '//aios/storage/indexlib/framework:IndexRoot',
@@ -164,11 +174,13 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='KVDiskIndexerTest',
     srcs=['KVDiskIndexerTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
 )
 strict_cc_fast_test(
     name='ReclaimedValueCollectorTest',
     srcs=['ReclaimedValueCollectorTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/kv:kv_mem_indexer',
         '//aios/unittest_framework'
@@ -177,6 +189,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='VarLenValueOffsetReclaimTest',
     srcs=['VarLenValueOffsetReclaimTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[':kv_index_config_builder', ':varlen_read_write_test_base']
 )
 strict_cc_library(
@@ -223,6 +236,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='KVIndexFileTest',
     srcs=['KVIndexFileTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/index/kv:constants',
@@ -246,6 +260,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='kv_indexs_fields_test',
     srcs=['KVIndexFieldsTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/document/raw_document/test:RawDocumentMaker',
         '//aios/storage/indexlib/index/kv:KVIndexFields',

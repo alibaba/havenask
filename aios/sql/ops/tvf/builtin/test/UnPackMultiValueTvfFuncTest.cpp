@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "autil/TimeUtility.h"
-#include "iquan/common/catalog/TvfFunctionModel.h"
+#include "iquan/common/catalog/FunctionModel.h"
 #include "matchdoc/MatchDoc.h"
 #include "matchdoc/MatchDocAllocator.h"
 #include "matchdoc/VectorDocStorage.h"
@@ -39,7 +39,6 @@ void UnPackMultiValueTvfFuncTest::tearDown() {}
 TEST_F(UnPackMultiValueTvfFuncTest, testComputeInputTableNull) {
     // empty input
     UnPackMultiValueTvfFunc func;
-    func._queryPool = _poolPtr.get();
     TablePtr output;
     ASSERT_TRUE(func.compute(TablePtr(), true, output));
     ASSERT_TRUE(func.compute(TablePtr(), false, output));
@@ -50,9 +49,8 @@ TEST_F(UnPackMultiValueTvfFuncTest, testComputeInputTableRowCount0) {
     vector<MatchDoc> leftDocs = _matchDocUtil.createMatchDocs(allocator, 0);
     ASSERT_NO_FATAL_FAILURE(
         _matchDocUtil.extendMultiValueMatchDocAllocator<int32_t>(allocator, leftDocs, "muid", {}));
-    TablePtr input(new Table(leftDocs, allocator));
+    TablePtr input = Table::fromMatchDocs(leftDocs, allocator);
     UnPackMultiValueTvfFunc func;
-    func._queryPool = _poolPtr.get();
     func._unpackFields.push_back("muid");
     TablePtr output;
     ASSERT_TRUE(func.compute(input, true, output));
@@ -64,9 +62,8 @@ TEST_F(UnPackMultiValueTvfFuncTest, testComputeUnpackFieldEmpty) {
     vector<MatchDoc> leftDocs = _matchDocUtil.createMatchDocs(allocator, 1);
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<int32_t>(
         allocator, leftDocs, "muid", {{1}}));
-    TablePtr input(new Table(leftDocs, allocator));
+    TablePtr input = Table::fromMatchDocs(leftDocs, allocator);
     UnPackMultiValueTvfFunc func;
-    func._queryPool = _poolPtr.get();
     TablePtr output;
     ASSERT_TRUE(func.compute(input, true, output));
     ASSERT_EQ(input.get(), output.get());
@@ -77,10 +74,9 @@ TEST_F(UnPackMultiValueTvfFuncTest, testComputeUnpackFieldNotExist) {
     vector<MatchDoc> leftDocs = _matchDocUtil.createMatchDocs(allocator, 1);
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<int32_t>(
         allocator, leftDocs, "muid", {{1, 2, 3}}));
-    TablePtr input(new Table(leftDocs, allocator));
+    TablePtr input = Table::fromMatchDocs(leftDocs, allocator);
     UnPackMultiValueTvfFunc func;
     func._unpackFields.push_back("muid1");
-    func._queryPool = _poolPtr.get();
     TablePtr output;
     ASSERT_TRUE(func.compute(input, true, output));
     ASSERT_EQ(input.get(), output.get());
@@ -96,10 +92,9 @@ TEST_F(UnPackMultiValueTvfFuncTest, testComputeUnpackOneField) {
         _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, leftDocs, "uid", {1}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<int32_t>(
         allocator, leftDocs, "muid", {{1, 2, 3}}));
-    TablePtr input(new Table(leftDocs, allocator));
+    TablePtr input = Table::fromMatchDocs(leftDocs, allocator);
     UnPackMultiValueTvfFunc func;
     func._unpackFields.push_back("muid");
-    func._queryPool = _poolPtr.get();
     TablePtr output;
     ASSERT_TRUE(func.compute(input, true, output));
     ASSERT_EQ(input.get(), output.get());
@@ -120,12 +115,11 @@ TEST_F(UnPackMultiValueTvfFuncTest, testComputeUnpackMultiField) {
         allocator, leftDocs, "muid", {{1}, {}, {}, {2, 4}, {2, 3}, {5}}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<string>(
         allocator, leftDocs, "msuid", {{}, {"1"}, {"2", "4"}, {"2", "3"}, {}, {"5"}}));
-    TablePtr input(new Table(leftDocs, allocator));
+    TablePtr input = Table::fromMatchDocs(leftDocs, allocator);
     UnPackMultiValueTvfFunc func;
     func._unpackFields.push_back("uid");
     func._unpackFields.push_back("muid");
     func._unpackFields.push_back("msuid");
-    func._queryPool = _poolPtr.get();
     TablePtr output;
     ASSERT_TRUE(func.compute(input, true, output));
     ASSERT_EQ(input.get(), output.get());
@@ -148,9 +142,8 @@ TEST_F(UnPackMultiValueTvfFuncTest, testMultiValue) {
         allocator, leftDocs, "muid", {{1}, {}, {2, 4}, {1, 2, 3}, {}}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<string>(
         allocator, leftDocs, "msuid", {{"1"}, {}, {"2", "4"}, {"1", "2", "3"}, {}}));
-    TablePtr table(new Table(leftDocs, allocator));
+    TablePtr table = Table::fromMatchDocs(leftDocs, allocator);
     UnPackMultiValueTvfFunc func;
-    func._queryPool = _poolPtr.get();
     auto col = table->getColumn("muid");
     ASSERT_TRUE(col != nullptr);
 
@@ -175,9 +168,8 @@ TEST_F(UnPackMultiValueTvfFuncTest, testUnpackTable) {
         allocator, leftDocs, "muid", {{1}, {}, {2, 4}, {1, 2, 3}, {}}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<string>(
         allocator, leftDocs, "msuid", {{"1"}, {}, {"2", "4"}, {"1", "2", "3"}, {}}));
-    TablePtr table(new Table(leftDocs, allocator));
+    TablePtr table = Table::fromMatchDocs(leftDocs, allocator);
     UnPackMultiValueTvfFunc func;
-    func._queryPool = _poolPtr.get();
     vector<pair<int32_t, int32_t>> unpackVec
         = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {3, 1}, {3, 2}, {2, 1}};
 
@@ -202,9 +194,8 @@ TEST_F(UnPackMultiValueTvfFuncTest, testCopyUnpackCol) {
         allocator, leftDocs, "muid", {{1}, {}, {2, 4}, {1, 2, 3}, {}}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<string>(
         allocator, leftDocs, "msuid", {{"1"}, {}, {"2", "4"}, {"1", "2", "3"}, {}}));
-    TablePtr table(new Table(leftDocs, allocator));
+    TablePtr table = Table::fromMatchDocs(leftDocs, allocator);
     UnPackMultiValueTvfFunc func;
-    func._queryPool = _poolPtr.get();
     vector<pair<int32_t, int32_t>> unpackVec
         = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {3, 1}, {3, 2}, {2, 1}};
     table->batchAllocateRow(unpackVec.size() - 5);
@@ -236,9 +227,8 @@ TEST_F(UnPackMultiValueTvfFuncTest, testCopyNormalCol) {
         allocator, leftDocs, "uid", {0, 1, 2, 3, 4}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<int32_t>(
         allocator, leftDocs, "muid", {{1}, {}, {2, 4}, {1, 2, 3}, {}}));
-    TablePtr table(new Table(leftDocs, allocator));
+    TablePtr table = Table::fromMatchDocs(leftDocs, allocator);
     UnPackMultiValueTvfFunc func;
-    func._queryPool = _poolPtr.get();
     vector<pair<int32_t, int32_t>> unpackVec
         = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {3, 1}, {3, 2}, {2, 1}};
     table->batchAllocateRow(unpackVec.size() - 5);
@@ -266,12 +256,11 @@ TEST_F(UnPackMultiValueTvfFuncTest, testGenColumnUnpackOffsetVec) {
         allocator, leftDocs, "uid", {0, 1, 2, 3, 4}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<int32_t>(
         allocator, leftDocs, "muid", {{1}, {}, {2, 4}, {1, 2, 3}, {}}));
-    TablePtr table(new Table(leftDocs, allocator));
+    TablePtr table = Table::fromMatchDocs(leftDocs, allocator);
     { // not multi col
         auto col = table->getColumn("uid");
         ASSERT_TRUE(col != nullptr);
         UnPackMultiValueTvfFunc func;
-        func._queryPool = _poolPtr.get();
         vector<pair<int32_t, int32_t>> unpackVec;
         ASSERT_FALSE(func.genColumnUnpackOffsetVec(col, unpackVec));
     }
@@ -279,7 +268,6 @@ TEST_F(UnPackMultiValueTvfFuncTest, testGenColumnUnpackOffsetVec) {
         auto col = table->getColumn("muid");
         ASSERT_TRUE(col != nullptr);
         UnPackMultiValueTvfFunc func;
-        func._queryPool = _poolPtr.get();
         vector<pair<int32_t, int32_t>> unpackVec;
         ASSERT_TRUE(func.genColumnUnpackOffsetVec(col, unpackVec));
         ASSERT_EQ(8, unpackVec.size());
@@ -291,9 +279,9 @@ TEST_F(UnPackMultiValueTvfFuncTest, testGenColumnUnpackOffsetVec) {
 
 TEST_F(UnPackMultiValueTvfFuncTest, testRegTvfModels) {
     UnPackMultiValueTvfFuncCreator creator;
-    iquan::TvfModels tvfModels;
+    std::vector<iquan::FunctionModel> tvfModels;
     ASSERT_TRUE(creator.regTvfModels(tvfModels));
-    ASSERT_EQ(1, tvfModels.functions.size());
+    ASSERT_EQ(1, tvfModels.size());
 }
 
 } // namespace sql

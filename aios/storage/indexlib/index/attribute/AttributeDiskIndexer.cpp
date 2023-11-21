@@ -51,7 +51,7 @@ size_t AttributeDiskIndexer::EstimateMemUsed(const std::shared_ptr<config::IInde
     auto fieldDir = indexlib::file_system::IDirectory::ToLegacyDirectory(attrDirectory)
                         ->GetDirectory(attrPath, /*throwExceptionIfNotExist=*/false);
     if (fieldDir == nullptr) {
-        if (_indexerParam.readerOpenType == index::IndexerParameter::READER_DEFAULT_VALUE) {
+        if (_indexerParam.readerOpenType == index::DiskIndexerParameter::READER_DEFAULT_VALUE) {
             return 0;
         }
         if (_indexerParam.docCount != 0) {

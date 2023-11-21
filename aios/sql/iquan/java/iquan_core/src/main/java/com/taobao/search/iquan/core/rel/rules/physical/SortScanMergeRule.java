@@ -1,19 +1,26 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.api.schema.SortDesc;
-import com.taobao.search.iquan.core.api.schema.Table;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexMatchTypeShuttle;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.RelFieldCollation;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLocalRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexProgram;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SortScanMergeRule extends RelOptRule {
     public static final SortScanMergeRule INSTANCE = new SortScanMergeRule(IquanRelBuilder.LOGICAL_BUILDER);
@@ -35,7 +42,7 @@ public class SortScanMergeRule extends RelOptRule {
         if (!(scanBase instanceof IquanTableScanOp)) {
             return;
         }
-        IquanTableScanOp scan = (IquanTableScanOp)scanBase;
+        IquanTableScanOp scan = (IquanTableScanOp) scanBase;
         List<IquanRelNode> pushDownOps = scan.getPushDownOps();
         if (pushDownOps.size() != 1) {
             return;
@@ -44,15 +51,15 @@ public class SortScanMergeRule extends RelOptRule {
         if (!(node instanceof IquanCalcOp)) {
             return;
         }
-        IquanCalcOp calc = (IquanCalcOp)node;
+        IquanCalcOp calc = (IquanCalcOp) node;
         // skip matchdata
         RexMatchTypeShuttle shuttle = new RexMatchTypeShuttle();
         calc.accept(shuttle);
         if (!shuttle.getMathTypes().isEmpty()) {
             return;
         }
-        Table scanTable = IquanRelOptUtils.getIquanTable(scan);
-        List<SortDesc> tableSortDescs = scanTable.getSortDescs();
+        IquanTable scanIquanTable = IquanRelOptUtils.getIquanTable(scan);
+        List<SortDesc> tableSortDescs = scanIquanTable.getSortDescs();
 
         List<RelFieldCollation> opSortDescs = sort.getCollation().getFieldCollations();
         if (opSortDescs.isEmpty() || opSortDescs.size() > tableSortDescs.size()) {
@@ -67,7 +74,7 @@ public class SortScanMergeRule extends RelOptRule {
             if (!(expr instanceof RexInputRef)) {
                 return;
             }
-            RexInputRef inputRef = (RexInputRef)expr;
+            RexInputRef inputRef = (RexInputRef) expr;
             String opInputFieldName = rexProgram.getInputRowType()
                     .getFieldList()
                     .get(inputRef.getIndex())

@@ -69,6 +69,8 @@ public:
 
     autil::StringView Format(const std::vector<autil::StringView>& attrFieldData, autil::mem_pool::Pool* pool);
 
+    autil::StringView FormatAttrField(const std::vector<autil::StringView>& attrFieldData, autil::mem_pool::Pool* pool);
+
     autil::StringView MergeAndFormatUpdateFields(const char* baseAddr, const PackAttributeFields& packAttrFields,
                                                  bool hasHashKeyInAttrFields, indexlib::util::MemBuffer& buffer);
 

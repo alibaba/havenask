@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORCONFIGREADER_H
-#define ISEARCH_BS_PROCESSORCONFIGREADER_H
+#pragma once
 
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ProcessorRuleConfig.h"
 #include "build_service/config/ResourceReader.h"
-#include "build_service/config/SrcNodeConfig.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace config {
@@ -93,5 +98,3 @@ inline bool ProcessorConfigReader::getProcessorConfig(const std::string& path, T
 BS_TYPEDEF_PTR(ProcessorConfigReader);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_PROCESSORCONFIGREADER_H

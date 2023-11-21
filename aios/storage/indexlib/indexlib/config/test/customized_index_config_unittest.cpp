@@ -8,7 +8,7 @@ using namespace std;
 using namespace indexlib::util;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, CustomizedIndexConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, CustomizedIndexConfigTest);
 
 CustomizedIndexConfigTest::CustomizedIndexConfigTest() {}
 
@@ -25,7 +25,7 @@ void CustomizedIndexConfigTest::TestSimpleProcess()
 
     IndexConfigPtr indexConfig = schema->GetIndexSchema()->GetIndexConfig("test_customize");
 
-    CustomizedIndexConfigPtr typedConfig = DYNAMIC_POINTER_CAST(CustomizedIndexConfig, indexConfig);
+    CustomizedIndexConfigPtr typedConfig = std::dynamic_pointer_cast<CustomizedIndexConfig>(indexConfig);
     ASSERT_TRUE(typedConfig);
 
     EXPECT_EQ(2u, typedConfig->GetFieldCount());

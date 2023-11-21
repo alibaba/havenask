@@ -1,10 +1,23 @@
 #include "build_service/analyzer/AnalyzerInfos.h"
 
+#include <cstddef>
+#include <memory>
+#include <set>
 #include <string>
+#include <utility>
 
+#include "alog/Logger.h"
+#include "autil/codec/NormalizeOptions.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/analyzer/TokenizerConfig.h"
+#include "build_service/common_define.h"
 #include "build_service/plugin/ModuleInfo.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/Log.h"
 #include "indexlib/analyzer/AnalyzerDefine.h"
+#include "indexlib/analyzer/AnalyzerInfo.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil::legacy;

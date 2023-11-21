@@ -15,7 +15,14 @@
  */
 #include "build_service/processor/FlipCharProcessor.h"
 
+#include <iosfwd>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "build_service/common_define.h"
 #include "indexlib/config/ITabletSchema.h"
+#include "indexlib/document/RawDocument.h"
 
 using namespace std;
 using namespace autil;

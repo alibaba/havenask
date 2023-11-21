@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VIRTUAL_ATTRIBUTE_CONTAINER_H
-#define __INDEXLIB_VIRTUAL_ATTRIBUTE_CONTAINER_H
+#pragma once
 
 #include <memory>
 
@@ -43,5 +42,3 @@ private:
 
 DEFINE_SHARED_PTR(VirtualAttributeContainer);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_VIRTUAL_ATTRIBUTE_CONTAINER_H

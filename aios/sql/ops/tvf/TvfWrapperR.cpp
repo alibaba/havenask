@@ -213,7 +213,7 @@ bool TvfWrapperR::compute(table::TablePtr &inputTable, bool &isEof, table::Table
     if (outputTable) {
         uint64_t totalComputeTimes = _tvfInfo.totalcomputetimes();
         if (totalComputeTimes < 5) {
-            SQL_LOG(TRACE1,
+            SQL_LOG(TRACE2,
                     "tvf batch [%lu] output table: [%s]",
                     totalComputeTimes,
                     TableUtil::toString(outputTable, 10).c_str());
@@ -228,7 +228,7 @@ bool TvfWrapperR::compute(table::TablePtr &inputTable, bool &isEof, table::Table
     }
 
     if (isEof) {
-        SQL_LOG(DEBUG, "tvf info: [%s]", _tvfInfo.ShortDebugString().c_str());
+        SQL_LOG(TRACE1, "tvf info: [%s]", _tvfInfo.ShortDebugString().c_str());
     }
     _sqlSearchInfoCollectorR->getCollector()->overwriteTvfInfo(_tvfInfo);
     return true;
@@ -247,7 +247,7 @@ bool TvfWrapperR::checkOutputTable(const table::TablePtr &table) {
     set<string> nameSet;
     size_t colCount = table->getColumnCount();
     for (size_t i = 0; i < colCount; i++) {
-        nameSet.insert(table->getColumnName(i));
+        nameSet.insert(table->getColumn(i)->getName());
     }
     for (const auto &field : _initParam.outputFields) {
         if (nameSet.count(field) != 1) {
@@ -260,7 +260,9 @@ bool TvfWrapperR::checkOutputTable(const table::TablePtr &table) {
 
 void TvfWrapperR::reportMetrics() {
     if (_queryMetricReporterR) {
-        string pathName = "sql.user.ops." + _initParam.opName;
+        string opName = _initParam.opName;
+        KernelUtil::stripKernelNamePrefix(opName);
+        string pathName = "sql.user.ops." + std::move(opName);
         auto opMetricsReporter = _queryMetricReporterR->getReporter()->getSubReporter(pathName, {});
         opMetricsReporter->report<TvfOpMetrics, TvfInfo>(nullptr, &_tvfInfo);
     }

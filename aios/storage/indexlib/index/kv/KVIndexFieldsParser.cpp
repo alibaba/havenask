@@ -61,15 +61,17 @@ Status KVIndexFieldsParser::Init(const std::vector<std::shared_ptr<config::IInde
 }
 
 indexlib::util::PooledUniquePtr<document::IIndexFields>
-KVIndexFieldsParser::Parse(const document::ExtendDocument& extendDoc, autil::mem_pool::Pool* pool) const
+KVIndexFieldsParser::Parse(const document::ExtendDocument& extendDoc, autil::mem_pool::Pool* pool,
+                           bool& hasFormatError) const
 {
+    hasFormatError = false;
     auto kvIndexFields = indexlib::util::MakePooledUniquePtr<KVIndexFields>(pool, pool);
-    auto rawDoc = extendDoc.getRawDocument();
+    auto rawDoc = extendDoc.GetRawDocument();
     auto opType = rawDoc->getDocOperateType();
     kvIndexFields->SetDocOperateType(opType);
     for (const auto& fieldResource : _fieldResources) {
         KVIndexFields::SingleField singleField;
-        auto r = ParseSingleField(fieldResource, rawDoc, pool, &singleField);
+        auto r = ParseSingleField(fieldResource, rawDoc, pool, &singleField, &hasFormatError);
         if (!r) {
             AUTIL_LOG(ERROR, "parse kv index[%s] failed", fieldResource.kvConfig->GetIndexName().c_str());
             return nullptr;
@@ -82,7 +84,8 @@ KVIndexFieldsParser::Parse(const document::ExtendDocument& extendDoc, autil::mem
 
 bool KVIndexFieldsParser::ParseSingleField(const FieldResource& fieldResource,
                                            const std::shared_ptr<document::RawDocument>& rawDoc,
-                                           autil::mem_pool::Pool* pool, KVIndexFields::SingleField* singleField) const
+                                           autil::mem_pool::Pool* pool, KVIndexFields::SingleField* singleField,
+                                           bool* hasFormatError) const
 {
     if (!ParseKey(fieldResource, rawDoc, pool, singleField)) {
         return false;
@@ -101,6 +104,7 @@ bool KVIndexFieldsParser::ParseSingleField(const FieldResource& fieldResource,
     }
     if (result.hasFormatError) {
         singleField->hasFormatError = true;
+        *hasFormatError = true;
         if (_attributeConvertErrorCounter) {
             _attributeConvertErrorCounter->Increase(1);
         }

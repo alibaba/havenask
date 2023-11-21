@@ -18,6 +18,7 @@
 #include "autil/EnvUtil.h"
 #include "indexlib/document/ExtendDocument.h"
 #include "indexlib/document/IRawDocumentParser.h"
+#include "indexlib/document/RawDocument.h"
 #include "indexlib/document/raw_document/DefaultRawDocument.h"
 #include "indexlib/document/raw_document/KeyMapManager.h"
 

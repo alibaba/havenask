@@ -1,12 +1,16 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.FieldMeta;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.api.schema.Location;
-import com.taobao.search.iquan.core.api.schema.Table;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
@@ -25,8 +29,6 @@ import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexProgram;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.SqlKind;
-
-import java.util.*;
 
 public class IquanTableModifyOp extends AbstractRelNode implements IquanRelNode {
     private int parallelNum = -1;
@@ -95,7 +97,7 @@ public class IquanTableModifyOp extends AbstractRelNode implements IquanRelNode 
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         return null;
     }
 
@@ -105,7 +107,8 @@ public class IquanTableModifyOp extends AbstractRelNode implements IquanRelNode 
                 SqlKind.INSERT, getCluster().getTypeFactory());
     }
 
-    @Override public RelWriter explainTerms(RelWriter pw) {
+    @Override
+    public RelWriter explainTerms(RelWriter pw) {
         super.explainTerms(pw)
                 .item("table", table.getQualifiedName())
                 //.item("operation", RelEnumTypes.fromEnum(operation))
@@ -155,7 +158,7 @@ public class IquanTableModifyOp extends AbstractRelNode implements IquanRelNode 
 
         IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.OPERATION, RelEnumTypes.fromEnum(operation));
         if (level == SqlExplainLevel.ALL_ATTRIBUTES) {
-            Table iquanTable = IquanRelOptUtils.getIquanTable(table);
+            IquanTable iquanTable = IquanRelOptUtils.getIquanTable(table);
             Distribution distribution = iquanTable.getDistribution();
             Map<String, FieldMeta> primaryMap = iquanTable.getPrimaryMap();
             IquanRelOptUtils.addMapIfNotEmpty(

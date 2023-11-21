@@ -1,24 +1,28 @@
 package com.taobao.search.iquan.core.rel.convert.physical;
 
-import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
-import com.taobao.search.iquan.core.catalog.GlobalCatalog;
-import com.taobao.search.iquan.core.catalog.GlobalCatalogManager;
-import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
-import com.taobao.search.iquan.core.rel.programs.IquanOptContext;
-import org.apache.calcite.plan.Context;
-import org.apache.calcite.plan.RelOptRuleCall;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rex.*;
-import org.apache.calcite.sql.SqlFunction;
-import org.apache.calcite.sql.SqlOperator;
-import org.apache.commons.lang3.StringUtils;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
+import com.taobao.search.iquan.core.catalog.GlobalCatalog;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
+import com.taobao.search.iquan.core.rel.programs.IquanOptContext;
+import org.apache.calcite.plan.Context;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.sql.SqlOperator;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class IquanBuildInConvertor {
+    private static final Logger logger = LoggerFactory.getLogger(IquanBuildInConvertor.class);
     public static IquanTableFunctionScanOp convertRankTvf(IquanTableFunctionScanOp scanOp) throws FunctionNotExistException {
         RexCall call = (RexCall) scanOp.getCall();
         SqlOperator operator = call.getOperator();

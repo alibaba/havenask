@@ -30,7 +30,7 @@ class TopoClusterManager;
 class LocalSubscriberImp : public CMSubscriberBase
 {
 private:
-    char* getDataFromFile(const char* p_file_name);
+    char* getDataFromFile(const std::string& p_file_name);
 
 public:
     LocalSubscriberImp(SubscriberConfig* cfg_info) : CMSubscriberBase(cfg_info) {}

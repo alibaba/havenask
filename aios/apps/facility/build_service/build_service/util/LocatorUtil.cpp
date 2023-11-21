@@ -15,16 +15,24 @@
  */
 #include "build_service/util/LocatorUtil.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "build_service/common/Locator.h"
-#include "indexlib/framework/Locator.h"
 
 namespace build_service::util {
 BS_LOG_SETUP(util, LocatorUtil);
 
-std::pair<bool, std::vector<indexlibv2::base::Progress>>
+std::pair<bool, indexlibv2::base::ProgressVector>
 LocatorUtil::convertSwiftProgress(const swift::protocol::ReaderProgress& swiftProgress, bool isMultiTopic)
 {
-    std::vector<indexlibv2::base::Progress> progress;
+    indexlibv2::base::ProgressVector progress;
     if (!isMultiTopic) {
         if (swiftProgress.topicprogress_size() != 1) {
             BS_LOG(WARN, "size of topic progress not equal 1 [%s]", swiftProgress.ShortDebugString().c_str());
@@ -53,25 +61,43 @@ LocatorUtil::convertSwiftProgress(const swift::protocol::ReaderProgress& swiftPr
             return a.first < b.first;
         });
         int64_t lastSrc = -1;
-        std::vector<indexlibv2::base::Progress> nextProgress;
+        indexlibv2::base::ProgressVector nextProgress;
         for (int i = 0; i < mark.size(); i++) {
             if (lastSrc != -1 && lastSrc != mark[i].first) {
-                progress = ComputeProgress(progress, nextProgress, minOffset);
+                progress = computeProgress(progress, nextProgress, minOffset);
                 nextProgress.clear();
             }
             nextProgress.push_back(mark[i].second);
             lastSrc = mark[i].first;
         }
         if (!nextProgress.empty()) {
-            progress = ComputeProgress(progress, nextProgress, minOffset);
+            progress = computeProgress(progress, nextProgress, minOffset);
         }
     }
     return {true, progress};
 }
 
-swift::protocol::ReaderProgress LocatorUtil::convertLocatorProgress(
-    const std::vector<indexlibv2::base::Progress>& progress, const std::string& topicName,
-    const std::vector<std::pair<uint8_t, uint8_t>>& maskFilterPairs, bool useBSInnerMaskFilter)
+std::pair<bool, indexlibv2::base::MultiProgress>
+LocatorUtil::convertSwiftMultiProgress(const swift::protocol::ReaderProgress& swiftProgress)
+{
+    indexlibv2::base::MultiProgress multiProgress;
+    multiProgress.reserve(swiftProgress.topicprogress().size());
+    for (const auto& topicProgress : swiftProgress.topicprogress()) {
+        multiProgress.emplace_back();
+        for (const auto& partProgress : topicProgress.partprogress()) {
+            multiProgress.rbegin()->emplace_back(indexlibv2::base::Progress(
+                partProgress.from(), partProgress.to(), {partProgress.timestamp(), partProgress.offsetinrawmsg()}));
+        }
+        std::sort(multiProgress.rbegin()->begin(), multiProgress.rbegin()->end(),
+                  [](const auto& a, const auto& b) { return a.from < b.from; });
+    }
+    return {true, multiProgress};
+}
+
+swift::protocol::ReaderProgress
+LocatorUtil::convertLocatorProgress(const indexlibv2::base::ProgressVector& progress, const std::string& topicName,
+                                    const std::vector<std::pair<uint8_t, uint8_t>>& maskFilterPairs,
+                                    bool useBSInnerMaskFilter)
 {
     swift::protocol::ReaderProgress swiftProgress;
     for (const auto& [mask, result] : maskFilterPairs) {
@@ -90,14 +116,56 @@ swift::protocol::ReaderProgress LocatorUtil::convertLocatorProgress(
     return swiftProgress;
 }
 
-std::vector<indexlibv2::base::Progress>
-LocatorUtil::ComputeProgress(const std::vector<indexlibv2::base::Progress>& lastProgress,
-                             const std::vector<indexlibv2::base::Progress>& progress,
+swift::protocol::ReaderProgress LocatorUtil::convertLocatorMultiProgress(
+    const indexlibv2::base::MultiProgress& multiProgress, const std::string& topicName,
+    const std::vector<std::pair<uint8_t, uint8_t>>& maskFilterPairs, bool useBSInnerMaskFilter)
+{
+    swift::protocol::ReaderProgress swiftProgress;
+    assert(multiProgress.size() == maskFilterPairs.size());
+    for (size_t i = 0; i < multiProgress.size(); i++) {
+        auto topicProgress = swiftProgress.add_topicprogress();
+        topicProgress->set_topicname(topicName);
+        topicProgress->set_uint8filtermask(useBSInnerMaskFilter ? 0 : maskFilterPairs[i].first);
+        topicProgress->set_uint8maskresult(useBSInnerMaskFilter ? 0 : maskFilterPairs[i].second);
+        for (const auto& singleProgress : multiProgress[i]) {
+            auto partProgress = topicProgress->add_partprogress();
+            partProgress->set_from(singleProgress.from);
+            partProgress->set_to(singleProgress.to);
+            partProgress->set_timestamp(singleProgress.offset.first);
+            partProgress->set_offsetinrawmsg(singleProgress.offset.second);
+        }
+    }
+    return swiftProgress;
+}
+
+std::optional<indexlibv2::base::MultiProgress>
+LocatorUtil::computeMultiProgress(const indexlibv2::base::MultiProgress& lastProgress,
+                                  const indexlibv2::base::MultiProgress& progress,
+                                  std::function<indexlibv2::base::Progress::Offset(indexlibv2::base::Progress::Offset,
+                                                                                   indexlibv2::base::Progress::Offset)>
+                                      compareFunc)
+{
+    if (unlikely(lastProgress.size() != progress.size())) {
+        BS_LOG(WARN, "multi progress size [%lu] != [%lu]: lastProgress [%s], progress [%s]", lastProgress.size(),
+               progress.size(), progress2DebugString(lastProgress).c_str(), progress2DebugString(progress).c_str());
+        assert(false);
+        return std::nullopt;
+    }
+    indexlibv2::base::MultiProgress result;
+    for (size_t i = 0; i < lastProgress.size(); ++i) {
+        result.emplace_back(computeProgress(lastProgress[i], progress[i], compareFunc));
+    }
+    return {result};
+}
+
+indexlibv2::base::ProgressVector
+LocatorUtil::computeProgress(const indexlibv2::base::ProgressVector& lastProgress,
+                             const indexlibv2::base::ProgressVector& progress,
                              std::function<indexlibv2::base::Progress::Offset(indexlibv2::base::Progress::Offset,
                                                                               indexlibv2::base::Progress::Offset)>
                                  compareFunc)
 {
-    std::vector<indexlibv2::base::Progress> newProgress;
+    indexlibv2::base::ProgressVector newProgress;
     size_t curPos = 0;
     size_t i = 0;
     indexlibv2::base::Progress::Offset lastOffset = indexlibv2::base::Progress::INVALID_OFFSET;
@@ -148,7 +216,7 @@ LocatorUtil::ComputeProgress(const std::vector<indexlibv2::base::Progress>& last
     return newProgress;
 }
 
-bool LocatorUtil::EncodeOffset(int8_t streamIdx, int64_t timestamp, int64_t* offset)
+bool LocatorUtil::encodeOffset(int8_t streamIdx, int64_t timestamp, int64_t* offset)
 {
     assert(offset);
     if (streamIdx < INVALID_STREAM_IDX || timestamp < INVALID_TIMESTAMP || timestamp >= MAX_TIMESTAMP) {
@@ -164,7 +232,7 @@ bool LocatorUtil::EncodeOffset(int8_t streamIdx, int64_t timestamp, int64_t* off
     *offset = (((int64_t)streamIdx) << TIMESTAMP_BIT) | timestamp;
     return true;
 }
-void LocatorUtil::DecodeOffset(int64_t encodedOffset, int8_t* streamIdx, int64_t* timestamp)
+void LocatorUtil::decodeOffset(int64_t encodedOffset, int8_t* streamIdx, int64_t* timestamp)
 {
     assert(streamIdx);
     assert(timestamp);
@@ -177,15 +245,29 @@ void LocatorUtil::DecodeOffset(int64_t encodedOffset, int8_t* streamIdx, int64_t
     }
 }
 
-int64_t LocatorUtil::GetSwiftWatermark(const common::Locator& locator)
+int64_t LocatorUtil::getSwiftWatermark(const common::Locator& locator)
 {
     int64_t watermark = 0;
     int8_t streamIdx = 0;
-    DecodeOffset(locator.GetOffset().first, &streamIdx, &watermark);
+    decodeOffset(locator.GetOffset().first, &streamIdx, &watermark);
     return watermark;
 }
 
-std::string LocatorUtil::progress2DebugString(const std::vector<indexlibv2::base::Progress> progress)
+std::string LocatorUtil::progress2DebugString(const indexlibv2::base::MultiProgress& multiProgress)
+{
+    std::stringstream ss;
+    ss << "[";
+    for (size_t i = 0; i < multiProgress.size(); ++i) {
+        if (i != 0) {
+            ss << "; ";
+        }
+        ss << progress2DebugString(multiProgress[i]);
+    }
+    ss << "]";
+    return ss.str();
+}
+
+std::string LocatorUtil::progress2DebugString(const indexlibv2::base::ProgressVector& progress)
 {
     std::stringstream stream;
     stream << "[";

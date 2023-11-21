@@ -18,9 +18,8 @@
 #include <iosfwd>
 #include <utility>
 
-#include "alog/Logger.h"
-#include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 
 using namespace std;
 using namespace autil;
@@ -50,7 +49,6 @@ string LifecycleTable::GetLifecycle(const std::string& path) const
 // this lifecycle table only store segment level path and it can be change
 bool LifecycleTable::InnerAdd(const std::string& path, const std::string& lifecycle)
 {
-    AUTIL_LOG(INFO, "add path [%s] lifecycle [%s]", path.c_str(), lifecycle.c_str());
     _lifecycleMap[path] = lifecycle;
     return true;
 }

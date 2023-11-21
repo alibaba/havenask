@@ -15,12 +15,17 @@
  */
 #pragma once
 
+#include <memory>
 #include <mutex>
+#include <string>
 
 #include "build_service/build_task/BuildTaskTarget.h"
 #include "build_service/common_define.h"
 #include "build_service/proto/BuildTaskCurrentInfo.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/framework/VersionMeta.h"
 
 namespace build_service { namespace build_task {
 

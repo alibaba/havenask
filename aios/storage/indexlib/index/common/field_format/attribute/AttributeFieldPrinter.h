@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "autil/DataBuffer.h"
+#include "autil/MultiValueType.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/config/FieldConfig.h"
 #include "indexlib/index/common/field_format/attribute/ShapeAttributeUtil.h"

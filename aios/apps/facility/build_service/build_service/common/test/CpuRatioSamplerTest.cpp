@@ -1,6 +1,10 @@
 #include "build_service/common/CpuRatioSampler.h"
 
+#include <ostream>
+#include <unistd.h>
+
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

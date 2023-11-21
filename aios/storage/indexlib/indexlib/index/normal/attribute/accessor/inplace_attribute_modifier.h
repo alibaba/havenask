@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INPLACE_ATTRIBUTE_MODIFIER_H
-#define __INDEXLIB_INPLACE_ATTRIBUTE_MODIFIER_H
+#pragma once
 
 #include <memory>
 
@@ -82,5 +81,3 @@ private:
 
 DEFINE_SHARED_PTR(InplaceAttributeModifier);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INPLACE_ATTRIBUTE_MODIFIER_H

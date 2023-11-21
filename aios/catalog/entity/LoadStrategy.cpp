@@ -15,10 +15,26 @@
  */
 #include "catalog/entity/LoadStrategy.h"
 
+#include <google/protobuf/util/json_util.h>
+
+#include "autil/legacy/md5.h"
 #include "catalog/util/ProtoUtil.h"
 
 namespace catalog {
 AUTIL_LOG_SETUP(catalog, LoadStrategy);
+
+std::string LoadStrategy::getSignature() const {
+    proto::LoadStrategy proto;
+    auto s = toProto(&proto);
+    if (!isOk(s)) {
+        return "";
+    }
+    std::string jsonStr;
+    google::protobuf::util::MessageToJsonString(proto, &jsonStr); // warn: map maybe unordered, no map currently
+    autil::legacy::Md5Stream stream;
+    stream.Put((const uint8_t *)jsonStr.c_str(), jsonStr.length());
+    return stream.GetMd5String();
+}
 
 void LoadStrategy::copyDetail(LoadStrategy *other) const { other->_loadStrategyConfig = _loadStrategyConfig; }
 

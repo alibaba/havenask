@@ -212,47 +212,8 @@ int32_t CMCentralHb::getClusterUpdateInfo(const std::string& cluster_name, Seria
                    (node->getOnlineStatus() == OS_OFFLINE && node->getCurStatus() == NS_UNVALID));
             status_vec->add_node_online_status(node->getOnlineStatus());
         }
-    } else if (s_cluster->msg_type == ClusterUpdateInfo::MT_NODE_STATUS_LB_INFO) {
-        // 指定需要 结点状态信息 和 负载信息
-        NodeLBInfoVec* lb_info_vec = update_info.mutable_lb_info_vec();
-
-        NodeStatusVec* status_vec = update_info.mutable_node_status_vec();
-        status_vec->set_cluster_status(cluster_wrapper->getClusterStatus());
-        for (auto& node : node_list) {
-            if (node->getOnlineStatus() == OS_ONLINE) {
-                status_vec->add_node_status_vec(getProtectStatus(node->getCurStatus(), protect));
-            } else {
-                status_vec->add_node_status_vec(NS_UNVALID);
-            }
-            status_vec->add_node_online_status(node->getOnlineStatus());
-            assert(node->getOnlineStatus() != OS_OFFLINE ||
-                   (node->getOnlineStatus() == OS_OFFLINE && node->getCurStatus() == NS_UNVALID));
-            if (node->hasLBInfo()) {
-                lb_info_vec->add_lb_info_vec()->CopyFrom(node->getLBInfo());
-            } else {
-                lb_info_vec->add_lb_info_vec();
-            }
-            if (node->hasMetaInfo()) {
-                lb_info_vec->add_meta_info_vec()->CopyFrom(node->getMetaInfo());
-            } else {
-                lb_info_vec->add_meta_info_vec();
-            }
-        }
-    } else if (s_cluster->msg_type == ClusterUpdateInfo::MT_LB_INFO) {
-        // 指定需要 结点状态信息
-        NodeLBInfoVec* lb_info_vec = update_info.mutable_lb_info_vec();
-        for (auto& node : node_list) {
-            if (node->hasLBInfo()) {
-                lb_info_vec->add_lb_info_vec()->CopyFrom(node->getLBInfo());
-            } else {
-                lb_info_vec->add_lb_info_vec();
-            }
-            if (node->hasMetaInfo()) {
-                lb_info_vec->add_meta_info_vec()->CopyFrom(node->getMetaInfo());
-            } else {
-                lb_info_vec->add_meta_info_vec();
-            }
-        }
+    } else {
+        AUTIL_LOG(ERROR, "unsupport cluster update info type %d", s_cluster->msg_type);
     }
     return serializeCluster(s_cluster, &update_info);
 }

@@ -224,7 +224,7 @@ inline bool MultiValueAttributeConvertor<T>::DecodeLiteralField(const autil::Str
         addr = (T*)(data.data() + countLen);
     }
     std::vector<T> tmp(addr, addr + count);
-    value = autil::StringUtil::toString(tmp, "");
+    value = autil::StringUtil::toString(tmp, _separator);
     return true;
 }
 
@@ -232,7 +232,6 @@ template <typename T>
 inline AttrValueMeta MultiValueAttributeConvertor<T>::Decode(const autil::StringView& str)
 {
     autil::StringView targetStr = str;
-    std::string emptyAttrValue;
     if (targetStr.empty()) {
         const static std::string emptyAttrValue = Encode(std::string());
         targetStr = autil::StringView(emptyAttrValue);

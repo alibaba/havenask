@@ -1,4 +1,5 @@
 #include "indexlib/common_define.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/segment/in_memory_segment.h"
 #include "indexlib/index_base/segment/segment_writer.h"
 #include "indexlib/partition/operation_queue/compress_operation_writer.h"
@@ -6,7 +7,6 @@
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/fake_partition_data_creator.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/test.h"
 #include "indexlib/test/unittest.h"
 

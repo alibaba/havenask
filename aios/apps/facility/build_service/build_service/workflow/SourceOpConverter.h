@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SOURCEOPCONVERTER_H
-#define ISEARCH_BS_SOURCEOPCONVERTER_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/config/SrcNodeConfig.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
 
 namespace build_service { namespace workflow {
 
@@ -53,5 +53,3 @@ private:
 BS_TYPEDEF_PTR(SourceOpConverter);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_SOURCEOPCONVERTER_H

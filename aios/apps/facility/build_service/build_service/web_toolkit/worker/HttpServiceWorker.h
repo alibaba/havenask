@@ -15,9 +15,17 @@
  */
 #pragma once
 
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "build_service/web_toolkit/base/SimpleHttpServer.h"
+#include "build_service/web_toolkit/base/TemplateDataAccessor.h"
+#include "build_service/web_toolkit/third_party/nlohmann/json.hpp"
 #include "build_service/web_toolkit/worker/TemplateDataAccessorFactory.h"
 
 namespace build_service::web_toolkit {

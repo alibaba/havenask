@@ -43,6 +43,12 @@ public:
 public:
     autil::Result<bool> batchSeek(size_t batchSize,
                                   std::vector<matchdoc::MatchDoc> &matchDocs) override;
+    uint32_t getTotalSeekedCount() const override {
+        return getTotalScanCount();
+    }
+    uint32_t getTotalWholeDocCount() const override {
+        return getTotalScanCount();
+    }
 
 private:
     isearch::common::QueryPtr _query;

@@ -1,13 +1,25 @@
-#ifndef ISEARCH_BS_MOCKGENERATIONKEEPER_H
-#define ISEARCH_BS_MOCKGENERATIONKEEPER_H
+#pragma once
 
-#include <atomic>
+#include <algorithm>
+#include <functional>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <type_traits>
+#include <vector>
 
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "build_service/admin/AgentRolePlanMaker.h"
 #include "build_service/admin/GenerationKeeper.h"
+#include "build_service/admin/GenerationTaskBase.h"
+#include "build_service/admin/ProhibitedIpCollector.h"
+#include "build_service/admin/catalog/CatalogPartitionIdentifier.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/test/test.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
-#include "build_service/util/Log.h"
+#include "hippo/DriverCommon.h"
+#include "unittest/unittest.h"
 
 namespace build_service { namespace admin {
 
@@ -64,5 +76,3 @@ private:
 BS_TYPEDEF_PTR(MockGenerationKeeper);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_MOCKGENERATIONKEEPER_H

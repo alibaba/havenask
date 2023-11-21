@@ -9,7 +9,7 @@
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/load_config/MmapLoadStrategy.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/common/data_structure/VarLenDataReader.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/Constant.h"
@@ -100,7 +100,7 @@ void LocalDiskSummaryDiskIndexerTest::TestLeafDiskIndexer(bool compress, uint32_
     auto status = SummaryMaker::BuildOneSegment(rootDir, 0, _schema, docCount, &pool, answerDocArray);
     ASSERT_TRUE(status.IsOK());
 
-    IndexerParameter indexerParam;
+    DiskIndexerParameter indexerParam;
     indexerParam.docCount = docCount;
     auto summaryLeafDiskIndexer = std::make_shared<LocalDiskSummaryDiskIndexer>(indexerParam);
 
@@ -183,7 +183,7 @@ TEST_F(LocalDiskSummaryDiskIndexerTest, TestGetSummaryVarLenDataReader)
     auto status = SummaryMaker::BuildOneSegment(rootDir, 0, _schema, docCount, &pool, answerDocArray);
     ASSERT_TRUE(status.IsOK());
 
-    IndexerParameter indexerParam;
+    DiskIndexerParameter indexerParam;
     indexerParam.docCount = docCount;
     auto summaryLeafDiskIndexer = std::make_shared<LocalDiskSummaryDiskIndexer>(indexerParam);
 

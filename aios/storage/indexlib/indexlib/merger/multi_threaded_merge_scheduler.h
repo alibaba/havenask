@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MULTI_THREADED_MERGE_SCHEDULER_H
-#define __INDEXLIB_MULTI_THREADED_MERGE_SCHEDULER_H
+#pragma once
 
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <vector>
+
 #include "indexlib/merger/merge_scheduler.h"
-
-DECLARE_REFERENCE_CLASS(merger, MergeFileSystem);
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/util/resource_control_work_item.h"
 
 namespace indexlib { namespace merger {
 
@@ -45,5 +47,3 @@ private:
 
 DEFINE_SHARED_PTR(MultiThreadedMergeScheduler);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MULTI_THREADED_MERGE_SCHEDULER_H

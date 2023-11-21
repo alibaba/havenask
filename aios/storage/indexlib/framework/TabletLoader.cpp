@@ -15,9 +15,17 @@
  */
 #include "indexlib/framework/TabletLoader.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <ext/alloc_traits.h>
+
 #include "autil/UnitUtil.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/MemoryQuotaController.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/DiskSegment.h"
+#include "indexlib/framework/Locator.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/Version.h"
@@ -59,7 +67,10 @@ Status TabletLoader::PreLoad(const TabletData& lastTabletData, const SegmentPair
     _tabletName = lastTabletData.GetTabletName();
     const auto& rawSegments = GetNeedOpenSegments(onDiskSegmentPairs);
     if (_isOnline) {
-        auto estimateSegmentsMemsize = EstimateMemUsed(_schema, rawSegments);
+        auto [status, estimateSegmentsMemsize] = EstimateMemUsed(_schema, rawSegments);
+        if (!status.IsOK()) {
+            return status;
+        }
         if (!_memReserver->Reserve(estimateSegmentsMemsize)) {
             auto status =
                 Status::NoMem("[%s] no enough memory to load segments. estimateMemsize[%s], "
@@ -93,14 +104,18 @@ Status TabletLoader::PreLoad(const TabletData& lastTabletData, const SegmentPair
     return DoPreLoad(lastTabletData, std::move(onDiskSegments), newOnDiskVersion);
 }
 
-size_t TabletLoader::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
-                                     const std::vector<framework::Segment*>& segments)
+std::pair<Status, size_t> TabletLoader::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
+                                                        const std::vector<framework::Segment*>& segments)
 {
     size_t totalMemUsed = 0;
     for (auto segment : segments) {
-        totalMemUsed += segment->EstimateMemUsed(schema);
+        auto [status, segmentMemUse] = segment->EstimateMemUsed(schema);
+        if (!status.IsOK()) {
+            return {status, 0};
+        }
+        totalMemUsed += segmentMemUse;
     }
-    return totalMemUsed;
+    return {Status::OK(), totalMemUsed};
 }
 
 size_t TabletLoader::EvaluateCurrentMemUsed(const std::vector<framework::Segment*>& segments)

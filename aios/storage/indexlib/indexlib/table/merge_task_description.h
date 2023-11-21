@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_TASK_DESCRIPTION_H
-#define __INDEXLIB_MERGE_TASK_DESCRIPTION_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/KeyValueMap.h"
 
 namespace indexlib { namespace table {
@@ -52,5 +53,3 @@ typedef std::vector<MergeTaskDescription> MergeTaskDescriptions;
 
 DEFINE_SHARED_PTR(MergeTaskDescription);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_MERGE_TASK_DESCRIPTION_H

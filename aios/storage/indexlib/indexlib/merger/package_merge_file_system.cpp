@@ -15,18 +15,35 @@
  */
 #include "indexlib/merger/package_merge_file_system.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <future>
+#include <utility>
+
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "autil/ThreadLocal.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/config/merge_config.h"
+#include "indexlib/config/merge_io_config.h"
 #include "indexlib/file_system/DirectoryOption.h"
-#include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/ListOption.h"
+#include "indexlib/file_system/file/FileReader.h"
+#include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/file_system/fslib/IoConfig.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index_define.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
-#include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 
 using namespace std;
 using namespace autil;

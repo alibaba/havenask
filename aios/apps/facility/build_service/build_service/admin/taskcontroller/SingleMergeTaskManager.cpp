@@ -15,11 +15,20 @@
  */
 #include "build_service/admin/taskcontroller/SingleMergeTaskManager.h"
 
+#include <memory>
+#include <ostream>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
 #include "build_service/admin/taskcontroller/MergeCrontab.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ConfigReaderAccessor.h"
 #include "build_service/config/IndexPartitionOptionsWrapper.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/OfflineIndexConfigMap.h"
+#include "build_service/config/OfflineMergeConfig.h"
+#include "indexlib/config/index_partition_options.h"
 #include "indexlib/index_define.h"
 
 using namespace std;

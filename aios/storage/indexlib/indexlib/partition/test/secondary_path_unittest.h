@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SECONDARYPATHTEST_H
-#define __INDEXLIB_SECONDARYPATHTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -44,5 +43,3 @@ INDEXLIB_UNIT_TEST_CASE(SecondaryPathTest, TestSimpleProcess2);
 INDEXLIB_UNIT_TEST_CASE(SecondaryPathTest, TestSimpleProcess3);
 INDEXLIB_UNIT_TEST_CASE(SecondaryPathTest, TestSimpleProcess4);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SECONDARYPATHTEST_H

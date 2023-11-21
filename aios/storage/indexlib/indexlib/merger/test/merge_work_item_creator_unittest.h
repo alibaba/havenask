@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGEWORKITEMCREATORTEST_H
-#define __INDEXLIB_MERGEWORKITEMCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/Directory.h"
@@ -41,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE(MergeWorkItemCreatorTest, TestCreateMergeWorkItem);
 INDEXLIB_UNIT_TEST_CASE(MergeWorkItemCreatorTest, TestCreateKVMergeWorkItem);
 INDEXLIB_UNIT_TEST_CASE(MergeWorkItemCreatorTest, TestCreateMergeWorkItemForSourceGroup);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGEWORKITEMCREATORTEST_H

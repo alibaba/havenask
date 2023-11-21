@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MULTI_REGION_SPECIAL_VALUE_H
-#define __INDEXLIB_MULTI_REGION_SPECIAL_VALUE_H
+#pragma once
 
 #include <memory>
 
@@ -301,5 +300,3 @@ struct ClosedHashTableTraits<_KT, index::MultiRegionTimestamp0Value<_RealVT>, fa
     typedef SpecialValueBucket<_KT, _VT> Bucket;
 };
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_MULTI_REGION_SPECIAL_VALUE_H

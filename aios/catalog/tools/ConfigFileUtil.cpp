@@ -100,4 +100,18 @@ Status ConfigFileUtil::readFile(const string &filePath, string *content) {
     return StatusBuilder::ok();
 }
 
+Status ConfigFileUtil::copyDir(const string &srcPath, const string &targetPath) {
+    auto ec = fslib::fs::FileSystem::copy(srcPath, targetPath);
+    CATALOG_CHECK(ec == fslib::EC_OK,
+                  Status::INTERNAL_ERROR,
+                  "copy [",
+                  srcPath,
+                  "] to [",
+                  targetPath,
+                  "] failed, errorMessage [",
+                  fslib::fs::FileSystem::getErrorString(ec).c_str(),
+                  "]");
+    return StatusBuilder::ok();
+}
+
 } // namespace catalog

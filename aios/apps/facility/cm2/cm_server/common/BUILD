@@ -3,6 +3,6 @@ cc_library(
     name='cm_server_base64',
     srcs=['base64.cpp'],
     hdrs=glob(['base64.h']),
-    deps=[],
-    visibility=['//visibility:public']
+    visibility=['//visibility:public'],
+    deps=[]
 )

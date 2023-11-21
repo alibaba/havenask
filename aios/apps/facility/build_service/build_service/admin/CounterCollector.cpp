@@ -15,13 +15,25 @@
  */
 #include "build_service/admin/CounterCollector.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "build_service/admin/CounterFileCollector.h"
 #include "build_service/admin/CounterRedisCollector.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RedisClient.h"
 #include "fslib/util/LongIntervalLog.h"
 #include "indexlib/misc/common.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/counter/Counter.h"
+#include "indexlib/util/counter/CounterBase.h"
 
 using namespace std;
 using namespace autil;

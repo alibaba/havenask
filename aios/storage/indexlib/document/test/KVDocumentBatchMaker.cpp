@@ -71,7 +71,7 @@ KVDocumentBatchMaker::MakeBatchVec(const std::shared_ptr<config::ITabletSchema>&
             ConvertMultiField(multiFields, rawDoc);
         }
         auto extendDoc = factory->CreateExtendDocument();
-        extendDoc->setRawDocument(rawDoc);
+        extendDoc->SetRawDocument(rawDoc);
         auto [s, docBatch] = parser->Parse(*extendDoc);
         if (!s.IsOK()) {
             AUTIL_LOG(ERROR, "parse failed, error: %s, raw doc: %s", s.ToString().c_str(), rawDoc->toString().c_str());

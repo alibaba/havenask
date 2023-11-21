@@ -6,7 +6,7 @@ cc_library(
     hdrs=glob(['*h']),
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/inverted_index/builtin_index/pack/test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/index/inverted_index:PostingWriterImpl',
         '//aios/storage/indexlib/indexlib',
@@ -18,7 +18,7 @@ cc_fast_test(
     srcs=glob(['*unittest.cpp']),
     copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
-    shard_count=20,
+    shard_count=5,
     deps=[
         ':indexlib_pack_test_helper',
         '//aios/storage/indexlib/indexlib:indexlib_testbase',

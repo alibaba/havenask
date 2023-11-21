@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 
 #include "autil/mem_pool/pool_allocator.h"
@@ -63,6 +64,7 @@ private:
                      bool hasPatchCompress);
 
 private:
+    std::mutex _dataMutex;
     indexlib::util::SimplePool _simplePool;
     HashMap _hashMap;
     DocVector _nullTermDocs;

@@ -1,10 +1,9 @@
-#ifndef __INDEXLIB_HIGHFREQVOCABULARYCREATORTEST_H
-#define __INDEXLIB_HIGHFREQVOCABULARYCREATORTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
+#include "indexlib/file_system/IDirectory.h"
 #include "indexlib/index/inverted_index/config/HighFreqVocabularyCreator.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -26,11 +25,10 @@ private:
     void PrepareAdaptiveDictFile(const std::string& fileName, bool useArchiveFile = true);
 
 private:
-    IE_LOG_DECLARE();
+    std::shared_ptr<file_system::IDirectory> mRootDir;
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(HighFreqVocabularyCreatorTest, TestCreateVocabulary);
 INDEXLIB_UNIT_TEST_CASE(HighFreqVocabularyCreatorTest, TestLoadAdaptiveVocabularyWithDir);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_HIGHFREQVOCABULARYCREATORTEST_H

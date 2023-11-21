@@ -15,7 +15,11 @@
  */
 #pragma once
 
-#include "build_service/common_define.h"
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 

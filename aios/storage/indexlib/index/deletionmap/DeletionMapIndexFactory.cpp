@@ -18,8 +18,10 @@
 #include "autil/TimeUtility.h"
 #include "indexlib/config/IIndexConfig.h"
 #include "indexlib/framework/MetricsManager.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IIndexMerger.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/deletionmap/Common.h"
 #include "indexlib/index/deletionmap/DeletionMapDiskIndexer.h"
 #include "indexlib/index/deletionmap/DeletionMapIndexReader.h"
@@ -39,7 +41,7 @@ DeletionMapIndexFactory::~DeletionMapIndexFactory() {}
 
 std::shared_ptr<IDiskIndexer>
 DeletionMapIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                           const IndexerParameter& indexerParam) const
+                                           const DiskIndexerParameter& indexerParam) const
 {
     assert(nullptr != indexerParam.metricsManager);
     segmentid_t segmentid = indexerParam.segmentId;
@@ -64,7 +66,7 @@ DeletionMapIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexC
 
 std::shared_ptr<IMemIndexer>
 DeletionMapIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                          const IndexerParameter& indexerParam) const
+                                          const MemIndexerParameter& indexerParam) const
 {
     segmentid_t segmentid = indexerParam.segmentId;
     auto memIndexer =
@@ -92,9 +94,9 @@ DeletionMapIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexCo
 
 std::unique_ptr<IIndexReader>
 DeletionMapIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                           const IndexerParameter& indexerParam) const
+                                           const IndexReaderParameter& indexReaderParam) const
 {
-    assert(nullptr != indexerParam.metricsManager);
+    assert(nullptr != indexReaderParam.metricsManager);
     std::string identifier =
         "__deletionmap_reader_metrics_identifier" + std::to_string(autil::TimeUtility::currentTimeInMicroSeconds());
 
@@ -103,10 +105,10 @@ DeletionMapIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexC
     std::string metricName = "partition/deletedDocCount";
     auto func = std::bind(&DeletionMapIndexReader::GetDeletedDocCount, indexReader.get());
     std::shared_ptr<DeletionMapMetrics> deletionMapMetrics =
-        std::dynamic_pointer_cast<DeletionMapMetrics>(indexerParam.metricsManager->CreateMetrics(
-            identifier, [&indexerParam, &metricName, &tags, &func]() -> std::shared_ptr<framework::IMetrics> {
+        std::dynamic_pointer_cast<DeletionMapMetrics>(indexReaderParam.metricsManager->CreateMetrics(
+            identifier, [&indexReaderParam, &metricName, &tags, &func]() -> std::shared_ptr<framework::IMetrics> {
                 return std::make_shared<DeletionMapMetrics>(
-                    metricName, tags, indexerParam.metricsManager->GetMetricsReporter(), std::move(func));
+                    metricName, tags, indexReaderParam.metricsManager->GetMetricsReporter(), std::move(func));
             }));
     indexReader->RegisterMetrics(deletionMapMetrics);
     if (!deletionMapMetrics) {

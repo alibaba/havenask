@@ -15,31 +15,55 @@
  */
 #include "build_service/admin/GenerationKeeper.h"
 
-#include <queue>
+#include <assert.h>
+#include <cstdint>
+#include <exception>
+#include <functional>
+#include <ostream>
+#include <type_traits>
 
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "autil/ZlibCompressor.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
 #include "build_service/admin/AgentSimpleMasterScheduler.h"
-#include "build_service/admin/CounterFileCollector.h"
-#include "build_service/admin/CounterRedisCollector.h"
 #include "build_service/admin/GeneralGenerationTask.h"
+#include "build_service/admin/GenerationTask.h"
 #include "build_service/admin/GraphGenerationTask.h"
 #include "build_service/admin/HippoProtoHelper.h"
 #include "build_service/admin/JobTask.h"
-#include "build_service/admin/catalog/CatalogPartitionIdentifier.h"
 #include "build_service/admin/catalog/CatalogVersionPublisher.h"
+#include "build_service/admin/controlflow/TaskFlowManager.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CounterSynchronizer.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/RoleNameGenerator.h"
-#include "fslib/fslib.h"
+#include "build_service/proto/WorkerNode.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/common/common_define.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
 #include "fslib/util/LongIntervalLog.h"
 #include "hippo/proto/Common.pb.h"
 #include "indexlib/framework/VersionCoord.h"
+#include "master_framework/AppPlan.h"
+#include "master_framework/RolePlan.h"
+#include "worker_framework/LeaderElector.h"
+#include "worker_framework/WorkerState.h"
 
 using namespace std;
 
@@ -308,50 +332,45 @@ void GenerationKeeper::stopTask(const proto::StopTaskRequest* request, proto::In
     }
 }
 
-indexlib::versionid_t GenerationKeeper::getImportedVersionFromRequest(const proto::StartBuildRequest* request)
+bool GenerationKeeper::getImportedVersionFromRequest(const proto::StartBuildRequest* request,
+                                                     GenerationTaskBase::ImportedVersionIdMap* importedVersionIdMap)
 {
     if (!request->has_extendparameters()) {
-        BS_LOG(ERROR, "request does not have importedVersionId");
-        return indexlibv2::INVALID_VERSIONID;
+        BS_LOG(ERROR, "request does not have extendParameters");
+        return false;
     }
-
     std::string extendParamStr = request->extendparameters();
-    KeyValueMap kvMap;
+    std::map<string, std::map<string, int32_t>> extendParamMap;
     try {
-        FromJsonString(kvMap, extendParamStr);
+        FromJsonString(extendParamMap, extendParamStr);
     } catch (...) {
         BS_LOG(ERROR, "parse extendparameters [%s] failed", extendParamStr.c_str());
+        return false;
     }
-    auto iter = kvMap.find("importedVersionId");
-    if (iter == kvMap.end()) {
-        BS_LOG(ERROR, "request does not have importedVersionId");
-        return indexlibv2::INVALID_VERSIONID;
+    auto iter = extendParamMap.find("importedVersions");
+    if (iter == extendParamMap.end()) {
+        BS_LOG(ERROR, "request does not have importedVersions");
+        return false;
     }
-    indexlib::versionid_t importedVersionId = indexlibv2::INVALID_VERSIONID;
-    if (!autil::StringUtil::numberFromString(iter->second, importedVersionId)) {
-        BS_LOG(ERROR, "invalid versionId [%s]", iter->second.c_str());
-        return indexlibv2::INVALID_VERSIONID;
+    for (const auto& [clusterName, importedVersionId] : iter->second) {
+        if (importedVersionId < 0) {
+            BS_LOG(ERROR, "cluster [%s] has invalid importedVersionId [%d]", clusterName.c_str(), importedVersionId);
+            return false;
+        }
+        (*importedVersionIdMap)[clusterName] = importedVersionId;
     }
-    return importedVersionId >= 0 ? importedVersionId : indexlibv2::INVALID_VERSIONID;
+    return true;
 }
 
 bool GenerationKeeper::importBuild(const string& configPath, const string& dataDescriptionKvs, const BuildId& buildId,
-                                   indexlib::versionid_t importedVersionId, StartBuildResponse* response)
+                                   const GenerationTaskBase::ImportedVersionIdMap& importedVersionIdMap,
+                                   StartBuildResponse* response)
 {
-    _generationTask = createGenerationTask(buildId, /*jobMode*/ false, /*buildMode*/ "");
-    if (!_generationTask->importBuild(configPath, _generationDir, dataDescriptionKvs, importedVersionId, response)) {
+    DELETE_AND_SET_NULL(_generationTask);
+    auto newTask = createGenerationTask(buildId, /*jobMode*/ false, /*buildMode*/ "");
+    SET_GENERATION_TASK(newTask);
+    if (!_generationTask->importBuild(configPath, _generationDir, dataDescriptionKvs, importedVersionIdMap, response)) {
         string errorMsg = "importBuild [" + buildId.ShortDebugString() + "] from generationTask failed";
-        BS_LOG(ERROR, "%s", errorMsg.c_str());
-        response->add_errormessage(errorMsg.c_str());
-        return false;
-    }
-    // clean stopFile after importBuild done
-    // TODO: clear all zkstate related to target generationId (state + checkpoints)
-    std::string stopFile =
-        fslib::util::FileUtil::joinFilePath(_generationDir, PathDefine::ZK_GENERATION_STATUS_STOP_FILE);
-    if (FileSystem::isExist(stopFile) == fslib::EC_TRUE && !cleanGenerationDir(_generationDir)) {
-        string errorMsg = "importBuild [" + buildId.ShortDebugString() +
-                          "] failed, can not clean or check exist stopFile [" + stopFile + "]";
         BS_LOG(ERROR, "%s", errorMsg.c_str());
         response->add_errormessage(errorMsg.c_str());
         return false;
@@ -384,13 +403,14 @@ void GenerationKeeper::startBuild(const proto::StartBuildRequest* request, proto
         buildMode = request->buildmode();
     }
     if (buildMode == "import") {
-        indexlib::versionid_t importedVersionId = getImportedVersionFromRequest(request);
-        if (importedVersionId == indexlibv2::INVALID_VERSIONID) {
+        GenerationTaskBase::ImportedVersionIdMap importedVersionIdMap;
+        if (!getImportedVersionFromRequest(request, &importedVersionIdMap)) {
             SET_ERROR_AND_RETURN(buildId, response, ADMIN_INTERNAL_ERROR,
-                                 "import [%s] task does not have valid importedVersionId!",
-                                 buildId.ShortDebugString().c_str());
+                                 "import [%s] task does not have valid importedVersionId, extendParameters [%s]",
+                                 buildId.ShortDebugString().c_str(),
+                                 request->has_extendparameters() ? request->extendparameters().c_str() : "");
         }
-        if (!importBuild(configPath, dataDescriptionKvs, buildId, importedVersionId, response)) {
+        if (!importBuild(configPath, dataDescriptionKvs, buildId, importedVersionIdMap, response)) {
             SET_ERROR_AND_RETURN(buildId, response, ADMIN_INTERNAL_ERROR, "import task [%s] failed!",
                                  buildId.ShortDebugString().c_str());
         }
@@ -408,7 +428,7 @@ void GenerationKeeper::startBuild(const proto::StartBuildRequest* request, proto
                                      buildId.ShortDebugString().c_str());
             }
         } else {
-            if (!cleanGenerationDir(_generationDir)) {
+            if (!cleanGenerationDir()) {
                 SET_ERROR_AND_RETURN(buildId, response, ADMIN_INTERNAL_ERROR,
                                      "start generation[%s] failed, clean generation dir",
                                      buildId.ShortDebugString().c_str());
@@ -425,9 +445,9 @@ void GenerationKeeper::startBuild(const proto::StartBuildRequest* request, proto
                 _generationTask->setCatalogPartitionIdentifier(_catalogPartitionIdentifier);
             }
 
-            BuildStep buildStep = BUILD_STEP_FULL;
-            if (buildMode == "incremental") {
-                buildStep = BUILD_STEP_INC;
+            BuildStep buildStep = proto::BUILD_STEP_FULL;
+            if (buildMode == config::BUILD_MODE_INCREMENTAL) {
+                buildStep = proto::BUILD_STEP_INC;
                 BS_LOG(INFO, "generation[%s] will start from incremental", buildId.ShortDebugString().c_str());
 
                 string msg = "generation[" + buildId.ShortDebugString() + "] will start from incremental.";
@@ -631,6 +651,30 @@ bool GenerationKeeper::getBulkloadInfo(const std::string& clusterName, const std
     if (!commitTaskStatus(snapshot)) {
         BS_LOG(WARN,
                "get bulkoad info failed, bulkload id [%s] : "
+               "serialize generation status failed!",
+               bulkloadId.c_str());
+        recoverGenerationTask(snapshot);
+        return false;
+    }
+    return true;
+}
+
+bool GenerationKeeper::bulkload(const std::string& clusterName, const std::string& bulkloadId,
+                                const ::google::protobuf::RepeatedPtrField<proto::ExternalFiles>& externalFiles,
+                                const std::string& options, const std::string& action, std::string* errorMsg)
+{
+    FSLIB_LONG_INTERVAL_LOG("generation %s", _buildId.ShortDebugString().c_str());
+    ScopedLock lock(_decisionMutex);
+
+    auto snapshot = createTaskSnapshot();
+    if (!_generationTask->bulkload(clusterName, bulkloadId, externalFiles, options, action, errorMsg)) {
+        BS_LOG(WARN, "bulkload failed, bulkload id [%s]", bulkloadId.c_str());
+        recoverGenerationTask(snapshot);
+        return false;
+    }
+    if (!commitTaskStatus(snapshot)) {
+        BS_LOG(WARN,
+               "bulkoad failed, bulkload id [%s] : "
                "serialize generation status failed!",
                bulkloadId.c_str());
         recoverGenerationTask(snapshot);
@@ -1028,6 +1072,17 @@ void GenerationKeeper::updateActiveNodeStatistics(const RoleSlotInfosPtr& assign
             auto it = mAssignRoleSlots->find(roleName);
             if (it != mAssignRoleSlots->end()) {
                 mGenerationMetrics->assignSlotCount += 1;
+                const SlotInfos& slots = it->second;
+                for (const auto& slot : slots) {
+                    auto resource = slot.slotResource.find("cpu");
+                    if (resource) {
+                        mGenerationMetrics->totalCpuAmount += resource->amount;
+                    }
+                    resource = slot.slotResource.find("mem");
+                    if (resource) {
+                        mGenerationMetrics->totalMemAmount += resource->amount;
+                    }
+                }
             } else {
                 mGenerationMetrics->waitSlotNodeCount += 1;
             }
@@ -1285,21 +1340,23 @@ bool GenerationKeeper::readStatus(string& content)
     return true;
 }
 
-bool GenerationKeeper::cleanGenerationDir(const string& generationDir)
+bool GenerationKeeper::cleanGenerationDir() const
 {
     const string& statusFile =
         fslib::util::FileUtil::joinFilePath(_generationDir, PathDefine::ZK_GENERATION_STATUS_FILE);
     bool exist = false;
     if (!fslib::util::FileUtil::isExist(statusFile, exist) || exist) {
-        BS_LOG(ERROR, "the generation dir [%s] to delete has status file!", generationDir.c_str());
+        BS_LOG(ERROR, "the generation dir [%s] to delete has status file!", _generationDir.c_str());
         return false;
     }
-    BS_LOG(INFO, "try to clean generation dir %s.", generationDir.c_str());
-    if (!fslib::util::FileUtil::removeIfExist(generationDir)) {
-        string errorMsg = "clean generation base dir [" + generationDir + "] failed.";
+    BS_LOG(INFO, "try to clean generation dir %s.", _generationDir.c_str());
+    if (!fslib::util::FileUtil::removeIfExist(_generationDir)) {
+        string errorMsg = "clean generation base dir [" + _generationDir + "] failed.";
         BS_LOG(ERROR, "%s", errorMsg.c_str());
         return false;
     }
+    BS_LOG(INFO, "cleanGenerationDir success for buildId[%s] with generation dir[%s]",
+           _buildId.ShortDebugString().c_str(), _generationDir.c_str());
     return true;
 }
 
@@ -1553,7 +1610,7 @@ void GenerationKeeper::syncProgress(GenerationTaskBase::GenerationStep lastGener
         return;
     }
 
-    if (lastBuildStep == BUILD_STEP_FULL && _generationTask->getBuildStep() == BUILD_STEP_INC) {
+    if (lastBuildStep == proto::BUILD_STEP_FULL && _generationTask->getBuildStep() == proto::BUILD_STEP_INC) {
         _metricsReporter->reportFullBuildTime(TimeUtility::currentTimeInSeconds() -
                                               _generationTask->getStartTimeStamp());
     }
@@ -1750,6 +1807,9 @@ void GenerationKeeper::fillWorkerNodeStatus(const std::set<std::string>& roleNam
                 *status->mutable_pid() = pid;
                 status->set_targetstatus(node->getTargetStatusJsonStr());
                 status->set_currentstatus(node->getCurrentStatusJsonStr());
+                proto::WorkerNodeBase::PBSlotInfos pbSlotInfos;
+                node->getSlotInfo(pbSlotInfos);
+                status->set_slotinfos(HippoProtoHelper::getSlotInfoJsonString(pbSlotInfos));
                 _matchRoles.insert(roleName);
             }
             return true;
@@ -1837,10 +1897,10 @@ void GenerationKeeper::fillWorkerRoleInfo(WorkerRoleInfoMap& roleInfoMap, bool o
         info.roleType = proto::ProtoUtil::toRoleString(node->getRoleType());
         info.heartbeatTime = node->getHeartbeatUpdateTime();
         info.workerStartTime = node->getWorkerStartTime();
+        info.workerStatus = node->getWorkerStatus();
         info.isFinish = node->isFinished();
-
-        BS_LOG(INFO, "target status [%s]", node->getTargetStatusJsonStr().c_str());
-        BS_LOG(INFO, "current status [%s]", node->getCurrentStatusJsonStr().c_str());
+        info.taskIdentifier = node->getTaskIdentifierStr();
+        node->getResourceAmount(info.cpuAmount, info.memAmount);
     }
     std::shared_ptr<AgentRoleTargetMap> roleTargetMap = getAgentRoleTargetMap();
     if (roleTargetMap) {

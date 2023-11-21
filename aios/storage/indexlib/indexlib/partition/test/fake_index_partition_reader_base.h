@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_INDEX_PARTITION_READER_BASE_H
-#define __INDEXLIB_FAKE_INDEX_PARTITION_READER_BASE_H
+#pragma once
 
 #include <memory>
 
@@ -107,5 +106,3 @@ protected:
 
 DEFINE_SHARED_PTR(FakeIndexPartitionReaderBase);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_FAKE_INDEX_PARTITION_READER_BASE_H

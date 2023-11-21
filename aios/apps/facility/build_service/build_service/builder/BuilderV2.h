@@ -15,14 +15,13 @@
  */
 #pragma once
 
-#include <atomic>
 #include <memory>
-#include <mutex>
 #include <optional>
+#include <stdint.h>
 
 #include "build_service/config/BuilderConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
-#include "build_service/util/Log.h"
 #include "indexlib/framework/Locator.h"
 
 namespace indexlib::util {

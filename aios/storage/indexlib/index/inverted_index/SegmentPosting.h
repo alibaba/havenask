@@ -47,19 +47,19 @@ public:
     ~SegmentPosting() {}
 
 public:
-    void Init(uint8_t compressMode, const std::shared_ptr<util::ByteSliceList>& sliceList, docid_t baseDocId,
+    void Init(uint8_t compressMode, const std::shared_ptr<util::ByteSliceList>& sliceList, docid64_t baseDocId,
               uint64_t docCount);
 
-    void Init(docid_t baseDocId, uint64_t docCount);
+    void Init(docid64_t baseDocId, uint64_t docCount);
 
     // for integrate memory optimize : use single slice, avoid new object
-    void Init(uint8_t* data, size_t dataLen, docid_t baseDocId, uint64_t docCount, dictvalue_t dictValue);
+    void Init(uint8_t* data, size_t dataLen, docid64_t baseDocId, uint64_t docCount, dictvalue_t dictValue);
 
     // for dict inline compress
-    void Init(docid_t baseDocId, uint64_t docCount, dictvalue_t dictValue, bool isDocList, bool dfFirst);
+    void Init(docid64_t baseDocId, uint64_t docCount, dictvalue_t dictValue, bool isDocList, bool dfFirst);
 
     // for realtime segment posting
-    void Init(docid_t baseDocId, uint32_t docCount, PostingWriter* postingWriter);
+    void Init(docid64_t baseDocId, uint32_t docCount, PostingWriter* postingWriter);
 
     const std::shared_ptr<util::ByteSliceList>& GetSliceListPtr() const { return _sliceList; }
 
@@ -73,8 +73,8 @@ public:
     void SetMainChainTermMeta(const TermMeta& termMeta) { _mainChainTermMeta = termMeta; }
     const TermMeta& GetMainChainTermMeta() const { return _mainChainTermMeta; }
 
-    docid_t GetBaseDocId() const { return _baseDocId; }
-    void SetBaseDocId(docid_t baseDocId) { _baseDocId = baseDocId; }
+    docid64_t GetBaseDocId() const { return _baseDocId; }
+    void SetBaseDocId(docid64_t baseDocId) { _baseDocId = baseDocId; }
 
     uint32_t GetDocCount() const { return _docCount; }
     void SetDocCount(const uint32_t docCount) { _docCount = docCount; }
@@ -124,7 +124,7 @@ private:
 
 private:
     std::shared_ptr<util::ByteSliceList> _sliceList;
-    docid_t _baseDocId;
+    docid64_t _baseDocId;
     uint32_t _docCount;
     uint8_t _compressMode;
     bool _isSingleSlice;

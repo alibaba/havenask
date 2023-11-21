@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 #pragma once
+#include <atomic>
+#include <cstdint>
+#include <map>
 #include <memory>
+#include <stddef.h>
+#include <string>
+#include <vector>
 
 #include "autil/Lock.h"
 #include "autil/Log.h"
@@ -68,7 +74,7 @@ private:
     std::map<int32_t, size_t> _idToTaskMap;
     std::vector<TaskItemPtr> _taskItems;
     autil::ThreadPtr _backGroundThreadPtr;
-    bool _running;
+    std::atomic_bool _running;
     std::atomic<uint64_t> _allTaskExecutedTimeInterval;
     std::atomic<uint32_t> _oneLoopExecuteTaskCount;
 

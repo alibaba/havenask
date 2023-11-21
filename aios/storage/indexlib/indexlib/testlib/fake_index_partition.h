@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_INDX_PARTITION_H
-#define __INDEXLIB_FAKE_INDX_PARTITION_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/schema_adapter.h"
@@ -29,13 +28,13 @@ private:
 public:
     OpenStatus Open(const std::string& primaryDir, const std::string& secondaryDir,
                     const config::IndexPartitionSchemaPtr& schema, const config::IndexPartitionOptions& options,
-                    versionid_t versionId = INVALID_VERSION) override
+                    versionid_t versionId = INVALID_VERSIONID) override
     {
         mReaderUpdater.reset(new partition::SearchReaderUpdater("default"));
         return OS_OK;
     }
 
-    OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSION) override { return OS_OK; }
+    OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSIONID) override { return OS_OK; }
 
     void ReOpenNewSegment() override {}
     void Close() override {};
@@ -82,5 +81,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeIndexPartition);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKE_INDX_PARTITION_H

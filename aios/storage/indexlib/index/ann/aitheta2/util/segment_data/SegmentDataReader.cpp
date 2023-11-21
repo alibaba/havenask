@@ -25,29 +25,37 @@ namespace indexlibv2::index::ann {
 bool SegmentDataReader::Init(const DirectoryPtr& directory, bool isOnline)
 {
     try {
-        indexlib::file_system::ReaderOption readerOption(FSOT_MEM_ACCESS);
-        readerOption.mayNonExist = true;
-        _indexFileReader = directory->CreateFileReader(INDEX_FILE, readerOption);
-        ANN_CHECK(_indexFileReader, "create online index file reader failed");
-        ANN_CHECK(GetIndexFileLength() == 0 || GetIndexFileAddress() != 0, "get online index file base address failed");
-
-        ANN_CHECK(_indexDataAddrHolder.Load(directory), "load failed");
-
         if (isOnline) {
+            indexlib::file_system::ReaderOption readerOption(FSOT_MEM_ACCESS);
+            readerOption.mayNonExist = true;
+            _indexFileReader = directory->CreateFileReader(INDEX_FILE, readerOption);
+            ANN_CHECK(_indexFileReader, "create index file reader failed");
+            ANN_CHECK(_indexFileReader->GetLength() == 0 || _indexFileReader->GetBaseAddress() != 0,
+                      "get file base address failed");
+            ANN_CHECK(_indexDataAddrHolder.Load(directory), "load index data failed");
             return true;
         }
 
-        readerOption.openType = FSOT_BUFFERED;
+        indexlib::file_system::ReaderOption readerOption(FSOT_BUFFERED);
+        readerOption.cacheMode = indexlib::file_system::ReaderOption::CM_SKIP;
+        readerOption.mayNonExist = true;
+
+        _indexFileReader = directory->CreateFileReader(INDEX_FILE, readerOption);
+        ANN_CHECK(_indexFileReader, "create index file reader failed");
+        ANN_CHECK(_indexDataAddrHolder.Load(directory), "load index data failed");
+
         if (directory->IsExist(PRIMARY_KEY_FILE)) {
             _primaryKeyReader = directory->CreateFileReader(PRIMARY_KEY_FILE, readerOption);
             ANN_CHECK(_primaryKeyReader != nullptr, "create pk file reader failed");
         }
+
         if (directory->IsExist(EMBEDDING_DATA_FILE)) {
             _embeddingDataReader = directory->CreateFileReader(EMBEDDING_DATA_FILE, readerOption);
             ANN_CHECK(_embeddingDataReader != nullptr, "create embedding file reader failed");
         }
     } catch (const indexlib::util::ExceptionBase& e) {
-        AUTIL_LOG(ERROR, "open segment data reader, error[%s]", e.what());
+        AUTIL_LOG(ERROR, "open segment failed in directory[%s], errors[%s]", directory->DebugString().c_str(),
+                  e.what());
         return false;
     }
 
@@ -69,8 +77,11 @@ bool SegmentDataReader::Close()
         return true;
     }
     ANN_CHECK(_indexFileReader->Close().OK(), "close failed");
+    _indexFileReader.reset(); // trigger dtor of the reader to fully clear the resources up
     ANN_CHECK(_primaryKeyReader == nullptr || _primaryKeyReader->Close().OK(), "close failed");
+    _primaryKeyReader.reset(); // trigger dtor of the reader to fully clear the resources up
     ANN_CHECK(_embeddingDataReader == nullptr || _embeddingDataReader->Close().OK(), "close failed");
+    _embeddingDataReader.reset(); // trigger dtor of the reader to fully clear the resources up
     _isClosed = true;
     return true;
 }
@@ -81,22 +92,10 @@ IndexDataReaderPtr SegmentDataReader::GetIndexDataReader(index_id_t id)
 
     IndexDataAddr meta;
     if (_indexDataAddrHolder.GetAddr(id, meta)) {
-        return IndexDataReaderPtr(new IndexDataReader(this, meta));
+        return IndexDataReaderPtr(new IndexDataReader(_indexFileReader, meta));
     }
     AUTIL_LOG(DEBUG, "get index data reader[%ld] failed", id);
     return IndexDataReaderPtr();
-}
-
-size_t SegmentDataReader::ReadIndexFile(void** buf, const IndexDataAddr& meta, size_t len, size_t off) const
-{
-    assert(!_isClosed);
-
-    int8_t* base = (int8_t*)GetIndexFileAddress() + meta.offset;
-    if (off + len > meta.length) {
-        len = meta.length > off ? (meta.length - off) : 0ul;
-    }
-    *buf = base + off;
-    return len;
 }
 
 AUTIL_LOG_SETUP(indexlib.index, IndexDataReader);

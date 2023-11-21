@@ -15,7 +15,12 @@
  */
 #include "indexlib/util/TaskGroup.h"
 
+#include <algorithm>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <iosfwd>
 #include <unistd.h>
+#include <utility>
 
 #include "autil/TimeUtility.h"
 

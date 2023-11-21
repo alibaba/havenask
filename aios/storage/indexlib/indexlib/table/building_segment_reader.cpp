@@ -15,6 +15,8 @@
  */
 #include "indexlib/table/building_segment_reader.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace table {

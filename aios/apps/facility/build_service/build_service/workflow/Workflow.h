@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKFLOW_H
-#define ISEARCH_BS_WORKFLOW_H
+#pragma once
 
-#include <functional>
-#include <unistd.h>
+#include <assert.h>
+#include <vector>
 
-#include "autil/Lock.h"
-#include "autil/Thread.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common_define.h"
 #include "build_service/document/RawDocument.h"
 #include "build_service/util/Log.h"
+#include "build_service/workflow/Consumer.h"
+#include "build_service/workflow/FlowError.h"
+#include "build_service/workflow/Producer.h"
 #include "build_service/workflow/StopOption.h"
 #include "build_service/workflow/WorkflowItem.h"
 #include "build_service/workflow/WorkflowThreadPool.h"
 
 namespace build_service { namespace document {
 
-class ProcessedDocument;
 BS_TYPEDEF_PTR(ProcessedDocument);
 typedef std::vector<ProcessedDocumentPtr> ProcessedDocumentVec;
 BS_TYPEDEF_PTR(ProcessedDocumentVec);
@@ -66,6 +66,9 @@ private:
         if (dynamic_cast<RawDocProducer*>(producer) && dynamic_cast<RawDocConsumer*>(consumer)) {
             return new WorkflowItem<document::RawDocumentPtr>(producer, consumer);
         }
+        if (dynamic_cast<DocumentBatchProducer*>(producer) && dynamic_cast<DocumentBatchConsumer*>(consumer)) {
+            return new WorkflowItem<document::IDocumentBatchPtr>(producer, consumer);
+        }
         assert(false);
         return nullptr;
     }
@@ -97,5 +100,3 @@ private:
 };
 //////////////////////////////////////////////
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_WORKFLOW_H

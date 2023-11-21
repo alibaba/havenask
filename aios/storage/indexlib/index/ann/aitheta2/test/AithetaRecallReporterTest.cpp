@@ -26,7 +26,8 @@ TEST_F(AithetaRecallReporterTest, TestInit)
     }
 }
 
-TEST_F(AithetaRecallReporterTest, TestGetTag) {
+TEST_F(AithetaRecallReporterTest, TestGetTag)
+{
     AithetaIndexConfig aithetaConfig;
     auto metricReporter = std::make_shared<MetricReporter>(nullptr, "embedding_index");
     AithetaRecallReporter recallReporter(aithetaConfig, metricReporter, nullptr);

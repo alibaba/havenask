@@ -15,7 +15,7 @@
  */
 #include "build_service/plugin/DllWrapper.h"
 
-#include "autil/StringUtil.h"
+#include <cstddef>
 
 using namespace std;
 

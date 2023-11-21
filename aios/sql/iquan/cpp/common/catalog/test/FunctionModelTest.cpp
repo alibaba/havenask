@@ -23,29 +23,19 @@ TEST_F(FunctionModelTest, testConstructor) {
     FunctionModel functionModel;
     ASSERT_FALSE(functionModel.isValid());
 
-    ASSERT_EQ("", functionModel.catalogName);
-    ASSERT_EQ("", functionModel.databaseName);
     ASSERT_EQ("", functionModel.functionName);
     ASSERT_EQ("", functionModel.functionType);
-    ASSERT_EQ(0, functionModel.functionVersion);
+    ASSERT_EQ(1, functionModel.functionVersion);
     ASSERT_EQ(0, functionModel.isDeterministic);
     ASSERT_EQ("", functionModel.functionContentVersion);
 
-    const FunctionDef &functionDef = functionModel.functionContent;
+    const FunctionDef &functionDef = functionModel.functionDef;
     ASSERT_EQ(0, functionDef.prototypes.size());
 }
 
 TEST_F(FunctionModelTest, testIsValid) {
     FunctionModel functionModel;
     ASSERT_FALSE(functionModel.isValid());
-
-    functionModel.catalogName = "test";
-    ASSERT_TRUE(!functionModel.isValid());
-    ASSERT_EQ("test", functionModel.catalogName);
-
-    functionModel.databaseName = "db";
-    ASSERT_TRUE(!functionModel.isValid());
-    ASSERT_EQ("db", functionModel.databaseName);
 
     functionModel.functionName = "test";
     ASSERT_TRUE(!functionModel.isValid());
@@ -82,7 +72,7 @@ TEST_F(FunctionModelTest, testIsValid) {
         functionDef.prototypes.emplace_back(prototypeDef);
     }
 
-    functionModel.functionContent = functionDef;
+    functionModel.functionDef = functionDef;
     ASSERT_TRUE(functionModel.isValid());
 
     functionModel.isDeterministic = 0;

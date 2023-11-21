@@ -24,6 +24,12 @@ namespace multi_call {
 AUTIL_LOG_SETUP(multi_call, HostHeartbeatStats);
 AUTIL_LOG_SETUP(multi_call, HostHeartbeatInfo);
 
+void HostHeartbeatStats::updateLastHeartbeatSendTime() {
+    if (0 == lastHeartbeatSendTime) {
+        lastHeartbeatSendTime = autil::TimeUtility::currentTime();
+    }
+}
+
 void HostHeartbeatStats::updateLastResponseTime() {
     lastResponseTime = autil::TimeUtility::currentTime();
 }
@@ -33,16 +39,88 @@ void HostHeartbeatStats::updateLastHeartbeatTime(bool isSuccess) {
     success = isSuccess;
     bool needNotify = !topoReady && notifier;
     topoReady = true;
+    subscribeTimeout = false;
     lastHeartbeatTime = autil::TimeUtility::currentTime();
     if (needNotify) {
         notifier->notifyHeartbeatSuccess();
     }
 }
 
+bool HostHeartbeatStats::isHeartbeatTimeout() {
+    auto lastSend = lastHeartbeatSendTime;
+    if (lastSend <= 0) {
+        return false;
+    }
+    auto now = autil::TimeUtility::currentTime();
+    if (lastSend + GIG_HEARTBEAT_TIMEOUT > now) {
+        // wait
+        return false;
+    }
+    lastHeartbeatSendTime = 0;
+    auto lastEcho = lastHeartbeatTime;
+    lastCheckSuccess = (success && (lastEcho >= lastSend));
+    return !lastCheckSuccess;
+}
+
+bool HostHeartbeatStats::checkSubscribeTimeout(int64_t currentTime) {
+    if (firstHeartbeatTime > 0) {
+        auto diff = currentTime - firstHeartbeatTime;
+        subscribeTimeout = (diff > GIG_HEARTBEAT_SUBSCRIBE_TIMEOUT);
+    }
+    return subscribeTimeout;
+}
+
+void HostHeartbeatStats::incTotalCount() {
+    if (0 == totalCount) {
+        firstHeartbeatTime = autil::TimeUtility::currentTime();
+    }
+    totalCount++;
+}
+
+bool HostHeartbeatStats::skip(int64_t currentTime) {
+    if (0 == totalCount) {
+        return false;
+    }
+    if (!lastCheckSuccess) {
+        return false;
+    }
+    if (ignoreNextSkip) {
+        ignoreNextSkip = false;
+        return false;
+    }
+    if ((0 == lastHeartbeatTime) || !success) {
+        skipCount = 0;
+        return false;
+    }
+    auto heartbeatDiff = currentTime - lastHeartbeatTime;
+    if (heartbeatDiff < GIG_HEARTBEAT_SKIP_LOW) {
+        return true;
+    }
+    if (0 == lastResponseTime) {
+        return skipByCount();
+    }
+    auto queryDiff = currentTime - lastResponseTime;
+    if (queryDiff < GIG_HEARTBEAT_SKIP_LOW) {
+        return skipByCount();
+    }
+    if (queryDiff > GIG_HEARTBEAT_SKIP_HIGH) {
+        return skipByCount();
+    }
+    skipCount = 0;
+    return false;
+}
+
+bool HostHeartbeatStats::skipByCount() {
+    skipCount++;
+    if (skipCount > 30) {
+        skipCount = 0;
+        return false;
+    }
+    return true;
+}
+
 HostHeartbeatInfo::HostHeartbeatInfo()
     : _searchService(nullptr)
-    , _skipCount(0)
-    , _totalCount(0)
     , _stats(std::make_shared<HostHeartbeatStats>()) {
 }
 
@@ -109,10 +187,11 @@ std::shared_ptr<HeartbeatClientStream> HostHeartbeatInfo::newClientStream() cons
 }
 
 bool HostHeartbeatInfo::tick() {
-    if (skip(autil::TimeUtility::currentTime())) {
+    checkHeartbeatTimeout();
+    if (_stats->skip(autil::TimeUtility::currentTime())) {
         return true;
     }
-    _totalCount++;
+    _stats->incTotalCount();
     auto stream = getStream();
     if (!stream) {
         if (!createStream()) {
@@ -129,43 +208,26 @@ bool HostHeartbeatInfo::tick() {
         createStream();
         return false;
     }
+    _stats->updateLastHeartbeatSendTime();
     return true;
 }
 
-bool HostHeartbeatInfo::skip(int64_t currentTime) {
-    if ((0 == _stats->lastHeartbeatTime) || !_stats->success) {
-        _skipCount = 0;
-        return false;
+void HostHeartbeatInfo::checkHeartbeatTimeout() {
+    if (_stats->isHeartbeatTimeout()) {
+        auto stream = getStream();
+        if (stream) {
+            stream->disableProvider();
+        }
     }
-    auto heartbeatDiff = currentTime - _stats->lastHeartbeatTime;
-    if (heartbeatDiff < GIG_HEARTBEAT_SKIP_LOW) {
-        return true;
-    }
-    if (0 == _stats->lastResponseTime) {
-        return skipByCount();
-    }
-    auto queryDiff = currentTime - _stats->lastResponseTime;
-    if (queryDiff < GIG_HEARTBEAT_SKIP_LOW) {
-        return skipByCount();
-    }
-    if (queryDiff > GIG_HEARTBEAT_SKIP_HIGH) {
-        return skipByCount();
-    }
-    _skipCount = 0;
-    return false;
-}
-
-bool HostHeartbeatInfo::skipByCount() {
-    _skipCount++;
-    if (_skipCount > 30) {
-        _skipCount = 0;
-        return false;
-    }
-    return true;
 }
 
 bool HostHeartbeatInfo::fillBizInfoMap(BizInfoMap &bizInfoMap) const {
     if (!_stats->topoReady) {
+        if (_stats->checkSubscribeTimeout(autil::TimeUtility::currentTime())) {
+            AUTIL_LOG(WARN, "heartbeat subscribe timeout for host [%s], ignored",
+                      _spec.spec.getAnetSpec(MC_PROTOCOL_GRPC_STREAM).c_str());
+            return true;
+        }
         AUTIL_LOG(INFO, "heartbeat not completed for host [%s]",
                   _spec.spec.getAnetSpec(MC_PROTOCOL_GRPC_STREAM).c_str());
         return false;
@@ -201,10 +263,13 @@ void HostHeartbeatInfo::toString(std::string &debugStr, MetasSignatureMap &allMe
     debugStr += ", cluster: " + _spec.clusterName;
     debugStr += ", topoReady: " + autil::StringUtil::toString(_stats->topoReady);
     debugStr += ", success: " + autil::StringUtil::toString(_stats->success);
+    debugStr += ", subTimeout: " + autil::StringUtil::toString(_stats->subscribeTimeout);
+    debugStr += ", lastCheckSuccess: " + autil::StringUtil::toString(_stats->lastCheckSuccess);
+    debugStr += ", lastHeartbeatSend: " + getTimeStrFromUs(_stats->lastHeartbeatSendTime);
     debugStr += ", lastHeartbeat: " + getTimeStrFromUs(_stats->lastHeartbeatTime);
     debugStr += ", lastResponse: " + getTimeStrFromUs(_stats->lastResponseTime);
-    debugStr += ", totalCount: " + autil::StringUtil::toString(_totalCount);
-    debugStr += ", skipCount: " + autil::StringUtil::toString(_skipCount);
+    debugStr += ", totalCount: " + autil::StringUtil::toString(_stats->totalCount);
+    debugStr += ", skipCount: " + autil::StringUtil::toString(_stats->skipCount);
     auto stream = getStream();
     if (!stream) {
         return;

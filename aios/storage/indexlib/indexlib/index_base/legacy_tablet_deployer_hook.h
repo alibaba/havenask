@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_LEGACY_TABLET_DEPLOYER_HOOK_H
-#define __INDEXLIB_LEGACY_TABLET_DEPLOYER_HOOK_H
+#pragma once
 
 #include "indexlib/framework/hooks/ITabletDeployerHook.h"
 
@@ -30,5 +29,3 @@ public:
 };
 
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_LEGACY_TABLET_DEPLOYER_HOOK_H

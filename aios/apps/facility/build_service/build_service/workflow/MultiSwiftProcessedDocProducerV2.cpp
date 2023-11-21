@@ -15,8 +15,18 @@
  */
 #include "build_service/workflow/MultiSwiftProcessedDocProducerV2.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <limits>
+#include <unistd.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
-#include "build_service/util/LocatorUtil.h"
+#include "build_service/document/ProcessedDocument.h"
+#include "indexlib/framework/Locator.h"
 
 using namespace std;
 
@@ -36,12 +46,15 @@ MultiSwiftProcessedDocProducerV2::MultiSwiftProcessedDocProducerV2(
 {
     _singleProducers.reserve(_parallelNum);
     _progress.reserve(_parallelNum);
+    assert(params.size() > 0);
+    _topicSize = std::max(_topicSize, params[0].maskFilterPairs.size());
     for (auto& param : params) {
         assert(param.reader);
         _singleProducers.push_back(new SingleSwiftProcessedDocProducerV2(param, schema, partitionId, taskScheduler));
         indexlibv2::base::Progress progress =
             indexlibv2::base::Progress(param.from, param.to, indexlibv2::base::Progress::INVALID_OFFSET);
-        _progress.push_back({progress});
+        indexlibv2::base::MultiProgress multiProgress(_topicSize, {{progress}});
+        _progress.push_back(multiProgress);
     }
 }
 
@@ -59,6 +72,48 @@ MultiSwiftProcessedDocProducerV2::~MultiSwiftProcessedDocProducerV2()
     _singleProducers.clear();
 }
 
+schemaid_t MultiSwiftProcessedDocProducerV2::getAlterTableSchemaId() const
+{
+    schemaid_t alterTableSchemaId = indexlib::INVALID_SCHEMAID;
+    for (auto singleProducer : _singleProducers) {
+        if (alterTableSchemaId == indexlib::INVALID_SCHEMAID) {
+            alterTableSchemaId = singleProducer->getAlterTableSchemaId();
+        } else {
+            auto schemaId = singleProducer->getAlterTableSchemaId();
+            if (schemaId != indexlib::INVALID_SCHEMAID) {
+                alterTableSchemaId = std::min(alterTableSchemaId, singleProducer->getAlterTableSchemaId());
+            }
+        }
+    }
+    return alterTableSchemaId;
+}
+
+bool MultiSwiftProcessedDocProducerV2::needAlterTable() const
+{
+    //部分needAlterTable
+    //部分not needAlterTable
+    // 1. 没做到那个点
+    // 2. 没数据
+    //统一通过needAlterTable的stopTimestamp来设置界限。读超了，就统一当作消费完了
+    bool hasAlterTable = false;
+    int64_t alterTableStopTimestamp = std::numeric_limits<int64_t>::max();
+    for (auto singleProducer : _singleProducers) {
+        if (!singleProducer->needAlterTable()) {
+            continue;
+        }
+        hasAlterTable = true;
+        alterTableStopTimestamp = std::min(alterTableStopTimestamp, singleProducer->getStopTimestamp());
+    }
+    if (!hasAlterTable) {
+        return false;
+    }
+    int64_t lastReadTimestamp = std::numeric_limits<int64_t>::max();
+    if (!getLastReadTimestamp(lastReadTimestamp)) {
+        return false;
+    }
+    return lastReadTimestamp >= alterTableStopTimestamp;
+}
+
 bool MultiSwiftProcessedDocProducerV2::init(indexlib::util::MetricProviderPtr metricProvider,
                                             const std::string& pluginPath,
                                             const indexlib::util::CounterMapPtr& counterMap, int64_t startTimestamp,
@@ -70,7 +125,7 @@ bool MultiSwiftProcessedDocProducerV2::init(indexlib::util::MetricProviderPtr me
     _documentQueue.reset(new autil::SynchronizedQueue<std::pair<size_t, document::ProcessedDocumentPtr>>());
     _documentQueue->setCapacity(_parallelNum * documentProducerQueueSize);
 
-    _threadPool.reset(new autil::ThreadPool(_parallelNum, _parallelNum));
+    _threadPool.reset(new autil::ThreadPool(_parallelNum, _parallelNum, false, "MSwiftPDPrdcr"));
     for (SwiftProcessedDocProducer* singleProducer : _singleProducers) {
         if (!singleProducer->init(metricProvider, pluginPath, counterMap, startTimestamp, stopTimestamp,
                                   noMoreMsgPeriod, maxCommitInterval, sourceSignature, allowSeekCrossSrc)) {
@@ -78,13 +133,16 @@ bool MultiSwiftProcessedDocProducerV2::init(indexlib::util::MetricProviderPtr me
         }
     }
     for (size_t i = 0; i < _parallelNum; i++) {
-        _progress[i][0].offset = {startTimestamp, 0};
+        for (size_t j = 0; j < _topicSize; j++) {
+            _progress[i][j][0].offset = {startTimestamp, 0};
+        }
     }
     return true;
 }
 
 void MultiSwiftProcessedDocProducerV2::StartWork()
 {
+    BS_PREFIX_LOG(INFO, "start work, parallelNum[%u]", _parallelNum);
     _threadPool->setThreadStopHook([this]() {
         // the stop hook here does not work as intended. The actual _stopedSingleProducerCount is incremented below in
         // the lambda. TODO: Remove this stop hook.
@@ -147,13 +205,17 @@ FlowError MultiSwiftProcessedDocProducerV2::produce(document::ProcessedDocumentV
         std::pair<size_t, document::ProcessedDocumentPtr> ret;
         if (_documentQueue->tryGetAndPopFront(ret)) {
             (*processedDocVec)[0] = ret.second;
-            _progress[ret.first] = (*processedDocVec)[0]->getLocator().GetProgress();
-            std::vector<indexlibv2::base::Progress> progress;
+            _progress[ret.first] = (*processedDocVec)[0]->getLocator().GetMultiProgress();
+            indexlibv2::base::MultiProgress progress;
+            progress.resize(_topicSize);
             for (const auto& singleProgress : _progress) {
-                progress.insert(progress.end(), singleProgress.begin(), singleProgress.end());
+                assert(_topicSize == singleProgress.size());
+                for (size_t i = 0; i < singleProgress.size(); i++) {
+                    progress[i].insert(progress[i].end(), singleProgress[i].begin(), singleProgress[i].end());
+                }
             }
             auto locator = (*processedDocVec)[0]->getLocator();
-            locator.SetProgress(progress);
+            locator.SetMultiProgress(progress);
             (*processedDocVec)[0]->setLocator(locator);
             return FE_OK;
         } else if (_stopedSingleProducerCount.load() == _parallelNum) {
@@ -171,7 +233,7 @@ bool MultiSwiftProcessedDocProducerV2::seek(const common::Locator& locator)
     assert(_singleProducers.size() == _parallelNum);
 
     for (size_t parallelId = 0; parallelId < _parallelNum; ++parallelId) {
-        auto& singleProgressVec = _progress[parallelId];
+        auto& singleProgressVec = _progress[parallelId][0];
         uint32_t from = singleProgressVec[0].from;
         uint32_t to = singleProgressVec[singleProgressVec.size() - 1].to;
         auto seekLocator = locator;
@@ -180,13 +242,16 @@ bool MultiSwiftProcessedDocProducerV2::seek(const common::Locator& locator)
                    seekLocator.DebugString().c_str());
             return false;
         }
-        if (seekLocator.GetProgress().empty()) {
-            BS_LOG(ERROR, "skip seek producer [%lu/%u][%u ~ %u], empty progress", parallelId, _parallelNum, from, to);
-            continue;
+        for (const auto& progressVec : seekLocator.GetMultiProgress()) {
+            if (progressVec.empty()) {
+                BS_LOG(ERROR, "skip seek producer [%lu/%u][%u ~ %u], empty progress", parallelId, _parallelNum, from,
+                       to);
+                continue;
+            }
         }
         auto [success, actualLocator] = _singleProducers[parallelId]->seekAndGetLocator(seekLocator);
         if (success) {
-            _progress[parallelId] = actualLocator.GetProgress();
+            _progress[parallelId] = actualLocator.GetMultiProgress();
         } else {
             BS_LOG(ERROR, "seek producer [%lu/%u][%u ~ %u] failed", parallelId, _parallelNum, from, to);
             return false;
@@ -197,6 +262,7 @@ bool MultiSwiftProcessedDocProducerV2::seek(const common::Locator& locator)
 
 bool MultiSwiftProcessedDocProducerV2::stop(StopOption stopOption)
 {
+    BS_LOG(INFO, "stop, parallelNum[%u]", _parallelNum);
     assert(_singleProducers.size() == _parallelNum);
 
     _isRunning = false;
@@ -263,7 +329,7 @@ bool MultiSwiftProcessedDocProducerV2::getMaxTimestamp(int64_t& timestamp)
     return true;
 }
 
-bool MultiSwiftProcessedDocProducerV2::getLastReadTimestamp(int64_t& timestamp)
+bool MultiSwiftProcessedDocProducerV2::getLastReadTimestamp(int64_t& timestamp) const
 {
     assert(_singleProducers.size() == _parallelNum);
 

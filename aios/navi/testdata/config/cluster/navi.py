@@ -35,9 +35,12 @@ def config(config_path, meta_info):
             "thread_num" : 4,
             "queue_size" : 1000,
             "disable_perf": True,
-            "disable_symbol_table": True
+            "disable_symbol_table": True,
+            "builtin_task_queue" : {
+                "processing_size" : 3000000
+            }
         },
-        "resource_list": [],
+        # "resource_list": ["navi.test.rpc_server_r"],
         "kernel_list": ["TestResourceOverride"],
         "config_path" : config_path,
         "biz_config" : get_biz_config(meta_info, config_path),

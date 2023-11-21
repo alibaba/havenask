@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_COMMON_DUMP_ITEM_H
-#define __INDEXLIB_COMMON_DUMP_ITEM_H
+#pragma once
 
 #include <memory>
 
@@ -38,5 +37,3 @@ public:
     virtual void drop() = 0;
 };
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_COMMON_DUMP_ITEM_H

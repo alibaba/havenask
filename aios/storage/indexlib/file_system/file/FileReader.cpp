@@ -75,12 +75,8 @@ FSResult<void> FileReader::Seek(int64_t offset) noexcept
 
 bool FileReader::IsMemLock() const noexcept
 {
-    if (GetBaseAddress()) {
-        FSFileType fsType = GetFileNode()->GetType();
-        assert(fsType != FSFT_RESOURCE);
-        return fsType == FSFT_MMAP_LOCK || fsType == FSFT_SLICE || fsType == FSFT_MEM;
-    }
-    return false;
+    FSFileType fsType = GetType();
+    return fsType == FSFT_MMAP_LOCK || fsType == FSFT_SLICE || fsType == FSFT_MEM || fsType == FSFT_RESOURCE;
 }
 
 void FileReader::InitMetricReporter(FileSystemMetricsReporter* reporter) noexcept

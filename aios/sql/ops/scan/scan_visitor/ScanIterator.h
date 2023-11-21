@@ -37,7 +37,6 @@ public:
         : _matchDocAllocator(matchDocAllocator)
         , _timeoutTerminator(timeoutTerminator)
         , _totalScanCount(0)
-        , _totalSeekDocCount(0)
         , _isTimeout(false) {}
 
     virtual ~ScanIterator() {}
@@ -53,12 +52,11 @@ public:
     virtual bool useTruncate() {
         return false;
     }
-    virtual uint32_t getTotalScanCount() {
+    virtual uint32_t getTotalScanCount() const {
         return _totalScanCount;
     }
-    virtual uint32_t getTotalSeekDocCount() {
-        return _totalSeekDocCount;
-    }
+    virtual uint32_t getTotalSeekedCount() const = 0;
+    virtual uint32_t getTotalWholeDocCount() const = 0;
     bool isTimeout() const {
         if (_isTimeout) {
             return true;
@@ -73,7 +71,6 @@ protected:
     matchdoc::MatchDocAllocatorPtr _matchDocAllocator;
     isearch::common::TimeoutTerminator *_timeoutTerminator;
     uint32_t _totalScanCount;
-    uint32_t _totalSeekDocCount;
     bool _isTimeout;
 };
 

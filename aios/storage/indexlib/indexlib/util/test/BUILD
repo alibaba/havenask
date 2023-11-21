@@ -7,7 +7,7 @@ cc_library(
     include_prefix='indexlib/util/test',
     visibility=[
         '//aios/storage/indexlib/indexlib:__subpackages__',
-        '//aios/storage/indexlib/legacy/tools:__subpackages__'
+        '//aios/storage/indexlib/indexlib/tools:__subpackages__'
     ]
 )
 cc_fast_test(

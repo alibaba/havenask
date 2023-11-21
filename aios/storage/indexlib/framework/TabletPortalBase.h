@@ -15,8 +15,13 @@
  */
 #pragma once
 
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "autil/Log.h"
-#include "autil/NoCopyable.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/framework/ITabletPortal.h"
 
 namespace indexlibv2::config {

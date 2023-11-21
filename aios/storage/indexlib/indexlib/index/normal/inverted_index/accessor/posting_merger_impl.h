@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_POSTING_MERGER_IMPL_H
-#define __INDEXLIB_POSTING_MERGER_IMPL_H
+#pragma once
 
 #include <memory>
 
@@ -99,5 +98,3 @@ private:
 
 DEFINE_SHARED_PTR(PostingMergerImpl);
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_POSTING_MERGER_IMPL_H

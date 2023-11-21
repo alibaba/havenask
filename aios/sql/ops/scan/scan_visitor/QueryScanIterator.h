@@ -62,7 +62,8 @@ private:
 public:
     autil::Result<bool> batchSeek(size_t batchSize,
                                   std::vector<matchdoc::MatchDoc> &matchDocs) override;
-    uint32_t getTotalSeekDocCount() override;
+    uint32_t getTotalSeekedCount() const override;
+    uint32_t getTotalWholeDocCount() const override;
 
 private:
     inline bool tryToMakeItInRange(docid_t &docId);
@@ -79,7 +80,7 @@ private:
     docid_t _curDocId;
     docid_t _curBegin;
     docid_t _curEnd;
-    size_t _rangeCousor;
+    size_t _rangeCursor;
     int64_t _batchFilterTime;
     int64_t _scanTime;
 };

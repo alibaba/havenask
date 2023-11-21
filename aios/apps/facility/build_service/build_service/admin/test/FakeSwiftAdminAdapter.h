@@ -1,9 +1,12 @@
-#ifndef ISEARCH_BS_FAKESWIFTADMINADAPTER_H
-#define ISEARCH_BS_FAKESWIFTADMINADAPTER_H
+#pragma once
 
-#include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include <string>
+#include <vector>
+
+#include "autil/Log.h"
+#include "swift/common/Common.h"
 #include "swift/network/SwiftAdminAdapter.h"
+#include "swift/protocol/ErrCode.pb.h"
 
 namespace swift { namespace client {
 
@@ -48,5 +51,3 @@ private:
 SWIFT_TYPEDEF_PTR(FakeSwiftAdminAdapter);
 
 }} // namespace swift::client
-
-#endif // ISEARCH_BS_FAKESWIFTADMINADAPTER_H

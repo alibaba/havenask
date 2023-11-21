@@ -118,7 +118,7 @@ void NormalIndexSegmentReader::Open(const IndexConfigPtr& indexConfig, const ind
     Open(indexConfig, indexDirectory, hintReader);
 }
 
-bool NormalIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId,
+bool NormalIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId,
                                                  SegmentPosting& segPosting, Pool* sessionPool,
                                                  InvertedIndexSearchTracer* tracer) const
 {

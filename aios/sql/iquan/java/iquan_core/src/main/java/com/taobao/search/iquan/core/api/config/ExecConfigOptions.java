@@ -1,8 +1,8 @@
 package com.taobao.search.iquan.core.api.config;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
 
 public class ExecConfigOptions {
 

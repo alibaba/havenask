@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PACKATTRUPDATEDOCSIZECALCULATORTEST_H
-#define __INDEXLIB_PACKATTRUPDATEDOCSIZECALCULATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/pack_attr_update_doc_size_calculator.h"
@@ -40,5 +39,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(PackAttrUpdateDocSizeCalculatorTest, TestChec
 
 INSTANTIATE_TEST_CASE_P(BuildMode, PackAttrUpdateDocSizeCalculatorTest, testing::Values(0, 1, 2));
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PACKATTRUPDATEDOCSIZECALCULATORTEST_H

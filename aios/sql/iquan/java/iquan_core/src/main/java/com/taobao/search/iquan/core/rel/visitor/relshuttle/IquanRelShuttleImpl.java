@@ -1,20 +1,55 @@
 package com.taobao.search.iquan.core.rel.visitor.relshuttle;
 
-import com.taobao.search.iquan.core.api.common.IquanErrorCode;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
-import org.apache.calcite.linq4j.Ord;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.TableFunctionScan;
-import org.apache.calcite.rel.core.TableScan;
-import org.apache.calcite.rel.logical.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.taobao.search.iquan.core.api.common.IquanErrorCode;
+import com.taobao.search.iquan.core.api.exception.SqlQueryException;
+import com.taobao.search.iquan.core.rel.ops.physical.ExecCorrelateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.ExecLookupJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCorrelateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanHashJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanIdentityOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanLeftMultiJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMatchOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMergeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMultiJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanNestedLoopJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSinkOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUncollectOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUnionOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanValuesOp;
+import org.apache.calcite.linq4j.Ord;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.core.TableFunctionScan;
+import org.apache.calcite.rel.core.TableScan;
+import org.apache.calcite.rel.logical.LogicalAggregate;
+import org.apache.calcite.rel.logical.LogicalCalc;
+import org.apache.calcite.rel.logical.LogicalCorrelate;
+import org.apache.calcite.rel.logical.LogicalExchange;
+import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rel.logical.LogicalIntersect;
+import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.calcite.rel.logical.LogicalMatch;
+import org.apache.calcite.rel.logical.LogicalMinus;
+import org.apache.calcite.rel.logical.LogicalProject;
+import org.apache.calcite.rel.logical.LogicalSort;
+import org.apache.calcite.rel.logical.LogicalTableFunctionScan;
+import org.apache.calcite.rel.logical.LogicalTableModify;
+import org.apache.calcite.rel.logical.LogicalTableScan;
+import org.apache.calcite.rel.logical.LogicalUnion;
+import org.apache.calcite.rel.logical.LogicalValues;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Basic implementation of IquanRelShuttle

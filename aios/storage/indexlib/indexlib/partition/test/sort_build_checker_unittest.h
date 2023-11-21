@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SORTBUILDCHECKERTEST_H
-#define __INDEXLIB_SORTBUILDCHECKERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -39,5 +38,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(SortBuildCheckerTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(SortBuildCheckerTest, TestSimpleProcessWhitNull);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SORTBUILDCHECKERTEST_H

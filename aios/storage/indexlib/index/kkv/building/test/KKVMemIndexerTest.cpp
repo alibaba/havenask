@@ -6,7 +6,7 @@
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/FileSystemOptions.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/common/FieldTypeTraits.h"
 #include "indexlib/index/kkv/building/KKVMemIndexer.h"
 #include "indexlib/index/kkv/common/Trait.h"
@@ -142,7 +142,7 @@ std::shared_ptr<IMemIndexer> KKVMemIndexerTest::CreateKKVMemIndexer(FieldType sk
     case type: {                                                                                                       \
         using SKeyType = indexlib::index::FieldTypeTraits<type>::AttrItemType;                                         \
         return std::make_shared<KKVMemIndexer<SKeyType>>(tabletName, pkeyMemUse, skeyMemUse, valueMemUse,              \
-                                                         skeyCompressRatio, valueCompressRatio, true);                 \
+                                                         skeyCompressRatio, valueCompressRatio, true, true);           \
     }
         KKV_SKEY_DICT_TYPE_MACRO_HELPER(CASE_MACRO);
 #undef CASE_MACRO

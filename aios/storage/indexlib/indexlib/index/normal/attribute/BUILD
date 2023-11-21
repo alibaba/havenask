@@ -6,7 +6,7 @@ cc_library(
     hdrs=['attribute_metrics.h'],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/indexlib/index:index_metrics']
 )
 cc_library(
@@ -15,7 +15,7 @@ cc_library(
     hdrs=glob(['format/*.h', 'accessor/attribute_data_info.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':metrics',
         '//aios/storage/indexlib/index/common:fs_writer_param_decider',
@@ -31,7 +31,7 @@ cc_library(
     hdrs=['update_field_extractor.h'],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/indexlib/document:raw_document']
 )
 cc_library(
@@ -45,7 +45,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/index/common:error_code',
         '//aios/storage/indexlib/indexlib:indexlib_misc',
@@ -76,7 +76,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':attribute_format', '//aios/storage/indexlib/indexlib:indexlib_misc',
         '//aios/storage/indexlib/indexlib/config',
@@ -94,7 +94,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':attribute_format', ':patch_reader',
         '//aios/storage/indexlib/indexlib/index_base'
@@ -191,7 +191,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':attribute_format', ':patch_reader', ':reader_interface',
         ':segment_reader',
@@ -248,7 +248,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':appender', ':attribute_reader', ':base', ':container',
         ':patch_reader',
@@ -263,7 +263,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':attribute_reader']
 )
 cc_library(
@@ -274,7 +274,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/indexlib/index:util']
 )
 cc_library(
@@ -321,7 +321,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':attribute_modifier', ':document_merge_heap', ':offline_reader',
         ':patch_reader', '//aios/storage/indexlib/indexlib/index:patch_mergers'
@@ -356,7 +356,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':attribute_reader', ':base', ':reader_interface', ':segment_reader',
         '//aios/storage/indexlib/indexlib/index:data_structure',
@@ -377,7 +377,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':attribute_reader', ':offline_reader']
 )
 cc_library(
@@ -394,7 +394,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/indexlib/index_base']
 )
 cc_library(
@@ -409,6 +409,6 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':attribute_writer', '//aios/storage/indexlib/indexlib/index_base']
 )

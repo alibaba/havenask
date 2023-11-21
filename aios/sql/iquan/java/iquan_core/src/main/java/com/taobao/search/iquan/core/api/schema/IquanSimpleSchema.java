@@ -1,27 +1,36 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.taobao.search.iquan.core.api.exception.CatalogException;
-import com.taobao.search.iquan.core.catalog.IquanDataBase;
 import com.taobao.search.iquan.core.catalog.IquanCatalogTable;
+import com.taobao.search.iquan.core.catalog.IquanDatabase;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import org.apache.calcite.linq4j.tree.Expression;
 import org.apache.calcite.rel.type.RelProtoDataType;
-import org.apache.calcite.schema.*;
 import org.apache.calcite.schema.Function;
+import org.apache.calcite.schema.Schema;
+import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.schema.SchemaVersion;
+import org.apache.calcite.schema.Schemas;
 import org.apache.calcite.schema.Table;
-
-import java.util.*;
 
 public class IquanSimpleSchema implements Schema {
     public static final String DEFAULT_TEMPLATE_TABLE_NAME = "__default__";
     private final Map<String, Schema> subSchemaMap = new HashMap<>();
-    private IquanDataBase dataBase = null;
+    private IquanDatabase dataBase = null;
 
     public void addSubSchema(String name, Schema schema) {
         subSchemaMap.put(name, schema);
     }
 
-    public void setDataBase(IquanDataBase dataBase) {
+    public void setDataBase(IquanDatabase dataBase) {
         this.dataBase = dataBase;
     }
 

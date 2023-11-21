@@ -88,6 +88,7 @@ bool RemoteLogger::initPid()
     }
     std::string rolePath = rolePaths[rolePaths.size() - 2];
     std::string role = extractRoleFromPath(rolePath);
+    _role = role;
     std::string appName = autil::StringUtil::split(role, ".")[0];
     if (!proto::ProtoUtil::roleIdToPartitionId(role, appName, _pid)) {
         AUTIL_LOG(ERROR, "get pid from role [%s], appName [%s] failed", role.c_str(), appName.c_str());
@@ -174,10 +175,13 @@ bool RemoteLogger::calculateRemoteDir()
             _remoteLogDir = util::IndexPathConstructor::getGenerationIndexPath(indexRoot, allClusters[0],
                                                                                _pid.buildid().generationid());
             _remoteLogDir = FileSystem::joinFilePath(_remoteLogDir, "logs");
-            _remoteLogDir = FileSystem::joinFilePath(_remoteLogDir, proto::ProtoUtil::toRoleString(_pid.role()));
-            std::stringstream ss;
-            ss << _pid.range().from() << "_" << _pid.range().to();
-            _remoteLogDir = FileSystem::joinFilePath(_remoteLogDir, ss.str());
+            std::string roleStr = _role;
+            auto taskId = _pid.taskid();
+            if (_pid.role() == proto::ROLE_TASK && taskId.find("-taskName=general_task") != taskId.npos) {
+                autil::StringUtil::replaceAll(roleStr, taskId, "taskName=general_task");
+            }
+            _remoteLogDir = FileSystem::joinFilePath(_remoteLogDir, roleStr);
+            std::cerr << "use remote root " << _remoteLogDir << std::endl;
             if (fslib::EC_OK != FileSystem::mkDir(_remoteLogDir, true)) {
                 AUTIL_LOG(WARN, "mkdir [%s] failed, maybe created by others", _remoteLogDir.c_str());
             }

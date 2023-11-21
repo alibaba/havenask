@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VAR_NUM_ATTRIBUTE_PATCH_FILE_H
-#define __INDEXLIB_VAR_NUM_ATTRIBUTE_PATCH_FILE_H
+#pragma once
 
 #include <memory>
 #include <queue>
@@ -244,5 +243,3 @@ inline uint32_t VarNumAttributePatchFile::ReadCount(uint8_t* buffPtr, size_t max
     return common::VarNumAttributeFormatter::DecodeCount((char*)buffPtr, encodeCountLen, isNull);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VAR_NUM_ATTRIBUTE_PATCH_FILE_H

@@ -5,11 +5,11 @@
 #include "autil/ConstString.h"
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/inverted_index/format/ComplexDocid.h"
 #include "indexlib/index/inverted_index/patch/IndexUpdateTermIterator.h"
 #include "indexlib/index/normal/inverted_index/accessor/single_field_index_patch_iterator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/test.h"
 #include "indexlib/test/unittest.h"
 

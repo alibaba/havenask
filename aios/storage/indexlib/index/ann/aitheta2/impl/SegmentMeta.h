@@ -26,17 +26,32 @@ namespace indexlibv2::index::ann {
 enum SegmentType { ST_UNKNOWN = 0, ST_NORMAL, ST_REALTIME };
 std::string SegmentType2Str(const SegmentType& type);
 
+struct TrainStats : public autil::legacy::Jsonizable {
+    std::string statsType;
+    std::string stats;
+
+    TrainStats();
+
+    void Jsonize(JsonWrapper& json) override;
+};
+
+struct BuildStats : public autil::legacy::Jsonizable {
+    std::string statsType;
+    std::string stats;
+
+    BuildStats();
+
+    void Jsonize(JsonWrapper& json) override;
+};
+
 struct IndexMeta : public autil::legacy::Jsonizable {
     size_t docCount {0u};
     std::string builderName;
     std::string searcherName;
+    TrainStats trainStats;
+    BuildStats buildStats;
 
-    void Jsonize(JsonWrapper& json) override
-    {
-        json.Jsonize("doc_count", docCount);
-        json.Jsonize("builder_name", builderName);
-        json.Jsonize("searcher_name", searcherName);
-    }
+    void Jsonize(JsonWrapper& json) override;
 };
 
 typedef std::map<index_id_t, IndexMeta> IndexMetaMap;
@@ -61,7 +76,7 @@ public:
     size_t GetIndexCount() const { return _indexCount; }
     const IndexMetaMap& GetIndexMetaMap() const { return _indexMetaMap; }
     bool IsMergedSegment() const { return _isMergedSegment; }
-    void SetMergedSegment() { _isMergedSegment = true; }
+    void SetMergedSegment(bool isMergedSegment) { _isMergedSegment = isMergedSegment; }
 
 private:
     void Jsonize(JsonWrapper& json) override;

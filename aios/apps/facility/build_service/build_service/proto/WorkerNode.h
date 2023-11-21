@@ -13,17 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKERNODE_H
-#define ISEARCH_BS_WORKERNODE_H
+#pragma once
+
+#include <assert.h>
+#include <map>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/Lock.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "autil/legacy/string_tools.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/proto/ProtoComparator.h"
 #include "build_service/proto/ProtoJsonizer.h"
-#include "build_service/proto/RoleNameGenerator.h"
 #include "hippo/proto/Common.pb.h"
+
+namespace build_service::proto {
+template <build_service::proto::RoleType ROLE_TYPE>
+struct RoleType2PartitionInfoTypeTraits;
+template <typename NODES>
+struct WorkerNodes2WorkerTypeTraits;
+} // namespace build_service::proto
 
 namespace build_service { namespace proto {
 
@@ -159,12 +178,14 @@ public:
     virtual void setCurrentStatusStr(const std::string& currentStatus, const std::string& currentIdentifier) = 0;
     virtual std::string getCurrentStatusStr() const = 0;
     virtual void setSlotInfo(const PBSlotInfos& slotInfos) = 0;
+    virtual void getSlotInfo(PBSlotInfos& slotInfos) const = 0;
     virtual void changeSlots() = 0;
     virtual bool getToReleaseSlots(PBSlotInfos& toReleaseSlotInfos) { return false; }
     virtual std::string getCurrentIdentifier() const = 0;
 
     virtual std::string getCurrentStatusJsonStr() const = 0;
     virtual std::string getTargetStatusJsonStr() const = 0;
+    virtual std::string getWorkerStatus() const = 0;
 
     /*
         below function only mark a worker is finished,
@@ -184,7 +205,7 @@ public:
 
     void updateWorkerStartTime(int64_t ts) { _workerStartTime = ts; }
     int64_t getWorkerStartTime() const { return _workerStartTime; }
-    
+
     /*
         optimization for tiny table of igraph, do not reallocate hippo role during the whole procedure.
     */
@@ -291,6 +312,16 @@ public:
         }
     }
 
+    void setTaskIdentifier(const std::string& taskId) { _taskIdentifierSet.insert(taskId); }
+
+    std::string getTaskIdentifierStr() const { return autil::StringUtil::toString(_taskIdentifierSet, ";"); }
+
+    void getResourceAmount(int64_t& cpuAmount, int64_t& memAmount) const
+    {
+        cpuAmount = _cpuAmount;
+        memAmount = _memAmount;
+    }
+
     static std::string getIdentifier(const std::string& ip, int32_t slotId)
     {
         if (ip.empty() || slotId == 0) {
@@ -340,11 +371,14 @@ protected:
     std::string _currentIdentifier;
     std::map<std::string, ResourceInfo> _targetResources;
     std::map<std::string, ResourceInfo> _usingResources;
+    std::set<std::string> _taskIdentifierSet;
     uint32_t _nodeId = 0;
     uint32_t _instanceIdx = 0;
     uint32_t _sourceNodeId = -1; // if backup node exist, sourceNodeId is mainNodeId
     int64_t _heartbeatUpdateTime = -1;
     int64_t _workerStartTime = -1;
+    uint32_t _cpuAmount = 0;
+    uint32_t _memAmount = 0;
 };
 
 BS_TYPEDEF_PTR(WorkerNodeBase);
@@ -395,8 +429,39 @@ public: // for worker/admin heartbeat
 
     void setSlotInfo(const PBSlotInfos& slotInfos) override
     {
+        uint32_t cpuAmount = 0;
+        uint32_t memAmount = 0;
+        for (const auto& pbSlotInfo : slotInfos) {
+            bool findCpuRes = false;
+            bool findMemRes = false;
+            const auto& pbSlotRes = pbSlotInfo.slotresource();
+            for (size_t i = 0; i < pbSlotRes.resources_size(); i++) {
+                if (findCpuRes && findMemRes) {
+                    break;
+                }
+                const auto& pbResource = pbSlotRes.resources(i);
+                if (pbResource.name() == "cpu") {
+                    cpuAmount += (uint32_t)pbResource.amount();
+                    findCpuRes = true;
+                    continue;
+                }
+                if (pbResource.name() == "mem") {
+                    memAmount += (uint32_t)pbResource.amount();
+                    findMemRes = true;
+                    continue;
+                }
+            }
+        }
+        _cpuAmount = cpuAmount;
+        _memAmount = memAmount;
         autil::ScopedLock lock(_partitionInfoLock);
         _partitionInfo.mutable_slotinfos()->CopyFrom(slotInfos);
+    }
+
+    void getSlotInfo(PBSlotInfos& slotInfos) const override
+    {
+        autil::ScopedLock lock(_partitionInfoLock);
+        slotInfos.CopyFrom(_partitionInfo.slotinfos());
     }
 
     std::string getCurrentStatusJsonStr() const override
@@ -407,6 +472,31 @@ public: // for worker/admin heartbeat
     std::string getTargetStatusJsonStr() const override
     {
         return proto::ProtoJsonizer::toJsonString(getTargetStatus());
+    }
+
+    std::string getWorkerStatus() const override
+    {
+        if (_finished) {
+            return std::string("WS_FINISHED");
+        }
+        auto status = getCurrentStatus().status();
+        switch (status) {
+        case WS_STARTING:
+            return std::string("WS_STARTING");
+        case WS_STARTED:
+            return std::string("WS_STARTED");
+        case WS_STOPPED:
+            return std::string("WS_STOPPED");
+        case WS_SUSPEND_READ:
+            return std::string("WS_SUSPEND_READ");
+        case WS_SUSPENDED:
+            return std::string("WS_SUSPENDED");
+        case WS_UNKNOWN:
+            return std::string("WS_UNKNOWN");
+        default:
+            return std::string("");
+        }
+        return std::string("");
     }
 
 public: // for admin access
@@ -572,6 +662,17 @@ WORKERNODES_2_WORKER_TYPE(AgentNodes, AgentNode, ROLE_AGENT);
 typedef std::map<std::string, JobNodes> JobNodesMap;
 typedef std::map<std::string, WorkerNodes> WorkerNodesMap;
 
-}} // namespace build_service::proto
+////////////////////////////////////////////////////////////////////////////////
+template <>
+inline std::string WorkerNode<ROLE_MERGER>::getWorkerStatus() const
+{
+    if (_finished) {
+        return std::string("WS_FINISHED");
+    }
+    if (_heartbeatUpdateTime > 0) {
+        return std::string("WS_STARTED");
+    }
+    return std::string("WS_UNKNOWN");
+}
 
-#endif // ISEARCH_BS_WORKERNODE_H
+}} // namespace build_service::proto

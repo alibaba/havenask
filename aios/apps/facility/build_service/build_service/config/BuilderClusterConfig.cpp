@@ -15,8 +15,13 @@
  */
 #include "build_service/config/BuilderClusterConfig.h"
 
+#include <iosfwd>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/IndexPartitionOptionsWrapper.h"
-#include "build_service/config/SlowNodeDetectConfig.h"
 
 using namespace std;
 

@@ -4,6 +4,7 @@
 #include "indexlib/common/file_system_factory.h"
 #include "indexlib/config/impl/index_partition_schema_impl.h"
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/DirectoryOption.h"
 #include "indexlib/file_system/LocalDirectory.h"
 #include "indexlib/file_system/MemDirectory.h"
@@ -11,7 +12,6 @@
 #include "indexlib/index/normal/source/source_define.h"
 #include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/index_define.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

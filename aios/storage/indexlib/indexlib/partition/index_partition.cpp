@@ -265,12 +265,12 @@ bool IndexPartition::IsEmptyDir(const std::string& root, const IndexPartitionSch
         return true;
     }
     Version version;
-    VersionLoader::GetVersionS(root, version, INVALID_VERSION);
-    if (version.GetVersionId() != INVALID_VERSION) {
+    VersionLoader::GetVersionS(root, version, INVALID_VERSIONID);
+    if (version.GetVersionId() != INVALID_VERSIONID) {
         return false;
     }
 
-    schemavid_t schemaId = schema ? schema->GetSchemaVersionId() : DEFAULT_SCHEMAID;
+    schemaid_t schemaId = schema ? schema->GetSchemaVersionId() : DEFAULT_SCHEMAID;
     std::string schemaFileName = Version::GetSchemaFileName(schemaId);
     std::string schemaFilePath = PathUtil::JoinPath(root, schemaFileName);
     bool schemaExist = FslibWrapper::IsExist(schemaFilePath).GetOrThrow();
@@ -293,7 +293,7 @@ void IndexPartition::CleanRootDir(const std::string& root, const IndexPartitionS
 {
     std::string formatVersionFilePath = PathUtil::JoinPath(root, INDEX_FORMAT_VERSION_FILE_NAME);
     FslibWrapper::DeleteFileE(formatVersionFilePath, DeleteOption::Fence(fenceContext, true));
-    schemavid_t schemaId = schema ? schema->GetSchemaVersionId() : DEFAULT_SCHEMAID;
+    schemaid_t schemaId = schema ? schema->GetSchemaVersionId() : DEFAULT_SCHEMAID;
     std::string schemaFileName = Version::GetSchemaFileName(schemaId);
     std::string schemaFilePath = PathUtil::JoinPath(root, schemaFileName);
     FslibWrapper::DeleteFileE(schemaFilePath, DeleteOption::Fence(fenceContext, true));

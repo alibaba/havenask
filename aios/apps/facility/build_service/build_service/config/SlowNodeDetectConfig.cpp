@@ -15,6 +15,8 @@
  */
 #include "build_service/config/SlowNodeDetectConfig.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace build_service { namespace config {
@@ -32,7 +34,8 @@ const int64_t SlowNodeDetectConfig::DEFAULT_RESTART_COUNT_THRESHOLD = 5;
 
 const int64_t SlowNodeDetectConfig::DEFAULT_KILL_TIME_RESET_WINDOW = 2400; // 40 min
 const int64_t SlowNodeDetectConfig::DEFAULT_BACKUP_NODE_COUNT_LIMIT = 2;
-const uint64_t SlowNodeDetectConfig::DEFAULT_NETWORK_SPEED_THRESHOLD = 1200000000; // Byte per second
+const uint64_t SlowNodeDetectConfig::DEFAULT_NETWORK_SPEED_THRESHOLD = 1200000000;  // Byte per second
+const uint64_t SlowNodeDetectConfig::DEFAULT_LOCATOR_DETECT_MIN_SERVICE_RATIO = 90; // 90%
 
 const string SlowNodeDetectConfig::DEFAULT_SLOW_NODE_HANDLE_STRATEGY = MIGRATE_NODE_HANDLE_STRATEGY;
 const string SlowNodeDetectConfig::DEFAULT_SLOW_NODE_DETECT_STRATEGY = NEW_SLOW_NODE_DETECT_STRATEGY;
@@ -65,6 +68,7 @@ SlowNodeDetectConfig::SlowNodeDetectConfig()
     , enableDetectSlowByLocator(false)
     , networkSpeedThreshold(DEFAULT_NETWORK_SPEED_THRESHOLD)
     , locatorCheckGap(-1)
+    , locatorDetectMinServiceRatio(DEFAULT_LOCATOR_DETECT_MIN_SERVICE_RATIO)
 {
 }
 
@@ -101,6 +105,7 @@ void SlowNodeDetectConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("exclude_rolename_keywords", excludeKeywords, excludeKeywords);
     json.Jsonize("locator_check_condition", locatorCheckCondition, locatorCheckCondition);
     json.Jsonize("locator_check_gap", locatorCheckGap, locatorCheckGap);
+    json.Jsonize("locator_detect_min_service_ratio", locatorDetectMinServiceRatio, locatorDetectMinServiceRatio);
 }
 
 }} // namespace build_service::config

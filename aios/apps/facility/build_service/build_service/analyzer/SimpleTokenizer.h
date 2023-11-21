@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SIMPLETOKENIZER_H
-#define ISEARCH_BS_SIMPLETOKENIZER_H
+#pragma once
+
+#include <memory>
+#include <stddef.h>
+#include <string>
 
 #include "build_service/analyzer/Tokenizer.h"
+#include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/util/Log.h"
+#include "indexlib/analyzer/ITokenizer.h"
 
 namespace indexlibv2::analyzer {
 class SimpleTokenizer;
@@ -46,5 +52,3 @@ private:
 };
 
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_SIMPLETOKENIZER_H

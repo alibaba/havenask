@@ -15,21 +15,36 @@
  */
 #include "build_service/task_base/TaskBase.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common/ConfigDownloader.h"
-#include "build_service/common/PathDefine.h"
-#include "build_service/config/BuildServiceConfig.h"
+#include "build_service/config/AgentGroupConfig.h"
+#include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/config/CheckpointList.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/config/DocReclaimSource.h"
 #include "build_service/config/IndexPartitionOptionsWrapper.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/proto/DataDescriptions.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/KmonitorUtil.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/merge_config.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor_adapter/MonitorFactory.h"
 
 using namespace std;
 using namespace autil;

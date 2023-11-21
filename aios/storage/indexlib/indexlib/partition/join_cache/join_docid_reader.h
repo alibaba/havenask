@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_JOIN_DOCID_READER_H
-#define __INDEXLIB_JOIN_DOCID_READER_H
+#pragma once
 
 #include <memory>
 
@@ -101,5 +100,3 @@ inline docid_t JoinDocidReader<JoinAttrType, PKIndexType>::GetAuxDocid(docid_t m
     return INVALID_DOCID;
 }
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_JOIN_DOCID_READER_H

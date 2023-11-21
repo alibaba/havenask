@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_PATCH_INDEX_ACCESSOR_H
-#define __INDEXLIB_PARTITION_PATCH_INDEX_ACCESSOR_H
+#pragma once
 
 #include <memory>
 
@@ -55,8 +54,8 @@ public:
     const index_base::Version& GetVersion() const { return mVersion; }
 
 public:
-    static std::string GetPatchRootDirName(schemavid_t schemaId);
-    static bool ExtractSchemaIdFromPatchRootDir(const std::string& rootDir, schemavid_t& schemaId);
+    static std::string GetPatchRootDirName(schemaid_t schemaId);
+    static bool ExtractSchemaIdFromPatchRootDir(const std::string& rootDir, schemaid_t& schemaId);
 
     static void ListPatchRootDirs(const file_system::DirectoryPtr& rootDir, fslib::FileList& patchRootList);
 
@@ -72,5 +71,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionPatchIndexAccessor);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_PARTITION_PATCH_INDEX_ACCESSOR_H

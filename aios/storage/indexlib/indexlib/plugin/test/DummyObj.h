@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PLUGIN_DUMMYOBJ_H
-#define __INDEXLIB_PLUGIN_DUMMYOBJ_H
+#pragma once
 
 #include "indexlib/plugin/ModuleFactory.h"
 
@@ -21,5 +20,3 @@ public:
 };
 
 }} // namespace indexlib::plugin
-
-#endif //__INDEXLIB_PLUGIN_DUMMYOBJ_H

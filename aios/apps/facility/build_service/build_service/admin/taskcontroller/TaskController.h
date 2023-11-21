@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TASKCONTROLLER_H
-#define ISEARCH_BS_TASKCONTROLLER_H
+#pragma once
+
+#include <map>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/legacy/jsonizable.h"
+#include "beeper/common/common_type.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/TaskConfig.h"
-#include "build_service/proto/WorkerNode.h"
-#include "build_service/util/Log.h"
+#include "build_service/config/TaskTarget.h"
 
 namespace build_service { namespace admin {
 
@@ -38,6 +44,7 @@ public:
         uint32_t sourceNodeId = -1;
         uint32_t backupId = -1;
         bool reachedTarget = false;
+        bool isSuspended = false;
     };
     typedef std::vector<Node> Nodes;
 
@@ -109,5 +116,3 @@ private:
 BS_TYPEDEF_PTR(TaskController);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_TASKCONTROLLER_H

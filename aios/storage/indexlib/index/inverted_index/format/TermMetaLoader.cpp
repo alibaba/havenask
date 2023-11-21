@@ -24,17 +24,17 @@ namespace indexlib::index {
 TermMetaLoader::TermMetaLoader(const PostingFormatOption& option) : _option(option) {}
 void TermMetaLoader::Load(file_system::ByteSliceReader* sliceReader, TermMeta& termMeta) const
 {
-    df_t df = (df_t)sliceReader->ReadVUInt32();
+    df_t df = (df_t)sliceReader->ReadVUInt32().GetOrThrow();
     termMeta.SetDocFreq(df);
     bool isCompressed = _option.IsCompressedPostingHeader();
     if (!isCompressed || _option.HasTermFrequency()) {
-        termMeta.SetTotalTermFreq((tf_t)sliceReader->ReadVUInt32());
+        termMeta.SetTotalTermFreq((tf_t)sliceReader->ReadVUInt32().GetOrThrow());
     } else {
         termMeta.SetTotalTermFreq(df);
     }
     if (!isCompressed || _option.HasTermPayload()) {
         termpayload_t payload;
-        sliceReader->Read((void*)(&payload), sizeof(payload));
+        sliceReader->Read((void*)(&payload), sizeof(payload)).GetOrThrow();
         termMeta.SetPayload(payload);
     } else {
         termMeta.SetPayload(0);

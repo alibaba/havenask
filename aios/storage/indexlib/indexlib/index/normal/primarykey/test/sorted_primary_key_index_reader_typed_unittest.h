@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SORTED_PRIMARY_KEY_INDEX_READER_TYPED_UNITTEST_H
-#define __INDEXLIB_SORTED_PRIMARY_KEY_INDEX_READER_TYPED_UNITTEST_H
+#pragma once
 
 #include "indexlib/file_system/file/BufferedFileReader.h"
 #include "indexlib/index/normal/primarykey/test/primary_key_index_reader_typed_unittest.h"
@@ -40,5 +39,3 @@ protected:
                                                      bool hasPKAttribute = true) override;
 };
 }} // namespace indexlib::index
-
-#endif // __INDEXLIB_SORTED_PRIMARY_KEY_INDEX_READER_TYPED_UNITTEST_H

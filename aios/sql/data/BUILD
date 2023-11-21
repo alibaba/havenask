@@ -1,19 +1,21 @@
 package(
     default_visibility=[
+        '//aios/apps/engine/vector_service:__subpackages__',
         '//aios/offline_sql_client:__subpackages__',
         '//aios/sql:__subpackages__'
     ]
 )
 cc_library(
-    name='sql_request_data',
-    srcs=glob([
-        'SqlRequestData.cpp', 'SqlRequestType.cpp', 'SqlQueryRequest.cpp',
-        'SqlQueryPattern.cpp'
-    ]),
-    hdrs=glob([
-        'SqlRequestData.h', 'SqlRequestType.h', 'SqlQueryRequest.h',
-        'SqlQueryPattern.h', 'ErrorResult.h'
-    ]),
+    name='sql_request_format_data',
+    srcs=[
+        'SqlFormatType.cpp', 'SqlQueryPattern.cpp', 'SqlQueryRequest.cpp',
+        'SqlRequestType.cpp'
+    ],
+    hdrs=[
+        'ErrorResult.h', 'SqlFormatData.h', 'SqlFormatType.h',
+        'SqlQueryPattern.h', 'SqlQueryRequest.h', 'SqlRequestData.h',
+        'SqlRequestType.h'
+    ],
     include_prefix='sql/data',
     deps=[
         '//aios/autil:compression', '//aios/autil:data_buffer',
@@ -26,24 +28,24 @@ cc_library(
 )
 cc_library(
     name='sql_table_data',
-    srcs=glob(['TableData.cpp', 'TableType.cpp']),
-    hdrs=glob(['TableData.h', 'TableType.h']),
+    srcs=['TableType.cpp'],
+    hdrs=['TableData.h', 'TableType.h'],
     include_prefix='sql/data',
     deps=['//aios/autil:log', '//aios/navi', '//aios/table'],
     alwayslink=True
 )
 cc_library(
     name='sql_graph_data',
-    srcs=glob(['SqlGraphData.cpp', 'SqlGraphType.cpp']),
-    hdrs=glob(['SqlGraphData.h', 'SqlGraphType.h']),
+    srcs=['SqlGraphType.cpp'],
+    hdrs=['SqlGraphData.h', 'SqlGraphType.h'],
     include_prefix='sql/data',
     deps=['//aios/autil:log', '//aios/navi', '//aios/sql/common:sql_log'],
     alwayslink=True
 )
 cc_library(
     name='sql_plan_data',
-    srcs=glob(['SqlPlanData.cpp', 'SqlPlanType.cpp']),
-    hdrs=glob(['SqlPlanData.h', 'SqlPlanType.h']),
+    srcs=['SqlPlanType.cpp'],
+    hdrs=['SqlPlanData.h', 'SqlPlanType.h'],
     include_prefix='sql/data',
     deps=[
         '//aios/navi', '//aios/sql/common:sql_log',
@@ -52,12 +54,22 @@ cc_library(
     alwayslink=True
 )
 cc_library(
-    name='sql_data',
+    name='sql_query_config_data',
+    srcs=['SqlQueryConfigData.cpp'],
+    hdrs=['SqlQueryConfigData.h'],
+    include_prefix='sql/data',
     deps=[
-        ':sql_graph_data', ':sql_plan_data', ':sql_request_data',
-        ':sql_table_data'
+        '//aios/autil:data_buffer', '//aios/navi',
+        '//aios/sql/proto:sql_query_config_cc_proto'
     ],
     alwayslink=True
+)
+cc_library(
+    name='sql_data',
+    deps=[
+        ':sql_graph_data', ':sql_plan_data', ':sql_query_config_data',
+        ':sql_request_format_data', ':sql_table_data'
+    ]
 )
 cc_test(
     name='sql_data_test',
@@ -65,6 +77,6 @@ cc_test(
     copts=['-fno-access-control'],
     deps=[
         ':sql_data', '//aios/autil/autil/legacy/test:json_testlib',
-        '//aios/table/table/test:table_testlib', '//aios/unittest_framework'
+        '//aios/table/test:table_testlib', '//aios/unittest_framework'
     ]
 )

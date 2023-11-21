@@ -1,7 +1,8 @@
 #include "indexlib/index/kv/KVIndexFactory.h"
 
 #include "indexlib/framework/SegmentMetrics.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/kv/FixedLenKVMemIndexer.h"
 #include "indexlib/index/kv/VarLenKVMemIndexer.h"
 #include "indexlib/index/kv/test/KVIndexConfigBuilder.h"
@@ -20,7 +21,7 @@ TEST_F(KVIndexFactoryTest, testCreateFixedLenMemIndexer)
     KVIndexFactory factory;
     auto [_, indexConfig] = KVIndexConfigBuilder::MakeIndexConfig("f1:long;f2:string", "f2", "f1");
     ASSERT_TRUE(indexConfig);
-    IndexerParameter parameter;
+    MemIndexerParameter parameter;
     auto indexer = factory.CreateMemIndexer(indexConfig, parameter);
     ASSERT_FALSE(indexer);
     parameter.maxMemoryUseInBytes = 1024 * 1024;
@@ -36,7 +37,7 @@ TEST_F(KVIndexFactoryTest, testCreateVarLenMemIndexer)
     KVIndexFactory factory;
     auto [_, indexConfig] = KVIndexConfigBuilder::MakeIndexConfig("f1:long;f2:string", "f2", "f1;f2");
     ASSERT_TRUE(indexConfig);
-    IndexerParameter parameter;
+    MemIndexerParameter parameter;
     config::SortDescription sortDescription("f1", config::sp_desc);
     parameter.sortDescriptions.push_back(sortDescription);
     auto indexer = factory.CreateMemIndexer(indexConfig, parameter);
@@ -57,7 +58,7 @@ TEST_F(KVIndexFactoryTest, testCreateVarLenMemIndexerWithLastSegmentMetrics)
     KVIndexFactory factory;
     auto [_, indexConfig] = KVIndexConfigBuilder::MakeIndexConfig("f1:long;f2:string", "f2", "f1;f2");
     ASSERT_TRUE(indexConfig);
-    IndexerParameter parameter;
+    MemIndexerParameter parameter;
     config::SortDescription sortDescription("f1", config::sp_desc);
     parameter.sortDescriptions.push_back(sortDescription);
     parameter.maxMemoryUseInBytes = 1024 * 1024;

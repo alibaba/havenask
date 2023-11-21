@@ -21,10 +21,13 @@
 #include "indexlib/framework/ResourceMap.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IIndexReader.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
 #include "indexlib/index/attribute/AttributeReader.h"
 #include "indexlib/index/deletionmap/Common.h"
 #include "indexlib/index/deletionmap/DeletionMapConfig.h"
+#include "indexlib/index/field_meta/Common.h"
+#include "indexlib/index/field_meta/FieldMetaReader.h"
+#include "indexlib/index/field_meta/config/FieldMetaConfig.h"
 #include "indexlib/index/inverted_index/IndexAccessoryReader.h"
 #include "indexlib/index/inverted_index/MultiFieldIndexReader.h"
 #include "indexlib/index/inverted_index/builtin_index/date/DateIndexReader.h"
@@ -32,6 +35,9 @@
 #include "indexlib/index/inverted_index/builtin_index/spatial/SpatialIndexReader.h"
 #include "indexlib/index/pack_attribute/Common.h"
 #include "indexlib/index/pack_attribute/PackAttributeReader.h"
+#include "indexlib/index/source/Common.h"
+#include "indexlib/index/source/SourceReader.h"
+#include "indexlib/index/source/config/SourceIndexConfig.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/SummaryReader.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
@@ -44,6 +50,7 @@
 #include "indexlib/table/normal_table/NormalTabletMetrics.h"
 #include "indexlib/table/normal_table/NormalTabletSearcher.h"
 #include "indexlib/table/normal_table/SortedDocIdRangeSearcher.h"
+#include "indexlib/util/Algorithm.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTabletReader);
@@ -55,11 +62,12 @@ NormalTabletReader::NormalTabletReader(const std::shared_ptr<config::ITabletSche
 {
 }
 
-Status NormalTabletReader::Open(const std::shared_ptr<framework::TabletData>& tabletData,
-                                const framework::ReadResource& readResource)
+Status NormalTabletReader::DoOpen(const std::shared_ptr<framework::TabletData>& tabletData,
+                                  const framework::ReadResource& readResource)
 {
-    index::IndexerParameter indexerParameter;
-    RETURN_IF_STATUS_ERROR(PrepareIndexerParameter(readResource, indexerParameter), "prepare indexer parameter failed");
+    index::IndexReaderParameter indexReaderParam;
+    RETURN_IF_STATUS_ERROR(PrepareIndexReaderParameter(readResource, indexReaderParam),
+                           "prepare indexer parameter failed");
     auto indexFactoryCreator = index::IndexFactoryCreator::GetInstance();
     auto indexConfigs = _schema->GetIndexConfigs();
     for (const auto& indexConfig : indexConfigs) {
@@ -71,7 +79,7 @@ Status NormalTabletReader::Open(const std::shared_ptr<framework::TabletData>& ta
                       status.ToString().c_str());
             return status;
         }
-        auto indexReader = indexFactory->CreateIndexReader(indexConfig, indexerParameter);
+        auto indexReader = indexFactory->CreateIndexReader(indexConfig, indexReaderParam);
         if (!indexReader) {
             AUTIL_LOG(ERROR, "create index reader [%s] failed", indexName.c_str());
             return Status::Corruption("create index reader failed");
@@ -84,6 +92,7 @@ Status NormalTabletReader::Open(const std::shared_ptr<framework::TabletData>& ta
         }
         _indexReaderMap[std::pair(indexType, indexName)] = std::move(indexReader);
     }
+    InitFieldMetaIndexFieldNameToReader();
     auto status = InitInvertedIndexReaders();
     RETURN_IF_STATUS_ERROR(status, "init multi field index reader failed.");
     status = InitIndexAccessoryReader(tabletData.get(), readResource);
@@ -121,6 +130,27 @@ Status NormalTabletReader::Open(const std::shared_ptr<framework::TabletData>& ta
     return status;
 }
 
+void NormalTabletReader::InitFieldMetaIndexFieldNameToReader()
+{
+    _fieldMetaIndexFieldNameToReader =
+        std::make_shared<std::map<std::string, std::shared_ptr<indexlib::index::FieldMetaReader>>>();
+    const auto& indexConfigs = _schema->GetIndexConfigs(indexlib::index::FIELD_META_INDEX_TYPE_STR);
+    for (const auto& indexConfig : indexConfigs) {
+        const auto& fieldMetaConfig = std::dynamic_pointer_cast<indexlib::index::FieldMetaConfig>(indexConfig);
+        auto fieldConfig = fieldMetaConfig->GetFieldConfig();
+        assert(fieldConfig);
+        std::shared_ptr<indexlib::index::FieldMetaReader> fieldMetaReader =
+            GetIndexReader<indexlib::index::FieldMetaReader>(indexlib::index::FIELD_META_INDEX_TYPE_STR,
+                                                             indexConfig->GetIndexName());
+        AUTIL_LOG(INFO, "init field meta reader, index name [%s]", indexConfig->GetIndexName().c_str());
+        if (!fieldMetaReader) {
+            AUTIL_LOG(WARN, "init field meta reader failed, index name [%s]", indexConfig->GetIndexName().c_str());
+        } else {
+            _fieldMetaIndexFieldNameToReader->emplace(fieldConfig->GetFieldName(), fieldMetaReader);
+        }
+    }
+}
+
 Status NormalTabletReader::InitNormalTabletInfoHolder(const std::shared_ptr<framework::TabletData>& tabletData,
                                                       const framework::ReadResource& readResource)
 {
@@ -144,12 +174,13 @@ Status NormalTabletReader::InitNormalTabletInfoHolder(const std::shared_ptr<fram
     if (config) {
         auto delConfig = std::dynamic_pointer_cast<index::DeletionMapConfig>(config);
         assert(delConfig);
-        index::IndexerParameter indexerParam;
-        RETURN_IF_STATUS_ERROR(PrepareIndexerParameter(readResource, indexerParam), "prepare indexer parameter failed");
+        index::IndexReaderParameter indexReaderParams;
+        RETURN_IF_STATUS_ERROR(PrepareIndexReaderParameter(readResource, indexReaderParams),
+                               "prepare indexer parameter failed");
         auto indexFactoryCreator = index::IndexFactoryCreator::GetInstance();
         auto [status, indexFactory] = indexFactoryCreator->Create(indexType);
         RETURN_IF_STATUS_ERROR(status, "create index factory for index type [%s] failed", indexType.c_str());
-        auto indexReader = indexFactory->CreateIndexReader(delConfig, indexerParam);
+        auto indexReader = indexFactory->CreateIndexReader(delConfig, indexReaderParams);
         if (!indexReader) {
             AUTIL_LOG(ERROR, "create deletion map reader fail");
             return Status::InternalError();
@@ -273,6 +304,38 @@ Status NormalTabletReader::InitSummaryReader()
     if (nullptr == summaryReader) {
         RETURN_STATUS_ERROR(InternalError, "can not find summary reader");
     }
+
+    std::set<std::string> sourceFieldSet;
+    if (auto sourceReader = GetSourceReader()) {
+        auto sourceIndexConfig = std::dynamic_pointer_cast<config::SourceIndexConfig>(
+            _schema->GetIndexConfig(index::SOURCE_INDEX_TYPE_STR, index::SOURCE_INDEX_NAME));
+        if (!sourceIndexConfig) {
+            AUTIL_LOG(ERROR, "get source reader but failed to get source index config");
+            return Status::Corruption();
+        }
+        std::vector<index::sourcegroupid_t> groupIdFromSource;
+        auto tabletSchema = std::dynamic_pointer_cast<config::TabletSchema>(_schema);
+        assert(tabletSchema);
+        auto [st, sourceFieldNames] =
+            tabletSchema->GetRuntimeSetting<std::vector<std::string>>(NORMAL_TABLE_SUMMARY_REUSE_SOURCE_FIELDS);
+        if (!st.IsOK() && !st.IsNotFound()) {
+            AUTIL_LOG(ERROR, "get summary reuse source runtime setting failed");
+            return st;
+        }
+        for (const auto& fieldName : sourceFieldNames) {
+            index::sourcegroupid_t groupId = sourceIndexConfig->GetGroupIdByFieldName(fieldName);
+            assert(groupId != index::INVALID_SOURCEGROUPID);
+            if (groupId != index::INVALID_SOURCEGROUPID) {
+                groupIdFromSource.push_back(groupId);
+            }
+        }
+        indexlib::util::Algorithm::SortUniqueAndErase(groupIdFromSource);
+        if (!groupIdFromSource.empty()) {
+            summaryReader->AddSourceReader(groupIdFromSource, sourceFieldNames, sourceReader.get());
+            sourceFieldSet = std::set<std::string>(sourceFieldNames.begin(), sourceFieldNames.end());
+        }
+    }
+
     // set primary key reader
     summaryReader->SetPrimaryKeyReader(_primaryKeyIndexReader.get());
 
@@ -282,14 +345,15 @@ Status NormalTabletReader::InitSummaryReader()
         auto attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(attrIndexConfig);
         assert(attrConfig != nullptr);
         auto fieldId = attrConfig->GetFieldId();
-        if (!summaryIndexConfig->IsInSummary(fieldId)) {
+        std::string fieldName = attrConfig->GetAttrName();
+        if (!summaryIndexConfig->IsInSummary(fieldId) || sourceFieldSet.count(fieldName)) {
             continue;
         }
-        std::string fieldName = attrConfig->GetAttrName();
         auto attrReader = GetIndexReader<index::AttributeReader>(index::ATTRIBUTE_INDEX_TYPE_STR, fieldName);
         if (nullptr == attrReader) {
             RETURN_STATUS_ERROR(InternalError, "can not find attribute reader for field [%s]", fieldName.c_str());
         }
+        AUTIL_LOG(INFO, "summary reuse attribtue [%s]", fieldName.c_str());
         summaryReader->AddAttrReader(fieldId, attrReader.get());
     }
 
@@ -300,7 +364,7 @@ Status NormalTabletReader::InitSummaryReader()
         const auto& fieldConfigs = packAttrIndexConfig->GetFieldConfigs();
         for (const auto& fieldConfig : fieldConfigs) {
             auto fieldId = fieldConfig->GetFieldId();
-            if (!summaryIndexConfig->IsInSummary(fieldId)) {
+            if (!summaryIndexConfig->IsInSummary(fieldId) || sourceFieldSet.count(fieldConfig->GetFieldName())) {
                 continue;
             }
             auto packAttrReader =
@@ -349,8 +413,9 @@ Status NormalTabletReader::InitIndexAccessoryReader(const framework::TabletData*
     if (_schema->GetIndexConfigs(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR).size() <= 0) {
         return Status::OK();
     }
-    index::IndexerParameter indexerParameter;
-    RETURN_IF_STATUS_ERROR(PrepareIndexerParameter(readResource, indexerParameter), "prepare indexer parameter failed");
+    index::IndexReaderParameter indexReaderParameter;
+    RETURN_IF_STATUS_ERROR(PrepareIndexReaderParameter(readResource, indexReaderParameter),
+                           "prepare indexer parameter failed");
     std::vector<std::shared_ptr<config::IIndexConfig>> indexConfigs;
     for (const auto& originIndexConfig : _schema->GetIndexConfigs(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR)) {
         auto config = std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(originIndexConfig);
@@ -364,7 +429,7 @@ Status NormalTabletReader::InitIndexAccessoryReader(const framework::TabletData*
         indexConfigs.emplace_back(config);
     }
 
-    _indexAccessoryReader = std::make_shared<indexlib::index::IndexAccessoryReader>(indexConfigs, indexerParameter);
+    _indexAccessoryReader = std::make_shared<indexlib::index::IndexAccessoryReader>(indexConfigs, indexReaderParameter);
     assert(_indexAccessoryReader);
     return _indexAccessoryReader->Open(tabletData);
 }
@@ -379,6 +444,21 @@ std::shared_ptr<index::AttributeReader> NormalTabletReader::GetAttributeReader(c
         }
     }
     return GetIndexReader<index::AttributeReader>(index::ATTRIBUTE_INDEX_TYPE_STR, attrName);
+}
+
+const std::shared_ptr<indexlib::index::FieldMetaReader>
+NormalTabletReader::GetFieldMetaReader(const std::string& fieldName) const
+{
+    auto iter = _fieldMetaIndexFieldNameToReader->find(fieldName);
+    if (iter == _fieldMetaIndexFieldNameToReader->end()) {
+        return nullptr;
+    }
+    return iter->second;
+}
+
+std::shared_ptr<index::SourceReader> NormalTabletReader::GetSourceReader() const
+{
+    return GetIndexReader<index::SourceReader>(index::SOURCE_INDEX_TYPE_STR, index::SOURCE_INDEX_NAME);
 }
 
 std::shared_ptr<index::PackAttributeReader>
@@ -404,8 +484,8 @@ const NormalTabletReader::AccessCounterMap& NormalTabletReader::GetAttributeAcce
     return counters;
 }
 
-Status NormalTabletReader::PrepareIndexerParameter(const framework::ReadResource& readResource,
-                                                   index::IndexerParameter& indexerParameter)
+Status NormalTabletReader::PrepareIndexReaderParameter(const framework::ReadResource& readResource,
+                                                       index::IndexReaderParameter& indexReaderParam)
 {
     auto [status, descs] = _schema->GetRuntimeSettings().GetValue<config::SortDescriptions>("sort_descriptions");
     if (!status.IsOK() && !status.IsNotFound()) {
@@ -413,8 +493,8 @@ Status NormalTabletReader::PrepareIndexerParameter(const framework::ReadResource
         return status;
     }
     auto normalTabletMeta = std::make_shared<NormalTabletMeta>(descs);
-    indexerParameter.metricsManager = readResource.metricsManager;
-    indexerParameter.sortPatternFunc = [normalTabletMeta](const std::string& name) -> config::SortPattern {
+    indexReaderParam.metricsManager = readResource.metricsManager;
+    indexReaderParam.sortPatternFunc = [normalTabletMeta](const std::string& name) -> config::SortPattern {
         return normalTabletMeta->GetSortPattern(name);
     };
     _normalTabletMeta = normalTabletMeta;

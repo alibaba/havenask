@@ -15,7 +15,10 @@
  */
 #include "build_service/config/SwiftTopicConfig.h"
 
-#include "aios/network/http_arpc/ProtoJsonizer.h"
+#include <cstdint>
+#include <iosfwd>
+
+#include "alog/Logger.h"
 #include "build_service/config/CLIOptionNames.h"
 
 using namespace std;

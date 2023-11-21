@@ -22,15 +22,17 @@ static constexpr const char SOURCE_DATA_DIR_PREFIX[] = "group";
 static constexpr const char SOURCE_DATA_FILE_NAME[] = "data";
 static constexpr const char SOURCE_OFFSET_FILE_NAME[] = "offset";
 static constexpr const char SOURCE_META_DIR[] = "meta";
+static constexpr const char SOURCE_MERGE_ID[] = "source_merge_id";
 
-constexpr groupid_t INVALID_GROUPID = -1;
+constexpr sourcegroupid_t INVALID_SOURCEGROUPID = -1;
 } // namespace indexlib::index
 
 //////////////////////////////////////////////////////////////////////
 namespace indexlibv2::index {
-using indexlib::index::INVALID_GROUPID;
+using indexlib::index::INVALID_SOURCEGROUPID;
 using indexlib::index::SOURCE_DATA_DIR_PREFIX;
 using indexlib::index::SOURCE_DATA_FILE_NAME;
+using indexlib::index::SOURCE_MERGE_ID;
 using indexlib::index::SOURCE_META_DIR;
 using indexlib::index::SOURCE_OFFSET_FILE_NAME;
 } // namespace indexlibv2::index

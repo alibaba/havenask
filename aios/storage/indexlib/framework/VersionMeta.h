@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 #pragma once
+#include <limits>
+#include <stdint.h>
+#include <string>
 #include <vector>
 
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/Types.h"
+#include "indexlib/framework/IndexTaskQueue.h"
 #include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionLine.h"
 
@@ -27,7 +31,6 @@ class Version;
 }
 
 namespace indexlibv2::framework {
-class Version;
 
 class VersionMeta : public autil::legacy::Jsonizable
 {
@@ -58,6 +61,7 @@ public:
 
 public:
     void TEST_Set(versionid_t versionId, std::vector<segmentid_t> segments, int64_t commitTime);
+    void TEST_SetReadSchema(schemaid_t readSchemaId) { _readSchemaId = readSchemaId; }
 
 private:
     versionid_t _versionId = INVALID_VERSIONID;

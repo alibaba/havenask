@@ -46,8 +46,8 @@ private:
     TermPostingInfo GetTermPostingInfo() const override { return _indexSeekIterator->GetTermPostingInfo(); }
     autil::mem_pool::Pool* GetSessionPool() const override { return _sessionPool; }
 
-    docid_t SeekDoc(docid_t docid) override;
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    docid64_t SeekDoc(docid64_t docid) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
     docpayload_t GetDocPayload() override { return _indexSeekIterator->GetDocPayload(); }
     bool HasPosition() const override { return _indexSeekIterator->HasPosition(); }
     // TODO: support

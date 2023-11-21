@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MULTI_SEGMENT_BITMAP_POSTING_WRITER_H
-#define __INDEXLIB_MULTI_SEGMENT_BITMAP_POSTING_WRITER_H
+#pragma once
 
 #include <memory>
 
@@ -116,5 +115,3 @@ void MultiSegmentBitmapPostingWriter::DoDumpPosting(std::shared_ptr<PostingWrite
     postingWriter->Dump(fileWriterPtr);
 }
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_MULTI_SEGMENT_BITMAP_POSTING_WRITER_H

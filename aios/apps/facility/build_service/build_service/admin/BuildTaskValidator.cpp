@@ -15,14 +15,20 @@
  */
 #include "build_service/admin/BuildTaskValidator.h"
 
+#include <iosfwd>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/BuildRuleConfig.h"
-#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ControlConfig.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/RangeUtil.h"
 #include "fslib/util/FileUtil.h"
-#include "indexlib/framework/Version.h"
 
 using namespace std;
 using build_service::util::IndexPathConstructor;

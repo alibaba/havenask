@@ -20,6 +20,7 @@
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "beeper/beeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/document/ProcessedDocument.h"
 #include "build_service/reader/SwiftSchemaBasedRawDocumentParser.h"
@@ -269,7 +270,7 @@ string SwiftRawDocumentReader::createSwiftReaderConfig(const ReaderInitParam& pa
     if (maskPairs.empty()) {
         maskPairs.push_back(std::make_pair(0, 0));
     }
-    _swiftParam = common::SwiftParam(nullptr, topicName, isMultiTopic, maskPairs, params.range.from(),
+    _swiftParam = common::SwiftParam(nullptr, nullptr, topicName, isMultiTopic, maskPairs, params.range.from(),
                                      params.range.to(), useBSInnerMaskFilter);
     return ss.str();
 }
@@ -318,9 +319,9 @@ bool SwiftRawDocumentReader::initSwiftReader(SwiftReaderWrapper* swiftReader, co
         startTimestamp = std::max(startTimestamp, checkpoint);
     }
 
-    std::vector<indexlibv2::base::Progress> progress;
+    indexlibv2::base::ProgressVector progress;
     progress.push_back({_swiftParam.from, _swiftParam.to, {startTimestamp, 0}});
-    if (startTimestamp > 0 && !seek(Checkpoint(/*offset=*/startTimestamp, /*progress=*/progress, /*userData=*/""))) {
+    if (startTimestamp > 0 && !seek(Checkpoint(/*offset=*/startTimestamp, /*progress=*/ {progress}, /*userData=*/""))) {
         BS_LOG(ERROR, "swift reader seek to %ld failed", startTimestamp);
         return false;
     }
@@ -381,7 +382,7 @@ bool SwiftRawDocumentReader::seek(const Checkpoint& checkpoint)
     return doSeek(checkpoint.offset, checkpoint.progress, topicName);
 }
 
-bool SwiftRawDocumentReader::doSeek(int64_t timestamp, const std::vector<indexlibv2::base::Progress>& progress,
+bool SwiftRawDocumentReader::doSeek(int64_t timestamp, const indexlibv2::base::MultiProgress& progress,
                                     const std::string& topicName)
 {
     assert(_swiftReader);
@@ -390,14 +391,16 @@ bool SwiftRawDocumentReader::doSeek(int64_t timestamp, const std::vector<indexli
     BEEPER_INTERVAL_REPORT(10, WORKER_STATUS_COLLECTOR_NAME, msg);
 
     if (!_swiftParam.isMultiTopic) {
+        assert(progress.size() == 1);
         swift::protocol::ReaderProgress swiftProgress = util::LocatorUtil::convertLocatorProgress(
-            progress, topicName, _swiftParam.maskFilterPairs, _swiftParam.disableSwiftMaskFilter);
+            progress[0], topicName, _swiftParam.maskFilterPairs, _swiftParam.disableSwiftMaskFilter);
         swift::protocol::ErrorCode ec = _swiftReader->seekByProgress(swiftProgress, false);
         if (ec != swift::protocol::ERROR_NONE && ec != swift::protocol::ERROR_CLIENT_NO_MORE_MESSAGE) {
             string errorMsg = "seek by progress failed for swift source with " + StringUtil::toString(timestamp);
             REPORT_ERROR_WITH_ADVICE(READER_ERROR_SWIFT_SEEK, errorMsg, BS_RETRY);
             return false;
         }
+        _messageFilter.setSeekProgress(progress[0]);
     } else {
         swift::protocol::ErrorCode ec = _swiftReader->seekByTimestamp(timestamp, false);
         if (ec != swift::protocol::ERROR_NONE && ec != swift::protocol::ERROR_CLIENT_NO_MORE_MESSAGE) {
@@ -406,14 +409,6 @@ bool SwiftRawDocumentReader::doSeek(int64_t timestamp, const std::vector<indexli
             return false;
         }
     }
-    indexlibv2::framework::Locator locator;
-    locator.SetProgress(progress);
-    if (!locator.ShrinkToRange(_swiftParam.from, _swiftParam.to)) {
-        BS_LOG(ERROR, "seek failed, shrink failed, locator [%s], from [%d], to [%d]", locator.DebugString().c_str(),
-               _swiftParam.from, _swiftParam.to);
-        return false;
-    }
-    _messageFilter.setSeekProgress(locator.GetProgress());
     return true;
 }
 
@@ -539,7 +534,7 @@ RawDocumentReader::ErrorCode SwiftRawDocumentReader::readDocStr(std::string& doc
                          docInfo.timestamp, readerProgress.ShortDebugString().c_str());
         return ERROR_SKIP;
     }
-    checkpoint->progress = progress;
+    checkpoint->progress = {progress};
     if (!_swiftParam.isMultiTopic) {
         // TODO: assert topic equal
         if (readerProgress.topicprogress_size() > 0) {
@@ -639,7 +634,7 @@ RawDocumentReader::ErrorCode SwiftRawDocumentReader::readDocStr(std::vector<Mess
         AUTIL_LOG(ERROR, "convert swift progress failed [%s]", readerProgress.ShortDebugString().c_str());
         return ERROR_EXCEPTION;
     }
-    checkpoint->progress = progress;
+    checkpoint->progress = {progress};
 
     if (!_swiftParam.isMultiTopic) {
         if (readerProgress.topicprogress_size() > 0) {

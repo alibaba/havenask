@@ -154,6 +154,25 @@ void SwiftProcessedDocReader::initAttributeExtractResource(const indexlib::confi
                 AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig, tableType));
         }
     }
+
+    if (schema->GetSubIndexPartitionSchema()) {
+        AttributeSchemaPtr attrSchema = schema->GetSubIndexPartitionSchema()->GetAttributeSchema();
+        if (attrSchema) {
+            for (size_t i = 0; i < attrSchema->GetPackAttributeCount(); i++) {
+                PackAttributeConfigPtr packConfig = attrSchema->GetPackAttributeConfig(i);
+                PackAttributeFormatterPtr packFormatter(new PackAttributeFormatter);
+                packFormatter->Init(packConfig);
+                _subPackFormatters.push_back(packFormatter);
+            }
+
+            _subAttrConvertors.resize(schema->GetFieldCount());
+            for (AttributeSchema::Iterator it = attrSchema->Begin(); it != attrSchema->End(); ++it) {
+                const auto& attrConfig = *it;
+                _subAttrConvertors[attrConfig->GetFieldId()].reset(
+                    AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig, tableType));
+            }
+        }
+    }
 }
 
 void SwiftProcessedDocReader::ExtractDocMeta(document::RawDocument& rawDoc, const indexlib::document::DocumentPtr& doc)
@@ -184,6 +203,10 @@ void SwiftProcessedDocReader::ExtractRawDocument(document::RawDocument& rawDoc,
 void SwiftProcessedDocReader::ExtractIndexDocument(document::RawDocument& rawDoc,
                                                    const indexlib::document::IndexDocumentPtr& indexDoc)
 {
+    bool isSubDoc = false;
+    if (rawDoc.exist("is_sub_doc")) {
+        isSubDoc = true;
+    }
     rawDoc.setField("__primaryKey__", indexDoc->GetPrimaryKey());
     auto iter = indexDoc->CreateIterator();
     uint32_t fieldCount = 0;
@@ -233,7 +256,8 @@ void SwiftProcessedDocReader::ExtractIndexDocument(document::RawDocument& rawDoc
         }
         fieldCount++;
         fieldid_t fid = field->GetFieldId();
-        FieldConfigPtr fieldConfig = _schema->GetFieldConfig(fid);
+        FieldConfigPtr fieldConfig =
+            isSubDoc ? _schema->GetSubIndexPartitionSchema()->GetFieldConfig(fid) : _schema->GetFieldConfig(fid);
         if (fieldConfig) {
             rawDoc.setField(string("__indexDoc:") + fieldConfig->GetFieldName(), value);
         } else {
@@ -249,8 +273,12 @@ void SwiftProcessedDocReader::ExtractAttributeDocument(document::RawDocument& ra
 {
     rawDoc.setField(string("__META__:attrFieldCount"), autil::StringUtil::toString(attrDoc->GetNotEmptyFieldCount()));
     rawDoc.setField(string("__META__:packAttrFieldCount"), autil::StringUtil::toString(attrDoc->GetPackFieldCount()));
-
     AttributeSchemaPtr attrSchema = _schema->GetAttributeSchema();
+    bool isSubDoc = false;
+    if (rawDoc.exist("is_sub_doc")) {
+        attrSchema = _schema->GetSubIndexPartitionSchema()->GetAttributeSchema();
+        isSubDoc = true;
+    }
     if (!attrSchema || !_printAttribute) {
         return;
     }
@@ -259,12 +287,13 @@ void SwiftProcessedDocReader::ExtractAttributeDocument(document::RawDocument& ra
     while (iter.HasNext()) {
         fieldid_t fieldId;
         autil::StringView value = iter.Next(fieldId);
-        if ((size_t)fieldId >= _attrConvertors.size()) {
+        size_t converterSize = isSubDoc ? _subAttrConvertors.size() : _attrConvertors.size();
+        if ((size_t)fieldId >= converterSize) {
             rawDoc.setField(string("__attrDoc__:fid_") + autil::StringUtil::toString(fieldId) + "_not_exist",
                             autil::StringUtil::strToHexStr(string(value.data(), value.size())));
             continue;
         }
-        auto attrConvertor = _attrConvertors[fieldId];
+        auto attrConvertor = isSubDoc ? _subAttrConvertors[fieldId] : _attrConvertors[fieldId];
         if (!attrConvertor) {
             rawDoc.setField(string("__attrDoc__:fid_") + autil::StringUtil::toString(fieldId) + "_not_exist",
                             autil::StringUtil::strToHexStr(string(value.data(), value.size())));
@@ -283,10 +312,11 @@ void SwiftProcessedDocReader::ExtractAttributeDocument(document::RawDocument& ra
         if (packField.empty()) {
             continue;
         }
-        if (i >= _packFormatters.size()) {
+        size_t packFormaterSize = isSubDoc ? _subPackFormatters.size() : _packFormatters.size();
+        if (i >= packFormaterSize) {
             continue;
         }
-        PackAttributeFormatterPtr formatter = _packFormatters[i];
+        PackAttributeFormatterPtr formatter = isSubDoc ? _subPackFormatters[i] : _packFormatters[i];
         PackAttributeConfigPtr packConfig = formatter->GetPackAttributeConfig();
         vector<AttributeConfigPtr> attrConfigs = packConfig->GetAttributeConfigVec();
         for (size_t i = 0; i < attrConfigs.size(); i++) {
@@ -302,6 +332,9 @@ void SwiftProcessedDocReader::ExtractSummaryDocument(document::RawDocument& rawD
                                                      autil::mem_pool::Pool* pool)
 {
     SummarySchemaPtr summarySchema = _schema->GetSummarySchema();
+    if (rawDoc.exist("is_sub_doc")) {
+        summarySchema = _schema->GetSubIndexPartitionSchema()->GetSummarySchema();
+    }
     if (!summarySchema || !_printSummary) {
         return;
     }
@@ -430,6 +463,22 @@ void SwiftProcessedDocReader::ExtractFieldInfos(document::RawDocument& rawDoc,
     NormalDocumentPtr normalDoc = DYNAMIC_POINTER_CAST(NormalDocument, doc);
     if (normalDoc) {
         ExtractIndexNormalDocument(rawDoc, normalDoc);
+        const auto& docVec = normalDoc->GetSubDocuments();
+        int32_t i = 0;
+        for (const auto& subDoc : docVec) {
+            DefaultRawDocument subRawDoc;
+            subRawDoc.setField("is_sub_doc", "true");
+            ExtractIndexNormalDocument(subRawDoc, subDoc);
+            std::stringstream subRawDocNamePrefix;
+            subRawDocNamePrefix << "sub_doc_" << i << ":";
+            i++;
+            auto iter = subRawDoc.CreateIterator();
+            while (iter->IsValid()) {
+                std::string fieldName = subRawDocNamePrefix.str() + std::string(iter->GetFieldName());
+                rawDoc.setField(fieldName, iter->GetFieldValue());
+                iter->MoveToNext();
+            }
+        }
     }
 
     KVDocumentPtr kvDoc = DYNAMIC_POINTER_CAST(KVDocument, doc);

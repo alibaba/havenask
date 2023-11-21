@@ -622,8 +622,6 @@ int32_t ClustermapConfig::splitProtoPort(const char* p_protoport, CMNode* p_cmno
             p_node_protoport->set_protocol(PT_UDP);
         } else if (0 == v_protoport_attr[0].compare("http")) {
             p_node_protoport->set_protocol(PT_HTTP);
-        } else if (0 == v_protoport_attr[0].compare("rdma")) {
-            p_node_protoport->set_protocol(PT_RDMA);
         } else {
             return -1;
         }

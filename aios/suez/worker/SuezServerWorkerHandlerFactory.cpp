@@ -24,22 +24,16 @@
 
 #include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
-#include "kmonitor/client/KMonitorFactory.h"
-#include "kmonitor/client/KMonitorWorker.h"
-#include "kmonitor/client/MetricLevel.h"
-#include "kmonitor/client/core/MetricsConfig.h"
 #include "suez/heartbeat/HeartbeatManager.h"
-#include "suez/sdk/KMonitorMetaInfo.h"
 #include "suez/sdk/SearchManager.h"
 #include "suez/worker/DebugServiceImpl.h"
 #include "suez/worker/EnvParam.h"
-#include "suez/worker/KMonitorMetaParser.h"
+#include "suez/worker/KMonitorManager.h"
 #include "suez/worker/SelfKillerService.h"
 
 using namespace std;
 using namespace autil;
 using namespace multi_call;
-using namespace kmonitor;
 
 namespace suez {
 
@@ -58,7 +52,7 @@ SuezServerWorkerHandlerFactory::~SuezServerWorkerHandlerFactory() {
     _hbManager.reset(); // hb should reset after http service, hb has arpc call
     _selfKiller.reset();
     fslib::fs::FileSystem::close(); // unload fslib plugin
-    KMonitorFactory::Shutdown();
+    _kmonManager.reset();
     AUTIL_LOG(INFO, "suez_worker stop end");
 }
 
@@ -79,7 +73,9 @@ void SuezServerWorkerHandlerFactory::release() {
 
 bool SuezServerWorkerHandlerFactory::initilize(const EnvParam &param) {
     waitForDebugger(param);
-    if (!initMetrics(param)) {
+    _kmonManager.reset(new KMonitorManager());
+    if (!_kmonManager->init(param)) {
+        AUTIL_LOG(INFO, "kmonitor init failed");
         return false;
     }
     if (!startRdma(param)) {
@@ -118,6 +114,10 @@ bool SuezServerWorkerHandlerFactory::initilize(const EnvParam &param) {
     _selfKiller.reset(new SelfKillerService());
     if (!_selfKiller->init(&_rpcServerWrapper)) {
         AUTIL_LOG(ERROR, "register self killer service failed");
+        return false;
+    }
+    if (!_kmonManager->postInit(param, &_rpcServerWrapper)) {
+        AUTIL_LOG(INFO, "kmonitor post init failed");
         return false;
     }
     _reportThread = LoopThread::createLoopThread(
@@ -229,62 +229,8 @@ void SuezServerWorkerHandlerFactory::waitForDebugger(const EnvParam &param) {
     AUTIL_LOG(INFO, "wait for debugger finished");
 }
 
-bool SuezServerWorkerHandlerFactory::initMetrics(const EnvParam &param) {
-    if (param.kmonitorServiceName.empty()) { // compatible with ha3 qrs && searcher
-        KMonitorMetaParam metaParam;
-        metaParam.partId = param.partId;
-        metaParam.serviceName = param.serviceName;
-        metaParam.amonitorPath = param.amonitorPath;
-        metaParam.roleType = param.roleType;
-        if (!KMonitorMetaParser::parse(metaParam, _kmonMetaInfo)) {
-            AUTIL_LOG(ERROR, "parse kmonitor meta info failed.");
-            return false;
-        }
-    } else {
-        _kmonMetaInfo.serviceName = param.kmonitorServiceName;
-        _kmonMetaInfo.metricsPrefix = param.kmonitorMetricsPrefix;
-        _kmonMetaInfo.globalTableMetricsPrefix = param.kmonitorGlobalTableMetricsPrefix;
-        _kmonMetaInfo.tableMetricsPrefix = param.kmonitorTableMetricsPrefix;
-        _kmonMetaInfo.tagsMap = param.kmonitorTags;
-    }
-    if (!param.kmonitorMetricsReporterCacheLimit.empty()) {
-        size_t limit = 0;
-        if (StringUtil::fromString<size_t>(param.kmonitorMetricsReporterCacheLimit, limit) || limit > 0) {
-            MetricsReporter::setMetricsReporterCacheLimit(limit);
-            AUTIL_LOG(INFO, "set metrics reporter cache limit [%lu].", limit);
-        }
-    }
-
-    if (param.kmonitorNormalSamplePeriod > 0) {
-        AUTIL_LOG(INFO, "set kmonitor normal sample period [%d] seconds.", param.kmonitorNormalSamplePeriod);
-        MetricLevelConfig config;
-        config.period[NORMAL] = (unsigned int)param.kmonitorNormalSamplePeriod;
-        MetricLevelManager::SetGlobalLevelConfig(config);
-    }
-
-    MetricsConfig metricsConfig;
-    metricsConfig.set_tenant_name(param.kmonitorTenant);
-    metricsConfig.set_service_name(_kmonMetaInfo.serviceName);
-    metricsConfig.set_sink_address((param.kmonitorSinkAddress + ":" + param.kmonitorPort).c_str());
-    metricsConfig.set_enable_log_file_sink((param.kmonitorEnableLogFileSink));
-    metricsConfig.set_inited(true);
-    metricsConfig.AddGlobalTag("hippo_slave_ip", param.hippoSlaveIp);
-    for (auto &pair : _kmonMetaInfo.tagsMap) {
-        metricsConfig.AddGlobalTag(pair.first, pair.second);
-    }
-    if (!KMonitorFactory::Init(metricsConfig)) {
-        AUTIL_LOG(ERROR, "init kmonitor factory failed with[%s]", FastToJsonString(metricsConfig, true).c_str());
-        return false;
-    }
-    KMonitorFactory::Start();
-    AUTIL_LOG(INFO, "KMonitorFactory::Start() finished");
-    KMonitorFactory::registerBuildInMetrics(nullptr, _kmonMetaInfo.metricsPrefix);
-    AUTIL_LOG(INFO, "KMonitorFactory::registerBuildInMetrics() finished");
-    return true;
-}
-
 bool SuezServerWorkerHandlerFactory::initTaskExecutor(const EnvParam &param) {
-    _taskExecutor.reset(new TaskExecutor(&_rpcServerWrapper, _kmonMetaInfo));
+    _taskExecutor.reset(new TaskExecutor(&_rpcServerWrapper, _kmonManager->getMetaInfo()));
     _taskExecutor->setAllowPartialTableReady(param.allowPartialTableReady);
     _taskExecutor->setNeedShutdownGracefully(param.needShutdownGracefully);
     _taskExecutor->setNoDiskQuotaCheck(param.noDiskQuotaCheck);

@@ -5,6 +5,7 @@
 #include "fslib/util/FileUtil.h"
 #include "future_lite/ExecutorCreator.h"
 #include "future_lite/NamedTaskScheduler.h"
+#include "future_lite/executors/SimpleExecutor.h"
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/config/BackgroundTaskConfig.h"
 #include "indexlib/document/DocumentBatch.h"
@@ -53,12 +54,80 @@ std::shared_ptr<framework::ITabletReader> TableTestHelper::GetTabletReader() con
     return _impl->tablet->GetTabletReader();
 }
 
+Status TableTestHelper::TriggerBulkloadTask(framework::MergeTaskStatus& taskStatus)
+{
+    auto tablet = GetTablet();
+    auto tabletSchema = tablet->GetTabletSchema();
+    auto tabletOptions = tablet->GetTabletOptions();
+    auto tabletInfos = tablet->GetTabletInfos();
+
+    auto factory = framework::TabletFactoryCreator::GetInstance()->Create(tabletSchema->GetTableType());
+    assert(factory);
+    factory->Init(tabletOptions, nullptr);
+
+    future_lite::executors::SimpleExecutor executor(2);
+    LocalTabletMergeController mergeController;
+    LocalTabletMergeController::InitParam initParam;
+    initParam.executor = &executor;
+    initParam.schema = GetSchema();
+    initParam.options = tabletOptions;
+    initParam.partitionIndexRoot = tabletInfos->GetIndexRoot().GetRemoteRoot();
+    auto status = mergeController.Init(initParam);
+    RETURN_IF_STATUS_ERROR(status, "mergeController init failed");
+
+    std::string taskType = framework::BULKLOAD_TASK_TYPE;
+    std::string taskName = "";
+    std::string taskTraceId = "";
+    std::map<std::string, std::string> params;
+    auto currentVersionId = GetCurrentVersion().GetVersionId();
+    auto context = mergeController.CreateTaskContext(currentVersionId, taskType, taskName, taskTraceId, params);
+    assert(context);
+    auto planCreator = factory->CreateIndexTaskPlanCreator();
+    auto [planStatus, plan] = planCreator->CreateTaskPlan(context.get());
+    RETURN_IF_STATUS_ERROR(planStatus, "CreateTaskPlan failed");
+    assert(plan);
+
+    auto task = [&](auto plan) -> future_lite::coro::Lazy<std::pair<Status, framework::MergeTaskStatus>> {
+        auto status = co_await mergeController.SubmitMergeTask(std::move(plan), context.get());
+        co_return co_await mergeController.WaitMergeResult();
+    };
+
+    std::tie(status, taskStatus) = future_lite::coro::syncAwait(task(std::move(plan)));
+    return status;
+}
+
+Status TableTestHelper::Bulkload() { return ExecuteTask(framework::BULKLOAD_TASK_TYPE, "bulkload"); }
+
+Status TableTestHelper::ExecuteTask(const std::string& taskType, const std::string& taskName)
+{
+    Status status;
+    framework::Version sourceVersion(INVALID_VERSIONID);
+    std::map<std::string, std::string> params;
+    versionid_t versionId;
+    std::tie(status, versionId) = GetTablet()->ExecuteTask(sourceVersion, taskType, taskName, params);
+
+    if (!GetTablet()->NeedCommit()) {
+        return Status::Unimplement("need not commit");
+    }
+    framework::VersionMeta versionMeta;
+    std::tie(status, versionMeta) = GetTablet()->Commit(framework::CommitOptions().SetNeedPublish(true));
+    if (!status.IsOK()) {
+        return status;
+    }
+    status = Reopen(framework::ReopenOptions(), versionMeta.GetVersionId());
+    if (!status.IsOK()) {
+        return status;
+    }
+    return status;
+}
+
 Status TableTestHelper::ImportExternalFiles(const std::string& bulkloadId,
                                             const std::vector<std::string>& externalFiles,
                                             const std::shared_ptr<framework::ImportExternalFileOptions>& options,
                                             framework::Action action, bool commitAndReopen)
 {
-    auto status = _impl->tablet->ImportExternalFiles(bulkloadId, externalFiles, options, action);
+    auto status = _impl->tablet->ImportExternalFiles(bulkloadId, externalFiles, options, action,
+                                                     /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
     if (commitAndReopen) {
         if (_impl->tablet->NeedCommit()) {
             auto [status, version] = Commit();
@@ -292,6 +361,7 @@ TableTestHelper::StepAlterTable(StepInfo step, std::shared_ptr<config::ITabletSc
     mergeController->SetTaskPlan(step.taskPlan);
     mergeController->TEST_SetSpecifyEpochId(step.specifyEpochId);
     AddAlterTabletResourceIfNeed(extendResources, tabletSchema);
+    mergeController->SetTaskResources(extendResources);
     if (step.stepNum < CHANGE_SCHEMA) {
         auto status = GetTablet()->AlterTable(tabletSchema);
         if (!status.IsOK()) {
@@ -335,9 +405,6 @@ TableTestHelper::StepAlterTable(StepInfo step, std::shared_ptr<config::ITabletSc
     }
 
     if (step.stepNum < EXECUTE_ALTER_TABLE) {
-        auto mergeController =
-            (LocalTabletMergeControllerForTest*)framework::TabletTestAgent(GetTablet()).TEST_GetMergeController().get();
-        mergeController->SetTaskResources(extendResources);
         MergeOption mergeOption;
         auto status = ExecuteMerge(mergeOption);
         result.taskPlan = mergeController->GetTaskPlan();

@@ -24,7 +24,7 @@
 #include "build_service/util/SwiftClientCreator.h"
 #include "suez/table/wal/WALConfig.h"
 #include "swift/client/SwiftClient.h"
-#include "swift/client/helper/SwiftWriterAsyncHelper.h"
+#include "swift/client/helper/FixedTimeoutSwiftWriterAsyncHelper.h"
 
 using namespace std;
 using namespace autil;
@@ -41,8 +41,6 @@ RealtimeSwiftWAL::RealtimeSwiftWAL() : _currentId(0) {}
 RealtimeSwiftWAL::~RealtimeSwiftWAL() { stop(); }
 
 bool RealtimeSwiftWAL::init(const WALConfig &config, const SwiftClientCreatorPtr &swiftClientCreator) {
-    _timeoutMs = config.timeoutMs;
-
     const auto &kvMap = config.sinkDescription;
     if (getValueFromKeyValueMap(kvMap, READ_SRC_TYPE) != SWIFT_READ_SRC) {
         AUTIL_LOG(ERROR, "require last data source is swift in data_table.json");
@@ -67,8 +65,9 @@ bool RealtimeSwiftWAL::init(const WALConfig &config, const SwiftClientCreatorPtr
         return false;
     }
 
-    _swiftWriterAsyncHelper.reset(new swift::client::SwiftWriterAsyncHelper);
-    if (!_swiftWriterAsyncHelper->init(std::move(swiftWriter), config.desc)) {
+    _swiftWriterAsyncHelper.reset(new swift::client::FixedTimeoutSwiftWriterAsyncHelper);
+    auto timeoutUs = std::min<int64_t>(config.timeoutMs, 60 * 1000) * 1000;
+    if (!_swiftWriterAsyncHelper->init(std::move(swiftWriter), config.desc, timeoutUs)) {
         AUTIL_LOG(ERROR, "init swift writer async helper failed");
         return false;
     }
@@ -91,14 +90,9 @@ void RealtimeSwiftWAL::log(const std::vector<std::pair<uint16_t, string>> &docs,
         message.checkpointId = _currentId++;
         messages.push_back(message);
     }
-    auto timeoutMs = std::min<int64_t>(_timeoutMs, 60 * 1000);
-    auto writeDone = [_done = std::move(done),
-                      timeoutMs](autil::result::Result<swift::client::SwiftWriteCallbackParam> result) {
+    auto writeDone = [_done = std::move(done)](autil::result::Result<swift::client::SwiftWriteCallbackParam> result) {
         if (result.is_err()) {
-            AUTIL_LOG(ERROR,
-                      "swift write failed, timeout [%ld] ms, error [%s]",
-                      timeoutMs,
-                      result.get_error().message().c_str());
+            AUTIL_LOG(ERROR, "swift write failed, error [%s]", result.get_error().message().c_str());
             _done(std::move(result).steal_error());
             return;
         }
@@ -107,10 +101,10 @@ void RealtimeSwiftWAL::log(const std::vector<std::pair<uint16_t, string>> &docs,
         timestamps.assign(param.tsData, param.tsData + param.tsCount);
         _done(std::move(timestamps));
     };
-    helper->write(messages.data(), messages.size(), std::move(writeDone), timeoutMs * 1000);
+    helper->write(messages.data(), messages.size(), std::move(writeDone));
 }
 
-std::shared_ptr<swift::client::SwiftWriterAsyncHelper> RealtimeSwiftWAL::getSwiftWriterAsyncHelper() {
+std::shared_ptr<swift::client::FixedTimeoutSwiftWriterAsyncHelper> RealtimeSwiftWAL::getSwiftWriterAsyncHelper() {
     ScopedReadLock _(_swiftHelperLock);
     return _swiftWriterAsyncHelper;
 }

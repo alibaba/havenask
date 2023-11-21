@@ -15,11 +15,27 @@
  */
 #include "build_service/admin/taskcontroller/RollbackTaskController.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/CheckpointCreator.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/config/AgentGroupConfig.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/Admin.pb.h"
+#include "indexlib/config/index_partition_schema.h"
 
 using namespace std;
 using namespace autil::legacy;
@@ -182,7 +198,7 @@ bool RollbackTaskController::addCheckpoint(TaskController::Node& node)
         BS_LOG(ERROR, "rollBack Task[%s] is reach target, but lack of targetVersion", node.roleName.c_str());
         return false;
     }
-    versionid_t targetVersion = INVALID_VERSION;
+    versionid_t targetVersion = indexlib::INVALID_VERSIONID;
     if (!StringUtil::fromString(iter->second, targetVersion)) {
         BS_LOG(ERROR, "roll back failed, invalid target version[%s]", iter->second.c_str());
         return false;

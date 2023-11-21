@@ -64,7 +64,6 @@ constexpr char BIZ_JSON_FILE[] = "biz.json";
 constexpr char QRS_BIZ_JSON_FILE[] = "qrs_biz.json";
 constexpr char DEFAULT_BIZ_NAME[] = "default";
 constexpr char DEFAULT_SQL_BIZ_NAME[] = "default_sql";
-constexpr char DEFAULT_QRS_SQL_BIZ_NAME[] = "qrs.default_sql";
 constexpr char CLUSTER_CONFIG_INFO_SECTION[] = "cluster_config";
 constexpr char BUILD_CONFIG_DIR_NAME[] = "build";
 constexpr char BUILD_JSON_FILE_SUFFIX[] = "_build.json";

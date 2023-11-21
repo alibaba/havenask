@@ -43,16 +43,20 @@ public:
                       const std::string &workDir,
                       const std::string &processName,
                       std::string &errorMsg);
+    bool stopProcess(const std::string &address,
+                     const std::string &containerName,
+                     const int32_t pid);
+    bool checkProcessExist(const std::string &address,
+                           const std::string &containerName,
+                           const std::string &processName,
+                           const std::string &workDir,
+                           int32_t &pid);
 private:
     bool checkContainerExist(const std::string &address,
                              const std::string &containerName);
     bool addUser(const std::string &address,
                  const std::string &containerName,
                  std::string &msg);
-    bool checkProcessExist(const std::string &address,
-                           const std::string &containerName,
-                           const std::string &processName,
-                           const std::string &workDir);
     bool execute(const std::string &cmd, std::string &msg);
     void generateCmd(const std::string &address,
                      const std::string &containerCmd,

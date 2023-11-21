@@ -1,0 +1,338 @@
+[
+    {
+        "name": "sql.udf_model_r",
+        "config": {
+            "default_udf": [
+                {
+                    "function_name": "MULTICAST",
+                    "function_type": "UDF",
+                    "is_deterministic": 1,
+                    "function_version": 300,
+                    "function_content_version": "json_default_0.1",
+                    "function_content": {
+                        "prototypes": [
+                            {
+                                "params": [
+                                    {
+                                        "is_multi": true,
+                                        "type": "string"
+                                    }
+                                ],
+                                "returns": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    }
+                                ]
+                            },
+                            {
+                                "params": [
+                                    {
+                                        "is_multi": true,
+                                        "type": "int32"
+                                    }
+                                ],
+                                "returns": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "int32"
+                                    }
+                                ]
+                            },
+                            {
+                                "params": [
+                                    {
+                                        "is_multi": true,
+                                        "type": "int64"
+                                    }
+                                ],
+                                "returns": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "int64"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "function_name": "MATCHINDEX",
+                    "function_type": "UDF",
+                    "function_version": 300,
+                    "is_deterministic": 1,
+                    "function_content_version": "json_default_0.1",
+                    "function_content": {
+                        "prototypes": [
+                            {
+                                "params": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    },
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    }
+                                ],
+                                "returns": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "boolean"
+                                    }
+                                ]
+                            },
+                            {
+                                "params": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    },
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    },
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    }
+                                ],
+                                "returns": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "boolean"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "system_udf": [
+                {
+                    "function_name": "MATCHINDEX",
+                    "function_type": "UDF",
+                    "function_version": 300,
+                    "is_deterministic": 1,
+                    "function_content_version": "json_default_0.1",
+                    "function_content": {
+                        "prototypes": [
+                            {
+                                "params": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    },
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    }
+                                ],
+                                "returns": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "boolean"
+                                    }
+                                ]
+                            },
+                            {
+                                "params": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    },
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    },
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    }
+                                ],
+                                "returns": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "boolean"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "function_name": "QUERY",
+                    "function_type": "UDF",
+                    "function_version": 300,
+                    "is_deterministic": 1,
+                    "function_content_version": "json_default_0.1",
+                    "function_content": {
+                        "prototypes": [
+                            {
+                                "params": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    },
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    }
+                                ],
+                                "returns": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "boolean"
+                                    }
+                                ]
+                            },
+                            {
+                                "params": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    },
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    },
+                                    {
+                                        "is_multi": false,
+                                        "type": "string"
+                                    }
+                                ],
+                                "returns": [
+                                    {
+                                        "is_multi": false,
+                                        "type": "boolean"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "db_udf_map": {
+                "db1" : [
+                    {
+                        "function_name": "rand",
+                        "function_type": "UDF",
+                        "function_version": 300,
+                        "is_deterministic": 0,
+                        "function_content_version": "json_default_0.1",
+                        "function_content": {
+                            "prototypes": [
+                                {
+                                    "params": [
+                                    ],
+                                    "returns": [
+                                        {
+                                            "type": "int64"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "function_name": "QUERY",
+                        "function_type": "UDF",
+                        "function_version": 300,
+                        "is_deterministic": 1,
+                        "function_content_version": "json_default_0.1",
+                        "function_content": {
+                            "prototypes": [
+                                {
+                                    "params": [
+                                        {
+                                            "is_multi": false,
+                                            "type": "string"
+                                        },
+                                        {
+                                            "is_multi": false,
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "returns": [
+                                        {
+                                            "is_multi": false,
+                                            "type": "boolean"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "params": [
+                                        {
+                                            "is_multi": false,
+                                            "type": "string"
+                                        },
+                                        {
+                                            "is_multi": false,
+                                            "type": "string"
+                                        },
+                                        {
+                                            "is_multi": false,
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "returns": [
+                                        {
+                                            "is_multi": false,
+                                            "type": "boolean"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "db2" : [
+                    {
+                        "function_name": "length",
+                        "function_type": "UDF",
+                        "is_deterministic": 1,
+                        "function_version": 300,
+                        "function_content_version": "json_default_0.1",
+                        "function_content": {
+                            "prototypes": [
+                                {
+                                    "params": [
+                                        {
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "returns": [
+                                        {
+                                            "type": "int64"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "function_name": "rand",
+                        "function_type": "UDF",
+                        "function_version": 300,
+                        "is_deterministic": 0,
+                        "function_content_version": "json_default_0.1",
+                        "function_content": {
+                            "prototypes": [
+                                {
+                                    "params": [
+                                    ],
+                                    "returns": [
+                                        {
+                                            "type": "int64"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "special_catalogs": ["a", "b", "c"]
+        }
+    }
+]

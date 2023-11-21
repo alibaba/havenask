@@ -122,6 +122,14 @@ KernelTesterBuilder &KernelTesterBuilder::enableKernel(const std::string &kernel
     return *this;
 }
 
+KernelTesterBuilder &KernelTesterBuilder::namedData(const std::string &name, DataPtr data) {
+    NamedData namedData;
+    namedData.name = name;
+    namedData.data = std::move(data);
+    _info.namedDataVec.emplace_back(std::move(namedData));
+    return *this;
+}
+
 KernelTesterBuilder &KernelTesterBuilder::module(const std::string &modulePath) {
     _info.modulePaths.push_back(modulePath);
     return *this;

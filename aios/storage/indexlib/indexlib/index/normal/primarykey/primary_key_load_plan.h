@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIMARY_KEY_LOAD_PLAN_H
-#define __INDEXLIB_PRIMARY_KEY_LOAD_PLAN_H
+#pragma once
 
 #include <memory>
 
@@ -75,5 +74,3 @@ private:
 DEFINE_SHARED_PTR(PrimaryKeyLoadPlan);
 typedef std::vector<PrimaryKeyLoadPlanPtr> PrimaryKeyLoadPlanVector;
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARY_KEY_LOAD_PLAN_H

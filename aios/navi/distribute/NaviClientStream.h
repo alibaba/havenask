@@ -23,7 +23,8 @@ namespace navi {
 
 class RemoteSubGraphBase;
 
-class NaviClientStream : public multi_call::GigClientStream,
+class NaviClientStream : public autil::ObjectTracer<NaviClientStream>,
+                         public multi_call::GigClientStream,
                          public NaviStreamBase
 {
 public:

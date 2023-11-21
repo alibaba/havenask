@@ -1,11 +1,11 @@
 #include <typeinfo>
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/segment_metrics_updater/equal_filter_matcher.h"
 #include "indexlib/index/segment_metrics_updater/filter_matcher_creator.h"
 #include "indexlib/index/segment_metrics_updater/range_filter_matcher.h"
 #include "indexlib/misc/common.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 
 using namespace std;

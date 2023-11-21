@@ -51,11 +51,13 @@ FSResult<size_t> BlockFileStream::Read(void* buffer, size_t length, size_t offse
                 return {FSEC_BADARGS, length};
             }
             try {
-                if (!accessor->GetBlock(offset, _currentHandle, &option)) {
+                auto ret = accessor->GetBlock(offset, _currentHandle, &option);
+                if (!ret.OK()) {
                     AUTIL_LOG(ERROR,
-                              "read file [%s] io exception , offset: [%lu], "
+                              "read file [%s] io exception, ec:[%d], offset: [%lu], "
                               "read length: [%lu], file length: [%lu]",
-                              _blockFileNode->DebugString().c_str(), offset, length, accessor->GetFileLength());
+                              _blockFileNode->DebugString().c_str(), ret.Code(), offset, length,
+                              accessor->GetFileLength());
                     return {FSEC_BADARGS, length};
                 }
             } catch (...) {
@@ -72,8 +74,8 @@ FSResult<size_t> BlockFileStream::Read(void* buffer, size_t length, size_t offse
     return _blockFileNode->Read(buffer, length, offset, option);
 }
 
-future_lite::Future<size_t> BlockFileStream::ReadAsync(void* buffer, size_t length, size_t offset,
-                                                       file_system::ReadOption option) noexcept(false)
+future_lite::Future<FSResult<size_t>> BlockFileStream::ReadAsync(void* buffer, size_t length, size_t offset,
+                                                                 file_system::ReadOption option) noexcept(false)
 {
     assert(_blockFileNode);
 
@@ -86,22 +88,24 @@ future_lite::Future<size_t> BlockFileStream::ReadAsync(void* buffer, size_t leng
                           "read file [%s] out of range, offset: [%lu], "
                           "read length: [%lu], file length: [%lu]",
                           _blockFileNode->DebugString().c_str(), offset, length, accessor->GetFileLength());
-                return future_lite::makeReadyFuture<size_t>(0);
+                return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, 0});
             }
             return accessor->GetBlockAsync(offset, option)
-                .thenValue([this, buffer, offset, length](util::BlockHandle handle) mutable {
-                    _currentHandle = std::move(handle);
-                    ::memcpy(buffer, _currentHandle.GetData() + offset - _currentHandle.GetOffset(), length);
-                    return length;
-                });
+                .thenValue(
+                    [this, buffer, offset, length](FSResult<util::BlockHandle>&& ret) mutable -> FSResult<size_t> {
+                        RETURN2_IF_FS_ERROR(ret.Code(), 0, "GetBlockAsync failed");
+                        _currentHandle = std::move(ret.Value());
+                        ::memcpy(buffer, _currentHandle.GetData() + offset - _currentHandle.GetOffset(), length);
+                        return FSResult<size_t> {FSEC_OK, length};
+                    });
         }
         ::memcpy(buffer, _currentHandle.GetData() + offset - _currentHandle.GetOffset(), length);
-        return future_lite::makeReadyFuture<size_t>(length);
+        return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, length});
     } else {
         return _blockFileNode->ReadAsync(buffer, length, offset, option);
     }
     assert(false);
-    return future_lite::makeReadyFuture<size_t>(0);
+    return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, 0});
 }
 
 future_lite::coro::Lazy<std::vector<file_system::FSResult<size_t>>>

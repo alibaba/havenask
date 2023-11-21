@@ -82,6 +82,11 @@ public:
         assert(false);
         return false;
     }
+    bool ReadBinaryValue(docid_t docId, autil::StringView* value, autil::mem_pool::Pool* pool) override
+    {
+        assert(false);
+        return false;
+    }
     size_t EvaluateCurrentMemUsed() override
     {
         assert(false);

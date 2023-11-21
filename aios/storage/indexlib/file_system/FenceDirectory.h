@@ -15,10 +15,25 @@
  */
 #pragma once
 
+#include <future>
+#include <memory>
+#include <stddef.h>
+#include <string>
+#include <vector>
+
 #include "autil/Log.h"
 #include "indexlib/file_system/DirectoryImpl.h"
+#include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemDefine.h"
+#include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/ListOption.h"
+#include "indexlib/file_system/ReaderOption.h"
+#include "indexlib/file_system/RemoveOption.h"
+#include "indexlib/file_system/WriterOption.h"
 #include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/FileWriter.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 
 namespace indexlib::file_system {
 

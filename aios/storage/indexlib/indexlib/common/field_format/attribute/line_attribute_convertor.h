@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_LINE_ATTRIBUTE_CONVERTOR_H
-#define __INDEXLIB_LINE_ATTRIBUTE_CONVERTOR_H
+#pragma once
 
 #include <memory>
 
@@ -58,5 +57,3 @@ autil::StringView LineAttributeConvertor::InnerEncode(const autil::StringView& a
     return LocationAttributeConvertor::InnerEncodeVec(attrData, encodeVec, memPool, resultStr, outBuffer);
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_LINE_ATTRIBUTE_CONVERTOR_H

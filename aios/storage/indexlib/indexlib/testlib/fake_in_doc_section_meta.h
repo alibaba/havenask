@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_IN_DOC_SECTION_META_H
-#define __INDEXLIB_FAKE_IN_DOC_SECTION_META_H
+#pragma once
 
 #include <memory>
 
@@ -73,5 +72,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeInDocSectionMeta);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKE_IN_DOC_SECTION_META_H

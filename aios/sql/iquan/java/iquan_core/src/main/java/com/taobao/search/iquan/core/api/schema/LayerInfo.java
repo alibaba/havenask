@@ -1,9 +1,9 @@
 package com.taobao.search.iquan.core.api.schema;
 
-import com.taobao.search.iquan.core.common.Range;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.taobao.search.iquan.core.common.Range;
 
 
 public class LayerInfo {

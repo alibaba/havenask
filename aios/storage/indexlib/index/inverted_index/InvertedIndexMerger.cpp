@@ -21,6 +21,7 @@
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/index/DocMapper.h"
+#include "indexlib/index/common/PlainDocMapper.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/IndexOutputSegmentResource.h"
 #include "indexlib/index/inverted_index/IndexTermExtender.h"
@@ -55,6 +56,7 @@ using indexlibv2::framework::SegmentMeta;
 using indexlibv2::framework::SegmentStatistics;
 using indexlibv2::index::DocMapper;
 using indexlibv2::index::IIndexMerger;
+using indexlibv2::index::PlainDocMapper;
 } // namespace
 
 AUTIL_LOG_SETUP(indexlib.index, InvertedIndexMerger);
@@ -137,10 +139,22 @@ Status InvertedIndexMerger::DoMerge(const SegmentMergeInfos& segMergeInfos,
         return Status::OK();
     }
     std::shared_ptr<DocMapper> docMapper;
-    auto status = taskResourceManager->LoadResource(_docMapperName, DocMapper::GetDocMapperType(), docMapper);
-    if (!status.IsOK()) {
-        AUTIL_LOG(ERROR, "load doc mapper fail");
-        return status;
+    uint64_t docCountLimit = MAX_SEGMENT_DOC_COUNT;
+    if (_docMapperName == PlainDocMapper::GetDocMapperName()) {
+        docMapper.reset(new PlainDocMapper(segMergeInfos));
+        for (const auto& targetSegment : segMergeInfos.targetSegments) {
+            if (docMapper->GetTargetSegmentDocCount(targetSegment->segmentId) > docCountLimit) {
+                AUTIL_LOG(ERROR, "inverted index does not support merged segment doc count [%lu], which > [%lu]",
+                          docMapper->GetTargetSegmentDocCount(targetSegment->segmentId), docCountLimit);
+                return Status::InvalidArgs();
+            }
+        }
+    } else {
+        auto status = taskResourceManager->LoadResource(_docMapperName, DocMapper::GetDocMapperType(), docMapper);
+        if (!status.IsOK()) {
+            AUTIL_LOG(ERROR, "load doc mapper fail");
+            return status;
+        }
     }
 
     RETURN_IF_STATUS_ERROR(
@@ -158,7 +172,7 @@ Status InvertedIndexMerger::DoMerge(const SegmentMergeInfos& segMergeInfos,
     // Init term queue
     auto onDiskIndexIterCreator = CreateOnDiskIndexIteratorCreator();
     SegmentTermInfoQueue termInfoQueue(_indexConfig, onDiskIndexIterCreator);
-    status = termInfoQueue.Init(segMergeInfos.srcSegments, _patchInfos);
+    auto status = termInfoQueue.Init(segMergeInfos.srcSegments, _patchInfos);
     RETURN_IF_STATUS_ERROR(status, "init term info queue for index [%s] failed", _indexConfig->GetIndexName().c_str());
 
     DictKeyInfo key;

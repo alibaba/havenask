@@ -18,64 +18,67 @@
 #include <vector>
 
 #include "autil/legacy/jsonizable.h"
-#include "iquan/common/catalog/FunctionCommonDef.h"
+#include "iquan/common/Common.h"
 #include "iquan/common/catalog/FunctionDef.h"
+#include "iquan/common/catalog/TvfFunctionDef.h"
 
 namespace iquan {
 
-class FunctionModel : public FunctionModelBase {
-public:
-    FunctionModel() {}
-
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        FunctionModelBase::Jsonize(json);
-        json.Jsonize("function_content", functionContent);
+struct FunctionSign {
+    std::string FunctionName;
+    std::string FunctionType;
+    bool operator==(const FunctionSign &other) const {
+        return FunctionName == other.FunctionName && FunctionType == other.FunctionType;
     }
-
-    bool isValid() const {
-        return FunctionModelBase::isValid() && functionContent.isValid();
-    }
-
-public:
-    FunctionDef functionContent;
 };
 
-class FunctionModels : public autil::legacy::Jsonizable {
+class FunctionModel : public autil::legacy::Jsonizable {
+public:
+    FunctionModel()
+        : functionVersion(1)
+        , isDeterministic(0) {}
+
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        json.Jsonize("functions", functions);
+        json.Jsonize("function_name", functionName);
+        json.Jsonize("function_type", functionType);
+        json.Jsonize("function_version", functionVersion, 1L);
+        json.Jsonize("is_deterministic", isDeterministic);
+        json.Jsonize("function_content_version", functionContentVersion);
+        if (functionType == SQL_TVF_FUNCTION_TYPE) {
+            json.Jsonize("function_content", tvfFunctionDef);
+        } else {
+            json.Jsonize("function_content", functionDef);
+        }
     }
 
     bool isValid() const {
-        for (const auto &function : functions) {
-            if (!function.isValid()) {
-                return false;
-            }
+        if (functionName.empty() || functionType.empty() || functionVersion <= 0
+            || (isDeterministic != 0 && isDeterministic != 1) || functionContentVersion.empty()) {
+            return false;
+        }
+        if (functionType == SQL_TVF_FUNCTION_TYPE && !tvfFunctionDef.isValid()) {
+            return false;
+        }
+        if (functionType != SQL_TVF_FUNCTION_TYPE && !functionDef.isValid()) {
+            return false;
         }
         return true;
     }
 
-    void merge(const FunctionModels &other) {
-        functions.insert(functions.end(), other.functions.begin(), other.functions.end());
-    }
-
-    void insert(const FunctionModel &other) {
-        if (!exist(other)) {
-            functions.emplace_back(other);
-        }
-    }
-
-    bool exist(const FunctionModel &other) {
-        for (const auto &funcModel : functions) {
-            if (funcModel == other) {
-                return true;
-            }
-        }
-        return false;
+    bool operator==(const FunctionModel &other) const {
+        return functionName == other.functionName && functionType == other.functionType;
     }
 
 public:
-    std::vector<FunctionModel> functions;
+    std::string functionName;
+    std::string functionType;
+    long functionVersion;
+    int isDeterministic;
+    std::string functionContentVersion;
+
+    FunctionDef functionDef;
+    TvfFunctionDef tvfFunctionDef;
 };
 
 } // namespace iquan

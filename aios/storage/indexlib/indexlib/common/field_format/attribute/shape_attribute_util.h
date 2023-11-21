@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SHAPE_ATTRIBUTE_UTIL_H
-#define __INDEXLIB_SHAPE_ATTRIBUTE_UTIL_H
+#pragma once
 
 #include <memory>
 
@@ -129,5 +128,3 @@ inline bool ShapeAttributeUtil::EncodeShape(const autil::StringView& attrData, i
     return true;
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_SHAPE_ATTRIBUTE_UTIL_H

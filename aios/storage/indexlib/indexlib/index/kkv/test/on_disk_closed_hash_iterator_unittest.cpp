@@ -1,7 +1,7 @@
 #include "indexlib/index/kkv/test/on_disk_closed_hash_iterator_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/kkv/kkv_define.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

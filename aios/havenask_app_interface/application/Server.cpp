@@ -65,8 +65,8 @@ Server::~Server() {
 
 void Server::release() {
     AUTIL_LOG(INFO, "start to Server::release() ...");
-    stopRPCServer();
     stopSuezWorkerHandelFactory();
+    stopRPCServer();
     resetSignalHandler();
     AUTIL_LOG(INFO, "server(%p) has been stopped.", this);
 }
@@ -128,6 +128,7 @@ bool Server::initSuezWorkerHandlerFactory(const OptionParser& optionParser) {
 
 void Server::stopRPCServer() {
     if (_rpcServer) {
+        AUTIL_LOG(INFO, "stop RPCServer");
         _rpcServer->release();
         _rpcServer.reset();
     }
@@ -135,6 +136,7 @@ void Server::stopRPCServer() {
 
 void Server::stopSuezWorkerHandelFactory() {
     if (_suezWorkerHandlerFactory) {
+        AUTIL_LOG(INFO, "stop suezWorkerHandlerFactory");
         _suezWorkerHandlerFactory->release();
         _suezWorkerHandlerFactory.reset();
     }
@@ -146,8 +148,8 @@ bool Server::run() {
     while(!isStop) {
         usleep(200);
     }
-    stopRPCServer();
     stopSuezWorkerHandelFactory();
+    stopRPCServer();
     return true;
 }
 

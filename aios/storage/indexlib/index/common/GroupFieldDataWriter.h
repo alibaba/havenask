@@ -63,7 +63,7 @@ public:
     Status Dump(const std::shared_ptr<indexlib::file_system::IDirectory>& directory,
                 autil::mem_pool::PoolBase* dumpPool, const std::shared_ptr<framework::DumpParams>& params);
     uint32_t GetNumDocuments() const { return _accessor->GetDocCount(); }
-    VarLenDataAccessor* GetDataAccessor() { return _accessor; }
+    VarLenDataAccessor* GetDataAccessor() const { return _accessor; }
     void UpdateMemUse(BuildingIndexMemoryUseUpdater* memUpdater);
 
 private:

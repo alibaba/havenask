@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_NODE_QUERY_H
-#define __INDEXLIB_NODE_QUERY_H
+#pragma once
 
 #include <memory>
 
@@ -76,5 +75,3 @@ private:
 
 DEFINE_SHARED_PTR(NodeQuery);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_NODE_QUERY_H

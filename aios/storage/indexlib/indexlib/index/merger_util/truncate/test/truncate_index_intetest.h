@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TRUNCATEINDEXTEST_H
-#define __INDEXLIB_TRUNCATEINDEXTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -167,5 +166,3 @@ INDEXLIB_UNIT_TEST_CASE(TruncateIndexTest, TestCaseForTruncateByMultiAttributeWi
 INDEXLIB_UNIT_TEST_CASE(TruncateIndexTest, TestCaseForTruncateByAttributeWithDistinctNoExpandWithTestSplit);
 INDEXLIB_UNIT_TEST_CASE(TruncateIndexTest, TestCaseForTruncateByAttributeWithDistinctExpandWithTestSplit);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_TRUNCATEINDEXTEST_H

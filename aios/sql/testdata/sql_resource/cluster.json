@@ -1,0 +1,16 @@
+{
+  "build_option_config": {}, 
+  "cluster_config": {
+    "builder_rule_config": {
+      "need_partition": true, 
+      "partition_count": 1
+    }, 
+    "cluster_name": "phone", 
+    "hash_mode": {
+      "hash_field": "nid", 
+      "hash_function": "HASH"
+    }, 
+    "table_name": "phone"
+  }, 
+  "offline_index_config": {}
+}

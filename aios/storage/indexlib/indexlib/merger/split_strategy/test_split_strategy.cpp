@@ -1,5 +1,13 @@
 #include "indexlib/merger/split_strategy/test_split_strategy.h"
 
+#include <iosfwd>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/util/ErrorLogCollector.h"
+
 using namespace std;
 
 namespace indexlib { namespace merger {

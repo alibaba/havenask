@@ -28,6 +28,7 @@ strict_cc_fast_test(
     name='FakeDocMapperTest',
     testonly=True,
     srcs=['FakeDocMapperTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/test:FakeDocMapper',
         '//aios/unittest_framework'

@@ -15,11 +15,14 @@
  */
 #include "indexlib/file_system/FileSystemMetricsReporter.h"
 
+#include <assert.h>
 #include <cstddef>
 #include <memory>
 
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
+#include "autil/StringUtil.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/FileSystemMetrics.h"
 #include "indexlib/file_system/StorageMetrics.h"

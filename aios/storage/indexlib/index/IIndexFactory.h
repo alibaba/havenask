@@ -44,7 +44,9 @@ class IDiskIndexer;
 class IMemIndexer;
 class IIndexReader;
 class IIndexMerger;
-struct IndexerParameter;
+struct DiskIndexerParameter;
+struct MemIndexerParameter;
+struct IndexReaderParameter;
 
 class IIndexFactory
 {
@@ -53,11 +55,11 @@ public:
     virtual ~IIndexFactory() = default;
 
     virtual std::shared_ptr<IDiskIndexer> CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                            const IndexerParameter& indexerParam) const = 0;
+                                                            const DiskIndexerParameter& indexerParam) const = 0;
     virtual std::shared_ptr<IMemIndexer> CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                          const IndexerParameter& indexerParam) const = 0;
+                                                          const MemIndexerParameter& memIndexerParam) const = 0;
     virtual std::unique_ptr<IIndexReader> CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                            const IndexerParameter& indexerParam) const = 0;
+                                                            const IndexReaderParameter& indexReaderParam) const = 0;
     virtual std::unique_ptr<IIndexMerger>
     CreateIndexMerger(const std::shared_ptr<config::IIndexConfig>& indexConfig) const = 0;
     virtual std::unique_ptr<config::IIndexConfig> CreateIndexConfig(const autil::legacy::Any& any) const = 0;

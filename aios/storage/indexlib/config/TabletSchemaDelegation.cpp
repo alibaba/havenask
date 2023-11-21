@@ -15,6 +15,8 @@
  */
 #include "indexlib/config/TabletSchemaDelegation.h"
 
+#include <assert.h>
+
 #include "indexlib/config/SchemaResolver.h"
 #include "indexlib/config/TabletSchema.h"
 

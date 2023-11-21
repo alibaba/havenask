@@ -16,6 +16,16 @@
  */
 package com.taobao.search.iquan.core.rel.rules.logical.calcite;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.taobao.search.iquan.core.catalog.function.internal.ScalarFunction;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import org.apache.calcite.plan.RelOptCluster;
@@ -23,10 +33,17 @@ import org.apache.calcite.plan.RelOptPredicateList;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Calc;
 import org.apache.calcite.rel.core.Filter;
 import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.core.Project;
+import org.apache.calcite.rel.logical.LogicalCalc;
+import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rel.logical.LogicalProject;
+import org.apache.calcite.rel.metadata.RelMetadataQuery;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexCorrelVariable;
@@ -46,15 +63,6 @@ import org.apache.calcite.rex.RexSimplify;
 import org.apache.calcite.rex.RexSubQuery;
 import org.apache.calcite.rex.RexUtil;
 import org.apache.calcite.rex.RexVisitorImpl;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.logical.LogicalCalc;
-import org.apache.calcite.rel.logical.LogicalFilter;
-import org.apache.calcite.rel.logical.LogicalProject;
-import org.apache.calcite.rel.metadata.RelMetadataQuery;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.sql.SqlFunctionCategory;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlOperator;
@@ -65,14 +73,6 @@ import org.apache.calcite.tools.RelBuilderFactory;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.Pair;
 import org.apache.calcite.util.Util;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Collection of planner rules that apply various simplifying transformations on
@@ -131,323 +131,6 @@ public abstract class ReduceExpressionsRule extends RelOptRule {
     protected final boolean matchNullability;
 
     /**
-     * Rule that reduces constants inside a {@link org.apache.calcite.rel.core.Filter}.
-     * If the condition is a constant, the filter is removed (if TRUE) or replaced with
-     * an empty {@link org.apache.calcite.rel.core.Values} (if FALSE or NULL).
-     */
-    public static class FilterReduceExpressionsRule extends ReduceExpressionsRule {
-        @Deprecated // to be removed before 2.0
-        public FilterReduceExpressionsRule(Class<? extends Filter> filterClass,
-                                           RelBuilderFactory relBuilderFactory) {
-            this(filterClass, true, relBuilderFactory);
-        }
-
-        private FilterReduceExpressionsRule(Class<? extends Filter> filterClass,
-                                           boolean matchNullability, RelBuilderFactory relBuilderFactory) {
-            super(filterClass, matchNullability, relBuilderFactory,
-                    "ReduceExpressionsRule(Filter)");
-        }
-
-        @Override
-        public void onMatch(RelOptRuleCall call) {
-            final Filter filter = call.rel(0);
-            final List<RexNode> expList =
-                    Lists.newArrayList(filter.getCondition());
-            RexNode newConditionExp;
-            boolean reduced;
-            final RelMetadataQuery mq = call.getMetadataQuery();
-            final RelOptPredicateList predicates =
-                    mq.getPulledUpPredicates(filter.getInput());
-            if (reduceExpressions(filter, expList, predicates, true,
-                    matchNullability)) {
-                assert expList.size() == 1;
-                newConditionExp = expList.get(0);
-                reduced = true;
-            } else {
-                // No reduction, but let's still test the original
-                // predicate to see if it was already a constant,
-                // in which case we don't need any runtime decision
-                // about filtering.
-                newConditionExp = filter.getCondition();
-                reduced = false;
-            }
-
-            // Even if no reduction, let's still test the original
-            // predicate to see if it was already a constant,
-            // in which case we don't need any runtime decision
-            // about filtering.
-            if (newConditionExp.isAlwaysTrue()) {
-                call.transformTo(
-                        filter.getInput());
-            } else if (newConditionExp instanceof RexLiteral
-                    || RexUtil.isNullLiteral(newConditionExp, true)) {
-                call.transformTo(createEmptyRelOrEquivalent(call, filter));
-            } else if (reduced) {
-                call.transformTo(call.builder()
-                        .push(filter.getInput())
-                        .filter(newConditionExp).build());
-            } else {
-                if (newConditionExp instanceof RexCall) {
-                    boolean reverse = newConditionExp.getKind() == SqlKind.NOT;
-                    if (reverse) {
-                        newConditionExp = ((RexCall) newConditionExp).getOperands().get(0);
-                    }
-                    reduceNotNullableFilter(call, filter, newConditionExp, reverse);
-                }
-                return;
-            }
-
-            // New plan is absolutely better than old plan.
-            call.getPlanner().prune(filter);
-        }
-
-        /**
-         * For static schema systems, a filter that is always false or null can be
-         * replaced by a values operator that produces no rows, as the schema
-         * information can just be taken from the input Rel. In dynamic schema
-         * environments, the filter might have an unknown input type, in these cases
-         * they must define a system specific alternative to a Values operator, such
-         * as inserting a limit 0 instead of a filter on top of the original input.
-         *
-         * <p>The default implementation of this method is to call
-         * {@link }, which for the static schema will be optimized
-         * to an empty
-         * {@link org.apache.calcite.rel.core.Values}.
-         *
-         * @param input rel to replace, assumes caller has already determined
-         *              equivalence to Values operation for 0 records or a
-         *              false filter.
-         * @return equivalent but less expensive replacement rel
-         */
-        protected RelNode createEmptyRelOrEquivalent(RelOptRuleCall call, Filter input) {
-            return call.builder().push(input).empty().build();
-        }
-
-        private void reduceNotNullableFilter(
-                RelOptRuleCall call,
-                Filter filter,
-                RexNode rexNode,
-                boolean reverse) {
-            // If the expression is a IS [NOT] NULL on a non-nullable
-            // column, then we can either remove the filter or replace
-            // it with an Empty.
-            boolean alwaysTrue;
-            switch (rexNode.getKind()) {
-                case IS_NULL:
-                case IS_UNKNOWN:
-                    alwaysTrue = false;
-                    break;
-                case IS_NOT_NULL:
-                    alwaysTrue = true;
-                    break;
-                default:
-                    return;
-            }
-            if (reverse) {
-                alwaysTrue = !alwaysTrue;
-            }
-            RexNode operand = ((RexCall) rexNode).getOperands().get(0);
-            if (operand instanceof RexInputRef) {
-                RexInputRef inputRef = (RexInputRef) operand;
-                if (!inputRef.getType().isNullable()) {
-                    if (alwaysTrue) {
-                        call.transformTo(filter.getInput());
-                    } else {
-                        call.transformTo(createEmptyRelOrEquivalent(call, filter));
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Rule that reduces constants inside a {@link org.apache.calcite.rel.core.Project}.
-     */
-    public static class ProjectReduceExpressionsRule extends ReduceExpressionsRule {
-        @Deprecated // to be removed before 2.0
-        public ProjectReduceExpressionsRule(Class<? extends Project> projectClass,
-                                            RelBuilderFactory relBuilderFactory) {
-            this(projectClass, true, relBuilderFactory);
-        }
-
-        private ProjectReduceExpressionsRule(Class<? extends Project> projectClass,
-                                            boolean matchNullability, RelBuilderFactory relBuilderFactory) {
-            super(projectClass, matchNullability, relBuilderFactory,
-                    "ReduceExpressionsRule(Project)");
-        }
-
-        @Override
-        public void onMatch(RelOptRuleCall call) {
-            final Project project = call.rel(0);
-            final RelMetadataQuery mq = call.getMetadataQuery();
-            final RelOptPredicateList predicates =
-                    mq.getPulledUpPredicates(project.getInput());
-            final List<RexNode> expList =
-                    Lists.newArrayList(project.getProjects());
-            if (reduceExpressions(project, expList, predicates, false,
-                    matchNullability)) {
-                call.transformTo(
-                        call.builder()
-                                .push(project.getInput())
-                                .project(expList, project.getRowType().getFieldNames())
-                                .build());
-
-                // New plan is absolutely better than old plan.
-                call.getPlanner().prune(project);
-            }
-        }
-    }
-
-    /**
-     * Rule that reduces constants inside a {@link org.apache.calcite.rel.core.Join}.
-     */
-    public static class JoinReduceExpressionsRule extends ReduceExpressionsRule {
-        @Deprecated // to be removed before 2.0
-        public JoinReduceExpressionsRule(Class<? extends Join> joinClass,
-                                         RelBuilderFactory relBuilderFactory) {
-            this(joinClass, true, relBuilderFactory);
-        }
-
-        public JoinReduceExpressionsRule(Class<? extends Join> joinClass,
-                                         boolean matchNullability, RelBuilderFactory relBuilderFactory) {
-            super(joinClass, matchNullability, relBuilderFactory,
-                    "ReduceExpressionsRule(Join)");
-        }
-
-        @Override
-        public void onMatch(RelOptRuleCall call) {
-            final Join join = call.rel(0);
-            final List<RexNode> expList = Lists.newArrayList(join.getCondition());
-            final int fieldCount = join.getLeft().getRowType().getFieldCount();
-            final RelMetadataQuery mq = call.getMetadataQuery();
-            final RelOptPredicateList leftPredicates =
-                    mq.getPulledUpPredicates(join.getLeft());
-            final RelOptPredicateList rightPredicates =
-                    mq.getPulledUpPredicates(join.getRight());
-            final RexBuilder rexBuilder = join.getCluster().getRexBuilder();
-            final RelOptPredicateList predicates =
-                    leftPredicates.union(rexBuilder,
-                            rightPredicates.shift(rexBuilder, fieldCount));
-            if (!reduceExpressions(join, expList, predicates, true,
-                    matchNullability)) {
-                return;
-            }
-            call.transformTo(
-                    join.copy(
-                            join.getTraitSet(),
-                            expList.get(0),
-                            join.getLeft(),
-                            join.getRight(),
-                            join.getJoinType(),
-                            join.isSemiJoinDone()));
-
-            // New plan is absolutely better than old plan.
-            call.getPlanner().prune(join);
-        }
-    }
-
-    /**
-     * Rule that reduces constants inside a {@link org.apache.calcite.rel.core.Calc}.
-     */
-    public static class CalcReduceExpressionsRule extends ReduceExpressionsRule {
-        @Deprecated // to be removed before 2.0
-        public CalcReduceExpressionsRule(Class<? extends Calc> calcClass,
-                                         RelBuilderFactory relBuilderFactory) {
-            this(calcClass, true, relBuilderFactory);
-        }
-
-        private CalcReduceExpressionsRule(Class<? extends Calc> calcClass,
-                                         boolean matchNullability, RelBuilderFactory relBuilderFactory) {
-            super(calcClass, matchNullability, relBuilderFactory,
-                    "ReduceExpressionsRule(Calc)");
-        }
-
-        @Override
-        public void onMatch(RelOptRuleCall call) {
-            Calc calc = call.rel(0);
-            RexProgram program = calc.getProgram();
-            final List<RexNode> exprList = program.getExprList();
-
-            // Form a list of expressions with sub-expressions fully expanded.
-            final List<RexNode> expandedExprList = new ArrayList<>();
-            final RexShuttle shuttle =
-                    new RexShuttle() {
-                        public RexNode visitLocalRef(RexLocalRef localRef) {
-                            return expandedExprList.get(localRef.getIndex());
-                        }
-                    };
-            for (RexNode expr : exprList) {
-                expandedExprList.add(expr.accept(shuttle));
-            }
-            final RelOptPredicateList predicates = RelOptPredicateList.EMPTY;
-            if (reduceExpressions(calc, expandedExprList, predicates, false,
-                    matchNullability)) {
-                final RexProgramBuilder builder =
-                        new RexProgramBuilder(
-                                calc.getInput().getRowType(),
-                                calc.getCluster().getRexBuilder());
-                final List<RexLocalRef> list = new ArrayList<>();
-                for (RexNode expr : expandedExprList) {
-                    list.add(builder.registerInput(expr));
-                }
-                if (program.getCondition() != null) {
-                    final int conditionIndex =
-                            program.getCondition().getIndex();
-                    final RexNode newConditionExp =
-                            expandedExprList.get(conditionIndex);
-                    if (newConditionExp.isAlwaysTrue()) {
-                        // condition is always TRUE - drop it
-                    } else if (newConditionExp instanceof RexLiteral
-                            || RexUtil.isNullLiteral(newConditionExp, true)) {
-                        // condition is always NULL or FALSE - replace calc
-                        // with empty
-                        call.transformTo(createEmptyRelOrEquivalent(call, calc));
-                        return;
-                    } else {
-                        builder.addCondition(list.get(conditionIndex));
-                    }
-                }
-                int k = 0;
-                for (RexLocalRef projectExpr : program.getProjectList()) {
-                    final int index = projectExpr.getIndex();
-                    builder.addProject(
-                            list.get(index).getIndex(),
-                            program.getOutputRowType().getFieldNames().get(k++));
-                }
-                call.transformTo(
-                        calc.copy(calc.getTraitSet(), calc.getInput(), builder.getProgram()));
-
-                // New plan is absolutely better than old plan.
-                call.getPlanner().prune(calc);
-            }
-        }
-
-        /**
-         * For static schema systems, a filter that is always false or null can be
-         * replaced by a values operator that produces no rows, as the schema
-         * information can just be taken from the input Rel. In dynamic schema
-         * environments, the filter might have an unknown input type, in these cases
-         * they must define a system specific alternative to a Values operator, such
-         * as inserting a limit 0 instead of a filter on top of the original input.
-         *
-         * <p>The default implementation of this method is to call
-         * {@link }, which for the static schema will be optimized
-         * to an empty
-         * {@link org.apache.calcite.rel.core.Values}.
-         *
-         * @param input rel to replace, assumes caller has already determined
-         *              equivalence to Values operation for 0 records or a
-         *              false filter.
-         * @return equivalent but less expensive replacement rel
-         */
-        protected RelNode createEmptyRelOrEquivalent(RelOptRuleCall call, Calc input) {
-            return call.builder().push(input).empty().build();
-        }
-    }
-
-    //~ Constructors -----------------------------------------------------------
-
-    /**
      * Creates a ReduceExpressionsRule.
      *
      * @param clazz            class of rels to which this rule should apply
@@ -467,8 +150,6 @@ public abstract class ReduceExpressionsRule extends RelOptRule {
         this(clazz, true, relBuilderFactory, description);
     }
 
-    //~ Methods ----------------------------------------------------------------
-
     /**
      * Reduces a list of expressions.
      *
@@ -487,6 +168,8 @@ public abstract class ReduceExpressionsRule extends RelOptRule {
                                                RelOptPredicateList predicates, boolean unknownAsFalse) {
         return reduceExpressions(rel, expList, predicates, unknownAsFalse, true);
     }
+
+    //~ Constructors -----------------------------------------------------------
 
     /**
      * Reduces a list of expressions.
@@ -633,6 +316,8 @@ public abstract class ReduceExpressionsRule extends RelOptRule {
         return true;
     }
 
+    //~ Methods ----------------------------------------------------------------
+
     /**
      * Locates expressions that can be reduced to literals or converted to
      * expressions with redundant casts removed.
@@ -744,6 +429,321 @@ public abstract class ReduceExpressionsRule extends RelOptRule {
         return call.clone(call.getType(), newOperands);
     }
 
+    /**
+     * Rule that reduces constants inside a {@link org.apache.calcite.rel.core.Filter}.
+     * If the condition is a constant, the filter is removed (if TRUE) or replaced with
+     * an empty {@link org.apache.calcite.rel.core.Values} (if FALSE or NULL).
+     */
+    public static class FilterReduceExpressionsRule extends ReduceExpressionsRule {
+        @Deprecated // to be removed before 2.0
+        public FilterReduceExpressionsRule(Class<? extends Filter> filterClass,
+                                           RelBuilderFactory relBuilderFactory) {
+            this(filterClass, true, relBuilderFactory);
+        }
+
+        private FilterReduceExpressionsRule(Class<? extends Filter> filterClass,
+                                            boolean matchNullability, RelBuilderFactory relBuilderFactory) {
+            super(filterClass, matchNullability, relBuilderFactory,
+                    "ReduceExpressionsRule(Filter)");
+        }
+
+        @Override
+        public void onMatch(RelOptRuleCall call) {
+            final Filter filter = call.rel(0);
+            final List<RexNode> expList =
+                    Lists.newArrayList(filter.getCondition());
+            RexNode newConditionExp;
+            boolean reduced;
+            final RelMetadataQuery mq = call.getMetadataQuery();
+            final RelOptPredicateList predicates =
+                    mq.getPulledUpPredicates(filter.getInput());
+            if (reduceExpressions(filter, expList, predicates, true,
+                    matchNullability)) {
+                assert expList.size() == 1;
+                newConditionExp = expList.get(0);
+                reduced = true;
+            } else {
+                // No reduction, but let's still test the original
+                // predicate to see if it was already a constant,
+                // in which case we don't need any runtime decision
+                // about filtering.
+                newConditionExp = filter.getCondition();
+                reduced = false;
+            }
+
+            // Even if no reduction, let's still test the original
+            // predicate to see if it was already a constant,
+            // in which case we don't need any runtime decision
+            // about filtering.
+            if (newConditionExp.isAlwaysTrue()) {
+                call.transformTo(
+                        filter.getInput());
+            } else if (newConditionExp instanceof RexLiteral
+                    || RexUtil.isNullLiteral(newConditionExp, true)) {
+                call.transformTo(createEmptyRelOrEquivalent(call, filter));
+            } else if (reduced) {
+                call.transformTo(call.builder()
+                        .push(filter.getInput())
+                        .filter(newConditionExp).build());
+            } else {
+                if (newConditionExp instanceof RexCall) {
+                    boolean reverse = newConditionExp.getKind() == SqlKind.NOT;
+                    if (reverse) {
+                        newConditionExp = ((RexCall) newConditionExp).getOperands().get(0);
+                    }
+                    reduceNotNullableFilter(call, filter, newConditionExp, reverse);
+                }
+                return;
+            }
+
+            // New plan is absolutely better than old plan.
+            call.getPlanner().prune(filter);
+        }
+
+        /**
+         * For static schema systems, a filter that is always false or null can be
+         * replaced by a values operator that produces no rows, as the schema
+         * information can just be taken from the input Rel. In dynamic schema
+         * environments, the filter might have an unknown input type, in these cases
+         * they must define a system specific alternative to a Values operator, such
+         * as inserting a limit 0 instead of a filter on top of the original input.
+         *
+         * <p>The default implementation of this method is to call
+         * {@link }, which for the static schema will be optimized
+         * to an empty
+         * {@link org.apache.calcite.rel.core.Values}.
+         *
+         * @param input rel to replace, assumes caller has already determined
+         *              equivalence to Values operation for 0 records or a
+         *              false filter.
+         * @return equivalent but less expensive replacement rel
+         */
+        protected RelNode createEmptyRelOrEquivalent(RelOptRuleCall call, Filter input) {
+            return call.builder().push(input).empty().build();
+        }
+
+        private void reduceNotNullableFilter(
+                RelOptRuleCall call,
+                Filter filter,
+                RexNode rexNode,
+                boolean reverse) {
+            // If the expression is a IS [NOT] NULL on a non-nullable
+            // column, then we can either remove the filter or replace
+            // it with an Empty.
+            boolean alwaysTrue;
+            switch (rexNode.getKind()) {
+                case IS_NULL:
+                case IS_UNKNOWN:
+                    alwaysTrue = false;
+                    break;
+                case IS_NOT_NULL:
+                    alwaysTrue = true;
+                    break;
+                default:
+                    return;
+            }
+            if (reverse) {
+                alwaysTrue = !alwaysTrue;
+            }
+            RexNode operand = ((RexCall) rexNode).getOperands().get(0);
+            if (operand instanceof RexInputRef) {
+                RexInputRef inputRef = (RexInputRef) operand;
+                if (!inputRef.getType().isNullable()) {
+                    if (alwaysTrue) {
+                        call.transformTo(filter.getInput());
+                    } else {
+                        call.transformTo(createEmptyRelOrEquivalent(call, filter));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Rule that reduces constants inside a {@link org.apache.calcite.rel.core.Project}.
+     */
+    public static class ProjectReduceExpressionsRule extends ReduceExpressionsRule {
+        @Deprecated // to be removed before 2.0
+        public ProjectReduceExpressionsRule(Class<? extends Project> projectClass,
+                                            RelBuilderFactory relBuilderFactory) {
+            this(projectClass, true, relBuilderFactory);
+        }
+
+        private ProjectReduceExpressionsRule(Class<? extends Project> projectClass,
+                                             boolean matchNullability, RelBuilderFactory relBuilderFactory) {
+            super(projectClass, matchNullability, relBuilderFactory,
+                    "ReduceExpressionsRule(Project)");
+        }
+
+        @Override
+        public void onMatch(RelOptRuleCall call) {
+            final Project project = call.rel(0);
+            final RelMetadataQuery mq = call.getMetadataQuery();
+            final RelOptPredicateList predicates =
+                    mq.getPulledUpPredicates(project.getInput());
+            final List<RexNode> expList =
+                    Lists.newArrayList(project.getProjects());
+            if (reduceExpressions(project, expList, predicates, false,
+                    matchNullability)) {
+                call.transformTo(
+                        call.builder()
+                                .push(project.getInput())
+                                .project(expList, project.getRowType().getFieldNames())
+                                .build());
+
+                // New plan is absolutely better than old plan.
+                call.getPlanner().prune(project);
+            }
+        }
+    }
+
+    /**
+     * Rule that reduces constants inside a {@link org.apache.calcite.rel.core.Join}.
+     */
+    public static class JoinReduceExpressionsRule extends ReduceExpressionsRule {
+        @Deprecated // to be removed before 2.0
+        public JoinReduceExpressionsRule(Class<? extends Join> joinClass,
+                                         RelBuilderFactory relBuilderFactory) {
+            this(joinClass, true, relBuilderFactory);
+        }
+
+        public JoinReduceExpressionsRule(Class<? extends Join> joinClass,
+                                         boolean matchNullability, RelBuilderFactory relBuilderFactory) {
+            super(joinClass, matchNullability, relBuilderFactory,
+                    "ReduceExpressionsRule(Join)");
+        }
+
+        @Override
+        public void onMatch(RelOptRuleCall call) {
+            final Join join = call.rel(0);
+            final List<RexNode> expList = Lists.newArrayList(join.getCondition());
+            final int fieldCount = join.getLeft().getRowType().getFieldCount();
+            final RelMetadataQuery mq = call.getMetadataQuery();
+            final RelOptPredicateList leftPredicates =
+                    mq.getPulledUpPredicates(join.getLeft());
+            final RelOptPredicateList rightPredicates =
+                    mq.getPulledUpPredicates(join.getRight());
+            final RexBuilder rexBuilder = join.getCluster().getRexBuilder();
+            final RelOptPredicateList predicates =
+                    leftPredicates.union(rexBuilder,
+                            rightPredicates.shift(rexBuilder, fieldCount));
+            if (!reduceExpressions(join, expList, predicates, true,
+                    matchNullability)) {
+                return;
+            }
+            call.transformTo(
+                    join.copy(
+                            join.getTraitSet(),
+                            expList.get(0),
+                            join.getLeft(),
+                            join.getRight(),
+                            join.getJoinType(),
+                            join.isSemiJoinDone()));
+
+            // New plan is absolutely better than old plan.
+            call.getPlanner().prune(join);
+        }
+    }
+
+    /**
+     * Rule that reduces constants inside a {@link org.apache.calcite.rel.core.Calc}.
+     */
+    public static class CalcReduceExpressionsRule extends ReduceExpressionsRule {
+        @Deprecated // to be removed before 2.0
+        public CalcReduceExpressionsRule(Class<? extends Calc> calcClass,
+                                         RelBuilderFactory relBuilderFactory) {
+            this(calcClass, true, relBuilderFactory);
+        }
+
+        private CalcReduceExpressionsRule(Class<? extends Calc> calcClass,
+                                          boolean matchNullability, RelBuilderFactory relBuilderFactory) {
+            super(calcClass, matchNullability, relBuilderFactory,
+                    "ReduceExpressionsRule(Calc)");
+        }
+
+        @Override
+        public void onMatch(RelOptRuleCall call) {
+            Calc calc = call.rel(0);
+            RexProgram program = calc.getProgram();
+            final List<RexNode> exprList = program.getExprList();
+
+            // Form a list of expressions with sub-expressions fully expanded.
+            final List<RexNode> expandedExprList = new ArrayList<>();
+            final RexShuttle shuttle =
+                    new RexShuttle() {
+                        public RexNode visitLocalRef(RexLocalRef localRef) {
+                            return expandedExprList.get(localRef.getIndex());
+                        }
+                    };
+            for (RexNode expr : exprList) {
+                expandedExprList.add(expr.accept(shuttle));
+            }
+            final RelOptPredicateList predicates = RelOptPredicateList.EMPTY;
+            if (reduceExpressions(calc, expandedExprList, predicates, false,
+                    matchNullability)) {
+                final RexProgramBuilder builder =
+                        new RexProgramBuilder(
+                                calc.getInput().getRowType(),
+                                calc.getCluster().getRexBuilder());
+                final List<RexLocalRef> list = new ArrayList<>();
+                for (RexNode expr : expandedExprList) {
+                    list.add(builder.registerInput(expr));
+                }
+                if (program.getCondition() != null) {
+                    final int conditionIndex =
+                            program.getCondition().getIndex();
+                    final RexNode newConditionExp =
+                            expandedExprList.get(conditionIndex);
+                    if (newConditionExp.isAlwaysTrue()) {
+                        // condition is always TRUE - drop it
+                    } else if (newConditionExp instanceof RexLiteral
+                            || RexUtil.isNullLiteral(newConditionExp, true)) {
+                        // condition is always NULL or FALSE - replace calc
+                        // with empty
+                        call.transformTo(createEmptyRelOrEquivalent(call, calc));
+                        return;
+                    } else {
+                        builder.addCondition(list.get(conditionIndex));
+                    }
+                }
+                int k = 0;
+                for (RexLocalRef projectExpr : program.getProjectList()) {
+                    final int index = projectExpr.getIndex();
+                    builder.addProject(
+                            list.get(index).getIndex(),
+                            program.getOutputRowType().getFieldNames().get(k++));
+                }
+                call.transformTo(
+                        calc.copy(calc.getTraitSet(), calc.getInput(), builder.getProgram()));
+
+                // New plan is absolutely better than old plan.
+                call.getPlanner().prune(calc);
+            }
+        }
+
+        /**
+         * For static schema systems, a filter that is always false or null can be
+         * replaced by a values operator that produces no rows, as the schema
+         * information can just be taken from the input Rel. In dynamic schema
+         * environments, the filter might have an unknown input type, in these cases
+         * they must define a system specific alternative to a Values operator, such
+         * as inserting a limit 0 instead of a filter on top of the original input.
+         *
+         * <p>The default implementation of this method is to call
+         * {@link }, which for the static schema will be optimized
+         * to an empty
+         * {@link org.apache.calcite.rel.core.Values}.
+         *
+         * @param input rel to replace, assumes caller has already determined
+         *              equivalence to Values operation for 0 records or a
+         *              false filter.
+         * @return equivalent but less expensive replacement rel
+         */
+        protected RelNode createEmptyRelOrEquivalent(RelOptRuleCall call, Calc input) {
+            return call.builder().push(input).empty().build();
+        }
+    }
+
     //~ Inner Classes ----------------------------------------------------------
 
     /**
@@ -817,26 +817,12 @@ public abstract class ReduceExpressionsRule extends RelOptRule {
      * literals or contain redundant casts.
      */
     protected static class ReducibleExprLocator extends RexVisitorImpl<Void> {
-        /**
-         * Whether an expression is constant, and if so, whether it can be
-         * reduced to a simpler constant.
-         */
-        enum Constancy {
-            NON_CONSTANT, REDUCIBLE_CONSTANT, IRREDUCIBLE_CONSTANT
-        }
-
         private final RelDataTypeFactory typeFactory;
-
         private final List<Constancy> stack = new ArrayList<>();
-
         private final ImmutableMap<RexNode, RexNode> constants;
-
         private final List<RexNode> constExprs;
-
         private final List<Boolean> addCasts;
-
         private final List<RexNode> removableCasts;
-
         private final Deque<SqlOperator> parentCallTypeStack = new ArrayDeque<>();
 
         ReducibleExprLocator(RelDataTypeFactory typeFactory,
@@ -1077,6 +1063,14 @@ public abstract class ReduceExpressionsRule extends RelOptRule {
         @Override
         public Void visitFieldAccess(RexFieldAccess fieldAccess) {
             return pushVariable();
+        }
+
+        /**
+         * Whether an expression is constant, and if so, whether it can be
+         * reduced to a simpler constant.
+         */
+        enum Constancy {
+            NON_CONSTANT, REDUCIBLE_CONSTANT, IRREDUCIBLE_CONSTANT
         }
     }
 

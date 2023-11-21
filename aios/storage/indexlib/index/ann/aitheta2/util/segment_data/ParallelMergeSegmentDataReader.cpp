@@ -35,14 +35,17 @@ bool ParallelMergeSegmentDataReader::Init(const indexlib::file_system::Directory
         ANN_CHECK(reader->Init(subDirectory, isOnline), "open reader failed");
         _segmentDataReaders.push_back(reader);
     }
+    if (isOnline) {
+        return true;
+    }
 
     indexlib::file_system::ReaderOption bufferedOption(FSOT_BUFFERED);
     bufferedOption.mayNonExist = true;
-    if (!isOnline && directory->IsExist(PRIMARY_KEY_FILE)) {
+    if (directory->IsExist(PRIMARY_KEY_FILE)) {
         _primaryKeyReader = directory->CreateFileReader(PRIMARY_KEY_FILE, bufferedOption);
         ANN_CHECK(_primaryKeyReader, "create primary key reader failed");
     }
-    if (!isOnline && directory->IsExist(EMBEDDING_DATA_FILE)) {
+    if (directory->IsExist(EMBEDDING_DATA_FILE)) {
         _embeddingDataReader = directory->CreateFileReader(EMBEDDING_DATA_FILE, bufferedOption);
         ANN_CHECK(_embeddingDataReader, "create embedding data reader failed");
     }

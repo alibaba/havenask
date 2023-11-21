@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SUBDOCOPERATIONCREATORTEST_H
-#define __INDEXLIB_SUBDOCOPERATIONCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
@@ -45,5 +44,3 @@ INDEXLIB_UNIT_TEST_CASE(SubDocOperationCreatorTest, TestCreateNoSubDoc);
 INDEXLIB_UNIT_TEST_CASE(SubDocOperationCreatorTest, TestCreateNoMainCreator);
 INDEXLIB_UNIT_TEST_CASE(SubDocOperationCreatorTest, TestCreateMainAndSub);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SUBDOCOPERATIONCREATORTEST_H

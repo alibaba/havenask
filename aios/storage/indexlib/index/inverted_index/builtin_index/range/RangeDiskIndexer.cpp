@@ -29,7 +29,7 @@ using indexlibv2::config::RangeIndexConfig;
 
 AUTIL_LOG_SETUP(indexlib.index, RangeDiskIndexer);
 
-RangeDiskIndexer::RangeDiskIndexer(const indexlibv2::index::IndexerParameter& indexerParam)
+RangeDiskIndexer::RangeDiskIndexer(const indexlibv2::index::DiskIndexerParameter& indexerParam)
     : InvertedDiskIndexer(indexerParam)
 {
     _bottomLevelDiskIndexer = std::make_shared<InvertedDiskIndexer>(indexerParam);

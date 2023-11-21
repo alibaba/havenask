@@ -15,11 +15,16 @@
  */
 #pragma once
 
+#include <assert.h>
 #include <atomic>
 #include <deque>
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <utility>
 
 // #include "autil/CommonMacros.h"
+#include "autil/CommonMacros.h"
 #include "autil/Log.h"
 #include "autil/ThreadLocal.h"
 

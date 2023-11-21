@@ -148,7 +148,7 @@ NaviPerfResultPtr NaviPerf::endSample(pid_t pid) {
 NaviPerfThread *NaviPerf::getNaviPerfThread(pid_t pid) {
     auto it = _pidMap.find(pid);
     if (_pidMap.end() == it){
-        NAVI_KERNEL_LOG(ERROR,
+        NAVI_KERNEL_LOG(DEBUG,
                         "can't find sample thread [%d], not in init list", pid);
         return nullptr;
     }

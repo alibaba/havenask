@@ -15,14 +15,26 @@
  */
 #include "build_service_tasks/batch_control/BatchReporter.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
+#include <map>
+#include <type_traits>
 #include <unistd.h>
+#include <utility>
 
+#include "aios/network/anet/connection.h"
 #include "aios/network/anet/httppacket.h"
 #include "aios/network/anet/httpstreamer.h"
+#include "aios/network/anet/ipacketfactory.h"
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
-#include "autil/legacy/md5.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/proto/ParserConfig.h"
 
 using namespace std;
 using namespace autil;

@@ -15,22 +15,46 @@
  */
 #include "indexlib/merger/parallel_end_merge_executor.h"
 
-#include <numeric>
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <stdint.h>
+#include <string>
 
+#include "alog/Logger.h"
+#include "indexlib/config/attribute_schema.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/config/merge_io_config.h"
+#include "indexlib/config/pack_attribute_config.h"
+#include "indexlib/config/summary_schema.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/common/Constant.h"
+#include "indexlib/index/common/Types.h"
+#include "indexlib/index/data_structure/adaptive_attribute_offset_dumper.h"
+#include "indexlib/index/merger_util/truncate/bucket_map.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_merger.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_merger_factory.h"
-#include "indexlib/index/normal/deletionmap/deletion_map_merger.h"
 #include "indexlib/index/normal/framework/index_merger.h"
 #include "indexlib/index/normal/inverted_index/accessor/index_merger_factory.h"
 #include "indexlib/index/normal/summary/local_disk_summary_merger.h"
 #include "indexlib/index/normal/summary/summary_merger.h"
+#include "indexlib/index/summary/Constant.h"
+#include "indexlib/index_base/index_meta/output_segment_merge_info.h"
 #include "indexlib/index_base/index_meta/parallel_merge_item.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/merge_task_resource_manager.h"
 #include "indexlib/index_define.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/index_merge_meta.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/plugin/plugin_manager.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;
@@ -61,6 +85,8 @@ static bool CompareMergeTaskItemByTaskId(const MergeTaskItem& lft, const MergeTa
 
 void ParallelEndMergeExecutor::ParallelEndMerge(const IndexMergeMetaPtr& mergeMeta)
 {
+    auto mergeTaskResourceManager = mergeMeta->CreateMergeTaskResourceManager();
+    mergeTaskResourceManager->CleanTempWorkingDirectory();
     vector<MergeTaskItems> taskGroups = ExtractParallelMergeTaskGroup(mergeMeta);
     for (size_t i = 0; i < taskGroups.size(); i++) {
         const MergeTaskItems& taskGroup = taskGroups[i];

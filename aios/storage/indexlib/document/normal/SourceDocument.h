@@ -119,12 +119,13 @@ public:
 
 public:
     // rawDoc -> sourceDoc, don't copy; serializedSourceDoc -> sourceDoc, copy value
-    void Append(index::groupid_t groupId, const std::string& fieldName, const autil::StringView& value, bool needCopy);
-    void Append(index::groupid_t groupId, const autil::StringView& fieldName, const autil::StringView& value,
+    void Append(index::sourcegroupid_t groupId, const std::string& fieldName, const autil::StringView& value,
+                bool needCopy);
+    void Append(index::sourcegroupid_t groupId, const autil::StringView& fieldName, const autil::StringView& value,
                 bool needCopy);
 
-    void AppendNonExistField(index::groupid_t groupId, const std::string& fieldName);
-    void AppendNonExistField(index::groupid_t groupId, const autil::StringView& fieldName);
+    void AppendNonExistField(index::sourcegroupid_t groupId, const std::string& fieldName);
+    void AppendNonExistField(index::sourcegroupid_t groupId, const autil::StringView& fieldName);
 
     void AppendAccessaryField(const std::string& fieldName, const autil::StringView& value, bool needCopy);
     void AppendAccessaryField(const autil::StringView& fieldName, const autil::StringView& value, bool needCopy);
@@ -136,27 +137,29 @@ public:
     bool operator==(const SourceDocument& right) const;
     bool operator!=(const SourceDocument& right) const;
 
-    SourceGroupFieldIter CreateGroupFieldIter(index::groupid_t groupId) const;
-    SourceMetaIter CreateGroupMetaIter(index::groupid_t groupId) const;
+    SourceGroupFieldIter CreateGroupFieldIter(index::sourcegroupid_t groupId) const;
+    SourceMetaIter CreateGroupMetaIter(index::sourcegroupid_t groupId) const;
     size_t GetGroupCount() const;
 
     SourceGroupFieldIter CreateAccessaryFieldIter() const;
     SourceMetaIter CreateAccessaryMetaIter() const;
 
-    const autil::StringView& GetField(index::groupid_t groupId, const std::string& fieldName) const;
+    const autil::StringView& GetField(index::sourcegroupid_t groupId, const std::string& fieldName) const;
+    const autil::StringView& GetField(const std::string& fieldName) const;
 
     const autil::StringView& GetAccessaryField(const std::string& fieldName) const;
 
     // is field defined in group
-    bool HasField(index::groupid_t groupId, const std::string& fieldName) const;
+    bool HasField(index::sourcegroupid_t groupId, const std::string& fieldName) const;
 
     // is field defined by not exist
-    bool IsNonExistField(index::groupid_t groupId, const std::string& fieldName) const;
+    bool IsNonExistField(index::sourcegroupid_t groupId, const std::string& fieldName) const;
 
-    void ToRawDocument(indexlibv2::document::RawDocument& rawDoc) const;
+    void ToRawDocument(indexlibv2::document::RawDocument& rawDoc,
+                       const std::set<std::string>& requiredFields = {}) const;
 
     void ExtractFields(std::vector<std::string>& fieldNames, std::vector<std::string>& fieldValues,
-                       const std::set<std::string>& requiredFields = std::set<std::string>()) const;
+                       const std::set<std::string>& requiredFields = {}) const;
 
     autil::StringView EncodeNonExistFieldInfo(autil::mem_pool::PoolBase* pool);
     Status DecodeNonExistFieldInfo(const autil::StringView& str);

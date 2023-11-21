@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CUCKOO_HASH_TABLE_TRAITS_H
-#define __INDEXLIB_CUCKOO_HASH_TABLE_TRAITS_H
+#pragma once
 
 #include "indexlib/common/hash_table/closed_hash_table_buffered_file_iterator.h"
 #include "indexlib/common/hash_table/closed_hash_table_file_iterator.h"
@@ -48,5 +47,3 @@ struct CuckooHashTableTraits {
                                                                      HasSpecialKey, useCompactBucket>;
 };
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CUCKOO_HASH_TABLE_TRAITS_H

@@ -28,7 +28,7 @@ class Version;
 }
 namespace indexlibv2::index {
 class IIndexer;
-struct IndexerParameter;
+struct DiskIndexerParameter;
 } // namespace indexlibv2::index
 namespace indexlib::index {
 

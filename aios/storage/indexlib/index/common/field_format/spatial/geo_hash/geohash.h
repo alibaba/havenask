@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License
 
@@ -21,9 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-
-#ifndef _LIB_GEOHASH_H_
-#define _LIB_GEOHASH_H_
 
 #include <stdbool.h>
 
@@ -66,6 +64,4 @@ void GEOHASH_free_area(GEOHASH_area* area);
 
 #if defined(__cplusplus)
 }
-#endif
-
 #endif

@@ -1,11 +1,9 @@
-#ifndef __INDEXLIB_DATEINDEXCONFIGTEST_H
-#define __INDEXLIB_DATEINDEXCONFIGTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/date_index_config.h"
 #include "indexlib/config/index_partition_schema.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -28,11 +26,9 @@ private:
 
 private:
     IndexPartitionSchemaPtr mSchema;
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(DateIndexConfigTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(DateIndexConfigTest, TestConfigError);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_DATEINDEXCONFIGTEST_H

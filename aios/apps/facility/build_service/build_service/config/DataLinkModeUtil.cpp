@@ -15,9 +15,16 @@
  */
 #include "build_service/config/DataLinkModeUtil.h"
 
-#include "autil/legacy/jsonizable.h"
+#include <iosfwd>
+#include <map>
+#include <utility>
+
+#include "autil/Log.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/SwiftTopicConfig.h"
+
 using namespace std;
 
 namespace build_service { namespace config {
@@ -38,10 +45,8 @@ bool DataLinkModeUtil::generateBuilderInputsForNPCMode(const std::vector<proto::
     dsStrVec.reserve(dsVec.size());
     auto fullDs = dsVec[0];
     fullDs["stopTimestamp"] = fullDs["swift_stop_timestamp"];
-    fullDs[config::DATA_LINK_MODE] = ControlConfig::dataLinkModeToStr(ControlConfig::DataLinkMode::NPC_MODE);
     dsStrVec.push_back(autil::legacy::ToJsonString(fullDs, true));
     auto incDs = dsVec[1];
-    incDs[config::DATA_LINK_MODE] = ControlConfig::dataLinkModeToStr(ControlConfig::DataLinkMode::NPC_MODE);
     dsStrVec.push_back(autil::legacy::ToJsonString(incDs, true));
     dsStringInJson = autil::legacy::ToJsonString(dsStrVec, true);
     return true;
@@ -79,7 +84,9 @@ bool DataLinkModeUtil::addGraphParameters(const ControlConfig& controlConfig, co
     return true;
 }
 
-std::string DataLinkModeUtil::generateRealTimeInfoForNormalMode(const BuildServiceConfig& buildServiceConfig)
+autil::legacy::json::JsonMap
+DataLinkModeUtil::generateRealTimeInfoForNormalMode(const BuildServiceConfig& buildServiceConfig,
+                                                    const proto::BuildId& buildId)
 {
     autil::legacy::json::JsonMap jsonMap;
     const string& applicationId = buildServiceConfig.getApplicationId();
@@ -88,11 +95,14 @@ std::string DataLinkModeUtil::generateRealTimeInfoForNormalMode(const BuildServi
     jsonMap[PROCESSED_DOC_SWIFT_TOPIC_PREFIX] = applicationId;
     jsonMap[REALTIME_MODE] = REALTIME_SERVICE_MODE;
     jsonMap[BS_SERVER_ADDRESS] = buildServiceConfig.zkRoot;
-    return autil::legacy::ToJsonString(jsonMap);
+    jsonMap[APP_NAME] = buildId.appname();
+    jsonMap[DATA_TABLE_NAME] = buildId.datatable();
+    return jsonMap;
 }
 
-std::string DataLinkModeUtil::generateRealTimeInfoForNPCMode(const std::string& clusterName,
-                                                             const proto::DataDescription& realtimeDataDesc)
+autil::legacy::json::JsonMap DataLinkModeUtil::generateRealTimeInfoForNPCMode(
+    const std::string& clusterName, const proto::DataDescription& realtimeDataDesc,
+    const BuildServiceConfig& buildServiceConfig, const proto::BuildId& buildId)
 {
     autil::legacy::json::JsonMap jsonMap;
     jsonMap[REALTIME_MODE] = REALTIME_SERVICE_NPC_MODE;
@@ -103,34 +113,37 @@ std::string DataLinkModeUtil::generateRealTimeInfoForNPCMode(const std::string& 
     auto iter = realtimeDataDesc.find(config::SWIFT_TOPIC_NAME);
     if (iter == realtimeDataDesc.end()) {
         AUTIL_LOG(ERROR, "npc mode need %s", config::SWIFT_TOPIC_NAME.c_str());
-        return "";
+        return {};
     }
-    return autil::legacy::ToJsonString(jsonMap);
+    jsonMap[BS_SERVER_ADDRESS] = buildServiceConfig.zkRoot;
+    jsonMap[APP_NAME] = buildId.appname();
+    jsonMap[DATA_TABLE_NAME] = buildId.datatable();
+    return jsonMap;
 }
 
 std::string DataLinkModeUtil::generateNPCResourceName(const std::string& topicName)
 {
     return "npc_mode_raw_topic_" + topicName;
 }
-std::string DataLinkModeUtil::generateRealTimeInfoForFPINPMode(const ControlConfig& controlConfig,
-                                                               const BuildServiceConfig& buildServiceConfig,
-                                                               const std::string& clusterName,
-                                                               const proto::DataDescription& realtimeDataDesc)
+
+autil::legacy::json::JsonMap DataLinkModeUtil::generateRealTimeInfoForFPINPMode(
+    const ControlConfig& controlConfig, const BuildServiceConfig& buildServiceConfig, const std::string& clusterName,
+    const proto::DataDescription& realtimeDataDesc, const proto::BuildId& buildId)
 {
     if (controlConfig.isIncProcessorExist(clusterName)) {
-        return generateRealTimeInfoForNormalMode(buildServiceConfig);
+        return generateRealTimeInfoForNormalMode(buildServiceConfig, buildId);
     }
     auto it = realtimeDataDesc.find(READ_SRC_TYPE);
     if (it == realtimeDataDesc.end()) {
         BS_LOG(ERROR, "no %s soure type in realtimeDataDescription, cannot serialize realtimeInfo",
                READ_SRC_TYPE.c_str());
-        return "";
+        return {};
     }
     it = realtimeDataDesc.find(SWIFT_STOP_TIMESTAMP);
     if (it != realtimeDataDesc.end()) {
         BS_LOG(ERROR, "invalid key[%s] in swift type realtimeDataDescription, cannot serialize realtimeInfo",
                SWIFT_STOP_TIMESTAMP.c_str());
-        return "";
+        return {};
     }
     autil::legacy::json::JsonMap jsonMap;
     jsonMap[REALTIME_MODE] = REALTIME_SERVICE_RAWDOC_RT_BUILD_MODE;
@@ -138,24 +151,48 @@ std::string DataLinkModeUtil::generateRealTimeInfoForFPINPMode(const ControlConf
         jsonMap[it->first] = it->second;
     }
     jsonMap[DATA_DESCRIPTION_KEY] = autil::legacy::ToJsonString(realtimeDataDesc);
-    return autil::legacy::ToJsonString(jsonMap);
+    jsonMap[BS_SERVER_ADDRESS] = buildServiceConfig.zkRoot;
+    jsonMap[APP_NAME] = buildId.appname();
+    jsonMap[DATA_TABLE_NAME] = buildId.datatable();
+    return jsonMap;
 }
 
-std::string DataLinkModeUtil::generateRealtimeInfoContent(const ControlConfig& controlConfig,
-                                                          const BuildServiceConfig& buildServiceConfig,
-                                                          const std::string& clusterName,
-                                                          const proto::DataDescription& realtimeDataDesc)
+autil::legacy::json::JsonMap DataLinkModeUtil::generateRealtimeInfoContent(
+    const ControlConfig& controlConfig, const BuildServiceConfig& buildServiceConfig, const std::string& clusterName,
+    const proto::DataDescription& realtimeDataDesc, const proto::BuildId& buildId)
 {
     auto dataLinkMode = controlConfig.getDataLinkMode();
     switch (dataLinkMode) {
     case ControlConfig::DataLinkMode::NORMAL_MODE:
-        return generateRealTimeInfoForNormalMode(buildServiceConfig);
+        return generateRealTimeInfoForNormalMode(buildServiceConfig, buildId);
     case ControlConfig::DataLinkMode::NPC_MODE:
-        return generateRealTimeInfoForNPCMode(clusterName, realtimeDataDesc);
+        return generateRealTimeInfoForNPCMode(clusterName, realtimeDataDesc, buildServiceConfig, buildId);
     case ControlConfig::DataLinkMode::FP_INP_MODE:
-        return generateRealTimeInfoForFPINPMode(controlConfig, buildServiceConfig, clusterName, realtimeDataDesc);
+        return generateRealTimeInfoForFPINPMode(controlConfig, buildServiceConfig, clusterName, realtimeDataDesc,
+                                                buildId);
     }
-    return "";
+    return {};
+}
+
+bool DataLinkModeUtil::addDataLinkModeParamToBuilderTarget(const ControlConfig& controlConfig,
+                                                           const std::string& clusterName,
+                                                           proto::DataDescription* dataDesc)
+{
+    auto& ds = *dataDesc;
+    auto dataLinkMode = controlConfig.getTransferedDataLinkMode(clusterName);
+    ds[config::DATA_LINK_MODE] = ControlConfig::dataLinkModeToStr(dataLinkMode);
+
+    if (dataLinkMode == ControlConfig::DataLinkMode::NPC_MODE) {
+        ds[config::SRC_SIGNATURE] = autil::StringUtil::toString(SwiftTopicConfig::INC_TOPIC_SRC_SIGNATURE);
+        auto topicIter = ds.find(config::SWIFT_TOPIC_NAME);
+        if (topicIter != ds.end()) {
+            ds["name"] = DataLinkModeUtil::generateNPCResourceName(topicIter->second);
+        } else {
+            AUTIL_LOG(ERROR, "npc mode need %s", config::SWIFT_TOPIC_NAME.c_str());
+            return false;
+        }
+    }
+    return true;
 }
 
 bool DataLinkModeUtil::isDataLinkNPCMode(const KeyValueMap& kvMap)

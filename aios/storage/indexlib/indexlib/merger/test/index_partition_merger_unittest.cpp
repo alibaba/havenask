@@ -234,7 +234,7 @@ public:
     {
         IndexPartitionOptions simpleOptions = mOptions;
         simpleOptions.GetMergeConfig().mergeThreadCount = 1;
-        Version lastVersion(INVALID_VERSION);
+        Version lastVersion(INVALID_VERSIONID);
         SegmentDirectoryPtr segDir(new SegmentDirectory(GET_PARTITION_DIRECTORY(), lastVersion));
         segDir->Init(false, true);
 
@@ -309,7 +309,7 @@ public:
         FslibWrapper::MkDirE(mRootDir + "/instance_2");
         FslibWrapper::AtomicStoreE(mRootDir + "/instance_2/data", "");
         SegmentDirectoryPtr segDir(
-            new SegmentDirectory(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION)));
+            new SegmentDirectory(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID)));
         segDir->Init(false, true);
         IndexPartitionMergerMock merger(segDir, mSchema, mOptions);
         merger.CreateMergeFileSystem(instanceId, mergeMeta);
@@ -343,7 +343,7 @@ public:
         prepareOneInstanceDir(GET_PARTITION_DIRECTORY(), 3);
 
         SegmentDirectoryPtr segDir(
-            new SegmentDirectory(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION)));
+            new SegmentDirectory(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID)));
         IndexPartitionOptions options;
         IndexPartitionMerger merger(segDir, mSchema, options, merger::DumpStrategyPtr(), NULL,
                                     plugin::PluginManagerPtr(), CommonBranchHinterOption::Test());
@@ -858,7 +858,7 @@ public:
         string docStrings = "cmd=add,pk=1,status=0,time=" + StringUtil::toString(currentTime - 1) + ";"; // hot
         ASSERT_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, docStrings, "", ""));
         Version version;
-        VersionLoader::GetVersionS(rootPath, version, INVALID_VERSION);
+        VersionLoader::GetVersionS(rootPath, version, INVALID_VERSIONID);
         ASSERT_EQ(version.GetSegmentCount(), version.GetSegTemperatureMetas().size());
         SegmentTemperatureMeta meta;
         ASSERT_TRUE(version.GetSegmentTemperatureMeta(0, meta));
@@ -867,7 +867,7 @@ public:
 
         string incDoc = "cmd=update_field,pk=1,status=1,time=" + StringUtil::toString(currentTime - 2000) + ";";
         ASSERT_TRUE(psm.Transfer(BUILD_INC, incDoc, "", ""));
-        VersionLoader::GetVersionS(rootPath, version, INVALID_VERSION);
+        VersionLoader::GetVersionS(rootPath, version, INVALID_VERSIONID);
         ASSERT_EQ(version.GetSegmentCount(), version.GetSegTemperatureMetas().size());
         ASSERT_TRUE(version.GetSegmentTemperatureMeta(2, meta));
         ASSERT_EQ("WARM", meta.segTemperature);

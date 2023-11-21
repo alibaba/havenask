@@ -54,7 +54,7 @@ bool SourceSegmentReader::Open(const index_base::SegmentData& segData, const ind
             param.dataCompressorName = "uncertain";
         }
         VarLenDataReaderPtr groupReader(new VarLenDataReader(param, /*isOnline*/ true));
-        groupid_t groupId = (*iter)->GetGroupId();
+        sourcegroupid_t groupId = (*iter)->GetGroupId();
         file_system::DirectoryPtr groupDir = sourceDir->GetDirectory(SourceDefine::GetDataDir(groupId), true);
         groupReader->Init(segmentInfo.docCount, groupDir, SOURCE_OFFSET_FILE_NAME, SOURCE_DATA_FILE_NAME);
         mGroupReaders.push_back(groupReader);
@@ -72,17 +72,17 @@ bool SourceSegmentReader::GetDocument(docid_t localDocId, document::SourceDocume
     assert(sourceDocument);
     autil::mem_pool::PoolBase* pool = sourceDocument->GetPool();
     document::SerializedSourceDocumentPtr serDoc(new document::SerializedSourceDocument);
-    for (auto& groupReader : mGroupReaders) {
+    for (sourcegroupid_t groupId = 0; groupId < mGroupReaders.size(); ++groupId) {
+        auto& groupReader = mGroupReaders[groupId];
         StringView groupData = StringView::empty_instance();
         if (!groupReader) {
-            serDoc->AddGroupValue(groupData);
+            serDoc->SetGroupValue(groupId, groupData);
             continue;
         }
-
         if (!groupReader->GetValue(localDocId, groupData, pool)) {
             return false;
         }
-        serDoc->AddGroupValue(groupData);
+        serDoc->SetGroupValue(groupId, groupData);
     }
 
     StringView meta = StringView::empty_instance();

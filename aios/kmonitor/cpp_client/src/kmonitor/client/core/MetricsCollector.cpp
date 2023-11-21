@@ -27,12 +27,9 @@ MetricsRecord *MetricsCollector::AddRecord(const string &name, const MetricsTags
     return record;
 }
 
-void MetricsCollector::Clear() {
-    for (size_t i = 0; i < records_.size(); ++i) {
-        delete records_[i];
-    }
-    records_.clear();
-}
+void MetricsCollector::Clear() { records_.clear(); }
+
+MetricsRecords MetricsCollector::StealRecords() { return std::move(records_); }
 
 const MetricsRecords &MetricsCollector::GetRecords() const { return records_; }
 

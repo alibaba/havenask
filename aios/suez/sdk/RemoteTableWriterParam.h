@@ -47,14 +47,12 @@ typedef std::pair<uint16_t, std::string> WriteDoc;
 typedef std::map<multi_call::PartIdTy, std::vector<WriteDoc>> PartDocMap;
 
 struct RemoteTableWriterParam {
-    RemoteTableWriterParam() { tagInfo.type = multi_call::TMT_REQUIRE; }
     std::string bizName;
     std::string sourceId;
     std::string tableName;
     std::string format;
     std::vector<WriteDoc> docs;
     int64_t timeoutUs;
-    multi_call::TagMatchInfo tagInfo;
 };
 
 } // namespace suez

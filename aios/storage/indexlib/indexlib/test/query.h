@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_QUERY_H
-#define __INDEXLIB_QUERY_H
+#pragma once
 
 #include <memory>
 
@@ -41,5 +40,3 @@ private:
 
 DEFINE_SHARED_PTR(Query);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_QUERY_H

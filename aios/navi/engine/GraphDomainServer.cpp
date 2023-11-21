@@ -34,11 +34,15 @@ ErrorCode GraphDomainServer::doPreInit() {
     _logger.addPrefix("onBiz: %s part: %d",
                       _graph->getLocalBizName().c_str(),
                       _graph->getLocalPartId());
+    if (!_streamState.init()) {
+        NAVI_LOG(ERROR, "init domain part state failed");
+        return EC_ABORT;
+    }
+    _streamState.setInited(0);
     return EC_NONE;
 }
 
 bool GraphDomainServer::run() {
-    _streamState.setInited(0);
     return true;
 }
 
@@ -52,14 +56,15 @@ bool GraphDomainServer::doSend(NaviPartId gigPartId, NaviMessage &naviMessage) {
     auto localPartId = _graph->getLocalPartId();
     if (eof) {
         NAVI_LOG(SCHEDULE1, "send eof from localPartId [%d]", localPartId);
-        _streamState.setSendEof(gigPartId);
         fillFiniMessage(naviMessage);
     } else if (_streamState.sendEof(gigPartId)) {
         NAVI_LOG(SCHEDULE1, "part [%d] already finished, msg [%s]", gigPartId,
                  naviMessage.DebugString().c_str());
         return false;
     }
-    fillTrace(naviMessage);
+    if (!eof) {
+        fillTrace(naviMessage);
+    }
     NAVI_LOG(SCHEDULE2, "message data send [%08x] partId: %d, msg len: %d, eof: %d",
              naviMessage.msg_id(), localPartId,
              naviMessage.ByteSize(), eof);
@@ -78,6 +83,9 @@ bool GraphDomainServer::doSend(NaviPartId gigPartId, NaviMessage &naviMessage) {
                      gigPartId, naviMessage.DebugString().c_str());
             return false;
         }
+    }
+    if (eof) {
+        _streamState.setSendEof(gigPartId);
     }
     if (eof) {
         notifyFinish(EC_NONE, true);
@@ -132,41 +140,16 @@ bool GraphDomainServer::receive(const multi_call::GigStreamMessage &message) {
 }
 
 void GraphDomainServer::fillTrace(NaviMessage &naviMessage) {
-    TraceCollector collector;
-    _logger.logger->collectTrace(collector);
-    if (!collector.empty()) {
-        NAVI_LOG(SCHEDULE2, "fill part trace [%lu]", collector.eventSize());
-        autil::DataBuffer dataBuffer(4 * 1024);
-        collector.serialize(dataBuffer);
-        assert(naviMessage.navi_trace().empty() && "trace field not empty");
-        naviMessage.set_navi_trace(dataBuffer.getData(), dataBuffer.getDataLen());
-    }
+    NAVI_LOG(SCHEDULE1, "start fill trace message [%08x]", naviMessage.msg_id());
+    _graphResult->toProto(true, naviMessage);
+    NAVI_LOG(SCHEDULE1, "end fill trace message [%08x]", naviMessage.msg_id());
 }
 
 void GraphDomainServer::fillFiniMessage(NaviMessage &naviMessage) {
     NAVI_LOG(SCHEDULE1, "start fill finish message [%08x]", naviMessage.msg_id());
-    auto worker = _param->worker;
-    worker->fillResult();
-    auto userResult = worker->getUserResult();
-    assert(userResult);
-    auto naviResult = userResult->getNaviResult();
-    assert(naviResult);
-    NAVI_LOG(SCHEDULE2, "fill part trace from navi result [%lu]", naviResult->traceCollector.eventSize());
-    autil::DataBuffer dataBuffer(autil::DataBuffer::DEFAUTL_DATA_BUFFER_SIZE);
-    if (_param->runParams.collectMetric() || _param->runParams.collectPerf()) {
-        std::shared_ptr<navi::GraphVisDef> visProto = naviResult->getGraphVisData();
-        const std::string &visStr = visProto->SerializeAsString();
-        multi_call::FileRecorder::newRecord(
-                visStr, 5,
-                "timeline",
-                "searcher_graph_vis_" + autil::StringUtil::toString(getpid()));
-    }
-    try {
-        naviResult->serialize(dataBuffer);
-        std::string data(dataBuffer.getData(), dataBuffer.getDataLen());
-        naviMessage.set_navi_result(data);
-    } catch (const autil::legacy::ExceptionBase &e) {
-    }
+    _graph->collectMetric();
+    _graphResult->setFinish();
+    _graphResult->toProto(false, naviMessage);
     NAVI_LOG(SCHEDULE1, "end fill finish message [%08x]", naviMessage.msg_id());
 }
 
@@ -179,9 +162,11 @@ void GraphDomainServer::tryCancel(const multi_call::GigStreamBasePtr &stream) {
     auto inited = _streamState.streamInited();
     if (inited) {
         if (_streamState.cancelled(partId)) {
+            NAVI_LOG(SCHEDULE3, "cancel ignore, already cancelled");
             return;
         }
         if (_streamState.sendEof(partId)) {
+            NAVI_LOG(SCHEDULE3, "cancel ignore, already send eof");
             return;
         }
         _streamState.lock(partId);

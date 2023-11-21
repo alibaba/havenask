@@ -15,14 +15,21 @@
  */
 #include "build_service/util/RangeUtil.h"
 
-#include <math.h>
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <iterator>
+#include <memory>
 #include <string>
 
+#include "alog/Logger.h"
 #include "autil/KsHashFunction.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "fslib/util/FileUtil.h"
 #include "swift/common/RangeUtil.h"
 #include "swift/network/SwiftAdminAdapter.h"
+#include "swift/protocol/ErrCode.pb.h"
 
 using namespace std;
 

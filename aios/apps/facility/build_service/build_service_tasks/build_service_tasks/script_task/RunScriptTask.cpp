@@ -15,9 +15,24 @@
  */
 #include "build_service_tasks/script_task/RunScriptTask.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <map>
 #include <unistd.h>
+#include <utility>
+#include <vector>
 
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;

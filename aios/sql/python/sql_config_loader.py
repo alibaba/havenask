@@ -9,58 +9,75 @@ import copy
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
+QRS_BIZ_NAME_PREFIX_KEY = "QrsBizNamePrefix"
+
+
 def load(config_path, load_param):
     param_map = json.loads(load_param)
     fill_local_config_path(param_map)
     # logging.info("param_map: " + json.dumps(param_map, indent = 4))
     biz_metas = param_map["biz_metas"]
     service_info = param_map["service_info"]
+    zone_name = service_info["zone_name"]
     custom_app_info = param_map["custom_app_info"]
     module_list = []
+    on_qrs = ((sql_envs.get_role_type() == "qrs") or sql_envs.get_enable_local_access())
     for biz_name, conf in biz_metas.items():
-        config_path = conf["config_path"];
-        module_list += get_module_array(config_path)
+        config_path = conf["config_path"]
+        biz_type = get_biz_type(conf)
+        if "model_biz" == biz_type:
+            continue
+        load_zone_name = zone_name
+        if on_qrs:
+            load_zone_name = ""
+        module_list += get_module_array(config_path, load_zone_name)
     biz_config, biz_flow_config_map, gig_biz_sub_configs = get_biz_config(biz_metas, param_map)
     config = {
-        "version" : 0,
-        "log_config" : get_log_config(),
-        "engine_config" : get_engine_config(),
-        "modules" : module_list,
-        "biz_config" : biz_config,
-        "resource_config" : [
+        "version": 0,
+        "log_config": get_log_config(),
+        "engine_config": get_engine_config(),
+        "modules": module_list,
+        "biz_config": biz_config,
+        "resource_config": [
         ],
-        "resource_list" : [
+        "resource_list": [
             "suez_navi.health_check_rpc_r",
             "sql.sql_rpc.r",
         ],
-        "sleep_before_update_us" : 0 * 1000 * 1000,
+        "sleep_before_update_us": 0 * 1000 * 1000,
     }
     gig_config = {
-        "name" : "navi.buildin.gig_client",
-        "config" : get_gig_config(service_info, gig_biz_sub_configs, biz_flow_config_map),
+        "name": "navi.buildin.gig_client",
+        "config": get_gig_config(service_info, gig_biz_sub_configs, biz_flow_config_map),
     }
     config["resource_config"].append(gig_config)
+    default_biz = ""
+    for biz_name, conf in biz_config.items():
+        if ".default_sql" in biz_name:
+            default_biz = biz_name
     health_check_part_info_map = {}
     for biz_name, conf in biz_config.items():
         health_check_part_info_map[biz_name] = {
-            "part_count" : conf["part_count"],
-            "part_ids" : conf["part_ids"]
+            "part_count": conf["part_count"],
+            "part_ids": conf["part_ids"]
         }
     health_check_config = {
-        "name" : "suez_navi.health_check_rpc_r",
-        "config" : {
-            "kernel_name" : "suez_navi.health_check_k",
-            "cm2_http_alias" : [
+        "name": "suez_navi.health_check_rpc_r",
+        "config": {
+            "kernel_name": "suez_navi.health_check_k",
+            "cm2_http_alias": [
                 "/SearchService/cm2_status",
                 "/SearchService/vip_status",
                 "/status_check",
                 "/QrsService/cm2_status",
             ],
-            "biz_part_info_map" : health_check_part_info_map
+            "biz_part_info_map": health_check_part_info_map
         }
     }
+    config["default_biz"] = default_biz
     config["resource_config"].append(health_check_config)
     return config
+
 
 def fill_local_config_path(param_map):
     biz_metas = param_map["biz_metas"]
@@ -69,28 +86,62 @@ def fill_local_config_path(param_map):
         remote_config_path = conf["config_path"]
         conf["config_path"] = biz_local_config_paths.get(biz_name, remote_config_path)
 
+
 def get_log_config():
     return {
-        "file_appenders" : [
+        "file_appenders": [
             {
-                "file_name" : "logs/navi.log",
-                "log_level" : "info",
-                "bt_filters" : [
+                "file_name": "logs/navi.log",
+                "log_level": "info",
+                "bt_filters": [
                 ]
             }
         ]
     }
 
+
 def get_engine_config():
+    navi_thread_num = int(os.environ.get('naviThreadNum', 0))
+    navi_processing_size = int(os.environ.get('naviProcessingSize', 300))
+    navi_queue_size = int(os.environ.get('naviQueueSize', 1000))
+
+    navi_extra_task_queue = {}
+    extra_task_queue = os.environ.get('naviExtraTaskQueue', '')
+    for task_queue in extra_task_queue.split(';'):
+        if task_queue == '':
+            continue
+        queue_list = task_queue.split('|')
+        if len(queue_list) != 4:
+            raise Exception("task_queue size must be 4, actual [{}]".format(queue_list))
+        queue_config = {
+            "thread_num": int(queue_list[1]),
+            "queue_size": int(queue_list[2]),
+            "processing_size": int(queue_list[3]),
+        }
+        navi_extra_task_queue[queue_list[0]] = queue_config
     return {
-        "thread_num" : 0,
-        "queue_size" : 1000,
+        "builtin_task_queue": {
+            "thread_num": navi_thread_num,
+            "queue_size": navi_queue_size,
+            "processing_size": navi_processing_size,
+        },
+        "extra_task_queue": navi_extra_task_queue,
     }
 
-def get_module_array(config_path):
+
+def get_module_array(config_path, load_zone_name):
     agg = sql_utils.get_agg_plugins(config_path)
     tvf = sql_utils.get_tvf_plugins(config_path)
-    return list(set(agg + tvf))
+    func = sql_utils.get_function_plugins(config_path, load_zone_name)
+    return list(set(agg + tvf + func))
+
+
+def get_biz_type(conf):
+    if "custom_biz_info" in conf:
+        if "biz_type" in conf["custom_biz_info"]:
+            return conf["custom_biz_info"]["biz_type"]
+    return ""
+
 
 def get_biz_config(biz_metas, param_map):
     table_part_info = param_map["table_part_info"]
@@ -111,21 +162,20 @@ def get_biz_config(biz_metas, param_map):
         navi_biz_conf = {}
         biz_gig_config = {}
         biz_flow_config_map = {}
-        if os.path.exists(os.path.join(config_path, "navi.py")):
-            navi_biz_conf, biz_gig_config, biz_flow_config_map = entry_loader.load(config_path, biz_param_map)
-        else:
-            default_script = os.path.join(biz_param_map["install_root"], "sql_default.py")
-            navi_biz_conf, biz_gig_config, biz_flow_config_map = entry_loader.load(config_path, biz_param_map, default_script)
+        default_script = os.path.join(biz_param_map["install_root"], "sql_default.py")
+        navi_biz_conf, biz_gig_config, biz_flow_config_map = entry_loader.load(
+            config_path, biz_param_map, default_script)
         navi_biz_conf["config_path"] = config_path
         navi_biz_conf["part_count"] = max_part_count
         navi_biz_conf["part_ids"] = max_part_ids
         biz_config_map[biz_name] = navi_biz_conf
         if biz_flow_config_map.keys() & flow_config_map.keys():
             raise Exception("flow control config key conflict, biz map: [%s], all [%s]" %
-                            (json.dumps(biz_flow_config_map, indent = 4), json.dumps(flow_config_map, indent = 4)))
+                            (json.dumps(biz_flow_config_map, indent=4), json.dumps(flow_config_map, indent=4)))
         flow_config_map.update(biz_flow_config_map)
         biz_gig_config_list.append(biz_gig_config)
     return biz_config_map, flow_config_map, biz_gig_config_list
+
 
 def get_table_max_part_count(is_qrs, config_path, zone_name, table_part_info):
     if is_qrs:
@@ -151,14 +201,20 @@ def get_table_max_part_count(is_qrs, config_path, zone_name, table_part_info):
 
     if max_table_name is None:
         return 1, [0]
-    max_part_ids =  table_part_info[max_table_name]["part_ids"]
+    max_part_ids = table_part_info[max_table_name]["part_ids"]
     return max_part_count, max_part_ids
+
 
 def get_real_biz_name(zone_name, is_qrs):
     if is_qrs:
-        return "qrs.default_sql"
+        prefix = os.environ.get(QRS_BIZ_NAME_PREFIX_KEY)
+        if prefix:
+            return f"{prefix}.qrs.default_sql"
+        else:
+            return "qrs.default_sql"
     else:
-        return zone_name + ".default_sql"
+        return f"{zone_name}.default_sql"
+
 
 def get_cm2_config_array(service_info):
     cm2_config = []
@@ -172,16 +228,18 @@ def get_cm2_config_array(service_info):
                 cm2_config.append(service_info["cm2_config"])
     return cm2_config
 
+
 def add_cm2_config(cm2_config_map, zk_host, zk_path, clusters):
     serverKey = zk_host + zk_path
-    if not serverKey in cm2_config_map:
+    if serverKey not in cm2_config_map:
         cm2_config_map[serverKey] = {}
     cm2_config_map[serverKey]["zk_host"] = zk_host
     cm2_config_map[serverKey]["zk_path"] = zk_path
-    if not "cm2_part" in cm2_config_map[serverKey]:
+    if "cm2_part" not in cm2_config_map[serverKey]:
         cm2_config_map[serverKey]["cm2_part"] = clusters
     else:
         cm2_config_map[serverKey]["cm2_part"] += clusters
+
 
 def get_gig_config(service_info, gig_biz_sub_configs, biz_flow_config_map):
     cm2_config_array = get_cm2_config_array(service_info)
@@ -196,7 +254,7 @@ def get_gig_config(service_info, gig_biz_sub_configs, biz_flow_config_map):
             cm2_config_array += biz_gig_config["istio_configs"]
         if "local" in biz_gig_config:
             cm2_config_array.append({
-                "local" : biz_gig_config["local"]
+                "local": biz_gig_config["local"]
             })
     cm2_config_map = {}
     istios_subs = []
@@ -227,20 +285,20 @@ def get_gig_config(service_info, gig_biz_sub_configs, biz_flow_config_map):
         sub_config["istio_configs"] = istios_subs
     # sub_config["allow_empty_sub"] = False
     return {
-        "init_config" : {
-            "subscribe_config" : sub_config,
-            "misc_config" : {
+        "init_config": {
+            "subscribe_config": sub_config,
+            "misc_config": {
             },
-            "connection_config" : {
-                "grpc_stream" : {
-                    "thread_num" : 20,
+            "connection_config": {
+                "grpc_stream": {
+                    "thread_num": 20,
                     "queue_size": 1000,
                 },
-                "arpc" : {
-                    "thread_num" : 20,
+                "arpc": {
+                    "thread_num": 20,
                     "queue_size": 1000,
                 }
             }
         },
-        "flow_config" : biz_flow_config_map
+        "flow_config": biz_flow_config_map
     }

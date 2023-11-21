@@ -15,10 +15,19 @@
  */
 #include "build_service/common/SwiftLinkFreshnessReporter.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/KmonitorUtil.h"
-#include "build_service/util/RangeUtil.h"
+#include "kmonitor/client/MetricType.h"
 #include "swift/protocol/SwiftMessage.pb.h"
 
 using namespace std;

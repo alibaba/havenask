@@ -15,23 +15,22 @@
  */
 #pragma once
 #include <memory>
+#include <stddef.h>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "autil/Log.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/config/ITabletSchema.h"
-
-namespace indexlib::config {
-class IndexPartitionSchema;
-} // namespace indexlib::config
+#include "indexlib/util/JsonMap.h"
 
 namespace indexlibv2::config {
-class IIndexConfig;
 class UnresolvedSchema;
-class FieldConfig;
 
 // REFERENCE: TabletSchema.txt
 class TabletSchema : public ITabletSchema
@@ -41,6 +40,8 @@ public:
                                  std::shared_ptr<indexlib::config::IndexPartitionSchema>& legacySchema);
     static bool IsLegacySchema(const autil::legacy::json::JsonMap& jsonMap);
     static std::string GetSchemaFileName(schemaid_t schemaId);
+    static Status CheckUpdateSchema(const std::shared_ptr<ITabletSchema>& oldSchema,
+                                    const std::shared_ptr<ITabletSchema>& newSchema);
     // use framework::TabletSchemaLoader load new shcema
 public:
     TabletSchema();

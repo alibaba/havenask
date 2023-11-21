@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEMO_INDEXER_USERDATA_H
-#define __INDEXLIB_DEMO_INDEXER_USERDATA_H
+#pragma once
 
 #include <memory>
 
@@ -36,5 +35,3 @@ private:
 
 DEFINE_SHARED_PTR(DemoUserData);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DEMO_INDEXER_H

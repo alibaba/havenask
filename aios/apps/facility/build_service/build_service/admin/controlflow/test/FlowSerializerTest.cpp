@@ -1,10 +1,25 @@
 #include "build_service/admin/controlflow/FlowSerializer.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/controlflow/TaskContainer.h"
 #include "build_service/admin/controlflow/TaskFactory.h"
 #include "build_service/admin/controlflow/TaskFlow.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/common_define.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil::legacy;

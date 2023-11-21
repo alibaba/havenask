@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIMARY_KEY_INDEX_DUMPER_H
-#define __INDEXLIB_PRIMARY_KEY_INDEX_DUMPER_H
+#pragma once
 
 #include <memory>
 
@@ -80,5 +79,4 @@ inline void PrimaryKeyIndexDumper<Key>::DumpHashMap(const HashMapTypedPtr& hashM
     PrimaryKeyFormatterPtr pkFormatter = PrimaryKeyFormatterCreator<Key>::CreatePKFormatterByIndexType(mPkIndexConfig);
     pkFormatter->SerializeToFile(hashMap, docCount, mPool, file);
 }
-}}     // namespace indexlib::index
-#endif //__INDEXLIB_PRIMARY_KEY_INDEX_DUMPER_H
+}} // namespace indexlib::index

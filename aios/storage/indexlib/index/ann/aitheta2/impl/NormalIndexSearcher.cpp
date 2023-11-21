@@ -16,7 +16,6 @@
 #include "indexlib/index/ann/aitheta2/impl/NormalIndexSearcher.h"
 
 #include "indexlib/index/ann/aitheta2/util/AithetaFactoryWrapper.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingDataExtractor.h"
 #include "indexlib/index/ann/aitheta2/util/params_initializer/ParamsInitializerFactory.h"
 using namespace std;
 using namespace autil;
@@ -52,7 +51,7 @@ bool NormalIndexSearcher::ParseQueryParameter(const std::string& searchParams, A
 
     AithetaIndexConfig newConfig = _indexConfig;
     newConfig.searchConfig.indexParams = searchParams;
-    return initializer->InitSearchParams(newConfig, aiThetaParams);
+    return initializer->InitNormalSearchParams(newConfig, aiThetaParams);
 }
 
 bool NormalIndexSearcher::Search(const AithetaQuery& query, const std::shared_ptr<AithetaAuxSearchInfoBase>& searchInfo,

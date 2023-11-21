@@ -17,9 +17,11 @@
 
 #include "indexlib/document/extractor/IDocumentInfoExtractor.h"
 #include "indexlib/document/extractor/plain/AttrFieldInfoExtractor.h"
+#include "indexlib/document/extractor/plain/FieldMetaFieldInfoExtractor.h"
 #include "indexlib/document/extractor/plain/InvertedIndexDocInfoExtractor.h"
 #include "indexlib/document/extractor/plain/PackAttrFieldInfoExtractor.h"
 #include "indexlib/document/extractor/plain/PrimaryKeyInfoExtractor.h"
+#include "indexlib/document/extractor/plain/SourceDocInfoExtractor.h"
 #include "indexlib/document/extractor/plain/SummaryDocInfoExtractor.h"
 
 using namespace indexlibv2::document::extractor;
@@ -60,6 +62,17 @@ DocumentInfoExtractorFactory::CreateDocumentInfoExtractor(const std::shared_ptr<
         return std::make_unique<InvertedIndexDocInfoExtractor>();
     case DocumentInfoExtractorType::SUMMARY_DOC:
         return std::make_unique<SummaryDocInfoExtractor>(indexConfig);
+    case DocumentInfoExtractorType::SOURCE_DOC:
+        return std::make_unique<SourceDocInfoExtractor>(indexConfig);
+    case DocumentInfoExtractorType::FIELD_META_FIELD:
+        if (fieldid_t* fieldId = std::any_cast<fieldid_t>(&fieldHint)) {
+            return std::make_unique<indexlib::plain::FieldMetaFieldInfoExtractor>(*fieldId);
+        } else {
+            AUTIL_LOG(ERROR, "un-support filed type: [docExtractorType: %s, FiledType: %s]",
+                      DocumentInfoExtractorTypeToStr(docExtractorType).c_str(), fieldHint.type().name());
+        }
+        return nullptr;
+
     default:
         return nullptr;
     }

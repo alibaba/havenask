@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_TASK_RESOURCE_H
-#define __INDEXLIB_MERGE_TASK_RESOURCE_H
+#pragma once
 
 #include <memory>
 
@@ -49,8 +48,12 @@ public:
     char* GetData();
 
     size_t GetDataLen() const { return mDataLen; }
+
     const std::string& GetRootPath() const;
+
     void SetRoot(const file_system::DirectoryPtr& rootDir);
+
+    const file_system::DirectoryPtr& GetRoot() const { return mRootDir; }
 
     resourceid_t GetResourceId() const { return mId; }
 
@@ -86,5 +89,3 @@ DEFINE_SHARED_PTR(MergeTaskResource);
 
 typedef std::vector<MergeTaskResourcePtr> MergeTaskResourceVector;
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_MERGE_TASK_RESOURCE_H

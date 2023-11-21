@@ -1,5 +1,6 @@
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/normal/attribute/accessor/join_docid_attribute_reader.h"
 #include "indexlib/index/primary_key/PrimaryKeyReader.h"
@@ -9,7 +10,6 @@
 #include "indexlib/partition/modifier/sub_doc_modifier.h"
 #include "indexlib/partition/test/mock_partition_modifier.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/single_field_partition_data_provider.h"
 #include "indexlib/test/test.h"
 #include "indexlib/test/unittest.h"
@@ -46,7 +46,7 @@ public:
 class MockPrimaryKeyIndexReader : public indexlibv2::index::UInt64PrimaryKeyReader
 {
 public:
-    MOCK_METHOD(docid_t, Lookup, (const std::string& pkString, future_lite::Executor* executor), (const, override));
+    MOCK_METHOD(docid64_t, Lookup, (const std::string& pkString, future_lite::Executor* executor), (const, override));
 };
 DEFINE_SHARED_PTR(MockPrimaryKeyIndexReader);
 

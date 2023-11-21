@@ -1,10 +1,8 @@
-#ifndef __INDEXLIB_PRIMARYKEYINDEXCONFIGTEST_H
-#define __INDEXLIB_PRIMARYKEYINDEXCONFIGTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/primary_key_index_config.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -28,7 +26,7 @@ private:
     void CheckJsonizePkIndexType(const std::string& jsonStr, PrimaryKeyIndexType expectType, bool isExpectException);
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(PrimaryKeyIndexConfigTest, TestSimple);
@@ -36,5 +34,3 @@ INDEXLIB_UNIT_TEST_CASE(PrimaryKeyIndexConfigTest, TestCheckPrimaryKey);
 INDEXLIB_UNIT_TEST_CASE(PrimaryKeyIndexConfigTest, TestJsonizePkIndexType);
 INDEXLIB_UNIT_TEST_CASE(PrimaryKeyIndexConfigTest, TestSupportNullException);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_PRIMARYKEYINDEXCONFIGTEST_H

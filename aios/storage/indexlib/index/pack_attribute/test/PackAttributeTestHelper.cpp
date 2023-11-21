@@ -45,7 +45,7 @@ StatusOr<std::shared_ptr<config::IIndexConfig>> PackAttributeTestHelper::DoMakeI
 StatusOr<std::shared_ptr<IMemIndexer>> PackAttributeTestHelper::CreateMemIndexer()
 {
     assert(_factory && GetIndexerParameter());
-    auto memIndexer = _factory->CreateMemIndexer(_indexConfig, *GetIndexerParameter());
+    auto memIndexer = _factory->CreateMemIndexer(_indexConfig, *GetMemIndexerParameter());
     if (auto status = memIndexer->Init(_indexConfig, _docInfoExtractorFactory.get()); !status.IsOK()) {
         AUTIL_LOG(ERROR, "init PackAttributeMemIndexer failed");
         return status.steal_error();
@@ -280,7 +280,7 @@ bool PackAttributeTestHelper::DoQuery(const std::string& queryStr, const std::st
 
 Status PackAttributeTestHelper::DoOpen()
 {
-    auto reader = _factory->CreateIndexReader(_indexConfig, *GetIndexerParameter());
+    auto reader = _factory->CreateIndexReader(_indexConfig, *GetIndexReaderParameter());
     if (auto status = reader->Open(_indexConfig, GetTabletData()); !status.IsOK()) {
         return status;
     }

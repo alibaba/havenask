@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_WEIGHTED_DOC_ITERATOR_H
-#define __INDEXLIB_WEIGHTED_DOC_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -95,5 +94,3 @@ public:
 
 DEFINE_SHARED_PTR(WeightedDocIterator);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_WEIGHTED_DOC_ITERATOR_H

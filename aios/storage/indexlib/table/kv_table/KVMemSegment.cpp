@@ -61,7 +61,7 @@ std::pair<Status, size_t> KVMemSegment::GetLastSegmentMemUse(const std::shared_p
 }
 
 void KVMemSegment::PrepareIndexerParameter(const framework::BuildResource& resource, int64_t maxMemoryUseInBytes,
-                                           index::IndexerParameter& indexerParam) const
+                                           index::MemIndexerParameter& indexerParam) const
 {
     plain::PlainMemSegment::PrepareIndexerParameter(resource, maxMemoryUseInBytes, indexerParam);
     if (!_enableMemoryReclaim && indexerParam.indexMemoryReclaimer != nullptr) {

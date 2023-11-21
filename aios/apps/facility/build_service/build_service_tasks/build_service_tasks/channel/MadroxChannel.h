@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MADROXCHANNEL_H
-#define ISEARCH_BS_MADROXCHANNEL_H
+#pragma once
 
+#include <string>
+
+#include "build_service/util/Log.h"
 #include "build_service_tasks/channel/ChannelBase.h"
 #include "build_service_tasks/channel/Master.pb.h"
 #include "fslib/util/FileUtil.h"
@@ -43,5 +45,3 @@ private:
 };
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_MADROXCHANNEL_H

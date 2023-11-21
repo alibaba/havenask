@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_QUERY_PARSER_H
-#define __INDEXLIB_QUERY_PARSER_H
+#pragma once
 
 #include <memory>
 
@@ -46,5 +45,3 @@ private:
 
 DEFINE_SHARED_PTR(QueryParser);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_QUERY_PARSER_H

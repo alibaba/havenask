@@ -172,10 +172,6 @@ const KernelMetric &KernelComputeContext::getMetric() const {
     return *_metric;
 }
 
-void KernelComputeContext::appendResult(NaviResult &result) {
-    _node->appendResult(result);
-}
-
 void KernelComputeContext::updateTraceLevel(const std::string &levelStr) const {
     _node->updateTraceLevel(levelStr);
 }
@@ -184,16 +180,34 @@ bool KernelComputeContext::updateTimeoutMs(int64_t timeoutMs) const {
     return _node->updateTimeoutMs(timeoutMs);
 }
 
-void KernelComputeContext::fillTrace(std::vector<std::string> &traceVec) const {
-    _node->fillTrace(traceVec);
+void KernelComputeContext::updateCollect(bool collectMetric,
+                                         bool collectPerf) const
+{
+    _node->updateCollect(collectMetric, collectPerf);
 }
 
-LoggingEvent KernelComputeContext::firstErrorEvent() const {
-    return _node->firstErrorEvent();
+void KernelComputeContext::collectTrace(std::vector<std::string> &traceVec) const {
+    _node->collectTrace(traceVec);
 }
 
-ErrorCode KernelComputeContext::getScopeErrorCode() const {
-    return _node->getScopeErrorCode();
+std::shared_ptr<multi_call::GigStreamRpcInfoMap> KernelComputeContext::getRpcInfoMap() const {
+    return _node->getRpcInfoMap();
+}
+
+NaviErrorPtr KernelComputeContext::getScopeError() const {
+    return _node->getScopeError();
+}
+
+ErrorHandleStrategy KernelComputeContext::getScopeErrorHandleStrategy() const {
+    return _node->getScopeErrorHandleStrategy();
+}
+
+void KernelComputeContext::reportScopeError(const NaviErrorPtr &error) {
+    return _node->reportError(error);
+}
+
+void KernelComputeContext::reportScopeError(ErrorCode ec) {
+    _node->setErrorCode(ec);
 }
 
 int64_t KernelComputeContext::getRemainTimeMs() const {

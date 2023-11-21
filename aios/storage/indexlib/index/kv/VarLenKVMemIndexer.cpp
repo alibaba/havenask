@@ -18,7 +18,6 @@
 #include "autil/Log.h"
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/file_system/IDirectory.h"
-#include "indexlib/framework/mem_reclaimer/EpochBasedMemReclaimer.h"
 #include "indexlib/index/kv/InMemoryValueWriter.h"
 #include "indexlib/index/kv/KVCommonDefine.h"
 #include "indexlib/index/kv/KVTypeId.h"
@@ -33,19 +32,22 @@ using namespace std;
 namespace indexlibv2::index {
 AUTIL_DECLARE_AND_SETUP_LOGGER(indexlib.index, VarLenKVMemIndexer);
 
-VarLenKVMemIndexer::VarLenKVMemIndexer(int64_t maxMemoryUse, float keyValueSizeRatio, float valueCompressRatio,
+VarLenKVMemIndexer::VarLenKVMemIndexer(bool tolerateDocError, int64_t maxMemoryUse, float keyValueSizeRatio,
+                                       float valueCompressRatio,
                                        indexlibv2::framework::IIndexMemoryReclaimer* memReclaimer)
-    : _maxMemoryUse(maxMemoryUse)
+    : KVMemIndexerBase(tolerateDocError)
+    , _maxMemoryUse(maxMemoryUse)
     , _keyValueSizeRatio(keyValueSizeRatio)
     , _valueCompressRatio(valueCompressRatio)
     , _memReclaimer(memReclaimer)
 {
 }
 
-VarLenKVMemIndexer::VarLenKVMemIndexer(int64_t maxMemoryUse, float keyValueSizeRatio, float valueCompressRatio,
-                                       const config::SortDescriptions& sortDescriptions,
+VarLenKVMemIndexer::VarLenKVMemIndexer(bool tolerateDocError, int64_t maxMemoryUse, float keyValueSizeRatio,
+                                       float valueCompressRatio, const config::SortDescriptions& sortDescriptions,
                                        indexlibv2::framework::IIndexMemoryReclaimer* memReclaimer)
-    : _maxMemoryUse(maxMemoryUse)
+    : KVMemIndexerBase(tolerateDocError)
+    , _maxMemoryUse(maxMemoryUse)
     , _keyValueSizeRatio(keyValueSizeRatio)
     , _valueCompressRatio(valueCompressRatio)
     , _sortDescriptions(sortDescriptions)

@@ -63,6 +63,7 @@
 #include "sql/ops/scan/ScanIteratorCreatorR.h"
 #include "sql/ops/scan/UseSubR.h"
 #include "sql/ops/test/OpTestBase.h"
+#include "sql/proto/SqlQueryConfig.pb.h"
 #include "sql/proto/SqlSearchInfo.pb.h"
 #include "sql/proto/SqlSearchInfoCollector.h"
 #include "sql/proto/SqlSearchInfoCollectorR.h"
@@ -405,21 +406,21 @@ TEST_F(NormalScanRTest, testDoBatchScan1) {
         ASSERT_TRUE(table != nullptr);
         EXPECT_EQ("{}", scanR->_scanInitParamR->calcInitParamR->outputExprsJson);
         ASSERT_EQ(4, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("1", table->toString(1, 0));
-        ASSERT_EQ("2", table->toString(2, 0));
-        ASSERT_EQ("3", table->toString(3, 0));
+        table::Column *column = table->getColumn(0);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("1", column->toString(1));
+        ASSERT_EQ("2", column->toString(2));
+        ASSERT_EQ("3", column->toString(3));
         ASSERT_TRUE(eof);
-        ASSERT_EQ(4, scanR->_seekCount);
-        ASSERT_EQ(4, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(4, scanR->_scanCount);
         table.reset();
         eof = false;
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(0, table->getRowCount());
         ASSERT_TRUE(eof);
-        ASSERT_EQ(4, scanR->_seekCount);
-        ASSERT_EQ(4, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(4, scanR->_scanCount);
     }
 }
 
@@ -443,21 +444,21 @@ TEST_F(NormalScanRTest, testDoBatchScan2) {
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(3, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("1", table->toString(1, 0));
-        ASSERT_EQ("2", table->toString(2, 0));
+        table::Column *column = table->getColumn(0);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("1", column->toString(1));
+        ASSERT_EQ("2", column->toString(2));
 
         ASSERT_TRUE(eof);
-        ASSERT_EQ(3, scanR->_seekCount);
-        ASSERT_EQ(3, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(3, scanR->_scanCount);
         table.reset();
         eof = false;
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(0, table->getRowCount());
         ASSERT_TRUE(eof);
-        ASSERT_EQ(3, scanR->_seekCount);
-        ASSERT_EQ(3, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(3, scanR->_scanCount);
     }
 }
 
@@ -488,11 +489,12 @@ TEST_F(NormalScanRTest, testDoBatchScan3) {
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(2, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("2", table->toString(1, 0));
+        table::Column *column = table->getColumn(0);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("2", column->toString(1));
         ASSERT_TRUE(eof);
-        ASSERT_EQ(3, scanR->_seekCount);
-        ASSERT_EQ(4, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(3, scanR->_scanCount);
     }
 }
 
@@ -516,26 +518,26 @@ TEST_F(NormalScanRTest, testDoBatchScan4) {
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(2, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("1", table->toString(1, 0));
+        table::Column *column = table->getColumn(0);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("1", column->toString(1));
         ASSERT_FALSE(eof);
-        ASSERT_EQ(2, scanR->_scanInitParamR->scanInfo.totalscancount());
-        ASSERT_EQ(2, scanR->_seekCount);
+        ASSERT_EQ(2, scanR->_scanCount);
 
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(2, table->getRowCount());
-        ASSERT_EQ("2", table->toString(0, 0));
-        ASSERT_EQ("3", table->toString(1, 0));
+        column = table->getColumn(0);
+        ASSERT_EQ("2", column->toString(0));
+        ASSERT_EQ("3", column->toString(1));
         ASSERT_FALSE(eof);
-        ASSERT_EQ(4, scanR->_scanInitParamR->scanInfo.totalscancount());
-        ASSERT_EQ(4, scanR->_seekCount);
+        ASSERT_EQ(4, scanR->_scanCount);
 
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(0, table->getRowCount());
-        ASSERT_EQ(4, scanR->_seekCount);
-        ASSERT_EQ(4, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(4, scanR->_scanCount);
     }
 }
 
@@ -560,19 +562,20 @@ TEST_F(NormalScanRTest, testDoBatchScan5) {
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(2, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("1", table->toString(1, 0));
+        table::Column *column = table->getColumn(0);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("1", column->toString(1));
         ASSERT_FALSE(eof);
-        ASSERT_EQ(2, scanR->_scanInitParamR->scanInfo.totalscancount());
-        ASSERT_EQ(2, scanR->_seekCount);
+        ASSERT_EQ(2, scanR->_scanCount);
 
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(1, table->getRowCount());
-        ASSERT_EQ("2", table->toString(0, 0));
+        column = table->getColumn(0);
+        ASSERT_EQ("2", column->toString(0));
         ASSERT_TRUE(eof);
-        ASSERT_EQ(3, scanR->_seekCount);
-        ASSERT_EQ(3, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(3, scanR->_scanCount);
     }
 }
 
@@ -602,6 +605,40 @@ TEST_F(NormalScanRTest, testTimeout) {
     CHECK_TRACE_COUNT(1, "scan table [invertedTable] timeout, abort, info:", traces);
 }
 
+TEST_F(NormalScanRTest, testTimeoutWithDegraded) {
+    autil::legacy::json::JsonMap attributeMap;
+    attributeMap["table_type"] = string("normal");
+    attributeMap["table_name"] = _tableName;
+    attributeMap["db_name"] = string("default");
+    attributeMap["catalog_name"] = string("default");
+    attributeMap["hash_fields"] = ParseJson(string(R"json(["id"])json"));
+    attributeMap["output_fields_internal"] = ParseJson(string(R"json(["$attr1"])json"));
+    attributeMap["enable_scan_timeout"] = true;
+    string jsonStr = autil::legacy::FastToJsonString(attributeMap);
+    auto *naviRHelper = getNaviRHelper();
+    naviRHelper->kernelConfig(jsonStr);
+    auto scanR = naviRHelper->getOrCreateRes<NormalScanR>();
+    SqlQueryConfig _config;
+    _config.set_resultallowsoftfailure(true);
+    scanR->_queryConfig = &_config;
+    ASSERT_TRUE(naviRHelper->getOrCreateRes(scanR->_sqlSearchInfoCollectorR));
+    ASSERT_TRUE(scanR);
+    scanR->_timeoutTerminatorR->_timeoutTerminator->_startTime = 1;
+    scanR->_timeoutTerminatorR->_timeoutTerminator->_timeout = 0;
+    scanR->_timeoutTerminatorR->_timeoutTerminator->_expireTime = 0;
+    scanR->_timeoutTerminatorR->_timeoutTerminator->_checkMask = 0;
+    TablePtr table;
+    bool eof = false;
+    navi::NaviLoggerProvider provider("WARN");
+    ASSERT_TRUE(scanR->doBatchScan(table, eof));
+    auto traces = provider.getTrace("");
+    CHECK_TRACE_COUNT(1, "scan table [invertedTable] timeout, info:", traces);
+    ASSERT_EQ(INCOMPLETE_DATA_ERROR,
+              scanR->_sqlSearchInfoCollectorR->getCollector()
+                  ->_sqlSearchInfo.degradedinfos(0)
+                  .degradederrorcodes(0));
+}
+
 TEST_F(NormalScanRTest, testDoBatchScanWithSub1) {
     { // one batch
         autil::legacy::json::JsonMap attributeMap;
@@ -627,33 +664,35 @@ TEST_F(NormalScanRTest, testDoBatchScanWithSub1) {
 
         ASSERT_EQ(2, table->getColumnCount());
         ASSERT_EQ(7, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("0", table->toString(1, 0));
-        ASSERT_EQ("0", table->toString(2, 0));
-        ASSERT_EQ("1", table->toString(3, 0));
-        ASSERT_EQ("2", table->toString(4, 0));
-        ASSERT_EQ("3", table->toString(5, 0));
-        ASSERT_EQ("3", table->toString(6, 0));
+        auto *column = table->getColumn(0);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("0", column->toString(1));
+        ASSERT_EQ("0", column->toString(2));
+        ASSERT_EQ("1", column->toString(3));
+        ASSERT_EQ("2", column->toString(4));
+        ASSERT_EQ("3", column->toString(5));
+        ASSERT_EQ("3", column->toString(6));
 
-        ASSERT_EQ("1", table->toString(0, 1));
-        ASSERT_EQ("2", table->toString(1, 1));
-        ASSERT_EQ("2", table->toString(2, 1));
-        ASSERT_EQ("1", table->toString(3, 1));
-        ASSERT_EQ("1", table->toString(4, 1));
-        ASSERT_EQ("2", table->toString(5, 1));
-        ASSERT_EQ("1", table->toString(6, 1));
+        column = table->getColumn(1);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("1", column->toString(0));
+        ASSERT_EQ("2", column->toString(1));
+        ASSERT_EQ("2", column->toString(2));
+        ASSERT_EQ("1", column->toString(3));
+        ASSERT_EQ("1", column->toString(4));
+        ASSERT_EQ("2", column->toString(5));
+        ASSERT_EQ("1", column->toString(6));
 
         ASSERT_TRUE(eof);
-        ASSERT_EQ(4, scanR->_seekCount);
-        ASSERT_EQ(4, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(4, scanR->_scanCount);
         table.reset();
         eof = false;
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(0, table->getRowCount());
         ASSERT_TRUE(eof);
-        ASSERT_EQ(4, scanR->_seekCount);
-        ASSERT_EQ(4, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(4, scanR->_scanCount);
     }
 }
 
@@ -681,25 +720,25 @@ TEST_F(NormalScanRTest, testDoBatchScanWithSub2) {
 
         ASSERT_EQ(1, table->getColumnCount());
         ASSERT_EQ(7, table->getRowCount());
-        ASSERT_EQ("1", table->toString(0, 0));
-        ASSERT_EQ("2", table->toString(1, 0));
-        ASSERT_EQ("2", table->toString(2, 0));
-        ASSERT_EQ("1", table->toString(3, 0));
-        ASSERT_EQ("1", table->toString(4, 0));
-        ASSERT_EQ("2", table->toString(5, 0));
-        ASSERT_EQ("1", table->toString(6, 0));
+        auto *column = table->getColumn(0);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("1", column->toString(0));
+        ASSERT_EQ("2", column->toString(1));
+        ASSERT_EQ("2", column->toString(2));
+        ASSERT_EQ("1", column->toString(3));
+        ASSERT_EQ("1", column->toString(4));
+        ASSERT_EQ("2", column->toString(5));
+        ASSERT_EQ("1", column->toString(6));
 
         ASSERT_TRUE(eof);
-        ASSERT_EQ(4, scanR->_seekCount);
-        ASSERT_EQ(4, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(4, scanR->_scanCount);
         table.reset();
         eof = false;
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(0, table->getRowCount());
         ASSERT_TRUE(eof);
-        ASSERT_EQ(4, scanR->_seekCount);
-        ASSERT_EQ(4, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(4, scanR->_scanCount);
     }
 }
 
@@ -727,11 +766,12 @@ TEST_F(NormalScanRTest, testUpdateScanQuery) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_TRUE(eof);
         ASSERT_EQ(3, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("1", table->toString(1, 0));
-        ASSERT_EQ("2", table->toString(2, 0));
-        ASSERT_EQ(3, scanR->_seekCount);
-        ASSERT_EQ(3, scanR->_scanInitParamR->scanInfo.totalscancount());
+        auto *column = table->getColumn(0);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("1", column->toString(1));
+        ASSERT_EQ("2", column->toString(2));
+        ASSERT_EQ(3, scanR->_scanCount);
 
         ASSERT_TRUE(scanR->updateScanQuery(inputQuery));
         eof = false;
@@ -739,19 +779,18 @@ TEST_F(NormalScanRTest, testUpdateScanQuery) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_TRUE(eof);
         ASSERT_EQ(3, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("1", table->toString(1, 0));
-        ASSERT_EQ("2", table->toString(2, 0));
-        ASSERT_EQ(6, scanR->_seekCount);
-        ASSERT_EQ(6, scanR->_scanInitParamR->scanInfo.totalscancount());
+        column = table->getColumn(0);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("1", column->toString(1));
+        ASSERT_EQ("2", column->toString(2));
+        ASSERT_EQ(6, scanR->_scanCount);
 
         ASSERT_TRUE(scanR->updateScanQuery(StreamQueryPtr()));
         eof = false;
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(eof);
         ASSERT_EQ(0, table->getRowCount());
-        ASSERT_EQ(6, scanR->_seekCount);
-        ASSERT_EQ(6, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(6, scanR->_scanCount);
     }
 }
 
@@ -779,11 +818,12 @@ TEST_F(NormalScanRTest, testUpdateScanQueryWithDocIds) {
     ASSERT_TRUE(table != nullptr);
     ASSERT_TRUE(eof);
     ASSERT_EQ(3, table->getRowCount());
-    ASSERT_EQ("2", table->toString(0, 0));
-    ASSERT_EQ("0", table->toString(1, 0));
-    ASSERT_EQ("3", table->toString(2, 0));
-    EXPECT_EQ(3, scanR->_seekCount);
-    ASSERT_EQ(3, scanR->_scanInitParamR->scanInfo.totalscancount());
+    auto *column = table->getColumn(0);
+    ASSERT_TRUE(column != nullptr);
+    ASSERT_EQ("2", column->toString(0));
+    ASSERT_EQ("0", column->toString(1));
+    ASSERT_EQ("3", column->toString(2));
+    EXPECT_EQ(3, scanR->_scanCount);
 }
 
 TEST_F(NormalScanRTest, testUpdateScanQueryWithSub1) {
@@ -815,19 +855,21 @@ TEST_F(NormalScanRTest, testUpdateScanQueryWithSub1) {
         ASSERT_TRUE(eof);
         ASSERT_EQ(2, table->getColumnCount());
         ASSERT_EQ(5, table->getRowCount());
-        ASSERT_EQ("1", table->toString(0, 0));
-        ASSERT_EQ("2", table->toString(1, 0));
-        ASSERT_EQ("2", table->toString(2, 0));
-        ASSERT_EQ("1", table->toString(3, 0));
-        ASSERT_EQ("1", table->toString(4, 0));
+        auto *column = table->getColumn(0);
+        ASSERT_TRUE(column != nullptr);
+        ASSERT_EQ("1", column->toString(0));
+        ASSERT_EQ("2", column->toString(1));
+        ASSERT_EQ("2", column->toString(2));
+        ASSERT_EQ("1", column->toString(3));
+        ASSERT_EQ("1", column->toString(4));
 
-        ASSERT_EQ("0", table->toString(0, 1));
-        ASSERT_EQ("0", table->toString(1, 1));
-        ASSERT_EQ("0", table->toString(2, 1));
-        ASSERT_EQ("1", table->toString(3, 1));
-        ASSERT_EQ("2", table->toString(4, 1));
-        ASSERT_EQ(3, scanR->_seekCount);
-        ASSERT_EQ(3, scanR->_scanInitParamR->scanInfo.totalscancount());
+        column = table->getColumn(1);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("0", column->toString(1));
+        ASSERT_EQ("0", column->toString(2));
+        ASSERT_EQ("1", column->toString(3));
+        ASSERT_EQ("2", column->toString(4));
+        ASSERT_EQ(3, scanR->_scanCount);
 
         ASSERT_TRUE(scanR->updateScanQuery(inputQuery));
         eof = false;
@@ -836,17 +878,19 @@ TEST_F(NormalScanRTest, testUpdateScanQueryWithSub1) {
         ASSERT_TRUE(eof);
         ASSERT_EQ(2, table->getColumnCount());
         ASSERT_EQ(5, table->getRowCount());
-        ASSERT_EQ("1", table->toString(0, 0));
-        ASSERT_EQ("2", table->toString(1, 0));
-        ASSERT_EQ("2", table->toString(2, 0));
-        ASSERT_EQ("1", table->toString(3, 0));
-        ASSERT_EQ("1", table->toString(4, 0));
+        column = table->getColumn(0);
+        ASSERT_EQ("1", column->toString(0));
+        ASSERT_EQ("2", column->toString(1));
+        ASSERT_EQ("2", column->toString(2));
+        ASSERT_EQ("1", column->toString(3));
+        ASSERT_EQ("1", column->toString(4));
 
-        ASSERT_EQ("0", table->toString(0, 1));
-        ASSERT_EQ("0", table->toString(1, 1));
-        ASSERT_EQ("0", table->toString(2, 1));
-        ASSERT_EQ("1", table->toString(3, 1));
-        ASSERT_EQ("2", table->toString(4, 1));
+        column = table->getColumn(1);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("0", column->toString(1));
+        ASSERT_EQ("0", column->toString(2));
+        ASSERT_EQ("1", column->toString(3));
+        ASSERT_EQ("2", column->toString(4));
     }
 }
 
@@ -907,18 +951,17 @@ TEST_F(NormalScanRTest, testUpdateScanQueryLimitBatch1) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_TRUE(eof);
         ASSERT_EQ(2, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("1", table->toString(1, 0));
-        ASSERT_EQ(2, scanR->_seekCount);
-        ASSERT_EQ(2, scanR->_scanInitParamR->scanInfo.totalscancount());
+        auto *column = table->getColumn(0);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("1", column->toString(1));
+        ASSERT_EQ(2, scanR->_scanCount);
 
         ASSERT_TRUE(scanR->updateScanQuery(inputQuery));
         eof = false;
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_TRUE(eof);
-        ASSERT_EQ(2, scanR->_seekCount);
-        ASSERT_EQ(2, scanR->_scanInitParamR->scanInfo.totalscancount());
+        ASSERT_EQ(2, scanR->_scanCount);
     }
 }
 
@@ -948,18 +991,18 @@ TEST_F(NormalScanRTest, testUpdateScanQueryLimitBatch2) {
         ASSERT_FALSE(eof);
 
         ASSERT_EQ(2, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("1", table->toString(1, 0));
-        ASSERT_EQ(2, scanR->_seekCount);
-        ASSERT_EQ(2, scanR->_scanInitParamR->scanInfo.totalscancount());
+        auto *column = table->getColumn(0);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("1", column->toString(1));
+        ASSERT_EQ(2, scanR->_scanCount);
 
         ASSERT_TRUE(scanR->doBatchScan(table, eof));
         ASSERT_TRUE(table != nullptr);
         ASSERT_TRUE(eof);
         ASSERT_EQ(1, table->getRowCount());
-        ASSERT_EQ("2", table->toString(0, 0));
-        ASSERT_EQ(3, scanR->_seekCount);
-        ASSERT_EQ(3, scanR->_scanInitParamR->scanInfo.totalscancount());
+        column = table->getColumn(0);
+        ASSERT_EQ("2", column->toString(0));
+        ASSERT_EQ(3, scanR->_scanCount);
     }
 }
 
@@ -989,10 +1032,10 @@ TEST_F(NormalScanRTest, testUpdateScanQueryLimitBatch3) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_TRUE(eof);
         ASSERT_EQ(2, table->getRowCount());
-        ASSERT_EQ("0", table->toString(0, 0));
-        ASSERT_EQ("1", table->toString(1, 0));
-        ASSERT_EQ(2, scanR->_seekCount);
-        ASSERT_EQ(2, scanR->_scanInitParamR->scanInfo.totalscancount());
+        auto *column = table->getColumn(0);
+        ASSERT_EQ("0", column->toString(0));
+        ASSERT_EQ("1", column->toString(1));
+        ASSERT_EQ(2, scanR->_scanCount);
     }
 }
 
@@ -1418,7 +1461,8 @@ TEST_F(NormalScanRTest, testCreateTable) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(1, table->getRowCount());
         ASSERT_EQ(1, table->getColumnCount());
-        ASSERT_EQ("10", table->toString(0, 0));
+        auto column = table->getColumn(0);
+        ASSERT_EQ("10", column->toString(0));
     }
     { // copy allocator
         MatchDocAllocatorPtr allocator(new MatchDocAllocator(_poolPtr.get(), true));
@@ -1432,7 +1476,8 @@ TEST_F(NormalScanRTest, testCreateTable) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(1, table->getRowCount());
         ASSERT_EQ(1, table->getColumnCount());
-        ASSERT_EQ("10", table->toString(0, 0));
+        auto column = table->getColumn(0);
+        ASSERT_EQ("10", column->toString(0));
     }
 
     { // has subdoc ,reuse allocator
@@ -1456,12 +1501,15 @@ TEST_F(NormalScanRTest, testCreateTable) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(3, table->getRowCount());
         ASSERT_EQ(2, table->getColumnCount());
-        ASSERT_EQ("10", table->toString(0, 0));
-        ASSERT_EQ("20", table->toString(0, 1));
-        ASSERT_EQ("10", table->toString(1, 0));
-        ASSERT_EQ("21", table->toString(1, 1));
-        ASSERT_EQ("10", table->toString(2, 0));
-        ASSERT_EQ("22", table->toString(2, 1));
+        auto *column = table->getColumn(0);
+        ASSERT_EQ("10", column->toString(0));
+        ASSERT_EQ("10", column->toString(1));
+        ASSERT_EQ("10", column->toString(2));
+
+        column = table->getColumn(1);
+        ASSERT_EQ("20", column->toString(0));
+        ASSERT_EQ("21", column->toString(1));
+        ASSERT_EQ("22", column->toString(2));
     }
     { // has subdoc , copy allocator
         MatchDocAllocatorPtr allocator(new MatchDocAllocator(_poolPtr.get(), true));
@@ -1484,12 +1532,14 @@ TEST_F(NormalScanRTest, testCreateTable) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(3, table->getRowCount());
         ASSERT_EQ(2, table->getColumnCount()) << TableUtil::toString(table);
-        ASSERT_EQ("10", table->toString(0, 0));
-        ASSERT_EQ("20", table->toString(0, 1));
-        ASSERT_EQ("10", table->toString(1, 0));
-        ASSERT_EQ("21", table->toString(1, 1));
-        ASSERT_EQ("10", table->toString(2, 0));
-        ASSERT_EQ("22", table->toString(2, 1));
+        auto *column = table->getColumn(0);
+        ASSERT_EQ("10", column->toString(0));
+        ASSERT_EQ("10", column->toString(1));
+        ASSERT_EQ("10", column->toString(2));
+        column = table->getColumn(1);
+        ASSERT_EQ("20", column->toString(0));
+        ASSERT_EQ("21", column->toString(1));
+        ASSERT_EQ("22", column->toString(2));
     }
     { // has subdoc , copy allocator , has empty sub
         MatchDocAllocatorPtr allocator(new MatchDocAllocator(_poolPtr.get(), true));
@@ -1515,12 +1565,15 @@ TEST_F(NormalScanRTest, testCreateTable) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(3, table->getRowCount());
         ASSERT_EQ(2, table->getColumnCount());
-        ASSERT_EQ("10", table->toString(0, 0));
-        ASSERT_EQ("20", table->toString(0, 1));
-        ASSERT_EQ("10", table->toString(1, 0));
-        ASSERT_EQ("21", table->toString(1, 1));
-        ASSERT_EQ("12", table->toString(2, 0));
-        ASSERT_EQ("0", table->toString(2, 1));
+        auto *column = table->getColumn(0);
+        ASSERT_EQ("10", column->toString(0));
+        ASSERT_EQ("10", column->toString(1));
+        ASSERT_EQ("12", column->toString(2));
+
+        column = table->getColumn(1);
+        ASSERT_EQ("20", column->toString(0));
+        ASSERT_EQ("21", column->toString(1));
+        ASSERT_EQ("0", column->toString(2));
     }
 }
 
@@ -1559,20 +1612,21 @@ TEST_F(NormalScanRTest, testFlattenSubLeftJoin) {
     ASSERT_TRUE(table != nullptr);
     ASSERT_EQ(3, table->getRowCount());
     ASSERT_EQ(2, table->getColumnCount());
-    ASSERT_EQ("10", table->toString(0, 0));
-    ASSERT_EQ("20", table->toString(0, 1));
-    ASSERT_EQ("10", table->toString(1, 0));
-    ASSERT_EQ("21", table->toString(1, 1));
-    ASSERT_EQ("12", table->toString(2, 0));
-    ASSERT_EQ("0", table->toString(2, 1));
+    auto *column = table->getColumn(0);
+    ASSERT_EQ("10", column->toString(0));
+    ASSERT_EQ("10", column->toString(1));
+    ASSERT_EQ("12", column->toString(2));
+    column = table->getColumn(1);
+    ASSERT_EQ("20", column->toString(0));
+    ASSERT_EQ("21", column->toString(1));
+    ASSERT_EQ("0", column->toString(2));
+    // ASSERT_EQ(20, firstRef->get(table->_rows[0]).docid);
+    // ASSERT_EQ(21, firstRef->get(table->_rows[1]).docid);
+    // ASSERT_EQ(-1, firstRef->get(table->_rows[2]).docid);
 
-    ASSERT_EQ(20, firstRef->get(table->_rows[0]).docid);
-    ASSERT_EQ(21, firstRef->get(table->_rows[1]).docid);
-    ASSERT_EQ(-1, firstRef->get(table->_rows[2]).docid);
-
-    ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[0])));
-    ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[1])));
-    ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[2])));
+    // ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[0])));
+    // ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[1])));
+    // ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[2])));
 }
 
 TEST_F(NormalScanRTest, testFlattenSubInnerJoin) {
@@ -1610,16 +1664,18 @@ TEST_F(NormalScanRTest, testFlattenSubInnerJoin) {
     ASSERT_TRUE(table != nullptr);
     ASSERT_EQ(2, table->getRowCount());
     ASSERT_EQ(2, table->getColumnCount());
-    ASSERT_EQ("10", table->toString(0, 0));
-    ASSERT_EQ("20", table->toString(0, 1));
-    ASSERT_EQ("10", table->toString(1, 0));
-    ASSERT_EQ("21", table->toString(1, 1));
+    auto *column = table->getColumn(0);
+    ASSERT_EQ("10", column->toString(0));
+    ASSERT_EQ("10", column->toString(1));
+    column = table->getColumn(1);
+    ASSERT_EQ("20", column->toString(0));
+    ASSERT_EQ("21", column->toString(1));
 
-    ASSERT_EQ(20, firstRef->get(table->_rows[0]).docid);
-    ASSERT_EQ(21, firstRef->get(table->_rows[1]).docid);
+    // ASSERT_EQ(20, firstRef->get(table->_rows[0]).docid);
+    // ASSERT_EQ(21, firstRef->get(table->_rows[1]).docid);
 
-    ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[0])));
-    ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[1])));
+    // ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[0])));
+    // ASSERT_EQ(INVALID_MATCHDOC, nextRef->get(firstRef->get(table->_rows[1])));
 }
 
 TEST_F(NormalScanRTest, testCopyColumns) {
@@ -1786,7 +1842,8 @@ TEST_F(NormalScanRTest, testMatchData_emptyQuery) {
     ASSERT_TRUE(table != nullptr);
     EXPECT_EQ("{}", scanR->_scanInitParamR->calcInitParamR->outputExprsJson);
     ASSERT_EQ(1, table->getRowCount());
-    ASSERT_EQ("0", table->toString(0, 0));
+    auto *column = table->getColumn(0);
+    ASSERT_EQ("0", column->toString(0));
     ASSERT_TRUE(scanR->_scanIteratorCreatorR->_matchDataManager->hasMatchData());
     ASSERT_TRUE(scanR->_scanIteratorCreatorR->_matchDataManager->_needMatchData);
     std::shared_ptr<isearch::rank::MetaInfo> metaInfo(new isearch::rank::MetaInfo);
@@ -1841,10 +1898,8 @@ TEST_F(NormalScanRTest, testMatchData) {
     ASSERT_TRUE(table != nullptr);
     EXPECT_EQ("{}", scanR->_scanInitParamR->calcInitParamR->outputExprsJson);
     ASSERT_EQ(1, table->getRowCount());
-    ASSERT_EQ("0", table->toString(0, 0));
-
-    ref = table->getMatchDocAllocator()->findReference<SimpleMatchData>(SIMPLE_MATCH_DATA_REF);
-    ASSERT_FALSE(ref);
+    auto *column = table->getColumn(0);
+    ASSERT_EQ("0", column->toString(0));
 }
 
 TEST_F(NormalScanRTest, testSubMatchData) {
@@ -1898,10 +1953,8 @@ TEST_F(NormalScanRTest, testSubMatchData) {
     ASSERT_TRUE(table != nullptr);
     EXPECT_EQ("{}", scanR->_scanInitParamR->calcInitParamR->outputExprsJson);
     ASSERT_EQ(3, table->getRowCount());
-    ASSERT_EQ("0", table->toString(0, 0));
-
-    ref = table->getMatchDocAllocator()->findSubReference(SIMPLE_MATCH_DATA_REF);
-    ASSERT_FALSE(ref);
+    auto *column = table->getColumn(0);
+    ASSERT_EQ("0", column->toString(0));
 }
 
 IndexInfos *NormalScanRTest::constructIndexInfos(

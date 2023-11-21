@@ -15,11 +15,22 @@
  */
 #include "build_service_tasks/script_task/ScriptExecutor.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <iostream>
+#include <map>
 #include <stdlib.h>
 #include <unistd.h>
+#include <utility>
+#include <vector>
 
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 
 extern char** environ;

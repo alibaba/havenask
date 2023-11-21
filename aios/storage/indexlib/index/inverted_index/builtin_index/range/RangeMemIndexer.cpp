@@ -39,7 +39,7 @@ using indexlibv2::index::BuildingIndexMemoryUseUpdater;
 
 AUTIL_LOG_SETUP(indexlib.index, RangeMemIndexer);
 
-RangeMemIndexer::RangeMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam)
+RangeMemIndexer::RangeMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam)
     : InvertedMemIndexer(indexerParam, nullptr)
     , _rangeInfo(new RangeInfo)
 {
@@ -122,8 +122,7 @@ void RangeMemIndexer::SetDistinctTermCount(const std::string& indexName,
 std::shared_ptr<InvertedMemIndexer>
 RangeMemIndexer::CreateInvertedMemIndexer(const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig)
 {
-    auto invertedIndexMetrics = InvertedIndexMetrics::Create(indexConfig, _indexerParam);
-    assert(invertedIndexMetrics);
+    auto invertedIndexMetrics = InvertedIndexMetrics::Create(indexConfig, _indexerParam.metricsManager);
     return std::make_shared<InvertedMemIndexer>(_indexerParam, invertedIndexMetrics);
 }
 

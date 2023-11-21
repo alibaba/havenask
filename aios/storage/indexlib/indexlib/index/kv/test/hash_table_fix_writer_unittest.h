@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_HASHTABLEFIXWRITERTEST_H
-#define __INDEXLIB_HASHTABLEFIXWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kv/hash_table_fix_writer.h"
@@ -35,5 +34,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(HashTableFixWriterTest, TestAddDocument);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASHTABLEFIXWRITERTEST_H

@@ -15,8 +15,13 @@
  */
 #include "indexlib/util/EpochIdUtil.h"
 
+#include <algorithm>
+#include <cstddef>
+
 #include "autil/Lock.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+
 using namespace std;
 
 namespace indexlib::util {

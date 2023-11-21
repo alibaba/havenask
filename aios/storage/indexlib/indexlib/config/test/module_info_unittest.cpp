@@ -1,6 +1,6 @@
 #include "indexlib/config/module_info.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 using namespace std;
 using namespace indexlib::file_system;

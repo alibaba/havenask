@@ -1,5 +1,6 @@
 #include "indexlib/partition/test/online_partition_writer_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 #include "indexlib/index/normal/ttl_decoder.h"
 #include "indexlib/index_base/segment/in_memory_segment.h"
@@ -11,7 +12,6 @@
 #include "indexlib/partition/segment/single_segment_writer.h"
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/memory_control/BlockMemoryQuotaController.h"
 
 using namespace std;

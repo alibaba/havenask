@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONDISKKKVITERATORTEST_H
-#define __INDEXLIB_ONDISKKKVITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -48,5 +47,3 @@ INDEXLIB_UNIT_TEST_CASE(OnDiskKKVIteratorTest, TestSamePKeyInMultiSegments);
 INDEXLIB_UNIT_TEST_CASE(OnDiskKKVIteratorTest, TestDuplicateSeyInMultiSegments);
 INDEXLIB_UNIT_TEST_CASE(OnDiskKKVIteratorTest, TestDuplicateSeyInMultiSegments_13227243);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ONDISKKKVITERATORTEST_H

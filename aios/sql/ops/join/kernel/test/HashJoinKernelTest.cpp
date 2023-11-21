@@ -1131,6 +1131,11 @@ TEST_F(HashJoinKernelTest, testBufferLimitBlockInput) {
 
 TEST_F(HashJoinKernelTest, testMakeHashJoin) {
     HashJoinKernel kernel;
+    auto *naviRHelper = getNaviRHelper();
+    ASSERT_TRUE(naviRHelper->getOrCreateRes<JoinInfoCollectorR>(kernel._joinInfoR));
+    ASSERT_TRUE(naviRHelper->getOrCreateRes<HashJoinMapR>(kernel._hashJoinMapR));
+    JoinBaseParamR joinParamR;
+    kernel._joinParamR = &joinParamR;
     {
         MatchDocAllocatorPtr lallocator;
         int64_t leftSize = 100; // original value = 1000000
@@ -1170,20 +1175,20 @@ TEST_F(HashJoinKernelTest, testMakeHashJoin) {
         kernel._rightBuffer
             = (dynamic_pointer_cast<TableData>(createTable(rallocator, rightDocs)))->getTable();
     }
-    kernel._leftJoinColumns = {"lid"};
-    kernel._rightJoinColumns = {"rid"};
+    kernel._joinParamR->_leftJoinColumns = {"lid"};
+    kernel._joinParamR->_rightJoinColumns = {"rid"};
     {
         kernel._hashLeftTable = false;
         int64_t st = TimeUtility::currentTime();
         ASSERT_TRUE(kernel.createHashMap(
             kernel._rightBuffer, 0, kernel._rightBuffer->getRowCount(), kernel._hashLeftTable));
         int64_t mid0 = TimeUtility::currentTime();
-        HashJoinKernel::HashValues largeTableValues;
-        ASSERT_TRUE(kernel.getHashValues(kernel._leftBuffer,
-                                         0,
-                                         kernel._leftBuffer->getRowCount(),
-                                         kernel._leftJoinColumns,
-                                         largeTableValues));
+        HashJoinMapR::HashValues largeTableValues;
+        ASSERT_TRUE(kernel._hashJoinMapR->getHashValues(kernel._leftBuffer,
+                                                        0,
+                                                        kernel._leftBuffer->getRowCount(),
+                                                        kernel._joinParamR->_leftJoinColumns,
+                                                        largeTableValues));
         cout << "right hash count:" << largeTableValues.size() << endl;
         int64_t mid1 = TimeUtility::currentTime();
         auto count = kernel.makeHashJoin(largeTableValues);
@@ -1191,20 +1196,20 @@ TEST_F(HashJoinKernelTest, testMakeHashJoin) {
         cout << "[hash right id] create:" << mid0 - st << ", hash:" << mid1 - mid0
              << ", join:" << end - mid1 << ", count:" << count << endl;
     }
-    kernel._leftJoinColumns = {"lgroup"};
-    kernel._rightJoinColumns = {"rgroup"};
+    kernel._joinParamR->_leftJoinColumns = {"lgroup"};
+    kernel._joinParamR->_rightJoinColumns = {"rgroup"};
     {
         kernel._hashLeftTable = false;
         int64_t st = TimeUtility::currentTime();
         ASSERT_TRUE(kernel.createHashMap(
             kernel._rightBuffer, 0, kernel._rightBuffer->getRowCount(), kernel._hashLeftTable));
         int64_t mid0 = TimeUtility::currentTime();
-        HashJoinKernel::HashValues largeTableValues;
-        ASSERT_TRUE(kernel.getHashValues(kernel._leftBuffer,
-                                         0,
-                                         kernel._leftBuffer->getRowCount(),
-                                         kernel._leftJoinColumns,
-                                         largeTableValues));
+        HashJoinMapR::HashValues largeTableValues;
+        ASSERT_TRUE(kernel._hashJoinMapR->getHashValues(kernel._leftBuffer,
+                                                        0,
+                                                        kernel._leftBuffer->getRowCount(),
+                                                        kernel._joinParamR->_leftJoinColumns,
+                                                        largeTableValues));
         cout << "right hash count:" << largeTableValues.size() << endl;
         int64_t mid1 = TimeUtility::currentTime();
         auto count = kernel.makeHashJoin(largeTableValues);
@@ -1230,20 +1235,20 @@ TEST_F(HashJoinKernelTest, testMakeHashJoin) {
         kernel._leftBuffer
             = dynamic_pointer_cast<TableData>(createTable(lallocator, leftDocs))->getTable();
     }
-    kernel._leftJoinColumns = {"lid"};
-    kernel._rightJoinColumns = {"rid"};
+    kernel._joinParamR->_leftJoinColumns = {"lid"};
+    kernel._joinParamR->_rightJoinColumns = {"rid"};
     {
         kernel._hashLeftTable = false;
         int64_t st = TimeUtility::currentTime();
         ASSERT_TRUE(kernel.createHashMap(
             kernel._rightBuffer, 0, kernel._rightBuffer->getRowCount(), kernel._hashLeftTable));
         int64_t mid0 = TimeUtility::currentTime();
-        HashJoinKernel::HashValues largeTableValues;
-        ASSERT_TRUE(kernel.getHashValues(kernel._leftBuffer,
-                                         0,
-                                         kernel._leftBuffer->getRowCount(),
-                                         kernel._leftJoinColumns,
-                                         largeTableValues));
+        HashJoinMapR::HashValues largeTableValues;
+        ASSERT_TRUE(kernel._hashJoinMapR->getHashValues(kernel._leftBuffer,
+                                                        0,
+                                                        kernel._leftBuffer->getRowCount(),
+                                                        kernel._joinParamR->_leftJoinColumns,
+                                                        largeTableValues));
         cout << "right hash count:" << largeTableValues.size() << endl;
         int64_t mid1 = TimeUtility::currentTime();
         auto count = kernel.makeHashJoin(largeTableValues);
@@ -1251,20 +1256,20 @@ TEST_F(HashJoinKernelTest, testMakeHashJoin) {
         cout << "[hash right id] create:" << mid0 - st << ", hash:" << mid1 - mid0
              << ", join:" << end - mid1 << ", count:" << count << endl;
     }
-    kernel._leftJoinColumns = {"lgroup"};
-    kernel._rightJoinColumns = {"rgroup"};
+    kernel._joinParamR->_leftJoinColumns = {"lgroup"};
+    kernel._joinParamR->_rightJoinColumns = {"rgroup"};
     {
         kernel._hashLeftTable = false;
         int64_t st = TimeUtility::currentTime();
         ASSERT_TRUE(kernel.createHashMap(
             kernel._rightBuffer, 0, kernel._rightBuffer->getRowCount(), kernel._hashLeftTable));
         int64_t mid0 = TimeUtility::currentTime();
-        HashJoinKernel::HashValues largeTableValues;
-        ASSERT_TRUE(kernel.getHashValues(kernel._leftBuffer,
-                                         0,
-                                         kernel._leftBuffer->getRowCount(),
-                                         kernel._leftJoinColumns,
-                                         largeTableValues));
+        HashJoinMapR::HashValues largeTableValues;
+        ASSERT_TRUE(kernel._hashJoinMapR->getHashValues(kernel._leftBuffer,
+                                                        0,
+                                                        kernel._leftBuffer->getRowCount(),
+                                                        kernel._joinParamR->_leftJoinColumns,
+                                                        largeTableValues));
         cout << "right hash count:" << largeTableValues.size() << endl;
         int64_t mid1 = TimeUtility::currentTime();
         auto count = kernel.makeHashJoin(largeTableValues);

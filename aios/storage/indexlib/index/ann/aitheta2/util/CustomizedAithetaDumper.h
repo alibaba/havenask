@@ -82,35 +82,20 @@ public:
     uint32_t magic(void) const override { return packer_.magic(); }
 
 public:
-    static int dump(const indexlibv2::index::ann::AiThetaBuilderPtr& builder,
-                    indexlibv2::index::ann::IndexDataWriterPtr& writer)
+    template <typename T>
+    static int dump(const T& ptr, indexlibv2::index::ann::IndexDataWriterPtr& writer)
     {
         auto dumper = create(writer);
         if (!dumper) {
             return aitheta2::IndexError_InvalidArgument;
         }
-        int ret = builder->dump(dumper);
+        int ret = ptr->dump(dumper);
         if (ret != 0) {
             return ret;
         }
         return dumper->close();
     }
 
-    static int dump(const indexlibv2::index::ann::AiThetaStreamerPtr& streamer,
-                    indexlibv2::index::ann::IndexDataWriterPtr& writer)
-    {
-        auto dumper = create(writer);
-        if (!dumper) {
-            return aitheta2::IndexError_InvalidArgument;
-        }
-        int ret = streamer->dump(dumper);
-        if (ret != 0) {
-            return ret;
-        }
-        return dumper->close();
-    }
-
-protected:
     static IndexDumper::Pointer create(const indexlibv2::index::ann::IndexDataWriterPtr& writer)
     {
         auto dumper = IndexDumper::Pointer(new CustomizedAiThetaDumper(writer));

@@ -2,6 +2,7 @@
 
 #include "autil/EnvUtil.h"
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_locator.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index_base/branch_fs.h"
@@ -12,7 +13,6 @@
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/merger/merger_branch_hinter.h"
 #include "indexlib/test/directory_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/version_maker.h"
 #include "indexlib/util/EpochIdUtil.h"
 #include "indexlib/util/PathUtil.h"
@@ -329,7 +329,7 @@ void ParallelPartitionDataMergerTest::TestMultiWorkerToMoveData()
     }
     VersionLoader versionLoader;
     Version targetVersion;
-    versionLoader.GetVersionS(rootPath, targetVersion, INVALID_VERSION);
+    versionLoader.GetVersionS(rootPath, targetVersion, INVALID_VERSIONID);
 
     ASSERT_EQ(1, targetVersion.GetVersionId());
     ASSERT_EQ(6, targetVersion.GetSegmentCount());
@@ -465,7 +465,7 @@ void ParallelPartitionDataMergerTest::SetLastSegmentInfo(const indexlib::file_sy
                                                          int offset, int64_t ts, int64_t maxTTL)
 {
     Version version;
-    VersionLoader::GetVersion(rootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDir, version, INVALID_VERSIONID);
     string segDirName = version.GetSegmentDirName(version.GetLastSegment());
     auto segDir = rootDir->GetDirectory(segDirName, false);
     ASSERT_NE(segDir, nullptr);
@@ -475,7 +475,9 @@ void ParallelPartitionDataMergerTest::SetLastSegmentInfo(const indexlib::file_sy
     indexLocator.fromString(info.GetLocator().Serialize());
     indexLocator.setSrc(src);
     indexLocator.setOffset(offset);
-    info.SetLocator(indexLocator.ToLocator());
+    indexlibv2::framework::Locator locator;
+    locator.Deserialize(indexLocator.toString());
+    info.SetLocator(locator);
     info.timestamp = ts;
     info.maxTTL = maxTTL;
     indexlib::file_system::RemoveOption removeOption = indexlib::file_system::RemoveOption::MayNonExist();
@@ -505,7 +507,7 @@ void ParallelPartitionDataMergerTest::TestNoNeedMerge()
 int64_t ParallelPartitionDataMergerTest::GetLastSegmentLocator(const file_system::DirectoryPtr& rootDir)
 {
     Version version;
-    VersionLoader::GetVersion(rootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDir, version, INVALID_VERSIONID);
     string segDirName = version.GetSegmentDirName(version.GetLastSegment());
     auto segDir = rootDir->GetDirectory(segDirName, false);
     assert(segDir != nullptr);

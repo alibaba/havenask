@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BITMAP_POSTING_MERGE_PARAM_H
-#define __INDEXLIB_BITMAP_POSTING_MERGE_PARAM_H
+#pragma once
 
 #include <memory>
 
@@ -46,5 +45,3 @@ public:
 
 typedef std::shared_ptr<BitmapPostingMergeParam> BitmapPostingMergeParamPtr;
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_BITMAP_POSTING_MERGE_PARAM_H

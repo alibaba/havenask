@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEGMENT_ITERATOR_HELPER_H
-#define __INDEXLIB_SEGMENT_ITERATOR_HELPER_H
+#pragma once
 
 #include <memory>
 
@@ -71,5 +70,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentIteratorHelper);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SEGMENT_ITERATOR_HELPER_H

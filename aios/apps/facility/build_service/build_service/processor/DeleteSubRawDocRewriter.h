@@ -15,6 +15,11 @@
  */
 #pragma once
 
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/StringView.h"
 #include "build_service/common_define.h"
 #include "build_service/document/RawDocument.h"

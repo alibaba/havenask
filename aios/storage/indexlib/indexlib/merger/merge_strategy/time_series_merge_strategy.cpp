@@ -15,11 +15,23 @@
  */
 #include "indexlib/merger/merge_strategy/time_series_merge_strategy.h"
 
-#include "autil/StringTokenizer.h"
+#include <map>
+#include <memory>
+#include <ostream>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "autil/TimeUtility.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/attribute_schema.h"
+#include "indexlib/config/field_type_traits.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/merger/merge_strategy/optimize_merge_strategy.h"
-#include "indexlib/merger/merge_strategy/time_series_segment_merge_info_creator.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

@@ -1,6 +1,7 @@
 #include "indexlib/partition/open_executor/test/dump_container_flush_executor_unittest.h"
 
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/partition_data.h"
 #include "indexlib/index_base/segment/in_memory_segment.h"
@@ -13,7 +14,6 @@
 #include "indexlib/partition/segment/dump_segment_container.h"
 #include "indexlib/partition/segment/normal_segment_dump_item.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 
 using namespace std;

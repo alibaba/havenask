@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KKVTABLETEST_H
-#define __INDEXLIB_KKVTABLETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/SortParam.h"
@@ -268,5 +267,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_KKVTABLETEST_H

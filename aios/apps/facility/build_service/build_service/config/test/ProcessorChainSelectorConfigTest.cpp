@@ -1,6 +1,15 @@
 #include "build_service/config/ProcessorChainSelectorConfig.h"
 
+#include <iostream>
+#include <map>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

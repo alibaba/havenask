@@ -29,9 +29,10 @@ template <typename Key>
 class OnDiskOrderedPrimaryKeyIterator : public IPrimaryKeyIterator<Key>
 {
 public:
-    using PKPairTyped = PKPair<Key, docid_t>;
+    using PKPairTyped = PKPair<Key, docid64_t>;
+    using SegmentPKPairTyped = PKPair<Key, docid32_t>;
     using SegmentIteratorPtr = std::unique_ptr<PrimaryKeyLeafIterator<Key>>;
-    using SegmentIteratorPair = std::pair<PrimaryKeyLeafIterator<Key>*, docid_t>;
+    using SegmentIteratorPair = std::pair<PrimaryKeyLeafIterator<Key>*, docid64_t>;
     using SegmentIteratorPairVec = std::vector<SegmentIteratorPair>;
 
 public:
@@ -45,10 +46,10 @@ public:
         // lft.first = SegmentIterator lft.second = segment baseDocid
         bool operator()(const SegmentIteratorPair& lft, const SegmentIteratorPair& rht)
         {
-            PKPairTyped leftPkPair;
+            SegmentPKPairTyped leftPkPair;
             lft.first->GetCurrentPKPair(leftPkPair);
 
-            PKPairTyped rightPkPair;
+            SegmentPKPairTyped rightPkPair;
             rht.first->GetCurrentPKPair(rightPkPair);
 
             if (leftPkPair.key == rightPkPair.key) {
@@ -104,12 +105,14 @@ public:
             return true;
         }
         auto* segmentIter = _heap.top().first;
-        docid_t baseDocId = _heap.top().second;
+        docid64_t baseDocId = _heap.top().second;
         _heap.pop();
-        if (!segmentIter->Next(_currentPKPair).IsOK()) {
+        SegmentPKPairTyped segmentPkPair;
+        if (!segmentIter->Next(segmentPkPair).IsOK()) {
             return false;
         }
-        _currentPKPair.docid += baseDocId;
+        _currentPKPair.key = segmentPkPair.key;
+        _currentPKPair.docid = baseDocId + segmentPkPair.docid;
         if (segmentIter->HasNext()) {
             _heap.push(std::make_pair(segmentIter, baseDocId));
         }

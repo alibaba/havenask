@@ -15,7 +15,9 @@
  */
 #pragma once
 
+#include <ext/alloc_traits.h>
 #include <functional>
+#include <memory>
 #include <stddef.h>
 #include <stdint.h>
 #include <string>
@@ -23,7 +25,6 @@
 
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileInfo.h"
 

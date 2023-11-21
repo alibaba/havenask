@@ -18,7 +18,7 @@ strict_cc_library(
     ],
     visibility=['//aios/storage/indexlib/file_system:__subpackages__'],
     deps=[
-        ':MergePackageMeta', ':PackagingPlan', '//aios/aios/common/beeper',
+        ':MergePackageMeta', ':PackagingPlan', '//aios/common/beeper',
         '//aios/storage/indexlib/file_system:common',
         '//aios/storage/indexlib/file_system/file:headers',
         '//aios/storage/indexlib/file_system/fslib'

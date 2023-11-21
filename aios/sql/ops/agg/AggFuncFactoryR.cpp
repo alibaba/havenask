@@ -59,15 +59,15 @@ navi::ErrorCode AggFuncFactoryR::init(navi::ResourceInitContext &ctx) {
             return navi::EC_INIT_RESOURCE;
         }
         _funcToCreator[funcName] = creatorR;
-        const auto &functionModel = creatorR->getFunctionModel();
+        auto &functionModel = creatorR->getFunctionModel();
         if (!functionModel.functionName.empty()) {
-            _functionModels.functions.emplace_back(functionModel);
+            _functionModels.emplace_back(functionModel);
         }
     }
     return navi::EC_NONE;
 }
 
-const iquan::FunctionModels &AggFuncFactoryR::getFunctionModels() const {
+const std::vector<iquan::FunctionModel> &AggFuncFactoryR::getFunctionModels() const {
     return _functionModels;
 }
 

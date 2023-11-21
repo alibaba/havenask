@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_REWRITER_CHAIN_H
-#define __INDEXLIB_DOCUMENT_REWRITER_CHAIN_H
+#pragma once
 
 #include <memory>
 
@@ -63,5 +62,3 @@ private:
 
 DEFINE_SHARED_PTR(DocumentRewriterChain);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_DOCUMENT_REWRITER_CHAIN_H

@@ -54,11 +54,12 @@ DecompressCachedBlockDataRetriever::DecompressCachedBlockDataRetriever(
 
 DecompressCachedBlockDataRetriever::~DecompressCachedBlockDataRetriever() noexcept { ReleaseBlocks(); }
 
-uint8_t* DecompressCachedBlockDataRetriever::RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
-                                                               size_t& blockDataLength) noexcept(false)
+FSResult<uint8_t*> DecompressCachedBlockDataRetriever::RetrieveBlockData(size_t fileOffset,
+                                                                         size_t& blockDataBeginOffset,
+                                                                         size_t& blockDataLength) noexcept
 {
     if (!GetBlockMeta(fileOffset, blockDataBeginOffset, blockDataLength)) {
-        return nullptr;
+        return {FSEC_OK, nullptr};
     }
 
     size_t compressBlockIdx = _compressAddrMapper->OffsetToBlockIdx(blockDataBeginOffset);
@@ -71,7 +72,7 @@ uint8_t* DecompressCachedBlockDataRetriever::RetrieveBlockData(size_t fileOffset
     Block* block = _blockCache->Get(blockId, &handle);
     if (block != nullptr) {
         _handles.push_back(handle);
-        return (uint8_t*)block->data + (compressBlockIdx - beginCompressBlockIdx) * _blockSize;
+        return {FSEC_OK, (uint8_t*)block->data + (compressBlockIdx - beginCompressBlockIdx) * _blockSize};
     }
 
     const BlockAllocatorPtr& blockAllocator = _blockCache->GetBlockAllocator();
@@ -81,7 +82,7 @@ uint8_t* DecompressCachedBlockDataRetriever::RetrieveBlockData(size_t fileOffset
     FreeBlockWhenException freeBlockWhenException(block, blockAllocator.get());
 
     for (size_t idx = beginCompressBlockIdx; idx < endCompressBlockIdx; idx++) {
-        DecompressBlockData(idx);
+        RETURN2_IF_FS_ERROR(DecompressBlockData(idx).Code(), nullptr, "decompress block failed");
         assert((addr + _compressor->GetBufferOutLen() - (char*)block->data) <= _blockCache->GetBlockSize());
         memcpy(addr, _compressor->GetBufferOut(), _compressor->GetBufferOutLen());
         addr += _compressor->GetBufferOutLen();
@@ -91,7 +92,7 @@ uint8_t* DecompressCachedBlockDataRetriever::RetrieveBlockData(size_t fileOffset
     (void)ret;
     freeBlockWhenException.block = NULL; // normal return
     _handles.push_back(handle);
-    return (uint8_t*)block->data + (compressBlockIdx - beginCompressBlockIdx) * _blockSize;
+    return {FSEC_OK, (uint8_t*)block->data + (compressBlockIdx - beginCompressBlockIdx) * _blockSize};
 }
 
 future_lite::coro::Lazy<ErrorCode> DecompressCachedBlockDataRetriever::Prefetch(size_t fileOffset,

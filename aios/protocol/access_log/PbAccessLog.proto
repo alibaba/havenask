@@ -1,0 +1,11 @@
+package access_log;
+
+option cc_generic_services = true;
+
+message PbAccessLog {
+    optional string logName = 1;
+    optional bytes queryStr = 2;
+    optional int32 statusCode = 3;
+    optional int32 reqType = 4;
+    optional int64 latency = 5;
+}

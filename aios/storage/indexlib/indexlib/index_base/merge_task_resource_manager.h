@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_TASK_RESOURCE_MANAGER_H
-#define __INDEXLIB_MERGE_TASK_RESOURCE_MANAGER_H
+#pragma once
 
 #include <memory>
 
 #include "autil/Lock.h"
 #include "indexlib/common_define.h"
+#include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/index_base/index_meta/merge_task_resource.h"
 #include "indexlib/indexlib.h"
 
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 DECLARE_REFERENCE_CLASS(file_system, IFileSystem);
 
 namespace indexlib { namespace index_base {
@@ -54,6 +53,31 @@ public:
 
     const MergeTaskResourceVec& GetResourceVec() const;
 
+    auto GetTempWorkingDirectory()
+    {
+        if (mRootDir && mRootDir->IsExist("tmpWorking")) {
+            return mRootDir->GetDirectory("tmpWorking", true);
+        }
+        return indexlib::file_system::DirectoryPtr();
+    }
+
+    auto CreateTempWorkingDirectory()
+    {
+        auto directory = GetTempWorkingDirectory();
+        if (!directory) {
+            static std::string annotation = "temp working path";
+            (void)DeclareResource(annotation.data(), annotation.size());
+            mRootDir->MakeDirectory("tmpWorking", indexlib::file_system::DirectoryOption())->Close();
+        }
+    }
+
+    void CleanTempWorkingDirectory()
+    {
+        auto directory = GetTempWorkingDirectory();
+        if (directory) {
+            mRootDir->RemoveDirectory("tmpWorking", indexlib::file_system::RemoveOption());
+        }
+    }
     void Commit();
 
 private:
@@ -73,5 +97,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeTaskResourceManager);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_MERGE_TASK_RESOURCE_MANAGER_H

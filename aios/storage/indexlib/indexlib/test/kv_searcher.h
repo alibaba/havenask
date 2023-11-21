@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KV_SEARCHER_H
-#define __INDEXLIB_KV_SEARCHER_H
+#pragma once
 
 #include <memory>
 
@@ -58,5 +57,3 @@ private:
 DEFINE_SHARED_PTR(KVSearcher);
 
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_KV_SEARCHER_H

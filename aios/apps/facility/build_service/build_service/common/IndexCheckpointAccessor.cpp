@@ -15,10 +15,19 @@
  */
 #include "build_service/common/IndexCheckpointAccessor.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "build_service/common/BuilderCheckpointAccessor.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/proto/JsonizableProtobuf.h"
 
 using namespace std;
 using namespace autil;
@@ -142,7 +151,7 @@ void IndexCheckpointAccessor::clearIndexCheckpoint(const string& clusterName, ve
     _accessor->listCheckpoints(ckpId, checkpoints);
     set<string> needToBeRemoved;
     for (auto& ckp : checkpoints) {
-        versionid_t versionId = INVALID_VERSION;
+        versionid_t versionId = indexlib::INVALID_VERSIONID;
         if (!StringUtil::fromString(ckp.first, versionId)) {
             needToBeRemoved.insert(ckp.first);
             continue;
@@ -230,8 +239,8 @@ set<versionid_t> IndexCheckpointAccessor::getReservedVersions(const string& clus
     vector<pair<string, string>> checkpoints;
     _accessor->listCheckpoints(ckpId, checkpoints);
     for (auto& ckp : checkpoints) {
-        versionid_t versionId = INVALID_VERSION;
-        if (StringUtil::fromString(ckp.first, versionId) && versionId != INVALID_VERSION) {
+        versionid_t versionId = indexlib::INVALID_VERSIONID;
+        if (StringUtil::fromString(ckp.first, versionId) && versionId != indexlib::INVALID_VERSIONID) {
             ret.insert(versionId);
         }
     }

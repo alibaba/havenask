@@ -27,6 +27,7 @@
 #include "navi/resource/QuerySessionR.h"
 #include "navi/rpc_server/NaviArpcRequestData.h"
 #include "sql/common/common.h"
+#include "sql/data/SqlFormatData.h"
 #include "sql/data/SqlQueryRequest.h"
 #include "sql/data/SqlRequestData.h"
 
@@ -38,13 +39,16 @@ namespace sql {
 
 const std::string SqlRpcKernel::KERNEL_ID = "sql.rpc.k";
 const std::string SqlRpcKernel::OUTPUT_PORT = "out";
+const std::string SqlRpcKernel::OUTPUT_PORT2 = "out2";
 
 SqlRpcKernel::SqlRpcKernel() {}
 
 SqlRpcKernel::~SqlRpcKernel() {}
 
 void SqlRpcKernel::def(navi::KernelDefBuilder &builder) const {
-    builder.name(KERNEL_ID).output(OUTPUT_PORT, "");
+    builder.name(KERNEL_ID)
+        .output(OUTPUT_PORT, SqlRequestType::TYPE_ID)
+        .output(OUTPUT_PORT2, SqlFormatType::TYPE_ID);
 }
 
 bool SqlRpcKernel::config(navi::KernelConfigContext &ctx) {
@@ -72,6 +76,8 @@ navi::ErrorCode SqlRpcKernel::compute(navi::KernelComputeContext &ctx) {
         NAVI_KERNEL_LOG(ERROR, "init sql request failed [%s]", assemblyQuery.c_str());
         return navi::EC_ABORT;
     }
+    SqlFormatDataPtr sqlFormatData(new SqlFormatData(sqlRequest.get()));
+    ctx.setOutput(1, sqlFormatData, true);
     if (!checkAuth(sqlRequest)) {
         NAVI_KERNEL_LOG(ERROR, "request unauthorized, query rejected: %s", assemblyQuery.c_str());
         return navi::EC_ABORT;

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONCOUNTERPERFTEST_H
-#define __INDEXLIB_PARTITIONCOUNTERPERFTEST_H
+#pragma once
 
 #include <unordered_map>
 
@@ -56,5 +55,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(PartitionCounterPerfTest, TestMultiThreadUpdateCounters);
 INDEXLIB_UNIT_TEST_CASE(PartitionCounterPerfTest, TestMultiThreadReadWithAccessCounters);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITIONCOUNTERPERFTEST_H

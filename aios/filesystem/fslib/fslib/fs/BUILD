@@ -11,15 +11,19 @@ cc_library(
 cc_library(
     name='fs',
     srcs=glob(['*.cpp']),
+    include_prefix='fslib/fs',
+    visibility=[
+        '//aios/filesystem/fslib:__subpackages__',
+        '//aios/network/gig:__subpackages__'
+    ],
     deps=[
-        '//aios/filesystem/fslib/fslib/fs/local:local',
-        '//aios/filesystem/fslib/fslib/cache:cache',
+        '//aios/autil:hash_func', '//aios/autil:lock', '//aios/autil:net',
+        '//aios/autil:regex', '//aios/autil:stack_tracer',
         '//aios/filesystem/fslib/fslib:cc_fslib_config_h',
         '//aios/filesystem/fslib/fslib:common',
-        '//aios/filesystem/fslib/fslib/util:util', '//aios/autil:lock',
-        '//aios/autil:regex', '//aios/autil:net', '//aios/autil:stack_tracer',
-        '//aios/autil:hash_func'
+        '//aios/filesystem/fslib/fslib/cache',
+        '//aios/filesystem/fslib/fslib/fs/local',
+        '//aios/filesystem/fslib/fslib/util'
     ],
-    include_prefix='fslib/fs',
     alwayslink=True
 )

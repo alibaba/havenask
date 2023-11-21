@@ -33,7 +33,7 @@ cc_library(
         '//aios/ha3/ha3/queryparser:ha3_queryparser',
         '//aios/ha3/ha3/search/auxiliary_chain:ha3_auxiliary_chain',
         '//aios/ha3/ha3/search/single_layer_searcher:ha3_single_layer_searcher',
-        '//aios/ha3/ha3/turing/common/metadata:modelconfig', '//aios/navi_ops',
+        '//aios/ha3/ha3/turing/common/metadata:modelconfig',
         '//aios/sql/common:sql_common',
         '//aios/sql/ops/calc:sql_ops_calc_table',
         '//aios/sql/ops/scan/udf_to_query:sql_ops_udf_to_query',

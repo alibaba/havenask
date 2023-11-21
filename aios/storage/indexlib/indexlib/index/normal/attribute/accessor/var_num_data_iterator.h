@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VAR_NUM_DATA_ITERATOR_H
-#define __INDEXLIB_VAR_NUM_DATA_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -291,5 +290,3 @@ inline void VarNumDataIterator<T>::UpdateIsNull()
     common::VarNumAttributeFormatter::DecodeCount((const char*)mDataBuf.data(), encodeCountLen, mIsNull);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VAR_NUM_DATA_ITERATOR_H

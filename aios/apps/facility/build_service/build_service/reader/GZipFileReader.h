@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_GZIPFILEREADER_H
-#define ISEARCH_BS_GZIPFILEREADER_H
+#pragma once
 
 #include <zlib.h>
 
@@ -71,5 +70,3 @@ private:
 BS_TYPEDEF_PTR(GZipFileReader);
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_GZIPFILEREADER_H

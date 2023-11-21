@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDERCHECKPOINTACCESSOR_H
-#define ISEARCH_BS_BUILDERCHECKPOINTACCESSOR_H
+#pragma once
+
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/common_define.h"
-#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/VersionCoord.h"
 #include "indexlib/indexlib.h"
 
 namespace build_service { namespace common {
 
 class CheckpointAccessor;
+
 BS_TYPEDEF_PTR(CheckpointAccessor);
 
 class BuilderCheckpointAccessor
@@ -82,5 +89,3 @@ private:
 BS_TYPEDEF_PTR(BuilderCheckpointAccessor);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_BUILDERCHECKPOINTACCESSOR_H

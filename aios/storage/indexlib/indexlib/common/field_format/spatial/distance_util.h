@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DISTANCE_UTIL_H
-#define __INDEXLIB_DISTANCE_UTIL_H
+#pragma once
 
 #include "indexlib/index/common/field_format/spatial/DistanceUtil.h"
 
 namespace indexlib { namespace common {
 using DistanceUtil = index::DistanceUtil;
-}}     // namespace indexlib::common
-#endif //__INDEXLIB_DISTANCE_UTIL_H
+}} // namespace indexlib::common

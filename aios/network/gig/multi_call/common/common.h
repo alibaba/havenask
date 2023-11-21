@@ -133,6 +133,8 @@ extern const std::string GIG_HEARTBEAT_METHOD_NAME;
 constexpr int64_t GIG_STREAM_HEARTBEAT_VERSION = 1;
 constexpr int64_t GIG_HEARTBEAT_SKIP_LOW = 2 * 1000 * 1000;
 constexpr int64_t GIG_HEARTBEAT_SKIP_HIGH = 600 * 1000 * 1000;
+constexpr int64_t GIG_HEARTBEAT_TIMEOUT = 3 * 1000 * 1000;
+constexpr int64_t GIG_HEARTBEAT_SUBSCRIBE_TIMEOUT = 30 * 1000 * 1000;
 
 extern const std::string GIG_NEW_HEARTBEAT_METHOD_NAME;
 

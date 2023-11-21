@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILDIN_MATCH_FUNCTION_FACTORY_H
-#define __INDEXLIB_BUILDIN_MATCH_FUNCTION_FACTORY_H
+#pragma once
 
 #include <memory>
 
@@ -22,6 +21,7 @@
 #include "indexlib/index/segment_metrics_updater/match_function.h"
 #include "indexlib/index/segment_metrics_updater/time_to_now_function.h"
 #include "indexlib/index_define.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/util/KeyValueMap.h"
 
 namespace indexlib { namespace index {
@@ -80,5 +80,3 @@ BuildinMatchFunctionFactory::CreateTimeToNowFunction<std::string, std::string>()
 
 DEFINE_SHARED_PTR(BuildinMatchFunctionFactory);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_BUILDIN_MATCH_FUNCTION_FACTORY_H

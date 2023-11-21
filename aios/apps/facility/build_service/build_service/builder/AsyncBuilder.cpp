@@ -15,8 +15,21 @@
  */
 #include "build_service/builder/AsyncBuilder.h"
 
+#include <assert.h>
+#include <functional>
+#include <iosfwd>
+#include <string>
+#include <unistd.h>
+
+#include "alog/Logger.h"
 #include "autil/Thread.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/document/document.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/partition/builder_branch_hinter.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;

@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_META_H
-#define __INDEXLIB_SEGMENT_META_H
+#pragma once
 
-#include <memory>
-
-#include "indexlib/common_define.h"
-#include "indexlib/file_system/Directory.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/segment/segment_data_base.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 // TODO: move SegmentInfo to common namespace
 namespace indexlib { namespace table {
@@ -48,5 +44,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentMeta);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_SEGMENT_META_H

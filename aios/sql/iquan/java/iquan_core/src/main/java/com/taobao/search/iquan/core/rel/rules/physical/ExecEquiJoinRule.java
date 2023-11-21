@@ -1,6 +1,8 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
-import com.taobao.search.iquan.core.api.schema.Table;
+import java.util.List;
+
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
@@ -9,8 +11,6 @@ import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.util.List;
 
 public class ExecEquiJoinRule extends ExecEquiJoinBaseRule {
     public static final ExecEquiJoinRule INSTANCE = new ExecEquiJoinRule(IquanRelBuilder.LOGICAL_BUILDER);
@@ -31,9 +31,9 @@ public class ExecEquiJoinRule extends ExecEquiJoinBaseRule {
     }
 
     @Override
-    protected boolean isUseIndex(IquanJoinOp join, RelNode input, Table table,
+    protected boolean isUseIndex(IquanJoinOp join, RelNode input, IquanTable iquanTable,
                                  List<String> joinKeys, boolean isLeft, boolean otherBroadcast) {
-        if (!super.isUseIndex(join, input, table, joinKeys, isLeft, otherBroadcast)) {
+        if (!super.isUseIndex(join, input, iquanTable, joinKeys, isLeft, otherBroadcast)) {
             return false;
         }
         if ((JoinRelType.LEFT == join.getJoinType() && isLeft)
@@ -46,6 +46,6 @@ public class ExecEquiJoinRule extends ExecEquiJoinBaseRule {
                 return false;
             }
         }
-        return IquanJoinUtils.hasIndex(table, joinKeys);
+        return IquanJoinUtils.hasIndex(iquanTable, joinKeys);
     }
 }

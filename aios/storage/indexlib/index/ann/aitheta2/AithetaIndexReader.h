@@ -18,12 +18,14 @@
 #include "autil/Log.h"
 #include "indexlib/config/IIndexConfig.h"
 #include "indexlib/framework/TabletData.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/ann/ANNIndexConfig.h"
 #include "indexlib/index/ann/aitheta2/AithetaFilterCreator.h"
 #include "indexlib/index/ann/aitheta2/AithetaIndexConfig.h"
 #include "indexlib/index/ann/aitheta2/impl/NormalSegmentSearcher.h"
 #include "indexlib/index/ann/aitheta2/impl/RealtimeSegmentSearcher.h"
 #include "indexlib/index/ann/aitheta2/util/MetricReporter.h"
+#include "indexlib/index/common/DictHasher.h"
 #include "indexlib/index/inverted_index/InvertedIndexReader.h"
 
 namespace indexlibv2::index::ann {
@@ -34,7 +36,7 @@ namespace indexlibv2::index::ann {
 class AithetaIndexReader : public indexlib::index::InvertedIndexReader
 {
 public:
-    AithetaIndexReader(const IndexerParameter& indexerParam);
+    AithetaIndexReader(const IndexReaderParameter& indexReaderParam);
     ~AithetaIndexReader();
     friend class AithetaRecallReporter;
 
@@ -70,12 +72,13 @@ protected:
 
 private:
     Status InitMetrics(const std::string& indexName);
-    Status AddNormalSearcher(std::shared_ptr<IIndexer>& indexer, docid_t segmentBaseDocId,
+    Status AddNormalSearcher(std::shared_ptr<IIndexer>& indexer, docid_t segmentBaseDocId, size_t totalIndexDocCount,
                              const std::shared_ptr<AithetaFilterCreator>& creator);
     Status AddRealtimeSearcher(std::shared_ptr<IIndexer>& indexer, docid_t segmentBaseDocId,
                                const std::shared_ptr<AithetaFilterCreator>& creator);
     Status ParseQuery(const indexlib::index::Term& term, AithetaQueries& indexQuery,
                       std::shared_ptr<AithetaAuxSearchInfoBase>& searchInfo);
+    void initTokenHasher(const std::shared_ptr<config::ANNIndexConfig>& indexConfig);
 
 private:
     bool GetSegmentPosting(const indexlib::index::DictKeyInfo& key, uint32_t segmentIdx,
@@ -95,13 +98,18 @@ private:
     }
     void SetAccessoryReader(const std::shared_ptr<indexlib::index::IndexAccessoryReader>& accessorReader) override {}
 
+    static std::pair<Status, size_t>
+    GetTotalIndexDocCount(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
+                          const indexlibv2::framework::TabletData* tabletData);
+
 private:
-    IndexerParameter _indexerParam;
+    IndexReaderParameter _indexReaderParam;
     AithetaIndexConfig _aithetaIndexConfig;
     std::vector<std::shared_ptr<NormalSegmentSearcher>> _normalSearchers;
     std::vector<std::shared_ptr<RealtimeSegmentSearcher>> _realtimeSearchers;
     std::shared_ptr<AithetaRecallReporter> _recallReporter;
     docid_t _latestRtBaseDocId;
+    std::shared_ptr<indexlib::index::TokenHasher> _tokenHasher;
 
     MetricReporterPtr _metricReporter;
     MetricPtr _searchCountMetric;

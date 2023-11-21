@@ -6,10 +6,8 @@ def proxima2_liba_deps():
     return select({
         "//aios/storage/indexlib/index/ann/aitheta2:ppu_mode": ["@proxima2//:proxima2_cpu"],
         "//aios/storage/indexlib/index/ann/aitheta2:gpu_mode": ["@proxima2//:proxima2_gpu"],
-        "//aios/storage/indexlib/index/ann/aitheta2:new_abi_gpu_mode": ["@proxima2//:proxima2_gpu_c11abi"],
         "//aios/storage/indexlib/index/ann/aitheta2:cpu_mode": ["@proxima2//:proxima2_cpu"],
         "//aios/storage/indexlib/index/ann/aitheta2:new_abi_cpu_mode": ["@proxima2//:proxima2_cpu_c11abi"],
-        "//aios/storage/indexlib/index/ann/aitheta2:avx512_cpu_mode": ["@proxima2//:proxima2_cpu_avx512"],
         "//conditions:default": [],
     }) + select({
         "//aios/storage/indexlib/index/ann/aitheta2:gpu_mode": [

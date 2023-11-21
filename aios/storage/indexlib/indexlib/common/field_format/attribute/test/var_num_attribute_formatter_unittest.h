@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_VARNUMATTRIBUTEFORMATTERTEST_H
-#define __INDEXLIB_VARNUMATTRIBUTEFORMATTERTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/attribute/var_num_attribute_formatter.h"
 #include "indexlib/common_define.h"
@@ -30,5 +29,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(VarNumAttributeFormatterTest, TestSimpleProcess);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_VARNUMATTRIBUTEFORMATTERTEST_H

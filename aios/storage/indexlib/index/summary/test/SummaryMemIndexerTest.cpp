@@ -195,7 +195,7 @@ void SummaryMemIndexerTest::TestCaseForSortDump(bool useCompress)
     auto directory = _rootDir;
     ASSERT_TRUE(summaryMemIndexer->Dump(&_pool, directory, params).IsOK());
 
-    IndexerParameter indexerParam;
+    DiskIndexerParameter indexerParam;
     indexerParam.docCount = documentCount;
     auto diskIndexer = std::make_shared<SummaryDiskIndexer>(indexerParam);
     ASSERT_TRUE(diskIndexer->Open(summaryIndexConfig, directory->GetIDirectory()).IsOK());

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_REOPENDECIDERTEST_H
-#define __INDEXLIB_REOPENDECIDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/reopen_decider.h"
@@ -52,5 +51,3 @@ INDEXLIB_UNIT_TEST_CASE(ReopenDeciderTest, TestNeedSwitchFlushRtSegments);
 INDEXLIB_UNIT_TEST_CASE(ReopenDeciderTest, TestReopenWithNewSchemaVersion);
 INDEXLIB_UNIT_TEST_CASE(ReopenDeciderTest, TestNoReopenWhenRecover);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_REOPENDECIDERTEST_H

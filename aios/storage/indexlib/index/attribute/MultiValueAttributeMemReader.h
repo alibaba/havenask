@@ -50,13 +50,10 @@ public:
                      autil::mem_pool::Pool* pool) const __ALWAYS_INLINE;
     uint64_t GetDocCount() const { return _varLenDataAccessor->GetDocCount(); }
     bool Updatable() const { return false; }
-
-public:
-    inline uint32_t TEST_GetDataLength(docid_t docId) const { return GetDataLength(docId); }
+    inline uint32_t GetDataLength(docid_t docId) const override;
 
 private:
     bool CheckDocId(docid_t docId) const { return docId >= 0 && docId < (docid_t)GetDocCount(); }
-    inline uint32_t GetDataLength(docid_t docId) const;
 
 private:
     const VarLenDataAccessor* _varLenDataAccessor;

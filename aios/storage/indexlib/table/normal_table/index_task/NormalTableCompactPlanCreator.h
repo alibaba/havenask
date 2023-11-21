@@ -32,7 +32,7 @@ class MergeStrategy;
 class NormalTableCompactPlanCreator : public SimpleIndexTaskPlanCreator
 {
 public:
-    explicit NormalTableCompactPlanCreator(const std::string& taskName = "",
+    explicit NormalTableCompactPlanCreator(const std::string& taskName = "", const std::string& taskTraceId = "",
                                            const std::map<std::string, std::string>& params = {});
     ~NormalTableCompactPlanCreator();
 

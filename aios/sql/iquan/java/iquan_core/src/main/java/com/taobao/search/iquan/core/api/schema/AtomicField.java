@@ -1,9 +1,9 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 public class AtomicField extends AbstractField {
     private static final Logger logger = LoggerFactory.getLogger(AtomicField.class);
@@ -21,6 +21,10 @@ public class AtomicField extends AbstractField {
 
     public AtomicField(String fieldName, String fieldType, boolean isAttribute) {
         this(fieldName, FieldType.from(fieldType), isAttribute);
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     public String getIndexName() {
@@ -77,10 +81,6 @@ public class AtomicField extends AbstractField {
     @Override
     public String toString() {
         return getDigest();
-    }
-
-    public static Builder newBuilder() {
-        return new Builder();
     }
 
     public static class Builder {

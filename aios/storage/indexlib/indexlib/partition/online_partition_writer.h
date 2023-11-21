@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __ONLINE_PARTITION_WRITER_H
-#define __ONLINE_PARTITION_WRITER_H
+#pragma once
 
 #include <memory>
 
@@ -92,5 +91,3 @@ private:
 
 DEFINE_SHARED_PTR(OnlinePartitionWriter);
 }} // namespace indexlib::partition
-
-#endif //__ONLINE_PARTITION_WRITER_H

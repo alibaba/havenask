@@ -42,8 +42,8 @@ void BufferedIndexDecoder::Init(const std::shared_ptr<SegmentPostingVector>& seg
     MoveToSegment(INVALID_DOCID);
 }
 
-bool BufferedIndexDecoder::DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId,
-                                           docid_t& lastDocId, ttf_t& currentTTF)
+bool BufferedIndexDecoder::DecodeDocBuffer(docid64_t startDocId, docid32_t* docBuffer, docid64_t& firstDocId,
+                                           docid64_t& lastDocId, ttf_t& currentTTF)
 {
     while (true) {
         if (DecodeDocBufferInOneSegment(startDocId, docBuffer, firstDocId, lastDocId, currentTTF)) {
@@ -56,8 +56,8 @@ bool BufferedIndexDecoder::DecodeDocBuffer(docid_t startDocId, docid_t* docBuffe
     return false;
 }
 
-bool BufferedIndexDecoder::DecodeDocBufferMayCopy(docid_t startDocId, docid_t*& docBuffer, docid_t& firstDocId,
-                                                  docid_t& lastDocId, ttf_t& currentTTF)
+bool BufferedIndexDecoder::DecodeDocBufferMayCopy(docid64_t startDocId, docid32_t*& docBuffer, docid64_t& firstDocId,
+                                                  docid64_t& lastDocId, ttf_t& currentTTF)
 {
     while (true) {
         if (DecodeDocBufferInOneSegmentMayCopy(startDocId, docBuffer, firstDocId, lastDocId, currentTTF)) {
@@ -97,52 +97,57 @@ void BufferedIndexDecoder::DecodeCurrentFieldMapBuffer(fieldmap_t* fieldBitmapBu
     _needDecodeFieldMap = false;
 }
 
-bool BufferedIndexDecoder::DecodeDocBufferInOneSegment(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId,
-                                                       docid_t& lastDocId, ttf_t& currentTTF)
+bool BufferedIndexDecoder::DecodeDocBufferInOneSegment(docid64_t startDocId, docid32_t* docBuffer,
+                                                       docid64_t& firstDocId, docid64_t& lastDocId, ttf_t& currentTTF)
 {
-    docid_t nextSegBaseDocId = GetSegmentBaseDocId(_segmentCursor);
+    docid64_t nextSegBaseDocId = GetSegmentBaseDocId(_segmentCursor);
     if (nextSegBaseDocId != INVALID_DOCID && startDocId >= nextSegBaseDocId) {
         // start docid not in current segment
         return false;
     }
 
-    docid_t curSegDocId = std::max(docid_t(0), startDocId - _baseDocId);
-    if (!_segmentDecoder->DecodeDocBuffer(curSegDocId, docBuffer, firstDocId, lastDocId, currentTTF)) {
+    assert(std::max(docid64_t(0), startDocId - _baseDocId) <= std::numeric_limits<docid32_t>::max());
+    docid32_t curSegDocId = std::max(docid64_t(0), startDocId - _baseDocId);
+    docid32_t firstDocId32 = INVALID_DOCID;
+    docid32_t lastDocId32 = INVALID_DOCID;
+    if (!_segmentDecoder->DecodeDocBuffer(curSegDocId, docBuffer, firstDocId32, lastDocId32, currentTTF)) {
         return false;
     }
     _needDecodeTF = mCurSegPostingFormatOption.HasTfList();
     _needDecodeDocPayload = mCurSegPostingFormatOption.HasDocPayload();
     _needDecodeFieldMap = mCurSegPostingFormatOption.HasFieldMap();
 
-    firstDocId += _baseDocId;
-    lastDocId += _baseDocId;
+    firstDocId = firstDocId32 + _baseDocId;
+    lastDocId = lastDocId32 + _baseDocId;
     return true;
 }
 
-bool BufferedIndexDecoder::DecodeDocBufferInOneSegmentMayCopy(docid_t startDocId, docid_t*& docBuffer,
-                                                              docid_t& firstDocId, docid_t& lastDocId,
+bool BufferedIndexDecoder::DecodeDocBufferInOneSegmentMayCopy(docid64_t startDocId, docid32_t*& docBuffer,
+                                                              docid64_t& firstDocId, docid64_t& lastDocId,
                                                               ttf_t& currentTTF)
 {
-    docid_t nextSegBaseDocId = GetSegmentBaseDocId(_segmentCursor);
+    docid64_t nextSegBaseDocId = GetSegmentBaseDocId(_segmentCursor);
     if (nextSegBaseDocId != INVALID_DOCID && startDocId >= nextSegBaseDocId) {
         // start docid not in current segment
         return false;
     }
-
-    docid_t curSegDocId = std::max(docid_t(0), startDocId - _baseDocId);
-    if (!_segmentDecoder->DecodeDocBufferMayCopy(curSegDocId, docBuffer, firstDocId, lastDocId, currentTTF)) {
+    assert(std::max(docid64_t(0), startDocId - _baseDocId) <= std::numeric_limits<docid32_t>::max());
+    docid32_t curSegDocId = std::max(docid64_t(0), startDocId - _baseDocId);
+    docid32_t firstDocId32 = INVALID_DOCID;
+    docid32_t lastDocId32 = INVALID_DOCID;
+    if (!_segmentDecoder->DecodeDocBufferMayCopy(curSegDocId, docBuffer, firstDocId32, lastDocId32, currentTTF)) {
         return false;
     }
     _needDecodeTF = mCurSegPostingFormatOption.HasTfList();
     _needDecodeDocPayload = mCurSegPostingFormatOption.HasDocPayload();
     _needDecodeFieldMap = mCurSegPostingFormatOption.HasFieldMap();
 
-    firstDocId += _baseDocId;
-    lastDocId += _baseDocId;
+    firstDocId = _baseDocId + firstDocId32;
+    lastDocId = _baseDocId + lastDocId32;
     return true;
 }
 
-bool BufferedIndexDecoder::MoveToSegment(docid_t startDocId)
+bool BufferedIndexDecoder::MoveToSegment(docid64_t startDocId)
 {
     uint32_t locateSegCursor = LocateSegment(_segmentCursor, startDocId);
     if (locateSegCursor >= _segmentCount) {
@@ -190,18 +195,18 @@ bool BufferedIndexDecoder::MoveToSegment(docid_t startDocId)
     util::ByteSliceList* postingList = curSegPosting.GetSliceListPtr().get();
     // do not use doclist reader to read, because reader can't seek back.
     if (singleSlice) {
-        docListReader.Open(singleSlice);
-        _docListReader.Open(singleSlice);
+        docListReader.Open(singleSlice).GetOrThrow();
+        _docListReader.Open(singleSlice).GetOrThrow();
     } else {
-        docListReader.Open(postingList);
-        _docListReader.Open(postingList);
+        docListReader.Open(postingList).GetOrThrow();
+        _docListReader.Open(postingList).GetOrThrow();
     }
 
     TermMeta termMeta;
     TermMetaLoader tmLoader(mCurSegPostingFormatOption);
     tmLoader.Load(&docListReader, termMeta);
-    uint32_t docSkipListSize = docListReader.ReadVUInt32();
-    uint32_t docListSize = docListReader.ReadVUInt32();
+    uint32_t docSkipListSize = docListReader.ReadVUInt32().GetOrThrow();
+    uint32_t docListSize = docListReader.ReadVUInt32().GetOrThrow();
 
     uint32_t docListBeginPos = docListReader.Tell() + docSkipListSize;
     IE_POOL_COMPATIBLE_DELETE_CLASS(_sessionPool, _segmentDecoder);

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDFLOWMODE_H
-#define ISEARCH_BS_BUILDFLOWMODE_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
@@ -23,5 +22,3 @@ namespace build_service { namespace workflow {
 
 enum BuildFlowMode { NONE = 0, PROCESSOR = 0x2, BUILDER = 0x4, ALL = PROCESSOR | BUILDER };
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_BUILDFLOWMODE_H

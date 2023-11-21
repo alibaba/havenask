@@ -1,13 +1,12 @@
 package com.taobao.search.iquan.core.api.schema;
 
-import org.apache.calcite.plan.RelOptTable;
-
 import java.util.List;
 
 public class Layer {
     private String dbName;
     private String tableName;
     private List<LayerInfo> layerInfos;
+
     public String getTableName() {
         return tableName;
     }

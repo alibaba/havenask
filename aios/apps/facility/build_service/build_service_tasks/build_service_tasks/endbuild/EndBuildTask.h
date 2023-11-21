@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ENDBUILDTASK_H
-#define ISEARCH_BS_ENDBUILDTASK_H
+#pragma once
+
+#include <string>
 
 #include "autil/Lock.h"
-#include "autil/StringUtil.h"
 #include "build_service/common_define.h"
-#include "build_service/config/BuildServiceConfig.h"
-#include "build_service/config/TaskConfig.h"
 #include "build_service/config/TaskTarget.h"
 #include "build_service/task_base/Task.h"
 #include "build_service/util/Log.h"
-#include "fslib/util/FileUtil.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/index_base/index_meta/parallel_build_info.h"
 #include "indexlib/merger/parallel_partition_data_merger.h"
@@ -68,5 +65,4 @@ private:
 
 BS_TYPEDEF_PTR(EndBuildTask);
 
-}}     // namespace build_service::task_base
-#endif // ISEARCH_BS_ENDBUILDTASK_H
+}} // namespace build_service::task_base

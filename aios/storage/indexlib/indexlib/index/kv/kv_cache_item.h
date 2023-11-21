@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_CACHE_ITEM_H
-#define __INDEXLIB_KV_CACHE_ITEM_H
+#pragma once
 
 #include <memory>
 
@@ -77,5 +76,3 @@ struct KVCacheItem {
     }
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_CACHE_ITEM_H

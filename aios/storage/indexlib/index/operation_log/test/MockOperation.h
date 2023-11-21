@@ -11,7 +11,7 @@ namespace indexlib::index {
 class MockOperation : public OperationBase
 {
 public:
-    MockOperation(const indexlibv2::document::IDocument::DocInfo& docInfo) : OperationBase(docInfo) {}
+    MockOperation(const indexlibv2::framework::Locator::DocInfo& docInfo) : OperationBase(docInfo) {}
 
     OperationBase* Clone(autil::mem_pool::Pool* pool) override
     {
@@ -48,7 +48,7 @@ public:
     static MockOperation* MakeOperation(int64_t ts, autil::mem_pool::Pool* pool)
     {
         MockOperation* operation =
-            IE_POOL_COMPATIBLE_NEW_CLASS(pool, MockOperation, {/*hashId*/ 0, ts, /*concurrentIdx*/ 0});
+            IE_POOL_COMPATIBLE_NEW_CLASS(pool, MockOperation, {/*hashId*/ 0, ts, /*concurrentIdx*/ 0, /*sourceIdx*/ 0});
         return operation;
     }
 };

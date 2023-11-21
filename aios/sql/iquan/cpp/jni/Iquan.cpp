@@ -30,36 +30,8 @@ Status Iquan::init(const JniConfig &jniConfig, const ClientConfig &sqlConfig) {
     return _impl->init(jniConfig, sqlConfig);
 }
 
-Status Iquan::updateTables(const TableModels &tables) {
-    return _impl->updateTables(tables);
-}
-
-Status Iquan::updateTables(const std::string &tableContent) {
-    return _impl->updateTables(tableContent);
-}
-
-Status Iquan::updateLayerTables(const LayerTableModels &tables) {
-    return _impl->updateLayerTables(tables);
-}
-
-Status Iquan::updateLayerTables(const std::string &tableContent) {
-    return _impl->updateLayerTables(tableContent);
-}
-
-Status Iquan::updateFunctions(FunctionModels &functions) {
-    return _impl->updateFunctions(functions);
-}
-
-Status Iquan::updateFunctions(const TvfModels &functions) {
-    return _impl->updateFunctions(functions);
-}
-
-Status Iquan::updateFunctions(const std::string &functionContent) {
-    return _impl->updateFunctions(functionContent);
-}
-
-Status Iquan::updateCatalog(const CatalogInfo &catalog) {
-    return _impl->updateCatalog(catalog);
+Status Iquan::registerCatalogs(const CatalogDefs &catalogs) {
+    return _impl->registerCatalogs(catalogs);
 }
 
 Status Iquan::query(IquanDqlRequest &request,

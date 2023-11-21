@@ -16,6 +16,8 @@
 #include "indexlib/table/merge_task_dispatcher.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <ext/alloc_traits.h>
 #include <queue>
 
 using namespace std;

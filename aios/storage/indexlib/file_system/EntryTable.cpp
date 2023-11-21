@@ -22,16 +22,18 @@
 #include <ostream>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
 #include "autil/Lock.h"
 #include "autil/Log.h"
 #include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "fslib/common/common_type.h"
 #include "indexlib/file_system/EntryMeta.h"
 #include "indexlib/file_system/EntryTableJsonizable.h"
 #include "indexlib/file_system/ErrorCode.h"
@@ -355,9 +357,9 @@ bool EntryTable::IsDir(const string& path) const
 // @param logicalPath: eg. segment_1/index/name/data
 FSResult<EntryMeta> EntryTable::GetAncestorLazyEntryMeta(const std::string& logicalPath) const
 {
-    assert(_entryMetaMap.count(logicalPath) == 0);
     // assert(!logicalPath.empty());
     ScopedLock lock(_lock);
+    assert(_entryMetaMap.count(logicalPath) == 0);
     std::string parentPath = logicalPath;
     while (!parentPath.empty()) {
         FSResult<EntryMeta> parentMetaRet = GetEntryMeta(parentPath);

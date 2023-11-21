@@ -303,14 +303,28 @@ TEST_F(TabletCommitterTest, testVersionLine)
     ASSERT_EQ(version.GetVersionId(), version1.GetVersionLine().GetParentVersion().GetVersionId());
 }
 
+TEST_F(TabletCommitterTest, testIsExist)
+{
+    auto tabletCommitter = CreateEmptyTabletCommiter(_tabletName);
+    std::map<std::string, std::string> params1;
+    IndexTaskMetaCreator creator;
+    auto meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params1).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::ADD);
+    ASSERT_TRUE(tabletCommitter->HasIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123"));
+}
+
 TEST_F(TabletCommitterTest, testAddIndexTasks)
 {
     auto tabletCommitter = CreateEmptyTabletCommiter(_tabletName);
     std::map<std::string, std::string> params1;
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params1, Action::ADD, /*comment=*/"");
+    IndexTaskMetaCreator creator1;
+    auto meta1 = creator1.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params1).Create();
+    tabletCommitter->HandleIndexTask(meta1, Action::ADD);
     std::map<std::string, std::string> params2;
     params2["key1"] = "value1";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"456", params2, Action::ADD, /*comment=*/"");
+    IndexTaskMetaCreator creator2;
+    auto meta2 = creator2.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("456").Params(params2).Create();
+    tabletCommitter->HandleIndexTask(meta2, Action::ADD);
 
     ASSERT_TRUE(tabletCommitter->NeedCommit());
 
@@ -322,25 +336,32 @@ TEST_F(TabletCommitterTest, testAddIndexTasks)
         tabletCommitter->Commit(tabletData, fence, /*retry=*/1, &idGenerator,
                                 CommitOptions().SetNeedPublish(true).SetTargetVersionId(536870912));
     ASSERT_TRUE(status.IsOK());
-    auto task1 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
+    auto task1 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
     ASSERT_TRUE(task1);
-    ASSERT_EQ(task1->state, IndexTaskMeta::READY);
-    auto task2 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"456");
+    ASSERT_EQ(task1->GetState(), IndexTaskMeta::PENDING);
+    auto task2 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"456");
     ASSERT_TRUE(task2);
-    ASSERT_EQ(task2->state, IndexTaskMeta::READY);
+    ASSERT_EQ(task2->GetState(), IndexTaskMeta::PENDING);
 }
 
 TEST_F(TabletCommitterTest, testSuspendIndexTasks)
 {
     auto tabletCommitter = CreateEmptyTabletCommiter(_tabletName);
+    IndexTaskMetaCreator creator;
+
     std::map<std::string, std::string> params1;
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params1, Action::ADD, /*comment=*/"");
+    auto meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params1).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::ADD);
+
     std::map<std::string, std::string> params2;
     params2["key2"] = "value2";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params2, Action::SUSPEND, /*comment=*/"");
+    meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params2).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::SUSPEND);
+
     std::map<std::string, std::string> params3;
     params3["key3"] = "value3";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"456", params3, Action::SUSPEND, /*comment=*/"");
+    meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("456").Params(params3).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::SUSPEND);
 
     ASSERT_TRUE(tabletCommitter->NeedCommit());
 
@@ -352,27 +373,34 @@ TEST_F(TabletCommitterTest, testSuspendIndexTasks)
         tabletCommitter->Commit(tabletData, fence, /*retry=*/1, &idGenerator,
                                 CommitOptions().SetNeedPublish(true).SetTargetVersionId(536870912));
     ASSERT_TRUE(status.IsOK());
-    auto task1 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
+    auto task1 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
     ASSERT_TRUE(task1);
-    ASSERT_EQ(task1->state, IndexTaskMeta::SUSPENDED);
-    ASSERT_EQ(task1->params, params1);
-    auto task2 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"456");
+    ASSERT_EQ(task1->GetState(), IndexTaskMeta::SUSPENDED);
+    ASSERT_EQ(task1->GetParams(), params1);
+    auto task2 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"456");
     ASSERT_TRUE(task2);
-    ASSERT_EQ(task2->state, IndexTaskMeta::SUSPENDED);
-    ASSERT_EQ(task2->params, params3);
+    ASSERT_EQ(task2->GetState(), IndexTaskMeta::SUSPENDED);
+    ASSERT_EQ(task2->GetParams(), params3);
 }
 
 TEST_F(TabletCommitterTest, testAbortIndexTasks)
 {
     auto tabletCommitter = CreateEmptyTabletCommiter(_tabletName);
+    IndexTaskMetaCreator creator;
+
     std::map<std::string, std::string> params1;
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params1, Action::ADD, /*comment=*/"");
+    auto meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params1).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::ADD);
+
     std::map<std::string, std::string> params2;
     params2["key2"] = "value2";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params2, Action::ABORT, /*comment=*/"");
+    meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params2).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::ABORT);
+
     std::map<std::string, std::string> params3;
     params3["key3"] = "value3";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"456", params3, Action::ABORT, /*comment=*/"");
+    meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("456").Params(params3).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::ABORT);
 
     ASSERT_TRUE(tabletCommitter->NeedCommit());
 
@@ -384,11 +412,11 @@ TEST_F(TabletCommitterTest, testAbortIndexTasks)
         tabletCommitter->Commit(tabletData, fence, /*retry=*/1, &idGenerator,
                                 CommitOptions().SetNeedPublish(true).SetTargetVersionId(536870912));
     ASSERT_TRUE(status.IsOK());
-    auto task1 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
+    auto task1 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
     ASSERT_TRUE(task1);
-    ASSERT_EQ(task1->state, IndexTaskMeta::ABORTED);
-    ASSERT_EQ(task1->params, params1);
-    auto task2 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"456");
+    ASSERT_EQ(task1->GetState(), IndexTaskMeta::ABORTED);
+    ASSERT_EQ(task1->GetParams(), params1);
+    auto task2 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"456");
     // try to abort non-exist task, action abort will be ignored
     ASSERT_FALSE(task2);
 }
@@ -396,18 +424,23 @@ TEST_F(TabletCommitterTest, testAbortIndexTasks)
 TEST_F(TabletCommitterTest, testOverwriteIndexTasks_0)
 {
     auto tabletCommitter = CreateEmptyTabletCommiter(_tabletName);
+    IndexTaskMetaCreator creator;
+
     std::map<std::string, std::string> params1;
     params1[PARAM_LAST_SEQUENCE_NUMBER] = "111";
     params1["key"] = "value111";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params1, Action::ADD, /*comment=*/"");
+    auto meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params1).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::ADD);
+
     std::map<std::string, std::string> params2;
     params2["key"] = "value222";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params2, Action::OVERWRITE,
-                                     /*comment=*/"");
+    meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params2).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::OVERWRITE);
+
     std::map<std::string, std::string> params3;
     params3["key3"] = "value3";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"456", params3, Action::OVERWRITE,
-                                     /*comment=*/"");
+    meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("456").Params(params3).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::OVERWRITE);
 
     ASSERT_TRUE(tabletCommitter->NeedCommit());
 
@@ -419,15 +452,15 @@ TEST_F(TabletCommitterTest, testOverwriteIndexTasks_0)
         tabletCommitter->Commit(tabletData, fence, /*retry=*/1, &idGenerator,
                                 CommitOptions().SetNeedPublish(true).SetTargetVersionId(536870912));
     ASSERT_TRUE(status.IsOK());
-    auto task1 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
+    auto task1 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
     ASSERT_TRUE(task1);
-    ASSERT_EQ(task1->state, IndexTaskMeta::READY);
+    ASSERT_EQ(task1->GetState(), IndexTaskMeta::PENDING);
     std::map<std::string, std::string> params;
     params[PARAM_LAST_SEQUENCE_NUMBER] = "111";
     params["key"] = "value222";
-    ASSERT_EQ(task1->params, params);
+    ASSERT_EQ(task1->GetParams(), params);
 
-    auto task2 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"456");
+    auto task2 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"456");
     // try to overwrite non-exist task, action abort will be ignored
     ASSERT_FALSE(task2);
 }
@@ -435,17 +468,23 @@ TEST_F(TabletCommitterTest, testOverwriteIndexTasks_0)
 TEST_F(TabletCommitterTest, testOverwriteIndexTasks_1)
 {
     auto tabletCommitter = CreateEmptyTabletCommiter(_tabletName);
+    IndexTaskMetaCreator creator;
+
     std::map<std::string, std::string> params1;
     params1[PARAM_LAST_SEQUENCE_NUMBER] = "111";
     params1["key"] = "value111";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params1, Action::ADD, /*comment=*/"");
+    auto meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params1).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::ADD);
+
     std::map<std::string, std::string> params2;
     params2["key"] = "value222";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params2, Action::ABORT, /*comment=*/"");
+    meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params2).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::ABORT);
+
     std::map<std::string, std::string> params3;
     params3["key3"] = "value3";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params3, Action::OVERWRITE,
-                                     /*comment=*/"");
+    meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params3).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::OVERWRITE);
 
     ASSERT_TRUE(tabletCommitter->NeedCommit());
 
@@ -457,20 +496,23 @@ TEST_F(TabletCommitterTest, testOverwriteIndexTasks_1)
         tabletCommitter->Commit(tabletData, fence, /*retry=*/1, &idGenerator,
                                 CommitOptions().SetNeedPublish(true).SetTargetVersionId(536870912));
     ASSERT_TRUE(status.IsOK());
-    auto task1 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
+    auto task1 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
     ASSERT_TRUE(task1);
     // aborted task will not be overwritten
-    ASSERT_EQ(task1->state, IndexTaskMeta::ABORTED);
-    ASSERT_TRUE(task1->params.empty());
+    ASSERT_EQ(task1->GetState(), IndexTaskMeta::ABORTED);
+    ASSERT_TRUE(task1->GetParams().empty());
 }
 
 TEST_F(TabletCommitterTest, testInvalidAction)
 {
     auto tabletCommitter = CreateEmptyTabletCommiter(_tabletName);
+    IndexTaskMetaCreator creator;
+
     std::map<std::string, std::string> params1;
     params1[PARAM_LAST_SEQUENCE_NUMBER] = "111";
     params1["key"] = "value111";
-    tabletCommitter->HandleIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123", params1, Action::UNKNOWN, /*comment=*/"");
+    auto meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId("123").Params(params1).Create();
+    tabletCommitter->HandleIndexTask(meta, Action::UNKNOWN);
 
     ASSERT_TRUE(tabletCommitter->NeedCommit());
 
@@ -483,65 +525,8 @@ TEST_F(TabletCommitterTest, testInvalidAction)
                                 CommitOptions().SetNeedPublish(true).SetTargetVersionId(536870912));
     ASSERT_TRUE(status.IsOK());
     // invalid action task will be ignored
-    auto task1 = version.GetIndexTask(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
+    auto task1 = version.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, /*taskName=*/"123");
     ASSERT_FALSE(task1);
-}
-
-TEST_F(TabletCommitterTest, testCalculateIndexTasks)
-{
-    int64_t currentTs = autil::TimeUtility::currentTimeInSeconds();
-    auto tabletCommitter = CreateEmptyTabletCommiter(_tabletName);
-    std::map<std::string, std::string> params;
-    // task0 : ready task
-    auto indexTask0 = std::make_shared<IndexTaskMeta>(BULKLOAD_TASK_TYPE, /*taskName=*/"bulkload_task0", params);
-    // task1 : done task, exceeds ttl, is supposed to be reclaimed
-    auto indexTask1 = std::make_shared<IndexTaskMeta>(BULKLOAD_TASK_TYPE, /*taskName=*/"bulkload_task1", params);
-    indexTask1->state = IndexTaskMeta::DONE;
-    indexTask1->beginTimeInSecs = 0;
-    indexTask1->endTimeInSecs = currentTs - indexlib::DEFAULT_DONE_TASK_TTL_IN_SECONDS;
-    // task2 : done task, not exceeds ttl
-    auto indexTask2 = std::make_shared<IndexTaskMeta>(BULKLOAD_TASK_TYPE, /*taskName=*/"bulkload_task2", params);
-    indexTask2->state = IndexTaskMeta::DONE;
-    indexTask2->beginTimeInSecs = 0;
-    indexTask2->endTimeInSecs = currentTs - indexlib::DEFAULT_DONE_TASK_TTL_IN_SECONDS + 1;
-    // task3 : aborted task, exceeds ttl, is supposed to be reclaimed
-    auto indexTask3 = std::make_shared<IndexTaskMeta>(BULKLOAD_TASK_TYPE, /*taskName=*/"bulkload_task3", params);
-    indexTask3->state = IndexTaskMeta::ABORTED;
-    indexTask3->beginTimeInSecs = 0;
-    indexTask3->endTimeInSecs = currentTs - indexlib::DEFAULT_DONE_TASK_TTL_IN_SECONDS;
-    // task4 : aborted task, not exceeds ttl
-    auto indexTask4 = std::make_shared<IndexTaskMeta>(BULKLOAD_TASK_TYPE, /*taskName=*/"bulkload_task4", params);
-    indexTask4->state = IndexTaskMeta::ABORTED;
-    indexTask4->beginTimeInSecs = 0;
-    indexTask4->endTimeInSecs = currentTs - indexlib::DEFAULT_DONE_TASK_TTL_IN_SECONDS + 1;
-
-    // old task1/task2/task3/task4 : ready task
-    auto oldIndexTask1 = std::make_shared<IndexTaskMeta>(BULKLOAD_TASK_TYPE, /*taskName=*/"bulkload_task1", params);
-    auto oldIndexTask2 = std::make_shared<IndexTaskMeta>(BULKLOAD_TASK_TYPE, /*taskName=*/"bulkload_task2", params);
-    auto oldIndexTask3 = std::make_shared<IndexTaskMeta>(BULKLOAD_TASK_TYPE, /*taskName=*/"bulkload_task3", params);
-    auto oldIndexTask4 = std::make_shared<IndexTaskMeta>(BULKLOAD_TASK_TYPE, /*taskName=*/"bulkload_task4", params);
-
-    std::vector<std::shared_ptr<IndexTaskMeta>> onDiskIndexTasks;
-    std::vector<std::shared_ptr<IndexTaskMeta>> mergeVersionIndexTasks;
-
-    onDiskIndexTasks.emplace_back(indexTask0);
-    onDiskIndexTasks.emplace_back(oldIndexTask1);
-    onDiskIndexTasks.emplace_back(oldIndexTask2);
-    onDiskIndexTasks.emplace_back(oldIndexTask3);
-    onDiskIndexTasks.emplace_back(oldIndexTask4);
-    mergeVersionIndexTasks.emplace_back(indexTask1);
-    mergeVersionIndexTasks.emplace_back(indexTask2);
-    mergeVersionIndexTasks.emplace_back(indexTask3);
-    mergeVersionIndexTasks.emplace_back(indexTask4);
-
-    auto result = tabletCommitter->CalculateIndexTasks(onDiskIndexTasks, mergeVersionIndexTasks, currentTs);
-    ASSERT_EQ(result.size(), 3);
-    ASSERT_EQ(result[0]->taskName, "bulkload_task0");
-    ASSERT_EQ(result[0]->state, IndexTaskMeta::READY);
-    ASSERT_EQ(result[1]->taskName, "bulkload_task2");
-    ASSERT_EQ(result[1]->state, IndexTaskMeta::DONE);
-    ASSERT_EQ(result[2]->taskName, "bulkload_task4");
-    ASSERT_EQ(result[2]->state, IndexTaskMeta::ABORTED);
 }
 
 } // namespace indexlibv2::framework

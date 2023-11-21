@@ -57,6 +57,7 @@ public:
     void overwriteIdentityInfo(const IdentityInfo &identityInfo);
     void overwriteInvertedInfo(const InvertedIndexSearchInfo &invertedInfo);
     void overwriteDelayDpInfo(const DelayDpInfo &delayDpInfo);
+    void addDegradedInfo(const DegradedInfo &degradedInfo);
 
     NaviPerfInfo *addNaviPerfInfo();
     NaviPerfInfo *getFirstNaviPerfInfo();
@@ -90,6 +91,7 @@ private:
     void mergeKhronosDataScanInfo(bool overwriteInfo);
     void mergeIdentityInfo(bool overwriteInfo);
     void mergeInvertedInfo(bool overwriteInfo);
+    void mergeDegradedInfo();
 
 private:
     static constexpr size_t SQL_SEARCHINFO_CHECKSUM_BEGIN = 0xBE000001;

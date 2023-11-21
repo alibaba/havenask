@@ -15,10 +15,20 @@
  */
 #include "build_service/common/BuilderCheckpointAccessor.h"
 
+#include <exception>
+#include <iosfwd>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/Checkpoint.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/proto/BuildTaskCurrentInfo.h"
+#include "indexlib/framework/VersionMeta.h"
 
 using namespace std;
 
@@ -174,10 +184,10 @@ set<versionid_t> BuilderCheckpointAccessor::getReservedVersions(const std::strin
     vector<pair<string, string>> checkpoints;
     _accessor->listCheckpoints(ckpId, checkpoints);
     for (auto& ckp : checkpoints) {
-        versionid_t versionId = INVALID_VERSION;
+        versionid_t versionId = indexlib::INVALID_VERSIONID;
         int64_t schemaId = config::INVALID_SCHEMAVERSION;
         if (IndexCheckpointFormatter::decodeBuilderCheckpointName(ckp.first, schemaId, versionId) &&
-            versionId != INVALID_VERSION) {
+            versionId != indexlib::INVALID_VERSIONID) {
             ret.insert(versionId);
         }
     }

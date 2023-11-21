@@ -1,3 +1,4 @@
+version: 196608
 sub_graphs {
   nodes {
     name: "12"
@@ -33,7 +34,7 @@ sub_graphs {
     }
     binary_attrs {
       key: "graph"
-      value: "\022\272\005\022;\n\0014\022\024sql.LookupJoinKernel\032 {\"source_spec\":\"\",\"op_id\":10004}\0229\n\0015\022\022sql.HashJoinKernel\032 {\"source_spec\":\"\",\"op_id\":10005}\0224\n\0016\022\rsql.AggKernel\032 {\"source_spec\":\"\",\"op_id\":10006}\0224\n\0018\022\rsql.AggKernel\032 {\"source_spec\":\"\",\"op_id\":10008}\0225\n\00210\022\rsql.AggKernel\032 {\"source_spec\":\"\",\"op_id\":10010}\022\030\n\004ph_0\022\020navi.placeholder\022\030\n\004ph_1\022\020navi.placeholder\032\035\n\014\n\0014\022\007output0\022\013\n\0015\022\006input0\030\001\032\035\n\014\n\0015\022\007output0\022\013\n\0016\022\006input0\030\001\032\035\n\014\n\0015\022\007output0\022\013\n\0018\022\006input0\030\001\032\036\n\014\n\0015\022\007output0\022\014\n\00210\022\006input0\030\001\032-\n\034\n\004ph_0\022\024navi.placeholder_out\022\013\n\0014\022\006input0\030\001\032-\n\034\n\004ph_1\022\024navi.placeholder_out\022\013\n\0015\022\006input1\030\001\"\"\n\017db3.default_sql\022\000\030\377\377\377\377\377\377\377\377\377\001\"\002\010\001:e\n\022table_distribution\022O{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}B\001\000H\001\032\002\010\001"
+      value: "\010\200\200\014\022\275\005\022;\n\0014\022\024sql.LookupJoinKernel\032 {\"source_spec\":\"\",\"op_id\":10004}\0229\n\0015\022\022sql.HashJoinKernel\032 {\"source_spec\":\"\",\"op_id\":10005}\0224\n\0016\022\rsql.AggKernel\032 {\"source_spec\":\"\",\"op_id\":10006}\0224\n\0018\022\rsql.AggKernel\032 {\"source_spec\":\"\",\"op_id\":10008}\0225\n\00210\022\rsql.AggKernel\032 {\"source_spec\":\"\",\"op_id\":10010}\022\030\n\004ph_0\022\020navi.placeholder\022\030\n\004ph_1\022\020navi.placeholder\032\035\n\014\n\0014\022\007output0\022\013\n\0015\022\006input0\030\001\032\035\n\014\n\0015\022\007output0\022\013\n\0016\022\006input0\030\001\032\035\n\014\n\0015\022\007output0\022\013\n\0018\022\006input0\030\001\032\036\n\014\n\0015\022\007output0\022\014\n\00210\022\006input0\030\001\032-\n\034\n\004ph_0\022\024navi.placeholder_out\022\013\n\0014\022\006input0\030\001\032-\n\034\n\004ph_1\022\024navi.placeholder_out\022\013\n\0015\022\006input1\030\001\"\"\n\017db3.default_sql\022\000\030\377\377\377\377\377\377\377\377\377\001\"\002\010\0012\002\030\001:e\n\022table_distribution\022O{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}B\000H\001\032\002\010\001"
     }
     binary_attrs {
       key: "input_dists"
@@ -209,11 +210,15 @@ sub_graphs {
       node: "merge:3:2"
     }
   }
+  option {
+    error_handle_strategy: EHS_ERROR_AS_EOF
+  }
   binary_attrs {
     key: "table_distribution"
     value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
   }
-  scopes: 0
+  scopes {
+  }
   next_scope_id: 1
 }
 sub_graphs {
@@ -288,11 +293,15 @@ sub_graphs {
       node: "split:0:1"
     }
   }
+  option {
+    error_handle_strategy: EHS_ERROR_AS_EOF
+  }
   binary_attrs {
     key: "table_distribution"
     value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":4}"
   }
-  scopes: 0
+  scopes {
+  }
   next_scope_id: 1
 }
 sub_graphs {
@@ -368,11 +377,15 @@ sub_graphs {
       node: "split:2:3"
     }
   }
+  option {
+    error_handle_strategy: EHS_ERROR_AS_EOF
+  }
   binary_attrs {
     key: "table_distribution"
     value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":2}"
   }
-  scopes: 0
+  scopes {
+  }
   next_scope_id: 1
 }
 counter_info {

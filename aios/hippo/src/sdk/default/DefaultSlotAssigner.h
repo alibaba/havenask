@@ -46,16 +46,21 @@ private:
     bool doAssign(const hippo::proto::AllocateRequest &request,
                   hippo::proto::AllocateResponse *response);
     void releaseSlots(const hippo::proto::AllocateRequest &request);
+    void clearExclusiveTag(const hippo::SlotId &slotId);
     void clearIpIdx(const std::string& ip, int32_t id);
+    void clearIpExclusiveTag(const std::string& ip, const std::string &exclusiveTag);
     void assignSlots(const hippo::proto::AllocateRequest &request,
                      hippo::proto::AllocateResponse *response);
     void assignRoleSlots(const hippo::proto::ResourceRequest &resourceRequest,
                          hippo::proto::ResourceResponse *resourceResponse);
     bool assignNewSlot(const hippo::proto::ResourceRequest &resourceRequest,
                        hippo::proto::ResourceResponse *resourceResponse);
-    bool getFirstTextResource(const hippo::proto::ResourceRequest &resourceRequest,
-                              std::string &resourceTag);
-    bool getFreeNode(const std::vector<std::string> &ipVec, std::string &ip);
+    bool getFirstSpecifiedResource(const hippo::proto::ResourceRequest &resourceRequest,
+                                   hippo::proto::Resource::Type resourceType,
+                                   std::string &resourceTag);
+    bool getFreeNode(const std::vector<std::string> &ipVec,
+                     const std::string &exclusiveTag,
+                     std::string &ip);
     int32_t getSlotIdx(const std::string& ip);
     void fillAssignedSlot(const hippo::proto::ResourceRequest &resourceRequest,
                           const hippo::SlotId &slotIdIn,
@@ -66,8 +71,9 @@ private:
                            std::map<std::string, std::vector<std::string> > &ipInfo);
     void serializeAssignedResource(std::string& content) const;
     void deserializeAssignedResource(const std::string& assignedResource);
-    void slotIdToString(const hippo::SlotId &slotId, std::string &slotIdStr) const;
-    void slotIdFromString(std::string &slotIdStr, hippo::SlotId &slotId);
+    void getExclusiveTag(const hippo::SlotId &slotId, std::string &exclusiveTag) const;
+    void slotIdToString(const hippo::SlotId &slotId, const std::string &exclusiveTag, std::string &slotIdStr) const;
+    void slotIdFromString(std::string &slotIdStr, hippo::SlotId &slotId, std::string &exclusiveTag);
     void setIpInfo(const std::map<std::string, std::vector<std::string> > &ipInfos);
     void recoverAssignedResource(const std::map<std::string, std::vector<std::string> > &role2Ips);
 
@@ -90,6 +96,8 @@ private:
     std::map<std::string, std::set<hippo::SlotId> > _assignedSlots; // role to slots
     std::map<hippo::SlotId, std::string> _assignedSlot2Role; // slot to role
     std::map<std::string, std::set<int32_t> > _ip2SlotIdxs; // ip to slot idx
+    std::map<std::string, std::set<std::string> > _ip2ExclusiveTags;
+    std::map<hippo::SlotId, std::string> _assignedSlot2ExclusiveTags;
     std::map<hippo::SlotId, LaunchMeta> _launchedMetas;
 
     HIPPO_LOG_DECLARE();

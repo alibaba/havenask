@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_NEWSCHEMADROPFIELDTEST_H
-#define __INDEXLIB_NEWSCHEMADROPFIELDTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/IndexFileList.h"
@@ -40,5 +39,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(NewSchemaDropFieldTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_NEWSCHEMADROPFIELDTEST_H

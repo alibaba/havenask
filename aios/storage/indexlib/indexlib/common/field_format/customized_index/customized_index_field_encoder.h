@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CUSTOMIZED_INDEX_FIELD_ENCODER_H
-#define __INDEXLIB_CUSTOMIZED_INDEX_FIELD_ENCODER_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
@@ -99,5 +98,3 @@ inline bool CustomizedIndexFieldEncoder::IsFloatField(fieldid_t fieldId)
     return mFieldVec[fieldId] != UNKOWN;
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CUSTOMIZED_INDEX_FIELD_ENCODER_H

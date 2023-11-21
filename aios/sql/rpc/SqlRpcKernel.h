@@ -46,6 +46,7 @@ public:
 public:
     static const std::string KERNEL_ID;
     static const std::string OUTPUT_PORT;
+    static const std::string OUTPUT_PORT2;
 
 public:
     void def(navi::KernelDefBuilder &builder) const override;

@@ -15,10 +15,18 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
+#include <string>
+#include <utility>
 
 #include "autil/Lock.h"
+#include "autil/Log.h"
 #include "indexlib/file_system/FileBlockCache.h"
+#include "indexlib/util/cache/BlockCacheOption.h"
+#include "indexlib/util/cache/CacheResourceInfo.h"
+#include "indexlib/util/memory_control/MemoryQuotaController.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace file_system {
 

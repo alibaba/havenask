@@ -15,10 +15,16 @@
  */
 #include "indexlib/config/TabletOptions.h"
 
+#include <assert.h>
+#include <limits>
+#include <stddef.h>
+
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/config/BackgroundTaskConfig.h"
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/BuildOptionConfig.h"
 #include "indexlib/config/IndexTaskConfig.h"
+#include "indexlib/config/MergeConfig.h"
 #include "indexlib/config/OfflineConfig.h"
 #include "indexlib/config/OnlineConfig.h"
 
@@ -96,10 +102,6 @@ Status TabletOptions::Check(const std::string& remoteRoot, const std::string& lo
                   "online_index_config.build_config.building_memory_limit_mb [%ld]",
                   GetOnlineConfig().GetMaxRealtimeMemoryUse(), GetBuildConfig().GetBuildingMemoryLimit());
         return Status::InvalidArgs("memory config invalid");
-    }
-    if (GetAnyFromRawJson("online_index_config.disable_fields")) {
-        AUTIL_LOG(ERROR, "not support disable fields");
-        return Status::InvalidArgs("not support disable fields");
     }
     return Status::OK();
 }
@@ -183,6 +185,14 @@ BuildOptionConfig& TabletOptions::TEST_GetBuildOptionConfig() { return _impl->bu
 
 const autil::legacy::Any* TabletOptions::GetAnyFromRawJson(const std::string& jsonPath) const noexcept
 {
+    static const std::string SMART_INDEX_CONFIG = "%index_config%";
+    if (size_t pos = jsonPath.find(SMART_INDEX_CONFIG); pos != std::string::npos) {
+        assert(pos == 0);
+        auto newJsonPath = jsonPath;
+        newJsonPath.replace(pos, SMART_INDEX_CONFIG.size(),
+                            IsOnline() ? "online_index_config" : "offline_index_config");
+        return _impl->rawJson.GetAny(newJsonPath);
+    }
     return _impl->rawJson.GetAny(jsonPath);
 }
 MergeConfig& TabletOptions::TEST_GetMergeConfig() { return TEST_GetOfflineConfig().TEST_GetMergeConfig(); }

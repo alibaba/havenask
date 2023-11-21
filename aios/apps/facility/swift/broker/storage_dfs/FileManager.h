@@ -31,6 +31,12 @@
 #include "swift/util/PanguInlineFileUtil.h"
 
 namespace swift {
+namespace monitor {
+struct FileManagerMetricsCollector;
+} // namespace monitor
+} // namespace swift
+
+namespace swift {
 namespace storage {
 
 struct ObsoleteFileCriterion {
@@ -79,18 +85,22 @@ public:
     FilePairPtr getFilePairByTime(int64_t timestamp) const;
     int64_t getLastMessageId() const;
     int64_t getMinMessageId() const;
-    void delExpiredFile(int64_t commitedTimestamp = COMMITTED_TIMESTAMP_INVALID);
+    void delExpiredFile(int64_t commitedTimestamp, uint32_t &deletedFileCount);
     virtual protocol::ErrorCode refreshVersion(); // virtual for test
     util::InlineVersion getInlineVersion() { return _inlineVersion; }
     std::string getInlineFilePath() const;
+    void syncDfsUsedSize(monitor::FileManagerMetricsCollector &collector);
+    bool isUsedDfsSizeSynced() const { return _usedDfsSizeSynced; }
+    int64_t getUsedDfsSize() const { return _usedDfsSize; }
+    void addUsedDfsSize(int64_t usedSize);
 
 private:
     protocol::ErrorCode removeInlineFile();
     protocol::ErrorCode adjustFilePairVec(FilePairVec &filePairVec);
     void syncFilePair();
-    void deleteObsoleteFile(int64_t commitedTimestamp = COMMITTED_TIMESTAMP_INVALID);
-    void doDeleteObsoleteFile();
-    int32_t getObsoleteFilePos(uint32_t reservedFileCount, int64_t commitedTs = COMMITTED_TIMESTAMP_INVALID) const;
+    void deleteObsoleteFile(int64_t commitedTimestamp, uint32_t &deletedFileCount);
+    void doDeleteObsoleteFile(uint32_t &deletedFileCount);
+    int32_t getObsoleteFilePos(uint32_t reservedFileCount, int64_t commitedTimestamp) const;
     // for unit test
     virtual fslib::ErrorCode doListFiles(const fslib::FileList &filePaths, util::FileManagerUtil::FileLists &fileList);
     fslib::ErrorCode listFiles(util::FileManagerUtil::FileLists &fileList);
@@ -111,6 +121,8 @@ private:
     int64_t _lastDelFileTime;
     util::InlineVersion _inlineVersion;
     bool _enableFastRecover;
+    std::atomic<bool> _usedDfsSizeSynced;
+    std::atomic<int64_t> _usedDfsSize;
 
 private:
     AUTIL_LOG_DECLARE();

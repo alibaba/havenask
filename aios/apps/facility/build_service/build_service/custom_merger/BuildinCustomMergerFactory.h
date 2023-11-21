@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDINCUSTOMMERGERFACTORY_H
-#define ISEARCH_BS_BUILDINCUSTOMMERGERFACTORY_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common_define.h"
+#include "build_service/custom_merger/CustomMerger.h"
 #include "build_service/custom_merger/CustomMergerFactory.h"
 #include "build_service/util/Log.h"
 
@@ -45,5 +48,3 @@ private:
 BS_TYPEDEF_PTR(BuildinCustomMergerFactory);
 
 }} // namespace build_service::custom_merger
-
-#endif // ISEARCH_BS_BUILDINCUSTOMMERGERFACTORY_H

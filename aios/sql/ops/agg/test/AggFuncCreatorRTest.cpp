@@ -95,18 +95,18 @@ TEST_F(AggFuncCreatorRTest, testRegisterAggFuncInfo) {
         ASSERT_EQ("UDAF", def.functionType);
         ASSERT_EQ("json_default_0.1", def.functionContentVersion);
 
-        ASSERT_EQ(1, def.functionContent.prototypes.size());
-        ASSERT_EQ(1, def.functionContent.prototypes[0].paramTypes.size());
-        ASSERT_TRUE(!def.functionContent.prototypes[0].paramTypes[0].isMulti);
-        ASSERT_EQ("int32", def.functionContent.prototypes[0].paramTypes[0].type);
-        ASSERT_EQ(2, def.functionContent.prototypes[0].returnTypes.size());
-        ASSERT_TRUE(!def.functionContent.prototypes[0].returnTypes[0].isMulti);
-        ASSERT_EQ("double", def.functionContent.prototypes[0].returnTypes[0].type);
-        ASSERT_TRUE(def.functionContent.prototypes[0].returnTypes[1].isMulti);
-        ASSERT_EQ("array", def.functionContent.prototypes[0].returnTypes[1].type);
-        ASSERT_EQ(1, def.functionContent.prototypes[0].accTypes.size());
-        ASSERT_TRUE(!def.functionContent.prototypes[0].accTypes[0].isMulti);
-        ASSERT_EQ("int64", def.functionContent.prototypes[0].accTypes[0].type);
+        ASSERT_EQ(1, def.functionDef.prototypes.size());
+        ASSERT_EQ(1, def.functionDef.prototypes[0].paramTypes.size());
+        ASSERT_TRUE(!def.functionDef.prototypes[0].paramTypes[0].isMulti);
+        ASSERT_EQ("int32", def.functionDef.prototypes[0].paramTypes[0].type);
+        ASSERT_EQ(2, def.functionDef.prototypes[0].returnTypes.size());
+        ASSERT_TRUE(!def.functionDef.prototypes[0].returnTypes[0].isMulti);
+        ASSERT_EQ("double", def.functionDef.prototypes[0].returnTypes[0].type);
+        ASSERT_TRUE(def.functionDef.prototypes[0].returnTypes[1].isMulti);
+        ASSERT_EQ("array", def.functionDef.prototypes[0].returnTypes[1].type);
+        ASSERT_EQ(1, def.functionDef.prototypes[0].accTypes.size());
+        ASSERT_TRUE(!def.functionDef.prototypes[0].accTypes[0].isMulti);
+        ASSERT_EQ("int64", def.functionDef.prototypes[0].accTypes[0].type);
     }
     {
         MockAggFuncCreator mockCreator;
@@ -146,30 +146,30 @@ TEST_F(AggFuncCreatorRTest, testMultiParamsRegisterAggFuncInfo) {
         ASSERT_EQ(1, def.isDeterministic);
         ASSERT_EQ("UDAF", def.functionType);
         ASSERT_EQ("json_default_0.1", def.functionContentVersion);
-        ASSERT_EQ(2, def.functionContent.prototypes.size());
-        ASSERT_EQ(2, def.functionContent.prototypes[0].paramTypes.size());
-        ASSERT_TRUE(!def.functionContent.prototypes[0].paramTypes[0].isMulti);
-        ASSERT_EQ("int64", def.functionContent.prototypes[0].paramTypes[0].type);
-        ASSERT_TRUE(!def.functionContent.prototypes[0].paramTypes[1].isMulti);
-        ASSERT_EQ("double", def.functionContent.prototypes[0].paramTypes[1].type);
-        ASSERT_EQ(1, def.functionContent.prototypes[0].returnTypes.size());
-        ASSERT_TRUE(!def.functionContent.prototypes[0].returnTypes[0].isMulti);
-        ASSERT_EQ("string", def.functionContent.prototypes[0].returnTypes[0].type);
-        ASSERT_EQ(1, def.functionContent.prototypes[0].accTypes.size());
-        ASSERT_TRUE(!def.functionContent.prototypes[0].accTypes[0].isMulti);
-        ASSERT_EQ("string", def.functionContent.prototypes[0].accTypes[0].type);
+        ASSERT_EQ(2, def.functionDef.prototypes.size());
+        ASSERT_EQ(2, def.functionDef.prototypes[0].paramTypes.size());
+        ASSERT_TRUE(!def.functionDef.prototypes[0].paramTypes[0].isMulti);
+        ASSERT_EQ("int64", def.functionDef.prototypes[0].paramTypes[0].type);
+        ASSERT_TRUE(!def.functionDef.prototypes[0].paramTypes[1].isMulti);
+        ASSERT_EQ("double", def.functionDef.prototypes[0].paramTypes[1].type);
+        ASSERT_EQ(1, def.functionDef.prototypes[0].returnTypes.size());
+        ASSERT_TRUE(!def.functionDef.prototypes[0].returnTypes[0].isMulti);
+        ASSERT_EQ("string", def.functionDef.prototypes[0].returnTypes[0].type);
+        ASSERT_EQ(1, def.functionDef.prototypes[0].accTypes.size());
+        ASSERT_TRUE(!def.functionDef.prototypes[0].accTypes[0].isMulti);
+        ASSERT_EQ("string", def.functionDef.prototypes[0].accTypes[0].type);
 
-        ASSERT_EQ(2, def.functionContent.prototypes[1].paramTypes.size());
-        ASSERT_TRUE(!def.functionContent.prototypes[1].paramTypes[0].isMulti);
-        ASSERT_EQ("int64", def.functionContent.prototypes[1].paramTypes[0].type);
-        ASSERT_TRUE(!def.functionContent.prototypes[1].paramTypes[1].isMulti);
-        ASSERT_EQ("int64", def.functionContent.prototypes[1].paramTypes[1].type);
-        ASSERT_EQ(1, def.functionContent.prototypes[1].returnTypes.size());
-        ASSERT_TRUE(!def.functionContent.prototypes[1].returnTypes[0].isMulti);
-        ASSERT_EQ("string", def.functionContent.prototypes[1].returnTypes[0].type);
-        ASSERT_EQ(1, def.functionContent.prototypes[1].accTypes.size());
-        ASSERT_TRUE(!def.functionContent.prototypes[1].accTypes[0].isMulti);
-        ASSERT_EQ("string", def.functionContent.prototypes[1].accTypes[0].type);
+        ASSERT_EQ(2, def.functionDef.prototypes[1].paramTypes.size());
+        ASSERT_TRUE(!def.functionDef.prototypes[1].paramTypes[0].isMulti);
+        ASSERT_EQ("int64", def.functionDef.prototypes[1].paramTypes[0].type);
+        ASSERT_TRUE(!def.functionDef.prototypes[1].paramTypes[1].isMulti);
+        ASSERT_EQ("int64", def.functionDef.prototypes[1].paramTypes[1].type);
+        ASSERT_EQ(1, def.functionDef.prototypes[1].returnTypes.size());
+        ASSERT_TRUE(!def.functionDef.prototypes[1].returnTypes[0].isMulti);
+        ASSERT_EQ("string", def.functionDef.prototypes[1].returnTypes[0].type);
+        ASSERT_EQ(1, def.functionDef.prototypes[1].accTypes.size());
+        ASSERT_TRUE(!def.functionDef.prototypes[1].accTypes[0].isMulti);
+        ASSERT_EQ("string", def.functionDef.prototypes[1].accTypes[0].type);
     }
     {
         MockAggFuncCreator mockCreator;

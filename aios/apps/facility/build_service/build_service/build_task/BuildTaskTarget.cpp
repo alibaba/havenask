@@ -15,10 +15,21 @@
  */
 #include "build_service/build_task/BuildTaskTarget.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <map>
+#include <utility>
+#include <vector>
+
 #include "BuildTaskTarget.h"
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
 #include "indexlib/framework/VersionCoord.h"
+
 using namespace std;
 
 namespace build_service { namespace build_task {
@@ -101,7 +112,8 @@ bool BuildTaskTarget::checkBuilderParam(const proto::BuildTaskTargetInfo& buildT
         return false;
     }
 
-    if (buildTaskInfo.buildStep != "full" && buildTaskInfo.buildStep != "incremental") {
+    if (buildTaskInfo.buildStep != config::BUILD_STEP_FULL_STR &&
+        buildTaskInfo.buildStep != config::BUILD_STEP_INC_STR) {
         BS_LOG(ERROR, "un-expected buildStep [%s]", buildTaskInfo.buildStep.c_str());
         return false;
     }

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEFAULTSEGMENTATTRIBUTEUPDATERTEST_H
-#define __INDEXLIB_DEFAULTSEGMENTATTRIBUTEUPDATERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/segment_metrics_updater/max_min_segment_metrics_updater.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(MaxMinSegmentMetricsUpdaterTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DEFAULTSEGMENTATTRIBUTEUPDATERTEST_H

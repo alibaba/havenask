@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_COMPRESSFLOATATTRIBUTECONVERTORTEST_H
-#define __INDEXLIB_COMPRESSFLOATATTRIBUTECONVERTORTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/attribute/compress_float_attribute_convertor.h"
 #include "indexlib/common_define.h"
@@ -31,5 +30,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(CompressFloatAttributeConvertorTest, TestSimpleProcess);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_COMPRESSFLOATATTRIBUTECONVERTORTEST_H

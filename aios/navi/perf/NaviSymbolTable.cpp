@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "navi/perf/NaviSymbolTable.h"
+#include "navi/engine/StringHashTable.h"
 #include "navi/proto/GraphVis.pb.h"
 #include <algorithm>
 #include <autil/StringUtil.h>
@@ -170,7 +171,8 @@ const char *NaviSymbolTable::findSymbol(uint64_t addr, const char *&dso,
 
 void NaviSymbolTable::resolveSymbol(
     const std::unordered_map<uint64_t, uint32_t> &addrMap,
-    PerfSymbolTableDef *perfSymbolTableDef) const
+    PerfSymbolTableDef *perfSymbolTableDef,
+    StringHashTable *stringHashTable) const
 {
     int32_t symbolCount = addrMap.size();
     auto symbolVecDef = perfSymbolTableDef->mutable_symbols();
@@ -183,7 +185,7 @@ void NaviSymbolTable::resolveSymbol(
         auto symbolStr = resolveAddr(ip);
         auto symbolDef = symbolVecDef->Mutable(pair.second);
         symbolDef->set_ip(ip);
-        symbolDef->set_symbol(std::move(symbolStr));
+        symbolDef->set_symbol(stringHashTable->getHash(std::move(symbolStr)));
     }
 }
 

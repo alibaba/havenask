@@ -1,5 +1,11 @@
-#include "build_service/admin/GenerationKeeper.h"
-#include "build_service/test/unittest.h"
+#pragma once
+
+#include <algorithm>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "build_service/proto/BasicDefs.pb.h"
 
 namespace build_service { namespace admin {
 

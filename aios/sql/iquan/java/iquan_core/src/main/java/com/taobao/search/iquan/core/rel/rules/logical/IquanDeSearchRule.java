@@ -1,15 +1,18 @@
 package com.taobao.search.iquan.core.rel.rules.logical;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.logical.LogicalCalc;
 import org.apache.calcite.rel.rules.TransformationRule;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexProgram;
+import org.apache.calcite.rex.RexUtil;
 import org.immutables.value.Value;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Value.Enclosing
 public class IquanDeSearchRule extends RelRule<RelRule.Config> implements TransformationRule {

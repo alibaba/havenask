@@ -177,30 +177,6 @@ char* str_rtrim(char* str);
 char* str_trim(char* str);
 
 /**
- * 将字符串转换成 int64， 注意不是  strtoull那种，
- * 适用于, 一次性将 字符串转换成  几个数字, 后面多次进行 大小
- * 因为一次转换有点费， 每次转换后 进行比较反而会比较慢
- *
- * @param str
- * @param len       字符的总长度
- *
- * @return 转换成的整数, 如果   > (UINT64_MAX >> 8) 就表示还有字节
- *         就用  str +8, len -8 来再次调用
- */
-inline uint64_t str2uint64(const char* str, int len)
-{
-    if (unlikely(NULL == str))
-        return 0;
-
-    uint64_t val = uint64_bswap((((const uint64_t*)str)[0]));
-
-    if (len <= 8)
-        val &= (~0L) << ((8 - len) * 8);
-
-    return val;
-}
-
-/**
  * 用特定的分隔符 将字符串  的一部分  分开 （源字符串会被修改掉）
  *
  * @param begin            起始字符位置

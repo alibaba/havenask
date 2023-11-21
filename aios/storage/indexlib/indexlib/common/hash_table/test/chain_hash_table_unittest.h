@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CHAINHASHTABLETEST_H
-#define __INDEXLIB_CHAINHASHTABLETEST_H
+#pragma once
 
 #include "indexlib/common/hash_table/chain_hash_table.h"
 #include "indexlib/common_define.h"
@@ -34,5 +33,3 @@ INDEXLIB_UNIT_TEST_CASE(ChainHashTableTest, TestSimpleProcess);
 // INDEXLIB_UNIT_TEST_CASE(ChainHashTableTest, TestTimestmapValue);
 // INDEXLIB_UNIT_TEST_CASE(ChainHashTableTest, TestFindForReadWrite);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CHAINHASHTABLETEST_H

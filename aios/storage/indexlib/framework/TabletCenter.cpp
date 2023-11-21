@@ -15,6 +15,12 @@
  */
 #include "indexlib/framework/TabletCenter.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <stddef.h>
+#include <utility>
+
 #include "autil/EnvUtil.h"
 #include "autil/TimeUtility.h"
 #include "indexlib/config/ITabletSchema.h"

@@ -34,7 +34,7 @@ class PackAttributeDiskIndexerCreator : public AttributeDiskIndexerCreator
 public:
     FieldType GetAttributeType() const override { return ft_string; }
     std::unique_ptr<AttributeDiskIndexer> Create(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                                                 const IndexerParameter& indexerParam) const override
+                                                 const DiskIndexerParameter& indexerParam) const override
     {
         return std::make_unique<PackAttributeDiskIndexer>(attributeMetrics, indexerParam);
     }
@@ -60,7 +60,7 @@ PackAttributeIndexFactory::~PackAttributeIndexFactory() {}
 
 std::shared_ptr<IDiskIndexer>
 PackAttributeIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                             const IndexerParameter& indexerParam) const
+                                             const DiskIndexerParameter& indexerParam) const
 {
     static PackAttributeDiskIndexerCreator creator;
     auto packAttributeMetrics = CreatePackAttributeMetrics(indexConfig, indexerParam.metricsManager);
@@ -69,16 +69,16 @@ PackAttributeIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IInde
 
 std::shared_ptr<IMemIndexer>
 PackAttributeIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                            const IndexerParameter& indexerParam) const
+                                            const MemIndexerParameter& indexerParam) const
 {
     return std::make_shared<PackAttributeMemIndexer>(indexerParam);
 }
 
 std::unique_ptr<IIndexReader>
 PackAttributeIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                             const IndexerParameter& indexerParam) const
+                                             const IndexReaderParameter& indexReaderParam) const
 {
-    auto packAttributeMetrics = CreatePackAttributeMetrics(indexConfig, indexerParam.metricsManager);
+    auto packAttributeMetrics = CreatePackAttributeMetrics(indexConfig, indexReaderParam.metricsManager);
     return std::make_unique<PackAttributeReader>(packAttributeMetrics);
 }
 

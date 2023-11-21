@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_JOINDOCIDATTRIBUTEREADERTEST_H
-#define __INDEXLIB_JOINDOCIDATTRIBUTEREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/join_docid_attribute_iterator.h"
@@ -48,5 +47,3 @@ INSTANTIATE_TEST_CASE_P(UseIterAndBuildMode, JoinDocidAttributeReaderTest,
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(JoinDocidAttributeReaderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(JoinDocidAttributeReaderTest, TestReadOverflow);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_JOINDOCIDATTRIBUTEREADERTEST_H

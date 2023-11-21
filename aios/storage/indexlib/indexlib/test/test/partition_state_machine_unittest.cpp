@@ -1,12 +1,12 @@
 #include "indexlib/test/test/partition_state_machine_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document.h"
 #include "indexlib/document/index_locator.h"
 #include "indexlib/document/locator.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/test/build_test_util.h"
 
 using namespace std;

@@ -15,19 +15,36 @@
  */
 #include "indexlib/merger/segment_directory.h"
 
+#include <assert.h>
+#include <iterator>
+#include <memory>
 #include <sstream>
+#include <stddef.h>
 
-#include "autil/StringUtil.h"
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/FileCompressSchema.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/document/locator.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/index_base/deploy_index_wrapper.h"
+#include "indexlib/index_base/index_meta/index_summary.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
-#include "indexlib/index_base/patch/partition_patch_meta.h"
+#include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/index_base/version_committer.h"
+#include "indexlib/index_define.h"
 #include "indexlib/merger/merge_partition_data_creator.h"
-#include "indexlib/merger/segment_directory_finder.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/Exception.h"
 #include "indexlib/util/counter/CounterMap.h"
-#include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 
 using namespace std;
 using namespace autil;
@@ -323,7 +340,7 @@ void SegmentDirectory::Reset()
 void SegmentDirectory::RemoveUselessSegment(const file_system::DirectoryPtr& rootDir)
 {
     Version version;
-    VersionLoader::GetVersion(rootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDir, version, INVALID_VERSIONID);
     segmentid_t lastSegmentId = version.GetLastSegment();
     fslib::FileList segmentList;
     VersionLoader::ListSegments(rootDir, segmentList);

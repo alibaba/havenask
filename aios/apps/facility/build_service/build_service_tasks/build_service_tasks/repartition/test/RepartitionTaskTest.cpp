@@ -1,17 +1,49 @@
 #include "build_service_tasks/repartition/RepartitionTask.h"
 
-#include "autil/EnvUtil.h"
+#include <cstdint>
+#include <iostream>
+#include <memory>
+#include <stddef.h>
+#include <string>
+#include <vector>
+
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/task_base/Task.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service_tasks/repartition/test/FakeRepartitionTask.h"
 #include "build_service_tasks/test/unittest.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
 #include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/config/field_config.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/config/module_info.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index/inverted_index/config/HighFrequencyVocabulary.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
 #include "indexlib/index_base/schema_adapter.h"
+#include "indexlib/index_base/segment/segment_data.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/merger/filtered_multi_partition_merger.h"
+#include "indexlib/partition/online_partition.h"
 #include "indexlib/test/partition_state_machine.h"
 #include "indexlib/testlib/indexlib_partition_creator.h"
 #include "indexlib/util/EpochIdUtil.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/PathUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

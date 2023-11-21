@@ -15,10 +15,24 @@
  */
 #include "build_service/io/FileOutput.h"
 
-#include "autil/ConstString.h"
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "build_service/config/TaskInputConfig.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/WriterOption.h"
 #include "indexlib/file_system/file/BufferedFileReader.h"
 #include "indexlib/file_system/file/BufferedFileWriter.h"
+#include "indexlib/file_system/file/ReadOption.h"
 
 using namespace std;
 using namespace std;

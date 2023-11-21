@@ -40,8 +40,8 @@ enum [[nodiscard]] ErrorCode {
 
 #define RETURN_IF_FS_ERROR(ec, format, args...)                                                                        \
     do {                                                                                                               \
-        const ErrorCode __ec = (ec);                                                                                   \
-        if (unlikely(__ec != FSEC_OK)) {                                                                               \
+        const indexlib::file_system::ErrorCode __ec = (ec);                                                            \
+        if (unlikely(__ec != indexlib::file_system::FSEC_OK)) {                                                        \
             AUTIL_LOG(ERROR, "ec[%d] " format, __ec, ##args);                                                          \
             return __ec;                                                                                               \
         }                                                                                                              \
@@ -49,10 +49,19 @@ enum [[nodiscard]] ErrorCode {
 
 #define RETURN2_IF_FS_ERROR(ec, result, format, args...)                                                               \
     do {                                                                                                               \
-        const ErrorCode __ec = (ec);                                                                                   \
-        if (unlikely(__ec != FSEC_OK)) {                                                                               \
+        const indexlib::file_system::ErrorCode __ec = (ec);                                                            \
+        if (unlikely(__ec != indexlib::file_system::FSEC_OK)) {                                                        \
             AUTIL_LOG(ERROR, "ec[%d] " format, __ec, ##args);                                                          \
             return {__ec, (result)};                                                                                   \
+        }                                                                                                              \
+    } while (0)
+
+#define RETURN_RESULT_IF_FS_ERROR(ec, result, format, args...)                                                         \
+    do {                                                                                                               \
+        const indexlib::file_system::ErrorCode __ec = (ec);                                                            \
+        if (unlikely(__ec != indexlib::file_system::FSEC_OK)) {                                                        \
+            AUTIL_LOG(ERROR, "ec[%d] " format, __ec, ##args);                                                          \
+            return (result);                                                                                           \
         }                                                                                                              \
     } while (0)
 

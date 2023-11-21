@@ -121,7 +121,7 @@ navi::ErrorCode Ha3SqlRemoteScanR::init(navi::ResourceInitContext &ctx) {
     }
     if (!_initFireQuery) {
         getAsyncPipe()->setData(nullptr); // mock activation data for first compute
-        SQL_LOG(DEBUG, "skip init fire query, trigger by update scan query later");
+        SQL_LOG(TRACE3, "skip init fire query, trigger by update scan query later");
     } else if (!fireQuery()) {
         SQL_LOG(ERROR, "fire query to external table failed");
         return navi::EC_ABORT;
@@ -284,7 +284,13 @@ bool Ha3SqlRemoteScanR::doBatchScan(TablePtr &table, bool &eof) {
         auto result = _ctx->stealResult();
         if (result.is_err()) {
             SQL_LOG(ERROR, "get result failed, error[%s]", result.get_error().message().c_str());
-            if (_tableConfig->allowDegradedAccess) {
+            if (allowDegradedAccess()) {
+                DegradedInfo degradedInfo;
+                degradedInfo.add_degradederrorcodes(RPC_ERROR);
+                if (_sqlSearchInfoCollectorR) {
+                    _sqlSearchInfoCollectorR->getCollector()->addDegradedInfo(
+                        std::move(degradedInfo));
+                }
                 break;
             } else {
                 return false;
@@ -296,25 +302,36 @@ bool Ha3SqlRemoteScanR::doBatchScan(TablePtr &table, bool &eof) {
         table = fillTableResult(result.get(), hasSoftFailure);
         if (!table) {
             SQL_LOG(ERROR, "fill table[%s] result failed", _scanInitParamR->tableName.c_str());
-            if (_tableConfig->allowDegradedAccess) {
+            if (allowDegradedAccess()) {
+                DegradedInfo degradedInfo;
+                degradedInfo.add_degradederrorcodes(IO_ERROR);
+                if (_sqlSearchInfoCollectorR) {
+                    _sqlSearchInfoCollectorR->getCollector()->addDegradedInfo(
+                        std::move(degradedInfo));
+                }
                 break;
             } else {
                 return false;
             }
         }
         if (hasSoftFailure) {
-            if (!_tableConfig->allowDegradedAccess) {
+            if (!allowDegradedAccess()) {
                 SQL_LOG(ERROR, "soft failure occured, but degraded access not allowed");
                 return false;
             }
             SQL_LOG(DEBUG, "soft failure occured");
             _scanInitParamR->incDegradedDocsCount(1);
+            DegradedInfo degradedInfo;
+            degradedInfo.add_degradederrorcodes(INCOMPLETE_DATA_ERROR);
+            if (_sqlSearchInfoCollectorR) {
+                _sqlSearchInfoCollectorR->getCollector()->addDegradedInfo(std::move(degradedInfo));
+            }
         }
         _scanInitParamR->incOutputTime(outputTimer.done_us());
         SQL_LOG(TRACE3, "table before evaluate: [%s]", TableUtil::toString(table, 10).c_str());
 
         autil::ScopedTime2 evaluteTimer;
-        _seekCount += table->getRowCount();
+        _scanCount += table->getRowCount();
         if (!_calcTableR->projectTable(table)) {
             // filter process has been done by SQL query, only project needed
             SQL_LOG(ERROR, "project table failed");
@@ -416,7 +433,8 @@ bool Ha3SqlRemoteScanR::genQueryString(const QueryGenerateParam &queryParam,
     std::stringstream ssKvpair;
     ssKvpair << "formatType:flatbuffers;exec.source.spec:external;dynamic_params:"
              << dynamicParamsStr << ";databaseName:" << queryParam.dbName << ";"
-             << SQL_GET_RESULT_COMPRESS_TYPE << ":lz4;timeout:" << queryParam.leftTimeMs;
+             << SQL_GET_RESULT_COMPRESS_TYPE << ":lz4;timeout:" << queryParam.leftTimeMs << ";"
+             << SQL_RESULT_ALLOW_SOFT_FAILURE << ":" << (allowDegradedAccess() ? 1 : 0);
 
     std::string queryClause = std::move(ssQuery).str();
     std::string kvpairClause = std::move(ssKvpair).str();
@@ -529,8 +547,10 @@ TablePtr Ha3SqlRemoteScanR::fillTableResult(
     }
     ErrorResult errorResult;
     hasSoftFailure = false;
+    vector<int64_t> softFailureCodes;
     TablePtr table = std::make_shared<table::Table>(_graphMemoryPoolR->getPool());
-    if (!SqlResultUtil().FromFBSqlResult(fbsSqlResult, errorResult, hasSoftFailure, table)) {
+    if (!SqlResultUtil().FromFBSqlResult(
+            fbsSqlResult, errorResult, hasSoftFailure, softFailureCodes, table)) {
         SQL_LOG(ERROR, "from fb sql result failed");
         return nullptr;
     }
@@ -540,7 +560,9 @@ TablePtr Ha3SqlRemoteScanR::fillTableResult(
         return nullptr;
     }
     if (hasSoftFailure) {
-        SQL_LOG(WARN, "get result from external has soft failure");
+        SQL_LOG(WARN,
+                "get result from external has soft failure, soft failure code is [%s]",
+                autil::StringUtil::toString(softFailureCodes).c_str());
     }
     return table;
 }
@@ -564,6 +586,10 @@ bool Ha3SqlRemoteScanR::getDecompressedResult(isearch::proto::QrsResponse *respo
 
 int64_t Ha3SqlRemoteScanR::getTimeout() const {
     return _timeoutTerminatorR->getTimeoutTerminator()->getLeftTime();
+}
+
+bool Ha3SqlRemoteScanR::allowDegradedAccess() const {
+    return _queryConfig->resultallowsoftfailure() && _tableConfig->allowDegradedAccess;
 }
 
 REGISTER_RESOURCE(Ha3SqlRemoteScanR);

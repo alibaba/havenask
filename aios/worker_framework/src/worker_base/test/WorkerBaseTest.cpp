@@ -36,7 +36,7 @@ using ::testing::Return;
 
 using namespace worker_framework;
 namespace worker_framework {
-
+class WorkerBaseImpl;
 class AdapterTestImpl : public worker_framework::Test {
 public:
     void QueryPerson(::google::protobuf::RpcController *controller,
@@ -386,6 +386,32 @@ TEST_F(WorkerBaseTest, testInitWithRecommendPort) {
     EXPECT_EQ(retPath, worker.getCwdPath());
     worker.setRPCServer(NULL);
     worker.setHTTPRPCServer(NULL);
+}
+
+TEST_F(WorkerBaseTest, testEnableANetMetric) {
+    string logConfFile = _testDataPath + "/WorkerBaseTestLogger.conf";
+    string zkPath = "zfs://1.2.3.4:1234/test";
+    const string commandStr = "./WorkerBase -p 112 --httpPort 113 -l " + logConfFile + " -w " + _testDataPath +
+                              " -g 7777 -z " + zkPath + " --enableANetMetric --enableARPCMetric";
+    autil::CommandLineParameter cmdLinePara(commandStr);
+    WorkerBase worker;
+    worker.init(cmdLinePara.getArgc(), cmdLinePara.getArgv());
+    auto *rpcServer = worker.getRPCServer();
+    ASSERT_TRUE(rpcServer != nullptr);
+    ASSERT_TRUE(rpcServer->_metricReporter != nullptr);
+}
+
+TEST_F(WorkerBaseTest, testDisableANetMetric) {
+    string logConfFile = _testDataPath + "/WorkerBaseTestLogger.conf";
+    string zkPath = "zfs://1.2.3.4:1234/test";
+    const string commandStr =
+        "./WorkerBase -p 112 --httpPort 113 -l " + logConfFile + " -w " + _testDataPath + " -g 7777 -z " + zkPath;
+    autil::CommandLineParameter cmdLinePara(commandStr);
+    WorkerBase worker;
+    worker.init(cmdLinePara.getArgc(), cmdLinePara.getArgv());
+    auto *rpcServer = worker.getRPCServer();
+    ASSERT_TRUE(rpcServer != nullptr);
+    ASSERT_TRUE(rpcServer->_metricReporter == nullptr);
 }
 
 }; // namespace worker_framework

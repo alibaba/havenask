@@ -15,12 +15,12 @@
 #include "indexlib/config/kkv_index_config.h"
 #include "indexlib/config/kv_index_config.h"
 #include "indexlib/config/schema_configurator.h"
+#include "indexlib/config/test/modify_schema_maker.h"
 #include "indexlib/config/test/schema_loader.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/config/test/truncate_config_maker.h"
 #include "indexlib/config/virtual_attribute_config_creator.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/test/modify_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;
@@ -66,7 +66,7 @@ void IndexPartitionSchemaTest::TestCaseForJsonize()
     } catch (const util::ExceptionBase& e) {
         exception = true;
     }
-    INDEXLIB_TEST_TRUE(!exception);
+    ASSERT_TRUE(!exception);
 }
 
 void IndexPartitionSchemaTest::TestSupportNullField()
@@ -139,27 +139,27 @@ void IndexPartitionSchemaTest::TestCaseForAddVirtualAttributeConfig()
 {
     IndexPartitionSchemaPtr schema = ReadSchema(GET_PRIVATE_TEST_DATA_PATH() + "index_engine_example.json");
     vector<AttributeConfigPtr> attrConfigs;
-    INDEXLIB_TEST_TRUE(!schema->AddVirtualAttributeConfigs(attrConfigs));
+    ASSERT_TRUE(!schema->AddVirtualAttributeConfigs(attrConfigs));
     AttributeSchemaPtr virtualAttrSchema = schema->GetVirtualAttributeSchema();
-    INDEXLIB_TEST_TRUE(!virtualAttrSchema);
+    ASSERT_TRUE(!virtualAttrSchema);
 
     attrConfigs.push_back(VirtualAttributeConfigCreator::Create("vir_attr1", ft_int32, false, "0"));
-    INDEXLIB_TEST_TRUE(schema->AddVirtualAttributeConfigs(attrConfigs));
+    ASSERT_TRUE(schema->AddVirtualAttributeConfigs(attrConfigs));
     virtualAttrSchema = schema->GetVirtualAttributeSchema();
-    INDEXLIB_TEST_TRUE(virtualAttrSchema);
-    INDEXLIB_TEST_EQUAL((size_t)1, virtualAttrSchema->GetAttributeCount());
+    ASSERT_TRUE(virtualAttrSchema);
+    ASSERT_EQ((size_t)1, virtualAttrSchema->GetAttributeCount());
 
     attrConfigs.push_back(VirtualAttributeConfigCreator::Create("vir_attr1", ft_int32, false, "0"));
-    INDEXLIB_TEST_TRUE(!schema->AddVirtualAttributeConfigs(attrConfigs));
+    ASSERT_TRUE(!schema->AddVirtualAttributeConfigs(attrConfigs));
     virtualAttrSchema = schema->GetVirtualAttributeSchema();
-    INDEXLIB_TEST_TRUE(virtualAttrSchema);
-    INDEXLIB_TEST_EQUAL((size_t)1, virtualAttrSchema->GetAttributeCount());
+    ASSERT_TRUE(virtualAttrSchema);
+    ASSERT_EQ((size_t)1, virtualAttrSchema->GetAttributeCount());
 
     attrConfigs.push_back(VirtualAttributeConfigCreator::Create("vir_attr2", ft_int32, false, "0"));
-    INDEXLIB_TEST_TRUE(schema->AddVirtualAttributeConfigs(attrConfigs));
+    ASSERT_TRUE(schema->AddVirtualAttributeConfigs(attrConfigs));
     virtualAttrSchema = schema->GetVirtualAttributeSchema();
-    INDEXLIB_TEST_TRUE(virtualAttrSchema);
-    INDEXLIB_TEST_EQUAL((size_t)2, virtualAttrSchema->GetAttributeCount());
+    ASSERT_TRUE(virtualAttrSchema);
+    ASSERT_EQ((size_t)2, virtualAttrSchema->GetAttributeCount());
 }
 
 void IndexPartitionSchemaTest::TestCaseForCloneVirtualAttributes()
@@ -179,30 +179,29 @@ void IndexPartitionSchemaTest::TestCaseForCloneVirtualAttributes()
 
     schema->CloneVirtualAttributes(*other);
 
-    INDEXLIB_TEST_TRUE(!schema->GetVirtualAttributeSchema());
-    INDEXLIB_TEST_TRUE(!schema->GetSubIndexPartitionSchema()->GetVirtualAttributeSchema());
+    ASSERT_TRUE(!schema->GetVirtualAttributeSchema());
+    ASSERT_TRUE(!schema->GetSubIndexPartitionSchema()->GetVirtualAttributeSchema());
 
     vector<AttributeConfigPtr> mainVirtualAttrs;
     mainVirtualAttrs.push_back(VirtualAttributeConfigCreator::Create("vir_attr1", ft_int32, false, "0"));
-    INDEXLIB_TEST_TRUE(other->AddVirtualAttributeConfigs(mainVirtualAttrs));
+    ASSERT_TRUE(other->AddVirtualAttributeConfigs(mainVirtualAttrs));
 
     schema->CloneVirtualAttributes(*other);
-    INDEXLIB_TEST_TRUE(schema->GetVirtualAttributeSchema());
-    INDEXLIB_TEST_EQUAL(size_t(1), schema->GetVirtualAttributeSchema()->GetAttributeCount());
-    INDEXLIB_TEST_TRUE(!schema->GetSubIndexPartitionSchema()->GetVirtualAttributeSchema());
+    ASSERT_TRUE(schema->GetVirtualAttributeSchema());
+    ASSERT_EQ(size_t(1), schema->GetVirtualAttributeSchema()->GetAttributeCount());
+    ASSERT_TRUE(!schema->GetSubIndexPartitionSchema()->GetVirtualAttributeSchema());
 
     vector<AttributeConfigPtr> subVirtualAttrs;
     subVirtualAttrs.push_back(VirtualAttributeConfigCreator::Create("vir_attr2", ft_int32, false, "0"));
-    INDEXLIB_TEST_TRUE(other->GetSubIndexPartitionSchema()->AddVirtualAttributeConfigs(subVirtualAttrs));
+    ASSERT_TRUE(other->GetSubIndexPartitionSchema()->AddVirtualAttributeConfigs(subVirtualAttrs));
 
     const RegionSchemaImplPtr& regionSchema = schema->GetRegionSchema(DEFAULT_REGIONID)->GetImpl();
     regionSchema->mVirtualAttributeSchema.reset();
     schema->CloneVirtualAttributes(*other);
-    INDEXLIB_TEST_TRUE(schema->GetVirtualAttributeSchema());
-    INDEXLIB_TEST_EQUAL(size_t(1), schema->GetVirtualAttributeSchema()->GetAttributeCount());
-    INDEXLIB_TEST_TRUE(schema->GetSubIndexPartitionSchema()->GetVirtualAttributeSchema());
-    INDEXLIB_TEST_EQUAL(size_t(1),
-                        schema->GetSubIndexPartitionSchema()->GetVirtualAttributeSchema()->GetAttributeCount());
+    ASSERT_TRUE(schema->GetVirtualAttributeSchema());
+    ASSERT_EQ(size_t(1), schema->GetVirtualAttributeSchema()->GetAttributeCount());
+    ASSERT_TRUE(schema->GetSubIndexPartitionSchema()->GetVirtualAttributeSchema());
+    ASSERT_EQ(size_t(1), schema->GetSubIndexPartitionSchema()->GetVirtualAttributeSchema()->GetAttributeCount());
 }
 
 void IndexPartitionSchemaTest::TestCaseForFieldConfig()
@@ -211,17 +210,17 @@ void IndexPartitionSchemaTest::TestCaseForFieldConfig()
 
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
     fieldid_t fieldId = schema->GetFieldConfig("title")->GetFieldId();
-    INDEXLIB_TEST_TRUE(indexSchema->IsInIndex(fieldId));
+    ASSERT_TRUE(indexSchema->IsInIndex(fieldId));
     fieldId = schema->GetFieldConfig("body")->GetFieldId();
-    INDEXLIB_TEST_TRUE(indexSchema->IsInIndex(fieldId));
+    ASSERT_TRUE(indexSchema->IsInIndex(fieldId));
     fieldId = schema->GetFieldConfig("user_name")->GetFieldId();
-    INDEXLIB_TEST_TRUE(indexSchema->IsInIndex(fieldId));
+    ASSERT_TRUE(indexSchema->IsInIndex(fieldId));
     fieldId = schema->GetFieldConfig("product_id")->GetFieldId();
-    INDEXLIB_TEST_TRUE(indexSchema->IsInIndex(fieldId));
+    ASSERT_TRUE(indexSchema->IsInIndex(fieldId));
     FieldConfigPtr fieldConfig = schema->GetFieldConfig("price2");
-    INDEXLIB_TEST_TRUE(fieldConfig->GetCompressType().HasPatchCompress());
+    ASSERT_TRUE(fieldConfig->GetCompressType().HasPatchCompress());
     fieldConfig = schema->GetFieldConfig("price3");
-    INDEXLIB_TEST_TRUE(fieldConfig->GetCompressType().HasPatchCompress());
+    ASSERT_TRUE(fieldConfig->GetCompressType().HasPatchCompress());
 
     // no fileds
     ASSERT_THROW(ReadSchema(GET_PRIVATE_TEST_DATA_PATH() + "/schema/schema_without_fields.json"),
@@ -277,46 +276,46 @@ void IndexPartitionSchemaTest::TestCaseForGetIndexIdList()
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
     fieldid_t fieldId = schema->GetFieldConfig("title")->GetFieldId();
 
-    INDEXLIB_TEST_EQUAL((size_t)3, indexSchema->GetIndexIdList(fieldId).size());
-    INDEXLIB_TEST_EQUAL((indexid_t)0, indexSchema->GetIndexIdList(fieldId)[0]);
-    INDEXLIB_TEST_EQUAL((indexid_t)1, indexSchema->GetIndexIdList(fieldId)[1]);
-    INDEXLIB_TEST_EQUAL((indexid_t)4, indexSchema->GetIndexIdList(fieldId)[2]);
+    ASSERT_EQ((size_t)3, indexSchema->GetIndexIdList(fieldId).size());
+    ASSERT_EQ((indexid_t)0, indexSchema->GetIndexIdList(fieldId)[0]);
+    ASSERT_EQ((indexid_t)1, indexSchema->GetIndexIdList(fieldId)[1]);
+    ASSERT_EQ((indexid_t)4, indexSchema->GetIndexIdList(fieldId)[2]);
 
     fieldId = schema->GetFieldConfig("body")->GetFieldId();
-    INDEXLIB_TEST_EQUAL((size_t)2, indexSchema->GetIndexIdList(fieldId).size());
-    INDEXLIB_TEST_EQUAL((indexid_t)0, indexSchema->GetIndexIdList(fieldId)[0]);
-    INDEXLIB_TEST_EQUAL((indexid_t)4, indexSchema->GetIndexIdList(fieldId)[1]);
+    ASSERT_EQ((size_t)2, indexSchema->GetIndexIdList(fieldId).size());
+    ASSERT_EQ((indexid_t)0, indexSchema->GetIndexIdList(fieldId)[0]);
+    ASSERT_EQ((indexid_t)4, indexSchema->GetIndexIdList(fieldId)[1]);
 
     fieldId = schema->GetFieldConfig("user_name")->GetFieldId();
-    INDEXLIB_TEST_EQUAL((size_t)1, indexSchema->GetIndexIdList(fieldId).size());
-    INDEXLIB_TEST_EQUAL((indexid_t)2, indexSchema->GetIndexIdList(fieldId)[0]);
+    ASSERT_EQ((size_t)1, indexSchema->GetIndexIdList(fieldId).size());
+    ASSERT_EQ((indexid_t)2, indexSchema->GetIndexIdList(fieldId)[0]);
 
-    INDEXLIB_TEST_TRUE(indexSchema->IsInIndex(fieldId));
+    ASSERT_TRUE(indexSchema->IsInIndex(fieldId));
     fieldId = schema->GetFieldConfig("product_id")->GetFieldId();
-    INDEXLIB_TEST_EQUAL((size_t)1, indexSchema->GetIndexIdList(fieldId).size());
-    INDEXLIB_TEST_EQUAL((indexid_t)3, indexSchema->GetIndexIdList(fieldId)[0]);
+    ASSERT_EQ((size_t)1, indexSchema->GetIndexIdList(fieldId).size());
+    ASSERT_EQ((indexid_t)3, indexSchema->GetIndexIdList(fieldId)[0]);
 }
 
 void IndexPartitionSchemaTest::TestCaseForDictSchema()
 {
     IndexPartitionSchemaPtr schema = ReadSchema(GET_PRIVATE_TEST_DATA_PATH() + "index_engine_example.json");
     DictionarySchemaPtr dictShema = schema->GetDictSchema();
-    INDEXLIB_TEST_TRUE(dictShema != NULL);
+    ASSERT_TRUE(dictShema != NULL);
 
     std::shared_ptr<DictionaryConfig> top10DictConfig = dictShema->GetDictionaryConfig("top10");
-    INDEXLIB_TEST_TRUE(top10DictConfig != NULL);
+    ASSERT_TRUE(top10DictConfig != NULL);
     std::shared_ptr<DictionaryConfig> top100DictConfig = dictShema->GetDictionaryConfig("top100");
-    INDEXLIB_TEST_TRUE(top100DictConfig != NULL);
+    ASSERT_TRUE(top100DictConfig != NULL);
 
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
-    INDEXLIB_TEST_TRUE(indexSchema != NULL);
+    ASSERT_TRUE(indexSchema != NULL);
     IndexConfigPtr indexConfig = indexSchema->GetIndexConfig("phrase");
-    INDEXLIB_TEST_TRUE(indexConfig != NULL);
+    ASSERT_TRUE(indexConfig != NULL);
     std::shared_ptr<DictionaryConfig> phraseDictConfig = indexConfig->GetDictConfig();
     ASSERT_TRUE(phraseDictConfig->CheckEqual(*top10DictConfig).IsOK());
 
     indexlib::index::HighFrequencyTermPostingType postingType = indexConfig->GetHighFrequencyTermPostingType();
-    INDEXLIB_TEST_EQUAL(indexlib::index::hp_both, postingType);
+    ASSERT_EQ(indexlib::index::hp_both, postingType);
 }
 
 void IndexPartitionSchemaTest::TestCaseForCheck()
@@ -548,7 +547,7 @@ void IndexPartitionSchemaTest::TestCaseFor32FieldCountInPack()
     } catch (const util::SchemaException& e) {
         catched = true;
     }
-    INDEXLIB_TEST_TRUE(!catched);
+    ASSERT_TRUE(!catched);
 }
 
 void IndexPartitionSchemaTest::TestCaseFor33FieldCountInPack()
@@ -579,7 +578,7 @@ void IndexPartitionSchemaTest::TestCaseFor33FieldCountInPack()
     } catch (const util::SchemaException& e) {
         catched = true;
     }
-    INDEXLIB_TEST_TRUE(catched);
+    ASSERT_TRUE(catched);
 }
 
 void IndexPartitionSchemaTest::TestCaseFor9FieldCountInExpack()
@@ -608,7 +607,7 @@ void IndexPartitionSchemaTest::TestCaseFor9FieldCountInExpack()
     } catch (const util::SchemaException& e) {
         catched = true;
     }
-    INDEXLIB_TEST_TRUE(catched);
+    ASSERT_TRUE(catched);
 }
 
 void IndexPartitionSchemaTest::TestCaseFor8FieldCountInExpack()
@@ -638,7 +637,7 @@ void IndexPartitionSchemaTest::TestCaseFor8FieldCountInExpack()
     } catch (const util::SchemaException& e) {
         catched = true;
     }
-    INDEXLIB_TEST_TRUE(!catched);
+    ASSERT_TRUE(!catched);
 }
 
 void IndexPartitionSchemaTest::TestCaseForJsonizeWithSubSchema()
@@ -689,41 +688,41 @@ void IndexPartitionSchemaTest::TestCaseForTruncate()
         ReadSchema(GET_PRIVATE_TEST_DATA_PATH() + "index_engine_example_with_truncate.json");
     ASSERT_NO_THROW(schema->Check());
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("phrase")->HasTruncate());
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("phrase")->HasTruncateProfile(
+    ASSERT_TRUE(indexSchema->GetIndexConfig("phrase")->HasTruncate());
+    ASSERT_TRUE(indexSchema->GetIndexConfig("phrase")->HasTruncateProfile(
         schema->GetTruncateProfileSchema()->GetTruncateProfileConfig("desc_product_id").get()));
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("phrase")->HasTruncateProfile(
+    ASSERT_TRUE(indexSchema->GetIndexConfig("phrase")->HasTruncateProfile(
         schema->GetTruncateProfileSchema()->GetTruncateProfileConfig("desc_user_name").get()));
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("phrase_desc_product_id"));
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("phrase_desc_product_id")->IsVirtual());
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("phrase_desc_user_name"));
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("phrase_desc_user_name")->IsVirtual());
+    ASSERT_TRUE(indexSchema->GetIndexConfig("phrase_desc_product_id"));
+    ASSERT_TRUE(indexSchema->GetIndexConfig("phrase_desc_product_id")->IsVirtual());
+    ASSERT_TRUE(indexSchema->GetIndexConfig("phrase_desc_user_name"));
+    ASSERT_TRUE(indexSchema->GetIndexConfig("phrase_desc_user_name")->IsVirtual());
 
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("title")->HasTruncate());
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("title")->HasTruncateProfile(
+    ASSERT_TRUE(indexSchema->GetIndexConfig("title")->HasTruncate());
+    ASSERT_TRUE(indexSchema->GetIndexConfig("title")->HasTruncateProfile(
         schema->GetTruncateProfileSchema()->GetTruncateProfileConfig("desc_product_id").get()));
-    INDEXLIB_TEST_TRUE(!indexSchema->GetIndexConfig("title")->HasTruncateProfile(
+    ASSERT_TRUE(!indexSchema->GetIndexConfig("title")->HasTruncateProfile(
         schema->GetTruncateProfileSchema()->GetTruncateProfileConfig("desc_user_name").get()));
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("title_desc_product_id"));
-    INDEXLIB_TEST_TRUE(!indexSchema->GetIndexConfig("title_desc_user_name"));
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("title_desc_product_id")->IsVirtual());
+    ASSERT_TRUE(indexSchema->GetIndexConfig("title_desc_product_id"));
+    ASSERT_TRUE(!indexSchema->GetIndexConfig("title_desc_user_name"));
+    ASSERT_TRUE(indexSchema->GetIndexConfig("title_desc_product_id")->IsVirtual());
 
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("user_name")->HasTruncate());
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("user_name")
-                           ->HasTruncateProfile(
-                               schema->GetTruncateProfileSchema()->GetTruncateProfileConfig("desc_product_id").get()));
-    INDEXLIB_TEST_TRUE(
+    ASSERT_TRUE(indexSchema->GetIndexConfig("user_name")->HasTruncate());
+    ASSERT_TRUE(indexSchema->GetIndexConfig("user_name")
+                    ->HasTruncateProfile(
+                        schema->GetTruncateProfileSchema()->GetTruncateProfileConfig("desc_product_id").get()));
+    ASSERT_TRUE(
         indexSchema->GetIndexConfig("user_name")
             ->HasTruncateProfile(schema->GetTruncateProfileSchema()->GetTruncateProfileConfig("desc_user_name").get()));
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("user_name_desc_product_id"));
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("user_name_desc_product_id")->IsVirtual());
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("user_name_desc_user_name"));
-    INDEXLIB_TEST_TRUE(indexSchema->GetIndexConfig("user_name_desc_user_name")->IsVirtual());
+    ASSERT_TRUE(indexSchema->GetIndexConfig("user_name_desc_product_id"));
+    ASSERT_TRUE(indexSchema->GetIndexConfig("user_name_desc_product_id")->IsVirtual());
+    ASSERT_TRUE(indexSchema->GetIndexConfig("user_name_desc_user_name"));
+    ASSERT_TRUE(indexSchema->GetIndexConfig("user_name_desc_user_name")->IsVirtual());
 
-    INDEXLIB_TEST_TRUE(!indexSchema->GetIndexConfig("product_id")->HasTruncate());
-    INDEXLIB_TEST_TRUE(!indexSchema->GetIndexConfig("phrase2")->HasTruncate());
-    INDEXLIB_TEST_TRUE(!indexSchema->GetIndexConfig("categoryp")->HasTruncate());
-    INDEXLIB_TEST_TRUE(!indexSchema->GetIndexConfig("catmap")->HasTruncate());
+    ASSERT_TRUE(!indexSchema->GetIndexConfig("product_id")->HasTruncate());
+    ASSERT_TRUE(!indexSchema->GetIndexConfig("phrase2")->HasTruncate());
+    ASSERT_TRUE(!indexSchema->GetIndexConfig("categoryp")->HasTruncate());
+    ASSERT_TRUE(!indexSchema->GetIndexConfig("catmap")->HasTruncate());
 
     // truncate not support single compressed float
     ASSERT_ANY_THROW(ReadSchema(GET_PRIVATE_TEST_DATA_PATH() + "truncate_with_compressed_float.json"));
@@ -1231,14 +1230,14 @@ void IndexPartitionSchemaTest::TestCaseForKVIndex()
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
     ASSERT_EQ(it_kv, indexSchema->GetPrimaryKeyIndexType());
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+    KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
     ASSERT_TRUE(kvIndexConfig);
 
     PackAttributeConfigPtr attrConfig = kvIndexConfig->GetValueConfig()->CreatePackAttributeConfig();
     ASSERT_TRUE(attrConfig);
     vector<string> attrNames;
     attrConfig->GetSubAttributeNames(attrNames);
-    ASSERT_THAT(attrNames, ElementsAre(string("nid"), string("pidvid"), string("timestamp")));
+    ASSERT_THAT(attrNames, testing::ElementsAre(string("nid"), string("pidvid"), string("timestamp")));
 
     const KVIndexPreference& indexPreference = kvIndexConfig->GetIndexPreference();
     ASSERT_EQ(ipt_perf, indexPreference.GetType());
@@ -1289,7 +1288,7 @@ void IndexPartitionSchemaTest::TestCaseForKKVIndex()
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
     ASSERT_EQ(it_kkv, indexSchema->GetPrimaryKeyIndexType());
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KKVIndexConfigPtr kkvIndexConfig = DYNAMIC_POINTER_CAST(KKVIndexConfig, indexConfig);
+    KKVIndexConfigPtr kkvIndexConfig = std::dynamic_pointer_cast<KKVIndexConfig>(indexConfig);
     ASSERT_TRUE(kkvIndexConfig);
 
     ASSERT_TRUE(kkvIndexConfig->NeedSuffixKeyTruncate());
@@ -1304,7 +1303,7 @@ void IndexPartitionSchemaTest::TestCaseForKKVIndex()
     ASSERT_TRUE(valueConfig);
     vector<string> attrNames;
     valueConfig->GetSubAttributeNames(attrNames);
-    ASSERT_THAT(attrNames, ElementsAre(string("nick"), string("pidvid"), string("timestamp")));
+    ASSERT_THAT(attrNames, testing::ElementsAre(string("nick"), string("pidvid"), string("timestamp")));
 
     const KKVIndexPreference& indexPreference = kkvIndexConfig->GetIndexPreference();
     ASSERT_EQ(ipt_perf, indexPreference.GetType());
@@ -1371,14 +1370,14 @@ void IndexPartitionSchemaTest::TestCaseForMultiRegionKVSchemaWithRegionFieldSche
         IndexSchemaPtr indexSchema = regionSchema->GetIndexSchema();
         ASSERT_EQ(it_kv, indexSchema->GetPrimaryKeyIndexType());
         SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-        KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+        KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
         ASSERT_TRUE(kvIndexConfig);
 
         PackAttributeConfigPtr attrConfig = kvIndexConfig->GetValueConfig()->CreatePackAttributeConfig();
         ASSERT_TRUE(attrConfig);
         vector<string> attrNames;
         attrConfig->GetSubAttributeNames(attrNames);
-        ASSERT_THAT(attrNames, ElementsAre(string("nid"), string("pidvid"), string("timestamp")));
+        ASSERT_THAT(attrNames, testing::ElementsAre(string("nid"), string("pidvid"), string("timestamp")));
 
         const KVIndexPreference& indexPreference = kvIndexConfig->GetIndexPreference();
         ASSERT_EQ(ipt_perf, indexPreference.GetType());
@@ -1400,14 +1399,14 @@ void IndexPartitionSchemaTest::TestCaseForMultiRegionKVSchemaWithRegionFieldSche
         IndexSchemaPtr indexSchema = regionSchema->GetIndexSchema();
         ASSERT_EQ(it_kv, indexSchema->GetPrimaryKeyIndexType());
         SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-        KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+        KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
         ASSERT_TRUE(kvIndexConfig);
 
         PackAttributeConfigPtr attrConfig = kvIndexConfig->GetValueConfig()->CreatePackAttributeConfig();
         ASSERT_TRUE(attrConfig);
         vector<string> attrNames;
         attrConfig->GetSubAttributeNames(attrNames);
-        ASSERT_THAT(attrNames, ElementsAre(string("nid"), string("pidvid")));
+        ASSERT_THAT(attrNames, testing::ElementsAre(string("nid"), string("pidvid")));
 
         const KVIndexPreference& indexPreference = kvIndexConfig->GetIndexPreference();
         ASSERT_EQ(ipt_perf, indexPreference.GetType());
@@ -1464,14 +1463,14 @@ void IndexPartitionSchemaTest::TestDeleteMultiTimes()
         for (auto iter = indexConfigs->Begin(); iter != indexConfigs->End(); iter++) {
             deletedIndexName.push_back((*iter)->GetIndexName());
         }
-        ASSERT_THAT(deletedIndexName, ElementsAre("index2", "nid"));
+        ASSERT_THAT(deletedIndexName, testing::ElementsAre("index2", "nid"));
 
         AttributeConfigIteratorPtr attrConfigs = loadSchema->GetAttributeSchema()->CreateIterator(is_deleted);
         vector<string> deletedAttrName;
         for (auto iter = attrConfigs->Begin(); iter != attrConfigs->End(); iter++) {
             deletedAttrName.push_back((*iter)->GetAttrName());
         }
-        ASSERT_THAT(deletedAttrName, ElementsAre("string2", "price", "nid"));
+        ASSERT_THAT(deletedAttrName, testing::ElementsAre("string2", "price", "nid"));
     }
     {
         // make add attribute not ready
@@ -1481,26 +1480,26 @@ void IndexPartitionSchemaTest::TestDeleteMultiTimes()
         for (auto iter = attrConfigs->Begin(); iter != attrConfigs->End(); iter++) {
             disableAttrName.push_back((*iter)->GetAttrName());
         }
-        ASSERT_THAT(disableAttrName, ElementsAre("nid"));
+        ASSERT_THAT(disableAttrName, testing::ElementsAre("nid"));
         attrConfigs = loadSchema->GetAttributeSchema()->CreateIterator(is_deleted);
         vector<string> deletedAttrName;
         for (auto iter = attrConfigs->Begin(); iter != attrConfigs->End(); iter++) {
             deletedAttrName.push_back((*iter)->GetAttrName());
         }
-        ASSERT_THAT(deletedAttrName, ElementsAre("string2", "price", "nid"));
+        ASSERT_THAT(deletedAttrName, testing::ElementsAre("string2", "price", "nid"));
         // make add index not ready
         IndexConfigIteratorPtr indexConfigs = loadSchema->GetIndexSchema()->CreateIterator(true, is_deleted);
         vector<string> deletedIndexName;
         for (auto iter = indexConfigs->Begin(); iter != indexConfigs->End(); iter++) {
             deletedIndexName.push_back((*iter)->GetIndexName());
         }
-        ASSERT_THAT(deletedIndexName, ElementsAre("index2", "nid"));
+        ASSERT_THAT(deletedIndexName, testing::ElementsAre("index2", "nid"));
         indexConfigs = loadSchema->GetIndexSchema()->CreateIterator(true, is_disable);
         vector<string> disableIndexName;
         for (auto iter = indexConfigs->Begin(); iter != indexConfigs->End(); iter++) {
             disableIndexName.push_back((*iter)->GetIndexName());
         }
-        ASSERT_THAT(disableIndexName, ElementsAre("nid"));
+        ASSERT_THAT(disableIndexName, testing::ElementsAre("nid"));
     }
 }
 
@@ -1512,7 +1511,7 @@ void IndexPartitionSchemaTest::TestSupportAutoUpdate()
     for (auto iter = attrConfigs->Begin(); iter != attrConfigs->End(); iter++) {
         deletedAttrName.push_back((*iter)->GetAttrName());
     }
-    ASSERT_THAT(deletedAttrName, ElementsAre("string2", "price", "nid"));
+    ASSERT_THAT(deletedAttrName, testing::ElementsAre("string2", "price", "nid"));
     // disable not updatable attribute
     loadSchema->MarkOngoingModifyOperation(3);
     ASSERT_TRUE(loadSchema->GetAttributeSchema()->GetAttributeConfig("nid")->IsDisabled());
@@ -1726,7 +1725,7 @@ void IndexPartitionSchemaTest::CheckIndexSchema(const IndexSchemaPtr& schema, co
         IndexConfigPtr config = *iter;
         assert(config->GetFieldCount() == 1);
 
-        SingleFieldIndexConfigPtr singleFieldIndexConf = DYNAMIC_POINTER_CAST(SingleFieldIndexConfig, config);
+        SingleFieldIndexConfigPtr singleFieldIndexConf = std::dynamic_pointer_cast<SingleFieldIndexConfig>(config);
         fieldid_t fieldId = singleFieldIndexConf->GetFieldConfig()->GetFieldId();
         assert(fieldId != INVALID_FIELDID);
 
@@ -1854,14 +1853,14 @@ void IndexPartitionSchemaTest::TestCaseForMultiRegionKKVSchema()
         IndexSchemaPtr indexSchema = regionSchema->GetIndexSchema();
         ASSERT_EQ(it_kkv, indexSchema->GetPrimaryKeyIndexType());
         SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-        KKVIndexConfigPtr kkvIndexConfig = DYNAMIC_POINTER_CAST(KKVIndexConfig, indexConfig);
+        KKVIndexConfigPtr kkvIndexConfig = std::dynamic_pointer_cast<KKVIndexConfig>(indexConfig);
         ASSERT_TRUE(kkvIndexConfig);
 
         PackAttributeConfigPtr attrConfig = kkvIndexConfig->GetValueConfig()->CreatePackAttributeConfig();
         ASSERT_TRUE(attrConfig);
         vector<string> attrNames;
         attrConfig->GetSubAttributeNames(attrNames);
-        ASSERT_THAT(attrNames, ElementsAre(string("nick"), string("pidvid")));
+        ASSERT_THAT(attrNames, testing::ElementsAre(string("nick"), string("pidvid")));
 
         const KKVIndexPreference& indexPreference = kkvIndexConfig->GetIndexPreference();
         ASSERT_EQ(ipt_perf, indexPreference.GetType());
@@ -1883,14 +1882,14 @@ void IndexPartitionSchemaTest::TestCaseForMultiRegionKKVSchema()
         IndexSchemaPtr indexSchema = regionSchema->GetIndexSchema();
         ASSERT_EQ(it_kkv, indexSchema->GetPrimaryKeyIndexType());
         SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-        KKVIndexConfigPtr kkvIndexConfig = DYNAMIC_POINTER_CAST(KKVIndexConfig, indexConfig);
+        KKVIndexConfigPtr kkvIndexConfig = std::dynamic_pointer_cast<KKVIndexConfig>(indexConfig);
         ASSERT_TRUE(kkvIndexConfig);
 
         PackAttributeConfigPtr attrConfig = kkvIndexConfig->GetValueConfig()->CreatePackAttributeConfig();
         ASSERT_TRUE(attrConfig);
         vector<string> attrNames;
         attrConfig->GetSubAttributeNames(attrNames);
-        ASSERT_THAT(attrNames, ElementsAre(string("nick"), string("nid"), string("timestamp")));
+        ASSERT_THAT(attrNames, testing::ElementsAre(string("nick"), string("nid"), string("timestamp")));
 
         const KKVIndexPreference& indexPreference = kkvIndexConfig->GetIndexPreference();
         ASSERT_EQ(ipt_perf, indexPreference.GetType());
@@ -1929,14 +1928,14 @@ void IndexPartitionSchemaTest::TestCaseForMultiRegionKVSchema()
         IndexSchemaPtr indexSchema = regionSchema->GetIndexSchema();
         ASSERT_EQ(it_kv, indexSchema->GetPrimaryKeyIndexType());
         SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-        KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+        KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
         ASSERT_TRUE(kvIndexConfig);
 
         PackAttributeConfigPtr attrConfig = kvIndexConfig->GetValueConfig()->CreatePackAttributeConfig();
         ASSERT_TRUE(attrConfig);
         vector<string> attrNames;
         attrConfig->GetSubAttributeNames(attrNames);
-        ASSERT_THAT(attrNames, ElementsAre(string("nid"), string("pidvid"), string("timestamp")));
+        ASSERT_THAT(attrNames, testing::ElementsAre(string("nid"), string("pidvid"), string("timestamp")));
 
         const KVIndexPreference& indexPreference = kvIndexConfig->GetIndexPreference();
         ASSERT_EQ(ipt_perf, indexPreference.GetType());
@@ -1955,14 +1954,14 @@ void IndexPartitionSchemaTest::TestCaseForMultiRegionKVSchema()
         IndexSchemaPtr indexSchema = regionSchema->GetIndexSchema();
         ASSERT_EQ(it_kv, indexSchema->GetPrimaryKeyIndexType());
         SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-        KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+        KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
         ASSERT_TRUE(kvIndexConfig);
 
         PackAttributeConfigPtr attrConfig = kvIndexConfig->GetValueConfig()->CreatePackAttributeConfig();
         ASSERT_TRUE(attrConfig);
         vector<string> attrNames;
         attrConfig->GetSubAttributeNames(attrNames);
-        ASSERT_THAT(attrNames, ElementsAre(string("nid"), string("pidvid")));
+        ASSERT_THAT(attrNames, testing::ElementsAre(string("nid"), string("pidvid")));
 
         const KVIndexPreference& indexPreference = kvIndexConfig->GetIndexPreference();
         ASSERT_EQ(ipt_perf, indexPreference.GetType());

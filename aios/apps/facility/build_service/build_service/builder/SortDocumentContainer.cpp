@@ -15,13 +15,23 @@
  */
 #include "build_service/builder/SortDocumentContainer.h"
 
-#include "autil/DataBuffer.h"
+#include <cstdint>
+#include <iosfwd>
+#include <string.h>
+#include <string>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
 #include "build_service/builder/KKVSortDocConvertor.h"
 #include "build_service/builder/KKVSortDocSorter.h"
 #include "build_service/builder/KVSortDocConvertor.h"
 #include "build_service/builder/KVSortDocSorter.h"
 #include "build_service/builder/NormalSortDocConvertor.h"
 #include "build_service/builder/NormalSortDocSorter.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/index/inverted_index/config/AdaptiveDictionaryConfig.h"
+#include "indexlib/index_base/index_meta/partition_meta.h"
 
 using namespace std;
 using namespace autil;
@@ -164,7 +174,7 @@ DocumentPtr SortDocumentContainer::operator[](size_t idx)
     if (idx + 1 == sortedDocCount()) {
         locator = _lastLocator;
     }
-    doc->SetLocator(locator.Serialize());
+    doc->SetLocator(locator);
     return doc;
 }
 

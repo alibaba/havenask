@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEARCHER_H
-#define __INDEXLIB_SEARCHER_H
+#pragma once
 
 #include <memory>
 
@@ -46,5 +45,3 @@ private:
 
 DEFINE_SHARED_PTR(Searcher);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_SEARCHER_H

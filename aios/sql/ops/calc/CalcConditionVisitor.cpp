@@ -86,7 +86,7 @@ void CalcConditionVisitor::visitLeafCondition(LeafCondition *condition) {
     if (ExprUtil::isCaseOp(leafCondition)) {
         bool hasError = false;
         string errorInfo;
-        SQL_LOG(TRACE1, "create leaf exprStr [case when]");
+        SQL_LOG(TRACE3, "create leaf exprStr [case when]");
         _attrExpr = ExprUtil::CreateCaseExpression(_attrExprCreator,
                                                    "CONDITION_BOOLEAN",
                                                    leafCondition,
@@ -103,7 +103,7 @@ void CalcConditionVisitor::visitLeafCondition(LeafCondition *condition) {
             setErrorInfo("create expr string failed");
             return;
         }
-        SQL_LOG(TRACE1, "create leaf exprStr [%s]", exprStr.c_str());
+        SQL_LOG(TRACE3, "create leaf exprStr [%s]", exprStr.c_str());
         _attrExpr = _attrExprCreator->createAttributeExpression(exprStr);
         if (!_attrExpr) {
             string errorInfo = "parse expression string [" + exprStr + "] failed.";

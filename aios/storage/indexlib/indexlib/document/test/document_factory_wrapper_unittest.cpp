@@ -1,13 +1,13 @@
 #include "indexlib/document/test/document_factory_wrapper_unittest.h"
 
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_factory_wrapper.h"
 #include "indexlib/document/document_parser/kv_parser/kkv_document_parser.h"
 #include "indexlib/document/document_parser/kv_parser/kv_document_parser.h"
 #include "indexlib/document/document_parser/line_data_parser/line_data_document_parser.h"
 #include "indexlib/document/document_parser/normal_parser/normal_document_parser.h"
 #include "indexlib/document/test/example_customized_document.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib_example;

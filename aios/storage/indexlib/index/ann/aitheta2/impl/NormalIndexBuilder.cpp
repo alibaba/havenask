@@ -24,41 +24,56 @@ using namespace aitheta2;
 
 namespace indexlibv2::index::ann {
 
-bool NormalIndexBuilder::BuildAndDump(const EmbeddingDataPtr& embData, IndexDataWriterPtr& indexDataWriter)
+bool NormalIndexBuilder::Init(size_t docCount)
 {
     InitBuildMetrics();
-    index_id_t indexId = embData->get_index_id();
-    size_t docCount = embData->count();
-    if (docCount <= _indexConfig.buildConfig.buildThreshold) {
+    if (!_indexConfig.buildConfig.distributedBuild && docCount <= _indexConfig.buildConfig.buildThreshold) {
         _indexConfig.searchConfig.searcherName = LINEAR_SEARCHER;
         _indexConfig.buildConfig.builderName = LINEAR_BUILDER;
     }
-
-    AUTIL_LOG(INFO, "building index[%lu], doc count[%lu]", indexId, docCount);
-
     ANN_CHECK(AiThetaFactoryWrapper::CreateBuilder(_indexConfig, docCount, _builder), "create failed");
-    {
-        ScopedLatencyReporter reporter(_trainLatencyMetric);
-        ANN_CHECK_OK(_builder->train(embData), "train failed");
-    }
+    return true;
+}
+
+bool NormalIndexBuilder::Train(std::shared_ptr<EmbeddingBufferBase>& embBuffer,
+                               std::shared_ptr<aitheta2::CustomizedCkptManager>& indexCkptManager)
+{
+    assert(_builder);
+    size_t docCount = embBuffer->count();
+    AUTIL_LOG(INFO, "train doc count[%lu]", docCount);
+    ScopedLatencyReporter reporter(_trainLatencyMetric);
+    ANN_CHECK_OK(_builder->train(nullptr, embBuffer, indexCkptManager), "train failed");
+    return true;
+}
+
+bool NormalIndexBuilder::BuildAndDump(std::shared_ptr<EmbeddingBufferBase>& embBuffer,
+                                      std::shared_ptr<aitheta2::CustomizedCkptManager>& indexCkptManager,
+                                      IndexDataWriterPtr& indexDataWriter)
+{
+    assert(_builder);
+    size_t docCount = embBuffer->count();
+    AUTIL_LOG(INFO, "building doc count[%lu]", docCount);
     {
         ScopedLatencyReporter reporter(_buildLatencyMetric);
-        ANN_CHECK_OK(_builder->build(embData), "build failed");
+        embBuffer->SetMultiPass(false);
+        ANN_CHECK_OK(_builder->build(nullptr, embBuffer, indexCkptManager), "build failed");
     }
     ANN_CHECK_OK(CustomizedAiThetaDumper::dump(_builder, indexDataWriter), "dump failed");
 
+    _indexMeta.trainStats.stats = _builder->train_stats().to_json();
+    _indexMeta.buildStats.stats = _builder->build_stats().to_json();
     _indexMeta.docCount = docCount;
     _indexMeta.builderName = _indexConfig.buildConfig.builderName;
     _indexMeta.searcherName = _indexConfig.searchConfig.searcherName;
 
-    AUTIL_LOG(INFO, "build index success");
+    AUTIL_LOG(INFO, "build index done");
     return true;
 }
 
 void NormalIndexBuilder::InitBuildMetrics()
 {
-    METRIC_SETUP(_trainLatencyMetric, "indexlib.vector.aitheta2_train_latency", kmonitor::GAUGE);
-    METRIC_SETUP(_buildLatencyMetric, "indexlib.vector.aitheta2_build_latency", kmonitor::GAUGE);
+    METRIC_SETUP(_trainLatencyMetric, "indexlib.vector.offline.train_latency", kmonitor::GAUGE);
+    METRIC_SETUP(_buildLatencyMetric, "indexlib.vector.offline.build_latency", kmonitor::GAUGE);
 }
 
 AUTIL_LOG_SETUP(indexlib.index, NormalIndexBuilder);

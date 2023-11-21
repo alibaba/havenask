@@ -18,6 +18,7 @@
 #include "indexlib/index/inverted_index/IndexFormatWriterCreator.h"
 #include "indexlib/index/inverted_index/PostingWriterImpl.h"
 #include "indexlib/index/inverted_index/config/PackageIndexConfig.h"
+#include "indexlib/index/inverted_index/format/DictInlineEncoder.h"
 #include "indexlib/index/inverted_index/format/ShortListOptimizeUtil.h"
 #include "indexlib/index/inverted_index/format/TermMetaDumper.h"
 #include "indexlib/index/inverted_index/format/dictionary/DictionaryWriter.h"
@@ -377,8 +378,12 @@ void InvertedTestHelper::PrepareDictionaryFile(
     util::SimplePool pool;
     std::shared_ptr<DictionaryWriter> dictionaryWriter(
         IndexFormatWriterCreator::CreateDictionaryWriter(indexConfig, nullptr, &pool));
+    std::pair<bool, uint64_t> inlinePostingValueWithOrder;
+    DictInlineEncoder::EncodeContinuousDocId(1, 1, /*enableDictInlineLongDF*/ false, inlinePostingValueWithOrder);
+    dictvalue_t value = ShortListOptimizeUtil::CreateDictInlineValue(inlinePostingValueWithOrder.second, true, true);
+
     dictionaryWriter->Open(directory, dictFileName);
-    dictionaryWriter->AddItem(index::DictKeyInfo(1), 1);
+    dictionaryWriter->AddItem(index::DictKeyInfo(1), value);
     dictionaryWriter->Close();
 }
 

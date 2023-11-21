@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARALLELMERGEINTETEST_H
-#define __INDEXLIB_PARALLELMERGEINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/partition_state_machine.h"
@@ -33,5 +32,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(ParallelMergeInteTest, TestSimpleProcess);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PARALLELMERGEINTETEST_H

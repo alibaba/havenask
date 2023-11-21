@@ -44,14 +44,14 @@ IndexDataWriterPtr SegmentDataWriter::GetIndexDataWriter(index_id_t indexId)
 {
     assert(_indexFileWriter);
     if (_currentIndexDataWriter && !_currentIndexDataWriter->IsClosed()) {
-        AUTIL_LOG(ERROR, "prior index data writer not released, create new failed");
+        AUTIL_LOG(ERROR, "old index data writer not released, create new failed");
         return IndexDataWriterPtr();
     }
     if (_indexDataAddrHolder.HasAddr(indexId)) {
         AUTIL_LOG(ERROR, "indexId[%lu] exists, create failed", indexId);
         return IndexDataWriterPtr();
     }
-    _currentIndexDataWriter = std::make_shared<IndexDataWriter>(this, indexId);
+    _currentIndexDataWriter = std::make_shared<IndexDataWriter>(_indexFileWriter, &_indexDataAddrHolder, indexId);
     return _currentIndexDataWriter;
 }
 
@@ -79,7 +79,7 @@ bool SegmentDataWriter::Close()
         return true;
     }
     ANN_CHECK(_currentIndexDataWriter == nullptr || _currentIndexDataWriter->IsClosed(),
-              "next index data writer not closed");
+              "current index data writer not closed");
     ANN_CHECK(_indexDataAddrHolder.Dump(_directory), "index data address dump failed");
 
     ANN_CHECK(_indexFileWriter->Close().OK(), "close failed");

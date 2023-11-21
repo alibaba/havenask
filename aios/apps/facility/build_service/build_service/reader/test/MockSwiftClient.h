@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKSWIFTCLIENT_H
-#define ISEARCH_BS_MOCKSWIFTCLIENT_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/test/unittest.h"
@@ -33,5 +32,3 @@ typedef ::testing::NiceMock<MockSwiftClient> NiceMockSwiftClient;
 typedef ::testing::StrictMock<MockSwiftClient> StrictMockSwiftClient;
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_MOCKSWIFTCLIENT_H

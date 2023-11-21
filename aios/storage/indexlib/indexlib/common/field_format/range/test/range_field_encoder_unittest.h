@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_RANGEFIELDENCODERTEST_H
-#define __INDEXLIB_RANGEFIELDENCODERTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/range/range_field_encoder.h"
 #include "indexlib/common_define.h"
@@ -38,5 +37,3 @@ INDEXLIB_UNIT_TEST_CASE(RangeFieldEncoderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(RangeFieldEncoderTest, TestTopLevel);
 INDEXLIB_UNIT_TEST_CASE(RangeFieldEncoderTest, TestBigNumber);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_RANGEFIELDENCODERTEST_H

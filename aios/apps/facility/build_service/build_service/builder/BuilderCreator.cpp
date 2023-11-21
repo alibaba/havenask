@@ -15,21 +15,50 @@
  */
 #include "build_service/builder/BuilderCreator.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <ostream>
+#include <stddef.h>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/builder/AsyncBuilder.h"
 #include "build_service/builder/LineDataBuilder.h"
 #include "build_service/builder/SortedBuilder.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/IndexPartitionOptionsWrapper.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/RangeUtil.h"
-#include "fslib/util/FileUtil.h"
+#include "fslib/fs/FileSystem.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/config/build_config_base.h"
+#include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
+#include "indexlib/index_base/index_meta/partition_meta.h"
 #include "indexlib/index_base/schema_adapter.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/partition/index_builder.h"
 #include "indexlib/partition/index_partition.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
+#include "indexlib/util/memory_control/QuotaControl.h"
 
 using namespace std;
 using namespace autil;

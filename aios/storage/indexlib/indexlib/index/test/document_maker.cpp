@@ -452,7 +452,7 @@ NormalDocumentPtr DocumentMaker::MakeDocument(docid_t docId, const string& docSt
     AttributeDocumentPtr attributeDoc = doc->GetAttributeDocument();
     InitDefaultAttrDocValue(attributeDoc, schema->GetAttributeSchema(), schema->GetFieldSchema(), pool);
 
-    Locator locator(StringUtil::toString(docId));
+    IndexLocator locator(0, docId, StringUtil::toString(docId));
     doc->SetLocator(locator);
     doc->SetTimestamp(docId);
     doc->SetDocOperateType(ADD_DOC);

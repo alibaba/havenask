@@ -158,7 +158,7 @@ void Searcher::FillResult(QueryPtr query, docid_t docId, ResultPtr result, bool 
 
 void Searcher::FillRawDocBySource(SourceQueryPtr query, docid_t docId, RawDocumentPtr rawDoc)
 {
-    groupid_t groupId = query->GetGroupId();
+    sourcegroupid_t groupId = query->GetGroupId();
     SourceGroupConfigPtr groupConfig = mSchema->GetSourceSchema()->GetGroupConfig(groupId);
     SourceDocument sourceDoc(NULL);
     mReader->GetSourceReader()->GetDocument(docId, &sourceDoc);

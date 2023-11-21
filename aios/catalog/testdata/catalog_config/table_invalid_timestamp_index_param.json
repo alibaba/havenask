@@ -1,0 +1,251 @@
+{
+    "version": 2,
+    "status": {
+        "code": "PUBLISHED"
+    },
+    "tableName": "simple",
+    "databaseName": "database",
+    "catalogName": "catalog",
+    "tableConfig": {
+        "version": 1,
+        "status": {
+            "code": "PUBLISHED"
+        },
+        "partitionTtl": 30,
+        "offlineAppName": "ExampleApp"
+    },
+    "tableStructure": {
+        "version": 1,
+        "status": {
+            "code": "PUBLISHED"
+        },
+        "tableName": "simple",
+        "databaseName": "database",
+        "catalogName": "catalog",
+        "columns": [
+            {
+                "name": "id",
+                "type": "INT32",
+                "multiValue": false,
+                "defaultValue": "0"
+            },
+            {
+                "name": "price",
+                "type": "INT32",
+                "multiValue": false
+            },
+            {
+                "name": "company_id",
+                "type": "STRING",
+                "multiValue": false
+            },
+            {
+                "name": "multi_string",
+                "type": "STRING",
+                "multiValue": true,
+                "separator": ","
+            },
+            {
+                "analyzer" : "simple_analyzer",
+                "name": "title",
+                "type": "TEXT",
+                "multiValue": false
+            },
+            {
+                "analyzer" : "simple_analyzer",
+                "name": "sub_title",
+                "type": "TEXT",
+                "multiValue": false
+            },
+            {
+                "name": "timestamp",
+                "type": "UINT64",
+                "multiValue": false
+            },
+            {
+                "name": "location",
+                "type": "LOCATION"
+            }
+        ],
+        "indexes": [
+            {
+                "name": "company_id",
+                "indexType": "PRIMARY_KEY64",
+                "indexConfig": {
+                    "indexFields": [
+                        {
+                            "fieldName": "company_id"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "id",
+                "indexType": "ATTRIBUTE",
+                "indexConfig": {
+                    "indexFields": [
+                        {
+                            "fieldName": "id"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "id_number_index",
+                "indexType": "NUMBER",
+                "indexConfig": {
+                    "index_fields": [
+                        {
+                            "fieldName": "id"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "price_range_index",
+                "indexType": "RANGE",
+                "indexConfig": {
+                    "index_fields": [
+                        {
+                            "fieldName": "price"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "string_index",
+                "indexType": "STRING",
+                "indexConfig": {
+                    "index_fields": [
+                        {
+                            "fieldName": "multi_string"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "title_text_index",
+                "indexType": "TEXT",
+                "indexConfig": {
+                    "index_fields": [
+                        {
+                            "fieldName": "title"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "expack_index",
+                "indexType": "EXPACK",
+                "indexConfig": {
+                    "index_fields": [
+                        {
+                            "fieldName": "title"
+                        },
+                        {
+                            "fieldName": "sub_title"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "timestamp_index",
+                "indexType": "DATE",
+                "indexConfig": {
+                    "indexFields": [
+                        {
+                            "fieldName": "timestamp"
+                        }
+                    ],
+                    "indexParams":
+                    {
+                        "build_granularity": "invalid_param"
+                    }
+                }
+            },
+            {
+                "name": "location_index",
+                "indexType": "SPATIAL",
+                "indexConfig": {
+                    "indexFields": [
+                        {
+                            "fieldName": "location"
+                        }
+                    ],
+                    "indexParams":
+                    {
+                        "max_search_dist": "20000000",
+                        "max_dist_err": "20",
+                        "distance_loss_accuracy": "0.025"
+                    }
+                }
+            }
+        ],
+        "tableStructureConfig": {
+            "shardInfo": {
+                "shardFields": [
+                    "company_id"
+                ],
+                "shardFunc": "HASH",
+                "shardCount": 1,
+                "hashParams": {
+                    "hashFunc": "HASH",
+                    "routingRatio": "0.5",
+                    "hotValues": "value1,value2",
+                    "hotValuesRatio": "0.1"
+                }
+            },
+            "tableType": "NORMAL",
+            "buildType": "DIRECT"
+        }
+    },
+    "partitions": [
+        {
+            "version": 1,
+            "status": {
+                "code": "PUBLISHED"
+            },
+            "partitionName": "1234567",
+            "tableName": "simple",
+            "databaseName": "database",
+            "catalogName": "catalog",
+            "partitionType": "TABLE_PARTITION",
+            "partitionConfig": {
+                "version": 1,
+                "status": {
+                    "code": "PUBLISHED"
+                },
+                "custom_metas": {
+                    "swift_root": "$swift_root",
+                    "build_config": "$build_config"
+                }
+            },
+            "dataSource": {
+                "dataVersion": {
+                    "version": "1.0",
+                    "dataDescriptions": [
+                        {
+                            "src": "swift",
+                            "swift_root": "$swift_root",
+                            "swift_topic_name": "simple_1234567"
+                        }
+                    ],
+                    "dataInfo": {
+                        "fieldCount": 10,
+                        "fullDataRecordCount": 1000,
+                        "fullDataPhysicalSize": 1024,
+                        "fullDataLogicalSize": 2048,
+                        "fullDataModifiedTime": 1619713126
+                    }
+                },
+                "processConfigs": [
+                    {
+                        "version": 1,
+                        "tableName": "simple",
+                        "detail": "exampleDetail"
+                    }
+                ]
+            }
+        }
+    ]
+}

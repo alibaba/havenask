@@ -2,6 +2,7 @@ load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 strict_cc_fast_test(
     name='normal_table_config_unittest',
     srcs=['SegmentGroupConfigTest.cpp'],
+    copts=['-fno-access-control'],
     data=glob(['testdata/*']),
     deps=[
         '//aios/storage/indexlib/config:TabletSchema',

@@ -1,7 +1,7 @@
 #include "indexlib/common_define.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_collector.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 
 namespace indexlib { namespace document {

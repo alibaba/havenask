@@ -43,7 +43,8 @@ RankAttributeExpression::~RankAttributeExpression() {}
 
 bool RankAttributeExpression::allocate(matchdoc::MatchDocAllocator *allocator) {
     if (!_ref) {
-        auto scoreRef = allocator->declareWithConstructFlagDefaultGroup<score_t>(SCORE_REF, false, SL_CACHE);
+        auto scoreRef = allocator->declareWithConstructFlagDefaultGroup<score_t>(
+                SCORE_REF, true, SL_CACHE);
         if (scoreRef) {
             _ref = scoreRef;
             _rankScorer.setScoreRef(scoreRef);

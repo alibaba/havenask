@@ -15,7 +15,19 @@
  */
 #include "build_service/admin/SingleGlobalAgentGroup.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <stdint.h>
+
+#include "alog/Logger.h"
 #include "autil/CRC32C.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 
 using namespace std;
 

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_PRIMARY_KEY_INDEX_READER_H
-#define __INDEXLIB_FAKE_PRIMARY_KEY_INDEX_READER_H
+#pragma once
 
 #include <memory>
 
@@ -43,7 +42,7 @@ public:
         return index::AttributeReaderPtr(attrReader);
     }
 
-    docid_t Lookup(const std::string& pkStr, future_lite::Executor* executor) const override
+    docid64_t Lookup(const std::string& pkStr, future_lite::Executor* executor) const override
     {
         std::map<std::string, docid_t>::const_iterator it = _map.find(pkStr);
         if (it != _map.end()) {
@@ -58,16 +57,16 @@ public:
         return INVALID_DOCID;
     }
 
-    docid_t Lookup(const autil::StringView& pkStr) const override { return Lookup(pkStr.to_string(), nullptr); }
+    docid64_t Lookup(const autil::StringView& pkStr) const override { return Lookup(pkStr.to_string(), nullptr); }
 
-    docid_t LookupWithPKHash(const autil::uint128_t& pkHash, future_lite::Executor* executor) const override
+    docid64_t LookupWithPKHash(const autil::uint128_t& pkHash, future_lite::Executor* executor) const override
     {
         uint64_t pkValue;
         indexlib::index::PrimaryKeyHashConvertor::ToUInt64(pkHash, pkValue);
         return DoLookup(pkValue);
     }
 
-    docid_t DoLookup(uint64_t pk) const
+    docid64_t DoLookup(uint64_t pk) const
     {
         auto it = _hashKeyMap.find(pk);
         if (it != _hashKeyMap.end()) {
@@ -147,7 +146,9 @@ private:
         ss << SEGMENT_FILE_NAME_PREFIX << "_" << segmentId << "_level_0";
         file_system::DirectoryPtr segmentDir =
             _rootDirectory->MakeDirectory(ss.str(), file_system::DirectoryOption::Mem());
-        file_system::DirectoryPtr primaryKeyDir = segmentDir->MakeDirectory(index::INDEX_DIR_NAME + "/primaryKey");
+        auto indexDir = segmentDir->MakeDirectory(index::INDEX_DIR_NAME);
+        assert(indexDir);
+        file_system::DirectoryPtr primaryKeyDir = indexDir->MakeDirectory("primaryKey");
 
         file_system::FileWriterPtr fileWriter = primaryKeyDir->CreateFileWriter(index::PRIMARY_KEY_DATA_FILE_NAME);
         assert(fileWriter);
@@ -158,10 +159,10 @@ private:
 
         config::PrimaryKeyIndexConfigPtr pkIndexConfig = createIndexConfig();
 
-        indexlibv2::index::IndexerParameter parameter;
+        indexlibv2::index::DiskIndexerParameter parameter;
         parameter.docCount = pairVec.size();
         SegmentReaderPtr segReader(new SegmentReader(parameter));
-        auto status = segReader->Open(pkIndexConfig->MakePrimaryIndexConfigV2(), primaryKeyDir->GetIDirectory());
+        auto status = segReader->Open(pkIndexConfig->MakePrimaryIndexConfigV2(), indexDir->GetIDirectory());
         assert(status.IsOK());
 
         this->_segmentReaderList.push_back(
@@ -211,5 +212,3 @@ private:
 
 IE_LOG_SETUP_TEMPLATE(testlib, FakePrimaryKeyIndexReader);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKE_PRIMARY_KEY_INDEX_READER_H

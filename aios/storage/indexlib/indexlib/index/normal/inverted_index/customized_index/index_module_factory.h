@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_MODULE_FACTORY_H
-#define __INDEXLIB_INDEX_MODULE_FACTORY_H
+#pragma once
 
 #include "indexlib/index/normal/inverted_index/customized_index/index_reducer.h"
 #include "indexlib/index/normal/inverted_index/customized_index/index_retriever.h"
@@ -45,5 +44,4 @@ public:
 };
 
 DEFINE_SHARED_PTR(IndexModuleFactory);
-}}     // namespace indexlib::index
-#endif //__INDEXLIB_INDEX_MODULE_FACTORY_H
+}} // namespace indexlib::index

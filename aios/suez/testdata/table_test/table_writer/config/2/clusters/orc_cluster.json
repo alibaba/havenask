@@ -1,0 +1,26 @@
+{
+    "realtime" : true,
+    "direct_write": true,
+    "cluster_config" : {
+	"table_name" : "orc",
+	"hash_mode" : {
+	    "hash_field" : "nid",
+	    "hash_function": "HASH"
+	}
+    },
+    "online_index_config" : {
+	"need_deploy_index" : false,
+	"need_read_remote_index" : true,
+	"build_config" : {
+	    "max_doc_count" : 2
+	}
+    },
+    "offline_index_config" : {
+	"build_config" : {
+	    "max_doc_count" : 2
+	}
+    },
+    "build_option_config" : {
+	"max_recover_time" : 1
+    }
+}

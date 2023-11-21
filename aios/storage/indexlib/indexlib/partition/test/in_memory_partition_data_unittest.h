@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMORYPARTITIONDATATEST_H
-#define __INDEXLIB_INMEMORYPARTITIONDATATEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/in_memory_partition_data.h"
@@ -35,5 +34,3 @@ INDEXLIB_UNIT_TEST_CASE(InMemoryPartitionDataTest, TestAddSegmentForSub);
 INDEXLIB_UNIT_TEST_CASE(InMemoryPartitionDataTest, TestClone);
 INDEXLIB_UNIT_TEST_CASE(InMemoryPartitionDataTest, TestCreateNewSegmentData);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INMEMORYPARTITIONDATATEST_H

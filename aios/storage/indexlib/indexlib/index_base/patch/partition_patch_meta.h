@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_PATCH_META_H
-#define __INDEXLIB_PARTITION_PATCH_META_H
+#pragma once
 
 #include <memory>
 
@@ -52,11 +51,11 @@ public:
     typedef PatchSegmentMetas::const_iterator Iterator;
 
 public:
-    SchemaPatchInfo(schemavid_t schemaId = DEFAULT_SCHEMAID) : mSchemaId(schemaId) {}
+    SchemaPatchInfo(schemaid_t schemaId = DEFAULT_SCHEMAID) : mSchemaId(schemaId) {}
 
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override;
-    schemavid_t GetSchemaId() const { return mSchemaId; }
+    schemaid_t GetSchemaId() const { return mSchemaId; }
     Iterator Begin() const { return mPatchSegmentMetas.begin(); }
     Iterator End() const { return mPatchSegmentMetas.end(); }
     size_t GetPatchSegmentSize() const { return mPatchSegmentMetas.size(); }
@@ -68,7 +67,7 @@ private:
     PatchSegmentMeta& GetPatchSegmentMeta(segmentid_t segId);
 
 private:
-    schemavid_t mSchemaId;
+    schemaid_t mSchemaId;
     PatchSegmentMetas mPatchSegmentMetas;
 };
 DEFINE_SHARED_PTR(SchemaPatchInfo);
@@ -98,18 +97,18 @@ public:
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override;
 
-    void AddPatchIndexs(schemavid_t schemaId, segmentid_t segId, const std::vector<std::string>& indexNames);
+    void AddPatchIndexs(schemaid_t schemaId, segmentid_t segId, const std::vector<std::string>& indexNames);
 
-    void AddPatchAttributes(schemavid_t schemaId, segmentid_t segId, const std::vector<std::string>& attrNames);
+    void AddPatchAttributes(schemaid_t schemaId, segmentid_t segId, const std::vector<std::string>& attrNames);
 
-    void AddPatchIndex(schemavid_t schemaId, segmentid_t segId, const std::string& indexName);
-    void AddPatchAttribute(schemavid_t schemaId, segmentid_t segId, const std::string& attrName);
+    void AddPatchIndex(schemaid_t schemaId, segmentid_t segId, const std::string& indexName);
+    void AddPatchAttribute(schemaid_t schemaId, segmentid_t segId, const std::string& attrName);
 
-    schemavid_t GetSchemaIdByIndexName(segmentid_t segId, const std::string& indexName) const;
-    schemavid_t GetSchemaIdByAttributeName(segmentid_t segId, const std::string& attrName) const;
-    SchemaPatchInfoPtr FindSchemaPatchInfo(schemavid_t schemaId) const;
+    schemaid_t GetSchemaIdByIndexName(segmentid_t segId, const std::string& indexName) const;
+    schemaid_t GetSchemaIdByAttributeName(segmentid_t segId, const std::string& attrName) const;
+    SchemaPatchInfoPtr FindSchemaPatchInfo(schemaid_t schemaId) const;
 
-    void GetSchemaIdsBySegmentId(segmentid_t segId, std::vector<schemavid_t>& schemaIds) const;
+    void GetSchemaIdsBySegmentId(segmentid_t segId, std::vector<schemaid_t>& schemaIds) const;
 
 public:
     Iterator CreateIterator() const { return Iterator(mSchemaPatchInfos); }
@@ -121,12 +120,12 @@ public:
     static std::string GetPatchMetaFileName(versionid_t versionId);
 
 private:
-    SchemaPatchInfoPtr GetSchemaPatchInfo(schemavid_t schemaId);
+    SchemaPatchInfoPtr GetSchemaPatchInfo(schemaid_t schemaId);
     void ResetSchemaIdMap();
 
 private:
     typedef std::pair<segmentid_t, std::string> _Key;
-    typedef std::map<_Key, schemavid_t> SchemaIdMap;
+    typedef std::map<_Key, schemaid_t> SchemaIdMap;
 
 private:
     PatchInfoVec mSchemaPatchInfos;
@@ -139,5 +138,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionPatchMeta);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_PARTITION_PATCH_META_H

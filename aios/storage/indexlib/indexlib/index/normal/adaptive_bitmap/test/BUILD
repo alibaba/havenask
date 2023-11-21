@@ -15,7 +15,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_adaptive_bitmap_unittest',
     srcs=glob(['*unittest.cpp', '*intetest.cpp']),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     deps=[
         ':indexlib_adaptive_bitmap_test_helper',

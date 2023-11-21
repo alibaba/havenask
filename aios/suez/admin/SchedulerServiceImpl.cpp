@@ -46,7 +46,7 @@ bool SchedulerServiceImpl::start(const std::shared_ptr<catalog::CatalogControlle
 
     if (_localCm2Mode) {
         _fetchLoopThread = autil::LoopThread::createLoopThread(
-            std::bind(&SchedulerServiceImpl::fetchFromCarbon, this), 10 * 1000 * 1000, "AdminOpsFetch");
+            std::bind(&SchedulerServiceImpl::fetchFromCarbon, this), 2 * 1000 * 1000, "AdminOpsFetch");
         if (!_fetchLoopThread) {
             AUTIL_LOG(ERROR, "create fetch from carbon thread failed");
             return false;
@@ -54,7 +54,7 @@ bool SchedulerServiceImpl::start(const std::shared_ptr<catalog::CatalogControlle
     }
 
     _loopThread = autil::LoopThread::createLoopThread(
-        std::bind(&SchedulerServiceImpl::commitToCarbon, this), 10 * 1000 * 1000, "AdminOpsCommit");
+        std::bind(&SchedulerServiceImpl::commitToCarbon, this), 5 * 1000 * 1000, "AdminOpsCommit");
 
     if (!_loopThread) {
         return false;
@@ -144,11 +144,24 @@ void SchedulerServiceImpl::extractStatusInfo(const std::map<std::string, carbon:
         auto groupStatusInfo = JsonNodeRef::JsonMap();
         for (const auto &[roleId, roleStatus] : groupStatus.roleStatuses) {
             auto roleStatusInfo = JsonNodeRef::JsonArray();
-            const auto &nodes = roleStatus.nextinstanceinfo().replicanodes();
-            for (size_t i = 0; i < nodes.size(); i++) {
-                const auto &node = nodes[i];
-                if (!node.isbackup()) {
-                    extractNodeStatusInfo(node, &roleStatusInfo);
+            bool rolling = false;
+            { // current version node (rolling)
+                const auto &nodes = roleStatus.curinstanceinfo().replicanodes();
+                for (size_t i = 0; i < nodes.size(); i++) {
+                    const auto &node = nodes[i];
+                    if (!node.isbackup()) {
+                        rolling = true;
+                        extractNodeStatusInfo(node, &roleStatusInfo);
+                    }
+                }
+            }
+            { // latest version node
+                const auto &nodes = roleStatus.nextinstanceinfo().replicanodes();
+                for (size_t i = 0; i < nodes.size(); i++) {
+                    const auto &node = nodes[i];
+                    if (!node.isbackup() && (node.readyforcurversion() || !rolling)) {
+                        extractNodeStatusInfo(node, &roleStatusInfo);
+                    }
                 }
             }
             groupStatusInfo[roleId] = roleStatusInfo;

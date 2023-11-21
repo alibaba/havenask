@@ -27,6 +27,16 @@ NaviResourceHelper::~NaviResourceHelper() {
     _testers.clear();
 }
 
+bool NaviResourceHelper::snapshotConfig(const std::string &name, const std::string &configStr) {
+    NaviRegistryConfig config;
+    if (!config.loadConfig(name, configStr)) {
+        NAVI_KERNEL_LOG(ERROR, "set config for resource[%s] failed", name.c_str());
+        return false;
+    }
+    _snapshotConfigMap.setConfig(config);
+    return true;
+}
+
 bool NaviResourceHelper::config(const std::string &name, const std::string &configStr) {
     NaviRegistryConfig config;
     if (!config.loadConfig(name, configStr)) {
@@ -62,6 +72,11 @@ bool NaviResourceHelper::loadConfig(const std::string &configFile) { return fals
 
 void NaviResourceHelper::kernelConfig(const std::string &configStr) { _kernelConfig = configStr; }
 
+void NaviResourceHelper::namedData(const std::string &name, std::shared_ptr<Data> data) {
+    // TODO: check data name duplication??
+    _namedDatas[name] = std::move(data);
+}
+
 std::shared_ptr<Resource> NaviResourceHelper::getOrCreateResPtr(const std::string &name) {
     auto res = _resourceMap.getResource(name);
     if (res) {
@@ -90,8 +105,14 @@ std::shared_ptr<Resource> NaviResourceHelper::createResPtr(const std::string &na
     builder.logLevel(_logLevel);
     builder.kernel(kernelName);
     builder.kernelConfig(_kernelConfig);
+    for (auto &pair : _namedDatas) {
+        builder.namedData(pair.first, pair.second);
+    }
     for (const auto &module : _modules) {
         builder.module(module);
+    }
+    for (const auto &pair : _snapshotConfigMap.getConfigMap()) {
+        builder.snapshotResourceConfig(pair.second.name, FastToJsonString(pair.second.config));
     }
     for (const auto &pair : _configMap.getConfigMap()) {
         builder.resourceConfig(pair.second.name, FastToJsonString(pair.second.config));

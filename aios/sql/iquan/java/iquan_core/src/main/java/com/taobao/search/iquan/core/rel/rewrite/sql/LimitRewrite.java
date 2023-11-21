@@ -3,7 +3,16 @@ package com.taobao.search.iquan.core.rel.rewrite.sql;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
 import com.taobao.search.iquan.core.rel.visitor.sqlshuttle.IquanSqlShuttle;
-import org.apache.calcite.sql.*;
+import org.apache.calcite.sql.SqlBasicCall;
+import org.apache.calcite.sql.SqlCall;
+import org.apache.calcite.sql.SqlLiteral;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlNodeList;
+import org.apache.calcite.sql.SqlNumericLiteral;
+import org.apache.calcite.sql.SqlOperator;
+import org.apache.calcite.sql.SqlOrderBy;
+import org.apache.calcite.sql.SqlSelect;
+import org.apache.calcite.sql.SqlWith;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 
 public class LimitRewrite extends IquanSqlShuttle {

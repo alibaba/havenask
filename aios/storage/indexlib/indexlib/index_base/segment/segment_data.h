@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_DATA_H
-#define __INDEXLIB_SEGMENT_DATA_H
+#pragma once
 
 #include <memory>
 
@@ -124,5 +123,3 @@ private:
 
 typedef std::vector<SegmentData> SegmentDataVector;
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SEGMENT_DATA_H

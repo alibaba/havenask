@@ -52,7 +52,7 @@ void HTTPRPCServerWorkItem::process() {
     RPCMessage *requestMessage = _service->GetRequestPrototype(_method).New();
     RPCMessage *responseMessage = _service->GetResponsePrototype(_method).New();
     unique_ptr<HTTPRPCServerClosure> closure(new HTTPRPCServerClosure(
-        _connection, requestMessage, responseMessage, _keepAlive, _encoding, _protoJsonizer, _eagleInfo));
+        _connection, requestMessage, responseMessage, _keepAlive, _encoding, _protoJsonizer, _eagleInfo, _aiosDebugType));
     HTTPRPCController *controller = closure->getController();
 
     if (!_protoJsonizer->fromJson(_requestStr, requestMessage)) {
@@ -76,5 +76,11 @@ void HTTPRPCServerWorkItem::drop() {
 void HTTPRPCServerWorkItem::SetBeginTime(int64_t beginTime) { _beginTime = beginTime; }
 
 void HTTPRPCServerWorkItem::SetAddr(const std::string &addr) { _addr = addr; }
+
+void HTTPRPCServerWorkItem::SetAiosDebugType(const char *aiosDebugType) {
+    if (aiosDebugType) {
+        _aiosDebugType = aiosDebugType;
+    }
+}
 
 } // namespace http_arpc

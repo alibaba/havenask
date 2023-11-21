@@ -277,7 +277,7 @@ void OnDiskPackIndexIteratorTyped<DictKey>::DecodeDocList()
     ssize_t readLen = _postingFile->Read(_docListSlice->data, _docListSlice->size, cursor).GetOrThrow();
     assert(readLen == (ssize_t)docListLen);
     (void)readLen;
-    _docListReader->Open(_docListSlice);
+    _docListReader->Open(_docListSlice).GetOrThrow();
 }
 
 template <typename DictKey>
@@ -307,7 +307,7 @@ void OnDiskPackIndexIteratorTyped<DictKey>::DecodePosList()
 
     int64_t cursor = _postingFile->Tell() + posSkipListLen;
     _postingFile->Read(_posListSlice->data, _posListSlice->size, cursor).GetOrThrow();
-    _posListReader->Open(_posListSlice);
+    _posListReader->Open(_posListSlice).GetOrThrow();
 }
 
 #undef DELETE_BYTE_SLICE

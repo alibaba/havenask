@@ -42,10 +42,11 @@ class InMemoryValueWriter;
 class VarLenKVMemIndexer final : public KVMemIndexerBase
 {
 public:
-    VarLenKVMemIndexer(int64_t maxMemoryUse, float keyValueSizeRatio = DEFAULT_KEY_VALUE_MEM_RATIO,
+    VarLenKVMemIndexer(bool tolerateDocError, int64_t maxMemoryUse,
+                       float keyValueSizeRatio = DEFAULT_KEY_VALUE_MEM_RATIO,
                        float valueCompressRatio = DEFAULT_VALUE_COMPRESSION_RATIO,
                        indexlibv2::framework::IIndexMemoryReclaimer* memReclaimer = nullptr);
-    VarLenKVMemIndexer(int64_t maxMemoryUse, float keyValueSizeRatio, float valueCompressRatio,
+    VarLenKVMemIndexer(bool tolerateDocError, int64_t maxMemoryUse, float keyValueSizeRatio, float valueCompressRatio,
                        const config::SortDescriptions& sortDescriptions,
                        indexlibv2::framework::IIndexMemoryReclaimer* memReclaimer = nullptr);
     ~VarLenKVMemIndexer();

@@ -15,10 +15,8 @@
  */
 #pragma once
 
-#include <memory>
-#include <mutex>
+#include <string>
 
-#include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/Types.h"

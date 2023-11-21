@@ -2,6 +2,7 @@ load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 strict_cc_fast_test(
     name='DocumentRewriteChainTest',
     srcs=['DocumentRewriteChainTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/document/document_rewriter:DocumentRewriteChain',
@@ -12,6 +13,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='TTLSetterTest',
     srcs=['TTLSetterTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/document:DocumentBatch',
@@ -23,6 +25,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='DocumentInfoToAttributeRewriterTest',
     srcs=['DocumentInfoToAttributeRewriterTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/document:DocumentBatch',
         '//aios/storage/indexlib/document/document_rewriter:DocumentInfoToAttributeRewriter',

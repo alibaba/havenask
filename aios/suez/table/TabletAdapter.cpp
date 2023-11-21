@@ -89,7 +89,7 @@ TableStatus TabletAdapter::open(const PartitionProperties &properties, const Tab
 
     auto versionId = tableVersion.getVersionId();
     if (versionId < 0) {
-        versionId = INVALID_VERSION;
+        versionId = indexlib::INVALID_VERSIONID;
     }
     auto status = _tablet->Open(_indexRoot, _schema, std::move(tabletOptions), versionId);
     if (!status.IsOK()) {

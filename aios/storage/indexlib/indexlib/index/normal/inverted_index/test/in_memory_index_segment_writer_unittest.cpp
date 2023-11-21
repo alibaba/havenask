@@ -1,11 +1,11 @@
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/index/normal/inverted_index/accessor/in_memory_index_segment_writer.h"
 #include "indexlib/index/normal/inverted_index/accessor/index_writer_factory.h"
 #include "indexlib/index/normal/inverted_index/accessor/normal_index_writer.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/test.h"
 #include "indexlib/test/unittest.h"
 

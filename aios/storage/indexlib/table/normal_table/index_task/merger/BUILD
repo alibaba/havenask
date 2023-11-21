@@ -5,18 +5,10 @@ package(
     ]
 )
 strict_cc_library(
-    name='OptimizeMergeStrategy',
+    name='NormalTabletOptimizeMergeStrategy',
     deps=[
-        ':NormalTableMergeStrategyUtil', '//aios/autil:log',
-        '//aios/storage/indexlib/config:MergeConfig',
-        '//aios/storage/indexlib/config:OfflineConfig',
-        '//aios/storage/indexlib/config:TabletOptions',
-        '//aios/storage/indexlib/framework:Segment',
-        '//aios/storage/indexlib/framework:TabletData',
-        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
-        '//aios/storage/indexlib/table/index_task/merger:MergePlan',
-        '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
-        '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine'
+        ':NormalTableMergeStrategyUtil',
+        '//aios/storage/indexlib/table/index_task/merger:OptimizeMergeStrategy'
     ]
 )
 strict_cc_library(

@@ -77,27 +77,45 @@ void CustomizedIndexMerger::InnerMerge(const index::MergerResource& mergerResour
     nonEmptySegMergeInfos.reserve(segMergeInfos.size());
     const string& indexName = mIndexConfig->GetIndexName();
 
-    for (const auto& segMergeInfo : segMergeInfos) {
-        segmentid_t segmentId = segMergeInfo.segmentId;
-        const auto& segData = partitionData->GetSegmentData(segmentId);
-        const auto& indexDir = segData.GetIndexDirectory(indexName, false);
-        if (!indexDir) {
-            IE_LOG(WARN, "cannot find indexDir[%s] in segment[%d]", indexName.c_str(), segmentId);
-            continue;
+    if (!mergerResource.distributedBuildInputDir) {
+        IE_LOG(INFO, "trigger normal merge");
+        for (const auto& segMergeInfo : segMergeInfos) {
+            segmentid_t segmentId = segMergeInfo.segmentId;
+            const auto& segData = partitionData->GetSegmentData(segmentId);
+            const auto& indexDir = segData.GetIndexDirectory(indexName, false);
+            IE_LOG(INFO, "trigger distrbute merge, indexDir[%s] in segment[%d]", indexName.c_str(), segmentId);
+            if (!indexDir) {
+                IE_LOG(WARN, "cannot find indexDir[%s] in segment[%d]", indexName.c_str(), segmentId);
+                continue;
+            }
+            IndexReduceItemPtr reduceItem = mIndexReducer->CreateReduceItem();
+            if (!reduceItem->LoadIndex(indexDir)) {
+                INDEXLIB_FATAL_ERROR(Runtime, "load customize index[%s] failed for segment[%d]", indexName.c_str(),
+                                     segmentId);
+            }
+            DocIdMap docIdMap(segData.GetBaseDocId(), mergerResource.reclaimMap);
+
+            if (!reduceItem->UpdateDocId(docIdMap)) {
+                INDEXLIB_FATAL_ERROR(Runtime, "update DocId of index[%s] failed for segment[%d]", indexName.c_str(),
+                                     segmentId);
+            }
+            reduceItems.push_back(reduceItem);
+            nonEmptySegMergeInfos.push_back(segMergeInfo);
         }
+    } else {
+        IE_LOG(INFO, "trigger distribute merge");
         IndexReduceItemPtr reduceItem = mIndexReducer->CreateReduceItem();
-        if (!reduceItem->LoadIndex(indexDir)) {
-            INDEXLIB_FATAL_ERROR(Runtime, "load customize index[%s] failed for segment[%d]", indexName.c_str(),
-                                 segmentId);
+        if (!reduceItem->LoadIndex(mergerResource.distributedBuildInputDir)) {
+            INDEXLIB_FATAL_ERROR(Runtime, "load customize index[%s] failed for dir [%s]", indexName.c_str(),
+                                 mergerResource.distributedBuildInputDir->DebugString().c_str());
         }
-        DocIdMap docIdMap(segData.GetBaseDocId(), mergerResource.reclaimMap);
+        DocIdMap docIdMap(0, mergerResource.reclaimMap);
 
         if (!reduceItem->UpdateDocId(docIdMap)) {
-            INDEXLIB_FATAL_ERROR(Runtime, "update DocId of index[%s] failed for segment[%d]", indexName.c_str(),
-                                 segmentId);
+            INDEXLIB_FATAL_ERROR(Runtime, "update DocId of index[%s] failed for dir [%s]", indexName.c_str(),
+                                 mergerResource.distributedBuildInputDir->DebugString().c_str());
         }
         reduceItems.push_back(reduceItem);
-        nonEmptySegMergeInfos.push_back(segMergeInfo);
     }
 
     PluginResourcePtr pluginResource = mPluginManager->GetPluginResource();
@@ -195,6 +213,8 @@ void CustomizedIndexMerger::GetFilteredSegments(const SegmentDirectoryBasePtr& s
         }
         indexDirs.push_back(indexDir);
         filteredSegMergeInfos.push_back(segMergeInfo);
+        filteredSegMergeInfos.back().directory = segData.GetDirectory();
+        filteredSegMergeInfos.back().segmentDirectory = segDir;
     }
 }
 

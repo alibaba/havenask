@@ -15,6 +15,16 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorTargetInfos.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <memory>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/jsonizable_exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+
 namespace build_service { namespace admin {
 BS_LOG_SETUP(admin, ProcessorTargetInfos);
 
@@ -79,6 +89,7 @@ void ProcessorTargetInfos::update(const ProcessorBasicInfo& basicInfo,
     // partition count or parallel num or src change
     if (_processorBasicInfo.checkSourceAndPartition(basicInfo)) {
         ProcessorTargetInfo targetInfo(basicInfo.offset, "");
+        _processorBasicInfo = basicInfo;
         _processorTargetInfos.assign(targetInfos.size(), targetInfo);
     }
     assert(targetInfos.size() == _processorTargetInfos.size());

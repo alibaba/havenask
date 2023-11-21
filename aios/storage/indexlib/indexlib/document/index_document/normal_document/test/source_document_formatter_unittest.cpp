@@ -232,7 +232,7 @@ void SourceDocumentFormatterTest::TestSerializeWithNonExistField()
 
     autil::mem_pool::Pool* pool = new autil::mem_pool::Pool(1024);
     SourceDocumentPtr srcDoc(new SourceDocument(pool));
-    auto MakeGroupData = [&srcDoc](index::groupid_t groupId, uint32_t fieldCount) {
+    auto MakeGroupData = [&srcDoc](index::sourcegroupid_t groupId, uint32_t fieldCount) {
         for (uint32_t i = 0; i < fieldCount; i++) {
             string fn = string("f") + StringUtil::toString(groupId) + StringUtil::toString(i);
             if (i % 3 == 1) {
@@ -264,7 +264,7 @@ void SourceDocumentFormatterTest::TestSerializeWithNonExistField()
     SourceDocument result(pool);
     formatter.DeserializeSourceDocument(serDoc, &result);
 
-    auto CheckGroupData = [&result](index::groupid_t groupId, uint32_t fieldCount) {
+    auto CheckGroupData = [&result](index::sourcegroupid_t groupId, uint32_t fieldCount) {
         for (uint32_t i = 0; i < fieldCount; i++) {
             string fn = string("f") + StringUtil::toString(groupId) + StringUtil::toString(i);
 
@@ -291,7 +291,7 @@ void SourceDocumentFormatterTest::TestSerializeWithNonExistField()
     RawDocumentPtr rawDoc(new DefaultRawDocument);
     result.ToRawDocument(*rawDoc);
 
-    auto CheckRawDoc = [&rawDoc](index::groupid_t groupId, uint32_t fieldCount) {
+    auto CheckRawDoc = [&rawDoc](index::sourcegroupid_t groupId, uint32_t fieldCount) {
         for (uint32_t i = 0; i < fieldCount; i++) {
             string fn = string("f") + StringUtil::toString(groupId) + StringUtil::toString(i);
 

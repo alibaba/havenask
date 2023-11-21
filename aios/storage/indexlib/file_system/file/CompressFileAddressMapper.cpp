@@ -69,22 +69,22 @@ void CompressFileAddressMapper::InitForRead(const std::shared_ptr<CompressFileIn
     InitMetaFromCompressInfo(fileInfo);
 
     InitResourceFile(fileInfo, reader, directory);
-    CompressMapperResource* resource = nullptr;
+    std::unique_ptr<CompressMapperResource> resource;
     if (_needLoadResource) {
-        resource = new CompressMapperResource();
+        resource.reset(new CompressMapperResource());
     } else if (_resourceFile != nullptr) {
         _resourceHandle = _resourceFile->GetResourceHandle();
     }
 
     // compressedFileData + addressMapperData + [hintBitmapData] + [hintData]
-    InitAddressMapperData(fileInfo, reader, resource);
-    InitHintBitmap(fileInfo, reader, resource);
-    InitHintDataReader(fileInfo, reader, resource);
+    InitAddressMapperData(fileInfo, reader, resource.get());
+    InitHintBitmap(fileInfo, reader, resource.get());
+    InitHintDataReader(fileInfo, reader, resource.get());
 
     if (resource) {
         assert(_resourceFile);
-        _resourceFile->Reset(resource);
         _resourceFile->UpdateMemoryUse(resource->memoryUsed);
+        _resourceFile->Reset(resource.release());
         _resourceHandle = _resourceFile->GetResourceHandle();
     }
 }
@@ -345,7 +345,6 @@ void CompressFileAddressMapper::InitAddressMapperData(const std::shared_ptr<Comp
         resource->mapperBaseAddress = new char[mapperDataLength];
         resource->memoryUsed += mapperDataLength;
         if (mapperDataLength != reader->Read(resource->mapperBaseAddress, mapperDataLength, beginOffset).GetOrThrow()) {
-            DELETE_AND_SET_NULL(resource);
             INDEXLIB_FATAL_ERROR(FileIO, "read address mapper data failed from file[%s]",
                                  reader->DebugString().c_str());
         }
@@ -383,7 +382,6 @@ void CompressFileAddressMapper::InitHintBitmap(const std::shared_ptr<CompressFil
         resource->hintBitmapData = new uint32_t[bitmapSlotNum];
         resource->memoryUsed += bitmapDataLength;
         if (bitmapDataLength != reader->Read(resource->hintBitmapData, bitmapDataLength, beginOffset).GetOrThrow()) {
-            DELETE_AND_SET_NULL(resource);
             INDEXLIB_FATAL_ERROR(FileIO, "read hint bitmap data failed from file[%s]", reader->DebugString().c_str());
         }
         bitmapAddr = resource->hintBitmapData;
@@ -420,7 +418,6 @@ void CompressFileAddressMapper::InitHintDataReader(const std::shared_ptr<Compres
     size_t bitmapDataLength = NeedHintBitmap() ? util::Bitmap::GetSlotCount(_blockCount) * sizeof(uint32_t) : 0;
     size_t hintBeginOffset = compressDataLen + mapperDataLength + bitmapDataLength;
     if (!LoadHintDataReader(fileInfo, reader, hintBeginOffset, resource)) {
-        DELETE_AND_SET_NULL(resource);
         INDEXLIB_FATAL_ERROR(IndexCollapsed,
                              "compress file [%s] is collapsed when load hint data reader,"
                              " compressLen [%lu], mapperLen [%lu], fileLen [%lu]!",

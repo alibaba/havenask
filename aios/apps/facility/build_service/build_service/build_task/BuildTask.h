@@ -15,22 +15,46 @@
  */
 #pragma once
 
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <stdint.h>
+#include <string>
+#include <utility>
+
 #include "autil/LoopThread.h"
 #include "build_service/build_task/BuildTaskCurrent.h"
 #include "build_service/build_task/BuildTaskTarget.h"
 #include "build_service/build_task/BuilderController.h"
 #include "build_service/build_task/SingleBuilder.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/MergeControllerConfig.h"
+#include "build_service/config/RealtimeSchemaListKeeper.h"
 #include "build_service/config/TaskTarget.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/BuildTaskCurrentInfo.h"
 #include "build_service/proto/BuildTaskTargetInfo.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/task_base/Task.h"
-#include "build_service/util/Log.h"
+#include "build_service/workflow/SwiftProcessedDocConsumer.h"
+#include "future_lite/Executor.h"
 #include "future_lite/TaskScheduler.h"
+#include "indexlib/base/MemoryQuotaController.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/ITabletMergeController.h"
 #include "indexlib/framework/IdGenerator.h"
+#include "indexlib/framework/Locator.h"
 #include "indexlib/framework/Version.h"
+#include "indexlib/framework/VersionCoord.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/partition/index_partition.h"
 
 namespace build_service::build_task {
 
@@ -38,14 +62,10 @@ class BuildTask : public task_base::Task
 {
 public:
     static const std::string TASK_NAME;
-    static const std::string STEP_FULL;
-    static const std::string STEP_INC;
 
-public:
     BuildTask() = default;
     ~BuildTask();
 
-public:
     bool init(Task::TaskInitParam& initParam) override;
     bool handleTarget(const config::TaskTarget& target) override;
     bool isDone(const config::TaskTarget& target) override;
@@ -54,12 +74,16 @@ public:
     bool hasFatalError() override;
     proto::ProgressStatus getTaskProgress() const override;
 
+    static std::tuple<std::vector<std::string>, std::shared_ptr<indexlibv2::framework::ImportExternalFileOptions>,
+                      indexlibv2::framework::Action>
+    prepareBulkloadParams(const std::string& externalFilesStr, const std::string& optionsStr,
+                          const std::string& actionStr, std::string* errMsg);
+
 private:
-    std::pair<indexlib::Status, std::shared_ptr<indexlibv2::framework::ITablet>>
-    prepareTablet(const std::shared_ptr<BuildTaskTarget>& target, const std::string& indexRoot,
-                  const indexlibv2::framework::VersionCoord& versionCoord, bool autoMerge);
+    indexlib::Status prepareTablet(const std::shared_ptr<BuildTaskTarget>& target, const std::string& indexRoot,
+                                   const indexlibv2::framework::VersionCoord& versionCoord, bool autoMerge);
     std::pair<indexlib::Status, std::shared_ptr<indexlibv2::config::ITabletSchema>>
-    getTabletSchema(const std::shared_ptr<indexlibv2::config::TabletOptions>& tabletOptions) const;
+    getConfigTabletSchema(const std::shared_ptr<indexlibv2::config::TabletOptions>& tabletOptions) const;
     std::string getBuilderPartitionIndexRoot() const;
     std::string getPartitionIndexRoot() const;
     std::shared_ptr<indexlibv2::framework::ITabletMergeController>
@@ -71,8 +95,6 @@ private:
     bool createRole(const std::shared_ptr<BuildTaskTarget>& buildTarget);
     void workLoop();
     std::shared_ptr<indexlibv2::framework::IdGenerator> getIdGenerator() const;
-    indexlib::Status loadVersion(const indexlibv2::framework::VersionMeta& versionMeta,
-                                 indexlibv2::framework::Version& version) const;
     bool reopenPublishedVersion(const std::shared_ptr<BuildTaskTarget>& buildTaskTarget);
     bool commitAndReopen(versionid_t alignVersionId, const std::shared_ptr<BuildTaskTarget>& target,
                          const std::optional<indexlibv2::framework::Locator>& specifyLocator,
@@ -94,6 +116,7 @@ private:
     bool needManualMerge(const std::shared_ptr<BuildTaskTarget>& target,
                          const std::shared_ptr<BuildTaskCurrent>& current);
     bool executeManualMerge(const std::shared_ptr<BuildTaskTarget>& target);
+    bool executeBulkload(const std::shared_ptr<BuildTaskTarget>& target);
     bool isBuildFinished(const std::shared_ptr<BuildTaskTarget>& target);
     bool needImportNewVersions(const std::shared_ptr<BuildTaskTarget>& buildTarget);
     versionid_t getAlignVersionId(const std::shared_ptr<BuildTaskTarget>& target,
@@ -116,6 +139,8 @@ private:
                  const std::shared_ptr<indexlibv2::config::TabletOptions>& tabletOptions) const;
     virtual void handleFatalError(const std::string& message) override;
     bool prepareInitialVersion(const std::shared_ptr<BuildTaskTarget>& buildTarget);
+    indexlib::Status loadVersion(const std::string& indexRoot, const indexlibv2::framework::VersionCoord& versionCoord,
+                                 indexlibv2::framework::Version* version) const;
 
 private:
     mutable std::mutex _taskInfoMutex;
@@ -144,7 +169,7 @@ private:
     bool _isFullBuildIndexCleaned = false;
     config::BuildServiceConfig _buildServiceConfig;
     uint32_t _consecutiveIoErrorTimes = 0; // consecutive io error times when preparing tablet
-
+    std::shared_ptr<config::RealtimeSchemaListKeeper> _schemaListKeeper;
     static constexpr const uint32_t CONSECUTIVE_IO_ERROR_LIMIT = 20;
 
 private:

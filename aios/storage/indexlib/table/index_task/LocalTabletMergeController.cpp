@@ -17,13 +17,18 @@
 
 #include "autil/EnvUtil.h"
 #include "indexlib/base/PathUtil.h"
+#include "indexlib/config/CustomIndexTaskClassInfo.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/file_system/JsonUtil.h"
 #include "indexlib/framework/TabletFactoryCreator.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/framework/VersionValidator.h"
+#include "indexlib/framework/index_task/CustomIndexTaskFactory.h"
+#include "indexlib/framework/index_task/CustomIndexTaskFactoryCreator.h"
+#include "indexlib/framework/index_task/IIndexOperationCreator.h"
 #include "indexlib/framework/index_task/IndexTaskContextCreator.h"
+#include "indexlib/framework/index_task/IndexTaskResource.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/util/EpochIdUtil.h"
@@ -106,11 +111,21 @@ std::pair<Status, std::shared_ptr<Env>> LocalTabletMergeController::CloneEnv(fra
     Status status;
     auto env = std::make_shared<Env>();
     env->ctx = CreateTaskContext(context->GetBaseVersionId(), context->GetTaskType(), context->GetTaskName(),
-                                 context->GetAllParameters());
+                                 context->GetTaskTraceId(), context->GetAllParameters());
     if (env->ctx == nullptr) {
         return {Status::InternalError("create task context failed"), nullptr};
     }
     auto planCreator = _tabletFactory->CreateIndexTaskPlanCreator();
+    auto designateTaskConfig = context->GetDesignateTaskConfig();
+    if (designateTaskConfig) {
+        auto [status, customPlanCreator] = framework::CustomIndexTaskFactory::GetCustomPlanCreator(designateTaskConfig);
+        if (!status.IsOK()) {
+            return {status, nullptr};
+        }
+        if (customPlanCreator) {
+            planCreator = std::move(customPlanCreator);
+        }
+    }
     if (planCreator == nullptr) {
         return {Status::InternalError("create task plan creator failed"), nullptr};
     }
@@ -125,6 +140,16 @@ std::pair<Status, std::shared_ptr<Env>> LocalTabletMergeController::CloneEnv(fra
     auto extendResources = context->GetResourceManager()->TEST_GetExtendResources();
     env->ctx->GetResourceManager()->TEST_SetExtendResources(extendResources);
     auto opCreator = _tabletFactory->CreateIndexOperationCreator(env->ctx->GetTabletSchema());
+    if (designateTaskConfig) {
+        auto [status, customOpCreator] = framework::CustomIndexTaskFactory::GetCustomOperationCreator(
+            designateTaskConfig, context->GetTabletSchema());
+        if (!status.IsOK()) {
+            return {status, nullptr};
+        }
+        if (customOpCreator) {
+            opCreator = std::move(customOpCreator);
+        }
+    }
     if (opCreator == nullptr) {
         return {Status::Corruption("create index operation creator failed"), nullptr};
     }
@@ -137,12 +162,22 @@ LocalTabletMergeController::SubmitMergeTask(std::unique_ptr<framework::IndexTask
                                             framework::IndexTaskContext* context)
 {
     auto opCreator = _tabletFactory->CreateIndexOperationCreator(context->GetTabletSchema());
+    auto designateTaskConfig = context->GetDesignateTaskConfig();
+    if (designateTaskConfig) {
+        auto [status, customOpCreator] = framework::CustomIndexTaskFactory::GetCustomOperationCreator(
+            designateTaskConfig, context->GetTabletSchema());
+        if (!status.IsOK()) {
+            co_return status;
+        }
+        if (customOpCreator) {
+            opCreator = std::move(customOpCreator);
+        }
+    }
     if (!opCreator) {
         AUTIL_LOG(ERROR, "create index operation creator failed");
         co_return Status::Corruption();
     }
     framework::LocalExecuteEngine engine(_initParam.executor, std::move(opCreator));
-
     int64_t totalOpCount = plan->GetOpDescs().size();
     if (plan->GetEndTaskOpDesc()) {
         ++totalOpCount;
@@ -287,7 +322,7 @@ std::string LocalTabletMergeController::GenerateEpochId() const
 
 std::unique_ptr<framework::IndexTaskContext>
 LocalTabletMergeController::CreateTaskContext(versionid_t baseVersionId, const std::string& taskType,
-                                              const std::string& taskName,
+                                              const std::string& taskName, const std::string& taskTraceId,
                                               const std::map<std::string, std::string>& params)
 {
     std::string epochId = GenerateEpochId();
@@ -313,7 +348,17 @@ LocalTabletMergeController::CreateTaskContext(versionid_t baseVersionId, const s
     if (!taskType.empty()) {
         contextCreator.SetDesignateTask(taskType, taskName);
     }
-    return contextCreator.CreateContext();
+    auto context = contextCreator.CreateContext();
+    if (context) {
+        auto resourceManager = context->GetResourceManager();
+        for (auto extendResource : _initParam.extendResources) {
+            auto status = resourceManager->AddExtendResource(extendResource);
+            if (!status.IsOK()) {
+                return nullptr;
+            }
+        }
+    }
+    return context;
 }
 
 LocalTabletMergeController::TaskInfo LocalTabletMergeController::GetTaskInfo() const

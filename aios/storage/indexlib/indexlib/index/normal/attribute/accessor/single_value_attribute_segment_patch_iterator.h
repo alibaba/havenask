@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_SEGMENT_PATCH_ITERATOR_H
-#define __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_SEGMENT_PATCH_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -70,5 +69,3 @@ bool SingleValueAttributeSegmentPatchIterator<T>::Next(docid_t& docId, T& value,
     return this->InnerReadPatch(docId, value, isNull);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_ATTRIBUTE_SEGMENT_PATCH_ITERATOR_H

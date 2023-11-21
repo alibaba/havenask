@@ -38,16 +38,18 @@ void SingleValueDataAppender::Init(uint32_t capacity,
     _dataBuffer.reset(new uint8_t[bufferLen]);
 }
 
-void SingleValueDataAppender::Flush()
+Status SingleValueDataAppender::Flush()
 {
     if (_inBufferCount == 0) {
-        return;
+        return Status::OK();
     }
     auto status = _dataFileWriter->Write(_dataBuffer.get(), _formatter->GetDataLen(_inBufferCount)).Status();
     if (!status.IsOK()) {
-        AUTIL_LOG(ERROR, "flush data buffer fail ini singl value data appender");
+        AUTIL_LOG(ERROR, "flush data buffer fail in single value data appender");
+        return Status::InternalError();
     }
     _inBufferCount = 0;
+    return Status::OK();
 }
 
 void SingleValueDataAppender::Close()

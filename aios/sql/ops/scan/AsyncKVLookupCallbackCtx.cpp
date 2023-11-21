@@ -41,13 +41,10 @@ AsyncKVLookupCallbackCtx::~AsyncKVLookupCallbackCtx() {}
 
 void AsyncKVLookupCallbackCtx::start(std::vector<std::string> rawPks, KVLookupOption option) {
     NAVI_LOG(TRACE3,
-             "start lookup with rawPks[%s], leftTime[%ld], maxConcurrency[%ld] "
-             "targetWatermark[%ld] targetWatermarkType[%d]",
+             "start lookup with rawPks[%s], leftTime[%ld], maxConcurrency[%ld]",
              autil::StringUtil::toString(rawPks).c_str(),
              option.leftTime,
-             option.maxConcurrency,
-             option.targetWatermark,
-             option.targetWatermarkType);
+             option.maxConcurrency);
     incStartVersion();
     _rawPks = std::move(rawPks);
     preparePksForSearch();

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_EXTENDDOCFIELD2INDEXDOCFIELD_H
-#define __INDEXLIB_EXTENDDOCFIELD2INDEXDOCFIELD_H
+#pragma once
 
 #include <memory>
 
@@ -58,5 +57,3 @@ private:
 
 DEFINE_SHARED_PTR(ExtendDocField2IndexDocField);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_EXTENDDOCFIELD2INDEXDOCFIELD_H

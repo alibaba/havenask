@@ -125,20 +125,26 @@ void BlockFileAccessor::FillBuffer(const util::BlockHandle& handle, ReadContext*
     ctx->leftLen -= curReadBytes;
 }
 
-Future<Unit> BlockFileAccessor::FillBuffer(size_t startBlockIdx, size_t cnt, const ReadContextPtr& ctx,
-                                           ReadOption option) noexcept(false)
+Future<FSResult<void>> BlockFileAccessor::FillBuffer(size_t startBlockIdx, size_t cnt, const ReadContextPtr& ctx,
+                                                     ReadOption option) noexcept
 {
     if (cnt == 0) {
-        return makeReadyFuture(Unit());
+        return makeReadyFuture(FSResult<void> {FSEC_OK});
     }
 
     assert(ctx->curOffset / _blockSize == startBlockIdx);
 
-    return GetBlockHandles(startBlockIdx, cnt, option).thenValue([ctx, this](vector<BlockHandle>&& handles) mutable {
-        for (const auto& handle : handles) {
-            FillBuffer(handle, ctx.get());
-        }
-    });
+    return GetBlockHandles(startBlockIdx, cnt, option)
+        .thenValue([ctx, this](vector<FSResult<BlockHandle>>&& handles) mutable -> FSResult<void> {
+            if (!handles.empty() && !handles[0].OK()) {
+                return FSResult<void> {handles[0].Code()};
+            }
+            for (const auto& handle : handles) {
+                assert(handle.OK());
+                FillBuffer(handle.Value(), ctx.get());
+            }
+            return FSResult<void> {FSEC_OK};
+        });
 }
 
 FSResult<size_t> BlockFileAccessor::Read(void* buffer, size_t length, size_t offset, ReadOption option) noexcept
@@ -170,14 +176,14 @@ FSResult<size_t> BlockFileAccessor::DoRead(void* buffer, size_t length, size_t o
 {
     auto ctx = make_shared<ReadContext>(static_cast<uint8_t*>(buffer), length, offset);
     try {
-        return {FSEC_OK, ReadFromBlock(ctx, option).get()};
+        return ReadFromBlock(ctx, option).get();
     } catch (...) {
         return {FSEC_ERROR, 0};
     }
 }
 
-Future<size_t> BlockFileAccessor::ReadAsync(void* buffer, size_t length, size_t offset,
-                                            ReadOption option) noexcept(false)
+Future<FSResult<size_t>> BlockFileAccessor::ReadAsync(void* buffer, size_t length, size_t offset,
+                                                      ReadOption option) noexcept
 {
     auto ctx = make_shared<ReadContext>(static_cast<uint8_t*>(buffer), length, offset);
     return ReadFromBlock(ctx, option);
@@ -395,64 +401,10 @@ void BlockFileAccessor::FillBatchIOFromHandles(const vector<FSResult<BlockHandle
     }
 }
 
-Future<vector<BlockHandle>> BlockFileAccessor::DoGetBlocks(size_t blockIdx, size_t endBlockIdx,
-                                                           vector<BlockHandle>&& handles,
-                                                           ReadOption option) noexcept(false)
-{
-    size_t curBlockIdx = blockIdx;
-    size_t nxtMissBlock = curBlockIdx;
-    for (; curBlockIdx < endBlockIdx; ++curBlockIdx) {
-        blockid_t blockId(_fileId, curBlockIdx);
-        CacheBase::Handle* cacheHandle = NULL;
-        Block* block = _blockCache->Get(blockId, &cacheHandle);
-        if (block && curBlockIdx > nxtMissBlock) {
-            return DoGetBlocksCallback(nxtMissBlock, curBlockIdx, endBlockIdx, block, cacheHandle, std::move(handles),
-                                       option);
-        } else if (!block && curBlockIdx >= nxtMissBlock + _batchSize - 1) {
-            return DoGetBlocksCallback(nxtMissBlock, curBlockIdx + 1, endBlockIdx, nullptr, nullptr, std::move(handles),
-                                       option);
-        }
-        if (block) {
-            nxtMissBlock++;
-            size_t blockDataSize = std::min((size_t)_blockSize, _fileLength - curBlockIdx * _blockSize);
-            handles.emplace_back(_blockCache, cacheHandle, block, blockDataSize);
-        }
-    }
-    if (curBlockIdx > nxtMissBlock) {
-        return DoGetBlocksCallback(nxtMissBlock, curBlockIdx, endBlockIdx, nullptr, nullptr, std::move(handles),
-                                   option);
-    }
-    return makeReadyFuture(std::move(handles));
-}
-
-Future<vector<BlockHandle>> BlockFileAccessor::DoGetBlocksCallback(size_t startMissBlock, size_t endMissBlock,
-                                                                   size_t endBlockIdx, Block* block,
-                                                                   CacheBase::Handle* cacheHandle,
-                                                                   vector<BlockHandle>&& handles,
-                                                                   ReadOption option) noexcept(false)
-{
-    return GetBlockHandles(startMissBlock, endMissBlock - startMissBlock, option)
-        .thenValue([this, endMissBlock, endBlockIdx, option, block, cacheHandle,
-                    handles = std::move(handles)](vector<BlockHandle>&& results) mutable {
-            for (size_t i = 0; i < results.size(); i++) {
-                handles.push_back(std::move(results[i]));
-            }
-            if (block && cacheHandle) {
-                size_t blockDataSize = std::min((size_t)_blockSize, _fileLength - endMissBlock * _blockSize);
-                handles.emplace_back(_blockCache, cacheHandle, block, blockDataSize);
-                endMissBlock++;
-            }
-            if (endBlockIdx > endMissBlock) {
-                return DoGetBlocks(endMissBlock, endBlockIdx, std::move(handles), option);
-            }
-            return makeReadyFuture(std::move(handles));
-        });
-}
-
-Future<size_t> BlockFileAccessor::ReadFromBlock(const ReadContextPtr& ctx, ReadOption option) noexcept(false)
+Future<FSResult<size_t>> BlockFileAccessor::ReadFromBlock(const ReadContextPtr& ctx, ReadOption option) noexcept
 {
     if (ctx->leftLen == 0) {
-        return makeReadyFuture((size_t)0);
+        return makeReadyFuture(FSResult<size_t> {FSEC_OK, 0ul});
     }
 
     size_t startOffset = ctx->curOffset;
@@ -496,14 +448,15 @@ Future<size_t> BlockFileAccessor::ReadFromBlock(const ReadContextPtr& ctx, ReadO
     }
 
     return FillBuffer(missBlockStartIdx, blockCount, ctx, option)
-        .thenTry([this, option, ctx, startOffset, defer = std::move(deferWork)](future_lite::Try<Unit>&& u) mutable {
+        .thenValue([this, option, ctx, startOffset, defer = std::move(deferWork)](
+                       FSResult<void>&& ret) mutable -> future_lite::Future<FSResult<size_t>> {
             if (defer) {
                 defer(ctx);
             }
-            // if there is exception, access u.value is a way to rethrow this exception.
-            u.value();
-            return ReadFromBlock(ctx, option).thenValue([ctx, startOffset](size_t readSize) {
-                return ctx->curOffset - startOffset;
+            RETURN_RESULT_IF_FS_ERROR(ret.Code(), makeReadyFuture(FSResult<size_t> {ret.Code(), 0}),
+                                      "FillBuffer failed");
+            return ReadFromBlock(ctx, option).thenValue([ctx, startOffset](FSResult<size_t>&& ret) -> FSResult<size_t> {
+                return FSResult<size_t> {ret.Code(), ctx->curOffset - startOffset};
             });
         });
 }
@@ -553,15 +506,9 @@ FL_LAZY(FSResult<size_t>) BlockFileAccessor::ReadFromBlockCoro(const ReadContext
             }
         }
     }
-    // if there is exception, await_resume() access future value is a way to rethrow exception.
-    try {
-        [[maybe_unused]] Unit u = FL_COAWAIT FillBuffer(missBlockStartIdx, blockCount, ctx, option).toAwaiter();
-    } catch (const indexlib::util::TimeoutException& e) {
-        AUTIL_LOG(WARN, "read data block timeout");
-        FL_CORETURN FSResult<size_t> {FSEC_OPERATIONTIMEOUT, (ctx->curOffset - startOffset)};
-    } catch (...) {
-        FL_CORETURN FSResult<size_t> {FSEC_ERROR, (ctx->curOffset - startOffset)};
-    }
+
+    FSResult<void> ret = FL_COAWAIT FillBuffer(missBlockStartIdx, blockCount, ctx, option).toAwaiter();
+    FL_CORETURN2_IF_FS_ERROR(ret.Code(), (ctx->curOffset - startOffset), "FillBuffer Failed");
     if (deferWork) {
         deferWork(ctx);
     }
@@ -582,10 +529,10 @@ FSResult<size_t> BlockFileAccessor::Prefetch(size_t length, size_t offset, ReadO
     return Read(NULL, length, offset, option);
 }
 
-Future<size_t> BlockFileAccessor::PrefetchAsync(size_t length, size_t offset, ReadOption option) noexcept(false)
+Future<FSResult<size_t>> BlockFileAccessor::PrefetchAsync(size_t length, size_t offset, ReadOption option) noexcept
 {
     if (unlikely(TEST_mDisableCache)) {
-        return future_lite::makeReadyFuture<size_t>(0);
+        return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, 0});
     }
     return ReadAsync(NULL, length, offset, option);
 }
@@ -609,12 +556,14 @@ bool BlockFileAccessor::GetBlockMeta(size_t offset, BlockFileAccessor::FileBlock
     return true;
 }
 
-Future<vector<BlockHandle>> BlockFileAccessor::GetBlockHandles(size_t blockInFileIdx, size_t blockCount,
-                                                               ReadOption option) noexcept(false)
+Future<vector<FSResult<BlockHandle>>> BlockFileAccessor::GetBlockHandles(size_t blockInFileIdx, size_t blockCount,
+                                                                         ReadOption option) noexcept
 {
+    vector<FSResult<BlockHandle>> result;
     if (blockCount == 0) {
-        return makeReadyFuture(vector<BlockHandle>());
+        return makeReadyFuture(std::move(result));
     }
+    result.resize(blockCount);
     int64_t timeout = -1;
     if (option.timeoutTerminator) {
         int64_t leftTime = option.timeoutTerminator->getLeftTime();
@@ -622,8 +571,10 @@ Future<vector<BlockHandle>> BlockFileAccessor::GetBlockHandles(size_t blockInFil
             timeout = leftTime;
         } else {
             AUTIL_LOG(ERROR, "read block left time less than 0, timeout, file[%s]", _filePtr->GetFileName());
-            return makeReadyFuture<vector<BlockHandle>>(
-                std::make_exception_ptr(util::TimeoutException("timeout when read data block")));
+            for (auto& fsr : result) {
+                fsr.ec = FSEC_OPERATIONTIMEOUT;
+            }
+            return makeReadyFuture(std::move(result));
         }
     }
     typedef vector<Block*> BlockArray;
@@ -651,18 +602,24 @@ Future<vector<BlockHandle>> BlockFileAccessor::GetBlockHandles(size_t blockInFil
         future.wait();
     }
     return std::move(future).thenValue([this, begin, blockCount, option, exHandler = std::move(exceptionHandler),
-                                        ioVector = std::move(iov)](size_t readSize) mutable {
+                                        ioVector = std::move(iov),
+                                        result = std::move(result)](FSResult<size_t>&& ret) mutable {
+        if (!ret.OK()) {
+            for (auto& fsr : result) {
+                fsr.ec = ret.Code();
+            }
+            return std::move(result);
+        }
+
         int64_t latency = TimeUtility::currentTimeInMicroSeconds() - begin;
         _blockCache->ReportReadLatency(latency, option.blockCounter);
-        std::vector<util::BlockHandle> handles;
-        handles.resize(blockCount);
-
         _blockCache->ReportReadSize(blockCount * _blockSize, option.blockCounter);
 
         _tagMetricReporter.ReportReadBlockCount(blockCount, option.trace);
         _tagMetricReporter.ReportReadSize(blockCount * _blockSize, option.trace);
         _tagMetricReporter.ReportReadLatency(latency, option.trace);
 
+        auto readSize = ret.Value();
         if (option.blockCounter != nullptr && option.blockCounter->histCounter != nullptr) {
             option.blockCounter->histCounter->Report(blockCount, readSize, latency);
         }
@@ -676,15 +633,16 @@ Future<vector<BlockHandle>> BlockFileAccessor::GetBlockHandles(size_t blockInFil
             if (i == blockCount - 1 && readSize % _blockSize) {
                 blockDataSize = readSize % _blockSize;
             }
-            handles[i].Reset(_blockCache, cacheHandle, (*exHandler)[i], blockDataSize);
+            result[i].ec = FSEC_OK;
+            result[i].Value().Reset(_blockCache, cacheHandle, (*exHandler)[i], blockDataSize);
         }
         BlockArray* array = exHandler.release();
         delete array;
-        return handles;
+        return std::move(result);
     });
 }
 
-bool BlockFileAccessor::GetBlock(size_t offset, BlockHandle& handle, ReadOption* option) noexcept(false)
+FSResult<void> BlockFileAccessor::GetBlock(size_t offset, BlockHandle& handle, ReadOption* option) noexcept
 {
     ReadOption localOption;
     localOption.advice = IO_ADVICE_LOW_LATENCY;
@@ -698,15 +656,14 @@ bool BlockFileAccessor::GetBlock(size_t offset, BlockHandle& handle, ReadOption*
     auto future = DoGetBlock(offset, *optionPtr);
     future.wait();
     auto& tryRet = future.result();
-    if (tryRet.hasError()) {
-        INDEXLIB_FATAL_ERROR(FileIO, "DoGetBlock failed, offset[%lu]", offset);
-        // return false;
-    }
-    handle = std::move(tryRet.value());
-    return true;
+    assert(!tryRet.hasError());
+    auto& ret = tryRet.value();
+    RETURN_IF_FS_ERROR(ret.Code(), "DoGetBlock failed");
+    handle = std::move(ret.Value());
+    return {FSEC_OK};
 }
 
-Future<BlockHandle> BlockFileAccessor::GetBlockAsync(size_t offset, ReadOption option) noexcept(false)
+Future<FSResult<BlockHandle>> BlockFileAccessor::GetBlockAsync(size_t offset, ReadOption option) noexcept
 {
     return DoGetBlock(offset, option);
 }
@@ -766,10 +723,11 @@ std::vector<std::unique_ptr<BlockHandle>> BlockFileAccessor::TryGetBlockHandles(
     return handles;
 }
 
-Future<BlockHandle> BlockFileAccessor::DoGetBlock(size_t offset, ReadOption option) noexcept(false)
+Future<FSResult<BlockHandle>> BlockFileAccessor::DoGetBlock(size_t offset, ReadOption option) noexcept
 {
     if (offset >= _fileLength) {
-        return makeReadyFuture<BlockHandle>(std::make_exception_ptr(std::runtime_error("offset >= fileLength")));
+        AUTIL_LOG(ERROR, "offset[%lu] >= fileLength[%lu], file[%s]", offset, _fileLength, _filePtr->GetFileName());
+        return makeReadyFuture<FSResult<BlockHandle>>({FSEC_BADARGS, BlockHandle()});
     }
 
     size_t blockOffset = GetBlockOffset(offset);
@@ -778,18 +736,21 @@ Future<BlockHandle> BlockFileAccessor::DoGetBlock(size_t offset, ReadOption opti
 #ifdef __clang__
         DIAGNOSTIC_PUSH DIAGNOSTIC_IGNORE("-Wunused-lambda-capture")
 #endif
-            .thenValue([blockId, this, blockOffset](std::pair<Block*, CacheBase::Handle*> v) {
+            .thenValue([blockId, this,
+                        blockOffset](FSResult<std::pair<Block*, CacheBase::Handle*>>&& ret) -> FSResult<BlockHandle> {
 #ifdef __clang__
                 DIAGNOSTIC_POP
 #endif
+                util::BlockHandle handle;
+                RETURN2_IF_FS_ERROR(ret.Code(), std::move(handle), "DoGetBlock failed");
+                const auto& v = ret.Value();
                 auto block = v.first;
                 (void)blockId;
                 auto cacheHandle = v.second;
                 assert(block && block->id == blockId);
                 size_t blockDataSize = min(_fileLength - blockOffset, (size_t)_blockSize);
-                util::BlockHandle handle;
                 handle.Reset(_blockCache, cacheHandle, block, blockDataSize);
-                return handle;
+                return FSResult<BlockHandle> {FSEC_OK, std::move(handle)};
             });
 }
 
@@ -816,8 +777,8 @@ FL_LAZY(FSResult<BlockHandle>) BlockFileAccessor::DoGetBlockCoro(size_t offset, 
     FL_CORETURN FSResult<BlockHandle> {FSEC_OK, std::move(handle)};
 }
 
-Future<std::pair<Block*, CacheBase::Handle*>>
-BlockFileAccessor::DoGetBlock(const blockid_t& blockID, uint64_t blockOffset, ReadOption option) noexcept(false)
+Future<FSResult<std::pair<Block*, CacheBase::Handle*>>>
+BlockFileAccessor::DoGetBlock(const blockid_t& blockID, uint64_t blockOffset, ReadOption option) noexcept
 {
     assert(blockOffset % _blockSize == 0);
     CacheBase::Handle* handle = nullptr;
@@ -830,15 +791,18 @@ BlockFileAccessor::DoGetBlock(const blockid_t& blockID, uint64_t blockOffset, Re
         _tagMetricReporter.ReportMiss(option.trace);
         FreeBlockWhenException freeBlockWhenException(block, _blockAllocatorPtr.get());
         return ReadBlockFromFileToCache(block, blockOffset, option)
-            .thenValue([block, guard = std::move(freeBlockWhenException)](CacheBase::Handle* newHandle) mutable {
+            .thenValue([block, guard = std::move(freeBlockWhenException)](FSResult<CacheBase::Handle*>&& ret) mutable
+                       -> FSResult<std::pair<Block*, CacheBase::Handle*>> {
+                RETURN2_IF_FS_ERROR(ret.Code(), std::make_pair(nullptr, nullptr), "ReadBlockFromFileToCache faield");
                 guard.block = NULL; // normal return
-                return std::make_pair(block, newHandle);
+                return FSResult<std::pair<Block*, CacheBase::Handle*>> {FSEC_OK, std::make_pair(block, ret.Value())};
             });
     } else {
         assert(block->id == blockID);
         _blockCache->ReportHit(option.blockCounter);
         _tagMetricReporter.ReportHit(option.trace);
-        return makeReadyFuture(std::make_pair(block, handle));
+        return makeReadyFuture(
+            FSResult<std::pair<Block*, CacheBase::Handle*>> {FSEC_OK, std::make_pair(block, handle)});
     }
 }
 
@@ -856,9 +820,15 @@ BlockFileAccessor::DoGetBlockCoro(const blockid_t& blockID, uint64_t blockOffset
         _tagMetricReporter.ReportMiss(option.trace);
         FreeBlockWhenException freeBlockWhenException(block, _blockAllocatorPtr.get());
         try {
-            CacheBase::Handle* newHandle = FL_COAWAIT ReadBlockFromFileToCache(block, blockOffset, option).toAwaiter();
+            FSResult<CacheBase::Handle*> newHandle =
+                FL_COAWAIT ReadBlockFromFileToCache(block, blockOffset, option).toAwaiter();
+            if (!newHandle.OK()) {
+                FL_CORETURN FSResult<std::pair<Block*, CacheBase::Handle*>> {newHandle.Code(),
+                                                                             std::make_pair(nullptr, nullptr)};
+            }
             freeBlockWhenException.block = nullptr;
-            FL_CORETURN FSResult<std::pair<Block*, CacheBase::Handle*>> {FSEC_OK, std::make_pair(block, newHandle)};
+            FL_CORETURN FSResult<std::pair<Block*, CacheBase::Handle*>> {FSEC_OK,
+                                                                         std::make_pair(block, newHandle.Value())};
         } catch (...) {
             FL_CORETURN FSResult<std::pair<Block*, CacheBase::Handle*>> {FSEC_ERROR, std::make_pair(nullptr, nullptr)};
         }
@@ -870,8 +840,8 @@ BlockFileAccessor::DoGetBlockCoro(const blockid_t& blockID, uint64_t blockOffset
     }
 }
 
-Future<CacheBase::Handle*> BlockFileAccessor::ReadBlockFromFileToCache(Block* block, uint64_t blockOffset,
-                                                                       ReadOption option) noexcept(false)
+Future<FSResult<CacheBase::Handle*>> BlockFileAccessor::ReadBlockFromFileToCache(Block* block, uint64_t blockOffset,
+                                                                                 ReadOption option) noexcept
 {
     assert(blockOffset % _blockSize == 0);
     assert(_filePtr);
@@ -885,25 +855,29 @@ Future<CacheBase::Handle*> BlockFileAccessor::ReadBlockFromFileToCache(Block* bl
         // synchronization mode, wait
         future.wait();
     }
-    return std::move(future).thenValue([this, begin, block, option](size_t readSize) {
-        int64_t latency = TimeUtility::currentTimeInMicroSeconds() - begin;
-        _blockCache->ReportReadLatency(latency, option.blockCounter);
-        _blockCache->ReportReadSize(_blockSize, option.blockCounter);
+    return std::move(future).thenValue(
+        [this, begin, block, option](FSResult<size_t>&& ret) -> FSResult<CacheBase::Handle*> {
+            int64_t latency = TimeUtility::currentTimeInMicroSeconds() - begin;
+            _blockCache->ReportReadLatency(latency, option.blockCounter);
+            _blockCache->ReportReadSize(_blockSize, option.blockCounter);
 
-        _tagMetricReporter.ReportReadBlockCount(1, option.trace);
-        _tagMetricReporter.ReportReadSize(_blockSize, option.trace);
-        _tagMetricReporter.ReportReadLatency(latency, option.trace);
+            RETURN2_IF_FS_ERROR(ret.Code(), nullptr, "PReadAsync failed");
+            auto readSize = ret.Value();
 
-        if (option.blockCounter != nullptr && option.blockCounter->histCounter != nullptr) {
-            option.blockCounter->histCounter->Report(1, readSize, latency);
-        }
+            _tagMetricReporter.ReportReadBlockCount(1, option.trace);
+            _tagMetricReporter.ReportReadSize(_blockSize, option.trace);
+            _tagMetricReporter.ReportReadLatency(latency, option.trace);
 
-        CacheBase::Handle* handle = nullptr;
-        bool ret = _blockCache->Put(block, &handle, _cachePriority);
-        assert(ret);
-        (void)ret;
-        return handle;
-    });
+            if (option.blockCounter != nullptr && option.blockCounter->histCounter != nullptr) {
+                option.blockCounter->histCounter->Report(1, readSize, latency);
+            }
+
+            CacheBase::Handle* handle = nullptr;
+            bool putCacheRet = _blockCache->Put(block, &handle, _cachePriority);
+            assert(putCacheRet);
+            (void)putCacheRet;
+            return FSResult<CacheBase::Handle*> {FSEC_OK, handle};
+        });
 }
 
 void BlockFileAccessor::InitTagMetricReporter(FileSystemMetricsReporter* reporter, const string& path) noexcept

@@ -15,10 +15,19 @@
  */
 #include "indexlib/framework/IndexRecoverStrategy.h"
 
+#include <assert.h>
+#include <stddef.h>
+#include <string>
+#include <vector>
+
+#include "fslib/common/common_type.h"
 #include "indexlib/base/PathUtil.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/ListOption.h"
+#include "indexlib/file_system/RemoveOption.h"
 #include "indexlib/framework/VersionLoader.h"
 
 namespace indexlibv2::framework {

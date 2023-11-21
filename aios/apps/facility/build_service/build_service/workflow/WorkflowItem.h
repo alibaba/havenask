@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKFLOWITEM_H
-#define ISEARCH_BS_WORKFLOWITEM_H
+#pragma once
+
+#include <stdint.h>
 
 #include "autil/Diagnostic.h"
-#include "build_service/common_define.h"
+#include "autil/Lock.h"
+#include "build_service/common/Locator.h"
 #include "build_service/util/Log.h"
 #include "build_service/workflow/Consumer.h"
+#include "build_service/workflow/FlowError.h"
 #include "build_service/workflow/Producer.h"
 #include "build_service/workflow/StopOption.h"
 
@@ -131,5 +134,3 @@ void WorkflowItem<T>::process()
 DIAGNOSTIC_POP
 #endif
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_WORKFLOWITEM_H

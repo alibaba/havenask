@@ -1,9 +1,9 @@
 #include "indexlib/index/kkv/test/on_disk_kkv_iterator_unittest.h"
 
 #include "indexlib/common/chunk/chunk_decoder_creator.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

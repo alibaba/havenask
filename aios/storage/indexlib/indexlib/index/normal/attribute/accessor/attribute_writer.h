@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_WRITER_H
-#define __INDEXLIB_ATTRIBUTE_WRITER_H
+#pragma once
 
 #include <memory>
 #include <queue>
@@ -123,5 +122,3 @@ typedef std::shared_ptr<AttributeWriter> AttributeWriterPtr;
 
 inline config::AttributeConfigPtr AttributeWriter::GetAttrConfig() const { return mAttrConfig; }
 }} // namespace indexlib::index
-
-#endif //__INDEXENGINEATTRIBUTE_WRITER_H

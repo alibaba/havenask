@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ALTERFIELDCKPACCESSOR_H
-#define ISEARCH_BS_ALTERFIELDCKPACCESSOR_H
+#pragma once
+
+#include <string>
+#include <vector>
 
 #include "build_service/common/CheckpointAccessor.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/indexlib.h"
 
 namespace build_service { namespace admin {
@@ -46,5 +49,3 @@ private:
 BS_TYPEDEF_PTR(AlterFieldCKPAccessor);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_ALTERFIELDCKPACCESSOR_H

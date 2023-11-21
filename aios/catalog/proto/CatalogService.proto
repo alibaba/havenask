@@ -189,6 +189,7 @@ message CreateTableRequest {
     Table table = 2;                        // 必选
     bool ignore_duplicate_entity_error = 3; // 可选。适配SQL的'IF NOT EXISTS'的关键字
     bool dry_run = 4;
+    bool validate_table_structure = 5;
 }
 
 message UpdateTableRequest {

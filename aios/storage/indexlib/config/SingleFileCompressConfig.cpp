@@ -15,6 +15,9 @@
  */
 #include "indexlib/config/SingleFileCompressConfig.h"
 
+#include <algorithm>
+
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/util/RegularExpression.h"
 #include "indexlib/util/buffer_compressor/BufferCompressorCreator.h"
 

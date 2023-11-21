@@ -43,6 +43,8 @@ public:
     GraphBuilder &scope(ScopeId scope);
     ScopeId getCurrentScope() const;
     N getScopeTerminator(ScopeId scope = ScopeId());
+    GraphBuilder &scopeErrorHandleStrategy(ScopeId scope,
+                                           ErrorHandleStrategy strategy);
     GraphBuilder &location(const std::string &bizName, NaviPartId partCount,
                            NaviPartId partId);
     GraphBuilder &partIds(const std::vector<NaviPartId> &partIds);
@@ -50,6 +52,7 @@ public:
     GraphBuilder &gigTag(const std::string &tag, multi_call::TagMatchType type);
     GraphBuilder &subGraph(GraphId graphId);
     GraphBuilder &inlineMode(bool inlineMode);
+    GraphBuilder &errorHandleStrategy(ErrorHandleStrategy strategy);
     GraphBuilder &subGraphAttr(const std::string &key, std::string value);
     GraphBuilder &ignoreIsolate(bool ignoreIsolate);
     GraphBuilder &replaceR(const std::string &from, const std::string &to);

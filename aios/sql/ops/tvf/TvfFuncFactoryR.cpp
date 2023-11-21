@@ -94,7 +94,7 @@ bool TvfFuncFactoryR::initTvfInfo() {
     return true;
 }
 
-bool TvfFuncFactoryR::fillTvfModels(iquan::TvfModels &tvfModels) {
+bool TvfFuncFactoryR::fillTvfModels(std::vector<iquan::FunctionModel> &tvfModels) {
     for (auto iter : _funcToCreator) {
         SQL_LOG(INFO, "try to register tvf models [%s]", iter.first.c_str());
         if (!iter.second->regTvfModels(tvfModels)) {

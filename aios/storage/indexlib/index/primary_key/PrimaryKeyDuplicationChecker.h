@@ -32,24 +32,24 @@ public:
     bool Start();
 
     template <typename Key>
-    bool PushKey(Key key, docid_t docId);
+    bool PushKey(Key key, docid64_t docId);
 
     bool WaitFinish();
 
 private:
-    bool PushKeyImpl(const autil::uint128_t& pkHash, docid_t docId);
+    bool PushKeyImpl(const autil::uint128_t& pkHash, docid64_t docId);
 
 private:
     const PrimaryKeyIndexReader* _pkReader = nullptr;
     std::unique_ptr<autil::ThreadPool> _threadPool;
-    std::vector<std::pair<autil::uint128_t, docid_t>> _pkHashs;
+    std::vector<std::pair<autil::uint128_t, docid64_t>> _pkHashs;
 
 private:
     AUTIL_LOG_DECLARE();
 };
 
 template <typename Key>
-inline bool PrimaryKeyDuplicationChecker::PushKey(Key key, docid_t docId)
+inline bool PrimaryKeyDuplicationChecker::PushKey(Key key, docid64_t docId)
 {
     if constexpr (std::is_same_v<Key, autil::uint128_t>) {
         return PushKeyImpl(key, docId);

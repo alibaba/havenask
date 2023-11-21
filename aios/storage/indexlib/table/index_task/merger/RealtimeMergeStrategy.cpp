@@ -24,7 +24,6 @@
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/LevelInfo.h"
 #include "indexlib/framework/Segment.h"
-#include "indexlib/index/deletionmap/Common.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/util/Exception.h"
 
@@ -72,18 +71,23 @@ RealtimeMergeStrategy::DoCreateMergePlan(const framework::IndexTaskContext* cont
 
     std::vector<std::shared_ptr<Segment>> srcSegments = CollectSrcSegments(context->GetTabletData());
     size_t totalSize = 0;
+    size_t totalDocCount = 0;
     size_t maxInPlanSegmentCount = std::min(_params.maxSegmentCount, srcSegments.size());
     SegmentMergePlan segmentMergePlan;
-    for (size_t i = 0; i < maxInPlanSegmentCount and totalSize < _params.maxTotalMergeSize; ++i) {
-        segmentMergePlan.AddSrcSegment(srcSegments[i]->GetSegmentId());
-
-        std::shared_ptr<Segment> srcSegment = srcSegments[i];
+    for (size_t i = 0; i < maxInPlanSegmentCount; ++i) {
+        auto srcSegment = srcSegments[i];
+        if (totalDocCount + srcSegment->GetDocCount() > indexlib::MAX_SEGMENT_DOC_COUNT ||
+            totalSize >= _params.maxTotalMergeSize) {
+            break;
+        }
+        segmentMergePlan.AddSrcSegment(srcSegment->GetSegmentId());
         auto ret = srcSegment->GetSegmentDirectory()->GetIDirectory()->GetDirectorySize(/*path=*/"");
         auto status = ret.Status();
         RETURN2_IF_STATUS_ERROR(status, nullptr, "get directory size fail, dir[%s]",
                                 srcSegment->GetSegmentDirectory()->GetLogicalPath().c_str());
         auto segmentSize = ret.result;
         totalSize += segmentSize;
+        totalDocCount += srcSegment->GetDocCount();
     }
     if (segmentMergePlan.GetSrcSegmentCount() > 0) {
         mergePlan->AddMergePlan(segmentMergePlan);

@@ -22,6 +22,7 @@
 #include "indexlib/index/common/field_format/attribute/AttributeConvertorFactory.h"
 #include "indexlib/index/common/field_format/date/DateFieldEncoder.h"
 #include "indexlib/index/common/field_format/range/RangeFieldEncoder.h"
+#include "indexlib/index/field_meta/Common.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 #include "indexlib/index/pack_attribute/Common.h"
@@ -52,7 +53,7 @@ void ExtendDocFieldsConvertor::convertIndexField(const NormalExtendDocument* doc
 
     FieldType fieldType = fieldConfig->GetFieldType();
     if (fieldType == ft_raw) {
-        const std::string& fieldValue = document->getRawDocument()->getField(fieldConfig->GetFieldName());
+        const std::string& fieldValue = document->GetRawDocument()->getField(fieldConfig->GetFieldName());
         if (fieldValue.empty()) {
             return;
         }
@@ -102,10 +103,9 @@ void ExtendDocFieldsConvertor::CreateIndexField(const indexlibv2::config::FieldC
         if (tokenizeField->isEmpty()) {
             return;
         }
-        indexlib::document::Field* field =
-            classifiedDoc->createIndexField(fieldId, indexlib::document::Field::FieldTag::TOKEN_FIELD);
+        convertTokenizeField(tokenizeField, fieldId, classifiedDoc->getPool(), classifiedDoc->getIndexDocument());
+        auto field = classifiedDoc->getIndexDocument()->GetField(fieldId);
         *indexTokenizeField = static_cast<indexlib::document::IndexTokenizeField*>(field);
-        transTokenizeFieldToField(tokenizeField, *indexTokenizeField, fieldId, classifiedDoc);
     }
 }
 
@@ -156,6 +156,64 @@ void ExtendDocFieldsConvertor::addModifiedTokens(fieldid_t fieldId,
     }
 }
 
+void ExtendDocFieldsConvertor::convertFieldMetaField(const NormalExtendDocument* document,
+                                                     const std::shared_ptr<config::FieldConfig>& fieldConfig)
+{
+    fieldid_t fieldId = fieldConfig->GetFieldId();
+    if ((size_t)fieldId >= _fieldMetaConvertVec.size()) {
+        AUTIL_LOG(ERROR, "field meta fieldName [%s], fieldId is [%d], more than total fields",
+                  fieldConfig->GetFieldName().c_str(), fieldId);
+        return;
+    }
+    const auto& convertor = _fieldMetaConvertVec[fieldId];
+    const std::shared_ptr<ClassifiedDocument>& classifiedDoc = document->getClassifiedDocument();
+    if (unlikely(!classifiedDoc->getFieldMetaDoc())) {
+        classifiedDoc->createFieldMetaDocument();
+    }
+    assert(convertor);
+    const auto& rawDoc = document->GetRawDocument();
+    const autil::StringView& rawField = rawDoc->getField(autil::StringView(fieldConfig->GetFieldName()));
+
+    if (rawField.empty() || rawField.data() == nullptr ||
+        (fieldConfig->IsEnableNullField() && rawField == autil::StringView(fieldConfig->GetNullFieldLiteralString()))) {
+        classifiedDoc->setFieldMetaFieldNoCopy(fieldId, autil::StringView::empty_instance(), true /*isnull*/);
+        return;
+    }
+
+    // 如果配置了field token length meta，则使用字段分词后的长度作为field meta的长度
+    size_t tokenCount = 0;
+    if (_hasfieldTokenLengthMetaVec[fieldId]) {
+        const auto& tokenizeDoc = document->getTokenizeDocument();
+        if (tokenizeDoc) {
+            auto& tokenizeField = tokenizeDoc->getField(fieldId);
+            if (tokenizeField && !tokenizeField->isNull() && !tokenizeField->isEmpty()) {
+                indexlib::document::TokenizeField::Iterator it = tokenizeField->createIterator();
+                // 遍历token section
+                while (!it.isEnd()) {
+                    if ((*it) != NULL) {
+                        // 遍历token
+                        indexlib::document::TokenizeSection::Iterator tokenIter = (*it)->createIterator();
+                        while (tokenIter) {
+                            auto analyzerToken = *tokenIter;
+                            // 忽略停用词和分隔符
+                            if (analyzerToken != nullptr && analyzerToken->isBasicRetrieve() &&
+                                !analyzerToken->isStopWord() && !analyzerToken->isDelimiter()) {
+                                tokenCount++;
+                            }
+                            tokenIter.nextBasic();
+                        }
+                    }
+                    it.next();
+                }
+            }
+        }
+    }
+
+    autil::StringView convertedValue;
+    convertedValue = convertor->Encode(rawField, classifiedDoc->getPool(), tokenCount);
+    classifiedDoc->setFieldMetaFieldNoCopy(fieldId, convertedValue, false /*isnull*/);
+}
+
 void ExtendDocFieldsConvertor::convertAttributeField(
     const NormalExtendDocument* document, const std::shared_ptr<indexlibv2::config::FieldConfig>& fieldConfig,
     bool emptyFieldNotEncode)
@@ -174,7 +232,7 @@ void ExtendDocFieldsConvertor::convertAttributeField(
     const auto& attrDoc = classifiedDoc->getAttributeDoc();
     const autil::StringView& fieldValue = classifiedDoc->getAttributeField(fieldId);
     if (fieldValue.empty()) {
-        const auto& rawDoc = document->getRawDocument();
+        const auto& rawDoc = document->GetRawDocument();
         const autil::StringView& rawField = rawDoc->getField(autil::StringView(fieldConfig->GetFieldName()));
         if (rawField.data() == NULL) {
             if (fieldConfig->IsEnableNullField()) {
@@ -217,7 +275,7 @@ void ExtendDocFieldsConvertor::convertSummaryField(const NormalExtendDocument* d
     }
 
     if (fieldConfig->GetFieldType() != ft_text) {
-        const std::shared_ptr<RawDocument>& rawDoc = document->getRawDocument();
+        const std::shared_ptr<RawDocument>& rawDoc = document->GetRawDocument();
         const std::string& fieldName = fieldConfig->GetFieldName();
         const autil::StringView& fieldValue = rawDoc->getField(autil::StringView(fieldName));
         // memory is in raw document.
@@ -265,33 +323,36 @@ std::string ExtendDocFieldsConvertor::transTokenizeFieldToSummaryStr(
     return summaryStr;
 }
 
-void ExtendDocFieldsConvertor::transTokenizeFieldToField(
-    const std::shared_ptr<indexlib::document::TokenizeField>& tokenizeField,
-    indexlib::document::IndexTokenizeField* field, fieldid_t fieldId,
-    const std::shared_ptr<ClassifiedDocument>& classifiedDoc)
+void ExtendDocFieldsConvertor::convertTokenizeField(
+    const std::shared_ptr<indexlib::document::TokenizeField>& tokenizeField, fieldid_t fieldId,
+    autil::mem_pool::Pool* pool, const std::shared_ptr<indexlib::document::IndexDocument>& indexDoc)
 {
+    indexlib::document::Field* field = indexDoc->CreateField(fieldId, indexlib::document::Field::FieldTag::TOKEN_FIELD);
+    auto indexTokenizeField = static_cast<indexlib::document::IndexTokenizeField*>(field);
+
     indexlib::document::TokenizeField::Iterator it = tokenizeField->createIterator();
     if (it.isEnd()) {
         return;
     }
     if (_spatialFieldEncoder->IsSpatialIndexField(fieldId)) {
-        addSectionTokens(_spatialFieldEncoder, field, *it, classifiedDoc->getPool(), fieldId, classifiedDoc);
+        addSectionTokens(_spatialFieldEncoder, indexTokenizeField, *it, pool, fieldId);
         return;
     }
     if (_dateFieldEncoder->IsDateIndexField(fieldId)) {
-        addSectionTokens(_dateFieldEncoder, field, *it, classifiedDoc->getPool(), fieldId, classifiedDoc);
+        addSectionTokens(_dateFieldEncoder, indexTokenizeField, *it, pool, fieldId);
         return;
     }
     if (_rangeFieldEncoder->IsRangeIndexField(fieldId)) {
-        addSectionTokens(_rangeFieldEncoder, field, *it, classifiedDoc->getPool(), fieldId, classifiedDoc);
+        addSectionTokens(_rangeFieldEncoder, indexTokenizeField, *it, pool, fieldId);
         return;
     }
     assert(tokenizeField);
     pos_t lastTokenPos = 0;
     pos_t curPos = -1;
+
     while (!it.isEnd()) {
         indexlib::document::TokenizeSection* section = *it;
-        if (!addSection(field, section, classifiedDoc->getPool(), fieldId, classifiedDoc, lastTokenPos, curPos)) {
+        if (!addSection(indexTokenizeField, section, pool, fieldId, indexDoc, lastTokenPos, curPos)) {
             return;
         }
         it.next();
@@ -301,13 +362,13 @@ void ExtendDocFieldsConvertor::transTokenizeFieldToField(
 bool ExtendDocFieldsConvertor::addSection(indexlib::document::IndexTokenizeField* field,
                                           indexlib::document::TokenizeSection* tokenizeSection,
                                           autil::mem_pool::Pool* pool, fieldid_t fieldId,
-                                          const std::shared_ptr<ClassifiedDocument>& classifiedDoc, pos_t& lastTokenPos,
-                                          pos_t& curPos)
+                                          const std::shared_ptr<indexlib::document::IndexDocument>& indexDoc,
+                                          pos_t& lastTokenPos, pos_t& curPos)
 {
     // TODO: empty section
     uint32_t leftTokenCount = tokenizeSection->getTokenCount();
     indexlib::document::Section* indexSection =
-        classifiedDoc->createSection(field, leftTokenCount, tokenizeSection->getSectionWeight());
+        document::ClassifiedDocument::createSection(field, leftTokenCount, tokenizeSection->getSectionWeight());
     if (indexSection == NULL) {
         AUTIL_LOG(DEBUG, "Failed to create new section.");
         return false;
@@ -315,7 +376,7 @@ bool ExtendDocFieldsConvertor::addSection(indexlib::document::IndexTokenizeField
     indexlib::document::IndexDocument::TermOriginValueMap termOriginValueMap;
     indexlib::document::TokenizeSection::Iterator it = tokenizeSection->createIterator();
     section_len_t nowSectionLen = 0;
-    section_len_t maxSectionLen = classifiedDoc->getMaxSectionLenght();
+    section_len_t maxSectionLen = document::ClassifiedDocument::getMaxSectionLenght();
     while (*it != NULL) {
         if ((*it)->isSpace() || (*it)->isDelimiter()) {
             it.nextBasic();
@@ -326,7 +387,8 @@ bool ExtendDocFieldsConvertor::addSection(indexlib::document::IndexTokenizeField
         if (nowSectionLen + 1 >= maxSectionLen) {
             indexSection->SetLength(nowSectionLen + 1);
             nowSectionLen = 0;
-            indexSection = classifiedDoc->createSection(field, leftTokenCount, tokenizeSection->getSectionWeight());
+            indexSection =
+                document::ClassifiedDocument::createSection(field, leftTokenCount, tokenizeSection->getSectionWeight());
             if (indexSection == NULL) {
                 AUTIL_LOG(DEBUG, "Failed to create new section.");
                 return false;
@@ -351,7 +413,7 @@ bool ExtendDocFieldsConvertor::addSection(indexlib::document::IndexTokenizeField
     curPos++;
 
     if (!termOriginValueMap.empty()) {
-        classifiedDoc->getIndexDocument()->AddTermOriginValue(termOriginValueMap);
+        indexDoc->AddTermOriginValue(termOriginValueMap);
     }
     return true;
 }
@@ -410,9 +472,14 @@ bool ExtendDocFieldsConvertor::addHashToken(indexlib::document::Section* indexSe
     return true;
 }
 
-void ExtendDocFieldsConvertor::init()
+bool ExtendDocFieldsConvertor::init()
 {
     initAttrConvert();
+    bool ret = initFieldMetaConvert();
+    if (!ret) {
+        AUTIL_LOG(ERROR, "init field meta convertor failed");
+        return ret;
+    }
     initFieldTokenHasherTypeVector();
 
     // TODO: support spatial index
@@ -433,6 +500,7 @@ void ExtendDocFieldsConvertor::init()
             _indexName2InvertedIndexConfig[indexName] = invertedIndexConfig;
         }
     }
+    return true;
 }
 
 void ExtendDocFieldsConvertor::initFieldTokenHasherTypeVector()
@@ -477,6 +545,47 @@ void ExtendDocFieldsConvertor::initAttrConvert()
             indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig));
     }
 }
+
+bool ExtendDocFieldsConvertor::initFieldMetaConvert()
+{
+    const auto& fieldConfigs = _schema->GetFieldConfigs();
+    if (fieldConfigs.empty()) {
+        return true;
+    }
+    _fieldMetaConvertVec.resize(fieldConfigs.size());
+    _hasfieldTokenLengthMetaVec.resize(fieldConfigs.size());
+
+    auto fieldMetaConfigs = _schema->GetIndexConfigs(indexlib::index::FIELD_META_INDEX_TYPE_STR);
+    for (const auto& indexConfig : fieldMetaConfigs) {
+        auto fieldMetaConfig = std::dynamic_pointer_cast<indexlib::index::FieldMetaConfig>(indexConfig);
+        if (!fieldMetaConfig) {
+            AUTIL_LOG(ERROR, "convert index config to field meta config failed");
+            return false;
+        }
+        auto convertor = std::make_shared<indexlib::index::FieldMetaConvertor>();
+        bool ret = convertor->Init(indexConfig);
+        if (!ret) {
+            AUTIL_LOG(ERROR, "field meta [%s] convertor init failed", indexConfig->GetIndexName().c_str());
+            return ret;
+        }
+        auto fieldConfigs = indexConfig->GetFieldConfigs();
+        assert(1u == fieldConfigs.size());
+        _fieldMetaConvertVec[fieldConfigs[0]->GetFieldId()] = convertor;
+
+        bool hasFieldTokenMeta = false;
+        for (auto metaInfo : fieldMetaConfig->GetFieldMetaInfos()) {
+            if (metaInfo.metaName == indexlib::index::FIELD_TOKEN_COUNT_META_STR) {
+                hasFieldTokenMeta = true;
+                break;
+            }
+        }
+        if (hasFieldTokenMeta) {
+            _hasfieldTokenLengthMetaVec[fieldConfigs[0]->GetFieldId()] = hasFieldTokenMeta;
+        }
+    }
+    return true;
+}
+
 std::vector<std::shared_ptr<indexlibv2::index::AttributeConfig>> ExtendDocFieldsConvertor::GetAttributeConfigs() const
 {
     std::vector<std::shared_ptr<indexlibv2::index::AttributeConfig>> result;
@@ -501,8 +610,7 @@ template <typename EncoderPtr>
 void ExtendDocFieldsConvertor::addSectionTokens(const EncoderPtr& encoder,
                                                 indexlib::document::IndexTokenizeField* field,
                                                 indexlib::document::TokenizeSection* tokenizeSection,
-                                                autil::mem_pool::Pool* pool, fieldid_t fieldId,
-                                                const std::shared_ptr<ClassifiedDocument>& classifiedDoc)
+                                                autil::mem_pool::Pool* pool, fieldid_t fieldId)
 {
     uint32_t tokenCount = tokenizeSection->getTokenCount();
     if (tokenCount != 1 && !supportMultiToken(encoder)) {
@@ -525,18 +633,19 @@ void ExtendDocFieldsConvertor::addSectionTokens(const EncoderPtr& encoder,
         encoder->Encode(fieldId, tokenStr, dictKeys);
 
         uint32_t leftTokenCount = dictKeys.size();
-        indexlib::document::Section* indexSection = classifiedDoc->createSection(field, leftTokenCount, 0);
+        indexlib::document::Section* indexSection =
+            document::ClassifiedDocument::createSection(field, leftTokenCount, 0);
         if (indexSection == NULL) {
             AUTIL_LOG(DEBUG, "Failed to create new section.");
             return;
         }
         section_len_t nowSectionLen = 0;
-        section_len_t maxSectionLen = classifiedDoc->getMaxSectionLenght();
+        section_len_t maxSectionLen = document::ClassifiedDocument::getMaxSectionLenght();
         for (size_t i = 0; i < dictKeys.size(); i++) {
             if (nowSectionLen + 1 >= maxSectionLen) {
                 indexSection->SetLength(nowSectionLen + 1);
                 nowSectionLen = 0;
-                indexSection = classifiedDoc->createSection(field, leftTokenCount, 0);
+                indexSection = document::ClassifiedDocument::createSection(field, leftTokenCount, 0);
                 if (indexSection == NULL) {
                     AUTIL_LOG(DEBUG, "Failed to create new section.");
                     return;

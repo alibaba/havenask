@@ -43,7 +43,7 @@ void TrieIndexMergerTest::TestEstimateMemoryUse()
     trieMerger.Init(provider.GetIndexConfig(), hint, taskResources, ioConfig);
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     Version version;
-    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
     merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
     segDir->Init(false, true);
     PartitionDataPtr partitionData = provider.GetPartitionData();

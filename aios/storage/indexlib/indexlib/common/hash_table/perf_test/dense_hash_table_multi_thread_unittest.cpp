@@ -9,7 +9,7 @@ using namespace autil;
 namespace indexlib { namespace common {
 IE_LOG_SETUP(common, DenseHashTableMultiThreadTest);
 
-volatile static bool DHTIsDone;
+volatile static atomic_bool DHTIsDone;
 volatile static int64_t DHTCurKey = 0;
 static const int32_t maxKeyCount = 999;
 

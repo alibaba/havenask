@@ -39,8 +39,8 @@ void SkipListReader::Load(const util::ByteSliceList* byteSliceList, uint32_t sta
     assert(start <= end);
     _start = start;
     _end = end;
-    _byteSliceReader.Open(const_cast<util::ByteSliceList*>(byteSliceList));
-    _byteSliceReader.Seek(start);
+    _byteSliceReader.Open(const_cast<util::ByteSliceList*>(byteSliceList)).GetOrThrow();
+    _byteSliceReader.Seek(start).GetOrThrow();
 }
 
 void SkipListReader::Load(util::ByteSlice* byteSlice, uint32_t start, uint32_t end)
@@ -51,7 +51,7 @@ void SkipListReader::Load(util::ByteSlice* byteSlice, uint32_t start, uint32_t e
     assert(start <= end);
     _start = start;
     _end = end;
-    _byteSliceReader.Open(byteSlice);
-    _byteSliceReader.Seek(start);
+    _byteSliceReader.Open(byteSlice).GetOrThrow();
+    _byteSliceReader.Seek(start).GetOrThrow();
 }
 } // namespace indexlib::index

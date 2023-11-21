@@ -15,7 +15,15 @@
  */
 #include "indexlib/file_system/LifecycleConfig.h"
 
+#include <algorithm>
+#include <ext/alloc_traits.h>
+#include <stddef.h>
+
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/util/Exception.h"
 
 namespace indexlib::file_system {

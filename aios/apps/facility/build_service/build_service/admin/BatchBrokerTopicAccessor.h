@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BATCHBROKERTOPICACCESSOR_H
-#define ISEARCH_BS_BATCHBROKERTOPICACCESSOR_H
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/common/BrokerTopicAccessor.h"
 #include "build_service/common/BrokerTopicKeeper.h"
+#include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
-
-namespace build_service { namespace util {
-class TopicCreationInfo;
-}} // namespace build_service::util
+#include "swift/network/SwiftAdminAdapter.h"
 
 namespace build_service { namespace admin {
 
@@ -85,5 +88,3 @@ private:
 BS_TYPEDEF_PTR(BatchBrokerTopicAccessor);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_BATCHBROKERTOPICACCESSOR_H

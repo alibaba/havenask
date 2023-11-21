@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MULTI_FIELD_INDEX_READER_H
-#define __INDEXLIB_MULTI_FIELD_INDEX_READER_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -93,5 +92,3 @@ private:
 
 typedef std::shared_ptr<MultiFieldIndexReader> MultiFieldIndexReaderPtr;
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_MULTI_FIELD_INDEX_READER_H

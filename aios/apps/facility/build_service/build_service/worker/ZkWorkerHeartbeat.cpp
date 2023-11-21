@@ -15,9 +15,15 @@
  */
 #include "build_service/worker/ZkWorkerHeartbeat.h"
 
+#include <cstddef>
+#include <functional>
+
+#include "autil/CommonMacros.h"
+#include "autil/TimeUtility.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
-#include "worker_framework/ZkState.h"
 
 using namespace std;
 using namespace build_service::proto;

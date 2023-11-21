@@ -32,14 +32,17 @@ HTTPRPCServerClosure::HTTPRPCServerClosure(Connection *connection,
                                            bool keepAlive,
                                            const string &encoding,
                                            const ProtoJsonizerPtr &protoJsonizer,
-                                           const EagleInfo &eagleInfo)
+                                           const EagleInfo &eagleInfo,
+                                           const std::string &aiosDebugType)
     : _connection(connection)
     , _requestMessage(requestMessage)
     , _responseMessage(responseMessage)
     , _keepAlive(keepAlive)
     , _encoding(encoding)
     , _protoJsonizer(protoJsonizer)
-    , _eagleInfo(eagleInfo) {
+    , _eagleInfo(eagleInfo)
+    , _aiosDebugType(aiosDebugType)
+{
     if (_connection != NULL) {
         _connection->addRef();
     }

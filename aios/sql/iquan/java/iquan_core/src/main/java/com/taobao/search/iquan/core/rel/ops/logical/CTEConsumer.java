@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.core.rel.ops.logical;
 
+import java.util.List;
+
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.AbstractRelNode;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.type.RelDataType;
-
-import java.util.List;
 
 public class CTEConsumer extends AbstractRelNode {
 
@@ -16,8 +16,7 @@ public class CTEConsumer extends AbstractRelNode {
     public CTEConsumer(
             RelOptCluster cluster,
             RelTraitSet traitSet,
-            CTEProducer producer)
-    {
+            CTEProducer producer) {
         super(cluster, traitSet);
         this.producer = producer;
     }

@@ -38,7 +38,7 @@ public:
         assert(false);
         return Status::Corruption();
     }
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
     size_t EvaluateCurrentMemUsed() override;
     void CollectSegmentDescription(const std::shared_ptr<framework::SegmentDescriptions>& segDescs) override;
     std::shared_ptr<framework::Segment> GetShardSegment(size_t shardIdx) const;

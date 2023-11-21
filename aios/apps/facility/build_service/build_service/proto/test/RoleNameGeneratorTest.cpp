@@ -1,6 +1,11 @@
 #include "build_service/proto/RoleNameGenerator.h"
 
+#include <iosfwd>
+#include <string>
+
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

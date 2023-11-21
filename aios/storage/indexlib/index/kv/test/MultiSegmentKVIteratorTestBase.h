@@ -7,7 +7,7 @@
 #include "indexlib/file_system/load_config/CacheLoadStrategy.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
 #include "indexlib/framework/Segment.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/kv/FieldValueExtractor.h"
 #include "indexlib/index/kv/KVDiskIndexer.h"
 #include "indexlib/index/kv/KVIndexFactory.h"
@@ -41,7 +41,7 @@ protected:
 protected:
     std::shared_ptr<config::TabletSchema> _schema;
     std::shared_ptr<config::KVIndexConfig> _config;
-    IndexerParameter _indexerParam;
+    MemIndexerParameter _indexerParam;
     std::string _rootDir;
     std::shared_ptr<indexlib::file_system::Directory> _indexRootDir;
     std::shared_ptr<indexlib::file_system::Directory> _onlineDirectory;

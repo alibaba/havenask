@@ -1,16 +1,18 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.core.RelFactories;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LimitPushDownRule extends RelOptRule {
     public static final LimitPushDownRule INSTANCE = new LimitPushDownRule(RelFactories.LOGICAL_BUILDER);

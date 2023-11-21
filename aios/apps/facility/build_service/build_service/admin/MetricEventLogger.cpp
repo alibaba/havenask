@@ -15,6 +15,11 @@
  */
 #include "build_service/admin/MetricEventLogger.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+
 #include "autil/TimeUtility.h"
 
 using namespace std;

@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include "build_service/proto/ProtoJsonizer.h"
 #include "build_service/proto/WorkerNode.h"
 #include "hippo/DriverCommon.h"
 #include "hippo/HippoUtil.h"
@@ -31,6 +32,15 @@ public:
             *pbSlotInfos.Add() = convertSlotInfo(slotInfo);
         }
         workerNode->setSlotInfo(pbSlotInfos);
+    }
+
+    static std::string getSlotInfoJsonString(const proto::WorkerNodeBase::PBSlotInfos& pbSlotInfos)
+    {
+        std::vector<std::string> strVec;
+        for (const auto& pbSlotInfo : pbSlotInfos) {
+            strVec.push_back(proto::ProtoJsonizer::toJsonString(pbSlotInfo));
+        }
+        return autil::legacy::ToJsonString(strVec);
     }
 
     template <typename WorkNode>
@@ -70,7 +80,6 @@ private:
             pbProcessStatus->set_processname(processStatus.processName);
             pbProcessStatus->set_starttime(processStatus.startTime);
             pbProcessStatus->set_restartcount(processStatus.restartCount);
-            pbProcessStatus->set_starttime(processStatus.startTime);
             pbProcessStatus->set_exitcode(processStatus.exitCode);
             pbProcessStatus->set_pid(processStatus.pid);
         }

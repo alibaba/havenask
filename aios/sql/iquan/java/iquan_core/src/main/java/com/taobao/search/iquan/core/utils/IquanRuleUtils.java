@@ -1,13 +1,19 @@
 package com.taobao.search.iquan.core.utils;
 
-import org.apache.calcite.rel.core.Calc;
-import org.apache.calcite.rel.core.Project;
-import org.apache.calcite.rex.*;
-import org.apache.calcite.util.Util;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.calcite.rel.core.Calc;
+import org.apache.calcite.rel.core.Project;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexOver;
+import org.apache.calcite.rex.RexProgram;
+import org.apache.calcite.rex.RexProgramBuilder;
+import org.apache.calcite.rex.RexUtil;
+import org.apache.calcite.rex.RexVisitorImpl;
+import org.apache.calcite.util.Util;
 
 public class IquanRuleUtils {
     public static boolean isRenameProject(final Project project) {
@@ -19,7 +25,8 @@ public class IquanRuleUtils {
         List<Integer> ids = new ArrayList<>();
         for (RexNode node : project.getProjects()) {
             Boolean pure = node.accept(new RexVisitorImpl<Boolean>(true) {
-                @Override public Boolean visitInputRef(RexInputRef inputRef) {
+                @Override
+                public Boolean visitInputRef(RexInputRef inputRef) {
                     ids.add((inputRef.getIndex()));
                     return true;
                 }
@@ -62,7 +69,8 @@ public class IquanRuleUtils {
 
         for (RexNode node : projects) {
             Boolean pure = node.accept(new RexVisitorImpl<Boolean>(true) {
-                @Override public Boolean visitInputRef(RexInputRef inputRef) {
+                @Override
+                public Boolean visitInputRef(RexInputRef inputRef) {
                     ids.add((inputRef.getIndex()));
                     return true;
                 }

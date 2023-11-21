@@ -13,13 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SERVICEKEEPER_H
-#define ISEARCH_BS_SERVICEKEEPER_H
+#pragma once
 
+#include <map>
+#include <memory>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/Lock.h"
 #include "autil/LoopThread.h"
 #include "autil/OutputOrderedThreadPool.h"
+#include "autil/Thread.h"
+#include "autil/ThreadAnnotations.h"
+#include "autil/legacy/json.h"
 #include "build_service/admin/AdminHealthChecker.h"
 #include "build_service/admin/AdminMetricsReporter.h"
+#include "build_service/admin/AppPlanMaker.h"
 #include "build_service/admin/GenerationKeeper.h"
 #include "build_service/admin/GenerationRecoverWorkItem.h"
 #include "build_service/admin/GlobalAgentMaintainer.h"
@@ -28,19 +42,20 @@
 #include "build_service/admin/ServiceInfoFilter.h"
 #include "build_service/admin/ServiceKeeperObsoleteDataCleaner.h"
 #include "build_service/admin/TCMallocMemController.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/config/BuildServiceConfig.h"
-#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ProtoComparator.h"
-#include "build_service/util/Log.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "build_service/util/SharedPtrGuard.h"
+#include "hippo/DriverCommon.h"
+#include "kmonitor_adapter/Metric.h"
+#include "kmonitor_adapter/Monitor.h"
 #include "master_framework/ScheduleUnit.h"
 #include "master_framework/SimpleMasterScheduler.h"
+#include "master_framework/common.h"
+#include "worker_framework/LeaderChecker.h"
 #include "worker_framework/ZkState.h"
-
-namespace cm_basic {
-class ZkWrapper;
-};
 
 namespace build_service { namespace admin {
 
@@ -105,6 +120,7 @@ public:
     void migrateTargetRoles(const proto::MigrateRoleRequest* request, proto::InformResponse* response);
     void getGeneralInfo(const proto::InformRequest* request, proto::InformResponse* response);
     void getBulkloadInfo(const proto::BulkloadInfoRequest* request, proto::InformResponse* response);
+    void bulkload(const proto::BulkloadRequest* request, proto::InformResponse* response);
 
 public:
     const GenerationKeeperPtr& getGeneration(const proto::BuildId& buildId, bool includeHistory, bool& isRecoverFailed,
@@ -122,9 +138,10 @@ protected:
     virtual GenerationKeeperPtr doCreateGenerationKeeper(const GenerationKeeper::Param& param);
 
 private:
-    static std::vector<hippo::PackageInfo> prepareSpecifiedWorkerPkgList();
+    static bool prepareSpecifiedWorkerPkgList(std::vector<hippo::PackageInfo>& pkgList);
     // virtual for test
     void syncAdminInfo();
+    bool cleanGenerationDir(const proto::BuildId& buildId) const;
     bool collectRecoverBuildIds(std::vector<proto::BuildId>& buildIds);
     virtual bool recover(const std::vector<proto::BuildId>& buildIds);
     void waitRecoverFinished(const std::vector<proto::BuildId>& buildIds,
@@ -178,6 +195,9 @@ private:
 
     std::vector<GenerationKeeperPtr> getBuildIdMatchedGenerationKeepers(const proto::BuildId& buildid,
                                                                         bool onlyActive) const;
+
+    std::vector<GenerationKeeperPtr> getGeneralTaskGenerationKeepers(const proto::BuildId& buildid) const;
+
     void fillWorkerRoleInfoMap(
         const std::vector<GenerationKeeperPtr>& keepers, bool onlyActiveRole,
         std::map<proto::BuildId, GenerationKeeper::WorkerRoleInfoMapPtr>& multiGenerationRoleMap) const;
@@ -189,6 +209,9 @@ private:
     void fillCheckpointInfo(const GenerationKeeperPtr& keeper, autil::legacy::json::JsonMap& jsonMap) const;
     void fillWorkerRoleInfo(const GenerationKeeper::WorkerRoleInfoMapPtr& roleInfoMap,
                             autil::legacy::json::JsonMap& jsonMap) const;
+
+    void fillGeneralTaskSummaryInfo(const GenerationKeeperPtr& keeper,
+                                    autil::legacy::json::JsonMap& summaryInfoMap) const;
 
     std::string getBuildStepString(const GenerationKeeperPtr& keeper) const;
     std::string getGenerationStepString(const GenerationKeeperPtr& keeper) const;
@@ -290,5 +313,3 @@ proto::BuildId ServiceKeeper::getBuildId(const RequestType* request) const
 }
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_SERVICEKEEPER_H

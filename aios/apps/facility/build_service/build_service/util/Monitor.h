@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MONITOR_H
-#define ISEARCH_BS_MONITOR_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "indexlib/util/metrics/Metric.h"
@@ -78,5 +77,3 @@ using kmonitor::STATUS;
             (metric)->report(tags, count);                                                                             \
         }                                                                                                              \
     } while (0)
-
-#endif // ISEARCH_BS_MONITOR_H

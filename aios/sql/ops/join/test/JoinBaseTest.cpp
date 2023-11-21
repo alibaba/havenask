@@ -45,6 +45,18 @@ private:
         ASSERT_EQ(type, vt.getBuiltinType());
         ASSERT_EQ(isMulti, vt.isMultiValue());
     }
+    void constructJoinParam(JoinBaseParamR &joinParamR,
+                            const std::vector<std::string> &leftInputs,
+                            const std::vector<std::string> &rightInputs,
+                            const std::vector<std::string> &outputs) {
+        auto *naviRHelper = getNaviRHelper();
+        ASSERT_TRUE(naviRHelper->getOrCreateRes(joinParamR._joinInfoR));
+        joinParamR._leftInputFields = leftInputs;
+        joinParamR._rightInputFields = rightInputs;
+        joinParamR._outputFields = outputs;
+        joinParamR._poolPtr = _poolPtr;
+        joinParamR._pool = _poolPtr.get();
+    }
 };
 
 void JoinBaseTest::setUp() {}
@@ -60,17 +72,17 @@ TEST_F(JoinBaseTest, testAppendColumns) {
         _matchDocUtil.extendMatchDocAllocator(allocator, leftDocs, "cid", {"1", "3"}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<int32_t>(
         allocator, leftDocs, "muid", {{1, 3}, {2, 4}}));
-    TablePtr inputTable(new Table(leftDocs, allocator));
+    TablePtr inputTable = Table::fromMatchDocs(leftDocs, allocator);
     TablePtr outputTable(new Table(_poolPtr));
     { // input filed not exist
-        JoinBaseParam param;
+        JoinBaseParamR param;
         param._outputFields.push_back("out_muid");
         param._leftInputFields.push_back("muidxxx");
         InnerJoin joinBase(param);
         ASSERT_FALSE(joinBase.appendColumns(inputTable, outputTable));
     }
     {
-        JoinBaseParam param;
+        JoinBaseParamR param;
         param._outputFields = {"out_uid", "out_cid", "out_muid"};
         param._leftInputFields = {"uid", "cid", "muid"};
         InnerJoin joinBase(param);
@@ -91,10 +103,10 @@ TEST_F(JoinBaseTest, testEvaluateColumns) {
         _matchDocUtil.extendMatchDocAllocator(allocator, leftDocs, "cid", {"1111", "3333"}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<int32_t>(
         allocator, leftDocs, "muid", {{1, 3}, {2, 4}}));
-    TablePtr inputTable(new Table(leftDocs, allocator));
+    TablePtr inputTable = Table::fromMatchDocs(leftDocs, allocator);
     TablePtr outputTable(new Table(_poolPtr));
 
-    JoinBaseParam param;
+    JoinBaseParamR param;
     param._outputFields = {"out_uid", "out_cid", "out_muid"};
     param._leftInputFields = {"uid", "cid", "muid"};
     InnerJoin joinBase(param);
@@ -133,17 +145,17 @@ TEST_F(JoinBaseTest, testEvaluateJoinedTable) {
     vector<MatchDoc> leftDocs = _matchDocUtil.createMatchDocs(allocator, 2);
     ASSERT_NO_FATAL_FAILURE(
         _matchDocUtil.extendMatchDocAllocator<uint32_t>(allocator, leftDocs, "uid", {0, 1}));
-    TablePtr leftTable(new Table(leftDocs, allocator));
+    TablePtr leftTable = Table::fromMatchDocs(leftDocs, allocator);
 
     vector<MatchDoc> rightDocs = _matchDocUtil.createMatchDocs(allocator, 2);
     ASSERT_NO_FATAL_FAILURE(
         _matchDocUtil.extendMatchDocAllocator<uint32_t>(allocator, rightDocs, "cid", {10, 11}));
-    TablePtr rightTable(new Table(rightDocs, allocator));
+    TablePtr rightTable = Table::fromMatchDocs(rightDocs, allocator);
 
     TablePtr outputTable(new Table(_poolPtr));
 
-    JoinInfo joinInfo;
-    JoinBaseParam param = {{"uid"}, {"cid"}, {"out_uid", "out_cid"}, &joinInfo, {}, nullptr};
+    JoinBaseParamR param;
+    ASSERT_NO_FATAL_FAILURE(constructJoinParam(param, {"uid"}, {"cid"}, {"out_uid", "out_cid"}));
     InnerJoin joinBase(param);
     ASSERT_TRUE(joinBase.initJoinedTable(leftTable, rightTable, outputTable));
 
@@ -167,8 +179,9 @@ TEST_F(JoinBaseTest, testEvaluateEmptyColumns) {
         allocator, docs, "multi", {{0, 1}, {1}}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<string>(
         allocator, docs, "multiStr", {{"ab", "b"}, {"cde"}}));
-    TablePtr inputTable(new Table(docs, allocator));
-    JoinBaseParam param = {{}, {}, {}, nullptr, {}, _poolPtr.get()};
+    TablePtr inputTable = Table::fromMatchDocs(docs, allocator);
+    JoinBaseParamR param;
+    ASSERT_NO_FATAL_FAILURE(constructJoinParam(param, {}, {}, {}));
     param._outputFields = {"out_uint", "out_str", "out_multi", "out_multiStr"};
     param._leftInputFields = {"uint", "str", "multi", "multiStr"};
     InnerJoin joinBase(param);
@@ -202,8 +215,9 @@ TEST_F(JoinBaseTest, testEvaluateEmptyColumnsWithDefaultValue) {
         _matchDocUtil.extendMatchDocAllocator<int8_t>(allocator, docs, "int8", {0, 1}));
     ASSERT_NO_FATAL_FAILURE(
         _matchDocUtil.extendMatchDocAllocator(allocator, docs, "str", {"a", "b"}));
-    TablePtr inputTable(new Table(docs, allocator));
-    JoinBaseParam param = {{}, {}, {}, nullptr, {}, _poolPtr.get()};
+    TablePtr inputTable = Table::fromMatchDocs(docs, allocator);
+    JoinBaseParamR param;
+    ASSERT_NO_FATAL_FAILURE(constructJoinParam(param, {}, {}, {}));
     param._defaultValue = {{"INTEGER", "2"},
                            {"BOOLEAN", "true"},
                            {"DOUBLE", "1.1"},

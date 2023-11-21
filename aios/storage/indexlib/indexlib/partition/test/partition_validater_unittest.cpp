@@ -1,8 +1,8 @@
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_segment_writer.h"
 #include "indexlib/partition/partition_validater.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 
 using namespace std;

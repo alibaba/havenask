@@ -101,6 +101,31 @@ struct InvertedIndexConfig : public IndexConfig {
     std::map<std::string, std::string> parameters;
 };
 
+struct SourceIndexConfig : public IndexConfig {
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override;
+    bool init(const catalog::proto::TableStructure::Index &index) override;
+
+    std::string fieldMode;
+};
+
+struct DateIndexConfig : public IndexConfig {
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override;
+    bool init(const catalog::proto::TableStructure::Index &index) override;
+
+    std::string indexFields;
+    std::string buildGranularity;
+};
+
+struct SpatialIndexConfig : public IndexConfig {
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override;
+    bool init(const catalog::proto::TableStructure::Index &index) override;
+
+    std::string indexFields;
+    double maxSearchDist;
+    double maxDistErr;
+    std::optional<double> distanceLossAccuracy;
+};
+
 struct TableSchemaConfig final : autil::legacy::Jsonizable {
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override;
 
@@ -121,6 +146,7 @@ private:
     void initSettings(const TableStructure *tableStructure);
     void initFileCompressSetting();
     void initTtlSetting(const TableStructure *tableStructure);
+    void initTableMetaOption(const TableStructure *tableStructure);
 };
 
 } // namespace catalog

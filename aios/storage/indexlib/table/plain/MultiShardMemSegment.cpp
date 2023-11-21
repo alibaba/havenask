@@ -156,6 +156,8 @@ Status MultiShardMemSegment::Build(document::IDocumentBatch* batch)
     return Status::OK();
 }
 
+void MultiShardMemSegment::ValidateDocumentBatch(document::IDocumentBatch* batch) const {}
+
 void MultiShardMemSegment::UpdateMemUse()
 {
     int64_t currentMemUse = 0;

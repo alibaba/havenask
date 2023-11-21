@@ -41,10 +41,11 @@ public:
 
 public:
     void def(navi::KernelDefBuilder &builder) const override;
-    bool config(navi::KernelConfigContext &ctx) override;
     navi::ErrorCode compute(navi::KernelComputeContext &runContext) override;
 
 private:
+    bool doInit() override;
+    bool doConfig(navi::KernelConfigContext &ctx) override;
     bool doCompute(table::TablePtr &outputTable);
     bool waitFullTable();
     size_t joinTable(const table::TablePtr &largeTable, const table::TablePtr &fullTable);

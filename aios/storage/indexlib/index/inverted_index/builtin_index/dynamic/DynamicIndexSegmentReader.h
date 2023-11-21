@@ -36,7 +36,7 @@ public:
     ~DynamicIndexSegmentReader();
 
 public:
-    bool GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+    bool GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                            autil::mem_pool::Pool* sessionPool,
                            indexlib::file_system::ReadOption option = indexlib::file_system::ReadOption(),
                            InvertedIndexSearchTracer* tracer = nullptr) const override;

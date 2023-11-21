@@ -15,6 +15,8 @@
  */
 #include "indexlib/index/operation_log/InMemSegmentOperationIterator.h"
 
+#include "autil/EnvUtil.h"
+
 namespace indexlib::index {
 namespace {
 }
@@ -31,7 +33,11 @@ InMemSegmentOperationIterator::InMemSegmentOperationIterator(
     , _operationFieldInfo(operationFieldInfo)
     , _curReadBlockIdx(-1)
     , _reservedOperation(NULL)
+    , _reservedOpFromPool(false)
+    , _resetPoolThreshold(10 * 1024 * 1024)
 {
+    _resetPoolThreshold =
+        autil::EnvUtil::getEnv<size_t>("TEST_RESET_POOL_THRESHOLD", /*defaultValue*/ _resetPoolThreshold);
 }
 
 InMemSegmentOperationIterator::~InMemSegmentOperationIterator()
@@ -79,6 +85,7 @@ std::pair<Status, OperationBase*> InMemSegmentOperationIterator::Next()
     assert(HasNext());
     RETURN2_IF_STATUS_ERROR(SwitchToReadBlock(_opBlockIdx), nullptr, "switch block failed");
     _reservedOperation = _curBlockForRead->GetOperations()[_inBlockOffset];
+    _reservedOpFromPool = false;
     ToNextReadPosition();
     RETURN2_IF_STATUS_ERROR(SeekNextValidOperation(), nullptr, "seek next valid operation failed");
     OperationBase* op = _reservedOperation;
@@ -86,6 +93,7 @@ std::pair<Status, OperationBase*> InMemSegmentOperationIterator::Next()
         op->SetOperationFieldInfo(_operationFieldInfo);
     }
     _reservedOperation = NULL;
+    _reservedOpFromPool = false;
     return {Status::OK(), op};
 }
 
@@ -121,9 +129,8 @@ Status InMemSegmentOperationIterator::SwitchToReadBlock(int32_t blockIdx)
     if (blockIdx == _curReadBlockIdx) {
         return Status::OK();
     }
-    if (_reservedOperation) {
-        static const size_t RESET_POOL_THRESHOLD = 10 * 1024 * 1024; // 10 Mbytes
-        if (_pool.getUsedBytes() >= RESET_POOL_THRESHOLD) {
+    if (_reservedOperation && !_reservedOpFromPool) {
+        if (_pool.getUsedBytes() >= _resetPoolThreshold) {
             for (size_t i = 0; i < _reservedOpVec.size(); ++i) {
                 _reservedOpVec[i]->~OperationBase();
             }
@@ -131,6 +138,7 @@ Status InMemSegmentOperationIterator::SwitchToReadBlock(int32_t blockIdx)
             _pool.reset();
         }
         _reservedOperation = _reservedOperation->Clone(&_pool);
+        _reservedOpFromPool = true;
         _reservedOpVec.push_back(_reservedOperation);
     }
     auto [status, block] = _opBlocks[blockIdx]->CreateOperationBlockForRead(_opFactory);
@@ -145,11 +153,10 @@ Status InMemSegmentOperationIterator::SeekNextValidOperation()
     while (HasNext()) {
         RETURN_IF_STATUS_ERROR(SwitchToReadBlock(_opBlockIdx), "switch operation block failed");
         OperationBase* operation = _curBlockForRead->GetOperations()[_inBlockOffset];
-        auto docInfo = operation->GetDocInfo();
-        auto result = _locator.IsFasterThan(docInfo.hashId, {docInfo.timestamp, docInfo.concurrentIdx});
+        auto result = _locator.IsFasterThan(operation->GetDocInfo());
         if (result == indexlibv2::framework::Locator::LocatorCompareResult::LCR_INVALID) {
-            AUTIL_LOG(ERROR, "compare locator [%s] with timestamp [%ld] hash id [%u] failed",
-                      _locator.DebugString().c_str(), docInfo.timestamp, docInfo.hashId);
+            AUTIL_LOG(ERROR, "compare locator [%s] with op docInfo [%s] failed", _locator.DebugString().c_str(),
+                      operation->GetDocInfo().DebugString().c_str());
             return Status::Corruption("compare locator failed");
         }
         if (result == indexlibv2::framework::Locator::LocatorCompareResult::LCR_SLOWER) {

@@ -33,6 +33,8 @@ enum CompareOp {
 class LayerTablePlanMetaDef : public autil::legacy::Jsonizable {
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
+        json.Jsonize("catalog_name", catalogName);
+        json.Jsonize("database_name", dbName);
         json.Jsonize("layer_table_name", layerTableName);
         json.Jsonize("layer_field", fieldName);
         json.Jsonize("dynamic_params_index", dynamicParamsIndex);
@@ -42,6 +44,8 @@ public:
     }
 
 public:
+    std::string catalogName;
+    std::string dbName;
     std::string layerTableName;
     std::string fieldName;
     int dynamicParamsIndex;
@@ -55,6 +59,8 @@ public:
     LayerTablePlanMeta(const LayerTablePlanMetaDef &metaDef);
 
 public:
+    std::string catalogName;
+    std::string dbName;
     std::string layerTableName;
     std::string fieldName;
     int dynamicParamsIndex;

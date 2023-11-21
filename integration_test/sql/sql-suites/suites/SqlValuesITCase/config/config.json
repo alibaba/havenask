@@ -11,5 +11,6 @@
             "data_path" : "data/t2.dat"
         }
     ],
-    "config_path" : "config/config_table_t1_t2"
+    "config_path" : "config/config_table_t1_t2",
+    "tablet_mode" : "false"
 }

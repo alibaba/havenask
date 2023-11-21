@@ -15,17 +15,42 @@
  */
 #include "build_service/processor/DocumentProcessorChain.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
 #include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/Locator.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/util/Monitor.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/function_executor_resource.h"
+#include "indexlib/config/source_schema.h"
 #include "indexlib/document/DocumentBatch.h"
 #include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/ExtendDocument.h"
+#include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/IDocumentFactory.h"
 #include "indexlib/document/IDocumentParser.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/document.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
+#include "indexlib/document/query/evaluator_state_handler.h"
+#include "indexlib/document/query/query_base.h"
+#include "indexlib/document/query/query_parser.h"
 #include "indexlib/document/query/query_parser_creator.h"
 #include "indexlib/util/DocTracer.h"
+#include "indexlib/util/JsonMap.h"
 
 using namespace std;
 using namespace build_service::document;
@@ -56,37 +81,16 @@ DocumentProcessorChain::DocumentProcessorChain(DocumentProcessorChain& other)
     , _docParser(other._docParser)
     , _docParserV2(other._docParserV2)
     , _documentFactoryV2(other._documentFactoryV2)
-    , _parserFactoryGroup(other._parserFactoryGroup)
     , _schema(other._schema)
-    , _srcSchemaParserGroup(other._srcSchemaParserGroup)
     , _docSerializeVersion(other._docSerializeVersion)
     , _tolerateFormatError(other._tolerateFormatError)
     , _useRawDocAsDoc(other._useRawDocAsDoc)
     , _serializeRawDoc(other._serializeRawDoc)
+    , _needOriginalSnapshot(other._needOriginalSnapshot)
 {
 }
 
 DocumentProcessorChain::~DocumentProcessorChain() {}
-
-bool DocumentProcessorChain::createSourceDocument(document::ExtendDocumentPtr& extDoc)
-{
-    if (_srcSchemaParserGroup.empty()) {
-        return true;
-    }
-    const ClassifiedDocumentPtr& classifiedDoc = extDoc->getClassifiedDocument();
-    const RawDocumentPtr& rawDoc = extDoc->getRawDocument();
-    // TODO, optimize fieldGroups to shared_ptr
-    SourceSchema::FieldGroups fieldGroups;
-    fieldGroups.resize(_srcSchemaParserGroup.size());
-    for (size_t i = 0; i < _srcSchemaParserGroup.size(); i++) {
-        if (!_srcSchemaParserGroup[i]->CreateDocSrcSchema(rawDoc, fieldGroups[i])) {
-            BS_LOG(ERROR, "create doc src schema failed, rawDoc[%s]", rawDoc->toString().c_str());
-            return false;
-        }
-    }
-    classifiedDoc->createSourceDocument(fieldGroups, rawDoc);
-    return true;
-}
 
 ProcessedDocumentPtr DocumentProcessorChain::process(const RawDocumentPtr& rawDoc)
 {
@@ -96,9 +100,12 @@ ProcessedDocumentPtr DocumentProcessorChain::process(const RawDocumentPtr& rawDo
     }
     ExtendDocumentPtr extendDocument = createExtendDocument();
     extendDocument->setRawDocument(rawDoc);
-    if (!createSourceDocument(extendDocument)) {
-        return ProcessedDocumentPtr();
+    if (_needOriginalSnapshot) {
+        if (auto* originalSnapShot = rawDoc->GetSnapshot()) {
+            extendDocument->setOriginalSnapshot(std::shared_ptr<RawDocument::Snapshot>(originalSnapShot));
+        }
     }
+
     if (!processExtendDocument(extendDocument)) {
         return ProcessedDocumentPtr();
     }
@@ -127,12 +134,19 @@ ProcessedDocumentVecPtr DocumentProcessorChain::batchProcess(const RawDocumentVe
 
     for (size_t i = 0; i < batchRawDocs->size(); i++) {
         ExtendDocumentPtr extendDocument = createExtendDocument();
-        extendDocument->setRawDocument((*batchRawDocs)[i]);
-        if (!createSourceDocument(extendDocument) || !(*batchRawDocs)[i]->IsUserDoc()) {
+        auto rawDoc = batchRawDocs->at(i);
+        extendDocument->setRawDocument(rawDoc);
+        if (!rawDoc->IsUserDoc()) {
             extendDocument->setWarningFlag(ProcessorWarningFlag::PWF_PROCESS_FAIL_IN_BATCH);
         }
+        if (_needOriginalSnapshot) {
+            if (auto* originalSnapShot = rawDoc->GetSnapshot()) {
+                extendDocument->setOriginalSnapshot(
+                    std::shared_ptr<indexlibv2::document::RawDocument::Snapshot>(originalSnapShot));
+            }
+        }
         extDocVec.push_back(extendDocument);
-        IE_RAW_DOC_TRACE((*batchRawDocs)[i], "process begin");
+        IE_RAW_DOC_TRACE(rawDoc, "process begin");
     }
     batchProcessExtendDocs(extDocVec);
     ProcessedDocumentVecPtr ret(new ProcessedDocumentVec);
@@ -268,14 +282,11 @@ void DocumentProcessorChain::handleBuildInProcessorWarnings(
 }
 
 bool DocumentProcessorChain::init(const DocumentFactoryWrapperPtr& wrapper, const DocumentInitParamPtr& initParam,
-                                  const SourceSchemaParserFactoryGroupPtr& parserFactoryGroup, bool useRawDocAsDoc,
-                                  bool serializeRawDoc)
+                                  bool useRawDocAsDoc, bool serializeRawDoc)
 {
     assert(useRawDocAsDoc || !serializeRawDoc);
     _useRawDocAsDoc = useRawDocAsDoc;
     _serializeRawDoc = serializeRawDoc;
-    _parserFactoryGroup = parserFactoryGroup;
-    _srcSchemaParserGroup = parserFactoryGroup->CreateParserGroup();
 
     if (!wrapper) {
         return false;
@@ -286,13 +297,10 @@ bool DocumentProcessorChain::init(const DocumentFactoryWrapperPtr& wrapper, cons
 }
 
 bool DocumentProcessorChain::initV2(std::unique_ptr<indexlibv2::document::IDocumentFactory> documentFactory,
-                                    const DocumentInitParamPtr& initParam,
-                                    const SourceSchemaParserFactoryGroupPtr& parserFactoryGroup,
+                                    const DocumentInitParamPtr& initParam, bool needOriginalSnapshot,
                                     const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
 {
-    _parserFactoryGroup = parserFactoryGroup;
-    _srcSchemaParserGroup = parserFactoryGroup->CreateParserGroup();
-
+    _needOriginalSnapshot = needOriginalSnapshot;
     if (!documentFactory) {
         BS_LOG(ERROR, "document factory is nullptr");
         return false;

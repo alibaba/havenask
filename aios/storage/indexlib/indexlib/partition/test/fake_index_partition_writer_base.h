@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_INDEX_PARTITION_WRITER_BASE_H
-#define __INDEXLIB_FAKE_INDEX_PARTITION_WRITER_BASE_H
+#pragma once
 
 #include <memory>
 
@@ -68,5 +67,3 @@ public:
 
 typedef std::shared_ptr<FakeIndexPartitionWriterBase> FakeIndexPartitionWriterBasePtr;
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_FAKE_INDEX_PARTITION_WRITER_BASE_H

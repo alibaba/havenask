@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SWIFTPROCESSEDDOCREADER_H
-#define ISEARCH_BS_SWIFTPROCESSEDDOCREADER_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/reader/SwiftRawDocumentReader.h"
@@ -73,7 +72,9 @@ private:
     indexlib::document::DocumentParserPtr _docParser;
     indexlib::config::IndexPartitionSchemaPtr _schema;
     std::vector<indexlib::common::PackAttributeFormatterPtr> _packFormatters;
+    std::vector<indexlib::common::PackAttributeFormatterPtr> _subPackFormatters;
     std::vector<indexlib::common::AttributeConvertorPtr> _attrConvertors;
+    std::vector<indexlib::common::AttributeConvertorPtr> _subAttrConvertors;
     bool _printToken;
     bool _printAttribute;
     bool _printSummary;
@@ -87,5 +88,3 @@ private:
 BS_TYPEDEF_PTR(SwiftProcessedDocReader);
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_SWIFTPROCESSEDDOCREADER_H

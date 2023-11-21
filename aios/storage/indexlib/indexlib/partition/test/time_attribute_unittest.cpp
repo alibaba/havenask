@@ -1,7 +1,7 @@
 #include "indexlib/partition/test/time_attribute_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/test/build_test_util.h"
 
 using namespace std;

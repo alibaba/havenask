@@ -25,13 +25,13 @@ namespace indexlib::index {
 class PrimaryKeyPostingIterator : public PostingIterator
 {
 public:
-    PrimaryKeyPostingIterator(docid_t docId, autil::mem_pool::Pool* sessionPool = NULL);
+    PrimaryKeyPostingIterator(docid64_t docId, autil::mem_pool::Pool* sessionPool = NULL);
     ~PrimaryKeyPostingIterator();
 
 public:
     TermMeta* GetTermMeta() const override;
-    docid_t SeekDoc(docid_t docId) override;
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override
+    docid64_t SeekDoc(docid64_t docId) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override
     {
         result = SeekDoc(docId);
         return index::ErrorCode::OK;
@@ -46,7 +46,7 @@ public:
     autil::mem_pool::Pool* GetSessionPool() const override { return _sessionPool; }
 
 private:
-    docid_t _docId;
+    docid64_t _docId;
     bool _isSearched;
     autil::mem_pool::Pool* _sessionPool;
     TermMeta* _termMeta;

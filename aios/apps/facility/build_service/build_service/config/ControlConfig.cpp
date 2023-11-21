@@ -15,7 +15,11 @@
  */
 #include "build_service/config/ControlConfig.h"
 
-#include "build_service/config/ResourceReader.h"
+#include <assert.h>
+#include <iosfwd>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
 
 using namespace std;
 
@@ -115,7 +119,17 @@ void ControlConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         }
     }
 }
-
+ControlConfig::DataLinkMode ControlConfig::getTransferedDataLinkMode(const std::string& clusterName) const
+{
+    if (_dataLinkMode == DataLinkMode::NORMAL_MODE || _dataLinkMode == DataLinkMode::NPC_MODE) {
+        return _dataLinkMode;
+    }
+    assert(_dataLinkMode == DataLinkMode::FP_INP_MODE);
+    if (isIncProcessorExist(clusterName)) {
+        return DataLinkMode::NORMAL_MODE;
+    }
+    return _dataLinkMode;
+}
 bool ControlConfig::isAllClusterNeedIncProcessor(const std::vector<std::string>& clusterNames) const
 {
     if (clusterNames.empty()) {

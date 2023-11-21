@@ -22,13 +22,14 @@
 #include <utility>
 #include <vector>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
 #include "autil/Lock.h"
 #include "autil/StringUtil.h"
 #include "indexlib/file_system/EntryMeta.h"
 #include "indexlib/file_system/EntryTable.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemDefine.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/package/PackageFileMeta.h"
 #include "indexlib/file_system/package/VersionedPackageFileMeta.h"

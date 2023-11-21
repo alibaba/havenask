@@ -1,16 +1,38 @@
 #include "build_service/common/IndexReclaimParamPreparer.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/HashFuncFactory.h"
+#include "autil/HashFunctionBase.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/test/unittest.h"
 #include "indexlib/base/PathUtil.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/ReaderOption.h"
+#include "indexlib/framework/index_task/IndexTaskContext.h"
 #include "indexlib/table/normal_table/index_task/PrepareIndexReclaimParamOperation.h"
 #include "indexlib/table/normal_table/index_task/document_reclaim/IndexReclaimerParam.h"
+#include "swift/client/SwiftReader.h"
 #include "swift/testlib/MockSwiftReader.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

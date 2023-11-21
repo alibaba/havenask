@@ -1,8 +1,8 @@
 #include "indexlib/index/kkv/KKVIndexFactory.h"
 
-#include "indexlib/config/TabletOptions.h"
 #include "indexlib/framework/SegmentInfo.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/kkv/building/KKVMemIndexer.h"
 #include "indexlib/index/kkv/built/KKVDiskIndexer.h"
 #include "indexlib/index/kkv/config/test/KKVIndexConfigBuilder.h"
@@ -21,10 +21,8 @@ TEST_F(KKVIndexFactoryTest, TestCreateMemIndexer)
     std::string fields = "pkey:uint32;skey:uint32;value:string";
     auto [_, indexConfig] = KKVIndexConfigBuilder::MakeIndexConfig(fields, "pkey", "skey", "value", -1);
     ASSERT_TRUE(indexConfig);
-    indexlibv2::index::IndexerParameter parameter;
-    config::TabletOptions tmpTabletOptions;
-    tmpTabletOptions.SetTabletName("test");
-    parameter.tabletOptions = &tmpTabletOptions;
+    indexlibv2::index::MemIndexerParameter parameter;
+    parameter.tabletName = "test";
 
     {
         auto indexer = factory.CreateMemIndexer(indexConfig, parameter);
@@ -53,7 +51,7 @@ TEST_F(KKVIndexFactoryTest, TestCreateDiskIndexer)
     std::string fields = "pkey:uint32;skey:uint32;value:string";
     auto [_, indexConfig] = KKVIndexConfigBuilder::MakeIndexConfig(fields, "pkey", "skey", "value", -1);
     ASSERT_TRUE(indexConfig);
-    indexlibv2::index::IndexerParameter parameter;
+    indexlibv2::index::DiskIndexerParameter parameter;
     parameter.segmentInfo.reset(new framework::SegmentInfo);
     parameter.segmentId = 0;
     {

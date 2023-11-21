@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 #include "build_service/workflow/Workflow.h"
+
+#include <memory>
+#include <string>
+
+#include "alog/Logger.h"
+
 namespace build_service { namespace workflow {
 BS_LOG_SETUP(workflow, Workflow);
 

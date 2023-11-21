@@ -13,70 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NAVI_NAVIRESULT_H
-#define NAVI_NAVIRESULT_H
+#pragma once
 
-#include "navi/log/TraceCollector.h"
-#include "navi/engine/GraphMetric.h"
+#include "navi/common.h"
+#include "navi/engine/NaviError.h"
+#include "navi/log/NaviLogger.h"
 #include "aios/network/gig/multi_call/stream/GigStreamRpcInfo.h"
-#include "autil/DataBuffer.h"
-#include <list>
 
 namespace navi {
 
-class GraphMetric;
-class GraphVisDef;
+class GraphResult;
 
 class NaviResult
 {
 public:
-    NaviResult();
-    ~NaviResult();
-private:
-    NaviResult(const NaviResult &);
-    NaviResult &operator=(const NaviResult &);
+    NaviResult(const NaviLoggerPtr &logger);
 public:
-    void setSessionId(SessionId id_);
-    GraphMetric *getGraphMetric();
-    void setCollectMetric(bool collect);
-    void setTraceFormatPattern(const std::string &pattern);
-public:
-    void merge(TraceCollector &collector);
-    void fillTrace(TraceCollector &collector);
-    void merge(NaviResult &result);
-    void appendRpcInfo(const multi_call::GigStreamRpcInfoKey &key, multi_call::GigStreamRpcInfo info);
-    void end();
-    void show() const;
-    void serialize(autil::DataBuffer &dataBuffer) const;
-    void deserialize(autil::DataBuffer &dataBuffer);
-    void serializeToString(std::string &data) const;
-    void deserializeFromString(const std::string &data);
-    LoggingEvent getErrorEvent() const;
+    bool hasError() const;
+    ErrorCode getErrorCode() const;
+    std::string getErrorMessage() const;
+    std::string getErrorPrefix() const;
+    std::string getErrorBt() const;
+    LoggingEventPtr getErrorEvent() const;
+    void collectTrace(std::vector<std::string> &traceVec) const;
+    std::shared_ptr<GraphVisDef> getVisProto() const;
+    std::shared_ptr<multi_call::GigStreamRpcInfoMap> getRpcInfoMap();
 public:
     static const char *getErrorString(ErrorCode ec);
 public:
-    GraphMetricTime getGraphMetricTime() const;
-    multi_call::GigStreamRpcInfoMap stealRpcInfoMap() const;
-    multi_call::GigStreamRpcInfoMap getRpcInfoMap() const;
-    void setRpcInfoMap(multi_call::GigStreamRpcInfoMap rpcInfoMap_);
-    std::shared_ptr<GraphVisDef> getGraphVisData() const;
-    void fillGraphSummary(GraphVisDef *vis) const;
-public:
     SessionId id;
-    ErrorCode ec;
-    LoggingEvent errorEvent;
-    std::string errorBackTrace;
-    TraceCollector traceCollector;
-    GraphMetric graphMetric;
-    bool collectMetric;
+    NaviErrorPtr error;
+    int64_t beginTime = 0;
+    int64_t endTime = 0;
+    int64_t queueUs = 0;
+    int64_t computeUs = 0;
 private:
-    mutable autil::ThreadMutex _mergeLock;
-    multi_call::GigStreamRpcInfoMap rpcInfoMap;
-    GraphMetricTime _graphMetricTime;
+    friend class NaviUserResult;
+private:
+    DECLARE_LOGGER();
+    std::shared_ptr<GraphResult> _graphResult;
 };
 
 NAVI_TYPEDEF_PTR(NaviResult);
 
 }
-
-#endif //NAVI_NAVIRESULT_H

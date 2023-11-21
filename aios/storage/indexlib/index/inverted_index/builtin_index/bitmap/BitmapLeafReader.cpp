@@ -39,8 +39,8 @@ BitmapLeafReader::BitmapLeafReader(const std::shared_ptr<indexlibv2::config::Inv
     _indexFormatOption.Init(_indexConfig);
 }
 
-Result<bool> BitmapLeafReader::GetSegmentPosting(const DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
-                                                 file_system::ReadOption option,
+Result<bool> BitmapLeafReader::GetSegmentPosting(const DictKeyInfo& key, docid64_t baseDocId,
+                                                 SegmentPosting& segPosting, file_system::ReadOption option,
                                                  InvertedIndexSearchTracer* tracer) const noexcept
 {
     auto getResult = GetSegmentPostingFromIndex(key, baseDocId, segPosting, option, tracer);
@@ -70,7 +70,7 @@ Result<bool> BitmapLeafReader::GetSegmentPosting(const DictKeyInfo& key, docid_t
     return found;
 }
 
-Result<bool> BitmapLeafReader::GetSegmentPostingFromIndex(const DictKeyInfo& key, docid_t baseDocId,
+Result<bool> BitmapLeafReader::GetSegmentPostingFromIndex(const DictKeyInfo& key, docid64_t baseDocId,
                                                           SegmentPosting& segPosting, file_system::ReadOption option,
                                                           InvertedIndexSearchTracer* tracer) const noexcept
 {
@@ -174,18 +174,18 @@ BitmapPostingExpandData* BitmapLeafReader::CreateExpandData(ExpandDataTable* dat
         singleSlice.data = baseAddr + postingOffset;
         singleSlice.size = postingLen;
         file_system::ByteSliceReader reader;
-        reader.Open(&singleSlice);
+        reader.Open(&singleSlice).GetOrThrow();
         uint32_t pos = reader.Tell();
         TermMetaLoader tmLoader;
         tmLoader.Load(&reader, expandData->termMeta);
-        uint32_t bitmapSize = reader.ReadUInt32();
+        uint32_t bitmapSize = reader.ReadUInt32().GetOrThrow();
         expandData->originalBitmapOffset = postingOffset + (reader.Tell() - pos);
         expandData->originalBitmapItemCount = bitmapSize * util::Bitmap::BYTE_SLOT_NUM;
     }
     return expandData;
 }
 
-bool BitmapLeafReader::TryUpdateInOriginalBitmap(uint8_t* segmentPostingBaseAddr, docid_t docId, bool isDelete,
+bool BitmapLeafReader::TryUpdateInOriginalBitmap(uint8_t* segmentPostingBaseAddr, docid64_t docId, bool isDelete,
                                                  BitmapPostingExpandData* expandData)
 {
     if (!expandData or expandData->originalBitmapOffset < 0 or docId >= expandData->originalBitmapItemCount or

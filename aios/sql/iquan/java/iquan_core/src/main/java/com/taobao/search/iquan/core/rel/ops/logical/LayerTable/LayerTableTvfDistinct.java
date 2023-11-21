@@ -1,23 +1,27 @@
 package com.taobao.search.iquan.core.rel.ops.logical.LayerTable;
 
-import com.taobao.search.iquan.core.catalog.function.IquanStdOperatorTable;
-import com.taobao.search.iquan.core.utils.LayerTableUtils;
-import org.apache.calcite.plan.RelOptRuleCall;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rex.*;
-import org.apache.calcite.sql.fun.SqlStdOperatorTable;
-import org.apache.calcite.tools.RelBuilder;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.taobao.search.iquan.core.catalog.function.IquanStdOperatorTable;
+import com.taobao.search.iquan.core.utils.LayerTableUtils;
+import org.apache.calcite.plan.RelOptRuleCall;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.sql.fun.SqlStdOperatorTable;
+import org.apache.calcite.tools.RelBuilder;
+
 public class LayerTableTvfDistinct extends LayerTableDistinct {
     private final List<String> sortKeys;
     private final List<String> orders;
+
     protected LayerTableTvfDistinct(LogicalLayerTableScan scan) {
         super(scan);
         Map<String, Object> distinctParam = (Map<String, Object>) distinct.get("params");
@@ -60,7 +64,7 @@ public class LayerTableTvfDistinct extends LayerTableDistinct {
         RelNode logicalTableFunctionScan = relBuilder
                 .push(inputNode)
                 .functionScan(IquanStdOperatorTable.IQUAN_RANK_TVF, 1,
-                inputOperand, groupCall, sortCall, orderCall, remainCnt).build();
+                        inputOperand, groupCall, sortCall, orderCall, remainCnt).build();
         return LayerTableUtils.genProjectWithName(relBuilder, logicalTableFunctionScan, outputRowType);
     }
 }

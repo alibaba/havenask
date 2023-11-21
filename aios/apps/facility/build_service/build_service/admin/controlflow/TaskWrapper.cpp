@@ -15,7 +15,13 @@
  */
 #include "build_service/admin/controlflow/TaskWrapper.h"
 
-#include "build_service/admin/controlflow/ControlDefine.h"
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+#include <string>
+
+#include "alog/Logger.h"
+#include "build_service/admin/controlflow/Eluna.h"
 #include "build_service/admin/controlflow/KeyValueParamParser.h"
 #include "build_service/admin/controlflow/TaskBase.h"
 

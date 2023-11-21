@@ -104,7 +104,7 @@ TEST_F(KVTableMergePlanCreatorTest, TestSimpleProcess)
                        .AddSourceVersion(remoteRoot, mainHelper.GetCurrentVersion().GetVersionId())
                        .SetDestDirectory(remoteRoot)
                        .CreateContext();
-    KVTableMergePlanCreator creator(/*taskName=*/"name", /*params=*/ {});
+    KVTableMergePlanCreator creator(/*taskName=*/"name", /*taskTraceId=*/"id", /*params=*/ {});
     ASSERT_TRUE(context->SetDesignateTask("merge", "name"));
     auto [status, taskPlan] = creator.CreateTaskPlan(context.get());
     ASSERT_EQ("merge", taskPlan->GetTaskType());

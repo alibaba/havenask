@@ -15,6 +15,12 @@
  */
 #include "indexlib/util/BlockFpEncoder.h"
 
+#include <assert.h>
+#include <cstddef>
+
+#include "autil/TimeUtility.h"
+#include "autil/mem_pool/MemoryChunk.h"
+
 using namespace std;
 using namespace autil;
 using namespace autil::mem_pool;

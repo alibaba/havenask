@@ -15,19 +15,29 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/SingleGeneralTaskManager.h"
 #include "build_service/admin/taskcontroller/TaskController.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/config/TaskTarget.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/JsonizableProtobuf.h"
-#include "build_service/util/Log.h"
-#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
 
 namespace build_service::admin {
 
 struct GeneralTaskParam final : public autil::legacy::Jsonizable {
     GeneralTaskParam() = default;
-
+    std::string taskTraceId;
     std::string taskEpochId;
     std::string partitionIndexRoot;
     uint64_t branchId = 0;
@@ -40,6 +50,7 @@ struct GeneralTaskParam final : public autil::legacy::Jsonizable {
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override
     {
+        json.Jsonize("task_trace_id", taskTraceId, taskTraceId);
         json.Jsonize("task_epoch_id", taskEpochId);
         json.Jsonize("partition_index_root", partitionIndexRoot);
         json.Jsonize("generation_id", generationId);

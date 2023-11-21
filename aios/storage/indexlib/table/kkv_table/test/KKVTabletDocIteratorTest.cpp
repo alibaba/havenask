@@ -163,7 +163,7 @@ void KKVTabletDocIteratorTest::checkResult(KKVTabletDocIterator& kkvTabletDocIte
 {
     document::DefaultRawDocument doc;
     std::string checkpoint;
-    document::IDocument::DocInfo docInfo(0, 0, 0);
+    framework::Locator::DocInfo docInfo(0, 0, 0, 0);
     auto kkvConfig = std::dynamic_pointer_cast<indexlibv2::config::KKVIndexConfig>(_tabletSchema->GetIndexConfigs()[0]);
     ASSERT_TRUE(kkvConfig);
     auto keyType = kkvConfig->GetPrefixFieldConfig()->GetFieldType();
@@ -237,7 +237,7 @@ void KKVTabletDocIteratorTest::testPackValue(const std::string& valueFormat)
     {                                                                                                                  \
         document::DefaultRawDocument doc;                                                                              \
         std::string checkpoint1;                                                                                       \
-        document::IDocument::DocInfo docInfo(0, 0, 0);                                                                 \
+        framework::Locator::DocInfo docInfo(0, 0, 0, 0);                                                               \
         ASSERT_TRUE(kkvTabletDocIterator.HasNext());                                                                   \
         ASSERT_TRUE(kkvTabletDocIterator.Next(&doc, &checkpoint1, &docInfo).IsOK());                                   \
         ASSERT_EQ(int8val, doc.getField("int8val"));                                                                   \
@@ -324,7 +324,7 @@ void KKVTabletDocIteratorTest::testAlterTablet(const std::string& valueFormat)
     {                                                                                                                  \
         document::DefaultRawDocument doc;                                                                              \
         std::string checkpoint1;                                                                                       \
-        document::IDocument::DocInfo docInfo(0, 0, 0);                                                                 \
+        framework::Locator::DocInfo docInfo(0, 0, 0, 0);                                                               \
         ASSERT_TRUE(kkvTabletDocIterator.HasNext());                                                                   \
         ASSERT_TRUE(kkvTabletDocIterator.Next(&doc, &checkpoint1, &docInfo).IsOK());                                   \
         ASSERT_EQ(pkey, doc.getField("pkey"));                                                                         \
@@ -513,7 +513,7 @@ TEST_F(KKVTabletDocIteratorTest, TestNextAndSeek)
 
     // test next
     document::DefaultRawDocument doc;
-    document::IDocument::DocInfo docInfo(0, 0, 0);
+    framework::Locator::DocInfo docInfo(0, 0, 0, 0);
     std::string checkpoint0;
     index::IShardRecordIterator::ShardCheckpoint shardCheckpoint;
     std::string defaultCheckpoint((char*)&shardCheckpoint, sizeof(shardCheckpoint));
@@ -725,7 +725,7 @@ TEST_F(KKVTabletDocIteratorTest, TestEmptyShard)
         ASSERT_TRUE(kkvTabletDocIterator.Seek(checkpoint0).IsOK());
 
         std::string checkpoint;
-        document::IDocument::DocInfo docInfo(0, 0, 0);
+        framework::Locator::DocInfo docInfo(0, 0, 0, 0);
         ASSERT_TRUE(kkvTabletDocIterator.HasNext());
         ASSERT_TRUE(kkvTabletDocIterator.Next(&doc, &checkpoint, &docInfo).IsOK());
         ASSERT_TRUE(kkvTabletDocIterator.Seek(checkpoint).IsOK());
@@ -750,7 +750,7 @@ TEST_F(KKVTabletDocIteratorTest, TestEmptyShard)
         ASSERT_TRUE(kkvTabletDocIterator.Seek(checkpoint0).IsOK());
 
         std::string checkpoint;
-        document::IDocument::DocInfo docInfo(0, 0, 0);
+        framework::Locator::DocInfo docInfo(0, 0, 0, 0);
         ASSERT_TRUE(kkvTabletDocIterator.HasNext());
         ASSERT_TRUE(kkvTabletDocIterator.Next(&doc, &checkpoint, &docInfo).IsOK());
         ASSERT_TRUE(kkvTabletDocIterator.Seek(checkpoint).IsOK());
@@ -786,7 +786,7 @@ TEST_F(KKVTabletDocIteratorTest, TestEmptySegment)
         ASSERT_TRUE(kkvTabletDocIterator.Seek(checkpoint0).IsOK());
 
         std::string checkpoint;
-        document::IDocument::DocInfo docInfo(0, 0, 0);
+        framework::Locator::DocInfo docInfo(0, 0, 0, 0);
         ASSERT_TRUE(kkvTabletDocIterator.HasNext());
         ASSERT_TRUE(kkvTabletDocIterator.Next(&doc, &checkpoint, &docInfo).IsOK());
         ASSERT_TRUE(kkvTabletDocIterator.Seek(checkpoint).IsOK());
@@ -812,7 +812,7 @@ TEST_F(KKVTabletDocIteratorTest, TestEmptySegment)
         ASSERT_TRUE(kkvTabletDocIterator.Seek(checkpoint0).IsOK());
 
         std::string checkpoint;
-        document::IDocument::DocInfo docInfo(0, 0, 0);
+        framework::Locator::DocInfo docInfo(0, 0, 0, 0);
         ASSERT_TRUE(kkvTabletDocIterator.HasNext());
         ASSERT_TRUE(kkvTabletDocIterator.Next(&doc, &checkpoint, &docInfo).IsOK());
         ASSERT_TRUE(kkvTabletDocIterator.Seek(checkpoint).IsOK());

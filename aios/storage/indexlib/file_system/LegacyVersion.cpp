@@ -21,7 +21,6 @@
 #include <ostream>
 #include <stddef.h>
 
-#include "alog/Logger.h"
 #include "autil/legacy/json.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/file_system/FileSystemDefine.h"

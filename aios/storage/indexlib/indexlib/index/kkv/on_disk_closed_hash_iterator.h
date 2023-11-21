@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ON_DISK_CLOSED_HASH_ITERATOR_H
-#define __INDEXLIB_ON_DISK_CLOSED_HASH_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -110,5 +109,3 @@ OnDiskPKeyOffset OnDiskClosedHashIterator<Type>::Value() const
     return OnDiskPKeyOffset(mIterator.Value());
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ON_DISK_CLOSED_HASH_ITERATOR_H

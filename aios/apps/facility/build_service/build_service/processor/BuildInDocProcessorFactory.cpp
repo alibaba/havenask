@@ -15,6 +15,9 @@
  */
 #include "build_service/processor/BuildInDocProcessorFactory.h"
 
+#include <cstddef>
+
+#include "alog/Logger.h"
 #include "build_service/processor/BinaryDocumentProcessor.h"
 #include "build_service/processor/DefaultValueProcessor.h"
 #include "build_service/processor/DistributeDocumentProcessor.h"

@@ -2,32 +2,56 @@
 
 package com.taobao.search.iquan.client.common.fb;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
-import com.google.flatbuffers.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.Table;
 
 @SuppressWarnings("unused")
 public final class IquanFbLong extends Table {
-  public static IquanFbLong getRootAsIquanFbLong(ByteBuffer _bb) { return getRootAsIquanFbLong(_bb, new IquanFbLong()); }
-  public static IquanFbLong getRootAsIquanFbLong(ByteBuffer _bb, IquanFbLong obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
-  public IquanFbLong __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+    public static IquanFbLong getRootAsIquanFbLong(ByteBuffer _bb) {
+        return getRootAsIquanFbLong(_bb, new IquanFbLong());
+    }
 
-  public long value() { int o = __offset(4); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
+    public static IquanFbLong getRootAsIquanFbLong(ByteBuffer _bb, IquanFbLong obj) {
+        _bb.order(ByteOrder.LITTLE_ENDIAN);
+        return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
+    }
 
-  public static int createIquanFbLong(FlatBufferBuilder builder,
-      long value) {
-    builder.startObject(1);
-    IquanFbLong.addValue(builder, value);
-    return IquanFbLong.endIquanFbLong(builder);
-  }
+    public static int createIquanFbLong(FlatBufferBuilder builder,
+                                        long value) {
+        builder.startObject(1);
+        IquanFbLong.addValue(builder, value);
+        return IquanFbLong.endIquanFbLong(builder);
+    }
 
-  public static void startIquanFbLong(FlatBufferBuilder builder) { builder.startObject(1); }
-  public static void addValue(FlatBufferBuilder builder, long value) { builder.addLong(0, value, 0L); }
-  public static int endIquanFbLong(FlatBufferBuilder builder) {
-    int o = builder.endObject();
-    return o;
-  }
+    public static void startIquanFbLong(FlatBufferBuilder builder) {
+        builder.startObject(1);
+    }
+
+    public static void addValue(FlatBufferBuilder builder, long value) {
+        builder.addLong(0, value, 0L);
+    }
+
+    public static int endIquanFbLong(FlatBufferBuilder builder) {
+        int o = builder.endObject();
+        return o;
+    }
+
+    public void __init(int _i, ByteBuffer _bb) {
+        bb_pos = _i;
+        bb = _bb;
+    }
+
+    public IquanFbLong __assign(int _i, ByteBuffer _bb) {
+        __init(_i, _bb);
+        return this;
+    }
+
+    public long value() {
+        int o = __offset(4);
+        return o != 0 ? bb.getLong(o + bb_pos) : 0L;
+    }
 }
 

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMORYATTRIBUTESEGMENTWRITERTEST_H
-#define __INDEXLIB_INMEMORYATTRIBUTESEGMENTWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -43,5 +42,3 @@ INDEXLIB_UNIT_TEST_CASE(InMemoryAttributeSegmentWriterTest, TestInitWithEmptyPar
 INDEXLIB_UNIT_TEST_CASE(InMemoryAttributeSegmentWriterTest, TestAddDocument);
 INDEXLIB_UNIT_TEST_CASE(InMemoryAttributeSegmentWriterTest, TestUpdateDocument);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INMEMORYATTRIBUTESEGMENTWRITERTEST_H

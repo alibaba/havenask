@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKSIMPLEMASTERSCHEDULER_H
-#define ISEARCH_BS_MOCKSIMPLEMASTERSCHEDULER_H
+#pragma once
 
 #include "build_service/test/test.h"
 #include "build_service/test/unittest.h"
@@ -40,5 +39,3 @@ typedef ::testing::StrictMock<MockSimpleMasterScheduler> StrictMockSimpleMasterS
 typedef ::testing::NiceMock<MockSimpleMasterScheduler> NiceMockSimpleMasterScheduler;
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_MOCKSIMPLEMASTERSCHEDULER_H

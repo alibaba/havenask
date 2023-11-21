@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TASKCONTROLLERCONFIG_H
-#define ISEARCH_BS_TASKCONTROLLERCONFIG_H
+#pragma once
 
+#include <string>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common_define.h"
 #include "build_service/config/TaskTarget.h"
 #include "build_service/util/Log.h"
@@ -51,5 +54,3 @@ private:
 BS_TYPEDEF_PTR(TaskControllerConfig);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_TASKCONTROLLERCONFIG_H

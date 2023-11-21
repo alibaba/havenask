@@ -380,7 +380,7 @@ size_t SegmentLockSizeCalculator::CalculateSourceDiffSize(const DirectoryPtr& di
     sourceSize += metaDir->EstimateFileMemoryUseChange(SOURCE_DATA_FILE_NAME, oldTemperature, newTemperature);
     sourceSize += metaDir->EstimateFileMemoryUseChange(SOURCE_OFFSET_FILE_NAME, oldTemperature, newTemperature);
     for (auto iter = sourceSchema->Begin(); iter != sourceSchema->End(); iter++) {
-        groupid_t groupId = (*iter)->GetGroupId();
+        sourcegroupid_t groupId = (*iter)->GetGroupId();
         if ((*iter)->IsDisabled()) {
             continue;
         }
@@ -415,7 +415,7 @@ size_t SegmentLockSizeCalculator::CalculateSourceSize(const DirectoryPtr& direct
     sourceSize += metaDir->EstimateFileMemoryUse(SOURCE_DATA_FILE_NAME, FSOT_LOAD_CONFIG);
     sourceSize += metaDir->EstimateFileMemoryUse(SOURCE_OFFSET_FILE_NAME, FSOT_LOAD_CONFIG);
     for (auto iter = sourceSchema->Begin(); iter != sourceSchema->End(); iter++) {
-        groupid_t groupId = (*iter)->GetGroupId();
+        sourcegroupid_t groupId = (*iter)->GetGroupId();
         if ((*iter)->IsDisabled()) {
             continue;
         }

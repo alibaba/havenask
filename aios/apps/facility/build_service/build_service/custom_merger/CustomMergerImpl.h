@@ -13,15 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CUSTOMMERGERIMPL_H
-#define ISEARCH_BS_CUSTOMMERGERIMPL_H
+#pragma once
+
+#include <map>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/common_define.h"
+#include "build_service/custom_merger/CustomMergeMeta.h"
+#include "build_service/custom_merger/CustomMergePlan.h"
 #include "build_service/custom_merger/CustomMerger.h"
-#include "build_service/custom_merger/CustomMergerTaskItem.h"
 #include "build_service/util/Log.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/config/schema_modify_operation.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/archive/ArchiveFolder.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 
 namespace build_service { namespace custom_merger {
 
@@ -81,5 +90,3 @@ private:
 BS_TYPEDEF_PTR(CustomMergerImpl);
 
 }} // namespace build_service::custom_merger
-
-#endif // ISEARCH_BS_CUSTOMMERGERIMPL_H

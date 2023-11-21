@@ -16,8 +16,8 @@
 #pragma once
 
 #include "autil/Log.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IDiskIndexer.h"
-#include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/attribute/AttributeDataInfo.h"
 #include "indexlib/index/attribute/AttributeMetrics.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
@@ -40,7 +40,7 @@ class AttributeDiskIndexer : public IDiskIndexer
 {
 public:
     AttributeDiskIndexer() : _attributeMetrics(nullptr) {}
-    AttributeDiskIndexer(std::shared_ptr<AttributeMetrics> attributeMetrics, const IndexerParameter& indexerParam)
+    AttributeDiskIndexer(std::shared_ptr<AttributeMetrics> attributeMetrics, const DiskIndexerParameter& indexerParam)
         : _attributeMetrics(attributeMetrics)
         , _indexerParam(indexerParam)
         , _globalCtxSwitchLimit(0)
@@ -68,7 +68,7 @@ public:
 
     virtual std::pair<Status, uint64_t> GetOffset(docid_t docId, const std::shared_ptr<ReadContextBase>& ctx) const = 0;
     virtual std::shared_ptr<ReadContextBase> CreateReadContextPtr(autil::mem_pool::Pool* pool) const = 0;
-    void EnableGlobalReadContext();
+    virtual void EnableGlobalReadContext();
     ReadContextBase* GetGlobalReadContext()
     {
         if (_globalCtxPool && _globalCtxPool->getUsedBytes() > _globalCtxSwitchLimit) {
@@ -82,6 +82,8 @@ public:
                       uint32_t& dataLen, bool& isNull) = 0;
     virtual Status SetPatchReader(const std::shared_ptr<AttributePatchReader>& patchReader, docid_t patchBaseDocId);
     virtual bool Read(docid_t docId, std::string* value, autil::mem_pool::Pool* pool) = 0;
+    virtual bool ReadBinaryValue(docid_t docId, autil::StringView* value, autil::mem_pool::Pool* pool) = 0;
+
     virtual AttributeDataInfo GetAttributeDataInfo() const { return _dataInfo; }
 
 public:
@@ -103,7 +105,7 @@ protected:
     std::shared_ptr<AttributeMetrics> _attributeMetrics;
     std::shared_ptr<IAttributePatch> _patch;
     docid_t _patchBaseDocId = 0;
-    IndexerParameter _indexerParam;
+    DiskIndexerParameter _indexerParam;
     size_t _globalCtxSwitchLimit;
     bool _enableAccessCountors;
     std::shared_ptr<autil::mem_pool::Pool> _globalCtxPool;

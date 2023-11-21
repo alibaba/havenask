@@ -15,12 +15,15 @@
  */
 #pragma once
 
+#include <map>
+#include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/json.h"
 #include "indexlib/config/MutableJson.h"
 
 namespace indexlibv2::config {
@@ -36,6 +39,7 @@ public:
 
 public:
     const std::shared_ptr<FieldConfig>& GetFieldConfig(const std::string& fieldName) const;
+    std::vector<std::shared_ptr<FieldConfig>> GetAllFieldConfigs() const;
     template <typename T>
     std::optional<T> GetRuntimeSetting(const std::string& path) const;
 

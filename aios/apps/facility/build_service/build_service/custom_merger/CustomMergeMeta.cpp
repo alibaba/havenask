@@ -15,7 +15,15 @@
  */
 #include "build_service/custom_merger/CustomMergeMeta.h"
 
+#include <cstddef>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 

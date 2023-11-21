@@ -106,8 +106,14 @@ navi::ErrorCode KVScanR::init(navi::ResourceInitContext &ctx) {
     if (!ScanBase::doInit()) {
         return navi::EC_ABORT;
     }
-    if (_asyncMode && !initAsyncPipe(ctx)) {
-        return navi::EC_ABORT;
+    if (_asyncMode) {
+        auto asyncPipe = _watermarkR->getAsyncPipe();
+        if (asyncPipe) {
+            _enableWatermark = true;
+            setAsyncPipe(asyncPipe);
+        } else if (!initAsyncPipe(ctx)) {
+            return navi::EC_ABORT;
+        }
     }
     _canReuseAllocator = _scanOnce;
     if (!prepareIndexInfo()) {
@@ -129,12 +135,14 @@ navi::ErrorCode KVScanR::init(navi::ResourceInitContext &ctx) {
         SQL_LOG(ERROR, "prepare fields failed");
         return navi::EC_ABORT;
     }
-    startLookupCtx();
+    if (!_enableWatermark) {
+        startAsyncLookup();
+    }
     return navi::EC_NONE;
 }
 
 bool KVScanR::doBatchScan(TablePtr &table, bool &eof) {
-    _scanInitParamR->incSeekTime(_lookupCtx->getSeekTime());
+    _scanInitParamR->incSeekTime(_lookupCtx->getSeekTime() + _watermarkR->getWaitWatermarkTime());
 
     autil::ScopedTime2 outputTimer;
     std::vector<matchdoc::MatchDoc> matchDocs;
@@ -142,7 +150,7 @@ bool KVScanR::doBatchScan(TablePtr &table, bool &eof) {
         SQL_LOG(ERROR, "fill kv failed");
         return false;
     }
-    _scanInitParamR->incTotalScanCount(matchDocs.size());
+    _scanCount += matchDocs.size();
     table = createTable(
         matchDocs, _attributeExpressionCreatorR->_matchDocAllocator, _canReuseAllocator);
     // clear batch pool
@@ -157,12 +165,11 @@ bool KVScanR::doBatchScan(TablePtr &table, bool &eof) {
         SQL_LOG(ERROR, "calc table failed");
         return false;
     }
-    _seekCount += table->getRowCount();
     _scanInitParamR->incEvaluateTime(evaluteTimer.done_us());
 
     outputTimer = {};
-    if (_limit < _seekCount) {
-        table->clearBackRows(min(_seekCount - _limit, (uint32_t)table->getRowCount()));
+    if (size_t rowCount = table->getRowCount(); _limit < rowCount) {
+        table->clearBackRows(rowCount - _limit);
     }
     _scanInitParamR->incOutputTime(outputTimer.done_us());
 
@@ -188,8 +195,7 @@ bool KVScanR::doUpdateScanQuery(const StreamQueryPtr &inputQuery) {
         }
         ScanUtil::filterPksByParam(_scanR, *_scanInitParamR, _indexInfo, _rawPks);
     }
-    auto option = prepareLookupOption();
-    _lookupCtx->start(_rawPks, std::move(option));
+    startAsyncLookup();
     return true;
 }
 
@@ -303,7 +309,7 @@ bool KVScanR::prepareLookUpCtx() {
         _lookupCtx.reset(
             new AsyncKVLookupCallbackCtxV1(asyncPipe, _asyncExecutorR->getAsyncIntraExecutor()));
         _kvReader = std::move(kvReader1);
-    } else if (_tabletManagerR) {
+    } else {
         SQL_LOG(TRACE3,
                 "table [%s] will get v2 reader in the future",
                 _scanInitParamR->tableName.c_str());
@@ -313,15 +319,12 @@ bool KVScanR::prepareLookUpCtx() {
                     _scanInitParamR->tableName.c_str());
             return false;
         }
-        if (!_tabletManagerR->getTablet(_scanInitParamR->tableName)) {
+        if (!_watermarkR->getTablet()) {
             SQL_LOG(ERROR, "tablet [%s] not exist", _scanInitParamR->tableName.c_str());
             return false;
         }
         _lookupCtx.reset(
             new AsyncKVLookupCallbackCtxV2(asyncPipe, _asyncExecutorR->getAsyncIntraExecutor()));
-    } else {
-        SQL_LOG(ERROR, "table [%s] get kv reader failed", _scanInitParamR->tableName.c_str());
-        return false;
     }
     _lookupCtx->setTracePtr(this);
     return true;
@@ -379,22 +382,13 @@ KVLookupOption KVScanR::prepareLookupOption() {
     option.pool = _attributeExpressionCreatorR->_matchDocAllocator->getPoolPtr();
     option.maxConcurrency = _scanR->scanConfig.asyncScanConcurrency;
     option.kvReader = _kvReader.get();
-    if (_scanInitParamR->targetWatermarkType == WatermarkType::WM_TYPE_SYSTEM_TS
-        && _scanInitParamR->targetWatermark == 0) {
-        // use searcher timestamp
-        option.targetWatermark = TimeUtility::currentTime();
-    } else {
-        option.targetWatermark = _scanInitParamR->targetWatermark;
-    }
-    option.targetWatermarkType = _scanInitParamR->targetWatermarkType;
-    option.targetWatermarkTimeoutRatio = _scanR->scanConfig.targetWatermarkTimeoutRatio;
     option.indexName = _indexName;
     option.tableName = _scanInitParamR->tableName;
-    option.tabletManagerR = _tabletManagerR;
+    option.tablet = _watermarkR->getTablet();
     return option;
 }
 
-void KVScanR::startLookupCtx() {
+void KVScanR::startAsyncLookup() {
     auto option = prepareLookupOption();
     _lookupCtx->start(_rawPks, std::move(option));
 }
@@ -406,6 +400,7 @@ void KVScanR::onBatchScanFinish() {
         if (!_lookupCtx->tryReportMetrics(*opMetricsReporter)) {
             SQL_LOG(TRACE3, "ignore report metrics");
         }
+        _watermarkR->tryReportMetrics(*opMetricsReporter);
     }
 }
 
@@ -415,11 +410,28 @@ bool KVScanR::fillMatchDocs(std::vector<matchdoc::MatchDoc> &matchDocs) {
     }
     auto &scanInfo = _scanInitParamR->scanInfo;
     if (scanInfo.buildwatermark() == 0) {
-        scanInfo.set_buildwatermark(_lookupCtx->getBuildWatermark());
+        scanInfo.set_buildwatermark(_watermarkR->getBuildWatermark());
+    }
+    bool waitFailed = _watermarkR->waitFailed();
+    if (waitFailed || _lookupCtx->getFailedCount() > 0) {
+        if (!_queryConfig->resultallowsoftfailure()) {
+            SQL_LOG(ERROR,
+                    "search degrade is not allowed by query config, abort. wait watermark[%s], "
+                    "failed docs[%lu]",
+                    waitFailed ? "failed" : "success",
+                    _lookupCtx->getFailedCount());
+            return false;
+        }
+        DegradedInfo degradedInfo;
+        degradedInfo.add_degradederrorcodes(INCOMPLETE_DATA_ERROR);
+        if (_sqlSearchInfoCollectorR) {
+            _sqlSearchInfoCollectorR->getCollector()->addDegradedInfo(std::move(degradedInfo));
+        }
     }
     scanInfo.set_waitwatermarktime(scanInfo.waitwatermarktime()
-                                   + _lookupCtx->getWaitWatermarkTime());
-    scanInfo.set_degradeddocscount(scanInfo.degradeddocscount() + _lookupCtx->getDegradeDocsSize());
+                                   + _watermarkR->getWaitWatermarkTime());
+    auto degradeDocsCount = waitFailed ? _rawPks.size() : _lookupCtx->getFailedCount();
+    scanInfo.set_degradeddocscount(scanInfo.degradeddocscount() + degradeDocsCount);
     SQL_LOG(TRACE3, "lookup desc: %s", _lookupCtx->getLookupDesc().c_str());
 
     if (!_lookupCtx->isSchemaMatch(_schema)) {
@@ -437,22 +449,26 @@ bool KVScanR::fillMatchDocs(std::vector<matchdoc::MatchDoc> &matchDocs) {
         }
         auto *pkeyRef = dynamic_cast<Reference<T> *>(_pkeyCollector->getPkeyRef());
         T typedPk;
-        for (size_t i = 0; i < results.size(); ++i) {
-            if (!results[i]) {
-                // get failed, skip
-                continue;
+        if constexpr (std::is_same_v<T, autil::HllCtx>) {
+            return false;
+        } else {
+            for (size_t i = 0; i < results.size(); ++i) {
+                if (!results[i]) {
+                    // get failed, skip
+                    continue;
+                }
+                if (!autil::StringUtil::fromString<T>(_rawPks[i], typedPk)) {
+                    return false;
+                }
+                MatchDoc doc = _attributeExpressionCreatorR->_matchDocAllocator->allocate();
+                if (NULL != pkeyRef) {
+                    pkeyRef->set(doc, typedPk);
+                }
+                _valueCollector->collectFields(doc, *results[i]);
+                matchDocs.push_back(doc);
             }
-            if (!autil::StringUtil::fromString<T>(_rawPks[i], typedPk)) {
-                return false;
-            }
-            MatchDoc doc = _attributeExpressionCreatorR->_matchDocAllocator->allocate();
-            if (NULL != pkeyRef) {
-                pkeyRef->set(doc, typedPk);
-            }
-            _valueCollector->collectFields(doc, *results[i]);
-            matchDocs.push_back(doc);
+            return true;
         }
-        return true;
     };
     auto stringFunc = [&]() {
         auto *pkeyRef = dynamic_cast<Reference<autil::MultiChar> *>(_pkeyCollector->getPkeyRef());

@@ -331,7 +331,8 @@ private:
     ErrorHandler _errorHandler;
     autil::ThreadPtr _transitionThread;
 
-    autil::ThreadMutex _lock;    // for sys
+    autil::ThreadMutex _lock; // for sys
+    autil::ThreadMutex _syncTopicLock;
     autil::ThreadCond _mainCond; // for main thread
 
     bool _goodLeader;

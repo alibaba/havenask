@@ -40,6 +40,10 @@ struct ClientMetricsCollector {
         errorCallBack = false;
         hasError = error;
         isDetectCommit = false;
+        usedBlockCount = -1;
+        usedTotalPoolSize = -1;
+        rpcError = false;
+        totalPoolSize = -1;
     }
 
     int64_t rpcLatency = -1;
@@ -51,6 +55,10 @@ struct ClientMetricsCollector {
     bool errorCallBack = false;
     bool hasError = false;
     bool isDetectCommit = false;
+    int64_t usedBlockCount = -1;
+    int64_t usedTotalPoolSize = -1;
+    bool rpcError = false;
+    int64_t totalPoolSize = -1;
 };
 
 struct ReaderDelayCollector {
@@ -73,6 +81,10 @@ private:
     kmonitor::MutableMetric *requestMsgCount = nullptr;
     kmonitor::MutableMetric *errorCbQps = nullptr;
     kmonitor::MutableMetric *detectCommitQps = nullptr;
+    kmonitor::MutableMetric *usedBlockCount = nullptr;
+    kmonitor::MutableMetric *usedTotalPoolSize = nullptr;
+    kmonitor::MutableMetric *rpcErrorQps = nullptr;
+    kmonitor::MutableMetric *totalPoolSize = nullptr;
 };
 
 class ReaderMetrics : public kmonitor::MetricsGroup {

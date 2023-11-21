@@ -47,9 +47,9 @@ AUTIL_LOG_SETUP(indexlib.table, KVTableMergePlanCreator);
 
 const std::string KVTableMergePlanCreator::TASK_TYPE = MERGE_TASK_TYPE;
 
-KVTableMergePlanCreator::KVTableMergePlanCreator(const std::string& taskName,
+KVTableMergePlanCreator::KVTableMergePlanCreator(const std::string& taskName, const std::string& taskTraceId,
                                                  const std::map<std::string, std::string>& params)
-    : SimpleIndexTaskPlanCreator(taskName, params)
+    : SimpleIndexTaskPlanCreator(taskName, taskTraceId, params)
 {
 }
 

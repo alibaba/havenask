@@ -66,6 +66,8 @@ public:
     bool Remove(primary_key_t pk, docid_t& docId);
     size_t Size() const { return _pkData.size(); }
     void SetDocIdMapper(const std::vector<docid_t>* old2NewDocId) { _old2NewDocId = old2NewDocId; }
+    const auto& GetData() const { return _pkData; }
+
     std::unique_ptr<PkDataIterator> CreateIterator() const
     {
         return std::make_unique<PkDataIterator>(_pkData.cbegin(), _pkData.cend(), _old2NewDocId);

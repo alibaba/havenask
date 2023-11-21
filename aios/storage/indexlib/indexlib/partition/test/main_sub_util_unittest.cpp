@@ -1,9 +1,9 @@
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document.h"
 #include "indexlib/partition/main_sub_util.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/test.h"
 #include "indexlib/test/unittest.h"
 

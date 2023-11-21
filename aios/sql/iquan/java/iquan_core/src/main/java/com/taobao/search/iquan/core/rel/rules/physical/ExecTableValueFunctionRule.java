@@ -1,5 +1,7 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
+import java.util.Map;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.catalog.function.internal.TableValueFunction;
@@ -19,12 +21,10 @@ import org.apache.calcite.tools.RelBuilderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 public class ExecTableValueFunctionRule extends RelOptRule {
-    private static final Logger logger = LoggerFactory.getLogger(ExecTableValueFunctionRule.class);
     public static final ExecTableValueFunctionRule INSTANCE =
             new ExecTableValueFunctionRule(RelFactories.LOGICAL_BUILDER);
+    private static final Logger logger = LoggerFactory.getLogger(ExecTableValueFunctionRule.class);
 
     private ExecTableValueFunctionRule(RelBuilderFactory relBuilderFactory) {
         super(operand(

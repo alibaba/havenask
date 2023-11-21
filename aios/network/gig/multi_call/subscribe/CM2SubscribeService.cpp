@@ -95,18 +95,8 @@ cm_sub::SubscriberConfig *CM2SubscribeService::newSubConfig(const Cm2Config &con
     auto *subConfig = new cm_sub::SubscriberConfig();
     subConfig->_disableTopo = true;
     subConfig->_subMaster = config.subMasterOnly;
-    if (snprintf(subConfig->_zkServer, cm_sub::SubscriberConfig::MAX_LEN, "%s",
-                 config.zkHost.c_str()) != int32_t(config.zkHost.size())) {
-        AUTIL_LOG(ERROR, "invalide zkHost [%s]", config.zkHost.c_str());
-        delete subConfig;
-        return NULL;
-    }
-    if (snprintf(subConfig->_zkPath, cm_sub::SubscriberConfig::MAX_LEN, "%s",
-                 config.zkPath.c_str()) != int32_t(config.zkPath.size())) {
-        AUTIL_LOG(ERROR, "invalide zkPath [%s]", config.zkPath.c_str());
-        delete subConfig;
-        return NULL;
-    }
+    subConfig->_zkServer = config.zkHost;
+    subConfig->_zkPath = config.zkPath;
     subConfig->_serverType = cm_sub::FromZK;
     subConfig->_compressType = cm_basic::CT_SNAPPY;
     return subConfig;
@@ -363,8 +353,6 @@ void CM2SubscribeService::fillSpec(CMNode *node, Spec &spec) {
             }
         } else if (PT_HTTP == node->proto_port(i).protocol()) {
             spec.ports[MC_PROTOCOL_HTTP] = node->proto_port(i).port();
-        } else if (PT_RDMA == node->proto_port(i).protocol()) {
-            spec.ports[MC_PROTOCOL_RDMA_ARPC] = node->proto_port(i).port();
         }
     }
 }

@@ -6,1405 +6,1535 @@ package com.taobao.search.iquan.client.common.pb;
 /**
  * Protobuf type {@code iquan.pb.SqlPlan}
  */
-public  final class SqlPlan extends
-    com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:iquan.pb.SqlPlan)
-    SqlPlanOrBuilder {
-private static final long serialVersionUID = 0L;
-  // Use SqlPlan.newBuilder() to construct.
-  private SqlPlan(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-    super(builder);
-  }
-  private SqlPlan() {
-    relPlanVersion_ = "";
-    relPlan_ = java.util.Collections.emptyList();
-  }
-
-  @java.lang.Override
-  @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
-      UnusedPrivateParameter unused) {
-    return new SqlPlan();
-  }
-
-  @java.lang.Override
-  public final com.google.protobuf.UnknownFieldSet
-  getUnknownFields() {
-    return this.unknownFields;
-  }
-  private SqlPlan(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    this();
-    if (extensionRegistry == null) {
-      throw new java.lang.NullPointerException();
-    }
-    int mutable_bitField0_ = 0;
-    com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-        com.google.protobuf.UnknownFieldSet.newBuilder();
-    try {
-      boolean done = false;
-      while (!done) {
-        int tag = input.readTag();
-        switch (tag) {
-          case 0:
-            done = true;
-            break;
-          case 10: {
-            java.lang.String s = input.readStringRequireUtf8();
-
-            relPlanVersion_ = s;
-            break;
-          }
-          case 18: {
-            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-              relPlan_ = new java.util.ArrayList<com.taobao.search.iquan.client.common.pb.PlanOp>();
-              mutable_bitField0_ |= 0x00000001;
-            }
-            relPlan_.add(
-                input.readMessage(com.taobao.search.iquan.client.common.pb.PlanOp.parser(), extensionRegistry));
-            break;
-          }
-          case 26: {
-            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
-              optimizeInfos_ = com.google.protobuf.MapField.newMapField(
-                  OptimizeInfosDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000002;
-            }
-            com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-            optimizeInfos__ = input.readMessage(
-                OptimizeInfosDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            optimizeInfos_.getMutableMap().put(
-                optimizeInfos__.getKey(), optimizeInfos__.getValue());
-            break;
-          }
-          case 34: {
-            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
-              execParams_ = com.google.protobuf.MapField.newMapField(
-                  ExecParamsDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000004;
-            }
-            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-            execParams__ = input.readMessage(
-                ExecParamsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            execParams_.getMutableMap().put(
-                execParams__.getKey(), execParams__.getValue());
-            break;
-          }
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
+public final class SqlPlan extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:iquan.pb.SqlPlan)
+        SqlPlanOrBuilder {
+    public static final int REL_PLAN_VERSION_FIELD_NUMBER = 1;
+    public static final int REL_PLAN_FIELD_NUMBER = 2;
+    public static final int OPTIMIZE_INFOS_FIELD_NUMBER = 3;
+    public static final int EXEC_PARAMS_FIELD_NUMBER = 4;
+    private static final long serialVersionUID = 0L;
+    // @@protoc_insertion_point(class_scope:iquan.pb.SqlPlan)
+    private static final com.taobao.search.iquan.client.common.pb.SqlPlan DEFAULT_INSTANCE;
+    private static final com.google.protobuf.Parser<SqlPlan>
+            PARSER = new com.google.protobuf.AbstractParser<SqlPlan>() {
+        @java.lang.Override
+        public SqlPlan parsePartialFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return new SqlPlan(input, extensionRegistry);
         }
-      }
-    } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-      throw e.setUnfinishedMessage(this);
-    } catch (java.io.IOException e) {
-      throw new com.google.protobuf.InvalidProtocolBufferException(
-          e).setUnfinishedMessage(this);
-    } finally {
-      if (((mutable_bitField0_ & 0x00000001) != 0)) {
-        relPlan_ = java.util.Collections.unmodifiableList(relPlan_);
-      }
-      this.unknownFields = unknownFields.build();
-      makeExtensionsImmutable();
+    };
+
+    static {
+        DEFAULT_INSTANCE = new com.taobao.search.iquan.client.common.pb.SqlPlan();
     }
-  }
-  public static final com.google.protobuf.Descriptors.Descriptor
-      getDescriptor() {
-    return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_descriptor;
-  }
 
-  @SuppressWarnings({"rawtypes"})
-  @java.lang.Override
-  protected com.google.protobuf.MapField internalGetMapField(
-      int number) {
-    switch (number) {
-      case 3:
-        return internalGetOptimizeInfos();
-      case 4:
-        return internalGetExecParams();
-      default:
-        throw new RuntimeException(
-            "Invalid map field number: " + number);
+    private volatile java.lang.Object relPlanVersion_;
+    private java.util.List<com.taobao.search.iquan.client.common.pb.PlanOp> relPlan_;
+    private com.google.protobuf.MapField<
+            java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> optimizeInfos_;
+    private com.google.protobuf.MapField<
+            java.lang.String, java.lang.String> execParams_;
+    private byte memoizedIsInitialized = -1;
+
+    // Use SqlPlan.newBuilder() to construct.
+    private SqlPlan(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
     }
-  }
-  @java.lang.Override
-  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internalGetFieldAccessorTable() {
-    return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_fieldAccessorTable
-        .ensureFieldAccessorsInitialized(
-            com.taobao.search.iquan.client.common.pb.SqlPlan.class, com.taobao.search.iquan.client.common.pb.SqlPlan.Builder.class);
-  }
-
-  public static final int REL_PLAN_VERSION_FIELD_NUMBER = 1;
-  private volatile java.lang.Object relPlanVersion_;
-  /**
-   * <code>string rel_plan_version = 1;</code>
-   */
-  public java.lang.String getRelPlanVersion() {
-    java.lang.Object ref = relPlanVersion_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      relPlanVersion_ = s;
-      return s;
+    private SqlPlan() {
+        relPlanVersion_ = "";
+        relPlan_ = java.util.Collections.emptyList();
     }
-  }
-  /**
-   * <code>string rel_plan_version = 1;</code>
-   */
-  public com.google.protobuf.ByteString
-      getRelPlanVersionBytes() {
-    java.lang.Object ref = relPlanVersion_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      relPlanVersion_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
+
+    private SqlPlan(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        this();
+        if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+        }
+        int mutable_bitField0_ = 0;
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+                com.google.protobuf.UnknownFieldSet.newBuilder();
+        try {
+            boolean done = false;
+            while (!done) {
+                int tag = input.readTag();
+                switch (tag) {
+                    case 0:
+                        done = true;
+                        break;
+                    case 10: {
+                        java.lang.String s = input.readStringRequireUtf8();
+
+                        relPlanVersion_ = s;
+                        break;
+                    }
+                    case 18: {
+                        if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                            relPlan_ = new java.util.ArrayList<com.taobao.search.iquan.client.common.pb.PlanOp>();
+                            mutable_bitField0_ |= 0x00000001;
+                        }
+                        relPlan_.add(
+                                input.readMessage(com.taobao.search.iquan.client.common.pb.PlanOp.parser(), extensionRegistry));
+                        break;
+                    }
+                    case 26: {
+                        if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+                            optimizeInfos_ = com.google.protobuf.MapField.newMapField(
+                                    OptimizeInfosDefaultEntryHolder.defaultEntry);
+                            mutable_bitField0_ |= 0x00000002;
+                        }
+                        com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+                                optimizeInfos__ = input.readMessage(
+                                OptimizeInfosDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                        optimizeInfos_.getMutableMap().put(
+                                optimizeInfos__.getKey(), optimizeInfos__.getValue());
+                        break;
+                    }
+                    case 34: {
+                        if (!((mutable_bitField0_ & 0x00000004) != 0)) {
+                            execParams_ = com.google.protobuf.MapField.newMapField(
+                                    ExecParamsDefaultEntryHolder.defaultEntry);
+                            mutable_bitField0_ |= 0x00000004;
+                        }
+                        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                                execParams__ = input.readMessage(
+                                ExecParamsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                        execParams_.getMutableMap().put(
+                                execParams__.getKey(), execParams__.getValue());
+                        break;
+                    }
+                    default: {
+                        if (!parseUnknownField(
+                                input, unknownFields, extensionRegistry, tag)) {
+                            done = true;
+                        }
+                        break;
+                    }
+                }
+            }
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(this);
+        } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(
+                    e).setUnfinishedMessage(this);
+        } finally {
+            if (((mutable_bitField0_ & 0x00000001) != 0)) {
+                relPlan_ = java.util.Collections.unmodifiableList(relPlan_);
+            }
+            this.unknownFields = unknownFields.build();
+            makeExtensionsImmutable();
+        }
     }
-  }
 
-  public static final int REL_PLAN_FIELD_NUMBER = 2;
-  private java.util.List<com.taobao.search.iquan.client.common.pb.PlanOp> relPlan_;
-  /**
-   * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-   */
-  public java.util.List<com.taobao.search.iquan.client.common.pb.PlanOp> getRelPlanList() {
-    return relPlan_;
-  }
-  /**
-   * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-   */
-  public java.util.List<? extends com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder> 
-      getRelPlanOrBuilderList() {
-    return relPlan_;
-  }
-  /**
-   * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-   */
-  public int getRelPlanCount() {
-    return relPlan_.size();
-  }
-  /**
-   * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-   */
-  public com.taobao.search.iquan.client.common.pb.PlanOp getRelPlan(int index) {
-    return relPlan_.get(index);
-  }
-  /**
-   * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-   */
-  public com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder getRelPlanOrBuilder(
-      int index) {
-    return relPlan_.get(index);
-  }
-
-  public static final int OPTIMIZE_INFOS_FIELD_NUMBER = 3;
-  private static final class OptimizeInfosDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>newDefaultInstance(
-                com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_OptimizeInfosEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                com.taobao.search.iquan.client.common.pb.AnyValue.getDefaultInstance());
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> optimizeInfos_;
-  private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-  internalGetOptimizeInfos() {
-    if (optimizeInfos_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          OptimizeInfosDefaultEntryHolder.defaultEntry);
-    }
-    return optimizeInfos_;
-  }
-
-  public int getOptimizeInfosCount() {
-    return internalGetOptimizeInfos().getMap().size();
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
-   */
-
-  public boolean containsOptimizeInfos(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetOptimizeInfos().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getOptimizeInfosMap()} instead.
-   */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getOptimizeInfos() {
-    return getOptimizeInfosMap();
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
-   */
-
-  public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getOptimizeInfosMap() {
-    return internalGetOptimizeInfos().getMap();
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
-   */
-
-  public com.taobao.search.iquan.client.common.pb.AnyValue getOptimizeInfosOrDefault(
-      java.lang.String key,
-      com.taobao.search.iquan.client.common.pb.AnyValue defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
-        internalGetOptimizeInfos().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
-   */
-
-  public com.taobao.search.iquan.client.common.pb.AnyValue getOptimizeInfosOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
-        internalGetOptimizeInfos().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
-  }
-
-  public static final int EXEC_PARAMS_FIELD_NUMBER = 4;
-  private static final class ExecParamsDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, java.lang.String> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, java.lang.String>newDefaultInstance(
-                com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_ExecParamsEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "");
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, java.lang.String> execParams_;
-  private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-  internalGetExecParams() {
-    if (execParams_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          ExecParamsDefaultEntryHolder.defaultEntry);
-    }
-    return execParams_;
-  }
-
-  public int getExecParamsCount() {
-    return internalGetExecParams().getMap().size();
-  }
-  /**
-   * <code>map&lt;string, string&gt; exec_params = 4;</code>
-   */
-
-  public boolean containsExecParams(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetExecParams().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getExecParamsMap()} instead.
-   */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, java.lang.String> getExecParams() {
-    return getExecParamsMap();
-  }
-  /**
-   * <code>map&lt;string, string&gt; exec_params = 4;</code>
-   */
-
-  public java.util.Map<java.lang.String, java.lang.String> getExecParamsMap() {
-    return internalGetExecParams().getMap();
-  }
-  /**
-   * <code>map&lt;string, string&gt; exec_params = 4;</code>
-   */
-
-  public java.lang.String getExecParamsOrDefault(
-      java.lang.String key,
-      java.lang.String defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetExecParams().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, string&gt; exec_params = 4;</code>
-   */
-
-  public java.lang.String getExecParamsOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetExecParams().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
-  }
-
-  private byte memoizedIsInitialized = -1;
-  @java.lang.Override
-  public final boolean isInitialized() {
-    byte isInitialized = memoizedIsInitialized;
-    if (isInitialized == 1) return true;
-    if (isInitialized == 0) return false;
-
-    memoizedIsInitialized = 1;
-    return true;
-  }
-
-  @java.lang.Override
-  public void writeTo(com.google.protobuf.CodedOutputStream output)
-                      throws java.io.IOException {
-    if (!getRelPlanVersionBytes().isEmpty()) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, relPlanVersion_);
-    }
-    for (int i = 0; i < relPlan_.size(); i++) {
-      output.writeMessage(2, relPlan_.get(i));
-    }
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetOptimizeInfos(),
-        OptimizeInfosDefaultEntryHolder.defaultEntry,
-        3);
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetExecParams(),
-        ExecParamsDefaultEntryHolder.defaultEntry,
-        4);
-    unknownFields.writeTo(output);
-  }
-
-  @java.lang.Override
-  public int getSerializedSize() {
-    int size = memoizedSize;
-    if (size != -1) return size;
-
-    size = 0;
-    if (!getRelPlanVersionBytes().isEmpty()) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, relPlanVersion_);
-    }
-    for (int i = 0; i < relPlan_.size(); i++) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(2, relPlan_.get(i));
-    }
-    for (java.util.Map.Entry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> entry
-         : internalGetOptimizeInfos().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-      optimizeInfos__ = OptimizeInfosDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, optimizeInfos__);
-    }
-    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-         : internalGetExecParams().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-      execParams__ = ExecParamsDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, execParams__);
-    }
-    size += unknownFields.getSerializedSize();
-    memoizedSize = size;
-    return size;
-  }
-
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
-    if (obj == this) {
-     return true;
-    }
-    if (!(obj instanceof com.taobao.search.iquan.client.common.pb.SqlPlan)) {
-      return super.equals(obj);
-    }
-    com.taobao.search.iquan.client.common.pb.SqlPlan other = (com.taobao.search.iquan.client.common.pb.SqlPlan) obj;
-
-    if (!getRelPlanVersion()
-        .equals(other.getRelPlanVersion())) return false;
-    if (!getRelPlanList()
-        .equals(other.getRelPlanList())) return false;
-    if (!internalGetOptimizeInfos().equals(
-        other.internalGetOptimizeInfos())) return false;
-    if (!internalGetExecParams().equals(
-        other.internalGetExecParams())) return false;
-    if (!unknownFields.equals(other.unknownFields)) return false;
-    return true;
-  }
-
-  @java.lang.Override
-  public int hashCode() {
-    if (memoizedHashCode != 0) {
-      return memoizedHashCode;
-    }
-    int hash = 41;
-    hash = (19 * hash) + getDescriptor().hashCode();
-    hash = (37 * hash) + REL_PLAN_VERSION_FIELD_NUMBER;
-    hash = (53 * hash) + getRelPlanVersion().hashCode();
-    if (getRelPlanCount() > 0) {
-      hash = (37 * hash) + REL_PLAN_FIELD_NUMBER;
-      hash = (53 * hash) + getRelPlanList().hashCode();
-    }
-    if (!internalGetOptimizeInfos().getMap().isEmpty()) {
-      hash = (37 * hash) + OPTIMIZE_INFOS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetOptimizeInfos().hashCode();
-    }
-    if (!internalGetExecParams().getMap().isEmpty()) {
-      hash = (37 * hash) + EXEC_PARAMS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetExecParams().hashCode();
-    }
-    hash = (29 * hash) + unknownFields.hashCode();
-    memoizedHashCode = hash;
-    return hash;
-  }
-
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
-      java.nio.ByteBuffer data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
-      java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
-      com.google.protobuf.ByteString data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
-      com.google.protobuf.ByteString data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(byte[] data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
-      byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseDelimitedFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseDelimitedWithIOException(PARSER, input);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseDelimitedFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
-      com.google.protobuf.CodedInputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input);
-  }
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-
-  @java.lang.Override
-  public Builder newBuilderForType() { return newBuilder(); }
-  public static Builder newBuilder() {
-    return DEFAULT_INSTANCE.toBuilder();
-  }
-  public static Builder newBuilder(com.taobao.search.iquan.client.common.pb.SqlPlan prototype) {
-    return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-  }
-  @java.lang.Override
-  public Builder toBuilder() {
-    return this == DEFAULT_INSTANCE
-        ? new Builder() : new Builder().mergeFrom(this);
-  }
-
-  @java.lang.Override
-  protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-    Builder builder = new Builder(parent);
-    return builder;
-  }
-  /**
-   * Protobuf type {@code iquan.pb.SqlPlan}
-   */
-  public static final class Builder extends
-      com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:iquan.pb.SqlPlan)
-      com.taobao.search.iquan.client.common.pb.SqlPlanOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_descriptor;
+    getDescriptor() {
+        return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_descriptor;
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
+            java.nio.ByteBuffer data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
+            java.nio.ByteBuffer data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
+            com.google.protobuf.ByteString data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
+            com.google.protobuf.ByteString data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(byte[] data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
+            byte[] data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(java.io.InputStream input)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
+            java.io.InputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseDelimitedFrom(java.io.InputStream input)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseDelimitedFrom(
+            java.io.InputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
+            com.google.protobuf.CodedInputStream input)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan parseFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+    }
+
+    public static Builder newBuilder(com.taobao.search.iquan.client.common.pb.SqlPlan prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.SqlPlan getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+    }
+
+    public static com.google.protobuf.Parser<SqlPlan> parser() {
+        return PARSER;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+            UnusedPrivateParameter unused) {
+        return new SqlPlan();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+        return this.unknownFields;
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 3:
-          return internalGetOptimizeInfos();
-        case 4:
-          return internalGetExecParams();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
+            int number) {
+        switch (number) {
+            case 3:
+                return internalGetOptimizeInfos();
+            case 4:
+                return internalGetExecParams();
+            default:
+                throw new RuntimeException(
+                        "Invalid map field number: " + number);
+        }
     }
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMutableMapField(
-        int number) {
-      switch (number) {
-        case 3:
-          return internalGetMutableOptimizeInfos();
-        case 4:
-          return internalGetMutableExecParams();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
+
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              com.taobao.search.iquan.client.common.pb.SqlPlan.class, com.taobao.search.iquan.client.common.pb.SqlPlan.Builder.class);
+    internalGetFieldAccessorTable() {
+        return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_fieldAccessorTable
+                .ensureFieldAccessorsInitialized(
+                        com.taobao.search.iquan.client.common.pb.SqlPlan.class, com.taobao.search.iquan.client.common.pb.SqlPlan.Builder.class);
     }
 
-    // Construct using com.taobao.search.iquan.client.common.pb.SqlPlan.newBuilder()
-    private Builder() {
-      maybeForceBuilderInitialization();
-    }
-
-    private Builder(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      super(parent);
-      maybeForceBuilderInitialization();
-    }
-    private void maybeForceBuilderInitialization() {
-      if (com.google.protobuf.GeneratedMessageV3
-              .alwaysUseFieldBuilders) {
-        getRelPlanFieldBuilder();
-      }
-    }
-    @java.lang.Override
-    public Builder clear() {
-      super.clear();
-      relPlanVersion_ = "";
-
-      if (relPlanBuilder_ == null) {
-        relPlan_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-      } else {
-        relPlanBuilder_.clear();
-      }
-      internalGetMutableOptimizeInfos().clear();
-      internalGetMutableExecParams().clear();
-      return this;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor
-        getDescriptorForType() {
-      return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_descriptor;
-    }
-
-    @java.lang.Override
-    public com.taobao.search.iquan.client.common.pb.SqlPlan getDefaultInstanceForType() {
-      return com.taobao.search.iquan.client.common.pb.SqlPlan.getDefaultInstance();
-    }
-
-    @java.lang.Override
-    public com.taobao.search.iquan.client.common.pb.SqlPlan build() {
-      com.taobao.search.iquan.client.common.pb.SqlPlan result = buildPartial();
-      if (!result.isInitialized()) {
-        throw newUninitializedMessageException(result);
-      }
-      return result;
-    }
-
-    @java.lang.Override
-    public com.taobao.search.iquan.client.common.pb.SqlPlan buildPartial() {
-      com.taobao.search.iquan.client.common.pb.SqlPlan result = new com.taobao.search.iquan.client.common.pb.SqlPlan(this);
-      int from_bitField0_ = bitField0_;
-      result.relPlanVersion_ = relPlanVersion_;
-      if (relPlanBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) != 0)) {
-          relPlan_ = java.util.Collections.unmodifiableList(relPlan_);
-          bitField0_ = (bitField0_ & ~0x00000001);
-        }
-        result.relPlan_ = relPlan_;
-      } else {
-        result.relPlan_ = relPlanBuilder_.build();
-      }
-      result.optimizeInfos_ = internalGetOptimizeInfos();
-      result.optimizeInfos_.makeImmutable();
-      result.execParams_ = internalGetExecParams();
-      result.execParams_.makeImmutable();
-      onBuilt();
-      return result;
-    }
-
-    @java.lang.Override
-    public Builder clone() {
-      return super.clone();
-    }
-    @java.lang.Override
-    public Builder setField(
-        com.google.protobuf.Descriptors.FieldDescriptor field,
-        java.lang.Object value) {
-      return super.setField(field, value);
-    }
-    @java.lang.Override
-    public Builder clearField(
-        com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return super.clearField(field);
-    }
-    @java.lang.Override
-    public Builder clearOneof(
-        com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return super.clearOneof(oneof);
-    }
-    @java.lang.Override
-    public Builder setRepeatedField(
-        com.google.protobuf.Descriptors.FieldDescriptor field,
-        int index, java.lang.Object value) {
-      return super.setRepeatedField(field, index, value);
-    }
-    @java.lang.Override
-    public Builder addRepeatedField(
-        com.google.protobuf.Descriptors.FieldDescriptor field,
-        java.lang.Object value) {
-      return super.addRepeatedField(field, value);
-    }
-    @java.lang.Override
-    public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.taobao.search.iquan.client.common.pb.SqlPlan) {
-        return mergeFrom((com.taobao.search.iquan.client.common.pb.SqlPlan)other);
-      } else {
-        super.mergeFrom(other);
-        return this;
-      }
-    }
-
-    public Builder mergeFrom(com.taobao.search.iquan.client.common.pb.SqlPlan other) {
-      if (other == com.taobao.search.iquan.client.common.pb.SqlPlan.getDefaultInstance()) return this;
-      if (!other.getRelPlanVersion().isEmpty()) {
-        relPlanVersion_ = other.relPlanVersion_;
-        onChanged();
-      }
-      if (relPlanBuilder_ == null) {
-        if (!other.relPlan_.isEmpty()) {
-          if (relPlan_.isEmpty()) {
-            relPlan_ = other.relPlan_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-          } else {
-            ensureRelPlanIsMutable();
-            relPlan_.addAll(other.relPlan_);
-          }
-          onChanged();
-        }
-      } else {
-        if (!other.relPlan_.isEmpty()) {
-          if (relPlanBuilder_.isEmpty()) {
-            relPlanBuilder_.dispose();
-            relPlanBuilder_ = null;
-            relPlan_ = other.relPlan_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-            relPlanBuilder_ = 
-              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getRelPlanFieldBuilder() : null;
-          } else {
-            relPlanBuilder_.addAllMessages(other.relPlan_);
-          }
-        }
-      }
-      internalGetMutableOptimizeInfos().mergeFrom(
-          other.internalGetOptimizeInfos());
-      internalGetMutableExecParams().mergeFrom(
-          other.internalGetExecParams());
-      this.mergeUnknownFields(other.unknownFields);
-      onChanged();
-      return this;
-    }
-
-    @java.lang.Override
-    public final boolean isInitialized() {
-      return true;
-    }
-
-    @java.lang.Override
-    public Builder mergeFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      com.taobao.search.iquan.client.common.pb.SqlPlan parsedMessage = null;
-      try {
-        parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (com.taobao.search.iquan.client.common.pb.SqlPlan) e.getUnfinishedMessage();
-        throw e.unwrapIOException();
-      } finally {
-        if (parsedMessage != null) {
-          mergeFrom(parsedMessage);
-        }
-      }
-      return this;
-    }
-    private int bitField0_;
-
-    private java.lang.Object relPlanVersion_ = "";
     /**
      * <code>string rel_plan_version = 1;</code>
      */
     public java.lang.String getRelPlanVersion() {
-      java.lang.Object ref = relPlanVersion_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        relPlanVersion_ = s;
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
+        java.lang.Object ref = relPlanVersion_;
+        if (ref instanceof java.lang.String) {
+            return (java.lang.String) ref;
+        } else {
+            com.google.protobuf.ByteString bs =
+                    (com.google.protobuf.ByteString) ref;
+            java.lang.String s = bs.toStringUtf8();
+            relPlanVersion_ = s;
+            return s;
+        }
     }
+
     /**
      * <code>string rel_plan_version = 1;</code>
      */
     public com.google.protobuf.ByteString
-        getRelPlanVersionBytes() {
-      java.lang.Object ref = relPlanVersion_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        relPlanVersion_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    getRelPlanVersionBytes() {
+        java.lang.Object ref = relPlanVersion_;
+        if (ref instanceof java.lang.String) {
+            com.google.protobuf.ByteString b =
+                    com.google.protobuf.ByteString.copyFromUtf8(
+                            (java.lang.String) ref);
+            relPlanVersion_ = b;
+            return b;
+        } else {
+            return (com.google.protobuf.ByteString) ref;
+        }
     }
-    /**
-     * <code>string rel_plan_version = 1;</code>
-     */
-    public Builder setRelPlanVersion(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  
-      relPlanVersion_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string rel_plan_version = 1;</code>
-     */
-    public Builder clearRelPlanVersion() {
-      
-      relPlanVersion_ = getDefaultInstance().getRelPlanVersion();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string rel_plan_version = 1;</code>
-     */
-    public Builder setRelPlanVersionBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-      
-      relPlanVersion_ = value;
-      onChanged();
-      return this;
-    }
-
-    private java.util.List<com.taobao.search.iquan.client.common.pb.PlanOp> relPlan_ =
-      java.util.Collections.emptyList();
-    private void ensureRelPlanIsMutable() {
-      if (!((bitField0_ & 0x00000001) != 0)) {
-        relPlan_ = new java.util.ArrayList<com.taobao.search.iquan.client.common.pb.PlanOp>(relPlan_);
-        bitField0_ |= 0x00000001;
-       }
-    }
-
-    private com.google.protobuf.RepeatedFieldBuilderV3<
-        com.taobao.search.iquan.client.common.pb.PlanOp, com.taobao.search.iquan.client.common.pb.PlanOp.Builder, com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder> relPlanBuilder_;
 
     /**
      * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
      */
     public java.util.List<com.taobao.search.iquan.client.common.pb.PlanOp> getRelPlanList() {
-      if (relPlanBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(relPlan_);
-      } else {
-        return relPlanBuilder_.getMessageList();
-      }
+        return relPlan_;
     }
+
+    /**
+     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+     */
+    public java.util.List<? extends com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder>
+    getRelPlanOrBuilderList() {
+        return relPlan_;
+    }
+
     /**
      * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
      */
     public int getRelPlanCount() {
-      if (relPlanBuilder_ == null) {
         return relPlan_.size();
-      } else {
-        return relPlanBuilder_.getCount();
-      }
     }
+
     /**
      * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
      */
     public com.taobao.search.iquan.client.common.pb.PlanOp getRelPlan(int index) {
-      if (relPlanBuilder_ == null) {
         return relPlan_.get(index);
-      } else {
-        return relPlanBuilder_.getMessage(index);
-      }
     }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public Builder setRelPlan(
-        int index, com.taobao.search.iquan.client.common.pb.PlanOp value) {
-      if (relPlanBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureRelPlanIsMutable();
-        relPlan_.set(index, value);
-        onChanged();
-      } else {
-        relPlanBuilder_.setMessage(index, value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public Builder setRelPlan(
-        int index, com.taobao.search.iquan.client.common.pb.PlanOp.Builder builderForValue) {
-      if (relPlanBuilder_ == null) {
-        ensureRelPlanIsMutable();
-        relPlan_.set(index, builderForValue.build());
-        onChanged();
-      } else {
-        relPlanBuilder_.setMessage(index, builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public Builder addRelPlan(com.taobao.search.iquan.client.common.pb.PlanOp value) {
-      if (relPlanBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureRelPlanIsMutable();
-        relPlan_.add(value);
-        onChanged();
-      } else {
-        relPlanBuilder_.addMessage(value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public Builder addRelPlan(
-        int index, com.taobao.search.iquan.client.common.pb.PlanOp value) {
-      if (relPlanBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureRelPlanIsMutable();
-        relPlan_.add(index, value);
-        onChanged();
-      } else {
-        relPlanBuilder_.addMessage(index, value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public Builder addRelPlan(
-        com.taobao.search.iquan.client.common.pb.PlanOp.Builder builderForValue) {
-      if (relPlanBuilder_ == null) {
-        ensureRelPlanIsMutable();
-        relPlan_.add(builderForValue.build());
-        onChanged();
-      } else {
-        relPlanBuilder_.addMessage(builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public Builder addRelPlan(
-        int index, com.taobao.search.iquan.client.common.pb.PlanOp.Builder builderForValue) {
-      if (relPlanBuilder_ == null) {
-        ensureRelPlanIsMutable();
-        relPlan_.add(index, builderForValue.build());
-        onChanged();
-      } else {
-        relPlanBuilder_.addMessage(index, builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public Builder addAllRelPlan(
-        java.lang.Iterable<? extends com.taobao.search.iquan.client.common.pb.PlanOp> values) {
-      if (relPlanBuilder_ == null) {
-        ensureRelPlanIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, relPlan_);
-        onChanged();
-      } else {
-        relPlanBuilder_.addAllMessages(values);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public Builder clearRelPlan() {
-      if (relPlanBuilder_ == null) {
-        relPlan_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-      } else {
-        relPlanBuilder_.clear();
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public Builder removeRelPlan(int index) {
-      if (relPlanBuilder_ == null) {
-        ensureRelPlanIsMutable();
-        relPlan_.remove(index);
-        onChanged();
-      } else {
-        relPlanBuilder_.remove(index);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public com.taobao.search.iquan.client.common.pb.PlanOp.Builder getRelPlanBuilder(
-        int index) {
-      return getRelPlanFieldBuilder().getBuilder(index);
-    }
+
     /**
      * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
      */
     public com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder getRelPlanOrBuilder(
-        int index) {
-      if (relPlanBuilder_ == null) {
-        return relPlan_.get(index);  } else {
-        return relPlanBuilder_.getMessageOrBuilder(index);
-      }
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public java.util.List<? extends com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder> 
-         getRelPlanOrBuilderList() {
-      if (relPlanBuilder_ != null) {
-        return relPlanBuilder_.getMessageOrBuilderList();
-      } else {
-        return java.util.Collections.unmodifiableList(relPlan_);
-      }
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public com.taobao.search.iquan.client.common.pb.PlanOp.Builder addRelPlanBuilder() {
-      return getRelPlanFieldBuilder().addBuilder(
-          com.taobao.search.iquan.client.common.pb.PlanOp.getDefaultInstance());
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public com.taobao.search.iquan.client.common.pb.PlanOp.Builder addRelPlanBuilder(
-        int index) {
-      return getRelPlanFieldBuilder().addBuilder(
-          index, com.taobao.search.iquan.client.common.pb.PlanOp.getDefaultInstance());
-    }
-    /**
-     * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
-     */
-    public java.util.List<com.taobao.search.iquan.client.common.pb.PlanOp.Builder> 
-         getRelPlanBuilderList() {
-      return getRelPlanFieldBuilder().getBuilderList();
-    }
-    private com.google.protobuf.RepeatedFieldBuilderV3<
-        com.taobao.search.iquan.client.common.pb.PlanOp, com.taobao.search.iquan.client.common.pb.PlanOp.Builder, com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder> 
-        getRelPlanFieldBuilder() {
-      if (relPlanBuilder_ == null) {
-        relPlanBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-            com.taobao.search.iquan.client.common.pb.PlanOp, com.taobao.search.iquan.client.common.pb.PlanOp.Builder, com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder>(
-                relPlan_,
-                ((bitField0_ & 0x00000001) != 0),
-                getParentForChildren(),
-                isClean());
-        relPlan_ = null;
-      }
-      return relPlanBuilder_;
+            int index) {
+        return relPlan_.get(index);
     }
 
-    private com.google.protobuf.MapField<
-        java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> optimizeInfos_;
     private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
     internalGetOptimizeInfos() {
-      if (optimizeInfos_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            OptimizeInfosDefaultEntryHolder.defaultEntry);
-      }
-      return optimizeInfos_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-    internalGetMutableOptimizeInfos() {
-      onChanged();;
-      if (optimizeInfos_ == null) {
-        optimizeInfos_ = com.google.protobuf.MapField.newMapField(
-            OptimizeInfosDefaultEntryHolder.defaultEntry);
-      }
-      if (!optimizeInfos_.isMutable()) {
-        optimizeInfos_ = optimizeInfos_.copy();
-      }
-      return optimizeInfos_;
+        if (optimizeInfos_ == null) {
+            return com.google.protobuf.MapField.emptyMapField(
+                    OptimizeInfosDefaultEntryHolder.defaultEntry);
+        }
+        return optimizeInfos_;
     }
 
     public int getOptimizeInfosCount() {
-      return internalGetOptimizeInfos().getMap().size();
+        return internalGetOptimizeInfos().getMap().size();
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
      */
 
     public boolean containsOptimizeInfos(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetOptimizeInfos().getMap().containsKey(key);
+            java.lang.String key) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        return internalGetOptimizeInfos().getMap().containsKey(key);
     }
+
     /**
      * Use {@link #getOptimizeInfosMap()} instead.
      */
     @java.lang.Deprecated
     public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getOptimizeInfos() {
-      return getOptimizeInfosMap();
+        return getOptimizeInfosMap();
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
      */
 
     public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getOptimizeInfosMap() {
-      return internalGetOptimizeInfos().getMap();
+        return internalGetOptimizeInfos().getMap();
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
      */
 
     public com.taobao.search.iquan.client.common.pb.AnyValue getOptimizeInfosOrDefault(
-        java.lang.String key,
-        com.taobao.search.iquan.client.common.pb.AnyValue defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
-          internalGetOptimizeInfos().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
+            java.lang.String key,
+            com.taobao.search.iquan.client.common.pb.AnyValue defaultValue) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
+                internalGetOptimizeInfos().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
      */
 
     public com.taobao.search.iquan.client.common.pb.AnyValue getOptimizeInfosOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
-          internalGetOptimizeInfos().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
+            java.lang.String key) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
+                internalGetOptimizeInfos().getMap();
+        if (!map.containsKey(key)) {
+            throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
     }
 
-    public Builder clearOptimizeInfos() {
-      internalGetMutableOptimizeInfos().getMutableMap()
-          .clear();
-      return this;
-    }
-    /**
-     * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
-     */
-
-    public Builder removeOptimizeInfos(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableOptimizeInfos().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-    getMutableOptimizeInfos() {
-      return internalGetMutableOptimizeInfos().getMutableMap();
-    }
-    /**
-     * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
-     */
-    public Builder putOptimizeInfos(
-        java.lang.String key,
-        com.taobao.search.iquan.client.common.pb.AnyValue value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableOptimizeInfos().getMutableMap()
-          .put(key, value);
-      return this;
-    }
-    /**
-     * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
-     */
-
-    public Builder putAllOptimizeInfos(
-        java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> values) {
-      internalGetMutableOptimizeInfos().getMutableMap()
-          .putAll(values);
-      return this;
-    }
-
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> execParams_;
     private com.google.protobuf.MapField<java.lang.String, java.lang.String>
     internalGetExecParams() {
-      if (execParams_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            ExecParamsDefaultEntryHolder.defaultEntry);
-      }
-      return execParams_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetMutableExecParams() {
-      onChanged();;
-      if (execParams_ == null) {
-        execParams_ = com.google.protobuf.MapField.newMapField(
-            ExecParamsDefaultEntryHolder.defaultEntry);
-      }
-      if (!execParams_.isMutable()) {
-        execParams_ = execParams_.copy();
-      }
-      return execParams_;
+        if (execParams_ == null) {
+            return com.google.protobuf.MapField.emptyMapField(
+                    ExecParamsDefaultEntryHolder.defaultEntry);
+        }
+        return execParams_;
     }
 
     public int getExecParamsCount() {
-      return internalGetExecParams().getMap().size();
+        return internalGetExecParams().getMap().size();
     }
+
     /**
      * <code>map&lt;string, string&gt; exec_params = 4;</code>
      */
 
     public boolean containsExecParams(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetExecParams().getMap().containsKey(key);
+            java.lang.String key) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        return internalGetExecParams().getMap().containsKey(key);
     }
+
     /**
      * Use {@link #getExecParamsMap()} instead.
      */
     @java.lang.Deprecated
     public java.util.Map<java.lang.String, java.lang.String> getExecParams() {
-      return getExecParamsMap();
+        return getExecParamsMap();
     }
+
     /**
      * <code>map&lt;string, string&gt; exec_params = 4;</code>
      */
 
     public java.util.Map<java.lang.String, java.lang.String> getExecParamsMap() {
-      return internalGetExecParams().getMap();
+        return internalGetExecParams().getMap();
     }
+
     /**
      * <code>map&lt;string, string&gt; exec_params = 4;</code>
      */
 
     public java.lang.String getExecParamsOrDefault(
-        java.lang.String key,
-        java.lang.String defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetExecParams().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
+            java.lang.String key,
+            java.lang.String defaultValue) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        java.util.Map<java.lang.String, java.lang.String> map =
+                internalGetExecParams().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
     }
+
     /**
      * <code>map&lt;string, string&gt; exec_params = 4;</code>
      */
 
     public java.lang.String getExecParamsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetExecParams().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public Builder clearExecParams() {
-      internalGetMutableExecParams().getMutableMap()
-          .clear();
-      return this;
-    }
-    /**
-     * <code>map&lt;string, string&gt; exec_params = 4;</code>
-     */
-
-    public Builder removeExecParams(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableExecParams().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String>
-    getMutableExecParams() {
-      return internalGetMutableExecParams().getMutableMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; exec_params = 4;</code>
-     */
-    public Builder putExecParams(
-        java.lang.String key,
-        java.lang.String value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableExecParams().getMutableMap()
-          .put(key, value);
-      return this;
-    }
-    /**
-     * <code>map&lt;string, string&gt; exec_params = 4;</code>
-     */
-
-    public Builder putAllExecParams(
-        java.util.Map<java.lang.String, java.lang.String> values) {
-      internalGetMutableExecParams().getMutableMap()
-          .putAll(values);
-      return this;
-    }
-    @java.lang.Override
-    public final Builder setUnknownFields(
-        final com.google.protobuf.UnknownFieldSet unknownFields) {
-      return super.setUnknownFields(unknownFields);
+            java.lang.String key) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        java.util.Map<java.lang.String, java.lang.String> map =
+                internalGetExecParams().getMap();
+        if (!map.containsKey(key)) {
+            throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
     }
 
     @java.lang.Override
-    public final Builder mergeUnknownFields(
-        final com.google.protobuf.UnknownFieldSet unknownFields) {
-      return super.mergeUnknownFields(unknownFields);
+    public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
     }
 
-
-    // @@protoc_insertion_point(builder_scope:iquan.pb.SqlPlan)
-  }
-
-  // @@protoc_insertion_point(class_scope:iquan.pb.SqlPlan)
-  private static final com.taobao.search.iquan.client.common.pb.SqlPlan DEFAULT_INSTANCE;
-  static {
-    DEFAULT_INSTANCE = new com.taobao.search.iquan.client.common.pb.SqlPlan();
-  }
-
-  public static com.taobao.search.iquan.client.common.pb.SqlPlan getDefaultInstance() {
-    return DEFAULT_INSTANCE;
-  }
-
-  private static final com.google.protobuf.Parser<SqlPlan>
-      PARSER = new com.google.protobuf.AbstractParser<SqlPlan>() {
     @java.lang.Override
-    public SqlPlan parsePartialFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return new SqlPlan(input, extensionRegistry);
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+            throws java.io.IOException {
+        if (!getRelPlanVersionBytes().isEmpty()) {
+            com.google.protobuf.GeneratedMessageV3.writeString(output, 1, relPlanVersion_);
+        }
+        for (int i = 0; i < relPlan_.size(); i++) {
+            output.writeMessage(2, relPlan_.get(i));
+        }
+        com.google.protobuf.GeneratedMessageV3
+                .serializeStringMapTo(
+                        output,
+                        internalGetOptimizeInfos(),
+                        OptimizeInfosDefaultEntryHolder.defaultEntry,
+                        3);
+        com.google.protobuf.GeneratedMessageV3
+                .serializeStringMapTo(
+                        output,
+                        internalGetExecParams(),
+                        ExecParamsDefaultEntryHolder.defaultEntry,
+                        4);
+        unknownFields.writeTo(output);
     }
-  };
 
-  public static com.google.protobuf.Parser<SqlPlan> parser() {
-    return PARSER;
-  }
+    @java.lang.Override
+    public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
 
-  @java.lang.Override
-  public com.google.protobuf.Parser<SqlPlan> getParserForType() {
-    return PARSER;
-  }
+        size = 0;
+        if (!getRelPlanVersionBytes().isEmpty()) {
+            size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, relPlanVersion_);
+        }
+        for (int i = 0; i < relPlan_.size(); i++) {
+            size += com.google.protobuf.CodedOutputStream
+                    .computeMessageSize(2, relPlan_.get(i));
+        }
+        for (java.util.Map.Entry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> entry
+                : internalGetOptimizeInfos().getMap().entrySet()) {
+            com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+                    optimizeInfos__ = OptimizeInfosDefaultEntryHolder.defaultEntry.newBuilderForType()
+                    .setKey(entry.getKey())
+                    .setValue(entry.getValue())
+                    .build();
+            size += com.google.protobuf.CodedOutputStream
+                    .computeMessageSize(3, optimizeInfos__);
+        }
+        for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+                : internalGetExecParams().getMap().entrySet()) {
+            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                    execParams__ = ExecParamsDefaultEntryHolder.defaultEntry.newBuilderForType()
+                    .setKey(entry.getKey())
+                    .setValue(entry.getValue())
+                    .build();
+            size += com.google.protobuf.CodedOutputStream
+                    .computeMessageSize(4, execParams__);
+        }
+        size += unknownFields.getSerializedSize();
+        memoizedSize = size;
+        return size;
+    }
 
-  @java.lang.Override
-  public com.taobao.search.iquan.client.common.pb.SqlPlan getDefaultInstanceForType() {
-    return DEFAULT_INSTANCE;
-  }
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof com.taobao.search.iquan.client.common.pb.SqlPlan)) {
+            return super.equals(obj);
+        }
+        com.taobao.search.iquan.client.common.pb.SqlPlan other = (com.taobao.search.iquan.client.common.pb.SqlPlan) obj;
+
+        if (!getRelPlanVersion()
+                .equals(other.getRelPlanVersion())) return false;
+        if (!getRelPlanList()
+                .equals(other.getRelPlanList())) return false;
+        if (!internalGetOptimizeInfos().equals(
+                other.internalGetOptimizeInfos())) return false;
+        if (!internalGetExecParams().equals(
+                other.internalGetExecParams())) return false;
+        if (!unknownFields.equals(other.unknownFields)) return false;
+        return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+        if (memoizedHashCode != 0) {
+            return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        hash = (37 * hash) + REL_PLAN_VERSION_FIELD_NUMBER;
+        hash = (53 * hash) + getRelPlanVersion().hashCode();
+        if (getRelPlanCount() > 0) {
+            hash = (37 * hash) + REL_PLAN_FIELD_NUMBER;
+            hash = (53 * hash) + getRelPlanList().hashCode();
+        }
+        if (!internalGetOptimizeInfos().getMap().isEmpty()) {
+            hash = (37 * hash) + OPTIMIZE_INFOS_FIELD_NUMBER;
+            hash = (53 * hash) + internalGetOptimizeInfos().hashCode();
+        }
+        if (!internalGetExecParams().getMap().isEmpty()) {
+            hash = (37 * hash) + EXEC_PARAMS_FIELD_NUMBER;
+            hash = (53 * hash) + internalGetExecParams().hashCode();
+        }
+        hash = (29 * hash) + unknownFields.hashCode();
+        memoizedHashCode = hash;
+        return hash;
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() {
+        return newBuilder();
+    }
+
+    @java.lang.Override
+    public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+                ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<SqlPlan> getParserForType() {
+        return PARSER;
+    }
+
+    @java.lang.Override
+    public com.taobao.search.iquan.client.common.pb.SqlPlan getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+    }
+
+    private static final class OptimizeInfosDefaultEntryHolder {
+        static final com.google.protobuf.MapEntry<
+                java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> defaultEntry =
+                com.google.protobuf.MapEntry
+                        .<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>newDefaultInstance(
+                                com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_OptimizeInfosEntry_descriptor,
+                                com.google.protobuf.WireFormat.FieldType.STRING,
+                                "",
+                                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                                com.taobao.search.iquan.client.common.pb.AnyValue.getDefaultInstance());
+    }
+
+    private static final class ExecParamsDefaultEntryHolder {
+        static final com.google.protobuf.MapEntry<
+                java.lang.String, java.lang.String> defaultEntry =
+                com.google.protobuf.MapEntry
+                        .<java.lang.String, java.lang.String>newDefaultInstance(
+                                com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_ExecParamsEntry_descriptor,
+                                com.google.protobuf.WireFormat.FieldType.STRING,
+                                "",
+                                com.google.protobuf.WireFormat.FieldType.STRING,
+                                "");
+    }
+
+    /**
+     * Protobuf type {@code iquan.pb.SqlPlan}
+     */
+    public static final class Builder extends
+            com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+            // @@protoc_insertion_point(builder_implements:iquan.pb.SqlPlan)
+            com.taobao.search.iquan.client.common.pb.SqlPlanOrBuilder {
+        private int bitField0_;
+        private java.lang.Object relPlanVersion_ = "";
+        private java.util.List<com.taobao.search.iquan.client.common.pb.PlanOp> relPlan_ =
+                java.util.Collections.emptyList();
+        private com.google.protobuf.RepeatedFieldBuilderV3<
+                com.taobao.search.iquan.client.common.pb.PlanOp, com.taobao.search.iquan.client.common.pb.PlanOp.Builder, com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder> relPlanBuilder_;
+        private com.google.protobuf.MapField<
+                java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> optimizeInfos_;
+        private com.google.protobuf.MapField<
+                java.lang.String, java.lang.String> execParams_;
+
+        // Construct using com.taobao.search.iquan.client.common.pb.SqlPlan.newBuilder()
+        private Builder() {
+            maybeForceBuilderInitialization();
+        }
+
+        private Builder(
+                com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+            super(parent);
+            maybeForceBuilderInitialization();
+        }
+
+        public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+            return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_descriptor;
+        }
+
+        @SuppressWarnings({"rawtypes"})
+        protected com.google.protobuf.MapField internalGetMapField(
+                int number) {
+            switch (number) {
+                case 3:
+                    return internalGetOptimizeInfos();
+                case 4:
+                    return internalGetExecParams();
+                default:
+                    throw new RuntimeException(
+                            "Invalid map field number: " + number);
+            }
+        }
+
+        @SuppressWarnings({"rawtypes"})
+        protected com.google.protobuf.MapField internalGetMutableMapField(
+                int number) {
+            switch (number) {
+                case 3:
+                    return internalGetMutableOptimizeInfos();
+                case 4:
+                    return internalGetMutableExecParams();
+                default:
+                    throw new RuntimeException(
+                            "Invalid map field number: " + number);
+            }
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+            return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_fieldAccessorTable
+                    .ensureFieldAccessorsInitialized(
+                            com.taobao.search.iquan.client.common.pb.SqlPlan.class, com.taobao.search.iquan.client.common.pb.SqlPlan.Builder.class);
+        }
+
+        private void maybeForceBuilderInitialization() {
+            if (com.google.protobuf.GeneratedMessageV3
+                    .alwaysUseFieldBuilders) {
+                getRelPlanFieldBuilder();
+            }
+        }
+
+        @java.lang.Override
+        public Builder clear() {
+            super.clear();
+            relPlanVersion_ = "";
+
+            if (relPlanBuilder_ == null) {
+                relPlan_ = java.util.Collections.emptyList();
+                bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+                relPlanBuilder_.clear();
+            }
+            internalGetMutableOptimizeInfos().clear();
+            internalGetMutableExecParams().clear();
+            return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+        getDescriptorForType() {
+            return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_SqlPlan_descriptor;
+        }
+
+        @java.lang.Override
+        public com.taobao.search.iquan.client.common.pb.SqlPlan getDefaultInstanceForType() {
+            return com.taobao.search.iquan.client.common.pb.SqlPlan.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public com.taobao.search.iquan.client.common.pb.SqlPlan build() {
+            com.taobao.search.iquan.client.common.pb.SqlPlan result = buildPartial();
+            if (!result.isInitialized()) {
+                throw newUninitializedMessageException(result);
+            }
+            return result;
+        }
+
+        @java.lang.Override
+        public com.taobao.search.iquan.client.common.pb.SqlPlan buildPartial() {
+            com.taobao.search.iquan.client.common.pb.SqlPlan result = new com.taobao.search.iquan.client.common.pb.SqlPlan(this);
+            int from_bitField0_ = bitField0_;
+            result.relPlanVersion_ = relPlanVersion_;
+            if (relPlanBuilder_ == null) {
+                if (((bitField0_ & 0x00000001) != 0)) {
+                    relPlan_ = java.util.Collections.unmodifiableList(relPlan_);
+                    bitField0_ = (bitField0_ & ~0x00000001);
+                }
+                result.relPlan_ = relPlan_;
+            } else {
+                result.relPlan_ = relPlanBuilder_.build();
+            }
+            result.optimizeInfos_ = internalGetOptimizeInfos();
+            result.optimizeInfos_.makeImmutable();
+            result.execParams_ = internalGetExecParams();
+            result.execParams_.makeImmutable();
+            onBuilt();
+            return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+            return super.clone();
+        }
+
+        @java.lang.Override
+        public Builder setField(
+                com.google.protobuf.Descriptors.FieldDescriptor field,
+                java.lang.Object value) {
+            return super.setField(field, value);
+        }
+
+        @java.lang.Override
+        public Builder clearField(
+                com.google.protobuf.Descriptors.FieldDescriptor field) {
+            return super.clearField(field);
+        }
+
+        @java.lang.Override
+        public Builder clearOneof(
+                com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+            return super.clearOneof(oneof);
+        }
+
+        @java.lang.Override
+        public Builder setRepeatedField(
+                com.google.protobuf.Descriptors.FieldDescriptor field,
+                int index, java.lang.Object value) {
+            return super.setRepeatedField(field, index, value);
+        }
+
+        @java.lang.Override
+        public Builder addRepeatedField(
+                com.google.protobuf.Descriptors.FieldDescriptor field,
+                java.lang.Object value) {
+            return super.addRepeatedField(field, value);
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+            if (other instanceof com.taobao.search.iquan.client.common.pb.SqlPlan) {
+                return mergeFrom((com.taobao.search.iquan.client.common.pb.SqlPlan) other);
+            } else {
+                super.mergeFrom(other);
+                return this;
+            }
+        }
+
+        public Builder mergeFrom(com.taobao.search.iquan.client.common.pb.SqlPlan other) {
+            if (other == com.taobao.search.iquan.client.common.pb.SqlPlan.getDefaultInstance()) return this;
+            if (!other.getRelPlanVersion().isEmpty()) {
+                relPlanVersion_ = other.relPlanVersion_;
+                onChanged();
+            }
+            if (relPlanBuilder_ == null) {
+                if (!other.relPlan_.isEmpty()) {
+                    if (relPlan_.isEmpty()) {
+                        relPlan_ = other.relPlan_;
+                        bitField0_ = (bitField0_ & ~0x00000001);
+                    } else {
+                        ensureRelPlanIsMutable();
+                        relPlan_.addAll(other.relPlan_);
+                    }
+                    onChanged();
+                }
+            } else {
+                if (!other.relPlan_.isEmpty()) {
+                    if (relPlanBuilder_.isEmpty()) {
+                        relPlanBuilder_.dispose();
+                        relPlanBuilder_ = null;
+                        relPlan_ = other.relPlan_;
+                        bitField0_ = (bitField0_ & ~0x00000001);
+                        relPlanBuilder_ =
+                                com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                                        getRelPlanFieldBuilder() : null;
+                    } else {
+                        relPlanBuilder_.addAllMessages(other.relPlan_);
+                    }
+                }
+            }
+            internalGetMutableOptimizeInfos().mergeFrom(
+                    other.internalGetOptimizeInfos());
+            internalGetMutableExecParams().mergeFrom(
+                    other.internalGetExecParams());
+            this.mergeUnknownFields(other.unknownFields);
+            onChanged();
+            return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+            return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            com.taobao.search.iquan.client.common.pb.SqlPlan parsedMessage = null;
+            try {
+                parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                parsedMessage = (com.taobao.search.iquan.client.common.pb.SqlPlan) e.getUnfinishedMessage();
+                throw e.unwrapIOException();
+            } finally {
+                if (parsedMessage != null) {
+                    mergeFrom(parsedMessage);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * <code>string rel_plan_version = 1;</code>
+         */
+        public java.lang.String getRelPlanVersion() {
+            java.lang.Object ref = relPlanVersion_;
+            if (!(ref instanceof java.lang.String)) {
+                com.google.protobuf.ByteString bs =
+                        (com.google.protobuf.ByteString) ref;
+                java.lang.String s = bs.toStringUtf8();
+                relPlanVersion_ = s;
+                return s;
+            } else {
+                return (java.lang.String) ref;
+            }
+        }
+
+        /**
+         * <code>string rel_plan_version = 1;</code>
+         */
+        public Builder setRelPlanVersion(
+                java.lang.String value) {
+            if (value == null) {
+                throw new NullPointerException();
+            }
+
+            relPlanVersion_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>string rel_plan_version = 1;</code>
+         */
+        public com.google.protobuf.ByteString
+        getRelPlanVersionBytes() {
+            java.lang.Object ref = relPlanVersion_;
+            if (ref instanceof String) {
+                com.google.protobuf.ByteString b =
+                        com.google.protobuf.ByteString.copyFromUtf8(
+                                (java.lang.String) ref);
+                relPlanVersion_ = b;
+                return b;
+            } else {
+                return (com.google.protobuf.ByteString) ref;
+            }
+        }
+
+        /**
+         * <code>string rel_plan_version = 1;</code>
+         */
+        public Builder setRelPlanVersionBytes(
+                com.google.protobuf.ByteString value) {
+            if (value == null) {
+                throw new NullPointerException();
+            }
+            checkByteStringIsUtf8(value);
+
+            relPlanVersion_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>string rel_plan_version = 1;</code>
+         */
+        public Builder clearRelPlanVersion() {
+
+            relPlanVersion_ = getDefaultInstance().getRelPlanVersion();
+            onChanged();
+            return this;
+        }
+
+        private void ensureRelPlanIsMutable() {
+            if (!((bitField0_ & 0x00000001) != 0)) {
+                relPlan_ = new java.util.ArrayList<com.taobao.search.iquan.client.common.pb.PlanOp>(relPlan_);
+                bitField0_ |= 0x00000001;
+            }
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public java.util.List<com.taobao.search.iquan.client.common.pb.PlanOp> getRelPlanList() {
+            if (relPlanBuilder_ == null) {
+                return java.util.Collections.unmodifiableList(relPlan_);
+            } else {
+                return relPlanBuilder_.getMessageList();
+            }
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public int getRelPlanCount() {
+            if (relPlanBuilder_ == null) {
+                return relPlan_.size();
+            } else {
+                return relPlanBuilder_.getCount();
+            }
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.PlanOp getRelPlan(int index) {
+            if (relPlanBuilder_ == null) {
+                return relPlan_.get(index);
+            } else {
+                return relPlanBuilder_.getMessage(index);
+            }
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public Builder setRelPlan(
+                int index, com.taobao.search.iquan.client.common.pb.PlanOp value) {
+            if (relPlanBuilder_ == null) {
+                if (value == null) {
+                    throw new NullPointerException();
+                }
+                ensureRelPlanIsMutable();
+                relPlan_.set(index, value);
+                onChanged();
+            } else {
+                relPlanBuilder_.setMessage(index, value);
+            }
+            return this;
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public Builder setRelPlan(
+                int index, com.taobao.search.iquan.client.common.pb.PlanOp.Builder builderForValue) {
+            if (relPlanBuilder_ == null) {
+                ensureRelPlanIsMutable();
+                relPlan_.set(index, builderForValue.build());
+                onChanged();
+            } else {
+                relPlanBuilder_.setMessage(index, builderForValue.build());
+            }
+            return this;
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public Builder addRelPlan(com.taobao.search.iquan.client.common.pb.PlanOp value) {
+            if (relPlanBuilder_ == null) {
+                if (value == null) {
+                    throw new NullPointerException();
+                }
+                ensureRelPlanIsMutable();
+                relPlan_.add(value);
+                onChanged();
+            } else {
+                relPlanBuilder_.addMessage(value);
+            }
+            return this;
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public Builder addRelPlan(
+                int index, com.taobao.search.iquan.client.common.pb.PlanOp value) {
+            if (relPlanBuilder_ == null) {
+                if (value == null) {
+                    throw new NullPointerException();
+                }
+                ensureRelPlanIsMutable();
+                relPlan_.add(index, value);
+                onChanged();
+            } else {
+                relPlanBuilder_.addMessage(index, value);
+            }
+            return this;
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public Builder addRelPlan(
+                com.taobao.search.iquan.client.common.pb.PlanOp.Builder builderForValue) {
+            if (relPlanBuilder_ == null) {
+                ensureRelPlanIsMutable();
+                relPlan_.add(builderForValue.build());
+                onChanged();
+            } else {
+                relPlanBuilder_.addMessage(builderForValue.build());
+            }
+            return this;
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public Builder addRelPlan(
+                int index, com.taobao.search.iquan.client.common.pb.PlanOp.Builder builderForValue) {
+            if (relPlanBuilder_ == null) {
+                ensureRelPlanIsMutable();
+                relPlan_.add(index, builderForValue.build());
+                onChanged();
+            } else {
+                relPlanBuilder_.addMessage(index, builderForValue.build());
+            }
+            return this;
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public Builder addAllRelPlan(
+                java.lang.Iterable<? extends com.taobao.search.iquan.client.common.pb.PlanOp> values) {
+            if (relPlanBuilder_ == null) {
+                ensureRelPlanIsMutable();
+                com.google.protobuf.AbstractMessageLite.Builder.addAll(
+                        values, relPlan_);
+                onChanged();
+            } else {
+                relPlanBuilder_.addAllMessages(values);
+            }
+            return this;
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public Builder clearRelPlan() {
+            if (relPlanBuilder_ == null) {
+                relPlan_ = java.util.Collections.emptyList();
+                bitField0_ = (bitField0_ & ~0x00000001);
+                onChanged();
+            } else {
+                relPlanBuilder_.clear();
+            }
+            return this;
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public Builder removeRelPlan(int index) {
+            if (relPlanBuilder_ == null) {
+                ensureRelPlanIsMutable();
+                relPlan_.remove(index);
+                onChanged();
+            } else {
+                relPlanBuilder_.remove(index);
+            }
+            return this;
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.PlanOp.Builder getRelPlanBuilder(
+                int index) {
+            return getRelPlanFieldBuilder().getBuilder(index);
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder getRelPlanOrBuilder(
+                int index) {
+            if (relPlanBuilder_ == null) {
+                return relPlan_.get(index);
+            } else {
+                return relPlanBuilder_.getMessageOrBuilder(index);
+            }
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public java.util.List<? extends com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder>
+        getRelPlanOrBuilderList() {
+            if (relPlanBuilder_ != null) {
+                return relPlanBuilder_.getMessageOrBuilderList();
+            } else {
+                return java.util.Collections.unmodifiableList(relPlan_);
+            }
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.PlanOp.Builder addRelPlanBuilder() {
+            return getRelPlanFieldBuilder().addBuilder(
+                    com.taobao.search.iquan.client.common.pb.PlanOp.getDefaultInstance());
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.PlanOp.Builder addRelPlanBuilder(
+                int index) {
+            return getRelPlanFieldBuilder().addBuilder(
+                    index, com.taobao.search.iquan.client.common.pb.PlanOp.getDefaultInstance());
+        }
+
+        /**
+         * <code>repeated .iquan.pb.PlanOp rel_plan = 2;</code>
+         */
+        public java.util.List<com.taobao.search.iquan.client.common.pb.PlanOp.Builder>
+        getRelPlanBuilderList() {
+            return getRelPlanFieldBuilder().getBuilderList();
+        }
+
+        private com.google.protobuf.RepeatedFieldBuilderV3<
+                com.taobao.search.iquan.client.common.pb.PlanOp, com.taobao.search.iquan.client.common.pb.PlanOp.Builder, com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder>
+        getRelPlanFieldBuilder() {
+            if (relPlanBuilder_ == null) {
+                relPlanBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+                        com.taobao.search.iquan.client.common.pb.PlanOp, com.taobao.search.iquan.client.common.pb.PlanOp.Builder, com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder>(
+                        relPlan_,
+                        ((bitField0_ & 0x00000001) != 0),
+                        getParentForChildren(),
+                        isClean());
+                relPlan_ = null;
+            }
+            return relPlanBuilder_;
+        }
+
+        private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+        internalGetOptimizeInfos() {
+            if (optimizeInfos_ == null) {
+                return com.google.protobuf.MapField.emptyMapField(
+                        OptimizeInfosDefaultEntryHolder.defaultEntry);
+            }
+            return optimizeInfos_;
+        }
+
+        private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+        internalGetMutableOptimizeInfos() {
+            onChanged();
+            ;
+            if (optimizeInfos_ == null) {
+                optimizeInfos_ = com.google.protobuf.MapField.newMapField(
+                        OptimizeInfosDefaultEntryHolder.defaultEntry);
+            }
+            if (!optimizeInfos_.isMutable()) {
+                optimizeInfos_ = optimizeInfos_.copy();
+            }
+            return optimizeInfos_;
+        }
+
+        public int getOptimizeInfosCount() {
+            return internalGetOptimizeInfos().getMap().size();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
+         */
+
+        public boolean containsOptimizeInfos(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            return internalGetOptimizeInfos().getMap().containsKey(key);
+        }
+
+        /**
+         * Use {@link #getOptimizeInfosMap()} instead.
+         */
+        @java.lang.Deprecated
+        public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getOptimizeInfos() {
+            return getOptimizeInfosMap();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
+         */
+
+        public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getOptimizeInfosMap() {
+            return internalGetOptimizeInfos().getMap();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
+         */
+
+        public com.taobao.search.iquan.client.common.pb.AnyValue getOptimizeInfosOrDefault(
+                java.lang.String key,
+                com.taobao.search.iquan.client.common.pb.AnyValue defaultValue) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
+                    internalGetOptimizeInfos().getMap();
+            return map.containsKey(key) ? map.get(key) : defaultValue;
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
+         */
+
+        public com.taobao.search.iquan.client.common.pb.AnyValue getOptimizeInfosOrThrow(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
+                    internalGetOptimizeInfos().getMap();
+            if (!map.containsKey(key)) {
+                throw new java.lang.IllegalArgumentException();
+            }
+            return map.get(key);
+        }
+
+        public Builder clearOptimizeInfos() {
+            internalGetMutableOptimizeInfos().getMutableMap()
+                    .clear();
+            return this;
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
+         */
+
+        public Builder removeOptimizeInfos(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            internalGetMutableOptimizeInfos().getMutableMap()
+                    .remove(key);
+            return this;
+        }
+
+        /**
+         * Use alternate mutation accessors instead.
+         */
+        @java.lang.Deprecated
+        public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+        getMutableOptimizeInfos() {
+            return internalGetMutableOptimizeInfos().getMutableMap();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
+         */
+        public Builder putOptimizeInfos(
+                java.lang.String key,
+                com.taobao.search.iquan.client.common.pb.AnyValue value) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            if (value == null) {
+                throw new java.lang.NullPointerException();
+            }
+            internalGetMutableOptimizeInfos().getMutableMap()
+                    .put(key, value);
+            return this;
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; optimize_infos = 3;</code>
+         */
+
+        public Builder putAllOptimizeInfos(
+                java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> values) {
+            internalGetMutableOptimizeInfos().getMutableMap()
+                    .putAll(values);
+            return this;
+        }
+
+        private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+        internalGetExecParams() {
+            if (execParams_ == null) {
+                return com.google.protobuf.MapField.emptyMapField(
+                        ExecParamsDefaultEntryHolder.defaultEntry);
+            }
+            return execParams_;
+        }
+
+        private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+        internalGetMutableExecParams() {
+            onChanged();
+            ;
+            if (execParams_ == null) {
+                execParams_ = com.google.protobuf.MapField.newMapField(
+                        ExecParamsDefaultEntryHolder.defaultEntry);
+            }
+            if (!execParams_.isMutable()) {
+                execParams_ = execParams_.copy();
+            }
+            return execParams_;
+        }
+
+        public int getExecParamsCount() {
+            return internalGetExecParams().getMap().size();
+        }
+
+        /**
+         * <code>map&lt;string, string&gt; exec_params = 4;</code>
+         */
+
+        public boolean containsExecParams(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            return internalGetExecParams().getMap().containsKey(key);
+        }
+
+        /**
+         * Use {@link #getExecParamsMap()} instead.
+         */
+        @java.lang.Deprecated
+        public java.util.Map<java.lang.String, java.lang.String> getExecParams() {
+            return getExecParamsMap();
+        }
+
+        /**
+         * <code>map&lt;string, string&gt; exec_params = 4;</code>
+         */
+
+        public java.util.Map<java.lang.String, java.lang.String> getExecParamsMap() {
+            return internalGetExecParams().getMap();
+        }
+
+        /**
+         * <code>map&lt;string, string&gt; exec_params = 4;</code>
+         */
+
+        public java.lang.String getExecParamsOrDefault(
+                java.lang.String key,
+                java.lang.String defaultValue) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            java.util.Map<java.lang.String, java.lang.String> map =
+                    internalGetExecParams().getMap();
+            return map.containsKey(key) ? map.get(key) : defaultValue;
+        }
+
+        /**
+         * <code>map&lt;string, string&gt; exec_params = 4;</code>
+         */
+
+        public java.lang.String getExecParamsOrThrow(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            java.util.Map<java.lang.String, java.lang.String> map =
+                    internalGetExecParams().getMap();
+            if (!map.containsKey(key)) {
+                throw new java.lang.IllegalArgumentException();
+            }
+            return map.get(key);
+        }
+
+        public Builder clearExecParams() {
+            internalGetMutableExecParams().getMutableMap()
+                    .clear();
+            return this;
+        }
+
+        /**
+         * <code>map&lt;string, string&gt; exec_params = 4;</code>
+         */
+
+        public Builder removeExecParams(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            internalGetMutableExecParams().getMutableMap()
+                    .remove(key);
+            return this;
+        }
+
+        /**
+         * Use alternate mutation accessors instead.
+         */
+        @java.lang.Deprecated
+        public java.util.Map<java.lang.String, java.lang.String>
+        getMutableExecParams() {
+            return internalGetMutableExecParams().getMutableMap();
+        }
+
+        /**
+         * <code>map&lt;string, string&gt; exec_params = 4;</code>
+         */
+        public Builder putExecParams(
+                java.lang.String key,
+                java.lang.String value) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            if (value == null) {
+                throw new java.lang.NullPointerException();
+            }
+            internalGetMutableExecParams().getMutableMap()
+                    .put(key, value);
+            return this;
+        }
+
+        /**
+         * <code>map&lt;string, string&gt; exec_params = 4;</code>
+         */
+
+        public Builder putAllExecParams(
+                java.util.Map<java.lang.String, java.lang.String> values) {
+            internalGetMutableExecParams().getMutableMap()
+                    .putAll(values);
+            return this;
+        }
+
+        @java.lang.Override
+        public final Builder setUnknownFields(
+                final com.google.protobuf.UnknownFieldSet unknownFields) {
+            return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+                final com.google.protobuf.UnknownFieldSet unknownFields) {
+            return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:iquan.pb.SqlPlan)
+    }
 
 }
 

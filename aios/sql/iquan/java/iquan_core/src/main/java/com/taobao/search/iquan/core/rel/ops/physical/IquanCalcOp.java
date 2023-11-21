@@ -1,14 +1,21 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
-import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexShuttleUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelDistribution;
@@ -16,13 +23,19 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.core.Calc;
 import org.apache.calcite.rel.hint.RelHint;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexLocalRef;
+import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexProgram;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
+import org.apache.calcite.sql.SqlOperator;
+import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.*;
 
 public class IquanCalcOp extends Calc implements IquanRelNode {
     private int parallelNum = -1;
@@ -124,20 +137,48 @@ public class IquanCalcOp extends Calc implements IquanRelNode {
         this.distribution = distribution;
     }
 
+//    @Override
+//    public IquanRelNode derivePendingUnion(IquanUnionOp pendingUnion, GlobalCatalog globalCatalog, IquanConfigManager config) {
+//        List<Triple<Location, Distribution, List<RelNode>>> locationList = pendingUnion.getLocationList();
+//        List<RelNode> newInputs = new ArrayList<>(locationList.size());
+//        //todo: if pendingUnion inputs is calc, need merge calc
+//        for (Triple<Location, Distribution, List<RelNode>> triple : locationList) {
+//            IquanUnionOp sameLocationUnion = new IquanUnionOp(pendingUnion.getCluster(), pendingUnion.getTraitSet(), triple.getRight(), pendingUnion.all, null) {
+//                @Override
+//                protected RelDataType deriveRowType() {
+//                    return getProgram().getInputRowType();
+//                }
+//            };
+//            sameLocationUnion.setOutputDistribution(triple.getMiddle());
+//            sameLocationUnion.setLocation(triple.getLeft());
+//            IquanRelNode iquanRelNode = new IquanCalcOp(getCluster(), getTraitSet(), getHints(), sameLocationUnion, getProgram());
+//            newInputs.add(iquanRelNode.deriveDistribution(ImmutableList.of(sameLocationUnion), globalCatalog, config));
+//        }
+//        List<Triple<Location, Distribution, List<RelNode>>> outputLocationList = new ArrayList<>(locationList.size());
+//        IquanUnionOp finalUnion = new IquanUnionOp(
+//                pendingUnion.getCluster(),
+//                pendingUnion.getTraitSet(),
+//                newInputs,
+//                pendingUnion.all,
+//                outputLocationList
+//        );
+//        return finalUnion.deriveDistribution(newInputs, globalCatalog, config);
+//    }
+
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog globalCatalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog globalCatalog, IquanConfigManager config) {
         IquanRelNode inputRelNode = RelDistributionUtil.checkIquanRelType(inputs.get(0));
         if (isPendingUnion(inputRelNode)) {
-            return derivePendingUnion((IquanUnionOp) inputRelNode, globalCatalog, dbName, config);
+            return derivePendingUnion((IquanUnionOp) inputRelNode, globalCatalog, config);
         }
         Distribution inputDistribution = inputRelNode.getOutputDistribution();
         Distribution outputDistribution = inputDistribution.copy();
         List<Integer> indexList = updateDistribution(outputDistribution);
         if (inputDistribution.getType().equals(RelDistribution.Type.HASH_DISTRIBUTED)
                 && inputDistribution.getPosHashFields().size() != indexList.size()) {
-                outputDistribution.setType(RelDistribution.Type.RANDOM_DISTRIBUTED);
-                //updateDistribution can not clean equalHashFields completely
-                outputDistribution.getEqualHashFields().clear();
+            outputDistribution.setType(RelDistribution.Type.RANDOM_DISTRIBUTED);
+            //updateDistribution can not clean equalHashFields completely
+            outputDistribution.getEqualHashFields().clear();
         }
         setOutputDistribution(outputDistribution);
         setLocation(inputRelNode.getLocation());
@@ -149,7 +190,7 @@ public class IquanCalcOp extends Calc implements IquanRelNode {
         List<MutablePair<Integer, String>> posHashFields = distribution.getPosHashFields();
         List<Integer> indexList = new ArrayList<>(posHashFields.size());
         //todo:formatOutputRowExpr and formatRowFieldName not contain $
-        Map<String, Object> outputFieldExprMap = (Map<String, Object>) PlanWriteUtils.formatOutputRowExpr(getProgram());
+        Map<String, Object> outputFieldExprMap = PlanWriteUtils.formatOutputRowExpr(getProgram());
         List<String> outputFieldList = (List<String>) PlanWriteUtils.formatRowFieldName(getRowType());
         for (int i = posHashFields.size() - 1; i >= 0; i--) {
             Pair<Boolean, Integer> hashFieldResult = matchField(posHashFields.get(i), equalHashFields, outputFieldList, outputFieldExprMap);
@@ -194,7 +235,9 @@ public class IquanCalcOp extends Calc implements IquanRelNode {
             String newName = PlanWriteUtils.unFormatFieldName(field);
             Object expr = outputFieldExprMap.get(field);
             String oldName = getFieldOldName(newName, expr);
-            if (oldName == null) continue;
+            if (oldName == null) {
+                continue;
+            }
             originKey = bakKeyMap.get(oldName);
             if (originKey != null) {
                 partFixKeyMap.put(newName, originKey);
@@ -203,12 +246,18 @@ public class IquanCalcOp extends Calc implements IquanRelNode {
     }
 
     private Pair<Boolean, Integer> matchField(MutablePair<Integer, String> posHashField, List<List<String>> equalHashFields,
-                                                List<String> outputFieldList, Map<String, Object> outputFieldExprMap) {
+                                              List<String> outputFieldList, Map<String, Object> outputFieldExprMap) {
         for (String field : outputFieldList) {
             Object expr = outputFieldExprMap.get(field);
             String newName = PlanWriteUtils.unFormatFieldName(field);
             String oldName = getFieldOldName(newName, expr);
-            if (oldName == null) continue;
+            if (oldName == null) {
+                if (matchEqualConditions(posHashField.right)) {
+                    oldName = newName;
+                } else {
+                    continue;
+                }
+            }
             if (oldName.equals(posHashField.right)) {
                 int index = -1;
                 if (!oldName.equals(newName)) {
@@ -221,7 +270,20 @@ public class IquanCalcOp extends Calc implements IquanRelNode {
                 return Pair.of(true, index);
             }
         }
+
         return Pair.of(false, -1);
+    }
+
+    private Boolean matchEqualConditions(String fieldName) {
+        Map<String, List<Map.Entry<String, String>>> conditions = new TreeMap<>();
+        Boolean findConditions = getConditions(conditions);
+        if (findConditions && conditions.containsKey(ConstantDefine.EQUAL)) {
+            List<Map.Entry<String, String>> equalConditions = conditions.get(ConstantDefine.EQUAL);
+            if (equalConditions.stream().map(Map.Entry::getKey).anyMatch(key -> key.equals(fieldName))) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
     }
 
     private String getFieldOldName(String newName, Object expr) {
@@ -252,5 +314,81 @@ public class IquanCalcOp extends Calc implements IquanRelNode {
     @Override
     public void setParallelIndex(int parallelIndex) {
         this.parallelIndex = parallelIndex;
+    }
+
+    public boolean getConditions(Map<String, List<Map.Entry<String, String>>> conditions) {
+        RexProgram rexProgram = getProgram();
+        RelDataType inputRowType = rexProgram.getInputRowType();
+        RexLocalRef condition = rexProgram.getCondition();
+        List<RexNode> exprs = rexProgram.getExprList();
+
+        if (condition == null || inputRowType == null) {
+            return Boolean.FALSE;
+        }
+
+        return analyzeConditions(condition, exprs, inputRowType, conditions, 0);
+    }
+
+    private Boolean analyzeConditions(RexNode rexNode, List<RexNode> exprs, RelDataType rowType, Map<String, List<Map.Entry<String, String>>> conditions,
+                                      int level) {
+        if (rexNode instanceof RexLocalRef) {
+            RexLocalRef localRef = (RexLocalRef) rexNode;
+            if (exprs == null || localRef.getIndex() >= exprs.size()) {
+                return Boolean.FALSE;
+            }
+            RexNode newRexNode = exprs.get(localRef.getIndex());
+            return analyzeConditions(newRexNode, exprs, rowType, conditions, level);
+        }
+
+        if (!(rexNode instanceof RexCall)) {
+            return Boolean.FALSE;
+        }
+
+        RexCall call = (RexCall) rexNode;
+        SqlOperator operator = call.getOperator();
+        String opName = operator.getName();
+        opName = opName.isEmpty() ? operator.getKind().name().toUpperCase() : opName.toUpperCase();
+
+        if (level < 1 && opName.equals(ConstantDefine.AND)) {
+            List<RexNode> operands = call.getOperands();
+            Boolean flag = Boolean.TRUE;
+            for (RexNode operand : operands) {
+                if (!analyzeConditions(operand, exprs, rowType, conditions, level + 1)) {
+                    flag = Boolean.FALSE;
+                }
+            }
+            return flag;
+        }
+
+        List<RexNode> operands = call.getOperands();
+        if (operands.size() != 2) {
+            return Boolean.FALSE;
+        }
+
+        String key, value;
+        RexNode node0 = operands.get(0);
+        if (!(node0 instanceof RexLocalRef)) {
+            return Boolean.FALSE;
+        }
+        RexNode operandExpr = exprs.get(((RexLocalRef) node0).getIndex());
+        if (!(operandExpr instanceof RexInputRef)) {
+            return Boolean.FALSE;
+        }
+        key = rowType.getFieldList().get(((RexInputRef) operandExpr).getIndex()).getName();
+
+        RexNode node1 = operands.get(1);
+        RexNode operandExpr1 = exprs.get(((RexLocalRef) node1).getIndex());
+        if (!(operandExpr1 instanceof RexLiteral)) {
+            return Boolean.FALSE;
+        }
+        RexLiteral rexLiteral = (RexLiteral) operandExpr1;
+        String valueStr;
+        if (rexLiteral.getTypeName() == SqlTypeName.CHAR) {
+            valueStr = rexLiteral.getValueAs(String.class);
+        } else {
+            valueStr = rexLiteral.getValue().toString();
+        }
+        conditions.computeIfAbsent(opName, k -> new ArrayList<>()).add(new AbstractMap.SimpleEntry<>(key, valueStr));
+        return Boolean.TRUE;
     }
 }

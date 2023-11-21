@@ -60,6 +60,7 @@ public:
     static const std::string functionSeperator;
     static const std::string functionParamSeperator;
     static const std::string funcHashId2Pid;
+    static const std::string funcShuffleWithinPart;
     static const std::string funcHashIdAsPid;
     static const std::string funcHashStr2HashId_HashFuncPrefix;
     static const std::string funcHashStr2HashId_DefaultHash;
@@ -134,6 +135,7 @@ private:
     void doSendRequestLoop(int64_t now, bool force);
     void setCheckpointId(int64_t checkpointId);
     bool processHashId2PartId(MessageInfo &msgInfo);
+    bool processShuffleWithinPart(MessageInfo &msgInfo);
     bool processHashIdAsPartId(MessageInfo &msgInfo);
     bool processHashStr(MessageInfo &msgInfo);
     protocol::ErrorCode validateMessageInfo(const MessageInfo &msgInfo);

@@ -15,18 +15,36 @@
  */
 #include "indexlib/merger/index_merge_meta.h"
 
+#include <cstddef>
+#include <map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
-#include "fslib/fs/FileSystem.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/file_system/Directory.h"
-#include "indexlib/file_system/FenceDirectory.h"
-#include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemDefine.h"
+#include "indexlib/file_system/FileSystemOptions.h"
+#include "indexlib/file_system/file/FileWriter.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index_base/branch_fs.h"
-#include "indexlib/index_base/index_meta/merge_task_resource.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/merge_task_resource_manager.h"
-#include "indexlib/index_define.h"
 #include "indexlib/merger/merge_define.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/counter/CounterMap.h"
 

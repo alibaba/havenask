@@ -59,9 +59,7 @@ public:
     IdentityAggFunc(const std::vector<std::string> &inputs,
                     const std::vector<std::string> &outputs,
                     AggFuncMode mode)
-        : AggFunc(inputs, outputs, mode)
-        , _inputColumn(NULL)
-        , _identityColumn(NULL) {}
+        : AggFunc(inputs, outputs, mode) {}
     ~IdentityAggFunc() {}
 
 private:
@@ -70,7 +68,6 @@ private:
 
 public:
     DEF_CREATE_ACCUMULATOR_FUNC(IdentityAccumulator<InputType>)
-    bool needDependInputTablePools() const override;
 
 private:
     // local
@@ -80,35 +77,24 @@ private:
     bool outputAccumulator(Accumulator *acc, table::Row outputRow) const override;
 
 private:
-    table::ColumnData<InputType> *_inputColumn;
-    table::ColumnData<InputType> *_identityColumn;
+    table::ColumnData<InputType> *_inputColumn = nullptr;
+    table::ColumnData<InputType> *_identityColumn = nullptr;
 };
-
-template <typename InputType>
-bool IdentityAggFunc<InputType>::needDependInputTablePools() const {
-    return autil::IsMultiType<InputType>::type::value;
-}
 
 // local
 template <typename InputType>
 bool IdentityAggFunc<InputType>::initCollectInput(const table::TablePtr &inputTable) {
     assert(_inputFields.size() == 1);
     _inputColumn = table::TableUtil::getColumnData<InputType>(inputTable, _inputFields[0]);
-    if (_inputColumn == nullptr) {
-        return false;
-    }
-    return true;
+    return _inputColumn != nullptr;
 };
 
 template <typename InputType>
 bool IdentityAggFunc<InputType>::initAccumulatorOutput(const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
-    _identityColumn = table::TableUtil::declareAndGetColumnData<InputType>(
-        outputTable, _outputFields[0], false);
-    if (_identityColumn == nullptr) {
-        return false;
-    }
-    return true;
+    _identityColumn
+        = table::TableUtil::declareAndGetColumnData<InputType>(outputTable, _outputFields[0]);
+    return _identityColumn != nullptr;
 }
 
 template <typename InputType>
@@ -116,7 +102,12 @@ bool IdentityAggFunc<InputType>::collect(table::Row inputRow, Accumulator *acc) 
     IdentityAccumulator<InputType> *identityAcc
         = static_cast<IdentityAccumulator<InputType> *>(acc);
     if (identityAcc->isFirstAggregate) {
-        identityAcc->value = _inputColumn->get(inputRow);
+        auto value = _inputColumn->get(inputRow);
+        if constexpr (!autil::IsMultiType<InputType>::value) {
+            identityAcc->value = value;
+        } else {
+            identityAcc->value = value.clone(_identityColumn->getPool());
+        }
         identityAcc->isFirstAggregate = false;
     }
     return true;
@@ -126,7 +117,7 @@ template <typename InputType>
 bool IdentityAggFunc<InputType>::outputAccumulator(Accumulator *acc, table::Row outputRow) const {
     IdentityAccumulator<InputType> *identityAcc
         = static_cast<IdentityAccumulator<InputType> *>(acc);
-    _identityColumn->set(outputRow, identityAcc->value);
+    _identityColumn->setNoCopy(outputRow, identityAcc->value);
     return true;
 }
 

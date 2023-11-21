@@ -1,9 +1,9 @@
 package com.taobao.search.iquan.core.rel;
 
-import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 
 public class IquanRuleSuccessListener extends IquanRuleListener {
     private final List<RuleProductionEvent> successEvents = new ArrayList<>();

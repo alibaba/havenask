@@ -9,7 +9,7 @@ class FakeTabletReader final : public TabletReader
 public:
     FakeTabletReader(const std::string& tabletName) : TabletReader(nullptr), _tabletName(tabletName) {}
 
-    Status Open(const std::shared_ptr<TabletData>& tabletData, const ReadResource& readResource) override
+    Status DoOpen(const std::shared_ptr<TabletData>& tabletData, const ReadResource& readResource) override
     {
         return Status::OK();
     }

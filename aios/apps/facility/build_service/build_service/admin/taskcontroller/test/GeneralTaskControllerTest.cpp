@@ -1,11 +1,19 @@
 #include "build_service/admin/taskcontroller/GeneralTaskController.h"
 
-#include "autil/StringUtil.h"
-#include "build_service/config/CLIOptionNames.h"
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ConfigReaderAccessor.h"
-#include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/JsonizableProtobuf.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace build_service::config;
 

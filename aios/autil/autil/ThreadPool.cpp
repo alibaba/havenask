@@ -150,7 +150,7 @@ ThreadPool::ThreadPool(const size_t threadNum,
                        bool stopIfHasException,
                        const std::string &name,
                        WorkItemQueueFactoryPtr factory)
-    : ThreadPoolBase(threadNum, queueSize, stopIfHasException, name), _lastPopTime(0) {
+    : ThreadPoolBase(threadNum, queueSize, stopIfHasException, name) {
     if (factory == nullptr) {
         _queue.reset(new CircularPoolQueue(_queueSize));
     } else {
@@ -304,7 +304,6 @@ void ThreadPool::workerLoop() {
             _cond.signalProducer();
         }
         consumeItem(item);
-        _lastPopTime = TimeUtility::monotonicTimeUs();
         _activeThreadCount--;
     }
     if (stopIfHasException()) {

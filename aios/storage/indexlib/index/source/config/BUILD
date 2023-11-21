@@ -13,3 +13,11 @@ strict_cc_library(
         '//aios/storage/indexlib/util:Exception'
     ]
 )
+strict_cc_library(
+    name='SourceIndexConfig',
+    implementation_deps=['//aios/storage/indexlib/legacy/config:schema'],
+    deps=[
+        ':SourceGroupConfig', '//aios/autil:json', '//aios/autil:log',
+        '//aios/storage/indexlib/config:interface'
+    ]
+)

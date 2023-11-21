@@ -37,7 +37,7 @@ bool MmapFileNodeCreator::Init(const LoadConfig& loadConfig, const util::BlockMe
 {
     _memController = memController;
     _loadConfig = loadConfig;
-    MmapLoadStrategyPtr loadStrategy = std::dynamic_pointer_cast<MmapLoadStrategy>(loadConfig.GetLoadStrategy());
+    auto loadStrategy = std::dynamic_pointer_cast<MmapLoadStrategy>(loadConfig.GetLoadStrategy());
     if (!loadStrategy) {
         AUTIL_LOG(ERROR, "Load strategy dynamic fail.");
         return false;

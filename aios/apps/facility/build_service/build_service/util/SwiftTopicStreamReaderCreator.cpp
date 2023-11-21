@@ -15,10 +15,20 @@
  */
 #include "build_service/util/SwiftTopicStreamReaderCreator.h"
 
+#include <algorithm>
+#include <ext/alloc_traits.h>
+#include <stddef.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
 #include "build_service/util/Log.h"
 #include "swift/client/SwiftClient.h"
+#include "swift/client/SwiftClientConfig.h"
+#include "swift/client/SwiftReader.h"
+#include "swift/client/SwiftReaderConfig.h"
 #include "swift/client/SwiftTopicStreamReader.h"
+#include "swift/protocol/ErrCode.pb.h"
 
 namespace build_service::util {
 BS_DECLARE_AND_SETUP_LOGGER(SwiftTopicStreamRawDocumentReader);

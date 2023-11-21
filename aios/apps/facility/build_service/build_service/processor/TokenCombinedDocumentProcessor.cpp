@@ -15,9 +15,23 @@
  */
 #include "build_service/processor/TokenCombinedDocumentProcessor.h"
 
+#include <ext/alloc_traits.h>
+#include <stddef.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringTokenizer.h"
 #include "build_service/analyzer/Token.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/TokenizeField.h"
+#include "indexlib/base/FieldType.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/ITabletSchema.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
+#include "indexlib/document/normal/tokenize/TokenizeDocument.h"
+#include "indexlib/document/normal/tokenize/TokenizeField.h"
+#include "indexlib/document/normal/tokenize/TokenizeSection.h"
+#include "indexlib/indexlib.h"
 
 using namespace build_service::analyzer;
 using namespace build_service::document;

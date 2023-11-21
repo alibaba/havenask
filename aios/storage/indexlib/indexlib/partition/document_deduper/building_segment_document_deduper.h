@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILDING_SEGMENT_DOCUMENT_DEDUPER_H
-#define __INDEXLIB_BUILDING_SEGMENT_DOCUMENT_DEDUPER_H
+#pragma once
 
 #include <memory>
 
@@ -112,5 +111,3 @@ BuildingSegmentDocumentDeduper::RecordDocids(typename index::InMemPrimaryKeySegm
     }
 }
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_BUILDING_SEGMENT_DOCUMENT_DEDUPER_H

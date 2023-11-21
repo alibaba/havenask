@@ -15,6 +15,9 @@
  */
 #pragma once
 #include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
@@ -54,11 +57,13 @@ public:
 public:
     MergeConfig& TEST_GetMergeConfig();
     BuildConfig& TEST_GetBuildConfig();
+    void TEST_AddIndexTaskConfig(const IndexTaskConfig& indexTaskConfig);
     std::vector<IndexTaskConfig>& TEST_GetIndexTaskConfigs();
     indexlib::file_system::LoadConfigList& TEST_GetLoadConfigList();
 
 private:
     struct Impl;
+
     std::unique_ptr<Impl> _impl;
 
 private:

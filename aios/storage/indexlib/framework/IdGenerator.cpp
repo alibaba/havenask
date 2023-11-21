@@ -15,6 +15,9 @@
  */
 #include "indexlib/framework/IdGenerator.h"
 
+#include <algorithm>
+#include <assert.h>
+
 #include "indexlib/base/Types.h"
 #include "indexlib/framework/Segment.h"
 

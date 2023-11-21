@@ -42,23 +42,7 @@ LoadConfigList LoadConfigListCreator::CreateLoadConfigList(const string& strateg
 LoadConfig LoadConfigListCreator::MakeMmapLoadConfig(bool warmup, bool isLock, bool adviseRandom, uint32_t lockSlice,
                                                      uint32_t lockInterval)
 {
-    LoadConfig loadConfig;
-    MmapLoadStrategyPtr strategy(new MmapLoadStrategy(isLock, adviseRandom, lockSlice, lockInterval));
-    loadConfig.SetLoadStrategyPtr(strategy);
-
-    LoadConfig::FilePatternStringVector patterns;
-    patterns.push_back(".*");
-    loadConfig.SetFilePatternString(patterns);
-
-    WarmupStrategy warmupStrategy;
-    if (warmup) {
-        warmupStrategy.SetWarmupType(WarmupStrategy::WARMUP_SEQUENTIAL);
-    } else {
-        warmupStrategy.SetWarmupType(WarmupStrategy::WARMUP_NONE);
-    }
-    loadConfig.SetWarmupStrategy(warmupStrategy);
-
-    return loadConfig;
+    return LoadConfigList::MakeMmapLoadConfig({".*"}, warmup, isLock, adviseRandom, lockSlice, lockInterval);
 }
 
 LoadConfig LoadConfigListCreator::MakeBlockLoadConfig(const string& cacheType, uint64_t memorySize, uint32_t blockSize,

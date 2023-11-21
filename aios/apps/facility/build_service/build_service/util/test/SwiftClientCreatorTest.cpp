@@ -1,10 +1,14 @@
 #include "build_service/util/SwiftClientCreator.h"
 
+#include <functional>
 #include <iostream>
+#include <map>
+#include <string>
 
-#include "autil/StringUtil.h"
+#include "autil/Span.h"
 #include "build_service/test/unittest.h"
 #include "build_service/util/test/FakeSwiftClientCreator.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace std::placeholders;

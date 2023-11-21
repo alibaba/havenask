@@ -6,17 +6,10 @@ public enum OptimizeLevel {
     O4("o4"),
     Os("os");
 
+    private String level;
+
     OptimizeLevel(String level) {
         this.level = level;
-    }
-
-    @Override
-    public String toString() {
-        return level;
-    }
-
-    public String getLevel() {
-        return level;
     }
 
     public static OptimizeLevel from(String level) {
@@ -31,5 +24,12 @@ public enum OptimizeLevel {
         }
     }
 
-    private String level;
+    @Override
+    public String toString() {
+        return level;
+    }
+
+    public String getLevel() {
+        return level;
+    }
 }

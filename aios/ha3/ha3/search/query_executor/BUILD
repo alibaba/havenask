@@ -22,7 +22,8 @@ cc_library(
         '//aios/storage/indexlib/indexlib/partition:reader_sdk',
         '//aios/storage/indexlib/table/normal_table:table',
         '//aios/suez_turing/suez/turing/expression/provider/matchdata'
-    ]
+    ],
+    visibility=['//visibility:public']
 )
 cc_library(
     name='ha3_query_executor_testlib',

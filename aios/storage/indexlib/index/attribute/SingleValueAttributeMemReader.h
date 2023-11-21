@@ -52,7 +52,7 @@ public:
     bool Updatable() const { return false; }
 
 public:
-    inline uint32_t TEST_GetDataLength(docid_t docId) const { return sizeof(T); }
+    inline uint32_t GetDataLength(docid_t docId) const override { return sizeof(T); }
 
 private:
     bool CheckDocId(docid_t docId) const { return docId >= 0 && docId < (docid_t)GetDocCount(); }

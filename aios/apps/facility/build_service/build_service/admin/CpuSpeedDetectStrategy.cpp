@@ -15,6 +15,10 @@
  */
 #include "build_service/admin/CpuSpeedDetectStrategy.h"
 
+#include <cstdint>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "build_service/util/StatisticUtil.h"
 
 namespace build_service { namespace admin {

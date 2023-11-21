@@ -37,7 +37,7 @@ OperationBlock* FileOperationBlock::Clone() const
 
 size_t FileOperationBlock::Size() const { return _blockMeta.operationCount; }
 Status FileOperationBlock::Dump(const std::shared_ptr<file_system::FileWriter>& fileWriter, size_t maxOpSerializeSize,
-                                bool hasConcurrentIdx)
+                                bool hasConcurrentIdx, bool hasSourceIdx)
 {
     assert(false);
     return Status::Unimplement("file operation block not support dump");
@@ -65,7 +65,8 @@ FileOperationBlock::CreateOperationBlockForRead(const OperationFactory& opFactor
 
     for (size_t i = 0; i < _blockMeta.operationCount; ++i) {
         size_t opSize = 0;
-        auto [status, operation] = opFactory.DeserializeOperation(baseAddr, pool, opSize, _blockMeta.hasConcurrentIdx);
+        auto [status, operation] = opFactory.DeserializeOperation(baseAddr, pool, opSize, _blockMeta.hasConcurrentIdx,
+                                                                  _blockMeta.hasSourceIdx);
         RETURN2_IF_STATUS_ERROR(status, nullptr, "deserialize operation failed");
         opBlock->AddOperation(operation);
         baseAddr += opSize;

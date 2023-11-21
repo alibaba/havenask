@@ -25,6 +25,7 @@ OfflineMergeConfig::~OfflineMergeConfig() {};
 void OfflineMergeConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
 {
     json.Jsonize("merge_config", mergeConfig, mergeConfig);
+    json.Jsonize("plugin_config", pluginConfig, pluginConfig);
     json.Jsonize("period", periodMergeDescription, periodMergeDescription);
     json.Jsonize("merge_parallel_num", mergeParallelNum, mergeParallelNum);
     if (json.GetMode() == FROM_JSON) {

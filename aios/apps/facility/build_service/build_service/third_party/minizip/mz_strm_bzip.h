@@ -1,3 +1,4 @@
+#pragma once
 /* mz_strm_bzip.h -- Stream for bzip inflate/deflate
    Version 2.8.9, July 4, 2019
    part of the MiniZip project
@@ -8,9 +9,6 @@
    This program is distributed under the terms of the same license as zlib.
    See the accompanying LICENSE file for the full text of the license.
 */
-
-#ifndef MZ_STREAM_BZIP_H
-#define MZ_STREAM_BZIP_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,6 +39,4 @@ void bz_internal_error(int errcode);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -1086,7 +1086,7 @@ TEST_F(TableTest, testUpdatePartition) {
         proto::Table inputProto = createFullTableProto();
         ASSERT_EQ(Status::OK, entity.fromProto(inputProto).code());
         proto::Partition request = inputProto.partitions(0);
-        ASSERT_NE(Status::OK, entity.updatePartition(request).code());
+        ASSERT_EQ(Status::OK, entity.updatePartition(request).code());
     }
     { // success
         Table entity;

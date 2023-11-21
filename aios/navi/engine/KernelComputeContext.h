@@ -20,8 +20,9 @@
 #include "navi/engine/Data.h"
 #include "navi/engine/KernelInitContext.h"
 #include "navi/engine/KernelMetric.h"
-#include "navi/engine/NaviResult.h"
 #include "navi/engine/RunGraphParams.h"
+#include "navi/engine/NaviError.h"
+#include "aios/network/gig/multi_call/stream/GigStreamRpcInfo.h"
 #include <vector>
 
 namespace navi {
@@ -62,7 +63,9 @@ private:
 };
 
 struct ForkGraphParam {
-    bool errorAsEof = true;
+    bool collectMetric = false;
+    bool collectPerf = false;
+    bool errorAsEof = false;
     int64_t timeoutMs = DEFAULT_TIMEOUT_MS;
     std::vector<OverrideData> overrideDataVec;
     std::vector<NamedData> namedDataVec;
@@ -91,14 +94,16 @@ public:
     void setIgnoreDeadlock();
     ErrorCode fork(GraphDef *graphDef, const ForkGraphParam &param = {});
     const KernelMetric &getMetric() const;
-    void appendResult(NaviResult &result);
     void updateTraceLevel(const std::string &levelStr) const;
     bool updateTimeoutMs(int64_t timeoutMs) const;
-    void fillTrace(std::vector<std::string> &traceVec) const;
-    LoggingEvent firstErrorEvent() const;
-    ErrorCode getScopeErrorCode() const;
+    void updateCollect(bool collectMetric, bool collectPerf) const;
+    void collectTrace(std::vector<std::string> &traceVec) const;
+    std::shared_ptr<multi_call::GigStreamRpcInfoMap> getRpcInfoMap() const;
+    NaviErrorPtr getScopeError() const;
+    ErrorHandleStrategy getScopeErrorHandleStrategy() const;
+    void reportScopeError(const NaviErrorPtr &error);
+    void reportScopeError(ErrorCode ec);
     int64_t getRemainTimeMs() const;
-
 private:
     bool doGetGroupInput(IndexType group, GroupDatas &datas);
 private:

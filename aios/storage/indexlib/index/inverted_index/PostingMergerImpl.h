@@ -66,9 +66,6 @@ public:
     bool IsCompressedPostingHeader() const override { return true; }
 
 private:
-    void MergeOneSegment(const std::shared_ptr<indexlibv2::index::DocMapper>& docMapper, PostingDecoderImpl* decoder,
-                         SingleTermIndexSegmentPatchIterator* patchIter, docid_t baseDocId);
-
     std::shared_ptr<MultiSegmentPostingWriter>
     CreatePostingWriter(PostingWriterResource* postingWriterResource,
                         const std::vector<std::shared_ptr<indexlibv2::framework::SegmentMeta>>& targetSegments);

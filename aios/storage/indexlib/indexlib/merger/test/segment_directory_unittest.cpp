@@ -9,7 +9,6 @@
 using namespace std;
 using namespace indexlib::util;
 
-using namespace indexlib::common;
 using namespace indexlib::file_system;
 using namespace indexlib::index_base;
 

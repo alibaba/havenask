@@ -35,7 +35,7 @@ void UnusedSegmentCollector::Collect(const ReaderContainerPtr& readerContainer, 
                                      FileList& segments)
 {
     Version latestVersion;
-    VersionLoader::GetVersion(directory, latestVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(directory, latestVersion, INVALID_VERSIONID);
     fslib::FileList tmpSegments;
     VersionLoader::ListSegments(directory, tmpSegments);
     for (size_t i = 0; i < tmpSegments.size(); ++i) {

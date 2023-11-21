@@ -15,12 +15,19 @@
  */
 #include "build_service/config/SwiftConfig.h"
 
+#include <memory>
 #include <regex>
+#include <sstream>
+#include <stddef.h>
+#include <utility>
+#include <vector>
 
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
 #include "autil/legacy/json.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/BasicDefs.pb.h"
 
 using namespace std;
 using namespace build_service::proto;

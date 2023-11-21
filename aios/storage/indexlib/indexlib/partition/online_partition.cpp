@@ -214,7 +214,7 @@ Version OnlinePartition::LoadOnDiskVersion(const string& workRoot, const string&
     const std::string& root = sourceRoot;
     VersionLoader::GetVersionS(root, onDiskVersion, targetVersionId);
     auto lifecycleTable = GetLifecycleTableFromVersion(onDiskVersion);
-    if (likely(onDiskVersion.GetVersionId() != INVALID_VERSION)) {
+    if (likely(onDiskVersion.GetVersionId() != INVALID_VERSIONID)) {
         THROW_IF_FS_ERROR(
             mFileSystem->MountVersion(root, onDiskVersion.GetVersionId(), "", FSMT_READ_ONLY, lifecycleTable),
             "mount version failed");
@@ -921,7 +921,7 @@ ReopenDecider::ReopenType OnlinePartition::MakeReopenDecision(bool forceReopen, 
     ReopenDecider::ReopenType reopenType = reopenDecider.GetReopenType();
     if (reopenType == ReopenDecider::NORMAL_REOPEN || reopenType == ReopenDecider::FORCE_REOPEN) {
         VersionLoader::GetVersionS(root, onDiskVersion, version.GetVersionId());
-        if (unlikely(onDiskVersion.GetVersionId() == INVALID_VERSION)) {
+        if (unlikely(onDiskVersion.GetVersionId() == INVALID_VERSIONID)) {
             INDEXLIB_FATAL_ERROR(InconsistentState, "get invalid version");
         }
         /*/ TODO: modify onDiskVersion's segmentTemperature
@@ -1126,7 +1126,7 @@ void OnlinePartition::LoadReaderPatch(const PartitionDataPtr& partitionData, Onl
 
         PatchLoader patchLoader(mRtSchema, mOptions.GetOnlineConfig());
         segmentid_t startLoadSegment = mLoadedIncVersion.GetLastSegment() + 1;
-        bool isIncConsistentWithRt = (mLoadedIncVersion != index_base::Version(INVALID_VERSION)) &&
+        bool isIncConsistentWithRt = (mLoadedIncVersion != index_base::Version(INVALID_VERSIONID)) &&
                                      mOptions.GetOnlineConfig().isIncConsistentWithRealtime;
 
         Version onDiskIncVersion = partitionData->GetOnDiskVersion();
@@ -1600,7 +1600,7 @@ bool OnlinePartition::ExecuteTask(OnlinePartitionTaskItem::TaskType taskType)
             return false;
         }
 
-        versionid_t loadedVersion = INVALID_VERSION;
+        versionid_t loadedVersion = INVALID_VERSIONID;
         if (mDataLock.trylock() != 0) {
             mCleanerLock.unlock();
             return false;

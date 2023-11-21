@@ -15,7 +15,17 @@
  */
 #pragma once
 
+#include <bits/types/struct_tm.h>
+#include <cstdint>
+#include <ctime>
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+
 #include "autil/Log.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/config/MergeConfig.h"
@@ -115,11 +125,15 @@ public:
     void FillLegacyReclaimConfig(const std::string& name,
                                  const indexlib::legacy::config::OfflineMergeConfig& legacyMergeConfig);
 
+public:
+    Status TEST_SetSetting(const std::string& key, const std::string& str) const;
+
 private:
     std::pair<bool, const autil::legacy::Any&> GetSettingConfig(const std::string& key) const;
 
 private:
     struct Impl;
+
     std::unique_ptr<Impl> _impl;
 
 private:

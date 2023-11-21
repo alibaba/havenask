@@ -48,7 +48,7 @@ public:
     // Caller should already checked if the xdsClient has the full data before
     // call this function.
     // The output should be *append* to topoNodeVecToAppend
-    bool getClusterInfoMap(TopoNodeVec *topoNodeVecToAppend);
+    bool getClusterInfoMap(TopoNodeVec *topoNodeVecToAppend, HeartbeatSpecVec &heartbeatSpecs);
 
     bool loadCache();
 

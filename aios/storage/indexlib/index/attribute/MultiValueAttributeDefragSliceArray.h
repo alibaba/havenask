@@ -38,7 +38,7 @@ public:
     MultiValueAttributeDefragSliceArray(const std::shared_ptr<indexlib::util::DefragSliceArray::SliceArray>& sliceArray,
                                         const std::string& attrName, uint64_t defragPercentThreshold,
                                         framework::IIndexMemoryReclaimer* indexMemoryReclaimer);
-    ~MultiValueAttributeDefragSliceArray() = default;
+    ~MultiValueAttributeDefragSliceArray();
 
 public:
     void Init(MultiValueAttributeOffsetReader* offsetReader,
@@ -53,6 +53,7 @@ private:
     void DoFree(size_t size) override;
     void Defrag(int64_t sliceIdx) override;
     bool NeedDefrag(int64_t sliceIdx) override;
+    void AllocateNewSlice() override;
 
     inline void MoveData(docid_t docId, uint64_t offset) __ALWAYS_INLINE;
 
@@ -63,10 +64,13 @@ private:
     MultiValueAttributeDataFormatter _dataFormatter;
     MultiValueAttributeOffsetReader* _offsetReader;
     std::shared_ptr<AttributeMetrics> _attributeMetrics;
-    std::vector<int64_t> _uselessSliceIdxs;
+    //(retireId, uselessSliceId)
+    std::vector<std::pair<int64_t, int64_t>> _uselessSliceIdxs;
     std::string _attrName;
     uint64_t _defragPercentThreshold;
     framework::IIndexMemoryReclaimer* _indexMemoryReclaimer;
+    mutable std::recursive_mutex _dataMutex;
+    std::string _filePath;
 
 private:
     AUTIL_LOG_DECLARE();

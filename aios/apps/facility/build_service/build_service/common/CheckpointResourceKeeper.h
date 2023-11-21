@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CHECKPOINTRESOURCEKEEPER_H
-#define ISEARCH_BS_CHECKPOINTRESOURCEKEEPER_H
+#pragma once
 
+#include <string>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common/CheckpointAccessor.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common/ResourceKeeper.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/WorkerNode.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace common {
 
@@ -101,5 +108,3 @@ private:
 
 BS_TYPEDEF_PTR(CheckpointResourceKeeper);
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_CHECKPOINTRESOURCEKEEPER_H

@@ -37,6 +37,10 @@ namespace indexlibv2::config {
 class ITabletSchema;
 }
 
+namespace build_service::proto {
+class PartitionId;
+} // namespace build_service::workflow
+
 namespace build_service::workflow {
 class RealtimeInfoWrapper;
 } // namespace build_service::workflow

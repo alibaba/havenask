@@ -30,7 +30,8 @@ public:
     void CheckDoc(std::shared_ptr<MultiValueAttributeDiskIndexer<int16_t>>& diskIndexer, docid_t docid,
                   uint8_t* expectValue);
     std::shared_ptr<BytesAlignedSliceArray> PrepareSliceArrayFile(const std::shared_ptr<Directory>& partitionDirectory,
-                                                                  const std::string& attrDir);
+                                                                  const std::string& attrDir, uint64_t sliceSize = 32,
+                                                                  uint64_t sliceNum = 10);
 
     template <typename T>
     char* MakeBuffer(const std::string& valueStr);
@@ -50,7 +51,8 @@ private:
     std::shared_ptr<autil::mem_pool::Pool> _pool;
     std::shared_ptr<Directory> _attrDir;
     std::shared_ptr<document::extractor::IDocumentInfoExtractorFactory> _docInfoExtractorFactory;
-    IndexerParameter _indexerParam;
+    DiskIndexerParameter _indexerParam;
+    MemIndexerParameter _memIndexerParam;
     std::string _rootPath;
     std::shared_ptr<kmonitor::MetricsReporter> _metricsReporter;
     std::shared_ptr<framework::IIndexMemoryReclaimer> _indexMemoryReclaimer;
@@ -91,13 +93,12 @@ void MultiValueAttributeDefragSliceArrayTest::CheckDoc(
     ASSERT_EQ(expected, value);
 }
 
-std::shared_ptr<BytesAlignedSliceArray>
-MultiValueAttributeDefragSliceArrayTest::PrepareSliceArrayFile(const std::shared_ptr<Directory>& directory,
-                                                               const std::string& attrDir)
+std::shared_ptr<BytesAlignedSliceArray> MultiValueAttributeDefragSliceArrayTest::PrepareSliceArrayFile(
+    const std::shared_ptr<Directory>& directory, const std::string& attrDir, uint64_t sliceSize, uint64_t sliceNum)
 {
     DirectoryPtr attrDirectory = directory->GetDirectory(attrDir, true);
-    FileWriterPtr sliceFileWriter =
-        attrDirectory->CreateFileWriter(ATTRIBUTE_DATA_EXTEND_SLICE_FILE_NAME, WriterOption::Slice(32, 10));
+    FileWriterPtr sliceFileWriter = attrDirectory->CreateFileWriter(ATTRIBUTE_DATA_EXTEND_SLICE_FILE_NAME,
+                                                                    WriterOption::Slice(sliceSize, sliceNum));
     sliceFileWriter->Close().GetOrThrow();
     SliceFileReaderPtr sliceFileReader = std::dynamic_pointer_cast<SliceFileReader>(
         attrDirectory->CreateFileReader(ATTRIBUTE_DATA_EXTEND_SLICE_FILE_NAME, FSOT_SLICE));
@@ -174,7 +175,7 @@ void MultiValueAttributeDefragSliceArrayTest::MakeOneAttributeSegment(std::vecto
     _indexerParam.docCount = uniqDocCount;
     _indexerParam.indexMemoryReclaimer = _indexMemoryReclaimer.get();
 
-    auto memIndexer = std::make_unique<MultiValueAttributeMemIndexer<T>>(_indexerParam);
+    auto memIndexer = std::make_unique<MultiValueAttributeMemIndexer<T>>(_memIndexerParam);
     ASSERT_TRUE(memIndexer != nullptr);
     ASSERT_TRUE(memIndexer->Init(attrConfig, _docInfoExtractorFactory.get()).IsOK());
 
@@ -373,6 +374,49 @@ TEST_F(MultiValueAttributeDefragSliceArrayTest, TestNeedDefrag)
     ASSERT_EQ(8, defragArray.GetWastedSize(0));
     // 8/16=50%
     ASSERT_TRUE(defragArray.NeedDefrag(0));
+}
+
+TEST_F(MultiValueAttributeDefragSliceArrayTest, TestAppendWithFreeUselessSlice)
+{
+    _indexMemoryReclaimer = std::make_shared<IndexMemoryReclaimerTest>(false);
+    std::vector<uint64_t> expectData;
+    auto attrConfig = AttributeTestUtil::CreateAttrConfig<uint64_t>(/*isMultiValue*/ true, /*CompressType*/ "equal");
+    attrConfig->SetUpdatable(true);
+    MakeOneAttributeSegment<uint64_t>(expectData, attrConfig, /*uniqDocCount*/ 4, /*valueCountPerField*/ 1);
+    // create sliceArray first to use smaller slice
+    BytesAlignedSliceArrayPtr sliceArray = PrepareSliceArrayFile(_attrDir, attrConfig->GetAttrName(), 23, 64 * 1024);
+
+    std::shared_ptr<MultiValueAttributeDiskIndexer<uint64_t>> diskIndexer =
+        std::make_shared<MultiValueAttributeDiskIndexer<uint64_t>>(nullptr, _indexerParam);
+    ASSERT_TRUE(diskIndexer->Open(attrConfig, _attrDir->GetIDirectory()).IsOK());
+    std::atomic<bool> isQuit = false;
+    std::thread buildThread([this, &diskIndexer, &isQuit]() {
+        uint64_t value = 1;
+        while (!isQuit) {
+            std::stringstream ss;
+            ss << value;
+            uint8_t* updateField = (uint8_t*)MakeBuffer<uint64_t>(ss.str());
+            size_t bufferLen = GetBufferLen<uint64_t>((const char*)updateField);
+            diskIndexer->TEST_UpdateField(0, autil::StringView((char*)updateField, bufferLen), false);
+            value++;
+        }
+    });
+    std::thread freeThread([this, &isQuit]() {
+        while (!isQuit) {
+            _indexMemoryReclaimer->TryReclaim();
+        }
+    });
+    static constexpr size_t sleepInterval = 100; // 100 us
+    for (size_t i = 0; i < 50000; i++) {
+        usleep(sleepInterval);
+    }
+    isQuit = true;
+    if (buildThread.joinable()) {
+        buildThread.join();
+    }
+    if (freeThread.joinable()) {
+        freeThread.join();
+    }
 }
 
 } // namespace indexlibv2::index

@@ -25,10 +25,10 @@ namespace navi {
 
 class NaviArpcRequestData : public Data, public std::enable_shared_from_this<NaviArpcRequestData> {
 public:
-    NaviArpcRequestData(google::protobuf::RpcController *controller,
-                        const google::protobuf::Message *request,
-                        google::protobuf::Closure *closure,
-                        const std::string &methodName);
+    NaviArpcRequestData(const google::protobuf::Message *request,
+                        google::protobuf::Message *needDeleteRequest,
+                        const std::string &methodName,
+                        const std::string &clientIp);
     ~NaviArpcRequestData();
     NaviArpcRequestData(const NaviArpcRequestData &) = delete;
     NaviArpcRequestData &operator=(const NaviArpcRequestData &) = delete;
@@ -38,24 +38,34 @@ public:
     const google::protobuf::Message *getRequest() const;
     template<typename T>
     const T *getRequest() const;
-    float degradeLevel(float level = 1.0) const;
     const std::string &getMethodName() const {
         return _methodName;
     }
-    std::string getClientIp() const;
+    const std::string &getClientIp() const {
+        return _clientIp;
+    }
+    void setAiosDebug(bool aiosDebug) {
+        _aiosDebug = aiosDebug;
+    }
+    bool isAiosDebug() const {
+        return _aiosDebug;
+    }
 private:
-    google::protobuf::RpcController *_controller;
-    const google::protobuf::Message *_request;
-    google::protobuf::Closure *_closure;
+    const google::protobuf::Message *_request = nullptr;
+    google::protobuf::Message *_needDeleteRequest = nullptr;
     std::string _methodName;
+    std::string _clientIp;
+    bool _aiosDebug = false;
 };
 
 template<typename T>
 const T *NaviArpcRequestData::getRequest() const {
-    auto msg =dynamic_cast<const T *>(_request);
+    auto request = getRequest();
+    auto msg =dynamic_cast<const T *>(request);
     if (!msg) {
-        if (_request) {
-            NAVI_KERNEL_LOG(ERROR, "invalid pb request type [%s]", _request->GetDescriptor()->full_name().c_str());
+        if (request) {
+            NAVI_KERNEL_LOG(ERROR, "invalid pb request type [%s]",
+                            request->GetDescriptor()->full_name().c_str());
         } else {
             NAVI_KERNEL_LOG(ERROR, "null pb request");
         }
@@ -67,7 +77,13 @@ class NaviArpcRequestType : public Type {
 public:
     NaviArpcRequestType();
     ~NaviArpcRequestType();
+public:
+    navi::TypeErrorCode serialize(navi::TypeContext &ctx, const navi::DataPtr &data) const override;
+    navi::TypeErrorCode deserialize(navi::TypeContext &ctx, navi::DataPtr &data) const override;
+public:
+    static google::protobuf::Message *
+    parseProtobufMesasge(const std::string &typeName,
+                         const autil::StringView &valueStr);
 };
 
 }
-

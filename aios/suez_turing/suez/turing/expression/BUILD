@@ -11,64 +11,65 @@ cc_library(
               exclude=[
                   'cava/common/CavaJitWrapperR.h',
                   'cava/common/CavaPluginManagerR.h',
+                  'function/FunctionFactoryBaseR.h',
                   'function/FunctionInterfaceCreatorR.h',
                   'plugin/SorterManagerR.h', 'plugin/RankManagerR.h',
                   'framework/ExprConfigManagerR.h'
               ]),
-    deps=[
-        ':common_h',
-        '//aios/suez_turing/suez/turing/expression/util/index_info:index_info',
-        '//aios/suez_turing/suez/turing/expression/provider/matchdata:matchdata',
-        '//aios/suez_turing:closure', '//aios/cava:cava_adapter',
-        '//aios/matchdoc:matchdoc', '//aios/turing_ops_util:sort_expr_meta',
-        '//aios/turing_ops_util:op_doc_tracer'
-    ],
+    include_prefix='suez/turing/expression',
     visibility=[':__subpackages__', '//aios/igraph:__subpackages__'],
-    include_prefix='suez/turing/expression'
+    deps=[
+        ':common_h', '//aios/cava:cava_adapter', '//aios/matchdoc',
+        '//aios/suez_turing:closure',
+        '//aios/suez_turing/suez/turing/expression/provider/matchdata',
+        '//aios/suez_turing/suez/turing/expression/util/index_info',
+        '//aios/turing_ops_util:op_doc_tracer',
+        '//aios/turing_ops_util:sort_expr_meta'
+    ]
 )
 cc_library(
     name='suez_resource_reader',
     hdrs=['config/ResourceReader.h'],
-    deps=['//aios/apps/facility/build_service:bs_plugin'],
-    include_prefix='suez'
+    include_prefix='suez',
+    deps=['//aios/apps/facility/build_service:bs_plugin']
 )
 cc_library(
     name='turing_expression_util',
     srcs=glob(['util/*.cpp']),
+    visibility=['//visibility:public'],
     deps=[
         ':turing_expression_headers',
-        '//aios/suez_turing/suez/turing/expression/util/index_info:index_info',
         '//aios/storage/indexlib/indexlib/partition:reader_sdk',
+        '//aios/suez_turing/suez/turing/expression/util/index_info',
         '//aios/turing_ops_util:trace'
     ],
-    visibility=['//visibility:public'],
     alwayslink=1
 )
 cc_library(
     name='turing_expression_syntax_without_validator',
-    hdrs=glob(['syntax/*.h']),
     srcs=(
         glob(['syntax/*.cpp'], exclude=['syntax/SyntaxExprValidator.cpp']) + [
             '//aios/suez_turing/suez/turing/expression/syntax/parser:scanner',
             '//aios/suez_turing/suez/turing/expression/syntax/parser:parser_srcs'
         ]
     ),
+    hdrs=glob(['syntax/*.h']),
+    include_prefix='suez/turing/expression',
+    visibility=['//visibility:public'],
     deps=[
         ':common_h',
         '//aios/suez_turing/suez/turing/expression/syntax/parser:parser_hdrs'
-    ],
-    include_prefix='suez/turing/expression',
-    visibility=['//visibility:public']
+    ]
 )
 cc_library(
     name='turing_expression_syntax',
     srcs=['syntax/SyntaxExprValidator.cpp'],
+    include_prefix='suez/turing/expression',
+    visibility=['//visibility:public'],
     deps=[
         ':turing_expression_headers', ':turing_expression_util',
         ':turing_expression_syntax_without_validator'
     ],
-    include_prefix='suez/turing/expression',
-    visibility=['//visibility:public'],
     alwayslink=1
 )
 template_header = '\n#include "suez/turing/expression/framework/AttributeExpressionFactory.impl.hpp"\n\nnamespace suez::turing {\n'
@@ -94,19 +95,19 @@ cc_library(
     name='attribute_expression_factory',
     srcs=[':attribute_expression_factory_generated'],
     hdrs=glob(['framework/AttributeExpressionFactory.impl.hpp']),
+    include_prefix='suez/turing/expression',
     deps=[
-        ':turing_expression_headers', ':turing_expression_syntax',
-        ':suez_resource_reader', '//aios/cava:cava_adapter',
-        '//aios/turing_ops_util:trace', '//aios/network/gig:multi_call',
-        '//aios/resource_reader:resource_reader',
+        ':suez_resource_reader', ':turing_expression_headers',
+        ':turing_expression_syntax',
         '//aios/apps/facility/build_service:bs_plugin',
-        '//aios/storage/indexlib/indexlib/partition:reader_sdk',
-        '//aios/matchdoc:matchdoc', '//aios/kmonitor:kmonitor_client_cpp',
-        '//aios/suez_turing/suez/turing/expression/provider/matchdata:matchdata',
+        '//aios/cava:cava_adapter', '//aios/kmonitor:kmonitor_client_cpp',
+        '//aios/matchdoc', '//aios/network/gig:multi_call',
+        '//aios/resource_reader',
         '//aios/storage/indexlib/index/attribute:reader',
-        '@boost//:preprocessor-headers'
-    ],
-    include_prefix='suez/turing/expression'
+        '//aios/storage/indexlib/indexlib/partition:reader_sdk',
+        '//aios/suez_turing/suez/turing/expression/provider/matchdata',
+        '//aios/turing_ops_util:trace', '@boost//:preprocessor-headers'
+    ]
 )
 cc_library(
     name='turing_expression',
@@ -119,68 +120,68 @@ cc_library(
                   'AttributeExpressionFactory.impl.hpp',
                   'cava/common/CavaJitWrapperR.cpp',
                   'cava/common/CavaPluginManagerR.cpp',
+                  'function/FunctionFactoryBaseR.cpp',
                   'function/FunctionInterfaceCreatorR.cpp',
                   'plugin/SorterManagerR.cpp', 'plugin/RankManagerR.cpp',
                   'framework/ExprConfigManagerR.cpp'
               ]),
+    visibility=['//visibility:public'],
     deps=[
         ':attribute_expression_factory', ':turing_expression_headers',
         ':turing_expression_syntax', ':suez_resource_reader',
         '//aios/cava:cava_adapter', '//aios/turing_ops_util:trace',
-        '//aios/network/gig:multi_call',
-        '//aios/resource_reader:resource_reader',
+        '//aios/network/gig:multi_call', '//aios/resource_reader',
         '//aios/apps/facility/build_service:bs_plugin',
         '//aios/storage/indexlib/indexlib/partition:reader_sdk',
-        '//aios/matchdoc:matchdoc', '//aios/kmonitor:kmonitor_client_cpp',
-        '//aios/suez_turing/suez/turing/expression/provider/matchdata:matchdata',
+        '//aios/matchdoc', '//aios/kmonitor:kmonitor_client_cpp',
+        '//aios/suez_turing/suez/turing/expression/provider/matchdata',
         '//aios/storage/indexlib/index/attribute:reader',
         '@boost//:preprocessor-headers'
     ],
-    visibility=['//visibility:public'],
     alwayslink=1
 )
 cc_library(
     name='turing_expression_navi_resource',
     srcs=[
         'cava/common/CavaJitWrapperR.cpp', 'cava/common/CavaPluginManagerR.cpp',
-        'function/FunctionInterfaceCreatorR.cpp', 'plugin/SorterManagerR.cpp',
-        'plugin/RankManagerR.cpp', 'framework/ExprConfigManagerR.cpp'
+        'framework/ExprConfigManagerR.cpp', 'function/FunctionFactoryBaseR.cpp',
+        'function/FunctionInterfaceCreatorR.cpp', 'plugin/RankManagerR.cpp',
+        'plugin/SorterManagerR.cpp'
     ],
     hdrs=[
         'cava/common/CavaJitWrapperR.h', 'cava/common/CavaPluginManagerR.h',
-        'function/FunctionInterfaceCreatorR.h',
-        'function/FunctionFactoryBaseR.h', 'plugin/SorterManagerR.h',
-        'plugin/RankManagerR.h', 'framework/ExprConfigManagerR.h'
-    ],
-    deps=[
-        '//aios/navi', '//aios/kmonitor:metrics_report_navi_resource',
-        '//aios/suez_turing/suez/turing/expression:turing_expression'
+        'framework/ExprConfigManagerR.h', 'function/FunctionFactoryBaseR.h',
+        'function/FunctionInterfaceCreatorR.h', 'plugin/RankManagerR.h',
+        'plugin/SorterManagerR.h'
     ],
     include_prefix='suez/turing/expression',
     visibility=['//visibility:public'],
+    deps=[
+        '//aios/kmonitor:metrics_report_navi_resource', '//aios/navi',
+        '//aios/suez_turing/suez/turing/expression:turing_expression'
+    ],
     alwayslink=1
 )
 cc_library(
     name='common_h',
     hdrs=['common.h'],
-    deps=[
-        '//aios/autil:hash_base', '//aios/autil:multi_value',
-        '//aios/matchdoc:matchdoc'
-    ],
+    include_prefix='suez/turing/expression',
     visibility=['//visibility:public'],
-    include_prefix='suez/turing/expression'
+    deps=[
+        '//aios/autil:hash_base', '//aios/autil:multi_value', '//aios/matchdoc'
+    ]
 )
 test_bc_code_multi(
     name='ha3_cava',
     srcs=[
-        'cava/impl/Ha3CavaScorerParam.cpp', 'cava/impl/CavaMultiValueTyped.cpp',
-        'cava/impl/FieldRef.cpp', 'cava/impl/TraceApi.cpp',
-        'cava/impl/AttributeExpression.cpp', 'cava/impl/Reference.cpp',
-        'cava/impl/MatchDocs.cpp'
+        'cava/impl/AttributeExpression.cpp',
+        'cava/impl/CavaMultiValueTyped.cpp', 'cava/impl/FieldRef.cpp',
+        'cava/impl/Ha3CavaScorerParam.cpp', 'cava/impl/MatchDocs.cpp',
+        'cava/impl/Reference.cpp', 'cava/impl/TraceApi.cpp'
     ],
-    deps=[':ha3_cava_bc_hdrs', '//aios/turing_ops_util:trace'],
-    includes=['aios/storage'],
     copy_name='ha3_cava.bc',
     dests=['testdata/bitcode/'],
-    visibility=['//visibility:public']
+    includes=['aios/storage'],
+    visibility=['//visibility:public'],
+    deps=[':ha3_cava_bc_hdrs', '//aios/turing_ops_util:trace']
 )

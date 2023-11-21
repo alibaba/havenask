@@ -17,9 +17,10 @@
 
 #include <assert.h>
 #include <cstddef>
+#include <cstdint>
+#include <type_traits>
 #include <utility>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
 #include "autil/TimeUtility.h"
 #include "indexlib/file_system/EntryTable.h"
@@ -29,20 +30,20 @@
 #include "indexlib/file_system/file/DirectoryFileNodeCreator.h"
 #include "indexlib/file_system/file/FileNode.h"
 #include "indexlib/file_system/file/FileNodeCreator.h"
+#include "indexlib/file_system/file/FileWriterImpl.h"
 #include "indexlib/file_system/file/MemFileNodeCreator.h"
 #include "indexlib/file_system/file/MemFileWriter.h"
 #include "indexlib/file_system/file/NormalFileReader.h"
-#include "indexlib/file_system/file/SliceFileNode.h"
 #include "indexlib/file_system/file/SwapMmapFileNode.h"
 #include "indexlib/file_system/file/SwapMmapFileWriter.h"
 #include "indexlib/file_system/flush/AsyncDumpScheduler.h"
 #include "indexlib/file_system/flush/MkdirFlushOperation.h"
 #include "indexlib/file_system/flush/SimpleDumpScheduler.h"
 #include "indexlib/file_system/flush/SingleFileFlushOperation.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/load_config/LoadConfig.h"
-#include "indexlib/util/Exception.h"
-#include "indexlib/util/memory_control/MemoryQuotaController.h"
+#include "indexlib/util/PathUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -408,7 +409,6 @@ ErrorCode MemStorage::StoreFile(const std::shared_ptr<FileNode>& fileNode, const
 ErrorCode MemStorage::AddFlushOperation(const FileFlushOperationPtr& fileFlushOperation) noexcept
 {
     assert(NeedFlush());
-    assert(_operationQueue);
     if (_options->prohibitInMemDump) {
         RETURN_IF_FS_ERROR(fileFlushOperation->Execute(), "");
         FileList fileList;
@@ -418,6 +418,7 @@ ErrorCode MemStorage::AddFlushOperation(const FileFlushOperationPtr& fileFlushOp
         return FSEC_OK;
     }
     ScopedLock lock(_lock);
+    assert(_operationQueue);
     _operationQueue->PushBack(fileFlushOperation);
     return FSEC_OK;
 }

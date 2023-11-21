@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_REALTIMEBUILDER_H
-#define ISEARCH_BS_REALTIMEBUILDER_H
+#pragma once
 
+#include <stdint.h>
+#include <string>
+
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/util/Log.h"
 #include "build_service/workflow/RealtimeBuilderDefine.h"
 #include "build_service/workflow/RealtimeErrorDefine.h"
 #include "indexlib/partition/index_partition.h"
@@ -76,5 +78,3 @@ private:
 };
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_REALTIMEBUILDER_H

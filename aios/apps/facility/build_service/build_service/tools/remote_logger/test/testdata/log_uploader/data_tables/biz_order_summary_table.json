@@ -13,7 +13,28 @@
             "modules" : [
 
             ]
+        },
+        {
+            "clusters" : [
+                "biz_order_buyer"
+            ],
+            "document_processor_chain" : [
 
+            ],
+            "modules" : [
+
+            ]
+        },
+        {
+            "clusters" : [
+                "biz_order_seller"
+            ],
+            "document_processor_chain" : [
+
+            ],
+            "modules" : [
+
+            ]
         }
     ],
     "processor_config" : {

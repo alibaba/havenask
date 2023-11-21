@@ -32,9 +32,9 @@ using indexlibv2::config::PackageIndexConfig;
 AUTIL_LOG_SETUP(indexlib.index, IndexAccessoryReader);
 
 IndexAccessoryReader::IndexAccessoryReader(const std::vector<std::shared_ptr<IIndexConfig>>& indexConfigs,
-                                           const indexlibv2::index::IndexerParameter& indexerParam)
+                                           const indexlibv2::index::IndexReaderParameter& indexReaderParam)
     : _indexConfigs(indexConfigs)
-    , _sortPatternFunc(indexerParam.sortPatternFunc)
+    , _sortPatternFunc(indexReaderParam.sortPatternFunc)
 {
 }
 

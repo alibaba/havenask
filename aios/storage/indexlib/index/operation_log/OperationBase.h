@@ -34,7 +34,7 @@ public:
     enum SerializedOperationType { INVALID_SERIALIZE_OP = 0, REMOVE_OP = 1, UPDATE_FIELD_OP = 2, SUB_DOC_OP = 3 };
 
 public:
-    OperationBase(const indexlibv2::document::IDocument::DocInfo& docInfo) : _docInfo(docInfo) {}
+    OperationBase(const indexlibv2::framework::Locator::DocInfo& docInfo) : _docInfo(docInfo) {}
     virtual ~OperationBase() {}
 
 public:
@@ -42,7 +42,7 @@ public:
     virtual OperationBase* Clone(autil::mem_pool::Pool* pool) = 0;
     virtual SerializedOperationType GetSerializedType() const { return INVALID_SERIALIZE_OP; }
     virtual DocOperateType GetDocOperateType() const { return UNKNOWN_OP; }
-    const indexlibv2::document::IDocument::DocInfo& GetDocInfo() const { return _docInfo; }
+    const indexlibv2::framework::Locator::DocInfo& GetDocInfo() const { return _docInfo; }
     virtual size_t GetMemoryUse() const = 0;
     virtual segmentid_t GetSegmentId() const = 0;
     virtual size_t GetSerializeSize() const = 0;
@@ -58,7 +58,7 @@ public:
 
 protected:
     std::shared_ptr<OperationFieldInfo> _operationFieldInfo;
-    indexlibv2::document::IDocument::DocInfo _docInfo;
+    indexlibv2::framework::Locator::DocInfo _docInfo;
 };
 
 } // namespace indexlib::index

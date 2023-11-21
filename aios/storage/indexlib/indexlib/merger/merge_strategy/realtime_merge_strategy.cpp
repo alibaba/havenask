@@ -15,11 +15,19 @@
  */
 #include "indexlib/merger/merge_strategy/realtime_merge_strategy.h"
 
+#include <assert.h>
 #include <sstream>
 
+#include "alog/Logger.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/merge_strategy/optimize_merge_strategy.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

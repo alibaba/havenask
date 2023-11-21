@@ -4,64 +4,69 @@
 package com.taobao.search.iquan.client.common.pb;
 
 public interface AnyValueOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:iquan.pb.AnyValue)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:iquan.pb.AnyValue)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>bool bool_value = 1;</code>
-   */
-  boolean getBoolValue();
+    /**
+     * <code>bool bool_value = 1;</code>
+     */
+    boolean getBoolValue();
 
-  /**
-   * <code>int32 int_value = 2;</code>
-   */
-  int getIntValue();
+    /**
+     * <code>int32 int_value = 2;</code>
+     */
+    int getIntValue();
 
-  /**
-   * <code>int64 long_value = 3;</code>
-   */
-  long getLongValue();
+    /**
+     * <code>int64 long_value = 3;</code>
+     */
+    long getLongValue();
 
-  /**
-   * <code>double double_value = 4;</code>
-   */
-  double getDoubleValue();
+    /**
+     * <code>double double_value = 4;</code>
+     */
+    double getDoubleValue();
 
-  /**
-   * <code>string string_value = 5;</code>
-   */
-  java.lang.String getStringValue();
-  /**
-   * <code>string string_value = 5;</code>
-   */
-  com.google.protobuf.ByteString
-      getStringValueBytes();
+    /**
+     * <code>string string_value = 5;</code>
+     */
+    java.lang.String getStringValue();
 
-  /**
-   * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-   */
-  boolean hasListValue();
-  /**
-   * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-   */
-  com.taobao.search.iquan.client.common.pb.AnyValueList getListValue();
-  /**
-   * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-   */
-  com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder getListValueOrBuilder();
+    /**
+     * <code>string string_value = 5;</code>
+     */
+    com.google.protobuf.ByteString
+    getStringValueBytes();
 
-  /**
-   * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-   */
-  boolean hasMapValue();
-  /**
-   * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-   */
-  com.taobao.search.iquan.client.common.pb.AnyValueMap getMapValue();
-  /**
-   * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-   */
-  com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder getMapValueOrBuilder();
+    /**
+     * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+     */
+    boolean hasListValue();
 
-  public com.taobao.search.iquan.client.common.pb.AnyValue.AnyValueOneofCase getAnyValueOneofCase();
+    /**
+     * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+     */
+    com.taobao.search.iquan.client.common.pb.AnyValueList getListValue();
+
+    /**
+     * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+     */
+    com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder getListValueOrBuilder();
+
+    /**
+     * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+     */
+    boolean hasMapValue();
+
+    /**
+     * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+     */
+    com.taobao.search.iquan.client.common.pb.AnyValueMap getMapValue();
+
+    /**
+     * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+     */
+    com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder getMapValueOrBuilder();
+
+    public com.taobao.search.iquan.client.common.pb.AnyValue.AnyValueOneofCase getAnyValueOneofCase();
 }

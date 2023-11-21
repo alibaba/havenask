@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_READER_CREATOR_H
-#define __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_READER_CREATOR_H
+#pragma once
 
 #include <memory>
 #include <time.h>
@@ -159,5 +158,3 @@ inline void SingleValueAttributeReaderCreator<T>::WriteSegmentInfo(segmentid_t s
 
 // DEFINE_SHARED_PTR(SingleValueAttributeReaderCreator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_ATTRIBUTE_READER_CREATOR_H

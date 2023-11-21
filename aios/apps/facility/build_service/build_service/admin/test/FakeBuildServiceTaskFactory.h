@@ -1,9 +1,10 @@
-#ifndef ISEARCH_BS_FAKEBUILDSERVICETASKFACTORY_H
-#define ISEARCH_BS_FAKEBUILDSERVICETASKFACTORY_H
+#pragma once
+
+#include <string>
 
 #include "build_service/admin/controlflow/TaskFactory.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
 
@@ -28,5 +29,3 @@ private:
 BS_TYPEDEF_PTR(FakeBuildServiceTaskFactory);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_FAKEBUILDSERVICETASKFACTORY_H

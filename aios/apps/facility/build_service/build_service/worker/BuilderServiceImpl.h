@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDERSERVICEIMPL_H
-#define ISEARCH_BS_BUILDERSERVICEIMPL_H
+#pragma once
 
-#include "build_service/common/CounterSynchronizer.h"
+#include <stdint.h>
+#include <string>
+
+#include "aios/autil/autil/Lock.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeper.h"
 #include "build_service/common_define.h"
 #include "build_service/config/CounterConfig.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/util/Log.h"
 #include "build_service/worker/WorkerStateHandler.h"
 #include "build_service/workflow/BuildFlow.h"
+#include "build_service/workflow/BuildFlowMode.h"
 #include "build_service/workflow/FlowFactory.h"
-DECLARE_REFERENCE_CLASS(util, AccumulativeCounter);
+#include "build_service/workflow/SwiftProcessedDocConsumer.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/util/TaskScheduler.h"
+#include "indexlib/util/counter/AccumulativeCounter.h"
 
 namespace build_service { namespace worker {
-
-class ServiceWorker;
 
 class BuilderServiceImpl : public WorkerStateHandler
 {
@@ -106,5 +111,3 @@ private:
 BS_TYPEDEF_PTR(BuilderServiceImpl);
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_BUILDERSERVICEIMPL_H

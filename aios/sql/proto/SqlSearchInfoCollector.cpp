@@ -120,6 +120,11 @@ void SqlSearchInfoCollector::overwriteDelayDpInfo(const DelayDpInfo &delayDpInfo
     *(_sqlSearchInfo.add_delaydpinfos()) = delayDpInfo;
 }
 
+void SqlSearchInfoCollector::addDegradedInfo(const DegradedInfo &degradedInfo) {
+    autil::ScopedLock lock(_mutex);
+    *(_sqlSearchInfo.add_degradedinfos()) = degradedInfo;
+}
+
 SqlSearchInfo SqlSearchInfoCollector::getSqlSearchInfo() {
     autil::ScopedLock lock(_mutex);
     return _sqlSearchInfo;
@@ -145,6 +150,7 @@ void SqlSearchInfoCollector::mergeSearchInfos(bool overwriteInfo) {
     mergeKhronosDataScanInfo(overwriteInfo);
     mergeIdentityInfo(overwriteInfo);
     mergeInvertedInfo(overwriteInfo);
+    mergeDegradedInfo();
 }
 
 void SqlSearchInfoCollector::mergeSqlSearchInfo(SqlSearchInfo &&sqlSearchInfo) {
@@ -191,7 +197,8 @@ static void mergeFrom(ScanInfo &lhs, const ScanInfo &rhs) {
     UPDATE_MERGE_COUNT(lhs, rhs);
     lhs.set_totaloutputcount(lhs.totaloutputcount() + rhs.totaloutputcount());
     lhs.set_totalscancount(lhs.totalscancount() + rhs.totalscancount());
-    lhs.set_totalseekcount(lhs.totalseekcount() + rhs.totalseekcount());
+    lhs.set_totalseekedcount(lhs.totalseekedcount() + rhs.totalseekedcount());
+    lhs.set_totalwholedoccount(lhs.totalwholedoccount() + rhs.totalwholedoccount());
     lhs.set_totalusetime(lhs.totalusetime() + rhs.totalusetime());
     lhs.set_totalseektime(lhs.totalseektime() + rhs.totalseektime());
     lhs.set_totalevaluatetime(lhs.totalevaluatetime() + rhs.totalevaluatetime());
@@ -307,6 +314,14 @@ static void mergeFrom(InvertedIndexSearchInfo &lhs, const InvertedIndexSearchInf
     lhs.set_totaldicthitcount(lhs.totaldicthitcount() + rhs.totaldicthitcount());
 }
 
+static void mergeFrom(DegradedInfo &lhs, const DegradedInfo &rhs) {
+    auto *degradedErrorCodes = lhs.mutable_degradederrorcodes();
+    degradedErrorCodes->MergeFrom(rhs.degradederrorcodes());
+    sort(degradedErrorCodes->begin(), degradedErrorCodes->end());
+    auto iter = unique(degradedErrorCodes->begin(), degradedErrorCodes->end());
+    degradedErrorCodes->erase(iter, degradedErrorCodes->end());
+}
+
 void SqlSearchInfoCollector::mergeScanInfo(bool overwriteInfo) {
     mergeMutableInfos(*_sqlSearchInfo.mutable_scaninfos(), overwriteInfo);
 }
@@ -341,6 +356,10 @@ void SqlSearchInfoCollector::mergeIdentityInfo(bool overwriteInfo) {
 
 void SqlSearchInfoCollector::mergeInvertedInfo(bool overwriteInfo) {
     mergeMutableInfos(*_sqlSearchInfo.mutable_invertedinfos(), overwriteInfo);
+}
+
+void SqlSearchInfoCollector::mergeDegradedInfo() {
+    mergeMutableInfos(*_sqlSearchInfo.mutable_degradedinfos(), false);
 }
 
 void SqlSearchInfoCollector::swap(SqlSearchInfo &other) {

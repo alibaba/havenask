@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_INDEXLIBINDEXINPUT_H
-#define ISEARCH_BS_INDEXLIBINDEXINPUT_H
+#pragma once
 
+#include <assert.h>
+#include <memory>
+#include <string>
+
+#include "autil/legacy/any.h"
 #include "build_service/common_define.h"
+#include "build_service/config/TaskInputConfig.h"
 #include "build_service/io/IODefine.h"
 #include "build_service/io/Input.h"
 #include "build_service/io/InputCreator.h"
 #include "build_service/util/Log.h"
 #include "indexlib/partition/remote_access/partition_resource_provider.h"
+#include "indexlib/partition/remote_access/partition_seeker.h"
 
 namespace build_service { namespace io {
 
@@ -91,5 +97,3 @@ private:
 
 BS_TYPEDEF_PTR(IndexlibIndexInputCreator);
 }} // namespace build_service::io
-
-#endif // ISEARCH_BS_INDEXLIBINDEXINPUT_H

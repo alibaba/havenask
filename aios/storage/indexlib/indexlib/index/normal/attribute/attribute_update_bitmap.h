@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_UPDATE_BITMAP_H
-#define __INDEXLIB_ATTRIBUTE_UPDATE_BITMAP_H
+#pragma once
 
 #include <memory>
 
@@ -99,5 +98,3 @@ inline int32_t AttributeUpdateBitmap::GetSegmentIdx(docid_t globalDocId) const
 
 DEFINE_SHARED_PTR(AttributeUpdateBitmap);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_UPDATE_BITMAP_H

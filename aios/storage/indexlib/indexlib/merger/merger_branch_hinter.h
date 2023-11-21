@@ -15,10 +15,14 @@
  */
 #pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
 #include "indexlib/index_base/common_branch_hinter.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 

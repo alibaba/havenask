@@ -15,6 +15,10 @@
  */
 #include "build_service/admin/FatalErrorDiscoverer.h"
 
+#include <cstddef>
+#include <map>
+#include <string>
+
 using namespace std;
 
 namespace build_service { namespace admin {

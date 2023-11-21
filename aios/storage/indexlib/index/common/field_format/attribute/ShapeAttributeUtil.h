@@ -16,6 +16,7 @@
 #pragma once
 
 #include "autil/Log.h"
+#include "autil/MultiValueType.h"
 #include "autil/NoCopyable.h"
 #include "autil/StringTokenizer.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertor.h"

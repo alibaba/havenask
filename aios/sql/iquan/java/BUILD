@@ -17,6 +17,12 @@ java_plugin(
     processor_class='lombok.launch.AnnotationProcessorHider$AnnotationProcessor',
     deps=['@iquan_maven//:org_projectlombok_lombok']
 )
+java_library(
+    name='lombok',
+    exported_plugins=[':lombok_plugin'],
+    visibility=['//visibility:public'],
+    exports=['@iquan_maven//:org_projectlombok_lombok']
+)
 java_plugin(
     name='immutables_plugin',
     processor_class='org.immutables.processor.ProxyProcessor',

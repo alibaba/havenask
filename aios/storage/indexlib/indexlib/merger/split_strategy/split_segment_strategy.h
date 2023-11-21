@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SPLIT_SEGMENT_STRATEGY_H
-#define __INDEXLIB_SPLIT_SEGMENT_STRATEGY_H
+#pragma once
 
-#include <array>
-#include <memory>
+#include <functional>
+#include <map>
+#include <stddef.h>
+#include <stdint.h>
+#include <utility>
+#include <vector>
 
-#include "indexlib/common_define.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/index/normal/attribute/accessor/offline_attribute_segment_reader_container.h"
+#include "autil/legacy/json.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/index/segment_metrics_updater/segment_metrics_updater.h"
+#include "indexlib/index/util/segment_directory_base.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
 #include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
-#include "indexlib/merger/index_partition_merger_metrics.h"
 #include "indexlib/merger/merge_plan.h"
-#include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/KeyValueMap.h"
 #include "indexlib/util/metrics/MetricProvider.h"
+#include "indexlib/util/metrics/Monitor.h"
 
 namespace indexlib { namespace merger {
 
@@ -83,5 +88,3 @@ private:
 
 DEFINE_SHARED_PTR(SplitSegmentStrategy);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_SPLIT_SEGMENT_STRATEGY_H

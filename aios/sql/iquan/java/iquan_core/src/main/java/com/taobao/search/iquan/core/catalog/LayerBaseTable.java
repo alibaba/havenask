@@ -1,5 +1,7 @@
 package com.taobao.search.iquan.core.catalog;
 
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.schema.LayerFormat;
 import com.taobao.search.iquan.core.api.schema.LayerInfo;
@@ -17,8 +19,6 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.schema.ColumnStrategy;
 import org.apache.calcite.util.ImmutableBitSet;
-
-import java.util.List;
 
 public class LayerBaseTable implements RelOptTable {
     private final RelOptTable innerTable;

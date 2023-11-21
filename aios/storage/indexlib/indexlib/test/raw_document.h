@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TEST_RAW_DOCUMENT_H
-#define __INDEXLIB_TEST_RAW_DOCUMENT_H
+#pragma once
 
 #include <memory>
 
@@ -81,5 +80,3 @@ private:
 
 DEFINE_SHARED_PTR(RawDocument);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_TEST_RAW_DOCUMENT_H

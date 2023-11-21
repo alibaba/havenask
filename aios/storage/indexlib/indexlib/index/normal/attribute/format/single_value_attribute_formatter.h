@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_FORMATTER_H
-#define __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_FORMATTER_H
+#pragma once
 
 #include <memory>
 
@@ -367,5 +366,3 @@ inline docid_t SingleValueAttributeFormatter<T>::AlignDocId(docid_t docId) const
     return docId / SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE * SingleEncodedNullValue::NULL_FIELD_BITMAP_SIZE;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_ATTRIBUTE_FORMATTER_H

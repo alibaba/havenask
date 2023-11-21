@@ -16,23 +16,36 @@
 #pragma once
 
 #include <atomic>
+#include <limits>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/Lock.h"
 #include "build_service/common/End2EndLatencyReporter.h"
-#include "build_service/common/SwiftLinkFreshnessReporter.h"
+#include "build_service/common/ExceedTsAction.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common/SwiftParam.h"
 #include "build_service/common_define.h"
-#include "build_service/document/ProcessedDocument.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/SwiftMessageFilter.h"
+#include "build_service/workflow/FlowError.h"
 #include "build_service/workflow/ProcessedDocExceptionHandler.h"
 #include "build_service/workflow/Producer.h"
+#include "build_service/workflow/StopOption.h"
 #include "build_service/workflow/SwiftProcessedDocProducer.h"
-#include "indexlib/document/BuiltinParserInitParam.h"
-#include "indexlib/document/document.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/document/IDocumentBatch.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/util/TaskScheduler.h"
-#include "indexlib/util/counter/Counter.h"
 #include "indexlib/util/counter/CounterMap.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlibv2::config {
 class ITabletSchema;
@@ -44,11 +57,11 @@ class IDocumentFactory;
 } // namespace indexlibv2::document
 
 namespace indexlib { namespace util {
-class MetricProvider;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 }} // namespace indexlib::util
 
 namespace build_service { namespace workflow {
+class SwiftProcessedDocLocatorKeeper;
 
 class SingleSwiftProcessedDocProducerV2 : public SwiftProcessedDocProducer
 {
@@ -84,6 +97,9 @@ public:
     bool seek(const common::Locator& locator) override;
     bool stop(StopOption stopOption) override;
     std::pair<bool, common::Locator> seekAndGetLocator(const common::Locator& locator);
+    schemaid_t getAlterTableSchemaId() const override { return _alterTableSchemaId.load(std::memory_order_relaxed); }
+
+    bool needAlterTable() const override { return _needAlterTable.load(std::memory_order_relaxed); }
 
 public:
     // virtual for test
@@ -97,23 +113,23 @@ public:
 
 public:
     virtual bool getMaxTimestamp(int64_t& timestamp) override;
-    virtual bool getLastReadTimestamp(int64_t& timestamp) override
+    virtual bool getLastReadTimestamp(int64_t& timestamp) const override
     {
         timestamp = _lastReadTs.load(std::memory_order_relaxed);
         return true;
     }
+    int64_t getStopTimestamp() const { return _stopTimestamp; }
     uint64_t getLocatorSrc() const override { return getStartTimestamp(); }
     void setRecovered(bool isServiceRecovered) override;
 
 private:
     // timestamp is for locator, always greater than msg.timestamp()
     document::ProcessedDocumentVec* createProcessedDocument(const std::string& docStr,
-                                                            indexlibv2::document::IDocument::DocInfo docInfo,
+                                                            indexlibv2::framework::Locator::DocInfo docInfo,
                                                             int64_t timestamp,
-                                                            const std::vector<indexlibv2::base::Progress>& progress);
+                                                            const indexlibv2::base::MultiProgress& progress);
     // to report checkpoint, timestamp is locator.offset
-    document::ProcessedDocumentVec*
-    createSkipProcessedDocument(const std::vector<indexlibv2::base::Progress>& progress);
+    document::ProcessedDocumentVec* createSkipProcessedDocument(const indexlibv2::base::MultiProgress& progress);
     // virtual for test
     virtual std::unique_ptr<indexlibv2::document::IDocumentBatch> transDocStrToDocumentBatch(const std::string& docStr);
     virtual bool initDocumentParser(indexlib::util::MetricProviderPtr metricProvider,
@@ -170,7 +186,9 @@ private:
     int32_t _reportMetricTaskId = -1;
     std::atomic<int64_t> _fastQueueLastReportTs = -1;
     std::atomic<bool> _isServiceRecovered {false};
-    util::SwiftMessageFilter _swiftMessageFilter;
+    std::atomic<bool> _needAlterTable = false;
+    std::atomic<indexlib::schemaid_t> _alterTableSchemaId = indexlib::INVALID_SCHEMAID;
+    std::shared_ptr<SwiftProcessedDocLocatorKeeper> _locatorKeeper;
 
 private:
     BS_LOG_DECLARE();

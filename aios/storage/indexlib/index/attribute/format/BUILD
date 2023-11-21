@@ -109,7 +109,7 @@ strict_cc_library(
     name='SingleValueDataAppender',
     deps=[
         ':SingleValueAttributeUpdatableFormatter', '//aios/autil:NoCopyable',
-        '//aios/autil:log',
+        '//aios/autil:log', '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/file_system/file:interface',
         '//aios/storage/indexlib/index/common:data_structure',
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'

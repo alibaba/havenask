@@ -64,6 +64,7 @@ public:
     virtual void incMessageCount(NaviPartId partId);
     virtual void decMessageCount(NaviPartId partId);
     void notifyFinish(ErrorCode ec, bool notifyGraph);
+    void notifyFinish(const NaviErrorPtr &error, bool notifyGraph);
     bool finished() const;
     GraphParam *getGraphParam() const;
     bool isLocalBorder(GraphId peer) const;
@@ -83,6 +84,9 @@ public:
     const NaviObjectLogger &getLogger() const {
         return _logger;
     }
+    ErrorHandleStrategy getErrorStrategy() const {
+        return _subGraphDef->option().error_handle_strategy();
+    }
 public:
     static const char *getGraphDomainType(GraphDomainType type);
 protected:
@@ -91,12 +95,13 @@ protected:
     bool initPeerInfo();
 private:
     void collectPort(const SubGraphBorderPtr &border);
-    void finishGraph(ErrorCode ec, bool notifyGraph);
+    void finishGraph(const NaviErrorPtr &error, bool notifyGraph);
     SubGraphBorder *getPeerBorder(const BorderDef *borderDef) const;
 protected:
     DECLARE_LOGGER();
     Graph *_graph;
     GraphParam *_param;
+    GraphResultPtr _graphResult;
     GraphDomainType _type;
     SubGraphDef *_subGraphDef;
     GraphId _graphId;

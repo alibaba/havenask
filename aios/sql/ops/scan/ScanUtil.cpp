@@ -47,7 +47,7 @@ void ScanUtil::filterPksByParam(const ScanR *scanR,
                                 const suez::turing::IndexInfo *pkIndexInfo,
                                 std::vector<string> &pks) {
     assert(pkIndexInfo != NULL);
-    SQL_LOG(TRACE3,
+    SQL_LOG(DEBUG,
             "hashFields[%s] parallelNum[%u] parallelIndex[%u] tableDist[%s]",
             StringUtil::toString(param.hashFields).c_str(),
             param.parallelNum,

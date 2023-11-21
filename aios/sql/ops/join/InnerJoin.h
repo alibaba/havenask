@@ -26,7 +26,7 @@ namespace sql {
 
 class InnerJoin : public JoinBase {
 public:
-    InnerJoin(const JoinBaseParam &joinBaseParam);
+    InnerJoin(const JoinBaseParamR &joinBaseParam);
     ~InnerJoin() {}
     InnerJoin(const InnerJoin &) = delete;
     InnerJoin &operator=(const InnerJoin &) = delete;

@@ -15,9 +15,12 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 #include "indexlib/base/Progress.h"
+#include "indexlib/framework/Locator.h"
 
 namespace build_service::util {
 
@@ -28,13 +31,19 @@ public:
     ~SwiftMessageFilter();
 
 public:
-    void setSeekProgress(const std::vector<indexlibv2::base::Progress>& progress);
+    void setSeekProgress(const indexlibv2::base::MultiProgress& progress);
+
+    bool needSkip(const indexlibv2::framework::Locator::DocInfo& docInfo);
+
+    void setSeekProgress(const indexlibv2::base::ProgressVector& progress);
     // 返回true时，代表需要过滤。否则，改写progress
     bool filterOrRewriteProgress(uint16_t payload, indexlibv2::base::Progress::Offset offset,
-                                 std::vector<indexlibv2::base::Progress>* progress);
+                                 indexlibv2::base::ProgressVector* progress);
+    bool rewriteProgress(indexlibv2::base::MultiProgress* progress);
 
 private:
-    std::vector<indexlibv2::base::Progress> _seekProgress;
+    indexlibv2::base::ProgressVector _seekProgress;
+    indexlibv2::base::MultiProgress _seekMultiProgress;
     int64_t _filteredMessageCount = 0;
 
 private:

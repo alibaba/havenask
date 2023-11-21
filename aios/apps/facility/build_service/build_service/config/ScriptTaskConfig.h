@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
-#ifndef ISEARCH_BS_SCRIPTTASKCONFIG_H
-#define ISEARCH_BS_SCRIPTTASKCONFIG_H
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
@@ -78,5 +80,3 @@ private:
 BS_TYPEDEF_PTR(ScriptTaskConfig);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_SCRIPTTASKCONFIG_H

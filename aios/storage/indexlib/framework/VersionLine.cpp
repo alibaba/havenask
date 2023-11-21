@@ -15,6 +15,12 @@
  */
 #include "indexlib/framework/VersionLine.h"
 
+#include <algorithm>
+#include <memory>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Constant.h"
+
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, VersionLine);
 

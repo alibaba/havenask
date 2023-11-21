@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
@@ -15,10 +19,6 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
-import com.google.common.collect.ImmutableList;
-
-import java.util.List;
-import java.util.Map;
 
 public class IquanMultiJoinOp extends BiRel implements IquanRelNode, Hintable {
     public final RexNode condition;
@@ -38,7 +38,8 @@ public class IquanMultiJoinOp extends BiRel implements IquanRelNode, Hintable {
         this.hints = hints;
     }
 
-    @Override public String getName() {
+    @Override
+    public String getName() {
         return ConstantDefine.MULTI_JOIN;
     }
 
@@ -63,27 +64,32 @@ public class IquanMultiJoinOp extends BiRel implements IquanRelNode, Hintable {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         return null;
     }
 
-    @Override public int getParallelNum() {
+    @Override
+    public int getParallelNum() {
         return IquanRelNode.super.getParallelNum();
     }
 
-    @Override public void setParallelNum(int parallelNum) {
+    @Override
+    public void setParallelNum(int parallelNum) {
         IquanRelNode.super.setParallelNum(parallelNum);
     }
 
-    @Override public int getParallelIndex() {
+    @Override
+    public int getParallelIndex() {
         return IquanRelNode.super.getParallelIndex();
     }
 
-    @Override public void setParallelIndex(int parallelIndex) {
+    @Override
+    public void setParallelIndex(int parallelIndex) {
         IquanRelNode.super.setParallelIndex(parallelIndex);
     }
 
-    @Override public void acceptForTraverse(RexShuttle shuttle) {
+    @Override
+    public void acceptForTraverse(RexShuttle shuttle) {
         IquanRelNode.super.acceptForTraverse(shuttle);
     }
 
@@ -92,19 +98,23 @@ public class IquanMultiJoinOp extends BiRel implements IquanRelNode, Hintable {
         IquanRelNode.super.explainInternal(map, level);
     }
 
-    @Override public List<String> getInputNames() {
+    @Override
+    public List<String> getInputNames() {
         return IquanRelNode.super.getInputNames();
     }
 
-    @Override public String explain() {
+    @Override
+    public String explain() {
         return super.explain();
     }
 
-    @Override public RelNode attachHints(List<RelHint> hintList) {
+    @Override
+    public RelNode attachHints(List<RelHint> hintList) {
         return Hintable.super.attachHints(hintList);
     }
 
-    @Override public RelNode withHints(List<RelHint> hintList) {
+    @Override
+    public RelNode withHints(List<RelHint> hintList) {
         return new IquanMultiJoinOp(
                 getCluster(),
                 getTraitSet(),
@@ -115,11 +125,13 @@ public class IquanMultiJoinOp extends BiRel implements IquanRelNode, Hintable {
                 ImmutableList.copyOf(hintList));
     }
 
-    @Override public ImmutableList<RelHint> getHints() {
+    @Override
+    public ImmutableList<RelHint> getHints() {
         return hints;
     }
 
-    @Override public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs) {
+    @Override
+    public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs) {
         return new IquanMultiJoinOp(
                 getCluster(),
                 traitSet,

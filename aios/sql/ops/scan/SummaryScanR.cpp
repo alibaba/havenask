@@ -138,7 +138,7 @@ navi::ErrorCode SummaryScanR::init(navi::ResourceInitContext &ctx) {
         SQL_LOG(ERROR, "prepare lookup context failed");
         return navi::EC_ABORT;
     }
-    startLookupCtxs();
+    startAsyncLookup();
 
     // sort usedFields
     _usedFields = _scanInitParamR->usedFields;
@@ -231,7 +231,7 @@ void SummaryScanR::onBatchScanFinish() {
 }
 
 bool SummaryScanR::doBatchScan(table::TablePtr &table, bool &eof) {
-    _scanInitParamR->incTotalScanCount(_docIds.size());
+    _scanCount += _docIds.size();
 
     for (auto &ctx : _lookupCtxs) {
         _scanInitParamR->incSeekTime(ctx->getSeekTime());
@@ -255,12 +255,11 @@ bool SummaryScanR::doBatchScan(table::TablePtr &table, bool &eof) {
         SQL_LOG(ERROR, "calc table failed");
         return false;
     }
-    _seekCount += table->getRowCount();
     _scanInitParamR->incEvaluateTime(evaluateTimer.done_us());
 
     outputTimer = {};
-    if (_limit < _seekCount) {
-        table->clearBackRows(min(_seekCount - _limit, (uint32_t)table->getRowCount()));
+    if (size_t rowCount = table->getRowCount(); _limit < rowCount) {
+        table->clearBackRows(rowCount - _limit);
     }
     _scanInitParamR->incOutputTime(outputTimer.done_us());
     eof = true;
@@ -288,7 +287,7 @@ bool SummaryScanR::doUpdateScanQuery(const StreamQueryPtr &inputQuery) {
         SQL_LOG(WARN, "generate docid failed, query [%s]", inputQuery->toString().c_str());
         return false;
     }
-    startLookupCtxs();
+    startAsyncLookup();
     return true;
 }
 
@@ -303,7 +302,7 @@ bool SummaryScanR::genDocIdFromRawPks(vector<string> pks) {
         SQL_LOG(ERROR, "convert pk to docid failed");
         return false;
     }
-    SQL_LOG(TRACE2,
+    SQL_LOG(DEBUG,
             "after convert PK to DocId, size[%lu], docIds[%s]",
             _docIds.size(),
             StringUtil::toString(_docIds).c_str());
@@ -500,7 +499,7 @@ bool SummaryScanR::prepareLookupCtxs() {
     return true;
 }
 
-void SummaryScanR::startLookupCtxs() {
+void SummaryScanR::startAsyncLookup() {
     _countedPipe->reset();
     size_t fieldCount = _summaryInfo->getFieldCount();
     std::vector<std::vector<docid_t>> docIdsVec(_lookupCtxs.size());
@@ -561,8 +560,12 @@ bool SummaryScanR::fillSummary(const vector<matchdoc::MatchDoc> &matchDocs) {
         auto vt = refBase->getValueType();
         auto func = [&](auto a) {
             typedef typename decltype(a)::value_type T;
-            Reference<T> *ref = dynamic_cast<Reference<T> *>(refBase);
-            return this->fillSummaryDocs<T>(ref, summaryDocs, matchDocs, i);
+            if constexpr (std::is_same_v<T, autil::HllCtx>) {
+                return false;
+            } else {
+                Reference<T> *ref = dynamic_cast<Reference<T> *>(refBase);
+                return this->fillSummaryDocs<T>(ref, summaryDocs, matchDocs, i);
+            }
         };
         if (!ValueTypeSwitch::switchType(vt, func, func)) {
             SQL_LOG(ERROR, "fill summary docs column[%s] failed", fieldName.c_str());

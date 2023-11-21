@@ -10,7 +10,7 @@
 
 #include "autil/Log.h"
 #include "swift/client/SwiftPartitionStatus.h"
-#include "swift/client/SwiftReader.h"
+#include "swift/client/SwiftReaderImpl.h"
 #include "swift/common/Common.h"
 #include "swift/protocol/ErrCode.pb.h"
 #include "swift/protocol/SwiftMessage.pb.h"
@@ -26,7 +26,7 @@ class SchemaReader;
 
 namespace testlib {
 
-class MockSwiftReader : public client::SwiftReader {
+class MockSwiftReader : public client::SwiftReaderImpl {
 public:
     typedef protocol::ErrorCode ErrorCode;
     typedef protocol::Message Message;

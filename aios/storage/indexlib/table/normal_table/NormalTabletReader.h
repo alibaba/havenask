@@ -22,6 +22,7 @@
 #include "indexlib/base/proto/query.pb.h"
 #include "indexlib/framework/TabletReader.h"
 #include "indexlib/framework/Version.h"
+#include "indexlib/index/field_meta/FieldMetaReader.h"
 
 namespace indexlib::util {
 class AccumulativeCounter;
@@ -31,6 +32,7 @@ namespace indexlib::index {
 class InvertedIndexReader;
 class PrimaryKeyIndexReader;
 class MultiFieldIndexReader;
+class FieldMetaReader;
 class IndexAccessoryReader;
 } // namespace indexlib::index
 
@@ -43,7 +45,9 @@ class DeletionMapIndexReader;
 class AttributeReader;
 class PackAttributeReader;
 class SummaryReader;
-struct IndexerParameter;
+class SourceReader;
+struct DiskIndexerParameter;
+struct IndexReaderParameter;
 } // namespace indexlibv2::index
 
 namespace indexlibv2::config {
@@ -58,7 +62,6 @@ class NormalTabletInfo;
 class NormalTabletMeta;
 class SortedDocIdRangeSearcher;
 class NormalTabletMetrics;
-
 class NormalTabletReader : public framework::TabletReader
 {
 public:
@@ -67,8 +70,8 @@ public:
     ~NormalTabletReader() = default;
 
 public:
-    Status Open(const std::shared_ptr<framework::TabletData>& tabletData,
-                const framework::ReadResource& readResource) final override;
+    Status DoOpen(const std::shared_ptr<framework::TabletData>& tabletData,
+                  const framework::ReadResource& readResource) final override;
 
     // redirect to NormalTabletSearcher::Search
     Status Search(const std::string& jsonQuery, std::string& result) const final override;
@@ -80,8 +83,16 @@ public:
     std::shared_ptr<indexlib::index::InvertedIndexReader> GetMultiFieldIndexReader() const;
     const std::shared_ptr<index::DeletionMapIndexReader>& GetDeletionMapReader() const;
     const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader>& GetPrimaryKeyReader() const;
+    const std::shared_ptr<indexlib::index::FieldMetaReader> GetFieldMetaReader(const std::string& fieldName) const;
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<indexlib::index::FieldMetaReader>>>&
+    GetFieldMetaReadersMap()
+    {
+        return _fieldMetaIndexFieldNameToReader;
+    }
     std::shared_ptr<index::SummaryReader> GetSummaryReader() const;
+    std::shared_ptr<index::SourceReader> GetSourceReader() const;
     std::shared_ptr<index::AttributeReader> GetAttributeReader(const std::string& attrName) const;
+
     std::shared_ptr<index::PackAttributeReader> GetPackAttributeReader(const std::string& packName) const;
 
     bool GetSortedDocIdRanges(const std::vector<std::shared_ptr<indexlib::table::DimensionDescription>>& dimensions,
@@ -110,7 +121,9 @@ private:
     template <typename T>
     void AddAttributeReader(const std::shared_ptr<indexlib::index::InvertedIndexReader>& indexReader,
                             const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig);
-    Status PrepareIndexerParameter(const framework::ReadResource& readResource, index::IndexerParameter& parameter);
+    Status PrepareIndexReaderParameter(const framework::ReadResource& readResource,
+                                       index::IndexReaderParameter& parameter);
+    void InitFieldMetaIndexFieldNameToReader();
 
 private:
     std::shared_ptr<indexlib::index::MultiFieldIndexReader> _multiFieldIndexReader;
@@ -122,6 +135,8 @@ private:
     std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> _primaryKeyIndexReader;
     std::shared_ptr<index::DeletionMapIndexReader> _deletionMapReader;
     std::shared_ptr<NormalTabletMetrics> _normalTabletMetrics;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<indexlib::index::FieldMetaReader>>>
+        _fieldMetaIndexFieldNameToReader;
 
 private:
     AUTIL_LOG_DECLARE();

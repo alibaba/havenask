@@ -1,6 +1,17 @@
+#include "build_service_tasks/extract_doc/test/FakeSwiftOutput.h"
+
+#include <iosfwd>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "build_service/config/TaskOutputConfig.h"
 #include "build_service/document/DocumentDefine.h"
-#include "build_service_tasks/extract_doc/test/FakeOutputCreator.h"
+#include "build_service/io/SwiftOutput.h"
+#include "build_service/util/Log.h"
 #include "swift/client/MessageInfo.h"
+#include "swift/common/MessageInfo.h"
 
 using namespace std;
 using namespace autil;

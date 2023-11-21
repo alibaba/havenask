@@ -41,7 +41,7 @@ int64_t OnlineJoinPolicy::GetReclaimRtTimestamp() const
 
 int64_t OnlineJoinPolicy::GetRtSeekTimestampFromIncVersion() const
 {
-    if (mIncVersion.GetVersionId() == INVALID_VERSION) {
+    if (mIncVersion.GetVersionId() == INVALID_VERSIONID) {
         return INVALID_TIMESTAMP;
     }
 

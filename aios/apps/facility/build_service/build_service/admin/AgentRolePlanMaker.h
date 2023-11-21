@@ -15,6 +15,15 @@
  */
 #pragma once
 
+#include <functional>
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/RangeUtil.h"
 #include "build_service/admin/AgentRoleInfo.h"
 #include "build_service/admin/AppPlanMaker.h"
@@ -101,7 +110,7 @@ private:
     static size_t calculateAgentNodeIndex(const autil::RangeVec& ranges, const std::string& roleName, uint32_t from,
                                           uint32_t to);
 
-    static size_t getResourceAmount(const RolePlan& plan, const std::string& name);
+    static bool getResourceAmount(const RolePlan& plan, const std::string& name, int32_t& amount);
 
 private:
     proto::BuildId _buildId;

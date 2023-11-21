@@ -50,7 +50,7 @@ public:
         , subGraphTimeoutFactor(DEFAULT_SUB_GRAPH_TIMEOUT_FACTOR)
         , subGraphThreadLimit(DEFAULT_SUB_GRAPH_THREAD_LIMIT)
         , mainGraphThreadLimit(DEFAULT_MAIN_GRAPH_THREAD_LIMIT)
-        , lackResultEnable(false)
+        , resultAllowSoftFailure(false)
         , iquanPlanPrepareLevel(DEFAULT_IQUAN_PLAN_PREPARE_LEVEL)
         , iquanPlanCacheEnable(true)
         , innerDocIdOptimizeEnable(false)
@@ -77,7 +77,7 @@ public:
         json.Jsonize("sub_graph_timeout_factor", subGraphTimeoutFactor, subGraphTimeoutFactor);
         json.Jsonize("sub_graph_thread_limit", subGraphThreadLimit, subGraphThreadLimit);
         json.Jsonize("main_graph_thread_limit", mainGraphThreadLimit, mainGraphThreadLimit);
-        json.Jsonize("lack_result_enable", lackResultEnable, lackResultEnable);
+        json.Jsonize("result_allow_soft_failure", resultAllowSoftFailure, resultAllowSoftFailure);
         json.Jsonize("iquan_plan_prepare_level", iquanPlanPrepareLevel, iquanPlanPrepareLevel);
         json.Jsonize("iquan_plan_cache_enable", iquanPlanCacheEnable, iquanPlanCacheEnable);
         json.Jsonize(
@@ -119,16 +119,16 @@ public:
     double subGraphTimeoutFactor;
     uint32_t subGraphThreadLimit;
     uint32_t mainGraphThreadLimit;
-    bool lackResultEnable;
+    bool resultAllowSoftFailure;
     std::string iquanPlanPrepareLevel;
     bool iquanPlanCacheEnable;
     bool innerDocIdOptimizeEnable;
     std::vector<std::string> parallelTables;
     std::vector<std::string> summaryTables;
     std::string sqlRuntimeTaskQueue;
-    iquan::TableModels logicTables;
-    iquan::LayerTableModels layerTables;
-    iquan::TableModels remoteTables;
+    std::vector<iquan::TableModel> logicTables;
+    std::vector<iquan::LayerTableModel> layerTables;
+    std::vector<iquan::TableModel> remoteTables;
     bool enableScanTimeout;
     size_t asyncScanConcurrency;
     double targetWatermarkTimeoutRatio;

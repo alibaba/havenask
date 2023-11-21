@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "iquan/common/Status.h"
+#include "iquan/common/catalog/CatalogDef.h"
 #include "iquan/jni/Iquan.h"
 #include "iquan/jni/test/testlib/IquanTestBase.h"
 #include "iquan/jni/test/testlib/SqlSuiteInfo.h"
@@ -9,8 +10,7 @@
 namespace iquan {
 
 struct CatalogData {
-    std::vector<std::string> ha3TableNameList;
-    std::vector<std::string> functionNameList;
+    CatalogDefs catalogDefs;
     DefaultCatalogPath defaultCatalogPath;
 };
 
@@ -27,9 +27,7 @@ class IquanPerfTestBase : public IquanTestBase {
 public:
     static Status loadCatalogData(const std::string &rootPath, CatalogData &catalogData);
 
-    static Status registerCatalogData(const std::string &rootPath,
-                                      const CatalogData &catalogData,
-                                      IquanPtr &pIquan);
+    static Status registerCatalogData(const CatalogDefs &catalogDefs, IquanPtr &pIquan);
 
     static Status runTest(const DefaultCatalogPath &defaultCatalogPath,
                           IquanPtr &pIquan,

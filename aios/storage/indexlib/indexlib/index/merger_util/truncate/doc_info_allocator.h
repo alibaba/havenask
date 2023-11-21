@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOC_INFO_ALLOCATOR_H
-#define __INDEXLIB_DOC_INFO_ALLOCATOR_H
+#pragma once
 
 #include <memory>
 
@@ -143,5 +142,3 @@ inline Reference* DocInfoAllocator::GetReference(const std::string& fieldName) c
 
 DEFINE_SHARED_PTR(DocInfoAllocator);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_DOC_INFO_ALLOCATOR_H

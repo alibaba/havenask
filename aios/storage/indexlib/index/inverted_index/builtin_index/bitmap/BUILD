@@ -126,6 +126,7 @@ strict_cc_library(
         ':BitmapPostingWriter', ':InMemBitmapIndexSegmentReader',
         '//aios/autil:mem_pool_base',
         '//aios/storage/indexlib/document/normal:IndexDocument',
+        '//aios/storage/indexlib/index/inverted_index:InvertedIndexFields',
         '//aios/storage/indexlib/index/inverted_index:InvertedIndexUtil',
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:TieredDictionaryWriter'
     ]

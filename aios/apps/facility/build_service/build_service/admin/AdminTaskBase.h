@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ADMINTASKBASE_H
-#define ISEARCH_BS_ADMINTASKBASE_H
+#pragma once
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
 #include "autil/legacy/jsonizable.h"
-#include "beeper/common/common_type.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/CounterCollector.h"
 #include "build_service/admin/SlowNodeDetector.h"
+#include "build_service/admin/SlowNodeHandleStrategy.h"
 #include "build_service/admin/SlowNodeMetricReporter.h"
-#include "build_service/admin/WorkerTable.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/NodeStatusManager.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ConfigReaderAccessor.h"
 #include "build_service/config/ResourceReader.h"
@@ -31,11 +44,10 @@
 #include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
-#include "build_service/proto/JsonizableProtobuf.h"
 #include "build_service/proto/ProtoUtil.h"
-#include "build_service/util/Log.h"
-#include "fslib/util/FileUtil.h"
-#include "kmonitor_adapter/Monitor.h"
+#include "build_service/proto/RoleNameGenerator.h"
+#include "build_service/proto/WorkerNode.h"
+#include "build_service/proto/WorkerNodeCreator.h"
 
 namespace build_service { namespace admin {
 
@@ -426,5 +438,3 @@ bool AdminTaskBase::checkAndSetFinished(const taskcontroller::NodeStatusManagerP
 }
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_ADMINTASKBASE_H

@@ -17,7 +17,6 @@
 #include <string.h>
 #include <unordered_set>
 
-#include "autil/EnvUtil.h"
 #include "autil/Lock.h"
 
 namespace autil {
@@ -60,10 +59,10 @@ private:
         return flag;
     }
     static bool getEnableFromEnv() {
-        std::string str = autil::EnvUtil::getEnv("AutilTracerType");
+        const char *str = std::getenv("AutilTracerType");
         bool flag = false;
-        if (!str.empty()) {
-            flag = strstr(str.c_str(), "all") || strstr(str.c_str(), typeid(T).name());
+        if (str) {
+            flag = strstr(str, "all") || strstr(str, typeid(T).name());
         }
         fprintf(stderr, "object tracer for type[%s] enabled[%d]\n", typeid(T).name(), flag);
         return flag;

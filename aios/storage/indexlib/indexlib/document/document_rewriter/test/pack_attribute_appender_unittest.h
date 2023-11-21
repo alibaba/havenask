@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PACKATTRIBUTEAPPENDERTEST_H
-#define __INDEXLIB_PACKATTRIBUTEAPPENDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_rewriter/pack_attribute_appender.h"
@@ -34,5 +33,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(PackAttributeAppenderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(PackAttributeAppenderTest, TestForKKVTable);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_PACKATTRIBUTEAPPENDERTEST_H

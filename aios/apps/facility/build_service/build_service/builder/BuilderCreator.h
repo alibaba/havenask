@@ -13,24 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDERCREATOR_H
-#define ISEARCH_BS_BUILDERCREATOR_H
+#pragma once
+
+#include <memory>
+#include <stdint.h>
+#include <string>
 
 #include "build_service/builder/Builder.h"
 #include "build_service/common_define.h"
-#include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/BuilderClusterConfig.h"
 #include "build_service/config/BuilderConfig.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
-#include "fslib/fslib.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/util/memory_control/QuotaControl.h"
+#include "fslib/fs/FileLock.h"
+#include "indexlib/config/SortDescription.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
+#include "indexlib/index_base/index_meta/parallel_build_info.h"
+#include "indexlib/partition/builder_branch_hinter.h"
+#include "indexlib/partition/index_builder.h"
+#include "indexlib/partition/index_partition.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace util {
-class MetricProvider;
-class Metric;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util
@@ -120,5 +126,3 @@ private:
 BS_TYPEDEF_PTR(BuilderCreator);
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_BUILDERCREATOR_H

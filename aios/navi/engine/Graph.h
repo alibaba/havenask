@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NAVI_GRAPH_H
-#define NAVI_GRAPH_H
+#pragma once
 
 #include "navi/engine/GraphBorder.h"
 #include "navi/engine/TimeoutChecker.h"
+#include "navi/engine/NaviError.h"
 #include "navi/proto/GraphDef.pb.h"
 #include "aios/network/gig/multi_call/stream/GigStreamRpcInfo.h"
 
@@ -31,6 +31,7 @@ enum GraphFinishType {
 
 class SubGraphBase;
 class GraphDomainFork;
+class Node;
 
 class Graph
 {
@@ -43,10 +44,13 @@ private:
 public:
     ErrorCode init(GraphDef *graphDef);
     ErrorCode run();
-    void notifyFinish(ErrorCode ec);
-    void notifyFinish(ErrorCode ec, GraphFinishType type);
+    void notifyFinishEc(ErrorCode ec);
+    void notifyFinish(const NaviErrorPtr &naviError);
+    void notifyFinish(const NaviErrorPtr &error, GraphFinishType type);
     void notifyTimeout();
     void setGraphDomain(GraphId graphId, const GraphDomainPtr &domain);
+    void setForkInfo(GraphId graphId, const GraphDomainPtr &domain,
+                     Node *forkNode, bool errorAsEof);
     GraphParam *getGraphParam() const;
     void setResourceMap(const ResourceMap *resourceMap);
     void setSubResourceMap(const std::map<GraphId, ResourceMapPtr> &subResourceMaps);
@@ -57,7 +61,13 @@ public:
     int64_t getRemainTimeMs() const;
     bool updateTimeoutMs(int64_t timeoutMs);
     const TimeoutChecker *getTimeoutChecker() const;
-
+    GraphMetric *getGraphMetric() {
+        return _param->graphResult->getGraphMetric();
+    }
+    Node *getForkNode() const {
+        return _forkNode;
+    }
+    void collectMetric();
 private:
     ErrorCode initGraphDef(GraphDef *graphDef);
     ErrorCode rewrite(GraphBuilder &builder, SubGraphDef *subGraphDef);
@@ -83,10 +93,10 @@ private:
                                       NaviPartId &partCount,
                                       NaviPartId &partId);
     void addSubGraph(SubGraphBase *subGraph);
-    ErrorCode initNaviResult();
+    ErrorCode initNaviUserResult();
+    void initTimeoutChecker();
     bool initTimer();
     void stopTimer();
-    void fillResult();
     bool initBorder();
     void terminateAll(ErrorCode ec);
     SubGraphBorderMapPtr getBorderMap(GraphId graphId) const;
@@ -96,6 +106,7 @@ private:
     BizPtr getBiz(const SubGraphDef &subGraphDef);
     BizPtr doGetBiz(const SubGraphDef &subGraphDef);
     ResourceMapPtr getSubResourceMap(GraphId graphId) const;
+    void doCollectMetric();
 private:
     static const std::string &getBizName(const SubGraphDef &subGraphDef);
     static void initThisPartId(SubGraphDef *subGraphDef);
@@ -110,9 +121,12 @@ protected:
     GraphDomainMapPtr _graphDomainMap;
     std::unordered_map<SubGraphDef *, GraphDomainPtr> _subGraphDomainMap;
     Graph *_parent;
+    Node *_forkNode;
     bool _errorAsEof;
     autil::RecursiveThreadMutex _terminateLock;
     std::atomic<bool> _terminated;
+    autil::ThreadMutex _metricCollectLock;
+    bool _metricCollected; // need_restore
     autil::ThreadMutex _timerLock;
     Timer *_timer;
     TimeoutChecker _timeoutChecker;
@@ -124,5 +138,3 @@ private:
 };
 
 }
-
-#endif //NAVI_GRAPH_H

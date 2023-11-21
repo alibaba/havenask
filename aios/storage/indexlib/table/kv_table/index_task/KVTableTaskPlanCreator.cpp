@@ -16,6 +16,7 @@
 #include "indexlib/table/kv_table/index_task/KVTableTaskPlanCreator.h"
 
 #include "indexlib/table/kv_table/index_task/KVTableAlterTablePlanCreator.h"
+#include "indexlib/table/kv_table/index_task/KVTableBulkloadPlanCreator.h"
 #include "indexlib/table/kv_table/index_task/KVTableMergePlanCreator.h"
 #include "indexlib/table/kv_table/index_task/KVTableTaskOperationCreator.h"
 
@@ -26,14 +27,9 @@ KVTableTaskPlanCreator::KVTableTaskPlanCreator()
 {
     RegisterSimpleCreator<KVTableMergePlanCreator>();
     RegisterSimpleCreator<KVTableAlterTablePlanCreator>();
+    RegisterSimpleCreator<KVTableBulkloadPlanCreator>();
 }
 
 KVTableTaskPlanCreator::~KVTableTaskPlanCreator() {}
-
-std::shared_ptr<framework::IIndexOperationCreator>
-KVTableTaskPlanCreator::CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& tabletSchema)
-{
-    return std::make_shared<KVTableTaskOperationCreator>(tabletSchema);
-}
 
 } // namespace indexlibv2::table

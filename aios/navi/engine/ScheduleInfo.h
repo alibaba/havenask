@@ -38,28 +38,6 @@ public:
     }
 public:
     void fillProto(ScheduleInfoDef *info) const;
-    void serialize(autil::DataBuffer &dataBuffer) const {
-        dataBuffer.write(enqueueTime);
-        dataBuffer.write(dequeueTime);
-        dataBuffer.write(runningThread);
-        dataBuffer.write(schedTid);
-        dataBuffer.write(signalTid);
-        dataBuffer.write(processTid);
-        dataBuffer.write(threadCounter);
-        dataBuffer.write(threadWaitCounter);
-        dataBuffer.write(queueSize);
-    }
-    void deserialize(autil::DataBuffer &dataBuffer) {
-        dataBuffer.read(enqueueTime);
-        dataBuffer.read(dequeueTime);
-        dataBuffer.read(runningThread);
-        dataBuffer.read(schedTid);
-        dataBuffer.read(signalTid);
-        dataBuffer.read(processTid);
-        dataBuffer.read(threadCounter);
-        dataBuffer.read(threadWaitCounter);
-        dataBuffer.read(queueSize);
-    }
 public:
     int64_t enqueueTime;
     int64_t dequeueTime;

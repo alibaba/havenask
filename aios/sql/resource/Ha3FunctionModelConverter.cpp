@@ -29,14 +29,13 @@
 #include "iquan/common/catalog/FunctionDef.h"
 #include "iquan/common/catalog/FunctionModel.h"
 #include "sql/resource/Ha3FunctionDef.h"
-#include "sql/resource/Ha3FunctionModel.h"
 
 using namespace iquan;
 
 namespace sql {
 
-Status Ha3FunctionModelConverter::convert(FunctionModels &functionModels) {
-    for (FunctionModel &model : functionModels.functions) {
+Status Ha3FunctionModelConverter::convert(std::vector<iquan::FunctionModel> &functionModels) {
+    for (FunctionModel &model : functionModels) {
         IQUAN_ENSURE_FUNC(Ha3FunctionModelConverter::convert(model));
     }
     return Status::OK();
@@ -54,49 +53,26 @@ Status Ha3FunctionModelConverter::convert(FunctionModel &functionModel) {
             }
         } else {
             if (paramDef.type.empty()) {
-                throw IquanException("paramDef.type is empty in " + functionModel.functionName);
+                return Status(-1, "empty paramDef type: " + FastToJsonString(paramDef));
             }
         }
+        return Status::OK();
     };
 
     // 2. convert params
     // 2.1 convert prototypes
-    for (PrototypeDef &prototype : functionModel.functionContent.prototypes) {
+    for (PrototypeDef &prototype : functionModel.functionDef.prototypes) {
         for (auto &returnType : prototype.returnTypes) {
-            reflectParamFn(returnType);
+            IQUAN_ENSURE_FUNC(reflectParamFn(returnType));
         }
 
         for (ParamTypeDef &paramType : prototype.paramTypes) {
-            reflectParamFn(paramType);
+            IQUAN_ENSURE_FUNC(reflectParamFn(paramType));
         }
 
         for (ParamTypeDef &accType : prototype.accTypes) {
-            reflectParamFn(accType);
+            IQUAN_ENSURE_FUNC(reflectParamFn(accType));
         }
-    }
-    return Status::OK();
-}
-
-Status Ha3FunctionModelConverter::convert(const Ha3FunctionModel &ha3FunctionModel,
-                                          FunctionModels &functionModels) {
-    Ha3FunctionsDef ha3FunctionsDef;
-    IQUAN_ENSURE_FUNC(Utils::fromJson(ha3FunctionsDef, ha3FunctionModel.ha3FunctionsDefContent));
-
-    for (auto &ha3FunctionDef : ha3FunctionsDef.functionDefList) {
-        FunctionModel functionModel;
-
-        // 1. common info
-        functionModel.catalogName = ha3FunctionModel.catalogName;
-        functionModel.databaseName = ha3FunctionModel.databaseName;
-        functionModel.functionVersion = ha3FunctionModel.functionVersion;
-
-        // 2. special info
-        functionModel.functionName = ha3FunctionDef.functionName;
-        functionModel.functionType = ha3FunctionDef.functionType;
-        functionModel.isDeterministic = ha3FunctionDef.isDeterministic;
-        functionModel.functionContentVersion = ha3FunctionDef.functionContentVersion;
-        functionModel.functionContent = ha3FunctionDef.functionContent;
-        functionModels.functions.emplace_back(functionModel);
     }
     return Status::OK();
 }

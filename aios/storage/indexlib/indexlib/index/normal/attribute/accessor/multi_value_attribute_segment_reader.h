@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MULIT_VALUE_ATTRIBUTE_SEGMENT_READER_H
-#define __INDEXLIB_MULIT_VALUE_ATTRIBUTE_SEGMENT_READER_H
+#pragma once
 #include <fcntl.h>
 #include <memory>
 #include <sys/mman.h>
@@ -640,5 +639,3 @@ inline future_lite::coro::Lazy<index::ErrorCodeVec> MultiValueAttributeSegmentRe
 }
 
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_MULIT_VALUE_ATTRIBUTE_SEGMENT_READER_H

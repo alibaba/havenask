@@ -78,9 +78,6 @@ private:
 
 public:
     DEF_CREATE_ACCUMULATOR_FUNC(LogicAccumulator<InputType>, _initAccVal);
-    bool needDependInputTablePools() const override {
-        return false;
-    }
 
 private:
     // local
@@ -110,8 +107,8 @@ bool LogicAggFunc<InputType>::initCollectInput(const table::TablePtr &inputTable
 template <typename InputType>
 bool LogicAggFunc<InputType>::initAccumulatorOutput(const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
-    _sumColumn = table::TableUtil::declareAndGetColumnData<InputType>(
-        outputTable, _outputFields[0], false);
+    _sumColumn
+        = table::TableUtil::declareAndGetColumnData<InputType>(outputTable, _outputFields[0]);
     if (_sumColumn == nullptr) {
         return false;
     }

@@ -26,12 +26,13 @@ public:
     VirtualAttributeIndexFactory();
     ~VirtualAttributeIndexFactory();
 
-    std::shared_ptr<index::IDiskIndexer> CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                           const index::IndexerParameter& indexerParam) const override;
+    std::shared_ptr<index::IDiskIndexer>
+    CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
+                      const index::DiskIndexerParameter& indexerParam) const override;
     std::shared_ptr<index::IMemIndexer> CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                         const index::IndexerParameter& indexerParam) const override;
+                                                         const index::MemIndexerParameter& indexerParam) const override;
     std::unique_ptr<index::IIndexReader> CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                           const index::IndexerParameter& indexerParam) const override;
+                                                           const index::IndexReaderParameter&) const override;
     std::unique_ptr<index::IIndexMerger>
     CreateIndexMerger(const std::shared_ptr<config::IIndexConfig>& indexConfig) const override;
     std::unique_ptr<config::IIndexConfig> CreateIndexConfig(const autil::legacy::Any& any) const override;

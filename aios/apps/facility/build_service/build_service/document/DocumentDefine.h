@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DOCUMENTDEFINE_H
-#define ISEARCH_BS_DOCUMENTDEFINE_H
+#pragma once
 
-#include "indexlib/document/raw_document/raw_document_define.h"
+#include <stddef.h>
+#include <string>
 
 namespace build_service { namespace document {
 
@@ -49,5 +49,3 @@ extern const std::string HA_RESERVED_SKIP_REASON;
 extern const std::string UPDATE_FAILED;
 
 }} // namespace build_service::document
-
-#endif // ISEARCH_BS_DOCUMENTDEFINE_H

@@ -1,8 +1,8 @@
 #include "indexlib/partition/test/aux_table_reader_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/aux_table_reader_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/cache/SearchCachePartitionWrapper.h"
 
 using namespace std;

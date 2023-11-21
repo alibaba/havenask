@@ -2,9 +2,24 @@ load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 strict_cc_fast_test(
     name='SourceIndexFileTest',
     srcs=['SourceIndexFileTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/index/source:constants',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='SourceMemIndexerTest',
+    srcs=['SourceMemIndexerTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/config:FileCompressConfigV2',
+        '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
+        '//aios/storage/indexlib/document/normal:ClassifiedDocument',
+        '//aios/storage/indexlib/document/raw_document:DefaultRawDocument',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/source:factory',
         '//aios/unittest_framework'
     ]
 )

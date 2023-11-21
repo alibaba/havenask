@@ -1,0 +1,286 @@
+{
+    "role_desc": {
+        "minHealthCapacity": 0,
+        "count": 1,
+        "healthCheckerConfig":
+          {
+          "args":
+            [
+              {
+              "key":
+                "PORT",
+              "value":
+                "45800"
+              },
+              {
+              "key":
+                "CHECK_PATH",
+              "value":
+                "\/HeartbeatService\/heartbeat"
+              }
+            ],
+          "name":
+            "adv_lv7"
+        },
+        "resources": [
+            {
+                "resources": [
+                    {
+                        "amount": 300,
+                        "name": "cpu",
+                        "type": "SCALAR"
+                    },
+                    {
+                        "amount": 10240,
+                        "name": "mem",
+                        "type": "SCALAR"
+                    },
+                    {
+                        "amount": 0,
+                        "name": "qrs",
+                        "type": "TEXT"
+                    },
+                    {
+                        "amount": 0,
+                        "name": "${havenask.serviceName}:qrs",
+                        "type": "EXCLUSIVE"
+                    }
+                ]
+            }
+        ],
+        "packageInfos": [
+            {
+                "packageURI": "${havenask.image}",
+                "type": "IMAGE"
+            }
+        ],
+        "processInfos": [
+            {
+                "args": [
+                    {
+                        "key": "-r",
+                        "value": "${common.binaryPath}"
+                    },
+                    {
+                        "key": "--port",
+                        "value": "arpc:45798"
+                    },
+                    {
+                        "key": "--port",
+                        "value": "http:45799"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "httpPort=45800"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "gigGrpcPort=45801"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "port=45798"
+                    },
+                    {
+                        "key": "-l",
+                        "value": "${common.binaryPath}/usr/local/etc/sql/sql_alog.conf"
+                    },
+                    {
+                        "key": "-c",
+                        "value": "${common.binaryPath}/usr/local/etc/sql/qrs_server.cfg"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "serviceName=${havenask.serviceName}"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "amonitorPath=${havenask.serviceName}/qrs"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "haCompatible=true"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "zoneName=qrs"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "roleName=seacher_partition_0"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "kmonitorNormalSamplePeriod=1"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "naviPoolModeAsan=1"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "naviDisablePerf=1"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "GRPC_CLIENT_CHANNEL_BACKUP_POLL_INTERVAL_MS=500"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "FAST_CLEAN_INC_VERSION=false"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "binaryPath=${common.binaryPath}"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "LIBHDFS_OPTS=-Xrs"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "JAVA_TOOL_OPTIONS=-Djdk.lang.processReaperUseDefaultStackSize=true"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "ENABLE_PUBLISH_TABLE_TOPO_INFO=false"
+                    },
+                    {
+                        "key": "-d",
+                        "value": ""
+                    },
+                    {
+                        "key": "-n",
+                        "value": ""
+                    },
+                    {
+                        "key": "--env",
+                        "value": "roleType=qrs"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "decodeUri=true"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "naviThreadNum=0"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "kmonitorSinkAddress=127.0.0.1"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "userName=admin"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "dpThreadNum=1"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "localMode=true"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "mode=rw"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "enableLocalCatalog=true"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "enableUpdateCatalog=true"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "gigGrpcThreadNum=5"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "navi_config_loader=${common.binaryPath}/usr/local/lib/python/site-packages/sql/sql_config_loader.py"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "leader_election_strategy_type=range"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "zk_root=${common.domainZkRoot}/${havenask.serviceName}"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "asyncInterExecutorType=simple"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "asyncIntraExecutorType=simple"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "kmonitorEnableLogFileSink=false"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "FSLIB_LOCAL_ASYNC_CORO_READ=0"
+                    },
+                    {
+                        "key": "--env",
+                        "value": "SLEEP_CPU_FOR_TEST=1"
+                    }
+                ],
+                "cmd": "ha_sql",
+                "isDaemon": true,
+                "processName": "ha_sql",
+                "envs": [
+                    {
+                        "key": "LD_LIBRARY_PATH",
+                        "value": "/opt/taobao/java/jre/lib/amd64/server:${common.binaryPath}/usr/local/lib64:${common.binaryPath}/usr/lib:${common.binaryPath}/usr/lib64:${common.binaryPath}/usr/local/lib:$LD_LIBRARY_PATH"
+                    },
+                    {
+                        "key": "LD_PRELOAD",
+                        "value": "/usr/local/lib64/lockless/libllalloc.so"
+                    },
+                    {
+                        "key": "PATH",
+                        "value": "${common.binaryPath}/usr/local/bin:$PATH"
+                    },
+                    {
+                        "key": "HIPPO_DP2_SLAVE_PORT",
+                        "value": "19715"
+                    },
+                    {
+                        "key": "JAVA_HOME",
+                        "value": "/opt/taobao/java"
+                    },
+                    {
+                        "key": "HADOOP_HOME",
+                        "value": "${common.hadoopHome}"
+                    },
+                    {
+                        "key": "CLASSPATH",
+                        "value": "/usr/local/hadoop/hadoop/etc/hadoop:/usr/local/hadoop/hadoop/share/hadoop/common/lib/*:/usr/local/hadoop/hadoop/share/hadoop/common/*:/usr/local/hadoop/hadoop/share/hadoop/hdfs:/usr/local/hadoop/hadoop/share/hadoop/hdfs/lib/*:/usr/local/hadoop/hadoop/share/hadoop/hdfs/*:/usr/local/hadoop/hadoop/share/hadoop/yarn/lib/*:/usr/local/hadoop/hadoop/share/hadoop/yarn/*:/usr/local/hadoop/hadoop/share/hadoop/mapreduce/lib/*:/usr/local/hadoop/hadoop/share/hadoop/mapreduce/*:/usr/local/hadoop/hadoop/contrib/capacity-scheduler/*.jar"
+                    },
+                    {
+                        "key": "DISABLE_CODEGEN",
+                        "value": "true"
+                    },
+                    {
+                        "key": "DISABLE_TURBOJET",
+                        "value": "true"
+                    },
+                    {
+                        "key": "leader_election_config",
+                        "value": "'\"'\"'{ \\\"zk_root\\\" : \\\"${common.domainZkRoot}/${havenask.serviceName}/qrs\\\",  \\\"lease_in_ms\\\" : 2000, \\\"loop_interval_in_ms\\\" : 2000, \\\"zk_timeout_in_ms\\\" : 7000, \\\"campaign_now\\\": false}'\"'\"'"
+                    },
+                    {
+                        "key": "version_sync_config",
+                        "value": "'\"'\"'{\\\"zk_root\\\" : \\\"${common.domainZkRoot}/${havenask.serviceName}/qrs\\\",  \\\"zk_timeout_in_ms\\\" : 7000 }'\"'\"'"
+                    }
+                    
+                ]
+            }
+        ]
+    }
+}

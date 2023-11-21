@@ -353,12 +353,9 @@ TEST_F(ReclaimMapTest, TestStoreAndLoad)
     ASSERT_EQ(reclaimMap.GetTargetSegmentCount(), reclaimMap2.GetTargetSegmentCount());
     ASSERT_EQ(reclaimMap.GetNewDocCount(), reclaimMap2.GetNewDocCount());
     for (uint32_t i = 0; i < reclaimMap2.GetNewDocCount(); i++) {
-        segmentid_t expectedSegId, actualSegId;
-        docid_t expectedDocId, actualDocId;
-
         docid_t docId = (docid_t)i;
-        reclaimMap.GetOldDocIdAndSegId(docId, expectedDocId, expectedSegId);
-        reclaimMap2.GetOldDocIdAndSegId(docId, actualDocId, actualSegId);
+        auto [expectedSegId, expectedDocId] = reclaimMap.ReverseMap(docId);
+        auto [actualSegId, actualDocId] = reclaimMap2.ReverseMap(docId);
 
         ASSERT_EQ(expectedSegId, actualSegId);
         ASSERT_EQ(expectedDocId, actualDocId);

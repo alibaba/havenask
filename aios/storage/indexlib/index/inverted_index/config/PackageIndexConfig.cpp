@@ -385,7 +385,7 @@ void PackageIndexConfig::DoDeserialize(const autil::legacy::Any& any,
         fieldElement = indexField.find(FIELD_BOOST);
         if (fieldElement == indexField.end()) {
             std::stringstream ss;
-            ss << "no boost found for field: " << fieldName;
+            ss << "no boost found for field: " << fieldName << ", index name [" << GetIndexName() << "]";
             INDEXLIB_FATAL_ERROR(Schema, "%s", ss.str().c_str());
         }
         boosts.push_back(autil::legacy::json::JsonNumberCast<int32_t>(fieldElement->second));
@@ -393,7 +393,8 @@ void PackageIndexConfig::DoDeserialize(const autil::legacy::Any& any,
     for (size_t i = 0; i < fieldNames.size(); ++i) {
         auto fieldConfig = resource.GetFieldConfig(fieldNames[i]);
         if (!fieldConfig) {
-            INDEXLIB_FATAL_ERROR(Schema, "get field [%s] failed", fieldNames[i].c_str());
+            INDEXLIB_FATAL_ERROR(Schema, "get field [%s] failed, index name [%s]", fieldNames[i].c_str(),
+                                 GetIndexName().c_str());
         }
         auto status = AddFieldConfig(fieldConfig, boosts[i]);
         THROW_IF_STATUS_ERROR(status);

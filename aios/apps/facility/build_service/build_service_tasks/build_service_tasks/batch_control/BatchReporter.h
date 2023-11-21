@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BATCH_REPORTER_H
-#define ISEARCH_BS_BATCH_REPORTER_H
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "aios/network/anet/httppacketfactory.h"
 #include "aios/network/anet/ipackethandler.h"
+#include "aios/network/anet/packet.h"
 #include "aios/network/anet/transport.h"
 #include "autil/Lock.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/DataDescription.h"
-#include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/proto/ProtoUtil.h"
-#include "build_service/task_base/Task.h"
 #include "build_service/util/Log.h"
 #include "build_service_tasks/batch_control/BatchControlWorker.h"
 
@@ -140,5 +143,3 @@ private:
 BS_TYPEDEF_PTR(BatchReporter);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_BATCH_REPORTER_H

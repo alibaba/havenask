@@ -57,7 +57,7 @@ public enum IquanErrorCode {
     IQUAN_EC_SQL_AGG(2000, null, "error occur in agg op"),
     IQUAN_EC_SQL_AGG_INDICATOR(2001, IQUAN_EC_SQL_AGG, "group sets is not support"),
     IQUAN_EC_SQL_AGG_UNSUPPORT_AGG_FUNCTION(2002, IQUAN_EC_SQL_AGG, "agg function is not support"),
-    IQUAN_EC_SQL_AGG_GROUPING_FUNC_MAX_ARGS(2003,IQUAN_EC_SQL_AGG,"too many parameters in GROUPING func"),
+    IQUAN_EC_SQL_AGG_GROUPING_FUNC_MAX_ARGS(2003, IQUAN_EC_SQL_AGG, "too many parameters in GROUPING func"),
 
     // sql.values
     IQUAN_EC_SQL_VALUES(2100, null, "error occur in values op"),

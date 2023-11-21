@@ -18,7 +18,6 @@
 #include <assert.h>
 #include <cstdint>
 #include <ext/alloc_traits.h>
-#include <list>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -39,8 +38,10 @@ namespace swift {
 namespace client {
 AUTIL_LOG_SETUP(swift, SwiftWriterAsyncHelper);
 
+SwiftWriteCallbackItem::SwiftWriteCallbackItem() : payload(std::make_shared<Payload>()) {}
+
 bool SwiftWriteCallbackItem::onDone(SwiftWriteCallbackParam param) {
-    auto callback_ = std::move(callback);
+    auto callback_ = std::move(payload->callback);
     if (callback_) {
         callback_(std::move(param));
         return true;
@@ -49,10 +50,12 @@ bool SwiftWriteCallbackItem::onDone(SwiftWriteCallbackParam param) {
 }
 
 bool SwiftWriteCallbackItem::onTimeout(const std::string &src) {
-    auto callback_ = std::move(callback);
+    auto callback_ = std::move(payload->callback);
     if (callback_) {
-        callback_(RuntimeError::make(
-            "[%s] async writer timeout, timeoutInUs %ld, checkpoint %ld", src.c_str(), timeoutInUs, checkpointId));
+        callback_(RuntimeError::make("[%s] async writer timeout, timeoutInUs %ld, checkpoint %ld",
+                                     src.c_str(),
+                                     payload->timeoutInUs,
+                                     checkpointId));
         return true;
     }
     return false;
@@ -91,6 +94,18 @@ bool SwiftWriterAsyncHelper::init(std::unique_ptr<swift::client::SwiftWriter> wr
     return true;
 }
 
+void SwiftWriterAsyncHelper::pushToTimeoutQueue(const SwiftWriteCallbackItem &item) { _timeoutQueue.emplace(item); }
+
+void SwiftWriterAsyncHelper::getExpiredItemsFromTimeoutQueue(std::list<SwiftWriteCallbackItem> &result, int64_t now) {
+    for (; !_timeoutQueue.empty(); _timeoutQueue.pop()) {
+        auto &item = _timeoutQueue.top();
+        if (item.expireTimeInUs > now) {
+            break;
+        }
+        result.emplace_back(item);
+    }
+}
+
 void SwiftWriterAsyncHelper::stop() {
     _writer.reset();
     _checkLoopNotifier.notifyExit();
@@ -99,19 +114,19 @@ void SwiftWriterAsyncHelper::stop() {
     // no lock needed
     auto checkpointIdQueue = std::move(_checkpointIdQueue);
     auto timeoutQueue = std::move(_timeoutQueue);
-    size_t timeoutCnt = 0;
-    for (; !checkpointIdQueue.empty(); checkpointIdQueue.pop()) {
-        if (checkpointIdQueue.top()->onTimeout(_desc)) {
-            ++timeoutCnt;
+    for (; !checkpointIdQueue.empty(); checkpointIdQueue.pop_front()) {
+        if (auto item = checkpointIdQueue.front(); item.onTimeout(_desc)) {
+            ++_timeoutItemCountOnStop;
         }
     }
-    for (; !timeoutQueue.empty(); timeoutQueue.pop()) {
-        if (timeoutQueue.top()->onTimeout(_desc)) {
-            ++timeoutCnt;
+    for (; !_timeoutQueue.empty(); _timeoutQueue.pop()) {
+        if (auto item = _timeoutQueue.top(); item.onTimeout(_desc)) {
+            ++_timeoutItemCountOnStop;
         }
     }
-    assert(_pendingItemCount == timeoutCnt && "pending item count mismatch");
+    assert(_pendingItemCount == _timeoutItemCountOnStop && "pending item count mismatch");
     _pendingItemCount = 0;
+    _timeoutItemCountOnStop = 0;
 }
 
 size_t SwiftWriterAsyncHelper::getPendingItemCount() const {
@@ -152,11 +167,12 @@ void SwiftWriterAsyncHelper::write(MessageInfo *msgInfos,
         return;
     }
     auto now = TimeUtility::currentTime();
-    auto itemPtr = std::make_shared<SwiftWriteCallbackItem>();
-    itemPtr->timeoutInUs = timeoutInUs;
-    itemPtr->expireTimeInUs = TIME_ADD(now, timeoutInUs);
-    itemPtr->msgInfos = msgInfos;
-    itemPtr->count = count;
+    SwiftWriteCallbackItem item;
+    item.expireTimeInUs = TIME_ADD(now, timeoutInUs);
+    auto &itemPayload = *item.payload;
+    itemPayload.timeoutInUs = timeoutInUs;
+    itemPayload.msgInfos = msgInfos;
+    itemPayload.count = count;
 
     ErrorCode ec = protocol::ERROR_NONE;
     auto ckptIdLimit = getCkptIdLimit();
@@ -176,20 +192,20 @@ void SwiftWriterAsyncHelper::write(MessageInfo *msgInfos,
         }
 
         auto checkpointId = msgInfos[count - 1].checkpointId;
-        itemPtr->checkpointId = checkpointId;
-        itemPtr->callback = std::move(callback);
+        item.checkpointId = checkpointId;
+        itemPayload.callback = std::move(callback);
         AUTIL_LOG(TRACE1,
                   "[%s] start emplace checkpointId[%ld] message[%p,%lu]",
                   _desc.c_str(),
                   checkpointId,
                   msgInfos,
                   count);
-        if (itemPtr->expireTimeInUs < std::numeric_limits<int64_t>::max()) {
+        if (item.expireTimeInUs < std::numeric_limits<int64_t>::max()) {
             // need check timeout
-            assert((itemPtr->timeoutInUs <= 60 * 1000 * 1000) && "do not use too large timeout");
-            _timeoutQueue.emplace(itemPtr); // DO NOT std::move
+            assert((itemPayload.timeoutInUs <= 60 * 1000 * 1000) && "do not use too large timeout");
+            pushToTimeoutQueue(item);
         }
-        _checkpointIdQueue.emplace(std::move(itemPtr));
+        _checkpointIdQueue.emplace_back(std::move(item));
         ++_pendingItemCount;
         AUTIL_LOG(TRACE1,
                   "[%s] end emplace checkpointId[%ld] message[%p,%lu] pending[%lu]",
@@ -238,54 +254,48 @@ std::string SwiftWriterAsyncHelper::getTopicName() const {
 
 void SwiftWriterAsyncHelper::checkCallback() {
     assert(!_stopped);
-    std::list<SwiftWriteCallbackItemPtr> timeoutList;
-    std::list<SwiftWriteCallbackItemPtr> checkpointIdList;
+    std::list<SwiftWriteCallbackItem> timeoutList;
+    std::list<SwiftWriteCallbackItem> checkpointIdList;
     int64_t checkpointId = getCommittedCkptId();
     AUTIL_LOG(DEBUG, "[%s] start handle for checkpointId[%ld]", _desc.c_str(), checkpointId);
 
     int64_t now = TimeUtility::currentTime();
     {
         ScopedLock _(_lock);
-        for (; !_checkpointIdQueue.empty(); _checkpointIdQueue.pop()) {
-            auto &top = _checkpointIdQueue.top();
-            if (top->checkpointId > checkpointId) {
+        for (; !_checkpointIdQueue.empty(); _checkpointIdQueue.pop_front()) {
+            auto &item = _checkpointIdQueue.front();
+            if (item.checkpointId > checkpointId) {
                 break;
             }
-            checkpointIdList.emplace_back(std::move(top));
+            checkpointIdList.emplace_back(std::move(item));
         }
-        for (; !_timeoutQueue.empty(); _timeoutQueue.pop()) {
-            auto &top = _timeoutQueue.top();
-            if (top->expireTimeInUs > now) {
-                break;
-            }
-            timeoutList.emplace_back(std::move(top));
-        }
+        getExpiredItemsFromTimeoutQueue(timeoutList, now);
     }
     // DO NOT callback in lock
     size_t doneCnt = 0, timeoutCnt = 0;
-    std::vector<int64_t> timestamps;
-    for (auto &itemPtr : checkpointIdList) {
-        timestamps.reserve(itemPtr->count);
-        stealRange(timestamps, itemPtr->checkpointId);
-        assert(itemPtr->count == timestamps.size());
+    thread_local std::vector<int64_t> timestamps;
+    for (auto &item : checkpointIdList) {
+        timestamps.reserve(item.payload->count);
+        stealRange(timestamps, item.checkpointId);
+        assert(item.payload->count == timestamps.size());
         AUTIL_LOG(TRACE1,
                   "[%s] onDone for checkpointId[%ld] message[%p,%lu]",
                   _desc.c_str(),
                   checkpointId,
-                  itemPtr->msgInfos,
-                  itemPtr->count);
-        if (itemPtr->onDone({timestamps.data(), timestamps.size()})) {
+                  item.payload->msgInfos,
+                  item.payload->count);
+        if (item.onDone({timestamps.data(), timestamps.size()})) {
             ++doneCnt;
         }
     }
-    for (auto &itemPtr : timeoutList) {
+    for (auto &item : timeoutList) {
         AUTIL_LOG(TRACE1,
                   "[%s] onTimeout for checkpointId[%ld] message[%p,%lu]",
                   _desc.c_str(),
                   checkpointId,
-                  itemPtr->msgInfos,
-                  itemPtr->count);
-        if (itemPtr->onTimeout(_desc)) {
+                  item.payload->msgInfos,
+                  item.payload->count);
+        if (item.onTimeout(_desc)) {
             ++timeoutCnt;
         }
     }

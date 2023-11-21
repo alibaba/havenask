@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_H
-#define __INDEXLIB_DOCUMENT_H
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -51,8 +50,11 @@ public:
 
     const Locator& GetLocator() const { return mLocator; }
     const indexlibv2::framework::Locator& GetLocatorV2() const override { return mLocatorV2; }
-    void SetLocator(const Locator& locator);
-    void SetLocator(const std::string& locatorStr);
+    void ResetLocator()
+    {
+        mLocator = indexlib::document::Locator();
+        mLocatorV2 = indexlibv2::framework::Locator();
+    }
     void SetLocator(const indexlib::document::IndexLocator& indexLocator);
     void SetLocator(const indexlibv2::framework::Locator& locator) override;
 
@@ -85,9 +87,14 @@ public:
         }
         return autil::StringUtil::fromString<int64_t>(ingestionTimestampStr);
     }
-    void SetDocInfo(const DocInfo& docInfo) override { mDocInfo = docInfo; }
-    DocInfo GetDocInfo() const override { return mDocInfo; }
+    void SetDocInfo(const indexlibv2::framework::Locator::DocInfo& docInfo) override { mDocInfo = docInfo; }
+    indexlibv2::framework::Locator::DocInfo GetDocInfo() const override { return mDocInfo; }
     bool HasFormatError() const override { return false; }
+    schemaid_t GetSchemaId() const override
+    {
+        assert(false);
+        return DEFAULT_SCHEMAID;
+    }
 
 public:
     virtual void serialize(autil::DataBuffer& dataBuffer) const override;
@@ -144,7 +151,7 @@ protected:
     mutable uint32_t mSerializedVersion;
     uint32_t mTTL;
     int64_t mTimestamp;
-    DocInfo mDocInfo;
+    indexlibv2::framework::Locator::DocInfo mDocInfo;
     TagInfoMap mTagInfo; // legacy mSource
     Locator mLocator;
     indexlibv2::framework::Locator mLocatorV2;
@@ -156,5 +163,3 @@ private:
 
 DEFINE_SHARED_PTR(Document);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_DOCUMENT_H

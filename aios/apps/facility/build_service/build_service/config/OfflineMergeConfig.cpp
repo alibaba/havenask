@@ -15,6 +15,9 @@
  */
 #include "build_service/config/OfflineMergeConfig.h"
 
+#include <cstdint>
+#include <iosfwd>
+
 using namespace std;
 
 namespace build_service { namespace config {

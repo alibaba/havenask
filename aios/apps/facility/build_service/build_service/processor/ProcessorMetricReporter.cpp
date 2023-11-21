@@ -15,9 +15,10 @@
  */
 #include "build_service/processor/ProcessorMetricReporter.h"
 
+#include "alog/Logger.h"
 #include "build_service/util/Monitor.h"
-#include "indexlib/util/metrics/Metric.h"
 #include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 namespace build_service { namespace processor {
 

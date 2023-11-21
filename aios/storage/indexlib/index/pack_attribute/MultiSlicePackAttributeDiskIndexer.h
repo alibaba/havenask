@@ -24,7 +24,8 @@ class MultiSlicePackAttributeDiskIndexer : public MultiSliceAttributeDiskIndexer
 {
 public:
     MultiSlicePackAttributeDiskIndexer(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                                       const IndexerParameter& indexerParameter, AttributeDiskIndexerCreator* creator);
+                                       const DiskIndexerParameter& indexerParameter,
+                                       AttributeDiskIndexerCreator* creator);
     ~MultiSlicePackAttributeDiskIndexer();
 
 public:

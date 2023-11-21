@@ -15,7 +15,7 @@
  */
 #include "indexlib/framework/ResourceMap.h"
 
-#include <cassert>
+#include <type_traits>
 
 #include "indexlib/base/Constant.h"
 #include "indexlib/framework/IResource.h"

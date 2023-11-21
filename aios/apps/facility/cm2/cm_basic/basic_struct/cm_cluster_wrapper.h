@@ -24,7 +24,7 @@
 
 namespace cm_basic {
 
-DEFINE_SHARED_CONST_PTR(CMCluster);
+typedef std::shared_ptr<const CMCluster> CMClusterConstPtr;
 
 /*
  * CMClusterWrapper 对CMCluster的操作包装, 提供多线程操作接口
@@ -107,7 +107,7 @@ protected:
     std::vector<std::vector<CMNodeWrapperPtr>> _group_node_list;
 };
 
-DEFINE_SHARED_PTR(CMClusterWrapper);
+typedef std::shared_ptr<CMClusterWrapper> CMClusterWrapperPtr;
 
 } // namespace cm_basic
 

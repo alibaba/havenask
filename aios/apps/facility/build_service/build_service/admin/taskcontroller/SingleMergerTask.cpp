@@ -15,26 +15,52 @@
  */
 #include "build_service/admin/taskcontroller/SingleMergerTask.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
 #include "build_service/admin/AlterFieldCKPAccessor.h"
 #include "build_service/admin/CheckpointCreator.h"
 #include "build_service/admin/CheckpointTools.h"
+#include "build_service/admin/SlowNodeDetector.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/BuilderCheckpointAccessor.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
 #include "build_service/config/BuildRuleConfig.h"
-#include "build_service/config/BuilderClusterConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/config/IndexPartitionOptionsWrapper.h"
 #include "build_service/config/OfflineMergeConfig.h"
-#include "build_service/proto/ProtoComparator.h"
-#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/RoleNameGenerator.h"
 #include "build_service/proto/WorkerNodeCreator.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/util/FileUtil.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/index_define.h"
+#include "indexlib/misc/common.h"
 
 using namespace std;
 using namespace autil;
@@ -66,7 +92,7 @@ SingleMergerTask::SingleMergerTask(const proto::BuildId& buildId, const string& 
     , _mergeParallelNum(1)
     , _workerPathVersion(-1)
     , _timestamp(0)
-    , _alignedVersionId(INVALID_VERSION)
+    , _alignedVersionId(indexlib::INVALID_VERSIONID)
     , _alignVersion(true)
     , _schemaVersion(0)
     , _checkpointKeepCount(DEFAULT_CHECKPOINT_KEEP_COUNT)

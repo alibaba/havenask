@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_READERCONTAINERTEST_H
-#define __INDEXLIB_READERCONTAINERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/reader_container.h"
@@ -34,5 +33,3 @@ INDEXLIB_UNIT_TEST_CASE(ReaderContainerTest, TestHasReader);
 INDEXLIB_UNIT_TEST_CASE(ReaderContainerTest, TestGetSwitchRtSegments);
 INDEXLIB_UNIT_TEST_CASE(ReaderContainerTest, TestGetNeedKeepDeployFiles);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_READERCONTAINERTEST_H

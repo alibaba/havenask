@@ -15,6 +15,14 @@
  */
 #include "build_service/web_toolkit/base/HtmlTemplateRender.h"
 
+#include <assert.h>
+#include <initializer_list>
+#include <stdexcept>
+#include <vector>
+
+#include "autil/result/Result.h"
+#include "build_service/web_toolkit/third_party/nlohmann/json.hpp"
+
 namespace build_service::web_toolkit {
 AUTIL_LOG_SETUP(build_service.web_toolkit, HtmlTemplateRender);
 

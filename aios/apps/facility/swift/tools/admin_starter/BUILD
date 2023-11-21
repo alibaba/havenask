@@ -19,7 +19,7 @@ cc_library(
         '//aios/apps/facility/swift/common:swift_common',
         '//aios/apps/facility/swift/config:swift_config',
         '//aios/apps/facility/swift/monitor:swift_monitor',
-        '//aios/apps/facility/swift/util:swift_util'
+        '//aios/apps/facility/swift/util:swift_util', '//aios/libcarbon3:c2'
     ]
 )
 cc_test(

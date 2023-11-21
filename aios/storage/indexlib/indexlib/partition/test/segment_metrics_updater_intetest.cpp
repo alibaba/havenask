@@ -1,10 +1,10 @@
 #include "indexlib/partition/test/segment_metrics_updater_intetest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/segment_metrics_updater/lifecycle_segment_metrics_updater.h"
 #include "indexlib/index/segment_metrics_updater/max_min_segment_metrics_updater.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/segment/segment_data.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

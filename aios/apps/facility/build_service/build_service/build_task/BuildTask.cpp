@@ -15,27 +15,42 @@
  */
 #include "build_service/build_task/BuildTask.h"
 
+#include <assert.h>
+#include <map>
+#include <stddef.h>
+#include <tuple>
+#include <vector>
+
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
 #include "autil/MemUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/BuilderConfig.h"
+#include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/config/TaskConfig.h"
+#include "build_service/general_task/GeneralTask.h"
 #include "build_service/merge/RemoteTabletMergeController.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/ParallelIdGenerator.h"
-#include "build_service/util/RangeUtil.h"
-#include "fslib/util/FileUtil.h"
 #include "future_lite/ExecutorCreator.h"
-#include "indexlib/base/PathUtil.h"
+#include "future_lite/coro/LazyHelper.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/IDirectory.h"
-#include "indexlib/file_system/JsonUtil.h"
 #include "indexlib/framework/CommitOptions.h"
-#include "indexlib/framework/ITabletFactory.h"
+#include "indexlib/framework/IndexRoot.h"
+#include "indexlib/framework/OpenOptions.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/TabletCreator.h"
-#include "indexlib/framework/TabletFactoryCreator.h"
 #include "indexlib/framework/TabletId.h"
 #include "indexlib/framework/TabletInfos.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
@@ -45,15 +60,18 @@
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/LocalTabletMergeController.h"
 #include "indexlib/util/IpConvertor.h"
+#include "indexlib/util/JsonUtil.h"
+#include "indexlib/util/PathUtil.h"
+#include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricsReporter.h"
 
 namespace build_service::build_task {
 
 BS_LOG_SETUP(build_task, BuildTask);
 
 const std::string BuildTask::TASK_NAME = "builderV2";
-const std::string BuildTask::STEP_FULL = "full";
-const std::string BuildTask::STEP_INC = "incremental";
 
 BuildTask::~BuildTask()
 {
@@ -92,11 +110,14 @@ bool BuildTask::init(Task::TaskInitParam& initParam)
         return false;
     }
 
+    _schemaListKeeper.reset(new config::RealtimeSchemaListKeeper);
+    _schemaListKeeper->init(_buildServiceConfig.getIndexRoot(), _initParam.clusterName,
+                            _initParam.buildId.generationId);
     return true;
 }
 
 std::pair<indexlib::Status, std::shared_ptr<indexlibv2::config::ITabletSchema>>
-BuildTask::getTabletSchema(const std::shared_ptr<indexlibv2::config::TabletOptions>& tabletOptions) const
+BuildTask::getConfigTabletSchema(const std::shared_ptr<indexlibv2::config::TabletOptions>& tabletOptions) const
 {
     auto tabletSchema = _initParam.resourceReader->getTabletSchema(_initParam.clusterName);
     if (tabletSchema == nullptr) {
@@ -116,7 +137,8 @@ BuildTask::getTabletSchema(const std::shared_ptr<indexlibv2::config::TabletOptio
 
 std::string BuildTask::getBuilderPartitionIndexRoot() const
 {
-    const std::string builderIndexRoot = _buildServiceConfig.getBuilderIndexRoot(_buildStep == STEP_FULL);
+    const std::string builderIndexRoot =
+        _buildServiceConfig.getBuilderIndexRoot(_buildStep == config::BUILD_STEP_FULL_STR);
     auto pid = getPartitionRange();
     return util::IndexPathConstructor::constructIndexPath(builderIndexRoot, pid);
 }
@@ -142,7 +164,8 @@ std::shared_ptr<indexlibv2::framework::ITabletMergeController> BuildTask::create
         param.buildTempIndexRoot = getBuilderPartitionIndexRoot();
         param.partitionIndexRoot = getPartitionIndexRoot();
         param.metricProvider = _initParam.metricProvider;
-
+        param.extendResources =
+            task_base::GeneralTask::prepareExtendResource(_initParam.resourceReader, _initParam.clusterName);
         auto controller = std::make_shared<indexlibv2::table::LocalTabletMergeController>();
         auto status = controller->Init(param);
         if (!status.IsOK()) {
@@ -165,6 +188,8 @@ std::shared_ptr<indexlibv2::framework::ITabletMergeController> BuildTask::create
         param.rangeTo = _initParam.pid.range().to();
         param.configPath = _initParam.resourceReader->getConfigPath();
         param.dataTable = _initParam.buildId.dataTable;
+        param.extendResources =
+            task_base::GeneralTask::prepareExtendResource(_initParam.resourceReader, _initParam.clusterName);
 
         auto controller = std::make_shared<build_service::merge::RemoteTabletMergeController>();
         auto status = controller->Init(param);
@@ -259,7 +284,7 @@ BuildTask::getMergeController(const config::MergeControllerConfig& taskControlle
     if (!_localMergeExecutor) {
         _localMergeExecutor = createExecutor("merge_controller", taskControllerConfig.threadNum);
     }
-    auto [status, schema] = getTabletSchema(tabletOptions);
+    auto [status, schema] = getConfigTabletSchema(tabletOptions);
     if (!status.IsOK()) {
         BS_LOG(ERROR, "get tablet schema failed");
         return {status, nullptr};
@@ -276,7 +301,7 @@ BuildTask::getMergeController(const config::MergeControllerConfig& taskControlle
 bool BuildTask::prepareResource()
 {
     const std::string clusterConfig = _initParam.resourceReader->getClusterConfRelativePath(_initParam.clusterName);
-    uint32_t executorThreadCount = 1;
+    uint32_t executorThreadCount = 2; // prevent the executor from being blocked by a single task for so long
     uint32_t dumpThreadCount = 1;
     int64_t buildTotalMemory = 6 * 1024;
     if (!_initParam.resourceReader->getConfigWithJsonPath(
@@ -352,22 +377,21 @@ BuildTask::createTablet(const std::shared_ptr<BuildTaskTarget>& target,
         .CreateTablet();
 }
 
-std::pair<indexlib::Status, std::shared_ptr<indexlibv2::framework::ITablet>>
-BuildTask::prepareTablet(const std::shared_ptr<BuildTaskTarget>& target, const std::string& indexRoot,
-                         const indexlibv2::framework::VersionCoord& versionCoord, bool autoMerge)
+indexlib::Status BuildTask::prepareTablet(const std::shared_ptr<BuildTaskTarget>& target, const std::string& indexRoot,
+                                          const indexlibv2::framework::VersionCoord& versionCoord, bool autoMerge)
 {
     BS_LOG(INFO, "target isBatchBuild[%d]", target->isBatchBuild());
     BS_LOG(INFO, "create tablet with auto merge[%d]", autoMerge);
 
     if (!prepareResource()) {
         BS_LOG(ERROR, "prepare resource failed.");
-        return {indexlib::Status::InternalError(), nullptr};
+        return indexlib::Status::InternalError();
     }
 
     auto tabletOptions = _initParam.resourceReader->getTabletOptions(_initParam.clusterName);
     if (tabletOptions == nullptr) {
         BS_LOG(ERROR, "init tablet options [%s] failed", _initParam.clusterName.c_str());
-        return {indexlib::Status::InternalError(), nullptr};
+        return indexlib::Status::InternalError();
     }
     tabletOptions->SetIsOnline(false);
     tabletOptions->SetFlushRemote(true);
@@ -375,28 +399,28 @@ BuildTask::prepareTablet(const std::shared_ptr<BuildTaskTarget>& target, const s
     tabletOptions->SetAutoMerge(autoMerge);
     tabletOptions->SetIsLeader(true);
 
-    auto [status1, schema] = getTabletSchema(tabletOptions);
+    auto [status1, schema] = getConfigTabletSchema(tabletOptions);
     if (!status1.IsOK()) {
         BS_LOG(ERROR, "get tablet schema failed");
-        return {status1, nullptr};
+        return status1;
     }
     const std::string clusterConfig = _initParam.resourceReader->getClusterConfRelativePath(_initParam.clusterName);
     config::MergeControllerConfig controllerConfig;
     if (!_initParam.resourceReader->getConfigWithJsonPath(clusterConfig, "merge_controller", controllerConfig)) {
         BS_LOG(ERROR, "read merge controller config failed, cluster:%s", _initParam.clusterName.c_str());
-        return {indexlib::Status::InternalError(), nullptr};
+        return indexlib::Status::InternalError();
     }
 
     auto [status2, mergeController] = getMergeController(controllerConfig, tabletOptions, target->getBranchId());
     if (!mergeController) {
         BS_LOG(ERROR, "get merge controller failed");
-        return {status2, nullptr};
+        return status2;
     }
 
     auto tablet = createTablet(target, mergeController, tabletOptions);
     std::string finalRoot = indexRoot;
     indexlibv2::framework::VersionCoord finalVersionCoord = versionCoord;
-    if (_buildStep == STEP_FULL && (_buildMode & proto::PUBLISH)) {
+    if (_buildStep == config::BUILD_STEP_FULL_STR && (_buildMode & proto::PUBLISH)) {
         // try to recover merge result
         auto [status, manualMergeResult] = future_lite::coro::syncAwait(mergeController->GetLastMergeTaskResult());
         if (status.IsOK() && manualMergeResult != indexlibv2::INVALID_VERSIONID) {
@@ -421,23 +445,75 @@ BuildTask::prepareTablet(const std::shared_ptr<BuildTaskTarget>& target, const s
         }
     }
     indexlibv2::framework::IndexRoot finalIndexRoot(finalRoot, finalRoot);
-    auto st = tablet->Open(finalIndexRoot, schema, tabletOptions, finalVersionCoord);
-    if (!st.IsOK()) {
-        BS_LOG(ERROR, "open tablet for cluster [%s] with indexRoot [%s] failed.", _initParam.clusterName.c_str(),
-               indexRoot.c_str());
-        return {st, nullptr};
+    indexlibv2::framework::Version version;
+    if (auto status = loadVersion(finalRoot, finalVersionCoord, &version); !status.IsOK()) {
+        BS_LOG(ERROR, "load version [%d] failed, indexRoot[%s]", finalVersionCoord.GetVersionId(), finalRoot.c_str());
+        return status;
     }
-    return {indexlib::Status::OK(), tablet};
+    if (version.GetVersionId() == indexlib::INVALID_VERSIONID || version.GetSchemaId() == schema->GetSchemaId()) {
+        auto status = tablet->Open(finalIndexRoot, schema, tabletOptions, finalVersionCoord);
+        if (!status.IsOK()) {
+            BS_LOG(ERROR, "open tablet for cluster [%s] with indexRoot [%s] failed.", _initParam.clusterName.c_str(),
+                   finalRoot.c_str());
+            return status;
+        }
+    } else {
+        if (!_schemaListKeeper->updateSchemaCache()) {
+            BS_LOG(ERROR, "udpate schema cache failed");
+            return indexlib::Status::Corruption();
+        }
+        auto indexSchema = _schemaListKeeper->getTabletSchema(version.GetSchemaId());
+        if (!indexSchema) {
+            BS_LOG(ERROR, "get tablet schema [%u] failed", version.GetSchemaId());
+            return indexlib::Status::Corruption();
+        }
+        auto status = tablet->Open(finalIndexRoot, indexSchema, tabletOptions, finalVersionCoord);
+        if (!status.IsOK()) {
+            BS_LOG(ERROR, "open tablet for cluster [%s] with indexRoot [%s] failed.", _initParam.clusterName.c_str(),
+                   finalRoot.c_str());
+            return status;
+        }
+        std::vector<std::shared_ptr<indexlibv2::config::TabletSchema>> schemaList;
+        if (!_schemaListKeeper->getSchemaList(version.GetSchemaId() + 1, schema->GetSchemaId(), schemaList)) {
+            BS_LOG(ERROR, "get schema list failed");
+            return indexlib::Status::Corruption();
+        }
+        for (auto tmpSchema : schemaList) {
+            status = tablet->AlterTable(tmpSchema);
+            if (!status.IsOK()) {
+                BS_LOG(ERROR, "alter table with schemaid [%u] failed", schema->GetSchemaId());
+                return status;
+            }
+        }
+
+        while (!tablet->NeedCommit()) {
+            // wait alter table commit version
+            usleep(1000);
+        }
+        proto::VersionInfo committedVersionInfo = _current->getCommitedVersionInfo();
+        _tablet = tablet;
+        if (!commitAndReopen(indexlibv2::INVALID_VERSIONID, target, std::nullopt, &committedVersionInfo)) {
+            _tablet.reset();
+            BS_LOG(ERROR, "commit alter table version failed.");
+            return indexlib::Status::Corruption();
+        }
+    }
+    _tablet = tablet;
+    return indexlib::Status::OK();
 }
 
 bool BuildTask::prepareInitialVersion(const std::shared_ptr<BuildTaskTarget>& buildTarget)
 {
+    const auto& dataDescription = buildTarget->getDataDescription();
+    if (dataDescription.empty()) {
+        BS_LOG(INFO, "no data description return without prepare init version");
+        return true;
+    }
     uint64_t srcSignature = 0;
     if (!buildTarget->getSrcSignature(&srcSignature)) {
         BS_LOG(ERROR, "get src signature failed");
         return false;
     }
-    const auto& dataDescription = buildTarget->getDataDescription();
     auto iter = dataDescription.find(config::READ_SRC_TYPE);
     if (iter == dataDescription.end()) {
         BS_LOG(ERROR, "data description read src type not found");
@@ -462,16 +538,27 @@ bool BuildTask::prepareInitialVersion(const std::shared_ptr<BuildTaskTarget>& bu
         auto pid = _initParam.pid;
         uint32_t from = pid.range().from();
         uint32_t to = pid.range().to();
-
+        bool enableFastSlowQueue = false;
+        if (!_initParam.resourceReader->getClusterConfigWithJsonPath(
+                _initParam.clusterName, "cluster_config.enable_fast_slow_queue", enableFastSlowQueue)) {
+            BS_LOG(ERROR, "parse cluster_config.enable_fast_slow_queue for [%s] failed",
+                   _initParam.clusterName.c_str());
+            return false;
+        }
+        size_t topicSize = enableFastSlowQueue ? 2 : 1;
         if (!lastLocator.IsValid()) {
-            specifyLocator.SetProgress({indexlibv2::base::Progress(from, to, {locatorOffset, 0})});
+            indexlibv2::base::MultiProgress multiProgress;
+            multiProgress.resize(topicSize, {indexlibv2::base::Progress(from, to, {locatorOffset, 0})});
+            specifyLocator.SetMultiProgress(multiProgress);
             BS_LOG(INFO, "init initialize locator [%s]", specifyLocator.DebugString().c_str());
         } else {
+            indexlibv2::base::MultiProgress multiProgress;
             if (lastLocator.IsLegacyLocator()) {
-                specifyLocator.SetProgress({indexlibv2::base::Progress(from, to, lastLocator.GetOffset())});
+                multiProgress.resize(topicSize, {indexlibv2::base::Progress(from, to, lastLocator.GetOffset())});
             } else {
-                specifyLocator.SetProgress({indexlibv2::base::Progress(from, to, {locatorOffset, 0})});
+                multiProgress.resize(topicSize, {indexlibv2::base::Progress(from, to, {locatorOffset, 0})});
             }
+            specifyLocator.SetMultiProgress(multiProgress);
             BS_LOG(INFO,
                    "diff src found, commit version with same src locator, origin locator [%s], target locator [%s]",
                    lastLocator.DebugString().c_str(), specifyLocator.DebugString().c_str());
@@ -493,13 +580,12 @@ bool BuildTask::createRole(const std::shared_ptr<BuildTaskTarget>& buildTarget)
     _buildStep = buildTarget->getBuildStep();
     _buildMode = buildTarget->getBuildMode();
     bool autoMerge = false;
-    if (_buildStep == STEP_INC && _buildMode & proto::PUBLISH) {
+    if (_buildStep == config::BUILD_STEP_INC_STR && _buildMode & proto::PUBLISH) {
         autoMerge = !buildTarget->isBatchBuild(); // Batch build should disable autoMerge
     }
 
     auto [indexRoot, versionCoord] = getVersionCoord(buildTarget);
-    indexlib::Status st;
-    std::tie(st, _tablet) = prepareTablet(buildTarget, indexRoot, versionCoord, autoMerge);
+    auto st = prepareTablet(buildTarget, indexRoot, versionCoord, autoMerge);
     if (st.IsIOError()) {
         if (++_consecutiveIoErrorTimes > CONSECUTIVE_IO_ERROR_LIMIT) {
             BS_LOG(ERROR, "prepare tablet io failed over [%u] times, will exit.", CONSECUTIVE_IO_ERROR_LIMIT);
@@ -594,7 +680,7 @@ bool BuildTask::needManualMerge(const std::shared_ptr<BuildTaskTarget>& target,
 {
     // wait to be done
     std::string specifyMergeConfig = target->getSpecifyMergeConfig();
-    if (_buildStep != STEP_FULL && !target->isBatchBuild() && specifyMergeConfig.empty()) {
+    if (_buildStep != config::BUILD_STEP_FULL_STR && !target->isBatchBuild() && specifyMergeConfig.empty()) {
         return false;
     }
     if (!target->isFinished()) {
@@ -631,7 +717,7 @@ versionid_t BuildTask::getAlignVersionId(const std::shared_ptr<BuildTaskTarget>&
                                          const std::shared_ptr<BuildTaskCurrent>& current)
 {
     // build only align version when manual merge finished
-    if ((_buildStep == STEP_FULL || target->isBatchBuild()) && !current->isManualMergeFinished()) {
+    if ((_buildStep == config::BUILD_STEP_FULL_STR || target->isBatchBuild()) && !current->isManualMergeFinished()) {
         return indexlibv2::INVALID_VERSIONID;
     }
     auto currentAlignVersionId = current->getAlignVersionId();
@@ -684,8 +770,7 @@ bool BuildTask::executeManualMerge(const std::shared_ptr<BuildTaskTarget>& targe
     if (_buildServiceConfig.getBuilderIndexRoot(true) != _buildServiceConfig.getIndexRoot()) {
         versionCoord = indexlibv2::framework::VersionCoord(indexlibv2::INVALID_VERSIONID, "");
         _tablet.reset();
-        indexlib::Status st;
-        std::tie(st, _tablet) = prepareTablet(target, getPartitionIndexRoot(), versionCoord, /*autoMerge=*/false);
+        auto st = prepareTablet(target, getPartitionIndexRoot(), versionCoord, /*autoMerge=*/false);
         if (st.IsIOError()) {
             if (++_consecutiveIoErrorTimes > CONSECUTIVE_IO_ERROR_LIMIT) {
                 BS_LOG(ERROR, "prepare tablet io failed over [%u] times, will exit.", CONSECUTIVE_IO_ERROR_LIMIT);
@@ -705,7 +790,7 @@ bool BuildTask::executeManualMerge(const std::shared_ptr<BuildTaskTarget>& targe
         }
     }
 
-    bool isFullMerge = (_buildStep == STEP_FULL);
+    bool isFullMerge = (_buildStep == config::BUILD_STEP_FULL_STR);
     std::string taskType = indexlibv2::table::MERGE_TASK_TYPE;
     std::string taskName = target->getSpecifyMergeConfig();
     std::map<std::string, std::string> params;
@@ -841,7 +926,7 @@ bool BuildTask::commitAndReopen(versionid_t alignVersionId, const std::shared_pt
     if (specifyLocator) {
         options.SetSpecificLocator(specifyLocator.value());
     }
-
+    options.SetNeedReopenInCommit(true);
     options.SetNeedPublish(needPublish).SetTargetVersionId(alignVersionId);
     options.AddVersionDescription("generation", autil::StringUtil::toString(_initParam.buildId.generationId));
     if (target && target->isBatchBuild()) {
@@ -858,19 +943,12 @@ bool BuildTask::commitAndReopen(versionid_t alignVersionId, const std::shared_pt
             BS_LOG(WARN, "align to specified version [%d] failed.", alignVersionId);
             return false;
         }
-        BS_LOG(ERROR, "align to specified version [%d] failed. Not IsExist Error.", alignVersionId);
+        BS_LOG(ERROR, "align to specified version [%d] failed. Not IsExist Error. [%s]", alignVersionId,
+               ret.first.ToString().c_str());
         _hasFatalError = true;
         handleFatalError("commit in workloop failed.");
     }
     const indexlibv2::framework::VersionMeta& versionMeta = ret.second;
-    indexlibv2::framework::ReopenOptions reopenOptions;
-    indexlibv2::framework::VersionCoord versionCoord(versionMeta.GetVersionId(), versionMeta.GetFenceName());
-    indexlib::Status status = _tablet->Reopen(reopenOptions, versionCoord);
-    if (!status.IsOK()) {
-        BS_LOG(ERROR, "reopen in workloop failed, versionCoord[%s].", versionCoord.DebugString().c_str());
-        _hasFatalError = true;
-        handleFatalError("reopen in workloop failed.");
-    }
     updatePartitionDocCounter(_tablet);
     if (versionInfo != nullptr) {
         auto version = getVersion();
@@ -883,7 +961,7 @@ bool BuildTask::commitAndReopen(versionid_t alignVersionId, const std::shared_pt
 
 bool BuildTask::cleanFullBuildIndex()
 {
-    auto builderIndexRoot = _buildServiceConfig.getBuilderIndexRoot(_buildStep == STEP_FULL);
+    auto builderIndexRoot = _buildServiceConfig.getBuilderIndexRoot(_buildStep == config::BUILD_STEP_FULL_STR);
     auto indexRoot = _buildServiceConfig.getIndexRoot();
     if (builderIndexRoot != indexRoot) {
         BS_LOG(INFO, "no need clean full build index for builder root [%s] != index root [%s]",
@@ -906,6 +984,86 @@ bool BuildTask::cleanFullBuildIndex()
         BS_LOG(INFO, "end clean full build index [%s], use [%.1f]s, status [%s]", partitionRoot.c_str(),
                timer.done_sec(), status.ToString().c_str());
         return status.IsOK();
+    }
+    return true;
+}
+
+std::tuple<std::vector<std::string>, std::shared_ptr<indexlibv2::framework::ImportExternalFileOptions>,
+           indexlibv2::framework::Action>
+BuildTask::prepareBulkloadParams(const std::string& externalFilesStr, const std::string& optionsStr,
+                                 const std::string& actionStr, std::string* errMsg)
+{
+    std::string tmpExternalFilesStr = externalFilesStr;
+    std::string tmpOptionsStr = optionsStr;
+    std::string tmpActionStr = actionStr;
+
+    std::vector<std::string> externalFiles;
+    std::shared_ptr<indexlibv2::framework::ImportExternalFileOptions> options = nullptr;
+    if (tmpExternalFilesStr.empty()) {
+        tmpExternalFilesStr = autil::legacy::FastToJsonString(std::vector<std::string>());
+    }
+    if (tmpOptionsStr.empty()) {
+        tmpOptionsStr = autil::legacy::FastToJsonString(indexlibv2::framework::ImportExternalFileOptions());
+    }
+    auto status = indexlib::util::JsonUtil::FromString(tmpExternalFilesStr, &externalFiles);
+    if (!status.IsOK()) {
+        *errMsg = "external files [" + tmpExternalFilesStr + "] parse from string failed";
+    }
+
+    status = indexlib::util::JsonUtil::FromString(tmpOptionsStr, &options);
+    if (!status.IsOK()) {
+        *errMsg = "import external file options [" + tmpOptionsStr + "] parse from string failed";
+    }
+
+    if (tmpActionStr.empty()) {
+        tmpActionStr = "add";
+    }
+    indexlibv2::framework::Action action = indexlibv2::framework::ActionConvertUtil::StrToAction(tmpActionStr);
+    assert(action != indexlibv2::framework::Action::UNKNOWN);
+
+    return std::make_tuple(externalFiles, options, action);
+}
+
+bool BuildTask::executeBulkload(const std::shared_ptr<BuildTaskTarget>& target)
+{
+    if (target == nullptr) {
+        return false;
+    }
+
+    const auto& buildTaskInfo = target->getBuildTaskTargetInfo();
+    if (buildTaskInfo.buildStep == config::BUILD_STEP_INC_STR) {
+        for (const auto& request : buildTaskInfo.requestQueue) {
+            if (request.GetTaskType() != indexlibv2::framework::BULKLOAD_TASK_TYPE) {
+                continue;
+            }
+            auto params = request.GetParams();
+            std::string bulkloadId = params[indexlibv2::framework::PARAM_BULKLOAD_ID];
+            if (bulkloadId.empty()) {
+                BS_LOG(ERROR, "invalid bulkload info, bulkload id is empty");
+                return false;
+            }
+            std::string externalFilesStr = params[indexlibv2::framework::PARAM_EXTERNAL_FILES];
+            std::string optionsStr = params[indexlibv2::framework::PARAM_IMPORT_EXTERNAL_FILE_OPTIONS];
+            std::string actionStr = params[indexlibv2::framework::ACTION_KEY];
+            std::string errMsg;
+            auto [externalFiles, options, action] =
+                prepareBulkloadParams(externalFilesStr, optionsStr, actionStr, &errMsg);
+            if (!errMsg.empty()) {
+                BS_LOG(ERROR, "%s", errMsg.c_str());
+            }
+            auto status =
+                _tablet->ImportExternalFiles(bulkloadId, externalFiles, options, action, request.GetEventTimeInSecs());
+            if (status.IsOK()) {
+                BS_LOG(INFO, "bulkload external files success, bulkload id %s", bulkloadId.c_str());
+            } else if (status.IsInvalidArgs()) {
+                BS_LOG(ERROR, "bulkload failed, bulkload id %s, status: %s", bulkloadId.c_str(),
+                       status.ToString().c_str());
+            } else {
+                _hasFatalError = true;
+                BS_LOG(ERROR, "%s", status.ToString().c_str());
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -934,6 +1092,11 @@ void BuildTask::workLoop()
         }
         return;
     }
+
+    if (!executeBulkload(target)) {
+        BS_LOG(ERROR, "execute bulkload failed.");
+    }
+
     if (needManualMerge(target, _current)) {
         if (!executeManualMerge(target)) {
             BS_LOG(ERROR, "execute manual merge failed.");
@@ -958,7 +1121,7 @@ void BuildTask::workLoop()
             }
         }
     }
-    if (_buildStep == STEP_FULL && _current->isManualMergeFinished() && !_isFullBuildIndexCleaned) {
+    if (_buildStep == config::BUILD_STEP_FULL_STR && _current->isManualMergeFinished() && !_isFullBuildIndexCleaned) {
         if (!cleanFullBuildIndex()) {
             BS_LOG(ERROR, "clean tmp build dir failed");
             _hasFatalError = true;
@@ -1069,6 +1232,22 @@ void BuildTask::handleFatalError(const std::string& message)
         return;
     }
     Task::handleFatalError(message);
+}
+
+indexlib::Status BuildTask::loadVersion(const std::string& indexRoot,
+                                        const indexlibv2::framework::VersionCoord& versionCoord,
+                                        indexlibv2::framework::Version* version) const
+{
+    auto versionId = versionCoord.GetVersionId();
+    if (versionId == indexlib::INVALID_VERSIONID) {
+        return indexlib::Status::OK();
+    }
+    auto versionRoot = indexRoot;
+    if (!versionCoord.GetVersionFenceName().empty()) {
+        versionRoot = indexlib::util::PathUtil::JoinPath(versionRoot, versionCoord.GetVersionFenceName());
+    }
+    auto versionRootDir = indexlib::file_system::Directory::GetPhysicalDirectory(versionRoot);
+    return indexlibv2::framework::VersionLoader::GetVersion(versionRootDir, versionId, version);
 }
 
 } // namespace build_service::build_task

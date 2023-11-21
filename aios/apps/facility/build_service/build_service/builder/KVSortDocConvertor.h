@@ -13,17 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_KVSORTDOCCONVERTOR_H
-#define ISEARCH_BS_KVSORTDOCCONVERTOR_H
+#pragma once
 
-#include "autil/ConstString.h"
 #include "build_service/builder/SortDocumentConverter.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
-#include "indexlib/base/BinaryStringUtil.h"
 #include "indexlib/document/kv_document/kv_document.h"
 #include "indexlib/index/common/SortValueConvertor.h"
-#include "indexlib/indexlib.h"
+
+DECLARE_REFERENCE_CLASS(common, PlainFormatEncoder);
+DECLARE_REFERENCE_CLASS(common, AttributeConvertor);
+DECLARE_REFERENCE_CLASS(common, AttributeReference);
+DECLARE_REFERENCE_CLASS(common, PackAttributeFormatter);
+#include <memory>
+#include <vector>
+
+#include "autil/DataBuffer.h"
+#include "autil/mem_pool/Pool.h"
+#include "build_service/builder/SortDocumentConverter.h"
+#include "build_service/common_define.h"
+#include "build_service/util/Log.h"
+#include "indexlib/config/SortDescription.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/document/document.h"
+#include "indexlib/document/kv_document/kv_document.h"
+#include "indexlib/index/common/SortValueConvertor.h"
+#include "indexlib/misc/common.h"
 
 DECLARE_REFERENCE_CLASS(common, PlainFormatEncoder);
 DECLARE_REFERENCE_CLASS(common, AttributeConvertor);
@@ -75,5 +90,3 @@ private:
 BS_TYPEDEF_PTR(KVSortDocConvertor);
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_KVSORTKEYGENERATOR_H

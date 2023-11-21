@@ -354,6 +354,7 @@ void GigStreamHandlerBase::receiveCallback(bool ok) {
         HANDLER_LOG(DEBUG, "stream cancelled on peer side, this type: %s", typeid(*this).name());
         stream = stealStream();
         if (stream) {
+            message.eof = true;
             doStreamReceiveCancel(stream, message, MULTI_CALL_ERROR_STREAM_CANCELLED);
         }
         _streamState.setReceiveCancel();

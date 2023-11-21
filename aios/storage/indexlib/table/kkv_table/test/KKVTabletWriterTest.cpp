@@ -117,7 +117,8 @@ std::shared_ptr<TabletData> KKVTabletWriterTest::PrepareTabletData()
             "sharding_column_num" : 2,
             "level_num" : 3,
             "building_memory_limit_mb": 4,
-            "max_doc_count": 4
+            "max_doc_count": 4,
+            "tolerate_doc_error": false
         }
     }
     } )";

@@ -104,6 +104,11 @@ void BitmapIndexWriter::UpdateTerm(docid_t docId, index::DictKeyInfo termKey, do
     }
 }
 
+void BitmapIndexWriter::EndDocument(const indexlibv2::index::InvertedIndexFields* indexFields, docid64_t docId)
+{
+    assert(false);
+}
+
 void BitmapIndexWriter::EndDocument(const document::IndexDocument& indexDocument)
 {
     for (BitmapPostingVector::iterator it = _modifiedPosting.begin(); it != _modifiedPosting.end(); it++) {

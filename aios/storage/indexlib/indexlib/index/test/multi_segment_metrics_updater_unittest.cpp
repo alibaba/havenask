@@ -3,12 +3,12 @@
 #include "indexlib/config/attribute_schema.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/segment_metrics_updater/multi_segment_metrics_updater.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
 #include "indexlib/index_define.h"
 #include "indexlib/plugin/plugin_manager.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

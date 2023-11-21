@@ -1,10 +1,19 @@
 #include "build_service/common/CounterFileSynchronizer.h"
 
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <unistd.h>
+
+#include "build_service/common_define.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

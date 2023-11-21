@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROTOUTIL_H
-#define ISEARCH_BS_PROTOUTIL_H
+#pragma once
 
-#include <sstream>
+#include <iostream>
+#include <stdint.h>
+#include <string>
+#include <unistd.h>
+#include <vector>
 
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/base64.h"
 #include "autil/legacy/jsonizable.h"
 #include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
 #include "build_service/common/BeeperCollectorDefine.h"
-#include "build_service/common_define.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/ProtoComparator.h"
 #include "build_service/util/Log.h"
-#include "google/protobuf/message.h"
-#include "google/protobuf/repeated_field.h"
 #include "google/protobuf/text_format.h"
 
 #define SET_ERROR_AND_RETURN(buildId, response, errorCode, format, arg...)                                             \
@@ -95,7 +99,7 @@ public:
     static std::string toStepString(const PartitionId& pid);
     static std::string toStepString(const proto::BuildStep& buildStep);
     static std::string getGeneralTaskAppName(const std::string& appName, const std::string& clusterName,
-                                             uint16_t rangeFrom, int16_t rangeTo);
+                                             uint16_t rangeFrom, uint16_t rangeTo);
     static std::string getOriginalAppName(const std::string& generalAppName);
     static std::vector<std::string> getClusterNames(const proto::PartitionId& partitionId);
 
@@ -115,6 +119,9 @@ public:
 
     template <typename T>
     static bool ParseTextProto(const std::string& input, T* proto);
+
+    template <typename T>
+    static bool parseBase64EncodedPbStr(const std::string& content, T* obj);
 
 private:
     static uint32_t getProcessorSchemaUpdateCount(const std::string& processorTaskId);
@@ -201,6 +208,16 @@ bool ProtoUtil::ParseTextProto(const std::string& input, T* proto)
     return ::google::protobuf::TextFormat::ParseFromString(input, proto);
 }
 
-}} // namespace build_service::proto
+template <typename T>
+bool ProtoUtil::parseBase64EncodedPbStr(const std::string& content, T* obj)
+{
+    std::string decodedContent = autil::legacy::Base64DecodeFast(content);
+    if (decodedContent.empty() || !obj->ParseFromString(decodedContent)) {
+        if (!obj->ParseFromString(content)) {
+            return false;
+        }
+    }
+    return true;
+}
 
-#endif // ISEARCH_BS_PROTOUTIL_H
+}} // namespace build_service::proto

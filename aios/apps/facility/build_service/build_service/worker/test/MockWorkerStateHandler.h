@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKWORKERSTATEHANDLER_H
-#define ISEARCH_BS_MOCKWORKERSTATEHANDLER_H
+#pragma once
 
 #include "build_service/proto/ErrorCollector.h"
 #include "build_service/test/test.h"
@@ -39,5 +38,3 @@ typedef ::testing::StrictMock<MockWorkerStateHandler> StrictMockWorkerStateHandl
 typedef ::testing::NiceMock<MockWorkerStateHandler> NiceMockWorkerStateHandler;
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_MOCKWORKERSTATEHANDLER_H

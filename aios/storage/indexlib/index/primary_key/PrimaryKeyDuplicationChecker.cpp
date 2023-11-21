@@ -41,7 +41,7 @@ bool PrimaryKeyDuplicationChecker::Start()
 class PkCheckWorkItem : public autil::WorkItem
 {
 public:
-    PkCheckWorkItem(const PrimaryKeyIndexReader* pkReader, std::vector<std::pair<autil::uint128_t, docid_t>> pkHashs)
+    PkCheckWorkItem(const PrimaryKeyIndexReader* pkReader, std::vector<std::pair<autil::uint128_t, docid64_t>> pkHashs)
         : _pkReader(pkReader)
         , _pkHashs(pkHashs)
     {
@@ -52,18 +52,18 @@ public:
         for (auto& [pkHash, docId] : _pkHashs) {
             auto oldDocId = _pkReader->LookupWithDocRange(pkHash, {0, docId}, nullptr /*executor*/);
             if (oldDocId != INVALID_DOCID) {
-                AUTIL_LOG(ERROR, "check failed, pkHash[%s], old docId [%d] vs new docId [%d]",
+                AUTIL_LOG(ERROR, "check failed, pkHash[%s], old docId [%ld] vs new docId [%ld]",
                           pkHash.toString().c_str(), oldDocId, docId);
                 INDEXLIB_THROW(util::InconsistentStateException,
-                               "check failed, pkHash[%s], old docId [%d] vs new docId [%d]", pkHash.toString().c_str(),
-                               oldDocId, docId);
+                               "check failed, pkHash[%s], old docId [%ld] vs new docId [%ld]",
+                               pkHash.toString().c_str(), oldDocId, docId);
             }
         }
     }
 
 private:
     const PrimaryKeyIndexReader* _pkReader = nullptr;
-    std::vector<std::pair<autil::uint128_t, docid_t>> _pkHashs;
+    std::vector<std::pair<autil::uint128_t, docid64_t>> _pkHashs;
 
 private:
     AUTIL_LOG_DECLARE();
@@ -89,7 +89,7 @@ bool PrimaryKeyDuplicationChecker::WaitFinish()
     return true;
 }
 
-bool PrimaryKeyDuplicationChecker::PushKeyImpl(const autil::uint128_t& pkHash, docid_t docId)
+bool PrimaryKeyDuplicationChecker::PushKeyImpl(const autil::uint128_t& pkHash, docid64_t docId)
 {
     try {
         _pkHashs.push_back({pkHash, docId});

@@ -125,6 +125,21 @@ bool FileManagerUtil::removeFilePair(const std::string &metaFileName, const std:
     return removeSuccess;
 }
 
+bool FileManagerUtil::removeFilePairWithSize(const storage::FilePairPtr &filePair, int64_t &fileSize) {
+    fileSize = 0;
+    int64_t size = filePair->getMetaLength();
+    bool removeMetaSuccess = removeFile(filePair->metaFileName);
+    if (removeMetaSuccess) {
+        fileSize += size;
+    }
+    size = getFileSize(filePair->dataFileName);
+    bool removeDataSuccess = removeFile(filePair->dataFileName);
+    if (removeDataSuccess) {
+        fileSize += size;
+    }
+    return removeMetaSuccess && removeDataSuccess;
+}
+
 std::string FileManagerUtil::generateFilePrefix(int64_t msgId, int64_t timestamp, bool isNew) {
     time_t sec = timestamp / 1000000;
     int64_t us = timestamp % 1000000;
@@ -214,6 +229,40 @@ bool FileManagerUtil::extractMessageIdAndTimestamp(const std::string &prefix, in
         }
     } else {
         timestamp = tmpTime;
+    }
+    return true;
+}
+
+int64_t FileManagerUtil::getFileSize(const std::string &fileName) {
+    fslib::FileMeta fileMeta;
+    fslib::ErrorCode ec = FileSystem::getFileMeta(fileName, fileMeta);
+    if (ec == fslib::EC_OK) {
+        return fileMeta.fileLength;
+    }
+    if (ec != fslib::EC_NOENT) {
+        AUTIL_LOG(WARN,
+                  "get file meta[%s] failed, fslib error[%d %s]",
+                  fileName.c_str(),
+                  ec,
+                  FileSystem::getErrorString(ec).c_str());
+    }
+    return 0;
+}
+
+bool FileManagerUtil::removeFile(const std::string &fileName) {
+    fslib::ErrorCode ec = FileSystem::remove(fileName);
+    if (ec == fslib::EC_OK) {
+        AUTIL_LOG(INFO, "remove obsolete file[%s] successfully", fileName.c_str());
+        return true;
+    }
+
+    if (ec != fslib::EC_NOENT) {
+        AUTIL_LOG(ERROR,
+                  "remove obsolete file[%s] failed, fslib error[%d %s]",
+                  fileName.c_str(),
+                  ec,
+                  FileSystem::getErrorString(ec).c_str());
+        return false;
     }
     return true;
 }

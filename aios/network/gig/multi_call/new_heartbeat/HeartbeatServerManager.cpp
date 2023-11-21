@@ -208,6 +208,18 @@ bool HeartbeatServerManager::unpublish(const std::vector<SignatureTy> &signature
     return true;
 }
 
+void HeartbeatServerManager::startAllBiz() {
+    auto bizTopoMapPtr = _serverTopoMap->getBizTopoMap();
+    if (!bizTopoMapPtr) {
+        return;
+    }
+    const auto &bizTopoMap = *bizTopoMapPtr;
+    for (const auto &pair : bizTopoMap) {
+        pair.second->start();
+    }
+    notify();
+}
+
 void HeartbeatServerManager::stopAllBiz() {
     auto bizTopoMapPtr = _serverTopoMap->getBizTopoMap();
     if (!bizTopoMapPtr) {
@@ -218,6 +230,39 @@ void HeartbeatServerManager::stopAllBiz() {
         pair.second->stop();
     }
     notify();
+}
+
+bool HeartbeatServerManager::hasStream() const {
+    for (const auto &queue : _streamQueues) {
+        if (!queue->isEmpty()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool HeartbeatServerManager::isAllReplicaStopped() const {
+    auto bizTopoMapPtr = _serverTopoMap->getBizTopoMap();
+    if (!bizTopoMapPtr) {
+        return true;
+    }
+    if (!hasStream()) {
+        return false;
+    }
+    const auto &bizTopoMap = *bizTopoMapPtr;
+    for (const auto &pair : bizTopoMap) {
+        const auto &bizTopo = *pair.second;
+        if (!bizTopo.isStopped()) {
+            return false;
+        }
+        const auto &sig = bizTopo.getTopoSignature();
+        for (const auto &queue : _streamQueues) {
+            if (!queue->isAllReplicaStopped(sig)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 void HeartbeatServerManager::clearBiz() {

@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_COMMON_H
-#define __INDEXLIB_COMMON_H
+#pragma once
 
 #include <memory>
+
+#include "autil/CommonMacros.h"
+
+#ifdef AUTIL_HAVE_THREAD_SANITIZER
+#include <atomic>
+#include <sanitizer/tsan_interface.h>
+#include <sanitizer/tsan_interface_atomic.h>
+#endif
+
 #define DEFINE_SHARED_PTR(x) typedef std::shared_ptr<x> x##Ptr
 #define DYNAMIC_POINTER_CAST(x, y) std::dynamic_pointer_cast<x>(y)
 
@@ -44,6 +52,12 @@
         __asm__ __volatile__("" ::: "memory");                                                                         \
         usleep(1);                                                                                                     \
     }
+#elif defined(AUTIL_HAVE_THREAD_SANITIZER)
+#define MEMORY_BARRIER()                                                                                               \
+    {                                                                                                                  \
+        __tsan_atomic_thread_fence(__tsan_memory_order_seq_cst);                                                       \
+        std::atomic_thread_fence(std::memory_order_seq_cst);                                                           \
+    }
 #else
 #define MEMORY_BARRIER() __asm__ __volatile__("" ::: "memory")
 #endif
@@ -56,5 +70,3 @@
 
 #define INDEXLIB_CONCATE_IMPL(a, b) a##b
 #define INDEXLIB_CONCATE(a, b) INDEXLIB_CONCATE_IMPL(a, b)
-
-#endif

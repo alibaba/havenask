@@ -1,10 +1,12 @@
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/truncate_term_vocabulary.h"
+#include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/archive/ArchiveFolder.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/test/unittest.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/testutil/unittest.h"
 
 using namespace std;
 using namespace autil;
@@ -17,41 +19,44 @@ class TruncateTermVocabularyTest : public INDEXLIB_TESTBASE
 {
 public:
     DECLARE_CLASS_NAME(TruncateTermVocabularyTest);
-    void CaseSetUp() override {}
+    void CaseSetUp() override
+    {
+        mRootDir = IDirectory::Get(FileSystemCreator::Create("", GET_TEMP_DATA_PATH()).GetOrThrow());
+    }
 
     void CaseTearDown() override {}
 
     void TestCaseForLoadTruncateTerms()
     {
         ArchiveFolderPtr folder(new ArchiveFolder(true));
-        ASSERT_EQ(FSEC_OK, folder->Open(GET_PARTITION_DIRECTORY()->GetIDirectory(), ""));
+        ASSERT_EQ(FSEC_OK, folder->Open(mRootDir, ""));
         TruncateTermVocabulary truncateTermVocabulary(folder);
         GenerateTruncateMetaFile(3, 2);
         auto file = folder->CreateFileReader("truncate_meta").GetOrThrow();
         truncateTermVocabulary.LoadTruncateTerms(file);
         // 3lines + nullterm
-        INDEXLIB_TEST_EQUAL((size_t)(3 + 1), truncateTermVocabulary.GetTermCount());
-        INDEXLIB_TEST_TRUE(truncateTermVocabulary.Lookup(index::DictKeyInfo(0)));
-        INDEXLIB_TEST_TRUE(truncateTermVocabulary.Lookup(index::DictKeyInfo(1)));
-        INDEXLIB_TEST_TRUE(truncateTermVocabulary.Lookup(index::DictKeyInfo(2)));
-        INDEXLIB_TEST_TRUE(truncateTermVocabulary.Lookup(index::DictKeyInfo::NULL_TERM));
+        ASSERT_EQ((size_t)(3 + 1), truncateTermVocabulary.GetTermCount());
+        ASSERT_TRUE(truncateTermVocabulary.Lookup(index::DictKeyInfo(0)));
+        ASSERT_TRUE(truncateTermVocabulary.Lookup(index::DictKeyInfo(1)));
+        ASSERT_TRUE(truncateTermVocabulary.Lookup(index::DictKeyInfo(2)));
+        ASSERT_TRUE(truncateTermVocabulary.Lookup(index::DictKeyInfo::NULL_TERM));
 
         int32_t tf;
-        INDEXLIB_TEST_TRUE(truncateTermVocabulary.LookupTF(index::DictKeyInfo(0), tf));
-        INDEXLIB_TEST_EQUAL(2, tf);
-        INDEXLIB_TEST_TRUE(truncateTermVocabulary.LookupTF(index::DictKeyInfo(1), tf));
-        INDEXLIB_TEST_EQUAL(2, tf);
-        INDEXLIB_TEST_TRUE(truncateTermVocabulary.LookupTF(index::DictKeyInfo(2), tf));
-        INDEXLIB_TEST_EQUAL(2, tf);
+        ASSERT_TRUE(truncateTermVocabulary.LookupTF(index::DictKeyInfo(0), tf));
+        ASSERT_EQ(2, tf);
+        ASSERT_TRUE(truncateTermVocabulary.LookupTF(index::DictKeyInfo(1), tf));
+        ASSERT_EQ(2, tf);
+        ASSERT_TRUE(truncateTermVocabulary.LookupTF(index::DictKeyInfo(2), tf));
+        ASSERT_EQ(2, tf);
 
-        INDEXLIB_TEST_TRUE(truncateTermVocabulary.LookupTF(index::DictKeyInfo::NULL_TERM, tf));
-        INDEXLIB_TEST_EQUAL(2, tf);
+        ASSERT_TRUE(truncateTermVocabulary.LookupTF(index::DictKeyInfo::NULL_TERM, tf));
+        ASSERT_EQ(2, tf);
     }
 
     void TestCaseForExtractTermKey()
     {
         ArchiveFolderPtr folder(new ArchiveFolder(true));
-        ASSERT_EQ(FSEC_OK, folder->Open(GET_PARTITION_DIRECTORY()->GetIDirectory(), ""));
+        ASSERT_EQ(FSEC_OK, folder->Open(mRootDir, ""));
         TruncateTermVocabulary truncateTermVocabulary(folder);
         {
             // normal case
@@ -59,7 +64,7 @@ public:
             string valueStr = "13";
             string line = keyStr + "\t" + valueStr + "\n";
             dictkey_t key = truncateTermVocabulary.ExtractTermKey(line).GetKey();
-            INDEXLIB_TEST_EQUAL((dictkey_t)12, key);
+            ASSERT_EQ((dictkey_t)12, key);
         }
 
         {
@@ -68,7 +73,7 @@ public:
             string valueStr = "13";
             string line = keyStr + "\t" + valueStr + "\n";
             index::DictKeyInfo key = truncateTermVocabulary.ExtractTermKey(line);
-            INDEXLIB_TEST_EQUAL(index::DictKeyInfo::NULL_TERM, key);
+            ASSERT_EQ(index::DictKeyInfo::NULL_TERM, key);
         }
 
         {
@@ -82,7 +87,7 @@ public:
             } catch (const BadParameterException& e) {
                 hasException = true;
             }
-            INDEXLIB_TEST_TRUE(hasException);
+            ASSERT_TRUE(hasException);
         }
     }
 
@@ -105,17 +110,18 @@ private:
             string line = index::DictKeyInfo::NULL_TERM.ToString() + "\t" + StringUtil::toString(rand()) + "\n";
             content += line;
         }
-        GET_PARTITION_DIRECTORY()->Store("truncate_meta", content);
+        mRootDir->Store("truncate_meta", content, {}).GetOrThrow();
     }
 
 private:
     string mFileName;
+    std::shared_ptr<file_system::IDirectory> mRootDir;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-IE_LOG_SETUP(index, TruncateTermVocabularyTest);
+AUTIL_LOG_SETUP(index, TruncateTermVocabularyTest);
 
 INDEXLIB_UNIT_TEST_CASE(TruncateTermVocabularyTest, TestCaseForLoadTruncateTerms);
 INDEXLIB_UNIT_TEST_CASE(TruncateTermVocabularyTest, TestCaseForExtractTermKey);

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCUMENTREWRITERCREATORTEST_H
-#define __INDEXLIB_DOCUMENTREWRITERCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_rewriter/document_rewriter_creator.h"
@@ -36,5 +35,3 @@ INDEXLIB_UNIT_TEST_CASE(DocumentRewriterCreatorTest, TestCreateAdd2UpdateRewrite
 INDEXLIB_UNIT_TEST_CASE(DocumentRewriterCreatorTest, TestCreateAdd2UpdateRewriterWithMultiConfigs);
 INDEXLIB_UNIT_TEST_CASE(DocumentRewriterCreatorTest, TestCreateHashIdDocumentRewriter);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_DOCUMENTREWRITERCREATORTEST_H

@@ -45,7 +45,8 @@ void RangeIndexConfig::Check() const
 {
     SingleFieldIndexConfig::Check();
     if (IsHashTypedDictionary()) {
-        INDEXLIB_FATAL_ERROR(Schema, "range index should not set use_hash_typed_dictionary");
+        INDEXLIB_FATAL_ERROR(Schema, "range index should not set use_hash_typed_dictionary, index name [%s]",
+                             GetIndexName().c_str());
     }
 }
 

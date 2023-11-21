@@ -15,6 +15,8 @@
  */
 #include "build_service/admin/catalog/ProtoOperator.h"
 
+#include <string>
+
 namespace catalog::proto {
 
 bool operator<(const catalog::proto::BuildId& lhs, const catalog::proto::BuildId& rhs)

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CLOSED_HASH_TABLE_ITERATOR_H
-#define __INDEXLIB_CLOSED_HASH_TABLE_ITERATOR_H
+#pragma once
 
 #include <algorithm>
 #include <cassert>
@@ -215,5 +214,3 @@ private:
     }
 };
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CLOSED_HASH_TABLE_ITERATOR_H

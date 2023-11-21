@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TABLEREADERCONTAINERUPDATERTEST_H
-#define __INDEXLIB_TABLEREADERCONTAINERUPDATERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -50,5 +49,3 @@ INDEXLIB_UNIT_TEST_CASE(TableReaderContainerUpdaterTest, TestUpdatePartition);
 INDEXLIB_UNIT_TEST_CASE(TableReaderContainerUpdaterTest, TestSwitchUpdater);
 INDEXLIB_UNIT_TEST_CASE(TableReaderContainerUpdaterTest, TestInitPartitions);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_TABLEREADERCONTAINERUPDATERTEST_H

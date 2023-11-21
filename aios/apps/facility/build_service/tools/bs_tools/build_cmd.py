@@ -18,7 +18,10 @@ from common_define import *
 import build_app_config
 import build_rule_config
 import range_util
-import os, re
+import os
+import re
+from functools import reduce
+
 
 class StartBuildCmd(AdminCmdBase):
     '''
@@ -67,7 +70,7 @@ examples:
 
     def checkOptionsValidity(self, options):
         super(StartBuildCmd, self).checkOptionsValidity(options)
-        if options.generationId is not None :
+        if options.generationId is not None:
             GenerationManager.checkGenerationId(options.generationId)
         if options.dataTable is None:
             raise Exception('-d data_table is needed.')
@@ -101,7 +104,7 @@ examples:
         fileName = os.path.join(configPath, 'data_tables/%s_table.json' % dataTable)
         content = self.fsUtil.cat(fileName)
         jsonMap = json.read(content)
-        return reduce(lambda x,y:x+y, map(lambda x: x['clusters'], jsonMap['processor_chain_config']))
+        return reduce(lambda x, y: x + y, map(lambda x: x['clusters'], jsonMap['processor_chain_config']))
 
     def copyGenerationMeta(self, configPath, dataTable, generationId, generationMeta):
         clusterNames = self.__getClusterNames(configPath, dataTable)
@@ -165,7 +168,7 @@ examples:
 
     def _getConfigDataDescriptions(self, configPath, dataTable):
         content = self.fsUtil.cat(os.path.join(
-                configPath, DATA_TABLES_DIR_NAME + '/' + dataTable + DATA_TABLE_FILE_SUFFIX))
+            configPath, DATA_TABLES_DIR_NAME + '/' + dataTable + DATA_TABLE_FILE_SUFFIX))
         jsonMap = json.read(content)
         if jsonMap.has_key('data_descriptions'):
             return jsonMap['data_descriptions']
@@ -199,14 +202,14 @@ examples:
             # full build not started, just return
             return
         allParts = self.fsUtil.listDir(indexPath)
-        pattern = 'partition_\d+_\d+'
+        pattern = 'partition_\\d+_\\d+'
         allParts = filter(lambda x: re.match(pattern, x), allParts)
         expectParts = self._generatePartitions(buildRuleConfig.partitionCount)
         allParts.sort()
         expectParts.sort()
         if allParts != expectParts:
             raise Exception('full partition[%s] does not equal inc partition[%s]' % (
-                    ','.join(allParts), ','.join(expectParts)))
+                ','.join(allParts), ','.join(expectParts)))
 
         for part in allParts:
             schemaFile = '/'.join([indexPath, part, 'schema.json'])
@@ -225,6 +228,7 @@ examples:
         response = self.call(self.ADMIN_START_BUILD_METHOD)
         from include.protobuf_json import pb2json
         print json.write(pb2json(response), format=True)
+
 
 class StopBuildCmd(AdminCmdBase):
     '''
@@ -277,6 +281,7 @@ examples:
     def run(self):
         self.call(self.ADMIN_STOP_BUILD_METHOD)
 
+
 class UpdateConfigCmd(AdminCmdBase):
     '''
     bs upc -c config_path -d data_table -g generation_id
@@ -321,6 +326,7 @@ examples:
 
     def run(self):
         self.call(self.ADMIN_UPDATE_CONFIG_METHOD)
+
 
 class CreateVersionCmd(AdminCmdBase):
     '''
@@ -378,6 +384,7 @@ examples:
     def run(self):
         self.call(self.ADMIN_CREATE_VERSION_METHOD)
 
+
 class SwitchCmd(AdminCmdBase):
     '''
     bs switch -c config_path
@@ -423,6 +430,7 @@ examples:
 
     def run(self):
         self.call(self.ADMIN_SWITCH_METHOD)
+
 
 class StepBuildCmd(AdminCmdBase):
     '''

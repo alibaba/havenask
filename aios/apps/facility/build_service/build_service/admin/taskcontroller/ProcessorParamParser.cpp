@@ -15,9 +15,21 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorParamParser.h"
 
+#include <iosfwd>
+#include <memory>
+#include <stdint.h>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common/ResourceKeeperGuard.h"
 #include "build_service/common/SwiftResourceKeeper.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/TaskOutputConfig.h"
+#include "indexlib/misc/common.h"
 
 using namespace std;
 using namespace autil;

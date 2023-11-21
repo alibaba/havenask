@@ -15,8 +15,8 @@
  */
 #include "suez/table/TableLeaderInfoPublisher.h"
 
-#include "aios/network/gig/multi_call/rpc/GigRpcServer.h"
 #include "suez/common/GeneratorDef.h"
+#include "suez/table/TableInfoPublishWrapper.h"
 #include "suez/table/ZkLeaderElectionManager.h"
 
 using namespace std;
@@ -30,17 +30,18 @@ AUTIL_DECLARE_AND_SETUP_LOGGER(suez, TableLeaderInfoPublisher);
 
 TableLeaderInfoPublisher::TableLeaderInfoPublisher(const PartitionId &pid,
                                                    const string &zoneName,
-                                                   GigRpcServer *gigRpcServer,
+                                                   TableInfoPublishWrapper *publishWrapper,
                                                    LeaderElectionManager *leaderElectionMgr)
     : _allowPublishLeader(false)
     , _leaderInfoPublished(false)
     , _signaturePublished(false)
     , _signaturePublishedForRawTable(false)
+    , _lastPublishedRoleType(RT_FOLLOWER)
     , _targetWeight(DEFAULT_TARGET_WEIGHT)
     , _publishedWeight(DEFAULT_PUBLISHED_WEIGHT)
     , _pid(pid)
     , _zoneName(zoneName)
-    , _gigRpcServer(gigRpcServer)
+    , _publishWrapper(publishWrapper)
     , _leaderElectionMgr(leaderElectionMgr)
     , _signature(0)
     , _signatureForRawTable(0) {}
@@ -52,25 +53,23 @@ void TableLeaderInfoPublisher::setAllowPublishLeader(bool allowPublishLeader) {
 }
 
 bool TableLeaderInfoPublisher::updateLeaderInfo() {
-    bool isLeader = _leaderElectionMgr && _leaderElectionMgr->isLeader(_pid);
-    if (!isLeader) {
-        _leaderInfoPublished = false;
-    } else {
-        if (_leaderInfoPublished) {
-            AUTIL_LOG(DEBUG, "leader info already updated for pid[%s]", FastToJsonString(_pid, true).c_str());
-            return true;
-        }
-        bool ret = publish();
-        if (!ret) {
-            // log and retry
-            AUTIL_LOG(WARN, "update leader info failed for pid[%s]", FastToJsonString(_pid, true).c_str());
-        } else {
-            _leaderInfoPublished = true;
-            AUTIL_LOG(INFO, "update leader info success for pid[%s]", FastToJsonString(_pid, true).c_str());
-        }
-        return ret;
+    if (_leaderInfoPublished && _leaderElectionMgr && _lastPublishedRoleType == _leaderElectionMgr->getRoleType(_pid)) {
+        AUTIL_LOG(DEBUG, "leader info already updated for pid[%s]", FastToJsonString(_pid, true).c_str());
+        return true;
     }
-    return true;
+    bool ret = publish();
+    if (!ret) {
+        _leaderInfoPublished = false;
+        // log and retry
+        AUTIL_LOG(WARN, "update leader info failed for pid[%s]", FastToJsonString(_pid, true).c_str());
+    } else {
+        _leaderInfoPublished = true;
+        if (_leaderElectionMgr) {
+            _lastPublishedRoleType = _leaderElectionMgr->getRoleType(_pid);
+        }
+        AUTIL_LOG(INFO, "update leader info success for pid[%s]", FastToJsonString(_pid, true).c_str());
+    }
+    return ret;
 }
 
 bool TableLeaderInfoPublisher::updateWeight(int32_t weight) {
@@ -93,7 +92,7 @@ string TableLeaderInfoPublisher::getBizName() const {
 }
 
 bool TableLeaderInfoPublisher::publish() {
-    if (!_gigRpcServer) {
+    if (!_publishWrapper) {
         return false;
     }
     if (CLT_BY_INDICATION == _leaderElectionMgr->getLeaderElectionConfig().campaginLeaderType && !_allowPublishLeader) {
@@ -112,7 +111,7 @@ bool TableLeaderInfoPublisher::publish() {
 }
 
 bool TableLeaderInfoPublisher::unpublish() {
-    if (!_gigRpcServer || !_signaturePublished) {
+    if (!_publishWrapper || !_signaturePublished) {
         return true;
     }
     string bizName = getBizName();
@@ -122,7 +121,7 @@ bool TableLeaderInfoPublisher::unpublish() {
 
 bool TableLeaderInfoPublisher::doUnpublish(const string &bizName, SignatureTy &signature, bool &signaturePublished) {
     if (signaturePublished) {
-        signaturePublished = !_gigRpcServer->unpublish(signature);
+        signaturePublished = !_publishWrapper->unpublish(signature);
         AUTIL_CONDITION_LOG(signaturePublished,
                             ERROR,
                             INFO,
@@ -148,7 +147,7 @@ bool TableLeaderInfoPublisher::doPublish(const string &bizName, SignatureTy &sig
         BizVolatileInfo info;
         info.tags = tagMap;
         info.targetWeight = _targetWeight;
-        signaturePublished = _gigRpcServer->updateVolatileInfo(signature, info);
+        signaturePublished = _publishWrapper->updateVolatileInfo(signature, info);
     } else {
         ServerBizTopoInfo info;
         info.bizName = bizName;
@@ -157,7 +156,7 @@ bool TableLeaderInfoPublisher::doPublish(const string &bizName, SignatureTy &sig
         info.version = 0;
         info.tags = tagMap;
         info.targetWeight = _targetWeight;
-        signaturePublished = _gigRpcServer->publish(info, signature);
+        signaturePublished = _publishWrapper->publish(info, signature);
     }
     AUTIL_CONDITION_LOG(signaturePublished,
                         INFO,

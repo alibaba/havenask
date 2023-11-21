@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FIXEDVALUEATTRIBUTEMERGERTEST_H
-#define __INDEXLIB_FIXEDVALUEATTRIBUTEMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/single_value_attribute_merger.h"
@@ -40,5 +39,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(FixedValueAttributeMergerTest, TestMergeData);
 INDEXLIB_UNIT_TEST_CASE(FixedValueAttributeMergerTest, TestFlushBuffer);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_FIXEDVALUEATTRIBUTEMERGERTEST_H

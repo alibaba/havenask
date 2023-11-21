@@ -25,12 +25,12 @@ public class RowField extends AbstractField {
         return fields;
     }
 
-    public AbstractField getField(int index) {
-        return fields.get(index);
-    }
-
     public void setFields(List<AbstractField> fields) {
         this.fields.addAll(fields);
+    }
+
+    public AbstractField getField(int index) {
+        return fields.get(index);
     }
 
     public void addField(AbstractField field) {

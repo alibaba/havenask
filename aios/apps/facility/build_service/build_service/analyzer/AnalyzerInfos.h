@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ANALYZER_SCHEMA_H
-#define ISEARCH_BS_ANALYZER_SCHEMA_H
+#pragma once
 
 #include <map>
 #include <memory>
+#include <stddef.h>
+#include <string>
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/analyzer/TokenizerConfig.h"
@@ -66,5 +67,3 @@ private:
 typedef std::shared_ptr<AnalyzerInfos> AnalyzerInfosPtr;
 
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_ANALYZER_SCHEMA_H

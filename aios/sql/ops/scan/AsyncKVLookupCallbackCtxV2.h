@@ -60,10 +60,6 @@ struct AsyncKVLookupMetricsCollectorV2 {
     size_t docsCount = 0;
     size_t failedDocsCount = 0;
     size_t notFoundDocsCount = 0;
-    int64_t waitWatermarkTime = 0;
-    bool needWatermark = false;
-    bool waitWatermarkFailed = false;
-    int64_t buildWatermark = 0;
 };
 
 class AsyncKVLookupCallbackCtxV2 : public AsyncKVLookupCallbackCtx,
@@ -84,9 +80,6 @@ public:
     isSchemaMatch(const std::shared_ptr<indexlibv2::config::ITabletSchema> &schema) const override;
     void asyncGet(KVLookupOption option) override;
     bool tryReportMetrics(kmonitor::MetricsReporter &opMetricsReporter) const override;
-    int64_t getWaitWatermarkTime() const override;
-    int64_t getBuildWatermark() const override;
-    size_t getDegradeDocsSize() const override;
     int64_t getSeekTime() const override;
 
 private:
@@ -97,12 +90,12 @@ private:
         autil::result::Result<std::shared_ptr<indexlibv2::framework::ITablet>> res);
     void doSearch(std::shared_ptr<indexlibv2::framework::ITablet> tablet);
     std::shared_ptr<indexlibv2::index::KVIndexReader>
-    getReader(std::shared_ptr<indexlibv2::framework::ITablet> tablet, const std::string &indexName);
+    getReader(const std::shared_ptr<indexlibv2::framework::ITablet> &tablet,
+              const std::string &indexName);
     void endLookupSession(std::optional<std::string> errorDesc);
 
 private:
     std::shared_ptr<navi::AsyncPipe> _asyncPipe;
-    std::shared_ptr<indexlibv2::framework::ITablet> _tablet;             // hold
     std::shared_ptr<indexlibv2::framework::ITabletReader> _tabletReader; // hold
     KVLookupOption _option;
     indexlibv2::index::KVReadOptions _readOptions;

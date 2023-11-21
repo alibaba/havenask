@@ -2,36 +2,75 @@
 
 package com.taobao.search.iquan.client.common.fb;
 
-import java.nio.*;
-import java.lang.*;
-import java.util.*;
-import com.google.flatbuffers.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.Table;
 
 @SuppressWarnings("unused")
 public final class IquanFbMap extends Table {
-  public static IquanFbMap getRootAsIquanFbMap(ByteBuffer _bb) { return getRootAsIquanFbMap(_bb, new IquanFbMap()); }
-  public static IquanFbMap getRootAsIquanFbMap(ByteBuffer _bb, IquanFbMap obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
-  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
-  public IquanFbMap __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+    public static IquanFbMap getRootAsIquanFbMap(ByteBuffer _bb) {
+        return getRootAsIquanFbMap(_bb, new IquanFbMap());
+    }
 
-  public IquanFbMapEntry value(int j) { return value(new IquanFbMapEntry(), j); }
-  public IquanFbMapEntry value(IquanFbMapEntry obj, int j) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
-  public int valueLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
+    public static IquanFbMap getRootAsIquanFbMap(ByteBuffer _bb, IquanFbMap obj) {
+        _bb.order(ByteOrder.LITTLE_ENDIAN);
+        return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
+    }
 
-  public static int createIquanFbMap(FlatBufferBuilder builder,
-      int valueOffset) {
-    builder.startObject(1);
-    IquanFbMap.addValue(builder, valueOffset);
-    return IquanFbMap.endIquanFbMap(builder);
-  }
+    public static int createIquanFbMap(FlatBufferBuilder builder,
+                                       int valueOffset) {
+        builder.startObject(1);
+        IquanFbMap.addValue(builder, valueOffset);
+        return IquanFbMap.endIquanFbMap(builder);
+    }
 
-  public static void startIquanFbMap(FlatBufferBuilder builder) { builder.startObject(1); }
-  public static void addValue(FlatBufferBuilder builder, int valueOffset) { builder.addOffset(0, valueOffset, 0); }
-  public static int createValueVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
-  public static void startValueVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
-  public static int endIquanFbMap(FlatBufferBuilder builder) {
-    int o = builder.endObject();
-    return o;
-  }
+    public static void startIquanFbMap(FlatBufferBuilder builder) {
+        builder.startObject(1);
+    }
+
+    public static void addValue(FlatBufferBuilder builder, int valueOffset) {
+        builder.addOffset(0, valueOffset, 0);
+    }
+
+    public static int createValueVector(FlatBufferBuilder builder, int[] data) {
+        builder.startVector(4, data.length, 4);
+        for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]);
+        return builder.endVector();
+    }
+
+    public static void startValueVector(FlatBufferBuilder builder, int numElems) {
+        builder.startVector(4, numElems, 4);
+    }
+
+    public static int endIquanFbMap(FlatBufferBuilder builder) {
+        int o = builder.endObject();
+        return o;
+    }
+
+    public void __init(int _i, ByteBuffer _bb) {
+        bb_pos = _i;
+        bb = _bb;
+    }
+
+    public IquanFbMap __assign(int _i, ByteBuffer _bb) {
+        __init(_i, _bb);
+        return this;
+    }
+
+    public IquanFbMapEntry value(int j) {
+        return value(new IquanFbMapEntry(), j);
+    }
+
+    public IquanFbMapEntry value(IquanFbMapEntry obj, int j) {
+        int o = __offset(4);
+        return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null;
+    }
+
+    public int valueLength() {
+        int o = __offset(4);
+        return o != 0 ? __vector_len(o) : 0;
+    }
 }
 

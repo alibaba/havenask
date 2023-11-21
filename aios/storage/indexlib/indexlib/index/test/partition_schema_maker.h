@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITION_SCHEMA_MAKER_H
-#define __INDEXLIB_PARTITION_SCHEMA_MAKER_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -13,5 +12,3 @@ namespace indexlib { namespace index {
 typedef config::IndexPartitionSchemaMaker PartitionSchemaMaker;
 typedef std::shared_ptr<PartitionSchemaMaker> PartitionSchemaMakerPtr;
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PARTITION_SCHEMA_MAKER_H

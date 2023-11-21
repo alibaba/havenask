@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 #pragma once
+#include <map>
+#include <stdint.h>
+#include <string>
+#include <sys/types.h>
+#include <utility>
+#include <vector>
+
+#include "autil/Lock.h"
+#include "autil/Log.h"
+#include "autil/LoopThread.h"
 #include "autil/NetUtil.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
-#include "hippo/MasterDriver.h"
+#include "hippo/DriverCommon.h"
 #include "master_framework/AppPlan.h"
+#include "master_framework/RolePlan.h"
 #include "master_framework/SimpleMasterScheduler.h"
-#include "master_framework/common.h"
+#include "worker_framework/LeaderChecker.h"
 
 namespace build_service { namespace admin {
 

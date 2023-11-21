@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVREADERIMPLTEST_H
-#define __INDEXLIB_KVREADERIMPLTEST_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "autil/mem_pool/Pool.h"
@@ -84,5 +83,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(KVReaderImplTest, TestGet);
 INDEXLIB_UNIT_TEST_CASE(KVReaderImplTest, TestMultiInMemSegments);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KVREADERIMPLTEST_H

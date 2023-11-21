@@ -4,7 +4,7 @@ cc_library(
     hdrs=['indexlib_partition_creator.h', 'mock_index_partition.h'],
     copts=['-Werror'],
     include_prefix='indexlib/testlib',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         '//aios/future_lite/future_lite/executors:simple_executor',
         '//aios/storage/indexlib/indexlib',
@@ -48,7 +48,7 @@ cc_library(
         '//aios/storage/indexlib/table/normal_table:table'
     ],
     include_prefix='indexlib/testlib',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/future_lite/future_lite/executors:simple_executor',
         '//aios/storage/indexlib/framework:tablet_schema_loader',

@@ -228,6 +228,25 @@ bool HTTPRPCServer::addAlias(const AliasMap &aliasMap) {
     return true;
 }
 
+void HTTPRPCServer::removeAlias(const AliasMap &aliasMap) {
+    {
+        ScopedWriteLock lock(_methodMapMutex);
+        for (const auto &pair : aliasMap) {
+            const auto &to = pair.first;
+            const auto &from = pair.second;
+            auto it = _aliasMap.find(to);
+            if (_aliasMap.end() == it) {
+                continue;
+            }
+            if (from != it->second) {
+                continue;
+            }
+            _aliasMap.erase(to);
+        }
+    }
+    registerService();
+}
+
 std::vector<std::string> HTTPRPCServer::getRPCNames() {
     ScopedReadLock lock(_methodMapMutex);
     RPCNameMap &rpcMap = _impl->_rpcNameMap;

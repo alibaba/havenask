@@ -15,6 +15,9 @@
  */
 #include "indexlib/config/TabletSchema.h"
 
+#include "indexlib/config/MutableJson.h"
+#include "indexlib/config/FieldConfig.h"
+#include "indexlib/config/IIndexConfig.h"
 #include "indexlib/config/UnresolvedSchema.h"
 
 namespace indexlibv2::config {
@@ -34,6 +37,53 @@ bool TabletSchema::LoadLegacySchema(const std::string& jsonStr,
     legacySchema = tabletSchema->GetLegacySchema();
     AUTIL_LOG(DEBUG, "load legacy schema success.");
     return true;
+}
+
+Status TabletSchema::CheckUpdateSchema(const std::shared_ptr<ITabletSchema>& oldSchema,
+                                       const std::shared_ptr<ITabletSchema>& newSchema)
+{
+    // check schema id
+    if (oldSchema->GetSchemaId() > newSchema->GetSchemaId()) {
+        AUTIL_LOG(ERROR, "new schema [%d] id smaller than current schemaId [%d] alter table failed.",
+                  newSchema->GetSchemaId(), oldSchema->GetSchemaId());
+        return Status::InvalidArgs();
+    }
+
+    // check same field config not changed
+    const auto& fieldConfigs = newSchema->GetFieldConfigs();
+    for (auto fieldConfig : fieldConfigs) {
+        auto originFieldConfig = oldSchema->GetFieldConfig(fieldConfig->GetFieldName());
+        if (!originFieldConfig) {
+            continue;
+        }
+        auto fieldStr = autil::legacy::ToJsonString(*fieldConfig);
+        auto originFieldStr = autil::legacy::ToJsonString(*originFieldConfig);
+        if (fieldStr != originFieldStr) {
+            AUTIL_LOG(ERROR, "origin field [%s] not same with target field[%s].", originFieldStr.c_str(),
+                      fieldStr.c_str());
+            return Status::InvalidArgs("field config changed");
+        }
+    }
+    // check same index config compatible
+    auto indexConfigs = newSchema->GetIndexConfigs();
+    auto toJsonString = [](const std::shared_ptr<config::IIndexConfig>& config) {
+        autil::legacy::Jsonizable::JsonWrapper json;
+        config->Serialize(json);
+        return ToJsonString(json.GetMap());
+    };
+    for (const auto& indexConfig : indexConfigs) {
+        const auto& originIndexConfig =
+            oldSchema->GetIndexConfig(indexConfig->GetIndexType(), indexConfig->GetIndexName());
+        if (!originIndexConfig) {
+            continue;
+        }
+        auto indexStr = toJsonString(indexConfig);
+        auto originIndexStr = toJsonString(originIndexConfig);
+        auto status = originIndexConfig->CheckCompatible(indexConfig.get());
+        RETURN_IF_STATUS_ERROR(status, "origin index [%s] not compatible with target index[%s].",
+                               originIndexStr.c_str(), indexStr.c_str());
+    }
+    return Status::OK();
 }
 
 bool TabletSchema::IsLegacySchema(const autil::legacy::json::JsonMap& jsonMap)

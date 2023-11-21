@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGEPARTITIONDATACREATORTEST_H
-#define __INDEXLIB_MERGEPARTITIONDATACREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -33,5 +32,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(MergePartitionDataCreatorTest, TestCreateMergePartitionData);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGEPARTITIONDATACREATORTEST_H

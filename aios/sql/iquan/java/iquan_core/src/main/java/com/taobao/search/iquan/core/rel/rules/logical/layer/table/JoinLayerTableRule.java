@@ -1,5 +1,8 @@
 package com.taobao.search.iquan.core.rel.rules.logical.layer.table;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LogicalFuseLayerTableScan;
@@ -9,13 +12,10 @@ import com.taobao.search.iquan.core.utils.LayerTableUtils;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.logical.*;
+import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class JoinLayerTableRule extends RelOptRule {
     public static final JoinLayerTableRule INSTANCE =

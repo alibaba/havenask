@@ -70,7 +70,7 @@ class MetaInfo;
 } // namespace suez
 namespace table {
 class Column;
-class ColumnDataBase;
+class BaseColumnData;
 } // namespace table
 
 namespace indexlib {
@@ -125,8 +125,8 @@ public:
     }
 
 public:
-    typedef std::pair<suez::turing::AttributeExpression *, table::ColumnDataBase *> ExprColumnType;
-    typedef std::tuple<table::ColumnDataBase *, table::ColumnDataBase *, matchdoc::ValueType>
+    typedef std::pair<suez::turing::AttributeExpression *, table::BaseColumnData *> ExprColumnType;
+    typedef std::tuple<table::BaseColumnData *, table::BaseColumnData *, matchdoc::ValueType>
         ColumnDataTuple;
     static void addAliasMap(matchdoc::MatchDocAllocator *allocator,
                             const matchdoc::MatchDocAllocator::ReferenceAliasMap &aliasMap);
@@ -148,11 +148,12 @@ private:
                       suez::turing::MatchDocsExpressionCreator *exprCreator,
                       std::vector<ExprColumnType> &exprVec,
                       std::vector<ColumnDataTuple> &columnDataTupleVec);
-    bool calcTableExpr(const table::TablePtr &inputTable,
+    bool calcTableExpr(matchdoc::MatchDocAllocator *allocator,
+                       const std::vector<table::Row> &rows,
                        table::TablePtr &outputTable,
                        std::vector<ExprColumnType> &exprVec,
                        suez::turing::AttributeExpression *optimizeReCalcExpression);
-    bool calcTableCloumn(table::TablePtr &outputTable,
+    bool calcTableColumn(table::TablePtr &outputTable,
                          std::vector<ColumnDataTuple> &columnDataTupleVec);
     bool cloneColumnData(table::Column *originColumn,
                          table::TablePtr &table,

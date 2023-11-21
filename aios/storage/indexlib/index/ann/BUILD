@@ -23,7 +23,7 @@ strict_cc_library(
     name='ANNPostingIterator',
     srcs=['ANNPostingIterator.cpp'],
     hdrs=['ANNPostingIterator.h'],
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
         ':constants',
         '//aios/storage/indexlib/index/inverted_index:PostingIterator',

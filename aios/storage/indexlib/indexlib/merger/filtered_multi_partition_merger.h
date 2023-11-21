@@ -13,19 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_FILTERED_MULTI_PARTITION_MERGER_H
-#define __INDEXLIB_FILTERED_MULTI_PARTITION_MERGER_H
+#pragma once
 
 #include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/file_system/Directory.h"
-#include "indexlib/index_base/segment/multi_part_segment_directory.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/index_meta/partition_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/doc_filter_creator.h"
+#include "indexlib/merger/index_partition_merger.h"
 #include "indexlib/merger/merge_meta.h"
 #include "indexlib/merger/multi_partition_merger.h"
 #include "indexlib/misc/common.h"
 #include "indexlib/misc/log.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace merger {
 
@@ -71,5 +78,3 @@ private:
 
 DEFINE_SHARED_PTR(FilteredMultiPartitionMerger);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_FILTERED_MULTI_PARTITION_MERGER_H

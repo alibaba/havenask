@@ -14,7 +14,7 @@ PostingIteratorMocker::PostingIteratorMocker(std::vector<docid_t>& docList)
 
 PostingIteratorMocker::~PostingIteratorMocker() {}
 
-docid_t PostingIteratorMocker::SeekDoc(docid_t docId)
+docid64_t PostingIteratorMocker::SeekDoc(docid64_t docId)
 {
     if (mCursor >= mDocList.size()) {
         return INVALID_DOCID;

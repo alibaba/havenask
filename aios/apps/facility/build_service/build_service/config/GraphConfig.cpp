@@ -15,7 +15,10 @@
  */
 #include "build_service/config/GraphConfig.h"
 
-#include "fslib/util/FileUtil.h"
+#include <iosfwd>
+#include <map>
+
+#include "build_service/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace build_service::util;

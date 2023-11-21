@@ -6,6 +6,7 @@
 #include "autil/StringUtil.h"
 #include "indexlib/config/FileCompressConfig.h"
 #include "indexlib/config/primary_key_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/raw_document/default_raw_document.h"
 #include "indexlib/file_system/file/CompressFileInfo.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
@@ -18,7 +19,6 @@
 #include "indexlib/merger/partition_merger_creator.h"
 #include "indexlib/partition/offline_partition.h"
 #include "indexlib/partition/partition_data_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/test/build_test_util.h"
 
 using namespace std;
@@ -988,9 +988,9 @@ void OfflinePartitionInteTest::TestBuildSource()
         index::PrimaryKeyIndexReaderPtr pkReader = psm.GetIndexPartition()->GetReader()->GetPrimaryKeyReader();
         docid_t docId = pkReader->Lookup("1");
         ASSERT_TRUE(sourceReader->GetDocument(docId, &sourceDocument));
-        ASSERT_EQ(StringView("hello"), sourceDocument.GetField((groupid_t)0, "string1"));
-        ASSERT_EQ(StringView("4"), sourceDocument.GetField((groupid_t)1, "price"));
-        ASSERT_EQ(StringView::empty_instance(), sourceDocument.GetField((groupid_t)1, "string2"));
+        ASSERT_EQ(StringView("hello"), sourceDocument.GetField((sourcegroupid_t)0, "string1"));
+        ASSERT_EQ(StringView("4"), sourceDocument.GetField((sourcegroupid_t)1, "price"));
+        ASSERT_EQ(StringView::empty_instance(), sourceDocument.GetField((sourcegroupid_t)1, "string2"));
 
         ASSERT_TRUE(psm.Transfer(QUERY, "", "source_group:0:pk:1", "pk=1,string1=hello"));
         ASSERT_TRUE(psm.Transfer(QUERY, "", "source_group:1:pk:1", "price=4"));

@@ -42,12 +42,6 @@ SubscriberConfig::SubscriberConfig()
     , _virtualNodeRatio(0)
     , _disableTopo(false)
 {
-    memset(_zkServer, 0, MAX_LEN);
-    memset(_zkPath, 0, MAX_LEN);
-    memset(_cmServer, 0, MAX_LEN);
-    memset(_clusterCfg, 0, PATH_MAX);
-
-    _cacheFile[0] = '\0';
 }
 
 SubscriberConfig::~SubscriberConfig() {}
@@ -100,8 +94,8 @@ int32_t SubscriberConfig::parseCMServer(mxml_node_t* keynode)
     const char* zk_path = mxmlElementGetAttr(tmpnode, "zk_path");
     if (zk_server && zk_path) {
         _serverType = FromZK;
-        snprintf(_zkServer, MAX_LEN, "%s", zk_server);
-        snprintf(_zkPath, MAX_LEN, "%s", zk_path);
+        _zkServer = zk_server;
+        _zkPath = zk_path;
         const char* timeout = mxmlElementGetAttr(tmpnode, "timeout");
         if (timeout) {
             _timeout = strtoul(timeout, NULL, 10);
@@ -110,7 +104,7 @@ int32_t SubscriberConfig::parseCMServer(mxml_node_t* keynode)
         if (sub_master && strncasecmp(sub_master, "yes", 3) == 0) {
             _subMaster = true;
         }
-        AUTIL_LOG(INFO, "hb_node: zk_server = %s, zk_path = %s, sub_master = %s", _zkServer, _zkPath,
+        AUTIL_LOG(INFO, "hb_node: zk_server = %s, zk_path = %s, sub_master = %s", _zkServer.c_str(), _zkPath.c_str(),
                   _subMaster ? "yes" : "no");
     } else {
         // init _masterIp, _tcpPort, _udpPort
@@ -118,7 +112,7 @@ int32_t SubscriberConfig::parseCMServer(mxml_node_t* keynode)
         const char* cm_server = mxmlElementGetAttr(tmpnode, "value");
         if (cm_server) {
             _serverType = FromCfg;
-            snprintf(_cmServer, MAX_LEN, "%s", cm_server);
+            _cmServer = cm_server;
         } else {
             return -1;
         }
@@ -191,9 +185,9 @@ int32_t SubscriberConfig::parseSubscriber(mxml_node_t* keynode)
         const char* cluster_config = mxmlElementGetAttr(tmpnode, "cluster_config");
         if (cluster_config) {
             _isLocalMode = true;
-            snprintf(_clusterCfg, PATH_MAX, "%s", cluster_config);
+            _clusterCfg = cluster_config;
         }
-        AUTIL_LOG(INFO, "cm_sub : SubscriberConfig::init(), local_mode: cluster_config = %s", _clusterCfg);
+        AUTIL_LOG(INFO, "cm_sub : SubscriberConfig::init(), local_mode: cluster_config = %s", _clusterCfg.c_str());
     }
     tmpnode = mxmlFindElement(keynode, keynode, "policy", NULL, NULL, MXML_DESCEND_FIRST);
     const char* conhash = mxmlElementGetAttr(tmpnode, "weight_ratio");
@@ -227,9 +221,13 @@ void SubscriberConfig::parseCache(mxml_node_t* keynode)
         _writeInterval = (_writeInterval = atoi(interval_s)) <= 0 ? 5 * 60 : _writeInterval;
     }
     const char* cache_file = mxmlElementGetAttr(tmpnode, "file");
-    cache_file ? strcpy(_cacheFile, cache_file) : strcpy(_cacheFile, "./local_cache/cluster_cache.xml");
+    if (cache_file != nullptr) {
+        _cacheFile = cache_file;
+    } else {
+        _cacheFile = "./local_cache/cluster_cache.xml";
+    }
     AUTIL_LOG(INFO, "cm_sub : local cache: write: %s, read: %s, file: %s", _writeCache ? "yes" : "no",
-              _readCache ? "yes" : "no", _cacheFile);
+              _readCache ? "yes" : "no", _cacheFile.c_str());
 }
 
 } // namespace cm_sub

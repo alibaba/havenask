@@ -94,11 +94,22 @@ void FileRecorder::newRecord(const string &content, size_t logCount, const strin
             }
         }
     }
-    int64_t usec = autil::TimeUtility::currentTime() % 1000000;
-    string filename = autil::TimeUtility::currentTimeString("%Y-%m-%d-%H-%M-%S") + "." +
-                      autil::StringUtil::toString(usec) + "_" + suffix;
-    string path = join(dir, filename);
+    auto fileName = getFileName(suffix);
+    string path = join(dir, fileName);
     writeFile(path, content);
+}
+
+std::string FileRecorder::getFileName(const std::string &suffix) {
+    struct timeval time;
+    gettimeofday(&time, NULL);
+    struct tm tim;
+    ::localtime_r(&time.tv_sec, &tim);
+
+    constexpr int32_t timeLen = 48;
+    char buffer[timeLen];
+    snprintf(buffer, timeLen, "%04d-%02d-%02d-%02d-%02d-%02d.%06ld", tim.tm_year + 1900,
+             tim.tm_mon + 1, tim.tm_mday, tim.tm_hour, tim.tm_min, tim.tm_sec, time.tv_usec);
+    return std::string(buffer) + "_" + suffix;
 }
 
 bool FileRecorder::hasSuffix(const string &str, const string &suffix) {

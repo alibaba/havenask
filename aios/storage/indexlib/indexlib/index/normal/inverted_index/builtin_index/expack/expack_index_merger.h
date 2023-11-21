@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_EXPACK_INDEX_MERGER_H
-#define __INDEXLIB_EXPACK_INDEX_MERGER_H
+#pragma once
 
 #include <memory>
 
@@ -54,5 +53,3 @@ OnDiskIndexIteratorCreatorPtr ExpackIndexMerger::CreateOnDiskIndexIteratorCreato
         new OnDiskExpackIndexIterator::Creator(GetPostingFormatOption(), mIOConfig, mIndexConfig));
 }
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_EXPACK_INDEX_MERGER_H

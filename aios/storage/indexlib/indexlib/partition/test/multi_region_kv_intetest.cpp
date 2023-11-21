@@ -1,5 +1,6 @@
 #include "indexlib/partition/test/multi_region_kv_intetest.h"
 
+#include "indexlib/config/test/region_schema_maker.h"
 #include "indexlib/file_system/file/CompressFileInfo.h"
 #include "indexlib/file_system/fslib/DataFlushController.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
@@ -7,7 +8,6 @@
 #include "indexlib/index/kv/kv_factory.h"
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/region_schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

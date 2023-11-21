@@ -15,13 +15,17 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
 #include <mutex>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
-#include <string_view>
 
+#include "autil/Log.h"
 #include "autil/Scope.h"
 #include "indexlib/base/MemoryQuotaController.h"
+#include "indexlib/file_system/IDirectory.h"
 #include "indexlib/framework/BuildDocumentMetrics.h"
 #include "indexlib/framework/IMetrics.h"
 #include "indexlib/framework/MetricsWrapper.h"
@@ -32,12 +36,14 @@
 #include "indexlib/framework/TabletMemoryCalculator.h"
 #include "indexlib/framework/TabletReaderContainer.h"
 #include "indexlib/framework/TabletWriter.h"
+#include "indexlib/framework/VersionMerger.h"
+#include "kmonitor/client/MetricsReporter.h"
 
 namespace indexlibv2::framework {
 
-class VersionMerger;
-
 enum class TabletPhase : int64_t { UNKNOWN, OPEN, NEW_SEGMENT, NORMAL_REOPEN, FORCE_REOPEN };
+
+enum struct RealtimeIndexMemoryType : int32_t { BUILT = 0, DUMPING = 1, BUILDING = 2, UNKNOWN = -1 };
 
 class TabletMetrics : public IMetrics
 {
@@ -65,8 +71,12 @@ public:
     // inc + rtBuilt + dumping + building
     size_t GetTabletMemoryUse() const;
     // rtBuilt + dumping + building
-    size_t GetRtIndexMemsize() const;
+    size_t GetRtIndexMemSize() const;
+    size_t GetRtIndexMemSize(RealtimeIndexMemoryType memType) const;
+
+    size_t GetFreeQuota() const;
     size_t GetBuildingSegmentDumpExpandMemsize() const;
+    size_t GetMaxDumpingSegmentExpandMemsize() const;
     void SetMemoryStatus(MemoryStatus memoryStatus);
 
     void FillMetricsInfo(std::map<std::string, std::string>& infoMap);

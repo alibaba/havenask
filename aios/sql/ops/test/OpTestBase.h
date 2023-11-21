@@ -49,6 +49,7 @@ class ResourceReader;
 namespace sql {
 
 class SqlQueryResource;
+class SqlQueryConfigData;
 
 class OpTestBase : public TESTBASE, public table::TableTestUtil {
 public:
@@ -206,9 +207,6 @@ public:
 
     void makeConfigCtx(const std::string &jsonStr, navi::KernelConfigContextPtr &ctx);
 
-    static void checkDependentTable(const std::shared_ptr<table::Table> &inputTable,
-                                    const std::shared_ptr<table::Table> &outputTable);
-
     void asyncRunKernel(navi::KernelTester &tester,
                         table::TablePtr &outputTable,
                         bool &eof,
@@ -221,10 +219,12 @@ public:
     }
 
 private:
+    void prepareNamedData();
     void prepareResources();
     void prepareTabletManagerR();
 
 public:
+    std::shared_ptr<SqlQueryConfigData> _queryConfigData;
     navi::NaviResourceHelper _naviRHelper;
     std::vector<std::shared_ptr<void>> _dependentHolders;
     std::shared_ptr<autil::mem_pool::Pool> _poolPtr;
@@ -237,7 +237,6 @@ public:
     std::map<int32_t, indexlib::partition::IndexApplicationPtr> _id2IndexAppMap;
 
     indexlibv2::framework::TabletPtrMap _tabletMap;
-    std::map<int32_t, indexlibv2::framework::TabletPtrMap> _id2TabletMap;
 
     bool _needBuildIndex = false;
     bool _needBuildTablet = false;

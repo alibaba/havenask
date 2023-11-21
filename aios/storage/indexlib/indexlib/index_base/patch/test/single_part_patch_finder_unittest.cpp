@@ -2,10 +2,10 @@
 
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/test/partition_data_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 

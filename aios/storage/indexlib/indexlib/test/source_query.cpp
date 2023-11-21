@@ -16,7 +16,7 @@ SourceQuery::~SourceQuery()
     }
 }
 
-bool SourceQuery::Init(index::PostingIterator* iter, std::string indexName, index::groupid_t groupId)
+bool SourceQuery::Init(index::PostingIterator* iter, std::string indexName, index::sourcegroupid_t groupId)
 {
     mIter = iter;
     mIndexName = indexName;
@@ -24,7 +24,7 @@ bool SourceQuery::Init(index::PostingIterator* iter, std::string indexName, inde
     return true;
 }
 
-index::groupid_t SourceQuery::GetGroupId() const { return mGroupId; }
+index::sourcegroupid_t SourceQuery::GetGroupId() const { return mGroupId; }
 
 docid_t SourceQuery::Seek(docid_t docid) { return mIter->SeekDoc(docid); }
 

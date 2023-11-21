@@ -15,9 +15,15 @@
  */
 #include "indexlib/framework/TabletDumper.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <utility>
+#include <vector>
+
+#include "autil/CommonMacros.h"
 #include "autil/TimeUtility.h"
 #include "future_lite/Executor.h"
-#include "indexlib/file_system/Directory.h"
+#include "indexlib/framework/Segment.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/Version.h"
 
@@ -91,7 +97,7 @@ void TabletDumper::TrimDumpingQueue(const TabletData& tabletData)
     std::swap(_segmentDumpQueue, newDumpQueue);
 }
 
-Status TabletDumper::Dump()
+Status TabletDumper::Dump(const uint32_t dumpThreadCount)
 {
     autil::ScopedTime2 timer;
     if (unlikely(_dumpExecutor == nullptr)) {
@@ -119,7 +125,7 @@ Status TabletDumper::Dump()
             _tabletCommitter->AlterTable(alterTableLog->schemaId);
         } else {
             auto segDumper = dynamic_cast<SegmentDumper*>(dumpable.get());
-            Status status = segDumper->Dump(_dumpExecutor);
+            Status status = segDumper->Dump(_dumpExecutor, dumpThreadCount);
             if (!status.IsOK()) {
                 TABLET_LOG(ERROR, "dump item[%lu/%lu] failed, error:%s", i, count, status.ToString().c_str());
                 _tabletCommitter->SetDumpError(status);
@@ -141,7 +147,7 @@ void TabletDumper::AlterTable(schemaid_t schemaId)
     _segmentDumpQueue.push_back(std::move(log));
 }
 
-Status TabletDumper::Seal()
+Status TabletDumper::Seal(const uint32_t dumpThreadCount)
 {
     autil::ScopedTime2 timer;
     if (unlikely(_dumpExecutor == nullptr)) {
@@ -160,7 +166,7 @@ Status TabletDumper::Seal()
             _tabletCommitter->AlterTable(alterTableLog->schemaId);
         } else {
             auto dumper = dynamic_cast<SegmentDumper*>(dumpable.get());
-            auto status = dumper->Dump(_dumpExecutor);
+            auto status = dumper->Dump(_dumpExecutor, dumpThreadCount);
             if (!status.IsOK()) {
                 TABLET_LOG(ERROR, "dump segment[%d] failed: %s", dumper->GetSegmentId(), status.ToString().c_str());
                 _tabletCommitter->SetDumpError(status);

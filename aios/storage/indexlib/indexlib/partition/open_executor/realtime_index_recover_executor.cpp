@@ -57,7 +57,7 @@ bool RealtimeIndexRecoverExecutor::Execute(ExecutorResource& resource)
     util::SimpleMemoryQuotaControllerPtr memController(new util::SimpleMemoryQuotaController(blockMemController));
     OperationReplayer replayer(resource.mPartitionDataHolder.Get(), resource.mSchema, memController, false);
     OperationRedoStrategyPtr redoStrategy(new RecoverRtOperationRedoStrategy(realtimeReader->GetVersion()));
-    bool ret = replayer.RedoOperations(modifier, index_base::Version(INVALID_VERSION), redoStrategy);
+    bool ret = replayer.RedoOperations(modifier, index_base::Version(INVALID_VERSIONID), redoStrategy);
     IE_LOG(INFO, "end recover rt index");
     return ret;
 }

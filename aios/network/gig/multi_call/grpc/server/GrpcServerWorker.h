@@ -17,16 +17,30 @@
 #define ISEARCH_MULTI_CALL_GRPCSERVERWORKER_H
 
 #include <grpc++/alarm.h>
+#include <grpc++/generic/async_generic_service.h>
+#include <grpc++/grpc++.h>
+#include <grpc++/impl/codegen/byte_buffer.h>
 
 #include "aios/network/gig/multi_call/agent/GigAgent.h"
 #include "aios/network/gig/multi_call/config/MultiCallConfig.h"
-#include "aios/network/gig/multi_call/grpc/server/GrpcCallData.h"
 #include "aios/network/gig/multi_call/rpc/GigRpcWorker.h"
 #include "aios/network/gig/multi_call/util/RandomGenerator.h"
 #include "autil/LockFreeThreadPool.h"
 #include "autil/Thread.h"
 
 namespace multi_call {
+
+typedef std::shared_ptr<grpc::ServerCompletionQueue> ServerCompletionQueuePtr;
+
+struct ServerCompletionQueueStatus {
+    ServerCompletionQueueStatus(const ServerCompletionQueuePtr &cq_) : stopped(false), cq(cq_) {
+    }
+    volatile bool stopped;
+    autil::ReadWriteLock enqueueLock;
+    ServerCompletionQueuePtr cq;
+};
+
+MULTI_CALL_TYPEDEF_PTR(ServerCompletionQueueStatus);
 
 class GigRpcServer;
 

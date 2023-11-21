@@ -79,7 +79,7 @@ bool SqlRpcR::registerSql() {
     auto service = _naviRpcServerR->registerArpcService<isearch::proto::QrsService>(param);
     if (!service) {
         NAVI_KERNEL_LOG(ERROR, "register /searchSql arpc service failed");
-        return navi::EC_ABORT;
+        return false;
     }
     return true;
 }
@@ -118,14 +118,17 @@ bool SqlRpcR::buildRunSqlGraph(navi::GraphDef *graphDef) const {
     auto rpcFormat = builder.getScopeTerminator().kernel(SqlFormatKernel::KERNEL_ID);
 
     auto rpcOut = rpc.out(SqlRpcKernel::OUTPUT_PORT);
+    auto formatOut = rpc.out(SqlRpcKernel::OUTPUT_PORT2);
     parse.in("input0").from(rpcOut);
     planTransform.in("input0").from(parse.out("output0"));
     planTransform.in("input1").from(rpcOut);
     runGraph.in("input0").from(planTransform.out("output0"));
+    runGraph.in("input1").from(planTransform.out("output1"));
     rpcFormat.in(navi::SCOPE_TERMINATOR_INPUT_PORT).autoNext().from(rpcOut);
     rpcFormat.in(navi::SCOPE_TERMINATOR_INPUT_PORT).autoNext().from(runGraph.out("output0"));
     rpcFormat.in(navi::SCOPE_TERMINATOR_INPUT_PORT).autoNext().from(parse.out("output0"));
     rpcFormat.in(navi::SCOPE_TERMINATOR_INPUT_PORT).autoNext().from(runGraph.out("output1"));
+    rpcFormat.in(navi::SCOPE_TERMINATOR_INPUT_PORT).autoNext().from(formatOut);
     rpcFormat.out(SqlFormatKernel::OUTPUT_PORT).asGraphOutput("rpc_result");
 
     if (builder.ok()) {

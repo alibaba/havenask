@@ -1,6 +1,7 @@
 #include "autil/ThreadPool.h"
 #include "autil/WorkItemQueue.h"
 #include "indexlib/config/test/schema_loader.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_collector.h"
 #include "indexlib/partition/doc_build_work_item_generator.h"
 #include "indexlib/partition/modifier/inplace_modifier.h"
@@ -9,7 +10,6 @@
 #include "indexlib/partition/test/main_sub_test_util.h"
 #include "indexlib/partition/test/mock_partition_modifier.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 #include "indexlib/util/GroupedThreadPool.h"
 

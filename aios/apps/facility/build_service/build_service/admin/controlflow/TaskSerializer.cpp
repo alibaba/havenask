@@ -15,9 +15,19 @@
  */
 #include "build_service/admin/controlflow/TaskSerializer.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <string>
+
+#include "alog/Logger.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
 #include "build_service/admin/controlflow/ControlDefine.h"
 #include "build_service/admin/controlflow/TaskBase.h"
 #include "build_service/admin/controlflow/TaskFactory.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 
 using namespace std;
 using namespace autil;

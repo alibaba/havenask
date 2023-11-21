@@ -16,6 +16,7 @@
 #ifndef FSLIB_FILESYSTEM_H
 #define FSLIB_FILESYSTEM_H
 
+#include <atomic>
 #include "autil/Log.h"
 #include "fslib/common/common_define.h"
 #include "fslib/common/common_type.h"
@@ -384,8 +385,8 @@ public:
     static void reportDataCacheMemUse(int64_t fileCount);
     static void reportDataCacheHitQps(const std::string &filePath, double value = 1.0);
 
-    static ErrorCode GENERATE_ERROR(const std::string &operate, const std::string &filename);
-    static bool _useMock;
+    static ErrorCode GENERATE_ERROR(const std::string& operate, const std::string& filename);
+    static std::atomic_bool _useMock;
     static bool _mmapDontDump;
 
 public:

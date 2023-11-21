@@ -13,24 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SINGLEBUILDERTASKV2_H
-#define ISEARCH_BS_SINGLEBUILDERTASKV2_H
+#pragma once
 
-#include "build_service/admin/CheckpointCreator.h"
-#include "build_service/admin/CheckpointMetricReporter.h"
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/CheckpointSynchronizer.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/TaskController.h"
-#include "build_service/common/BuilderCheckpointAccessor.h"
-#include "build_service/common/Checkpoint.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeperGuard.h"
 #include "build_service/common_define.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/TaskConfig.h"
 #include "build_service/config/TaskTarget.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/BuildTaskCurrentInfo.h"
 #include "build_service/proto/BuildTaskTargetInfo.h"
 #include "build_service/proto/DataDescription.h"
-#include "build_service/util/Log.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace admin {
 
@@ -100,13 +113,14 @@ private:
     virtual bool operator!=(const SingleBuilderTaskV2& other) const;
     bool parseImportParam(const KeyValueMap& param);
     bool processRollback(const KeyValueMap& param);
-    bool prepareBuilderDataDescription(const KeyValueMap& kvMap, proto::DataDescription& ds);
+    bool prepareBuilderDataDescription(config::ResourceReaderPtr resourceReader, const KeyValueMap& kvMap,
+                                       proto::DataDescription& ds);
     config::ResourceReaderPtr getConfigReader();
     bool needTriggerAlignVersion();
     void triggerAlignVersion();
-    void prepareBuilders(std::vector<BuilderGroup>& builders) const;
+    void prepareBuilders(std::vector<BuilderGroup>& builders, bool isStart) const;
     BuilderNode createBuilderNode(std::string roleName, uint32_t nodeId, uint32_t partitionCount, uint32_t parallelNum,
-                                  uint32_t instanceIdx) const;
+                                  uint32_t instanceIdx, bool isStart) const;
     void updateBuilderNodes(const TaskController::Nodes& nodes);
     void commitBuilderCheckpoint(const proto::BuildTaskCurrentInfo& checkpoint, const BuilderNode& builderNode,
                                  bool isMaster);
@@ -124,9 +138,10 @@ private:
     std::string getBuildStepStr() const;
     bool updateKeepCheckpointCount(config::ResourceReaderPtr resourceReader);
     void registBrokerTopic();
-
+    void updateRequestQueue();
     void reportBuildFreshness();
     std::shared_ptr<CheckpointSynchronizer> getCheckpointSynchronizer() const;
+    bool checkNoNeedBuildDataFinish();
 
 private:
     std::string _clusterName;
@@ -136,6 +151,7 @@ private:
     RollbackInfo _rollbackInfo;
     versionid_t _alignVersionId = indexlibv2::INVALID_VERSIONID;
     int64_t _lastAlignVersionTimestamp = 0;
+    int64_t _lastAlignSchemaId = config::INVALID_SCHEMAVERSION;
     int64_t _checkpointKeepCount = 1;
     proto::BuildStep _buildStep;
     proto::DataDescription _builderDataDesc;
@@ -148,6 +164,8 @@ private:
     int32_t _batchId = -1;
     indexlib::versionid_t _importedVersionId = indexlibv2::INVALID_VERSIONID;
     std::string _specificMergeConfig;
+    int64_t _schemaVersion;
+    bool _needBuildData = true;
 
 private:
     friend class SingleBuilderTaskV2Test;
@@ -157,5 +175,3 @@ private:
 BS_TYPEDEF_PTR(SingleBuilderTaskV2);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_SINGLEBUILDERTASKV2_H

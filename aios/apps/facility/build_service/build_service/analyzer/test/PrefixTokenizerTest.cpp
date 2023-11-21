@@ -1,8 +1,23 @@
 #include "build_service/analyzer/PrefixTokenizer.h"
 
+#include <iosfwd>
+#include <map>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "autil/LongHashValue.h"
 #include "autil/StringUtil.h"
+#include "build_service/analyzer/Token.h"
+#include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/analyzer/ITokenizer.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/indexlib.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

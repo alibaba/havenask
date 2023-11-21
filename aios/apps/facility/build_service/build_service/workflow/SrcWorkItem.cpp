@@ -15,9 +15,20 @@
  */
 #include "build_service/workflow/SrcWorkItem.h"
 
+#include <assert.h>
+#include <exception>
 #include <memory>
+#include <string>
 
+#include "alog/Logger.h"
+#include "build_service/config/SrcNodeConfig.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/document.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/partition/index_builder.h"
+#include "indexlib/partition/index_partition.h"
 
 namespace build_service { namespace workflow {
 BS_LOG_SETUP(workflow, SrcWorkItem);

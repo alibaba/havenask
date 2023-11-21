@@ -31,6 +31,7 @@ public:
     void CaseSetUp() override;
     void CaseTearDown() override;
     void TestNextLine();
+    void TestNextLineForMMapFile();
 
 private:
     void InnerTestNextLine(const std::string& content);
@@ -47,6 +48,7 @@ private:
 AUTIL_LOG_SETUP(indexlib.file_system, LineReaderTest);
 
 INDEXLIB_UNIT_TEST_CASE(LineReaderTest, TestNextLine);
+INDEXLIB_UNIT_TEST_CASE(LineReaderTest, TestNextLineForMMapFile);
 //////////////////////////////////////////////////////////////////////
 
 LineReaderTest::LineReaderTest() {}
@@ -114,4 +116,15 @@ void LineReaderTest::CheckData(const string& expectedFileStr)
     ASSERT_EQ(FSEC_OK, ec);
     ASSERT_TRUE(expectedStrVec == actualStrVec);
 }
+
+void LineReaderTest::TestNextLineForMMapFile()
+{
+    MakeFileData("abc");
+    LineReader reader;
+    reader.Open(_directory->CreateFileReader(_filePath, FSOT_MMAP));
+    string line;
+    ErrorCode ec = FSEC_OK;
+    ASSERT_TRUE(reader.NextLine(line, ec));
+}
+
 }} // namespace indexlib::file_system

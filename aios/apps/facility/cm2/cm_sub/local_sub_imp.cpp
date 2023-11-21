@@ -24,11 +24,11 @@ namespace cm_sub {
 
 AUTIL_LOG_SETUP(cm_sub, LocalSubscriberImp);
 
-char* LocalSubscriberImp::getDataFromFile(const char* p_file_name)
+char* LocalSubscriberImp::getDataFromFile(const std::string& p_file_name)
 {
-    FILE* fp = fopen(p_file_name, "r");
+    FILE* fp = fopen(p_file_name.c_str(), "r");
     if (NULL == fp) {
-        AUTIL_LOG(WARN, "open file(%s) failed.", p_file_name);
+        AUTIL_LOG(WARN, "open file(%s) failed.", p_file_name.c_str());
         return NULL;
     }
     fseek(fp, 0L, SEEK_END);

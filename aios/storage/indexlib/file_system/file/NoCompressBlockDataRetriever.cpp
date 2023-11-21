@@ -34,21 +34,19 @@ NoCompressBlockDataRetriever::NoCompressBlockDataRetriever(const ReadOption& opt
 
 NoCompressBlockDataRetriever::~NoCompressBlockDataRetriever() { ReleaseBlocks(); }
 
-uint8_t* NoCompressBlockDataRetriever::RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
-                                                         size_t& blockDataLength)
+FSResult<uint8_t*> NoCompressBlockDataRetriever::RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
+                                                                   size_t& blockDataLength) noexcept
 {
     if (!GetBlockMeta(fileOffset, blockDataBeginOffset, blockDataLength)) {
-        return nullptr;
+        return {FSEC_OK, nullptr};
     }
 
     util::BlockHandle blockHandle;
-    [[maybe_unused]] auto ret = _accessor->GetBlock(blockDataBeginOffset, blockHandle, &_readOption);
-    if (!ret) {
-        return nullptr;
-    }
+    auto ret = _accessor->GetBlock(blockDataBeginOffset, blockHandle, &_readOption);
+    RETURN2_IF_FS_ERROR(ret.Code(), nullptr, "GetBlock io exception, offset: [%lu]", blockDataBeginOffset);
     uint8_t* data = blockHandle.GetData();
     _handles.push_back(move(blockHandle));
-    return data;
+    return {FSEC_OK, data};
 }
 
 future_lite::coro::Lazy<ErrorCode> NoCompressBlockDataRetriever::Prefetch(size_t fileOffset, size_t length) noexcept

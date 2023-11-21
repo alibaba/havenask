@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CUSTOMIZEDINDEXINTETEST_H
-#define __INDEXLIB_CUSTOMIZEDINDEXINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/plugin/plugin_manager.h"
@@ -68,5 +67,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(CustomizedIndexInteTest, TestSearchBuildingDa
 
 INSTANTIATE_TEST_CASE_P(BuildMode, CustomizedIndexInteTest, testing::Values(0, 1, 2));
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_CUSTOMIZEDINDEXINTETEST_H

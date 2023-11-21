@@ -16,7 +16,6 @@
 #include "indexlib/analyzer/SimpleTokenizer.h"
 
 #include "autil/StringUtil.h"
-#include "indexlib/analyzer/AnalyzerDefine.h"
 
 namespace indexlibv2 { namespace analyzer {
 AUTIL_LOG_SETUP(indexlib.analyzer, SimpleTokenizer);

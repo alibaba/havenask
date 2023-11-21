@@ -15,8 +15,13 @@
  */
 #include "build_service/custom_merger/CustomMergerTaskItem.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <iosfwd>
+
 #include "autil/MurmurHash.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 
 using namespace std;
 using namespace autil;

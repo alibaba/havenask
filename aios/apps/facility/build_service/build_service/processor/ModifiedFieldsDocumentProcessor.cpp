@@ -15,14 +15,31 @@
  */
 #include "build_service/processor/ModifiedFieldsDocumentProcessor.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <ostream>
+#include <set>
+#include <stddef.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
+#include "autil/StringUtil.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/document/DocumentDefine.h"
+#include "build_service/document/RawDocument.h"
 #include "build_service/processor/ModifiedFieldsModifierCreator.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/legacy_schema_adapter.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "kmonitor/client/MetricType.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace build_service { namespace processor {
 namespace {

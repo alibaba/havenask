@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEOFFSETREADERTEST_H
-#define __INDEXLIB_ATTRIBUTEOFFSETREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/common/numeric_compress/EquivalentCompressWriter.h"
@@ -61,5 +60,3 @@ INDEXLIB_UNIT_TEST_CASE(AttributeOffsetReaderTest, TestGetOffset);
 INDEXLIB_UNIT_TEST_CASE(AttributeOffsetReaderTest, TestSetOffset);
 INDEXLIB_UNIT_TEST_CASE(AttributeOffsetReaderTest, TestInitUncompressOffsetData);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTEOFFSETREADERTEST_H

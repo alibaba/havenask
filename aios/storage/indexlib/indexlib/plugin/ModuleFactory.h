@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PLUGIN_MODULEFACTORY_H
-#define __INDEXLIB_PLUGIN_MODULEFACTORY_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/util/KeyValueMap.h"
@@ -35,5 +34,3 @@ public:
 // extern "C" void destroyFactory(ModuleFactory *factory);
 
 }} // namespace indexlib::plugin
-
-#endif //__INDEXLIB_PLUGIN_MODULEFACTORY_H

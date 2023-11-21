@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_META_WORK_ITEM_H
-#define __INDEXLIB_MERGE_META_WORK_ITEM_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <vector>
 
-#include "indexlib/common_define.h"
-#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/merge_config.h"
-#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
+#include "indexlib/index/merger_util/truncate/bucket_map.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/merger/index_merge_meta.h"
 #include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/multi_part_segment_directory.h"
 #include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/resource_control_work_item.h"
 
 DECLARE_REFERENCE_CLASS(index, ReclaimMapCreator);
@@ -109,5 +112,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeMetaWorkItem);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_META_WORK_ITEM_H

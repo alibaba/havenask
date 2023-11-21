@@ -1488,6 +1488,34 @@
             }
         },
         {
+            "function_name": "split_to_multi",
+            "function_type": "UDF",
+            "is_deterministic": 1,
+            "function_content_version": "json_default_0.1",
+            "function_content": {
+                "prototypes": [
+                    {
+                        "params": [
+                            {
+                                "is_multi": false,
+                                "type": "string"
+                            },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
             "function_name": "concat",
             "function_type": "UDF",
             "is_deterministic": 1,
@@ -1601,6 +1629,1208 @@
                     }
                 ]
             }
+        },
+        {
+            "function_name": "array_extract",
+            "function_type": "UDF",
+            "is_deterministic": 1,
+            "function_content_version": "json_default_0.1",
+            "function_content": {
+                "prototypes": [
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "string"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int16"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int16"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int32"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int32"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int64"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int64"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+	{
+	    "function_name": "histogram",
+	    "function_type": "UDF",
+	    "is_deterministic": 1,
+	    "function_content_version": "json_default_0.1",
+	    "function_content": {
+		"prototypes": [
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "float"
+			    },
+			    {
+				"is_multi": false,
+				"type": "float"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "float"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "double"
+			    },
+			    {
+				"is_multi": false,
+				"type": "double"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "double"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    },
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "float"
+			    },
+			    {
+				"is_multi": false,
+				"type": "float"
+			    },
+			    {
+				"is_multi": false,
+				"type": "float"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "float"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "double"
+			    },
+			    {
+				"is_multi": false,
+				"type": "double"
+			    },
+			    {
+				"is_multi": false,
+				"type": "double"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "double"
+			    }
+			]
+		    }
+		]
+	    }
+	},
+	{
+	    "function_name": "date_histogram",
+	    "function_type": "UDF",
+	    "is_deterministic": 1,
+	    "function_content_version": "json_default_0.1",
+	    "function_content": {
+		"prototypes": [
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    }
+		]
+	    }
+	},
+	{
+	    "function_name": "range_histogram",
+	    "function_type": "UDF",
+	    "is_deterministic": 1,
+	    "function_content_version": "json_default_0.1",
+	    "function_content": {
+		"prototypes": [
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "float"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "double"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    }
+			]
+		    }
+		]
+	    }
+	},
+	{
+	    "function_name": "range_histogram_label",
+	    "function_type": "UDF",
+	    "is_deterministic": 1,
+	    "function_content_version": "json_default_0.1",
+	    "function_content": {
+		"prototypes": [
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "float"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "double"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int8"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int16"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int32"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "int64"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "float"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "double"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    }
+		]
+	    }
+	},
+	{
+	    "function_name": "json_extract",
+	    "function_type": "UDF",
+	    "is_deterministic": 1,
+	    "function_content_version": "json_default_0.1",
+	    "function_content": {
+		"prototypes": [
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    },
+		    {
+			"params": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    },
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			],
+			"returns": [
+			    {
+				"is_multi": false,
+				"type": "string"
+			    }
+			]
+		    }
+		]
+	    }
+	},
+        {
+            "function_name": "array_match",
+            "function_type": "UDF",
+            "is_deterministic": 1,
+            "function_content_version": "json_default_0.1",
+            "function_content": {
+                "prototypes": [
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int16"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int32"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int64"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "float"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "double"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "function_name": "sorted_array_match",
+            "function_type": "UDF",
+            "is_deterministic": 1,
+            "function_content_version": "json_default_0.1",
+            "function_content": {
+                "prototypes": [
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int16"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int32"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "int64"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "float"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    },
+                    {
+                        "params": [
+                            {
+                                "is_multi": true,
+                                "type": "double"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "returns": [
+                            {
+                                "is_multi": true,
+                                "type": "int8"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+    {
+        "function_name":"vector_score",
+        "function_type":"UDF",
+        "is_deterministic":1,
+        "function_content_version":"json_default_0.1",
+        "function_content":{
+            "properties":{
+                "match_type":"value"
+            },
+            "prototypes":[
+                {
+                    "params":[
+                        {
+                            "type":"string"
+                        }
+                    ],
+                    "returns":[
+                        {
+                            "type":"double"
+                        }
+                    ]
+                },
+                {
+                    "params":[
+                        {
+                            "type":"string"
+                        },
+                        {
+                            "type": "double"
+                        }
+                    ],
+                    "returns":[
+                        {
+                            "type":"double"
+                        }
+                    ]
+                }
+            ]
         }
+    },
+    {
+        "function_name":"tfidf_score",
+        "function_type":"UDF",
+        "is_deterministic":1,
+        "function_content_version":"json_default_0.1",
+        "function_content":{
+            "properties":{
+                "match_type":"simple|full"
+            },
+            "prototypes":[
+                {
+                    "params":[
+                        {
+                            "type":"string"
+                        }
+                    ],
+                    "returns":[
+                        {
+                            "type":"float"
+                        }
+                    ]
+                },
+                {
+                    "params":[
+
+                    ],
+                    "returns":[
+                        {
+                            "type":"float"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "function_name":"bm25_score",
+        "function_type":"UDF",
+        "is_deterministic":1,
+        "function_content_version":"json_default_0.1",
+        "function_content":{
+            "properties":{
+                "match_type":"simple|full"
+            },
+            "prototypes":[
+                {
+                    "params":[
+                        {
+                            "type":"string"
+                        }
+                    ],
+                    "returns":[
+                        {
+                            "type":"float"
+                        }
+                    ]
+                },
+                {
+                    "params":[
+
+                    ],
+                    "returns":[
+                        {
+                            "type":"float"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "function_name": "sumOf",                     
+        "function_type": "UDF",                        
+        "is_deterministic": 1,                        
+        "function_content_version": "json_default_0.1", 
+        "function_content": {
+            "properties" : {},                          
+            "prototypes": [                             
+                {
+                    "params": [                        
+                        {
+                            "is_multi": false,
+                            "type": "double"
+                        },
+                        {
+                            "is_multi": false,
+                            "type": "double"
+                        }
+                    ],
+                    "returns": [                      
+                        {
+                            "is_multi": false,
+                            "type": "boolean"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
     ]
 }

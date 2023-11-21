@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CODEGEN_INFO_H
-#define __INDEXLIB_CODEGEN_INFO_H
+#pragma once
 
 #include <memory>
 
@@ -36,5 +35,3 @@ struct AllCodegenInfo {
 
 typedef std::shared_ptr<CodegenInfo> CodegenInfoPtr;
 }} // namespace indexlib::codegen
-
-#endif //__INDEXLIB_CODEGEN_INFO_H

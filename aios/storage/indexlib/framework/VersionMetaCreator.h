@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 #pragma once
+#include <memory>
+#include <utility>
+
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionMeta.h"
 
 namespace indexlib { namespace file_system {

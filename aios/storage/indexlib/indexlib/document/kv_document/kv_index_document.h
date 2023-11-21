@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_KV_INDEX_DOCUMENT_H
-#define __INDEXLIB_KV_KV_INDEX_DOCUMENT_H
+#pragma once
 
 #include <memory>
 
@@ -41,7 +40,6 @@ public:
     static constexpr uint32_t STORE_PKEY_AND_MULTI_INDEX_BINARY_VERSION = KV_DOCUMENT_BINARY_VERSION + 1;
     // store tag info map
     static constexpr uint32_t STORE_TAG_INFO_MAP_VERSION = STORE_PKEY_AND_MULTI_INDEX_BINARY_VERSION + 1;
-
 
 public:
     KVIndexDocument(autil::mem_pool::Pool* pool) : _indexNameHash(0), _pool(pool) {}
@@ -104,7 +102,7 @@ public:
     void SetIndexNameHash(uint64_t indexNameHash) { _indexNameHash = indexNameHash; }
 
     std::unique_ptr<indexlibv2::document::KVDocument>
-    CreateKVDocumentV2(autil::mem_pool::Pool* pool, const indexlibv2::document::IDocument::DocInfo& docInfo,
+    CreateKVDocumentV2(autil::mem_pool::Pool* pool, const indexlibv2::framework::Locator::DocInfo& docInfo,
                        const indexlibv2::framework::Locator& locator) const;
 
 private:
@@ -132,5 +130,3 @@ private:
 };
 
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_KV_INDEX_DOCUMENT_H

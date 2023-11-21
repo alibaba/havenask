@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORINFO_H
-#define ISEARCH_BS_PROCESSORINFO_H
+#pragma once
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
@@ -50,5 +49,3 @@ public:
 typedef std::vector<ProcessorInfo> ProcessorInfos;
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_PROCESSORINFO_H

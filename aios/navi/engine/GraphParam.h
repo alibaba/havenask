@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NAVI_GRAPHPARAM_H
-#define NAVI_GRAPHPARAM_H
+#pragma once
 
 #include "navi/common.h"
 #include "navi/engine/BizManager.h"
 #include "navi/engine/GraphMetric.h"
 #include "navi/engine/RunGraphParams.h"
+#include "navi/engine/GraphResult.h"
 #include "navi/log/NaviLogger.h"
 
 namespace multi_call {
@@ -29,6 +29,7 @@ class QuerySession;
 namespace navi {
 
 class NaviWorkerBase;
+struct ForkGraphParam;
 
 struct GraphParam
 {
@@ -36,15 +37,24 @@ public:
     GraphParam();
     ~GraphParam();
 public:
+    bool init(SessionId id,
+              NaviWorkerBase *worker_,
+              const NaviLoggerPtr &logger_,
+              const RunGraphParams &runParams_,
+              const NaviSymbolTablePtr &naviSymbolTable,
+              const NaviHostInfo *hostInfo);
+    ErrorCode init(GraphId forkGraphId, const std::string &forkBizName,
+                   const std::string &forkNode, const GraphParam &parent,
+                   const NaviLoggerPtr &logger_,
+                   const ForkGraphParam &forkParam, int64_t remainTimeMs);
+public:
+    NaviWorkerBase *worker = nullptr;
+    BizManager *bizManager = nullptr;
+    CreatorManager *creatorManager = nullptr;
     NaviLoggerPtr logger;
-    BizManager *bizManager;
-    CreatorManager *creatorManager;
-    GraphMetric *graphMetric;
-    NaviWorkerBase *worker;
     std::shared_ptr<multi_call::QuerySession> querySession;
     RunGraphParams runParams;
+    GraphResultPtr graphResult;
 };
 
 }
-
-#endif //NAVI_GRAPHPARAM_H

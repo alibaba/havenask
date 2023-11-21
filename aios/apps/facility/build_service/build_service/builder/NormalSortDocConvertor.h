@@ -13,16 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_NORMALSORTDOCCONVERTOR_H
-#define ISEARCH_BS_NORMALSORTDOCCONVERTOR_H
+#pragma once
 
+#include <functional>
+#include <memory>
+#include <stddef.h>
+#include <string>
+#include <vector>
+
+#include "autil/ConstString.h"
+#include "autil/DataBuffer.h"
+#include "autil/Span.h"
+#include "autil/mem_pool/Pool.h"
 #include "build_service/builder/SortDocumentConverter.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/SortDescription.h"
+#include "indexlib/config/attribute_schema.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/document/document.h"
+#include "indexlib/document/index_document/normal_document/attribute_document.h"
+#include "indexlib/document/index_document/normal_document/index_document.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
+#include "indexlib/document/normal/AttributeDocument.h"
+#include "indexlib/document/normal/IndexDocument.h"
 #include "indexlib/index/common/SortValueConvertor.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
 
 namespace build_service { namespace builder {
 
@@ -91,5 +109,3 @@ private:
 BS_TYPEDEF_PTR(NormalSortDocConvertor);
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_NORMALSORTDOCCONVERTOR_H

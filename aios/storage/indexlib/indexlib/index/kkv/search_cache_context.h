@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEARCH_CACHE_CONTEXT_H
-#define __INDEXLIB_SEARCH_CACHE_CONTEXT_H
+#pragma once
 
 #include <memory>
 
@@ -113,5 +112,3 @@ inline void SearchCacheContext::Init(PKeyType pkey, KKVIndexOptions* indexOption
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SEARCH_CACHE_CONTEXT_H

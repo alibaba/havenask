@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONFIGREADERACCESSOR_H
-#define ISEARCH_BS_CONFIGREADERACCESSOR_H
+#pragma once
 
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/Lock.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
@@ -100,5 +106,3 @@ private:
 BS_TYPEDEF_PTR(ConfigReaderAccessor);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_CONFIGREADERACCESSOR_H

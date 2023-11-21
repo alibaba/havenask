@@ -2,6 +2,7 @@
 
 #include "autil/TimeUtility.h"
 #include "fslib/fs/FileSystem.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/raw_document/default_raw_document.h"
 #include "indexlib/index/kkv/kkv_doc_reader.h"
 #include "indexlib/index/kv/kv_format_options.h"
@@ -10,7 +11,6 @@
 #include "indexlib/partition/offline_partition.h"
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/TaskScheduler.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 

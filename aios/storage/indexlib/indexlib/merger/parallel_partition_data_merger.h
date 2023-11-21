@@ -13,27 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARALLEL_PARTITION_DATA_MERGER_H
-#define __INDEXLIB_PARALLEL_PARTITION_DATA_MERGER_H
+#pragma once
 
 #include <memory>
+#include <stddef.h>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/file_system/FileSystemOptions.h"
-#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/index_meta/version.h"
-#include "indexlib/index_base/patch/patch_file_finder.h"
+#include "indexlib/index_base/patch/patch_file_info.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 DECLARE_REFERENCE_CLASS(index_base, PartitionData);
 DECLARE_REFERENCE_CLASS(index_base, ParallelBuildInfo);
-DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
 DECLARE_REFERENCE_CLASS(util, CounterMap);
 DECLARE_REFERENCE_CLASS(util, StateCounter);
 DECLARE_REFERENCE_CLASS(file_system, IFileSystem);
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 
 namespace indexlib { namespace merger {
 
@@ -122,5 +124,3 @@ private:
 
 DEFINE_SHARED_PTR(ParallelPartitionDataMerger);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PARALLEL_PARTITION_DATA_MERGER_H

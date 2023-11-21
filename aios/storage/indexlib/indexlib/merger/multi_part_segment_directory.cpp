@@ -15,13 +15,31 @@
  */
 #include "indexlib/merger/multi_part_segment_directory.h"
 
+#include <map>
+#include <memory>
 #include <sstream>
+#include <stddef.h>
+#include <utility>
 
-#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/FileCompressSchema.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/framework/LevelInfo.h"
+#include "indexlib/framework/SegmentMetrics.h"
+#include "indexlib/framework/SegmentStatistics.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
+#include "indexlib/index/util/segment_directory_base.h"
 #include "indexlib/index_base/index_meta/progress_synchronizer.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/partition_data.h"
+#include "indexlib/index_base/segment/segment_directory.h"
 #include "indexlib/merger/merge_partition_data_creator.h"
 #include "indexlib/merger/segment_directory_finder.h"
-#include "indexlib/util/Exception.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/counter/CounterBase.h"
 #include "indexlib/util/counter/CounterMap.h"
 
@@ -56,7 +74,7 @@ void MultiPartSegmentDirectory::DoInit(bool hasSub, bool needDeletionMap)
     segmentid_t virtualSegId = 0;
     mVersion = Version(0);
     for (auto& version : mVersions) {
-        if (version.GetVersionId() == INVALID_VERSION) {
+        if (version.GetVersionId() == INVALID_VERSIONID) {
             continue;
         }
         const indexlibv2::framework::LevelInfo& srcLevelInfo = version.GetLevelInfo();

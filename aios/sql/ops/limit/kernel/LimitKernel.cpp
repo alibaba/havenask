@@ -36,6 +36,7 @@
 #include "sql/ops/util/KernelUtil.h"
 #include "table/Row.h"
 #include "table/Table.h"
+#include "table/TableUtil.h"
 
 namespace navi {
 class KernelInitContext;
@@ -120,6 +121,7 @@ void LimitKernel::outputResult(navi::KernelComputeContext &runContext, bool eof)
     navi::PortIndex outputIndex(0, navi::INVALID_INDEX);
     if (_table) {
         TableDataPtr tableData(new TableData(_table));
+        SQL_LOG(TRACE2, "limit output table: [%s]", TableUtil::toString(_table, 10).c_str());
         runContext.setOutput(outputIndex, tableData, eof);
         _outputCount += _table->getRowCount();
         _table.reset();
@@ -130,7 +132,7 @@ void LimitKernel::outputResult(navi::KernelComputeContext &runContext, bool eof)
 
 void LimitKernel::reportMetrics() {
     if (_queryMetricReporterR) {
-        string pathName = "sql.user.ops." + getKernelName();
+        static const string pathName = "sql.user.ops.LimitKernel";
         auto opMetricReporter = _queryMetricReporterR->getReporter()->getSubReporter(pathName, {});
         REPORT_USER_MUTABLE_METRIC(opMetricReporter, "output_count", _outputCount);
     }

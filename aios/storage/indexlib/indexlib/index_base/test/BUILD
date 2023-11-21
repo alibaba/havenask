@@ -44,6 +44,7 @@ cc_fast_test(
 strict_cc_fast_test(
     name='LifecycleStrategyTest',
     srcs=['LifecycleStrategyTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/framework:Version',
         '//aios/storage/indexlib/indexlib/index_base',
@@ -53,6 +54,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='tablet_deployer_test',
     srcs=['tablet_deployer_test.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/framework:TabletDeployer',
         '//aios/storage/indexlib/indexlib/index_base',

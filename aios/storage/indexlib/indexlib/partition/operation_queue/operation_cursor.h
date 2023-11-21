@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OPERATION_CURSOR_H
-#define __INDEXLIB_OPERATION_CURSOR_H
+#pragma once
 
 namespace indexlib { namespace partition {
 
@@ -41,5 +40,3 @@ struct OperationCursor {
     bool operator>=(const OperationCursor& other) const { return !(*this < other); }
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPERATION_CURSOR_H

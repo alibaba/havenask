@@ -15,8 +15,23 @@
  */
 #include "build_service/processor/MultiValueFieldProcessor.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
+#include "indexlib/document/normal/Field.h"
+#include "indexlib/document/raw_document.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 using namespace autil::legacy;

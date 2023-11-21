@@ -15,7 +15,18 @@
  */
 #pragma once
 
+#include <map>
+#include <memory>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/Log.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/file_system/IDirectory.h"
@@ -38,6 +49,7 @@ public:
         uint32_t keepVersionCount = 1;
         uint32_t keepVersionHour = 0;
         versionid_t currentMaxVersionId = INVALID_VERSIONID;
+        bool ignoreKeepVersionCount = false;
     };
 
     Status Clean(const std::shared_ptr<indexlib::file_system::IDirectory>& rootDir,

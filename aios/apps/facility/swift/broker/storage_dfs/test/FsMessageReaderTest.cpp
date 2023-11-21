@@ -599,7 +599,9 @@ TEST_F(FsMessageReaderTest, testValidateMessageId) {
         FileManager fileManager;
         ObsoleteFileCriterion obsoleteFileCriterion;
         ErrorCode ec = fileManager.init(GET_TEMPLATE_DATA_PATH(), obsoleteFileCriterion);
-        fileManager.delExpiredFile();
+        uint32_t deletedFileCount;
+        fileManager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+        ASSERT_EQ((uint32_t)0, deletedFileCount);
         ASSERT_EQ(ERROR_NONE, ec);
         ASSERT_EQ(int64_t(0), fileManager.getMinMessageId());
         ASSERT_EQ(int64_t(_msgCount - 1), fileManager.getLastMessageId());
@@ -637,7 +639,9 @@ TEST_F(FsMessageReaderTest, testValidateMessageId) {
         ASSERT_TRUE(reader.messageIdValid(334, 100 + 334 * 2, _timeoutChecker));
         ASSERT_TRUE(!reader.messageIdValid(334, 100 + 333 * 2, _timeoutChecker));
         sleep(5);
-        fileManager.delExpiredFile();
+        uint32_t deletedFileCount;
+        fileManager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+        ASSERT_EQ((uint32_t)1, deletedFileCount);
         ASSERT_TRUE(reader.messageIdValid(334, 100 + 334 * 2, _timeoutChecker));
         ASSERT_TRUE(!reader.messageIdValid(334, 100 + 333 * 2, _timeoutChecker));
         ASSERT_TRUE(!reader.messageIdValid(1, 100 + 1 * 2, _timeoutChecker));
@@ -813,7 +817,9 @@ TEST_F(FsMessageReaderTest, testSyncFilePair) {
     cout << "--->" << cmd << endl;
     (void)system(cmd.c_str());
 
-    fileManager.deleteObsoleteFile();
+    uint32_t deletedFileCount;
+    fileManager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     msgs.Clear();
     ec = reader.getMessage(&request, &msgs, _timeoutChecker, info.get(), &readerInfoMap);
     ASSERT_EQ(ERROR_BROKER_SOME_MESSAGE_LOST, ec);

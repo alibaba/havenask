@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DOCUMENTMERGER_H
-#define ISEARCH_BS_DOCUMENTMERGER_H
+#pragma once
 
 #include "build_service/builder/NormalSortDocConvertor.h"
 #include "build_service/common_define.h"
@@ -126,5 +125,3 @@ private:
 BS_LOG_SETUP(builder, DocumentMerger);
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_DOCUMENTMERGER_H

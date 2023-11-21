@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_HASHMODE_H
-#define ISEARCH_BS_HASHMODE_H
+#pragma once
+
+#include <map>
+#include <string>
+#include <vector>
 
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
@@ -64,5 +67,3 @@ private:
 typedef std::vector<RegionHashMode> RegionHashModes;
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_HASHMODE_H

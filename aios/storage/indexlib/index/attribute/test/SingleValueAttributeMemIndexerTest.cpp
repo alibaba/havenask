@@ -148,7 +148,7 @@ template <typename T>
 void SingleValueAttributeMemIndexerTest::TestAddField()
 {
     std::shared_ptr<AttributeConfig> attrConfig = AttributeTestUtil::CreateAttrConfig<T>(false, std::nullopt);
-    IndexerParameter indexerParameter;
+    MemIndexerParameter indexerParameter;
     SingleValueAttributeMemIndexer<T> writer(indexerParameter);
     ASSERT_TRUE(writer.Init(attrConfig, _docInfoExtractorFactory.get()).IsOK());
 
@@ -168,7 +168,7 @@ template <typename T>
 void SingleValueAttributeMemIndexerTest::TestUpdateField()
 {
     std::shared_ptr<AttributeConfig> attrConfig = AttributeTestUtil::CreateAttrConfig<T>(false, std::nullopt);
-    IndexerParameter indexerParameter;
+    MemIndexerParameter indexerParameter;
     SingleValueAttributeMemIndexer<T> writer(indexerParameter);
     ASSERT_TRUE(writer.Init(attrConfig, _docInfoExtractorFactory.get()).IsOK());
 
@@ -204,7 +204,7 @@ TEST_F(SingleValueAttributeMemIndexerTest, TestSimpleDump)
     std::shared_ptr<AttributeConvertor> convertor(
         AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig));
     autil::mem_pool::Pool pool;
-    IndexerParameter indexerParameter;
+    MemIndexerParameter indexerParameter;
     SingleValueAttributeMemIndexer<uint32_t> writer(indexerParameter);
     ASSERT_TRUE(writer.Init(attrConfig, _docInfoExtractorFactory.get()).IsOK());
 
@@ -233,8 +233,9 @@ TEST_F(SingleValueAttributeMemIndexerTest, TestSortDump)
     std::shared_ptr<AttributeConvertor> convertor(
         AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig));
     autil::mem_pool::Pool pool;
-    IndexerParameter indexerParameter;
-    SingleValueAttributeMemIndexer<T> writer(indexerParameter);
+    MemIndexerParameter memIndexerParam;
+    ;
+    SingleValueAttributeMemIndexer<T> writer(memIndexerParam);
     ASSERT_TRUE(writer.Init(attrConfig, _docInfoExtractorFactory.get()).IsOK());
 
     docid_t docCount = 500000;
@@ -261,6 +262,7 @@ TEST_F(SingleValueAttributeMemIndexerTest, TestSortDump)
     SimplePool dumpPool;
     ASSERT_TRUE(writer.Dump(&dumpPool, dir, params).IsOK());
 
+    DiskIndexerParameter indexerParameter;
     indexerParameter.docCount = docCount;
     auto indexer = std::make_shared<SingleValueAttributeDiskIndexer<T>>(nullptr, indexerParameter);
     ASSERT_TRUE(indexer->Open(attrConfig, dir->GetIDirectory()).IsOK());
@@ -284,7 +286,7 @@ TEST_F(SingleValueAttributeMemIndexerTest, TestAddNullField)
     std::shared_ptr<AttributeConvertor> convertor(
         AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig));
     autil::mem_pool::Pool pool;
-    IndexerParameter indexerParameter;
+    MemIndexerParameter indexerParameter;
     SingleValueAttributeMemIndexer<uint32_t> writer(indexerParameter);
     ASSERT_TRUE(writer.Init(attrConfig, _docInfoExtractorFactory.get()).IsOK());
 
@@ -347,7 +349,7 @@ TEST_F(SingleValueAttributeMemIndexerTest, TestCompress)
     std::shared_ptr<AttributeConvertor> convertor(
         AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig));
     autil::mem_pool::Pool pool;
-    IndexerParameter indexerParameter;
+    MemIndexerParameter indexerParameter;
     SingleValueAttributeMemIndexer<uint32_t> writer(indexerParameter);
     ASSERT_TRUE(writer.Init(attrConfig, _docInfoExtractorFactory.get()).IsOK());
 

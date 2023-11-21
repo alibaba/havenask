@@ -15,6 +15,14 @@
  */
 #include "indexlib/merger/merge_strategy/optimize_merge_strategy_creator.h"
 
+#include <iosfwd>
+#include <memory>
+
+#include "indexlib/config/FileCompressSchema.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/index_define.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/merge_strategy/key_value_optimize_merge_strategy.h"
 #include "indexlib/merger/merge_strategy/optimize_merge_strategy.h"
 

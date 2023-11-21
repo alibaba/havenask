@@ -16,6 +16,15 @@
 // IMPORTANT: testcase will link FakeRedisClient, make sure link real RedisClient and
 // pass all testcases after modify this file
 #include "build_service/util/RedisClient.h"
+
+#include <assert.h>
+#include <cstddef>
+#include <sys/time.h>
+#include <utility>
+
+#include "hiredis/hiredis.h"
+#include "hiredis/read.h"
+
 using namespace std;
 
 namespace build_service { namespace util {

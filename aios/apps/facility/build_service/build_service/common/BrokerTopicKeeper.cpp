@@ -15,12 +15,19 @@
  */
 #include "build_service/common/BrokerTopicKeeper.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 #include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/SwiftAdminFacade.h"
-#include "build_service/config/ConfigDefine.h"
-#include "build_service/config/ResourceReaderManager.h"
-#include "build_service/config/SwiftConfig.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/proto/Heartbeat.pb.h"
 
 using namespace std;
 using namespace autil;

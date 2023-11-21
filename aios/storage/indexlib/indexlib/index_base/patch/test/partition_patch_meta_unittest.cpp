@@ -58,22 +58,22 @@ void PartitionPatchMetaTest::TestSimpleProcess()
         schemaMetas.push_back(iter.Next());
     }
     ASSERT_EQ((size_t)2, schemaMetas.size());
-    ASSERT_EQ((schemavid_t)2, schemaMetas[0]->GetSchemaId());
-    ASSERT_EQ((schemavid_t)1, schemaMetas[1]->GetSchemaId());
+    ASSERT_EQ((schemaid_t)2, schemaMetas[0]->GetSchemaId());
+    ASSERT_EQ((schemaid_t)1, schemaMetas[1]->GetSchemaId());
 
     ASSERT_EQ(schemaMetas[0].get(), newPatchMeta->FindSchemaPatchInfo(2).get());
     ASSERT_EQ(schemaMetas[1].get(), newPatchMeta->FindSchemaPatchInfo(1).get());
     ASSERT_EQ(NULL, newPatchMeta->FindSchemaPatchInfo(3).get());
 
-    vector<schemavid_t> schemaIds;
+    vector<schemaid_t> schemaIds;
     newPatchMeta->GetSchemaIdsBySegmentId(0, schemaIds);
     ASSERT_EQ((size_t)2, schemaIds.size());
-    ASSERT_EQ((schemavid_t)2, schemaIds[0]);
-    ASSERT_EQ((schemavid_t)1, schemaIds[1]);
+    ASSERT_EQ((schemaid_t)2, schemaIds[0]);
+    ASSERT_EQ((schemaid_t)1, schemaIds[1]);
 
     schemaIds.clear();
     newPatchMeta->GetSchemaIdsBySegmentId(1, schemaIds);
     ASSERT_EQ((size_t)1, schemaIds.size());
-    ASSERT_EQ((schemavid_t)2, schemaIds[0]);
+    ASSERT_EQ((schemaid_t)2, schemaIds[0]);
 }
 }} // namespace indexlib::index_base

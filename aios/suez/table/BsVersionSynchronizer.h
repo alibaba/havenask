@@ -40,14 +40,29 @@ public:
     bool init() override;
     void remove(const PartitionId &pid) override;
     bool supportSyncFromPersist(const PartitionMeta &target) const override;
-    bool syncFromPersist(const PartitionId &pid, const std::string &configPath, TableVersion &version) override;
-    bool
-    persistVersion(const PartitionId &pid, const std::string &localConfigPath, const TableVersion &version) override;
-    bool getVersionList(const PartitionId &pid, std::vector<TableVersion> &versions) override;
-    bool updateVersionList(const PartitionId &pid, const std::vector<TableVersion> &versions) override;
+    bool syncFromPersist(const PartitionId &pid,
+                         const std::string &appName,
+                         const std::string &dataTable,
+                         const std::string &remoteConfigPath,
+                         TableVersion &version) override;
+    bool persistVersion(const PartitionId &pid,
+                        const std::string &appName,
+                        const std::string &dataTable,
+                        const std::string &remoteConfigPath,
+                        const TableVersion &version) override;
+    bool getVersionList(const PartitionId &pid,
+                        const std::string &appName,
+                        const std::string &dataTable,
+                        std::vector<TableVersion> &versions) override;
+    bool updateVersionList(const PartitionId &pid,
+                           const std::string &appName,
+                           const std::string &dataTable,
+                           const std::vector<TableVersion> &versions) override;
 
 private:
     std::shared_ptr<build_service::common::RemoteVersionCommitter> createCommitter(const PartitionId &pid,
+                                                                                   const std::string &appName,
+                                                                                   const std::string &dataTable,
                                                                                    const std::string &configPath) const;
     virtual std::shared_ptr<build_service::common::RemoteVersionCommitter> createCommitter() const;
 

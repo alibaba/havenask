@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KKVREADERTEST_H
-#define __INDEXLIB_KKVREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/kkv_reader.h"
@@ -48,5 +47,3 @@ INDEXLIB_UNIT_TEST_CASE(KKVReaderTest, TestCompatibleIndex);
 INDEXLIB_UNIT_TEST_CASE(KKVReaderTest, TestBatchLookup);
 INDEXLIB_UNIT_TEST_CASE(KKVReaderTest, TestBug35656866);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KKVREADERTEST_H

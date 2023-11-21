@@ -23,7 +23,8 @@ namespace indexlibv2::table {
 class NormalTableSplitPlanCreator : public NormalTableCompactPlanCreator
 {
 public:
-    NormalTableSplitPlanCreator(const std::string& taskName, const std::map<std::string, std::string>& params);
+    NormalTableSplitPlanCreator(const std::string& taskName, const std::string& taskTraceId,
+                                const std::map<std::string, std::string>& params);
     ~NormalTableSplitPlanCreator();
 
 public:

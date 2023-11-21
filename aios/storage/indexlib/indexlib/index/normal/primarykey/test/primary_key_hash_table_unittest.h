@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIMARYKEYHASHTABLETEST_H
-#define __INDEXLIB_PRIMARYKEYHASHTABLETEST_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
@@ -82,5 +81,3 @@ void PrimaryKeyHashTableTest::InnerTestInsertAndLookUpTyped(const std::string& k
     delete[] buffer;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARYKEYHASHTABLETEST_H

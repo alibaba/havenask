@@ -17,16 +17,21 @@
 
 #include <algorithm> // std::set_difference, std::sort, std::remove_if
 #include <cstddef>
+#include <cstdint>
+#include <exception>
 #include <iterator>
 #include <memory>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/JsonUtil.h"
+#include "indexlib/file_system/ReaderOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 
 using namespace std;

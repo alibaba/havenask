@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_PARSER_H
-#define __INDEXLIB_DOCUMENT_PARSER_H
+#pragma once
 
 #include <memory>
 
@@ -41,7 +40,7 @@ public:
     virtual DocumentPtr ParseRawDoc(const RawDocumentPtr& rawDoc)
     {
         IndexlibExtendDocumentPtr extendDoc(new IndexlibExtendDocument);
-        extendDoc->setRawDocument(rawDoc);
+        extendDoc->SetRawDocument(rawDoc);
         return Parse(extendDoc);
     }
 
@@ -74,5 +73,3 @@ private:
 
 DEFINE_SHARED_PTR(DocumentParser);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_DOCUMENT_PARSER_H

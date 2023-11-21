@@ -19,6 +19,7 @@
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
+#include "absl/flags/usage.h"
 #include "fslib/fslib.h"
 #include "general_task_wal_reader/WalReaderWorker.h"
 // example usage:
@@ -26,6 +27,7 @@
 
 int main(int argc, char** argv)
 {
+    absl::SetProgramUsageMessage("wal decoder");
     absl::ParseCommandLine(argc, argv);
     build_service::tools::WalReaderWorker worker;
     auto succ = worker.run();

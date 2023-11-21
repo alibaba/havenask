@@ -10,7 +10,7 @@ using namespace autil::legacy::json;
 using namespace indexlib::util;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, DateIndexConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, DateIndexConfigTest);
 
 DateIndexConfigTest::DateIndexConfigTest() {}
 
@@ -25,7 +25,7 @@ void DateIndexConfigTest::TestSimpleProcess()
     mSchema = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "date_index_schema.json");
     IndexConfigPtr indexConfig = mSchema->GetIndexSchema()->GetIndexConfig("date_index");
     ASSERT_TRUE(indexConfig);
-    DateIndexConfigPtr dateConfig = DYNAMIC_POINTER_CAST(DateIndexConfig, indexConfig);
+    DateIndexConfigPtr dateConfig = std::dynamic_pointer_cast<DateIndexConfig>(indexConfig);
     ASSERT_EQ(of_none, dateConfig->GetOptionFlag());
     DateLevelFormat format = dateConfig->GetDateLevelFormat();
     ASSERT_FALSE(format.HasMillisecond());
@@ -57,7 +57,7 @@ void DateIndexConfigTest::InnerTestGranularity(const string& indexName,
 {
     IndexConfigPtr indexConfig = mSchema->GetIndexSchema()->GetIndexConfig(indexName);
     ASSERT_TRUE(indexConfig);
-    DateIndexConfigPtr dateConfig = DYNAMIC_POINTER_CAST(DateIndexConfig, indexConfig);
+    DateIndexConfigPtr dateConfig = std::dynamic_pointer_cast<DateIndexConfig>(indexConfig);
     ASSERT_EQ(expectedGranularity, dateConfig->GetBuildGranularity());
 }
 

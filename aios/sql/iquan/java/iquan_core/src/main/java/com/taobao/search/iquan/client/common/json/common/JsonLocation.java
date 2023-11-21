@@ -1,8 +1,8 @@
 package com.taobao.search.iquan.client.common.json.common;
 
-import com.taobao.search.iquan.client.common.common.ConstantDefine;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.client.common.common.ConstantDefine;
 
 public class JsonLocation {
     @JsonProperty("table_group_name")
@@ -13,6 +13,9 @@ public class JsonLocation {
 
     @JsonProperty("service_desc")
     private String serviceDesc = ConstantDefine.EMPTY;
+
+    public JsonLocation() {
+    }
 
     public String getTableGroupName() {
         return tableGroupName;
@@ -31,11 +34,12 @@ public class JsonLocation {
         this.partitionCnt = partitionCnt;
     }
 
-    public String getServiceDesc() { return serviceDesc; }
+    public String getServiceDesc() {
+        return serviceDesc;
+    }
 
-    public void setServiceDesc(String serviceDesc) { this.serviceDesc = serviceDesc; }
-
-    public JsonLocation() {
+    public void setServiceDesc(String serviceDesc) {
+        this.serviceDesc = serviceDesc;
     }
 
     @JsonIgnore

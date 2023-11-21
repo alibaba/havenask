@@ -162,8 +162,8 @@ DateIndexReader::GetSegmentPostings(uint64_t leftTerm, uint64_t rightTerm, autil
         bool currentSegmentFilled = false;
         while (currentSegmentIdx < _segmentReaders.size() && currentRangeIdx < ranges.size()) {
             const auto& range = ranges[currentRangeIdx];
-            docid_t segBegin = _baseDocIds[currentRangeIdx];
-            docid_t segEnd = _baseDocIds[currentSegmentIdx] + _segmentReaders[currentSegmentIdx]->GetDocCount();
+            docid64_t segBegin = _baseDocIds[currentRangeIdx];
+            docid64_t segEnd = _baseDocIds[currentSegmentIdx] + _segmentReaders[currentSegmentIdx]->GetDocCount();
             if (segEnd <= range.first) {
                 ++currentSegmentIdx;
                 currentSegmentFilled = false;
@@ -182,7 +182,7 @@ DateIndexReader::GetSegmentPostings(uint64_t leftTerm, uint64_t rightTerm, autil
                 currentSegmentFilled = true;
             }
 
-            auto minEnd = std::min(segEnd, range.second);
+            auto minEnd = std::min(segEnd, (docid64_t)range.second);
             if (segEnd == minEnd) {
                 ++currentSegmentIdx;
                 currentSegmentFilled = false;

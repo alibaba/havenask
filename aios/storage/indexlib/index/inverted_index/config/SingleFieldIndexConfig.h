@@ -43,14 +43,12 @@ protected:
     bool CheckFieldType(FieldType ft) const override;
     InvertedIndexConfig::Iterator DoCreateIterator() const override;
     void DoDeserialize(const autil::legacy::Any& any, const config::IndexConfigDeserializeResource& resource) override;
+    void CheckWhetherIsVirtualField() const;
 
 public:
     Status SetFieldConfig(const std::shared_ptr<FieldConfig>& fieldConfig);
     std::shared_ptr<FieldConfig> GetFieldConfig() const;
     std::vector<std::shared_ptr<FieldConfig>> GetFieldConfigs() const override;
-
-private:
-    void CheckWhetherIsVirtualField() const;
 
 private:
     struct Impl;

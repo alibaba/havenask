@@ -15,28 +15,44 @@
  */
 #include "indexlib/document/PlainDocument.h"
 
-#include "indexlib/config/IndexConfigHash.h"
+#include <assert.h>
+#include <flatbuffers/flatbuffers.h>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "autil/ConstString.h"
+#include "autil/DataBuffer.h"
+#include "autil/StringView.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/document/DocumentMemPoolFactory.h"
 #include "indexlib/document/IIndexFields.h"
 #include "indexlib/document/IIndexFieldsParser.h"
 #include "indexlib/document/PlainDocumentMessage_generated.h"
 #include "indexlib/index/IIndexFactory.h"
+#include "indexlib/index/IndexFactoryCreator.h"
 #include "indexlib/util/Exception.h"
 
 namespace indexlibv2::document {
 AUTIL_LOG_SETUP(indexlib.document, PlainDocument);
 
-PlainDocument::PlainDocument(autil::mem_pool::Pool* pool)
+PlainDocument::PlainDocument()
 {
-    if (pool) {
-        _pool = PoolPtr(pool, [](auto p) {});
-    } else {
-        _pool = PoolPtr(new autil::mem_pool::Pool(), [](auto p) { delete p; });
+    _recyclePool = indexlib::util::Singleton<DocumentMemPoolFactory>::GetInstance()->GetPool();
+}
+
+PlainDocument::~PlainDocument()
+{
+    _indexFieldsMap.clear();
+    if (_recyclePool) {
+        indexlib::util::Singleton<DocumentMemPoolFactory>::GetInstance()->Recycle(_recyclePool);
     }
 }
 
 const framework::Locator& PlainDocument::GetLocatorV2() const { return _locator; }
 
-IDocument::DocInfo PlainDocument::GetDocInfo() const { return _docInfo; }
+framework::Locator::DocInfo PlainDocument::GetDocInfo() const { return _docInfo; }
 
 uint32_t PlainDocument::GetTTL() const { return _ttl; }
 
@@ -50,15 +66,7 @@ docid_t PlainDocument::GetDocId() const
 
 DocOperateType PlainDocument::GetDocOperateType() const { return _opType; }
 
-bool PlainDocument::HasFormatError() const
-{
-    for (const auto& [indexType, indexFields] : _indexFieldsMap) {
-        if (indexFields->HasFormatError()) {
-            return true;
-        }
-    }
-    return false;
-}
+bool PlainDocument::HasFormatError() const { return _hasFormatError; }
 
 autil::StringView PlainDocument::GetTraceId() const
 {
@@ -74,22 +82,22 @@ void PlainDocument::SetIngestionTimestamp(int64_t timestamp) { _ingestionTimesta
 autil::StringView PlainDocument::GetSource() const { return _source; }
 void PlainDocument::SetSource(autil::StringView source)
 {
-    _source = autil::MakeCString(source.data(), source.length(), _pool.get());
+    _source = autil::MakeCString(source.data(), source.length(), GetPool());
 }
 void PlainDocument::SetTraceId(autil::StringView traceId)
 {
-    _traceId = autil::MakeCString(traceId.data(), traceId.length(), _pool.get());
+    _traceId = autil::MakeCString(traceId.data(), traceId.length(), GetPool());
 }
 
 void PlainDocument::SetLocator(const framework::Locator& locator) { _locator = locator; }
-void PlainDocument::SetDocInfo(const IDocument::DocInfo& docInfo) { _docInfo = docInfo; }
+void PlainDocument::SetDocInfo(const framework::Locator::DocInfo& docInfo) { _docInfo = docInfo; }
 void PlainDocument::SetDocOperateType(DocOperateType type) { _opType = type; }
 void PlainDocument::SetTrace(bool trace) { _trace = trace; }
 
 size_t PlainDocument::EstimateMemory() const
 {
     size_t memSize = sizeof(*this);
-    memSize += _pool->getUsedBytes();
+    memSize += GetPool()->getUsedBytes();
     for (auto& [_, indexFields] : _indexFieldsMap) {
         memSize += indexFields->EstimateMemory();
     }
@@ -102,7 +110,7 @@ void PlainDocument::serialize(autil::DataBuffer& dataBuffer) const
     flatbuffers::FlatBufferBuilder fbb;
     std::vector<flatbuffers::Offset<indexlib::document::proto::IndexFieldsData>> dataOffsets;
     dataOffsets.reserve(_indexFieldsMap.size());
-    autil::DataBuffer indexBuffer(autil::DataBuffer::DEFAUTL_DATA_BUFFER_SIZE, _pool.get());
+    autil::DataBuffer indexBuffer(autil::DataBuffer::DEFAUTL_DATA_BUFFER_SIZE, GetPool());
 
     for (const auto& [indexType, indexFields] : _indexFieldsMap) {
         auto typeOffset = fbb.CreateString(indexType.data(), indexType.length());
@@ -153,7 +161,7 @@ void PlainDocument::deserialize(
     assert(serializeVersion == SERIALIZE_VERSION);
     uint32_t fbSize = 0;
     dataBuffer.read(fbSize);
-    _fbBuffer = autil::MakeCString(dataBuffer.getData(), fbSize, _pool.get());
+    _fbBuffer = autil::MakeCString(dataBuffer.getData(), fbSize, GetPool());
     dataBuffer.skipData(fbSize);
 
     auto msg = indexlib::document::proto::GetPlainDocumentMessage(_fbBuffer.data());
@@ -186,7 +194,7 @@ void PlainDocument::deserialize(
             const auto& parser = iter->second;
             assert(parser);
             auto data = indexDataFb->data();
-            auto indexFields = parser->Parse(autil::StringView(data->data(), data->size()), _pool.get());
+            auto indexFields = parser->Parse(autil::StringView(data->data(), data->size()), GetPool());
             if (!indexFields) {
                 INDEXLIB_FATAL_ERROR(DocumentDeserialize, "create index field failed, index_type[%s]",
                                      indexType->c_str());

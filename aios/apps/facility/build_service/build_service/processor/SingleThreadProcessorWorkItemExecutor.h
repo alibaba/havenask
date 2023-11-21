@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SINGLETHREADPROCESSORWORKITEMEXECUTOR_H
-#define ISEARCH_BS_SINGLETHREADPROCESSORWORKITEMEXECUTOR_H
+#pragma once
+
+#include <algorithm>
+#include <memory>
+#include <stdint.h>
 
 #include "build_service/common_define.h"
+#include "build_service/processor/ProcessorWorkItem.h"
 #include "build_service/processor/ProcessorWorkItemExecutor.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/StreamQueue.h"
@@ -55,5 +59,3 @@ private:
 BS_TYPEDEF_PTR(SingleThreadProcessorWorkItemExecutor);
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_SINGLETHREADPROCESSORWORKITEMEXECUTOR_H

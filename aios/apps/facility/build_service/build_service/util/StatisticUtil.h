@@ -16,9 +16,12 @@
 #pragma once
 
 #include <algorithm>
+#include <assert.h>
 #include <cmath>
-
-#include "build_service/common_define.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <utility>
+#include <vector>
 
 namespace build_service { namespace util {
 

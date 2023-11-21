@@ -45,7 +45,7 @@ using indexlibv2::document::extractor::IDocumentInfoExtractorFactory;
 
 AUTIL_LOG_SETUP(indexlib.index, MultiShardInvertedMemIndexer);
 
-MultiShardInvertedMemIndexer::MultiShardInvertedMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam)
+MultiShardInvertedMemIndexer::MultiShardInvertedMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam)
     : _indexerParam(indexerParam)
 {
     // TODO: add indexer dirs to sharding index
@@ -191,6 +191,11 @@ Status MultiShardInvertedMemIndexer::Build(IDocumentBatch* docBatch)
     return Status::OK();
 }
 
+Status MultiShardInvertedMemIndexer::AddDocument(document::IndexDocument* doc)
+{
+    return AddDocument(doc, INVALID_SHARDID);
+}
+
 Status MultiShardInvertedMemIndexer::DocBatchToDocs(IDocumentBatch* docBatch,
                                                     std::vector<document::IndexDocument*>* docs) const
 {
@@ -213,9 +218,10 @@ Status MultiShardInvertedMemIndexer::DocBatchToDocs(IDocumentBatch* docBatch,
 
 Status MultiShardInvertedMemIndexer::AddDocument(document::IndexDocument* doc, size_t shardId)
 {
+    pos_t basePos = 0;
     for (auto fieldId : _fieldIds) {
         const document::Field* field = doc->GetField(fieldId);
-        auto status = AddField(field, shardId);
+        auto status = AddField(field, shardId, &basePos);
         RETURN_IF_STATUS_ERROR(status, "add field fail, fieldId[%d]", fieldId);
     }
     EndDocument(*doc, shardId);
@@ -223,7 +229,7 @@ Status MultiShardInvertedMemIndexer::AddDocument(document::IndexDocument* doc, s
     return Status::OK();
 }
 
-Status MultiShardInvertedMemIndexer::AddField(const document::Field* field, size_t shardId)
+Status MultiShardInvertedMemIndexer::AddField(const document::Field* field, size_t shardId, pos_t* basePos)
 {
     if (!field) {
         return Status::OK();
@@ -248,7 +254,7 @@ Status MultiShardInvertedMemIndexer::AddField(const document::Field* field, size
         return Status::OK();
     }
 
-    pos_t tokenBasePos = _basePos;
+    pos_t tokenBasePos = *basePos;
     uint32_t fieldLen = 0;
     fieldid_t fieldId = tokenizeField->GetFieldId();
 
@@ -263,7 +269,7 @@ Status MultiShardInvertedMemIndexer::AddField(const document::Field* field, size
             RETURN_IF_STATUS_ERROR(status, "add token failed, fieldId[%d]", fieldId);
         }
     }
-    _basePos += fieldLen;
+    *basePos += fieldLen;
     return Status::OK();
 }
 
@@ -294,7 +300,6 @@ void MultiShardInvertedMemIndexer::EndDocument(const document::IndexDocument& in
                 _sectionAttributeMemIndexer->EndDocument(indexDocument);
             }
         }
-        _basePos = 0;
         return;
     }
 
@@ -305,7 +310,6 @@ void MultiShardInvertedMemIndexer::EndDocument(const document::IndexDocument& in
     if (_sectionAttributeMemIndexer) {
         _sectionAttributeMemIndexer->EndDocument(indexDocument);
     }
-    _basePos = 0;
 }
 
 void MultiShardInvertedMemIndexer::ValidateDocumentBatch(IDocumentBatch* docBatch)

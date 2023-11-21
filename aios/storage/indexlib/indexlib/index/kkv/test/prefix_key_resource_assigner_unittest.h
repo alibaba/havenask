@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PREFIXKEYRESOURCEASSIGNERTEST_H
-#define __INDEXLIB_PREFIXKEYRESOURCEASSIGNERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/prefix_key_resource_assigner.h"
@@ -36,5 +35,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(PrefixKeyResourceAssignerTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(PrefixKeyResourceAssignerTest, TestGetDataRatio);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PREFIXKEYRESOURCEASSIGNERTEST_H

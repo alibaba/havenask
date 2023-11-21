@@ -5,6 +5,8 @@ public enum Scope {
     FINAL("FINAL"),
     NORMAL("NORMAL");
 
+    private String name;
+
     Scope(String name) {
         this.name = name;
     }
@@ -12,6 +14,4 @@ public enum Scope {
     public String getName() {
         return name;
     }
-
-    private String name;
 }

@@ -66,7 +66,6 @@ private:
 
 public:
     DEF_CREATE_ACCUMULATOR_FUNC(AvgAccumulator<AccumulatorType>)
-    bool needDependInputTablePools() const override;
 
 private:
     // local
@@ -87,11 +86,6 @@ private:
     table::ColumnData<double> *_avgColumn;
 };
 
-template <typename InputType, typename AccumulatorType>
-bool AvgAggFunc<InputType, AccumulatorType>::needDependInputTablePools() const {
-    return false;
-}
-
 // local
 template <typename InputType, typename AccumulatorType>
 bool AvgAggFunc<InputType, AccumulatorType>::initCollectInput(const table::TablePtr &inputTable) {
@@ -108,16 +102,15 @@ bool AvgAggFunc<InputType, AccumulatorType>::initAccumulatorOutput(
     const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 2);
     _countColumn
-        = table::TableUtil::declareAndGetColumnData<uint64_t>(outputTable, _outputFields[0], false);
+        = table::TableUtil::declareAndGetColumnData<uint64_t>(outputTable, _outputFields[0]);
     if (_countColumn == nullptr) {
         return false;
     }
-    _sumColumn = table::TableUtil::declareAndGetColumnData<AccumulatorType>(
-        outputTable, _outputFields[1], false);
+    _sumColumn
+        = table::TableUtil::declareAndGetColumnData<AccumulatorType>(outputTable, _outputFields[1]);
     if (_sumColumn == nullptr) {
         return false;
     }
-    outputTable->endGroup();
     return true;
 }
 
@@ -156,8 +149,7 @@ bool AvgAggFunc<InputType, AccumulatorType>::initMergeInput(const table::TablePt
 template <typename InputType, typename AccumulatorType>
 bool AvgAggFunc<InputType, AccumulatorType>::initResultOutput(const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
-    _avgColumn
-        = table::TableUtil::declareAndGetColumnData<double>(outputTable, _outputFields[0], false);
+    _avgColumn = table::TableUtil::declareAndGetColumnData<double>(outputTable, _outputFields[0]);
     if (_avgColumn == nullptr) {
         return false;
     }

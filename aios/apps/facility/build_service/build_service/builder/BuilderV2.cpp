@@ -15,17 +15,6 @@
  */
 #include "build_service/builder/BuilderV2.h"
 
-#include "build_service/common/BeeperCollectorDefine.h"
-#include "build_service/proto/ProtoUtil.h"
-#include "indexlib/base/Status.h"
-#include "indexlib/document/IDocument.h"
-#include "indexlib/document/IDocumentBatch.h"
-#include "indexlib/framework/ITablet.h"
-#include "indexlib/indexlib.h"
-#include "indexlib/util/counter/AccumulativeCounter.h"
-#include "indexlib/util/counter/CounterMap.h"
-#include "indexlib/util/counter/StateCounter.h"
-
 namespace build_service::builder {
 
 BuilderV2::BuilderV2(const proto::BuildId& buildId) : _buildId(buildId) {}

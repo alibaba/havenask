@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CHECKPOINTCREATOR_H
-#define ISEARCH_BS_CHECKPOINTCREATOR_H
+#pragma once
 
-#include "build_service/common/BuilderCheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
 
 class TaskResourceManager;
+
 BS_TYPEDEF_PTR(TaskResourceManager);
 
 class CheckpointCreator
@@ -48,5 +47,3 @@ private:
 BS_TYPEDEF_PTR(CheckpointCreator);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CHECKPOINTCREATOR_H

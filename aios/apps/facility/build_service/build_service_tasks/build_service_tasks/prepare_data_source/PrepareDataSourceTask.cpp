@@ -15,14 +15,24 @@
  */
 #include "build_service_tasks/prepare_data_source/PrepareDataSourceTask.h"
 
+#include <map>
+#include <memory>
 #include <sstream>
+#include <stddef.h>
+#include <utility>
+#include <vector>
 
-#include "autil/StringUtil.h"
-#include "build_service/config/BuildRuleConfig.h"
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/DataDescription.h"
+#include "build_service/reader/CollectResult.h"
 #include "build_service/reader/FileListCollector.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 

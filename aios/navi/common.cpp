@@ -78,4 +78,13 @@ const std::string NAVI_BUILDIN_ATTR_KERNEL = "navi.buildin.attr.kernel";
 const std::string NAVI_BUILDIN_STATIC_GRAPH_META = "navi.buildin.static_graph.meta";
 
 const std::string SIMD_PADING_STR(128, '\0');
+
+const std::string NAVI_DEBUG_METRIC_STR = "navi_metric";
+const std::string NAVI_DEBUG_PERF_STR = "navi_perf";
+const std::string NAVI_DEBUG_TRACE_STR = "navi_trace";
+const std::string NAVI_DEBUG_DELIM1_STR = ":";
+const std::string NAVI_DEBUG_DELIM2_STR = ",";
+const std::string NAVI_DEBUG_BT_FILTER_STR = "navi_bt_filter";
+const std::string NAVI_DEBUG_BT_FILTER_DELIM_STR = "@";
+
 }

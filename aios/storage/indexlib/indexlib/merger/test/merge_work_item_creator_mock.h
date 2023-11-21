@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGE_WORK_ITEM_CREATOR_MOCK_H
-#define __INDEXLIB_MERGE_WORK_ITEM_CREATOR_MOCK_H
+#pragma once
 
 #include <memory>
 
@@ -267,5 +266,3 @@ public:
 
 DEFINE_SHARED_PTR(MergeWorkItemCreatorMock);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_WORK_ITEM_CREATOR_MOCK_H

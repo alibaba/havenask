@@ -25,30 +25,10 @@ public enum IndexType {
     IT_CUSTOMIZED(Constant.CUSTOMIZED),
     IT_NONE(Constant.NONE);
 
-    public interface Constant {
-        String NUMBER = "number";
-        String STRING = "string";
-        String PACK = "pack";
-        String EXPACK = "expack";
-        String SPATIAL = "spatial";
-        String RANGE = "range";
-        String DATE = "date";
-        String PART_FIX = "part_fix";
-        String PRIMARY_KEY = "primary_key";
-        String SECONDARY_KEY = "secondary_key";
-        String PRIMARYKEY64 = "primarykey64";
-        String PRIMARYKEY128 = "primarykey128";
-        String TEXT = "text";
-        String KHRONOS_TIMESTAMP = "khronos_timestamp";
-        String KHRONOS_WATERMARK = "khronos_watermark";
-        String KHRONOS_TAG_KEY = "khronos_tag_key";
-        String KHRONOS_TAG_VALUE = "khronos_tag_value";
-        String KHRONOS_METRIC = "khronos_metric";
-        String KHRONOS_FIELD_NAME = "khronos_field_name";
-        String KHRONOS_VALUE = "khronos_value";
-        String KHRONOS_SERIES = "khronos_series";
-        String CUSTOMIZED = "customized";
-        String NONE = "none";
+    private final String name;
+
+    IndexType(String name) {
+        this.name = name;
     }
 
     public static IndexType from(String name) {
@@ -103,11 +83,6 @@ public enum IndexType {
         }
     }
 
-
-    IndexType(String name) {
-        this.name = name;
-    }
-
     @Override
     public String toString() {
         return getName();
@@ -125,5 +100,29 @@ public enum IndexType {
         return this != IT_NONE;
     }
 
-    private final String name;
+    public interface Constant {
+        String NUMBER = "number";
+        String STRING = "string";
+        String PACK = "pack";
+        String EXPACK = "expack";
+        String SPATIAL = "spatial";
+        String RANGE = "range";
+        String DATE = "date";
+        String PART_FIX = "part_fix";
+        String PRIMARY_KEY = "primary_key";
+        String SECONDARY_KEY = "secondary_key";
+        String PRIMARYKEY64 = "primarykey64";
+        String PRIMARYKEY128 = "primarykey128";
+        String TEXT = "text";
+        String KHRONOS_TIMESTAMP = "khronos_timestamp";
+        String KHRONOS_WATERMARK = "khronos_watermark";
+        String KHRONOS_TAG_KEY = "khronos_tag_key";
+        String KHRONOS_TAG_VALUE = "khronos_tag_value";
+        String KHRONOS_METRIC = "khronos_metric";
+        String KHRONOS_FIELD_NAME = "khronos_field_name";
+        String KHRONOS_VALUE = "khronos_value";
+        String KHRONOS_SERIES = "khronos_series";
+        String CUSTOMIZED = "customized";
+        String NONE = "none";
+    }
 }

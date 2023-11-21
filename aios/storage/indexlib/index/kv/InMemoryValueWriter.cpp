@@ -16,6 +16,7 @@
 #include "indexlib/index/kv/InMemoryValueWriter.h"
 
 #include "autil/Log.h"
+#include "autil/MultiValueType.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/WriterOption.h"

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CUSTOMTABLETEST_H
-#define __INDEXLIB_CUSTOMTABLETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -26,5 +25,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(CustomTableTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_CUSTOMTABLETEST_H

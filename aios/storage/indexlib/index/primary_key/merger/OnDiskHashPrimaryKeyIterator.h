@@ -28,7 +28,7 @@ public:
     ~OnDiskHashPrimaryKeyIterator() {};
 
 protected:
-    std::pair<std::unique_ptr<PrimaryKeyLeafIterator<Key>>, docid_t>
+    std::pair<std::unique_ptr<PrimaryKeyLeafIterator<Key>>, docid64_t>
     GenerateSubIteratorPair(const SegmentDataAdapter::SegmentDataType& segment,
                             std::unique_ptr<PrimaryKeyLeafIterator<Key>> leafIterator) const override
     {

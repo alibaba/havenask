@@ -55,7 +55,7 @@ void JoinSegmentDirectoryTest::TestClone()
     Version onDiskVersion = VersionMaker::Make(GET_PARTITION_DIRECTORY(), 1, "0,2,4", "", "", 0, true);
 
     SegmentDirectoryPtr segDir(new JoinSegmentDirectory);
-    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
 
     SegmentDirectoryPtr cloneSegDir(segDir->Clone());
     // sub SegmentDirectory will clone

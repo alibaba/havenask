@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_SEGMENT_READER_H
-#define __INDEXLIB_KV_SEGMENT_READER_H
+#pragma once
 
 #include <memory>
 
@@ -80,5 +79,3 @@ inline FL_LAZY(bool) KVSegmentReader::Get(const KVIndexOptions* options, keytype
     FL_CORETURN FL_COAWAIT mReader->Get(options, key, value, ts, isDeleted, pool, collector);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_SEGMENT_READER_H

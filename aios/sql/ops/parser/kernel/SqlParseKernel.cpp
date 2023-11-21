@@ -151,6 +151,9 @@ navi::ErrorCode SqlParseKernel::compute(navi::KernelComputeContext &ctx) {
             _metricsCollector.planTime,
             _metricsCollector.cacheHit);
     collector->setSqlPlanTime(_metricsCollector.planTime, _metricsCollector.cacheHit);
+    SQL_LOG(DEBUG,
+            "sql plan parse success, sql plan is: [%s]",
+            ToSqlPlanString(*sqlPlan.get()).c_str());
     reportMetrics();
     navi::PortIndex index(0, navi::INVALID_INDEX);
     SqlPlanDataPtr sqlPlanData(new SqlPlanData(iquanRequest, sqlPlan));
@@ -193,6 +196,11 @@ bool SqlParseKernel::parseSqlPlan(const sql::SqlQueryRequest *sqlRequest,
         SQL_LOG(ERROR, "%s", errorMsg.c_str());
         return false;
     }
+    if (planCacheStatus.planGet) {
+        SQL_LOG(TRACE3, "sql query [%s] match plan cache", sqlRequest->getSqlQuery().c_str());
+    } else {
+        SQL_LOG(TRACE3, "sql query [%s] miss plan cache", sqlRequest->getSqlQuery().c_str());
+    }
     _metricsCollector.cacheHit = planCacheStatus.planGet;
     sqlPlan.reset(new iquan::SqlPlan(iquanResponse.sqlPlan));
     // reserve for plan optimize
@@ -205,8 +213,10 @@ bool SqlParseKernel::transToIquanRequest(const sql::SqlQueryRequest *sqlRequest,
     iquanRequest.sqls.push_back(sqlRequest->getSqlQuery());
     // 1. parse dynamic params
     if (!addIquanDynamicParams(sqlRequest, iquanRequest.dynamicParams)) {
+        SQL_LOG(ERROR, "add iquan dynamic params failed");
         return false;
     }
+    addIquanHintParams(sqlRequest, iquanRequest.dynamicParams);
 
     // 2. parse iquan params.
     addIquanSqlParams(sqlRequest, iquanRequest);
@@ -249,7 +259,6 @@ bool SqlParseKernel::addIquanDynamicParams(const sql::SqlQueryRequest *sqlReques
     if (!addIquanDynamicKVParams(sqlRequest, dynamicParams)) {
         return false;
     }
-    addIquanHintParams(sqlRequest, dynamicParams);
     return true;
 }
 
@@ -402,6 +411,15 @@ void SqlParseKernel::reportMetrics() const {
         static const std::string path = "sql.builtin.ops.parse";
         auto opMetricsReporter = _queryMetricReporterR->getReporter()->getSubReporter(path, {});
         opMetricsReporter->report<SqlParseMetrics>(nullptr, &_metricsCollector);
+    }
+}
+
+std::string SqlParseKernel::ToSqlPlanString(const SqlPlan &sqlPlan) {
+    try {
+        return autil::legacy::FastToJsonString(sqlPlan);
+    } catch (const std::exception &e) {
+        SQL_LOG(ERROR, "to sql plan string failed [%s]", e.what());
+        return "";
     }
 }
 

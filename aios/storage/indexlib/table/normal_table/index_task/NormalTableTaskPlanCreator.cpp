@@ -33,12 +33,6 @@ NormalTableTaskPlanCreator::NormalTableTaskPlanCreator()
     RegisterSimpleCreator<NormalTableReclaimPlanCreator>();
 }
 
-std::shared_ptr<framework::IIndexOperationCreator>
-NormalTableTaskPlanCreator::CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& tabletSchema)
-{
-    return std::make_shared<NormalTableTaskOperationCreator>(tabletSchema);
-}
-
 Status NormalTableTaskPlanCreator::SelectTaskConfigs(const framework::IndexTaskContext* taskContext,
                                                      std::vector<config::IndexTaskConfig>* configs)
 {

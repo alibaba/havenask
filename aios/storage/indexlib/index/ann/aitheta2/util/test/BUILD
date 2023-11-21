@@ -12,6 +12,7 @@ aitheta_cc_test(
 aitheta_cc_test(
     name='IndexContextHolderTest',
     srcs=['IndexContextHolderTest.cpp'],
+    copts=['-fno-access-control'],
     data=[],
     deps=[
         '//aios/storage/indexlib/index/ann/aitheta2/util:aitheta_factory_wrapper',
@@ -22,9 +23,20 @@ aitheta_cc_test(
 aitheta_cc_test(
     name='CustomizedAithetaContainerTest',
     srcs=['CustomizedAithetaContainerTest.cpp'],
+    copts=['-fno-access-control'],
     data=[],
     deps=[
         '//aios/storage/indexlib/index/ann/aitheta2/util:aitheta_factory_wrapper',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+aitheta_cc_test(
+    name='CustomizedCkptManagerTest',
+    srcs=['CustomizedCkptManagerTest.cpp'],
+    copts=['-fno-access-control'],
+    data=[],
+    deps=[
+        '//aios/storage/indexlib/index/ann/aitheta2/util:customized_ckpt_manager',
         '//aios/storage/indexlib/util/testutil:unittest'
     ]
 )

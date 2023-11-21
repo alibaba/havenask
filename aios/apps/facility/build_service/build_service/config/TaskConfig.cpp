@@ -15,12 +15,22 @@
  */
 #include "build_service/config/TaskConfig.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <vector>
+
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
-#include "autil/legacy/json.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;
@@ -83,6 +93,9 @@ bool TaskConfig::isBuildInTask(const std::string& taskName)
         return true;
     }
 
+    if (taskName == BS_TASK_RESET_VERSION) {
+        return true;
+    }
     return false;
 }
 

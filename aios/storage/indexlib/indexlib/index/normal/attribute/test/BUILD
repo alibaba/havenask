@@ -11,7 +11,7 @@ cc_library(
     hdrs=glob(['*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/attribute/test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib/index/test:indexlib_index_test_helper'
     ]
@@ -19,9 +19,9 @@ cc_library(
 cc_fast_test(
     name='todo',
     srcs=[],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
-    shard_count=20,
+    shard_count=2,
     deps=[
         ':indexlib_attribute_test_helper',
         '//aios/storage/indexlib/indexlib:indexlib_testbase',
@@ -35,7 +35,7 @@ cc_fast_test(
     copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     flaky=True,
-    shard_count=50,
+    shard_count=5,
     deps=[
         ':indexlib_attribute_test_helper',
         '//aios/storage/indexlib/indexlib:indexlib_testbase',
@@ -51,9 +51,9 @@ cc_fast_test(
         'attribute_patch_merge_intetest.cpp', 'shape_attribute_intetest.cpp',
         'updatable_var_num_attribute_merger_intetest.cpp'
     ],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
-    shard_count=20,
+    shard_count=2,
     deps=[
         ':indexlib_attribute_test_helper',
         '//aios/storage/indexlib/indexlib:indexlib_testbase',

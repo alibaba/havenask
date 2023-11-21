@@ -27,12 +27,12 @@ bool RealtimeIndexSearcher::Search(const AithetaQuery& query, const std::shared_
 
 bool RealtimeIndexSearcher::ParseQueryParameter(const std::string& searchParams, AiThetaParams& aiThetaParams) const
 {
-    auto initializer = ParamsInitializerFactory::Create(_searcherName, 0);
+    auto initializer = ParamsInitializerFactory::Create(_searcherName);
     ANN_CHECK(initializer, "create initializer factory failed");
 
     AithetaIndexConfig newConfig = _indexConfig;
     newConfig.realtimeConfig.indexParams = searchParams;
-    return initializer->InitRealtimeParams(newConfig, aiThetaParams);
+    return initializer->InitRealtimeSearchParams(newConfig, aiThetaParams);
 }
 
 AUTIL_LOG_SETUP(indexlib.index, RealtimeIndexSearcher);

@@ -1,3 +1,4 @@
+#pragma once
 /* mz_strm_libcomp.h -- Stream for apple compression
    Version 2.8.9, July 4, 2019
    part of the MiniZip project
@@ -8,9 +9,6 @@
    This program is distributed under the terms of the same license as zlib.
    See the accompanying LICENSE file for the full text of the license.
 */
-
-#ifndef MZ_STREAM_LIBCOMP_H
-#define MZ_STREAM_LIBCOMP_H
 
 #include <stdint.h>
 
@@ -62,6 +60,4 @@ void* mz_stream_zlib_get_crc32_update(void);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -1,6 +1,7 @@
 #include "indexlib/partition/test/multi_region_kkv_intetest.h"
 
 #include "indexlib/config/SortParam.h"
+#include "indexlib/config/test/region_schema_maker.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/file/CompressFileInfo.h"
 #include "indexlib/file_system/fslib/DataFlushController.h"
@@ -8,7 +9,6 @@
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/region_schema_maker.h"
 #include "indexlib/test/slow_dump_segment_container.h"
 #include "indexlib/util/PathUtil.h"
 

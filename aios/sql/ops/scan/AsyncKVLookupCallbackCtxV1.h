@@ -82,7 +82,6 @@ public:
     }
     bool tryReportMetrics(kmonitor::MetricsReporter &opMetricsReporter) const override;
     void asyncGet(KVLookupOption option) override;
-    size_t getDegradeDocsSize() const override;
     int64_t getSeekTime() const override;
 
 private:

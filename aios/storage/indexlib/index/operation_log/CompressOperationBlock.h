@@ -38,10 +38,10 @@ public:
     size_t Size() const override;
 
     std::pair<Status, std::shared_ptr<OperationBlock>>
-    CreateOperationBlockForRead(const OperationFactory& mOpFactory) override;
+    CreateOperationBlockForRead(const OperationFactory& opFactory) override;
 
     Status Dump(const std::shared_ptr<file_system::FileWriter>& fileWriter, size_t maxOpSerializeSize,
-                bool hasConcurrentIdx) override;
+                bool hasConcurrentIdx, bool hasSourceIdx) override;
 
     size_t GetCompressSize() const;
 

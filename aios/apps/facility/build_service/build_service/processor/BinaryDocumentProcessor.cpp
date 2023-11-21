@@ -15,8 +15,22 @@
  */
 #include "build_service/processor/BinaryDocumentProcessor.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <memory>
+#include <stddef.h>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/legacy/base64.h"
+#include "autil/legacy/exception.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
+#include "indexlib/document/normal/Field.h"
+#include "indexlib/document/raw_document.h"
 
 using namespace std;
 using namespace autil;

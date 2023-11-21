@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OPENREADERBYLOADCONFIGTEST_H
-#define __INDEXLIB_OPENREADERBYLOADCONFIGTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/partition_state_machine.h"
@@ -43,5 +42,3 @@ INDEXLIB_UNIT_TEST_CASE(OpenReaderByLoadconfigTest, TestOpenReaderWithMmap);
 INDEXLIB_UNIT_TEST_CASE(OpenReaderByLoadconfigTest, TestOpenReaderWithCache);
 INDEXLIB_UNIT_TEST_CASE(OpenReaderByLoadconfigTest, TestOpenReaderWithGlobalCache);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPENREADERBYLOADCONFIGTEST_H

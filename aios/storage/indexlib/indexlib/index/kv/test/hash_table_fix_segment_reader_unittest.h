@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_HASHTABLEFIXSEGMENTREADERTEST_H
-#define __INDEXLIB_HASHTABLEFIXSEGMENTREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kv/hash_table_fix_segment_reader.h"
@@ -34,5 +33,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(HashTableFixSegmentReaderTest, TestValueWithTs);
 INDEXLIB_UNIT_TEST_CASE(HashTableFixSegmentReaderTest, TestValueWithoutTs);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASHTABLEFIXSEGMENTREADERTEST_H

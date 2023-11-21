@@ -212,8 +212,7 @@ bool SysController::turnToLeader(const string &address, const string &httpAddres
     _zkDataAccessor->addLeaderInfoToHistory(li);
     setLeaderStatus(true);
     updateSysStatus();
-    initHeartbeatMonitor();
-    return true;
+    return initHeartbeatMonitor();
 }
 
 void SysController::turnToFollower() {
@@ -383,6 +382,7 @@ bool SysController::loadTopicInfo(bool isFollower) {
             }
         }
     }
+    ScopedLock lock(_syncTopicLock);
     _topicTable.clear();
     _topicInfoResponseCache.clear();
     _partInfoResponseCache.clear();
@@ -1941,7 +1941,7 @@ void SysController::getTopicInfo(const TopicInfoRequest *request, TopicInfoRespo
         fillTopicInfo(topicInfoPtr, ti, request);
         SET_OK(response);
     } else {
-        ScopedLock lock(_lock); // lock for topic table loaded
+        ScopedLock lock(_syncTopicLock);
         map<string, TopicInfoResponse>::iterator iter = _topicInfoResponseCache.find(topicName);
         if (iter != _topicInfoResponseCache.end()) {
             response->CopyFrom(iter->second);

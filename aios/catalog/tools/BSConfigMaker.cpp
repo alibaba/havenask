@@ -16,12 +16,17 @@
 #include "catalog/tools/BSConfigMaker.h"
 
 #include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/md5.h"
 #include "catalog/tools/ConfigFileUtil.h"
 #include "catalog/tools/TableSchemaConfig.h"
 #include "fslib/fs/FileSystem.h"
 
 using namespace std;
+using namespace autil::legacy;
+using namespace autil::legacy::json;
 
 namespace catalog {
 
@@ -55,6 +60,54 @@ Status BSConfigMaker::Make(const Partition &partition,
     CATALOG_CHECK_OK(ConfigFileUtil::mvPath(tmpPath, bsConfigPath));
     *configPath = bsConfigPath;
 
+    return StatusBuilder::ok();
+}
+
+Status BSConfigMaker::mergeOnlineConfig(const string &baseConfigPath,
+                                        const catalog::LoadStrategy *loadStrategy,
+                                        string *mergedConfigPath) {
+    CATALOG_CHECK(!baseConfigPath.empty(), Status::INVALID_ARGUMENTS, "base config path is empty");
+    CATALOG_CHECK_OK(ConfigFileUtil::assertPathExist(baseConfigPath, "base config path"));
+    string loadStrategySignature;
+    if (loadStrategy) {
+        loadStrategySignature = loadStrategy->getSignature();
+    } else {
+        autil::legacy::Md5Stream stream;
+        loadStrategySignature = stream.GetMd5String(); // md5 for emtpy string
+    }
+    CATALOG_CHECK(!loadStrategySignature.empty(), Status::INTERNAL_ERROR, "get load strategy signature failed");
+    string bsConfigPath = baseConfigPath + "." + loadStrategySignature;
+    if (fslib::fs::FileSystem::isExist(bsConfigPath) == fslib::EC_TRUE) {
+        *mergedConfigPath = bsConfigPath;
+        return StatusBuilder::ok();
+    }
+
+    string tmpPath = bsConfigPath + ".tmp";
+    CATALOG_CHECK_OK(ConfigFileUtil::rmPath(tmpPath));
+    CATALOG_CHECK_OK(ConfigFileUtil::copyDir(baseConfigPath, tmpPath));
+    if (loadStrategy) {
+        CATALOG_CHECK_OK(mergeClusterJson(tmpPath, *loadStrategy));
+    }
+    CATALOG_CHECK_OK(ConfigFileUtil::rmPath(bsConfigPath));
+    CATALOG_CHECK_OK(ConfigFileUtil::mvPath(tmpPath, bsConfigPath));
+    *mergedConfigPath = bsConfigPath;
+
+    return StatusBuilder::ok();
+}
+
+Status BSConfigMaker::validateSchema(const proto::Table &table) {
+    auto tableStructure = std::make_unique<TableStructure>();
+    string tableId = table.catalog_name() + "." + table.database_name() + "." + table.table_name();
+    CATALOG_CHECK(
+        table.has_table_structure(), Status::UNSUPPORTED, "table_structure for table:[", tableId, "] is not specified");
+    const auto &subProto = table.table_structure();
+    CATALOG_CHECK_OK(tableStructure->fromProto(subProto));
+    TableSchemaConfig schemaConfig;
+    CATALOG_CHECK(schemaConfig.init(table.table_name(), tableStructure.get()),
+                  Status::INTERNAL_ERROR,
+                  "table schema config init failed, [",
+                  tableId,
+                  "]");
     return StatusBuilder::ok();
 }
 
@@ -270,6 +323,84 @@ Status BSConfigMaker::genDataDescriptions(const proto::DataSource::DataVersion &
     }
     *dataDescriptions = autil::legacy::ToJsonString(result);
     autil::StringUtil::replaceAll(*dataDescriptions, "\\/", "/");
+    return StatusBuilder::ok();
+}
+
+Status BSConfigMaker::mergeClusterJson(const string &configPath, const catalog::LoadStrategy &loadStrategy) {
+    string clusterJsonPath = configPath + "/clusters/" + loadStrategy.tableName() + "_cluster.json";
+    string content;
+    CATALOG_CHECK_OK(ConfigFileUtil::readFile(clusterJsonPath, &content));
+    Any json;
+    try {
+        FastFromJsonString(json, content); // parse cluster json file
+    } catch (const std::exception &e) {
+        CATALOG_CHECK(false,
+                      Status::INTERNAL_ERROR,
+                      "parse json file failed, [",
+                      clusterJsonPath,
+                      "], exception [",
+                      e.what(),
+                      "]");
+    }
+    JsonMap *jsonMap = AnyCast<JsonMap>(&json);
+    CATALOG_CHECK(jsonMap, Status::INTERNAL_ERROR, "cast cluster json [" + content + "] failed");
+    JsonMap *onlineIndexConfig;
+    CATALOG_CHECK_OK(getMapField(jsonMap, "online_index_config", onlineIndexConfig));
+    Any onlineIndexConfigjson;
+    string onlineIndexConfigStr;
+    CATALOG_CHECK_OK(genOnlineIndexConfig(loadStrategy, &onlineIndexConfigStr));
+    try {
+        FastFromJsonString(onlineIndexConfigjson, onlineIndexConfigStr);
+    } catch (const std::exception &e) {
+        CATALOG_CHECK(false,
+                      Status::INTERNAL_ERROR,
+                      "parse json file failed, [",
+                      clusterJsonPath,
+                      "], exception [",
+                      e.what(),
+                      "]");
+    }
+    (*jsonMap)["online_index_config"] = onlineIndexConfigjson;
+    string mergedClusterJsonStr = FastToJsonString(json);
+    CATALOG_CHECK_OK(ConfigFileUtil::rmPath(clusterJsonPath));
+    CATALOG_CHECK_OK(ConfigFileUtil::uploadFile(clusterJsonPath, mergedClusterJsonStr));
+    return StatusBuilder::ok();
+}
+
+Status BSConfigMaker::genOnlineIndexConfig(const catalog::LoadStrategy &loadStrategy,
+                                           std::string *onlineIndexConfigStr) {
+    auto loadStrategyConfig = loadStrategy.loadStrategyConfig();
+    if (proto::LoadStrategyConfig::NONE == loadStrategyConfig.load_mode()) {
+        *onlineIndexConfigStr = R"json({})json";
+    } else if (proto::LoadStrategyConfig::ALL_MMAP_LOCK == loadStrategyConfig.load_mode()) {
+        *onlineIndexConfigStr = R"json({
+  "load_config": {
+    "name": "__all_mmap_lock_value__",
+    "file_patterns": [ ".*" ],
+    "load_strategy": "mmap",
+    "load_strategy_param": { "lock": true }
+  }
+})json";
+    } else if (proto::LoadStrategyConfig::USER_DEFINED == loadStrategyConfig.load_mode()) {
+        *onlineIndexConfigStr = loadStrategyConfig.online_index_config();
+    } else {
+        CATALOG_CHECK(false, Status::INTERNAL_ERROR, "unsupported load mode[", loadStrategyConfig.load_mode(), "]");
+    }
+    return StatusBuilder::ok();
+}
+
+Status BSConfigMaker::getMapField(autil::legacy::json::JsonMap *jsonMap,
+                                  const std::string &fieldName,
+                                  autil::legacy::json::JsonMap *&field) {
+    field = nullptr;
+    CATALOG_CHECK(jsonMap, Status::INTERNAL_ERROR, "jsonMap is null");
+    auto fieldIter = jsonMap->find(fieldName);
+    if (fieldIter == jsonMap->end()) {
+        return StatusBuilder::ok();
+    }
+    auto content = autil::legacy::AnyCast<JsonMap>(&fieldIter->second);
+    CATALOG_CHECK(content, Status::INTERNAL_ERROR, "filed[" + fieldName + "] content is null");
+    field = content;
     return StatusBuilder::ok();
 }
 

@@ -15,7 +15,9 @@
  */
 #include "build_service/admin/SlowNodeDetector.h"
 
-#include "build_service/admin/DefaultSlowNodeDetectStrategy.h"
+#include <iosfwd>
+
+#include "autil/legacy/exception.h"
 
 using namespace std;
 using namespace autil::legacy;

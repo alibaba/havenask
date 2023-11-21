@@ -15,6 +15,14 @@
  */
 #include "build_service/admin/CounterRedisCollector.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/Exception.h"
 #include "indexlib/util/counter/CounterMap.h"
 

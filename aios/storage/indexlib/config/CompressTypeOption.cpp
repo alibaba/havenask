@@ -15,10 +15,11 @@
  */
 #include "indexlib/config/CompressTypeOption.h"
 
+#include <memory>
 #include <vector>
 
+#include "autil/NoCopyable.h"
 #include "autil/StringUtil.h"
-#include "indexlib/base/Constant.h"
 
 using namespace indexlibv2;
 

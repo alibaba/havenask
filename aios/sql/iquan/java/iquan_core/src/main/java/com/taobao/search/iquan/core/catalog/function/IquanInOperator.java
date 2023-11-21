@@ -1,20 +1,31 @@
 package com.taobao.search.iquan.core.catalog.function;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
-import org.apache.calcite.sql.*;
-import org.apache.calcite.sql.fun.SqlStdOperatorTable;
-import org.apache.calcite.sql.type.*;
+import org.apache.calcite.sql.ExplicitOperatorBinding;
+import org.apache.calcite.sql.SqlBinaryOperator;
+import org.apache.calcite.sql.SqlCall;
+import org.apache.calcite.sql.SqlCallBinding;
+import org.apache.calcite.sql.SqlKind;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlNodeList;
+import org.apache.calcite.sql.SqlOperator;
+import org.apache.calcite.sql.type.ComparableOperandTypeChecker;
+import org.apache.calcite.sql.type.InferTypes;
+import org.apache.calcite.sql.type.OperandTypes;
+import org.apache.calcite.sql.type.ReturnTypes;
+import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.calcite.sql.type.SqlTypeUtil;
 import org.apache.calcite.sql.validate.SqlValidator;
 import org.apache.calcite.sql.validate.SqlValidatorScope;
 import org.apache.calcite.util.Litmus;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.apache.calcite.util.Static.RESOURCE;
 
@@ -22,12 +33,9 @@ public class IquanInOperator extends SqlBinaryOperator {
     IquanInOperator(String name) {
         this(name, SqlKind.OTHER_FUNCTION);
     }
+
     protected IquanInOperator(String name, SqlKind kind) {
         super(name, kind, 32, true, ReturnTypes.BOOLEAN_NULLABLE, InferTypes.FIRST_KNOWN, null);
-    }
-
-    @Override public SqlOperator not() {
-        return of(kind.negateNullSafe());
     }
 
     private static SqlBinaryOperator of(SqlKind kind) {
@@ -41,14 +49,30 @@ public class IquanInOperator extends SqlBinaryOperator {
         }
     }
 
-    @Override public boolean validRexOperands(int count, Litmus litmus) {
+    private static boolean anyNullable(List<RelDataTypeField> fieldList) {
+        for (RelDataTypeField field : fieldList) {
+            if (field.getType().isNullable()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public SqlOperator not() {
+        return of(kind.negateNullSafe());
+    }
+
+    @Override
+    public boolean validRexOperands(int count, Litmus litmus) {
         if (count == 0) {
             return litmus.fail("wrong operand count {} for {}", count, this);
         }
         return litmus.succeed();
     }
 
-    @Override public RelDataType deriveType(
+    @Override
+    public RelDataType deriveType(
             SqlValidator validator,
             SqlValidatorScope scope,
             SqlCall call) {
@@ -137,16 +161,8 @@ public class IquanInOperator extends SqlBinaryOperator {
                         || anyNullable(rightRowType.getFieldList()));
     }
 
-    private static boolean anyNullable(List<RelDataTypeField> fieldList) {
-        for (RelDataTypeField field : fieldList) {
-            if (field.getType().isNullable()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override public boolean argumentMustBeScalar(int ordinal) {
+    @Override
+    public boolean argumentMustBeScalar(int ordinal) {
         // Argument #0 must be scalar, argument #1 can be a list (1, 2) or
         // a query (select deptno from emp). So, only coerce argument #0 into
         // a scalar sub-query. For example, in

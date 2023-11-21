@@ -15,10 +15,19 @@
  */
 #include "indexlib/util/GroupedThreadPool.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
+#include <exception>
+#include <type_traits>
+
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
 #include "autil/LambdaWorkItem.h"
 #include "autil/Lock.h"
+#include "autil/StringUtil.h"
 #include "autil/WorkItem.h"
+#include "autil/WorkItemQueue.h"
 #include "autil/legacy/exception.h"
 
 namespace indexlib::util {

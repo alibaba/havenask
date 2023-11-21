@@ -47,6 +47,8 @@ private:
                             config::UnresolvedSchema* schema);
     void FillTTLToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,
                            config::UnresolvedSchema* schema);
+    void FillNeedStorePKValueToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,
+                                        config::UnresolvedSchema* schema);
 
 private:
     std::shared_ptr<config::TabletOptions> _options;

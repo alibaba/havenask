@@ -2,13 +2,14 @@
 
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/config/FileCompressConfig.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace autil::legacy;
 using namespace autil::legacy::json;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, PackAttributeConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, PackAttributeConfigTest);
 
 PackAttributeConfigTest::PackAttributeConfigTest() {}
 

@@ -1,13 +1,26 @@
 package com.taobao.search.iquan.core.utils;
 
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.common.PlanFormatType;
 import com.taobao.search.iquan.core.api.common.PlanFormatVersion;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.PlanWriteException;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.Table;
-import com.taobao.search.iquan.core.catalog.*;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
+import com.taobao.search.iquan.core.catalog.IquanCatalogTable;
+import com.taobao.search.iquan.core.catalog.LayerBaseTable;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
 import com.taobao.search.iquan.core.rel.plan.IquanDigestWriter;
 import com.taobao.search.iquan.core.rel.plan.IquanHintWriter;
@@ -21,25 +34,21 @@ import org.apache.calcite.prepare.RelOptTableImpl;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.sql.SqlExplainLevel;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.*;
-
 public class IquanRelOptUtils {
-    private static final Logger logger = LoggerFactory.getLogger(IquanRelOptUtils.class);
-
     public static final ThreadLocal<ObjectMapper> objectMapper = ThreadLocal.withInitial(() -> {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.disable(
+                MapperFeature.AUTO_DETECT_FIELDS,
+                MapperFeature.AUTO_DETECT_GETTERS,
+                MapperFeature.AUTO_DETECT_IS_GETTERS);
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         objectMapper.enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
         return objectMapper;
     });
+    private static final Logger logger = LoggerFactory.getLogger(IquanRelOptUtils.class);
 
     public static IquanConfigManager getConfigFromRel(RelNode node) {
         Context context = node.getCluster().getPlanner().getContext();
@@ -49,7 +58,7 @@ public class IquanRelOptUtils {
         return null;
     }
 
-    public static Table getIquanTable(RelOptTable table) {
+    public static IquanTable getIquanTable(RelOptTable table) {
         if (table instanceof LayerBaseTable) {
             return getIquanTable(((LayerBaseTable) table).getInnerTable());
         }
@@ -62,7 +71,7 @@ public class IquanRelOptUtils {
         return catalogTable.getTable();
     }
 
-    public static Table getIquanTable(RelNode node) {
+    public static IquanTable getIquanTable(RelNode node) {
         RelNode relNode = toRel(node);
         if (relNode instanceof TableScan) {
             TableScan scan = (TableScan) relNode;

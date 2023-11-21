@@ -46,6 +46,7 @@ struct Checkpoint;
 
 namespace workflow {
 struct RealtimeBuilderResource;
+class RawDocumentRewriter;
 } // namespace workflow
 
 } // namespace build_service
@@ -61,7 +62,8 @@ class ITabletSchema;
 
 namespace indexlibv2::document {
 class IDocumentBatch;
-}
+class RawDocument;
+} // namespace indexlibv2::document
 
 namespace indexlib::util {
 class MetricProvider;
@@ -81,6 +83,7 @@ private:
         void stop();
 
         std::unique_ptr<build_service::reader::RawDocumentReader> reader;
+        std::unique_ptr<build_service::workflow::RawDocumentRewriter> rewriter;
         std::unique_ptr<build_service::processor::Processor> processor;
         std::unique_ptr<build_service::builder::BuilderV2Impl> builder;
     };
@@ -104,12 +107,19 @@ public:
     bool needCommit() const override;
     std::pair<bool, TableVersion> commit() override;
 
+public:
+    void TEST_setLastLocator(const std::shared_ptr<indexlibv2::framework::Locator> &locator) {
+        setLastLocator(locator);
+    }
+
 private:
     void initRecoverParameters();
     void buildWorkLoop();
     bool runBuildPipeline();
     bool buildWithRetry(build_service::builder::BuilderV2Impl *builder,
                         const std::shared_ptr<indexlibv2::document::IDocumentBatch> &batch);
+    bool rewriteWithRetry(build_service::workflow::RawDocumentRewriter *rewriter,
+                          const std::shared_ptr<indexlibv2::document::RawDocument> &rawDoc);
     void maybeInitBuildPipeline();
 
     // virtual for test
@@ -120,8 +130,12 @@ private:
                     const std::shared_ptr<indexlibv2::config::ITabletSchema> &schema) const;
     virtual std::unique_ptr<build_service::builder::BuilderV2Impl>
     createBuilder(const std::shared_ptr<build_service::config::ResourceReader> &resourceReader) const;
+    virtual std::unique_ptr<build_service::workflow::RawDocumentRewriter> createRawDocRewriter() const;
 
     bool alterTable(uint32_t version, const std::string &configPath);
+    bool processAlterTableDoc(const std::shared_ptr<indexlibv2::document::RawDocument> &rawDoc);
+    bool processBulkloadDoc(const std::shared_ptr<indexlibv2::document::RawDocument> &rawDoc);
+    void setLastLocator(const std::shared_ptr<indexlibv2::framework::Locator> &locator);
 
 private:
     build_service::proto::PartitionId _pid;
@@ -138,6 +152,7 @@ private:
     std::atomic<bool> _needReload = false;
     std::thread _buildThread;
     std::atomic<size_t> _totalBuildCount = 0;
+    std::shared_ptr<indexlibv2::framework::Locator> _lastLocator;
 
     // recover control parameters
     int64_t _maxRecoverTimeInSec = DEFAULT_MAX_RECOVER_TIME_IN_SEC;

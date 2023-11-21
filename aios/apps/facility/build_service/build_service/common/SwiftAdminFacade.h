@@ -13,30 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SWIFTADMINFACADE_H
-#define ISEARCH_BS_SWIFTADMINFACADE_H
+#pragma once
 
-#include "aios/network/arpc/arpc/ANetRPCChannelManager.h"
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "build_service/common_define.h"
 #include "build_service/config/BuildServiceConfig.h"
-#include "build_service/config/ControlConfig.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/config/SwiftConfig.h"
 #include "build_service/config/SwiftTopicConfig.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/SwiftClientCreator.h"
-#include "swift/common/Common.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "swift/network/SwiftAdminAdapter.h"
 #include "swift/protocol/AdminRequestResponse.pb.h"
-
-namespace indexlibv2::config {
-class ITabletSchema;
-}
-
-namespace swift { namespace network {
-class SwiftAdminAdapter;
-}} // namespace swift::network
 
 namespace build_service { namespace common {
 
@@ -66,10 +63,9 @@ public:
     // schemaId-->schema version > 0 && no ops:
     // username_servicename_(3)_processed_generationid_clustername
     //普通：username_servicename()_processed_generationId_clusterName
-    //带tag的：username_servicename_(tag_schemaid)_processed_generationId_clusterName
-    // topicConfigName_userTag_schemaid
-    // full, inc, shemaid, stage
-    // specify schema for realtime build, use partition schema
+    //带tag的：username_servicename_tag_processed_generationId_clusterName
+    // topicConfigName_userTag
+    // full, inc, stage
     std::string getTopicName(const std::string& swiftTopicConfigName, std::string userDefineTag = "");
 
     static std::string getRealtimeTopicName(const std::string& applicationId, proto::BuildId _buildId,
@@ -130,5 +126,3 @@ private:
 };
 BS_TYPEDEF_PTR(SwiftAdminFacade);
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_SWIFTADMINFACADE_H

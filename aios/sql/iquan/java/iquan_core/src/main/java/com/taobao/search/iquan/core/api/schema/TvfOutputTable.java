@@ -1,10 +1,10 @@
 package com.taobao.search.iquan.core.api.schema;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TvfOutputTable {
     private static final Logger logger = LoggerFactory.getLogger(TvfOutputTable.class);
@@ -14,6 +14,10 @@ public class TvfOutputTable {
     private List<String> inputFields = new ArrayList<>();
 
     public TvfOutputTable() {
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     @Override
@@ -60,10 +64,6 @@ public class TvfOutputTable {
         }
 
         setDigest(sb.toString());
-    }
-
-    public static Builder newBuilder() {
-        return new Builder();
     }
 
     public static class Builder {

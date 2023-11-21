@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGER_SEGMENT_DIRECTORY_H
-#define __INDEXLIB_MERGER_SEGMENT_DIRECTORY_H
+#pragma once
 
+#include <algorithm>
 #include <map>
-#include <memory>
+#include <stdint.h>
 #include <string>
+#include <utility>
+#include <vector>
 
-#include "indexlib/common_define.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/file_system/IFileSystem.h"
-#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/index/util/segment_directory_base.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/index_meta/segment_temperature_meta.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/partition_data.h"
-#include "indexlib/index_define.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 DECLARE_REFERENCE_CLASS(merger, SegmentDirectory);
 
@@ -189,5 +189,3 @@ private:
 
 inline SegmentDirectory::Iterator SegmentDirectory::CreateIterator() const { return Iterator(mSegments); }
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGER_SEGMENT_DIRECTORY_H

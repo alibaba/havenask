@@ -1,10 +1,10 @@
 package com.taobao.search.iquan.client;
 
+import com.taobao.search.iquan.client.common.json.api.JsonKMonConfig;
 import com.taobao.search.iquan.client.common.metrics.IquanKMonService;
 import com.taobao.search.iquan.client.common.response.SqlResponse;
 import com.taobao.search.iquan.client.common.utils.ClientUtils;
 import com.taobao.search.iquan.client.common.utils.ErrorUtils;
-import com.taobao.search.iquan.client.common.json.api.JsonKMonConfig;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import org.slf4j.LoggerFactory;

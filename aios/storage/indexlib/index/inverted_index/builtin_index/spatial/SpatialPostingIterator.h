@@ -31,10 +31,10 @@ public:
 public:
     index::ErrorCode Init(const std::vector<BufferedPostingIterator*>& postingIterators);
 
-    docid_t SeekDoc(docid_t docid) override;
-    ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override { return InnerSeekDoc(docId, result); }
-    docid_t InnerSeekDoc(docid_t docId);
-    ErrorCode InnerSeekDoc(docid_t docId, docid_t& result);
+    docid64_t SeekDoc(docid64_t docid) override;
+    ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override { return InnerSeekDoc(docId, result); }
+    docid64_t InnerSeekDoc(docid64_t docId);
+    ErrorCode InnerSeekDoc(docid64_t docId, docid64_t& result);
     bool HasPosition() const override { return false; }
     void Unpack(TermMatchData& termMatchData) override;
     void Reset() override;
@@ -45,7 +45,7 @@ public:
     uint32_t GetSeekDocCount() const { return _seekDocCounter; }
 
 private:
-    typedef std::pair<PostingIterator*, docid_t> PostingIteratorPair;
+    typedef std::pair<PostingIterator*, docid64_t> PostingIteratorPair;
     class PostingIteratorComparator
     {
     public:
@@ -59,12 +59,12 @@ private:
         PostingIteratorHeap;
 
 private:
-    docid_t GetNextDocId(PostingIteratorHeap& heap);
-    bool IsValidDocId(docid_t basicDocid, docid_t currentDocid) const;
+    docid64_t GetNextDocId(PostingIteratorHeap& heap);
+    bool IsValidDocId(docid64_t basicDocid, docid64_t currentDocid) const;
 
 private:
     // TODO: spatial posting iterator direct manage segment posting
-    docid_t _curDocid;
+    docid64_t _curDocid;
     PostingIteratorHeap _heap;
     std::vector<BufferedPostingIterator*> _postingIterators;
     TermMeta* _termMeta;

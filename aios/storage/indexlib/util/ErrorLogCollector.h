@@ -16,9 +16,9 @@
 #pragma once
 
 #include <atomic>
-#include <memory>
+#include <stdint.h>
+#include <string>
 
-#include "autil/EnvUtil.h"
 #include "autil/Log.h"
 
 #define ERROR_COLLECTOR_LOG(level, format, args...)                                                                    \

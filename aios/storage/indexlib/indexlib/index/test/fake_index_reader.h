@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_INDEX_READER_H
-#define __INDEXLIB_FAKE_INDEX_READER_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -32,7 +31,7 @@ public:
 
     PostingIterator* Clone() const override { return new FakePostingIterator(mDocIdVect); }
 
-    docid_t SeekDoc(docid_t docId) override
+    docid64_t SeekDoc(docid64_t docId) override
     {
         if (mCursor >= (int32_t)mDocIdVect.size() - 1) {
             return INVALID_DOCID;
@@ -40,7 +39,7 @@ public:
         mCursor++;
         return mDocIdVect[mCursor];
     }
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override
     {
         result = SeekDoc(docId);
         return index::ErrorCode::OK;
@@ -93,5 +92,3 @@ typedef std::shared_ptr<FakeIndexReader> FakeIndexReaderPtr;
 
 } // namespace
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_FAKE_INDEX_READER_H

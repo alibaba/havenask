@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_ATTRIBUTE_UPDATER_FACTORY_H
-#define __INDEXLIB_SEGMENT_ATTRIBUTE_UPDATER_FACTORY_H
+#pragma once
 
 #include <memory>
 
@@ -70,5 +69,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SEGMENT_ATTRIBUTE_UPDATER_FACTORY_H

@@ -1,8 +1,8 @@
 #include "indexlib/document/document_rewriter/test/pack_attribute_appender_unittest.h"
 
 #include "indexlib/config/test/schema_loader.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

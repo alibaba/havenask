@@ -15,21 +15,46 @@
  */
 #include "build_service/workflow/FlowFactory.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <limits>
+#include <ostream>
+#include <unordered_map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "beeper/beeper.h"
+#include "build_service/builder/BuildSpeedLimiter.h"
 #include "build_service/builder/BuilderCreator.h"
 #include "build_service/builder/BuilderCreatorV2.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/CounterSynchronizer.h"
 #include "build_service/common/CounterSynchronizerCreator.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common/ResourceKeeper.h"
 #include "build_service/common/SwiftLinkFreshnessReporter.h"
 #include "build_service/common/SwiftResourceKeeper.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/CounterConfig.h"
 #include "build_service/config/ProcessorConfig.h"
+#include "build_service/config/ProcessorConfigReader.h"
+#include "build_service/config/SrcNodeConfig.h"
+#include "build_service/config/SwiftTopicConfig.h"
 #include "build_service/config/TaskInputConfig.h"
 #include "build_service/config/TaskOutputConfig.h"
 #include "build_service/processor/BatchProcessor.h"
+#include "build_service/processor/DocumentProcessorChain.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/reader/RawDocumentReaderCreator.h"
+#include "build_service/util/Monitor.h"
 #include "build_service/util/RangeUtil.h"
 #include "build_service/workflow/DocBuilderConsumer.h"
 #include "build_service/workflow/DocBuilderConsumerV2.h"
@@ -38,11 +63,22 @@
 #include "build_service/workflow/DocProcessorConsumer.h"
 #include "build_service/workflow/DocProcessorProducer.h"
 #include "build_service/workflow/DocReaderProducer.h"
+#include "build_service/workflow/DocumentBatchConsumerImpl.h"
+#include "build_service/workflow/MultiSwiftProcessedDocProducer.h"
 #include "build_service/workflow/MultiSwiftProcessedDocProducerV2.h"
+#include "build_service/workflow/RawDocBuilderConsumer.h"
+#include "build_service/workflow/SingleSwiftProcessedDocProducer.h"
 #include "build_service/workflow/SingleSwiftProcessedDocProducerV2.h"
-#include "indexlib/framework/TabletInfos.h"
-#include "indexlib/util/counter/CounterMap.h"
+#include "build_service/workflow/SwiftDocumentBatchProducerImpl.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/framework/ITablet.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
+#include "swift/client/SwiftClient.h"
+#include "swift/network/SwiftAdminAdapter.h"
 
 using namespace indexlib::common;
 
@@ -248,6 +284,137 @@ RawDocConsumer* FlowFactory::createRawDocBuilderConsumer(const RoleInitParam& in
         }
     }
     return consumer;
+}
+
+DocumentBatchProducer* FlowFactory::createBatchDocProducer(const RoleInitParam& initParam)
+{
+    if (initParam.partitionId.clusternames_size() != 1) {
+        string errorMsg = string("Fail to create swift reader : invalid clusternames: ") +
+                          initParam.partitionId.ShortDebugString() + ", should be one cluster id";
+        REPORT_ERROR_WITH_ADVICE(BUILDFLOW_ERROR_CLUSTER, errorMsg, BS_STOP);
+        return nullptr;
+    }
+    string clusterName = initParam.partitionId.clusternames(0);
+    string inputInfo = getValueFromKeyValueMap(initParam.kvMap, clusterInputKey(clusterName));
+    config::TaskInputConfig inputConfig;
+    try {
+        FromJsonString(inputConfig, inputInfo);
+    } catch (const autil::legacy::ExceptionBase& e) {
+        string errorMsg = "Invalid json string for input info[" + inputInfo + "] : error [" + string(e.what()) + "]";
+        return nullptr;
+    }
+    if (inputConfig.getType() != "dependResource") {
+        BS_LOG(ERROR, "not support input type [%s]", inputConfig.getType().c_str());
+        return nullptr;
+    }
+    string inputResourceName = getValueFromKeyValueMap(inputConfig.getParameters(), "resourceName");
+    ResourceKeeperPtr& keeper = _availableResources[inputResourceName];
+    if (!keeper) {
+        BS_LOG(ERROR, "get resource failed with resource name  [%s]", inputResourceName.c_str());
+        return nullptr;
+    }
+    _usingResources[inputResourceName] = keeper;
+
+    assert(keeper->getType() == "swift");
+    SwiftResourceKeeperPtr swiftKeeper = DYNAMIC_POINTER_CAST(SwiftResourceKeeper, keeper);
+    SwiftConfig swiftConfig;
+    if (!swiftKeeper->getSwiftConfig(initParam.resourceReader, swiftConfig)) {
+        string errorMsg = "parse swift_config for topic[" + swiftKeeper->getTopicName() + "] failed";
+        REPORT_ERROR_WITH_ADVICE(SERVICE_ERROR_CONFIG, errorMsg, BS_STOP);
+        return nullptr;
+    }
+
+    auto swiftParam = swiftKeeper->createSwiftReader(_swiftClientCreator, initParam.kvMap, initParam.resourceReader,
+                                                     initParam.partitionId.range());
+    if (unlikely(!swiftParam.reader)) {
+        string errorMsg = string("Fail to create swift reader " + initParam.partitionId.ShortDebugString());
+        REPORT_ERROR_WITH_ADVICE(BUILDFLOW_ERROR_SWIFT_CREATE_READER, errorMsg, BS_STOP);
+        return nullptr;
+    }
+    if (swiftParam.isMultiTopic) {
+        string errorMsg =
+            string("Invalid Arg[isMultiTopic == true] in partition " + initParam.partitionId.ShortDebugString());
+        REPORT_ERROR_WITH_ADVICE(BUILDFLOW_ERROR_SWIFT_CREATE_READER, errorMsg, BS_STOP);
+        return nullptr;
+    }
+    auto docBatchProducer = doCreateSwiftDocumentBatchProducer(swiftParam, initParam);
+    if (docBatchProducer == nullptr) {
+        return nullptr;
+    }
+    return docBatchProducer;
+}
+
+SwiftDocumentBatchProducer* FlowFactory::doCreateSwiftDocumentBatchProducer(const common::SwiftParam& swiftParam,
+                                                                            const RoleInitParam& initParam)
+{
+    string dataTable = initParam.partitionId.buildid().ShortDebugString();
+    if (!initParam.isTablet) {
+        string errorMsg = string("only support create DocumentBatchProducer with isTablet==true");
+        REPORT_ERROR_WITH_ADVICE(SERVICE_ERROR_CONFIG, errorMsg, BS_STOP);
+        return nullptr;
+    }
+    if (!initParam.schemav2) {
+        string errorMsg = string("cannot create DocumentBatchProducer without schemaV2");
+        REPORT_ERROR_WITH_ADVICE(SERVICE_ERROR_CONFIG, errorMsg, BS_STOP);
+        return nullptr;
+    }
+    auto typedProducer = std::make_unique<SwiftDocumentBatchProducerImpl>(swiftParam, initParam.schemav2,
+                                                                          initParam.partitionId, _taskScheduler);
+    int64_t startTimestamp = 0;
+    KeyValueMap::const_iterator it = initParam.kvMap.find(CHECKPOINT);
+    if (it != initParam.kvMap.end()) {
+        if (!autil::StringUtil::fromString<int64_t>(it->second, startTimestamp)) {
+            BS_LOG(ERROR, "invalid checkpoint[%s]", it->second.c_str());
+            return nullptr;
+        }
+    }
+    int64_t stopTimestamp = numeric_limits<int64_t>::max();
+    it = initParam.kvMap.find(SWIFT_STOP_TIMESTAMP);
+    if (it != initParam.kvMap.end()) {
+        if (!autil::StringUtil::fromString(it->second, stopTimestamp)) {
+            string errorMsg = "invalid stopTimestamp[" + it->second + "]";
+            BS_LOG(ERROR, "%s", errorMsg.c_str());
+            return nullptr;
+        }
+    }
+    uint64_t srcSignature = startTimestamp;
+    it = initParam.kvMap.find(config::SRC_SIGNATURE);
+    if (it != initParam.kvMap.end()) {
+        string sourceSignatureStr = it->second;
+        if (!autil::StringUtil::fromString<uint64_t>(sourceSignatureStr, srcSignature)) {
+            BS_LOG(INFO, "srcSignature [%s] illegal", sourceSignatureStr.c_str());
+            return nullptr;
+        }
+    }
+    if (!typedProducer->init(initParam.metricProvider, initParam.counterMap, startTimestamp, stopTimestamp,
+                             srcSignature)) {
+        stringstream ss;
+        ss << "init swift producer failed, startTimestamp: " << startTimestamp << ", stopTimestamp: " << stopTimestamp;
+        REPORT_ERROR_WITH_ADVICE(BUILDFLOW_ERROR_INIT_SWIFT_PRODUCER, ss.str(), BS_STOP);
+        return nullptr;
+    }
+    return typedProducer.release();
+}
+
+DocumentBatchConsumer* FlowFactory::createBatchDocConsumer(const RoleInitParam& initParam)
+{
+    BuilderV2* builder = getBuilderV2(initParam);
+
+    auto typedConsumer = std::make_unique<DocumentBatchConsumerImpl>();
+    if (!typedConsumer->Init(builder)) {
+        return nullptr;
+    }
+    auto it = initParam.kvMap.find(config::BUILD_VERSION_TIMESTAMP);
+    if (it != initParam.kvMap.end()) {
+        int64_t buildVersionTimestamp = -1;
+        if (!autil::StringUtil::fromString(it->second, buildVersionTimestamp)) {
+            BS_LOG(ERROR, "invalid build version timestamp[%s]", it->second.c_str());
+            return NULL;
+        } else {
+            typedConsumer->SetEndBuildTimestamp(buildVersionTimestamp);
+        }
+    }
+    return typedConsumer.release();
 }
 
 SwiftProcessedDocProducer* FlowFactory::doCreateSwiftProcessedDocProducer(const common::SwiftParam& swiftParam,

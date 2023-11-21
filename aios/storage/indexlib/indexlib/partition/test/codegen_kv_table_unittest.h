@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CODEGENKVTABLETEST_H
-#define __INDEXLIB_CODEGENKVTABLETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -36,5 +35,3 @@ INDEXLIB_UNIT_TEST_CASE(CodegenKvTableTest, TestVarLenKVReader);
 INDEXLIB_UNIT_TEST_CASE(CodegenKvTableTest, TestCheckCodegenCompactBucket);
 INDEXLIB_UNIT_TEST_CASE(CodegenKvTableTest, TestCheckMultiRegion);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_CODEGENKVTABLETEST_H

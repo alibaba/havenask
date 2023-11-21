@@ -17,10 +17,11 @@
 
 #include "kmonitor/client/MetricsReporter.h"
 #include "navi/resource/MemoryPoolR.h"
+#include "autil/ObjectTracer.h"
 
 namespace navi {
 
-class GraphMemoryPoolR : public MemoryPoolRBase {
+class GraphMemoryPoolR : public MemoryPoolRBase, public autil::ObjectTracer<GraphMemoryPoolR> {
 public:
     GraphMemoryPoolR();
     ~GraphMemoryPoolR();

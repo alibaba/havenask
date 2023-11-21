@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_META_H
-#define __INDEXLIB_MERGE_META_H
+#pragma once
 
-#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
 
 namespace indexlib { namespace merger {
 
@@ -50,5 +53,3 @@ protected:
 
 DEFINE_SHARED_PTR(MergeMeta);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_META_H

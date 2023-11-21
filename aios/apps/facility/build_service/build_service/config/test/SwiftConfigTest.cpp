@@ -1,10 +1,18 @@
 #include "build_service/config/SwiftConfig.h"
 
-#include <regex>
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <string>
 
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/SwiftTopicConfig.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
+#include "swift/protocol/AdminRequestResponse.pb.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

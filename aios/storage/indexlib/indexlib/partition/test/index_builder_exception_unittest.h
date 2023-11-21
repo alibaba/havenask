@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXBUILDEREXCEPTIONTEST_H
-#define __INDEXLIB_INDEXBUILDEREXCEPTIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/index_builder.h"
@@ -31,5 +30,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(IndexBuilderExceptionTest, TestDumpSegmentFailed);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INDEXBUILDEREXCEPTIONTEST_H

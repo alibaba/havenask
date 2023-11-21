@@ -1,3 +1,4 @@
+#pragma once
 #include "indexlib/index/attribute/test/AttributeTestUtil.h"
 
 namespace indexlib::index {

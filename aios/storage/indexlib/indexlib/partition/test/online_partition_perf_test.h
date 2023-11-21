@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONLINEPARTITIONPERFTEST_H
-#define __INDEXLIB_ONLINEPARTITIONPERFTEST_H
+#pragma once
 
 #include <queue>
 
@@ -66,5 +65,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINEPARTITIONPERFTEST_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TOKENIZERMODULEFACTORY_H
-#define ISEARCH_BS_TOKENIZERMODULEFACTORY_H
+#pragma once
 
 #include "build_service/plugin/ModuleFactory.h"
 #include "build_service/util/Log.h"
@@ -44,5 +43,3 @@ private:
 
 BS_TYPEDEF_PTR(TokenizerModuleFactory);
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_TOKENIZERMODULEFACTORY_H

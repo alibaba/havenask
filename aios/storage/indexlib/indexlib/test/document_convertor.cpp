@@ -60,7 +60,7 @@ IndexlibExtendDocumentPtr DocumentConvertor::CreateExtendDocFromRawDoc(const Ind
     }
 
     ConvertModifyFields(schema, extDoc, rawDoc);
-    extDoc->setRawDocument(newRawDoc);
+    extDoc->SetRawDocument(newRawDoc);
     // prepare tokenized doc
     PrepareTokenizedDoc(schema, extDoc, rawDoc);
     return extDoc;

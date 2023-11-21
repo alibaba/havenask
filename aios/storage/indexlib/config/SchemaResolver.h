@@ -15,7 +15,7 @@
  */
 #pragma once
 
-#include <memory>
+#include <string>
 
 #include "autil/Log.h"
 #include "indexlib/base/Status.h"
@@ -27,7 +27,6 @@ class IndexPartitionSchema;
 namespace indexlibv2::config {
 class TabletSchema;
 class UnresolvedSchema;
-class TabletOptions;
 
 // SchemaResolver is the interface class for rewrite and validate schema.
 class SchemaResolver

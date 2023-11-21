@@ -1,9 +1,18 @@
 #include "build_service/util/IndexPathConstructor.h"
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/test/ProtoCreator.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

@@ -15,6 +15,13 @@
  */
 #include "build_service/admin/Heartbeat.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/TimeUtility.h"
 
 using namespace std;

@@ -15,12 +15,16 @@
  */
 #include "indexlib/framework/TabletFactoryCreator.h"
 
+#include <algorithm>
+#include <cstdlib>
+#include <iosfwd>
+#include <utility>
+
 #include "indexlib/framework/ITabletFactory.h"
 
 using namespace std;
 
 namespace indexlibv2::framework {
-class ITabletFactory;
 
 TabletFactoryCreator::TabletFactoryCreator() {}
 

@@ -32,9 +32,21 @@ private:
         return "inst_" + StringUtil::toString(parallelCount) + "_" + StringUtil::toString(parallelId);
     }
 
+    void DumpMetaString(std::shared_ptr<indexlib::file_system::Directory> path, const std::string& content)
+    {
+        using namespace indexlib::file_system;
+        auto meta_file = "aitheta.segment.meta";
+        path->RemoveFile(meta_file, RemoveOption::MayNonExist());
+        auto writer = path->CreateFileWriter(meta_file);
+        writer->Write(content.data(), content.size()).GetOrThrow();
+        writer->Close().GetOrThrow();
+    }
+
 private:
     std::shared_ptr<indexlib::file_system::Directory> _rootDir;
 };
+
+static constexpr const char* STATS_TYPE_JSON_STRING = "json_string";
 
 TEST_F(SegmentMetaTest, TestGeneral)
 {
@@ -44,9 +56,17 @@ TEST_F(SegmentMetaTest, TestGeneral)
     segmentMeta.SetSegmentSize(1024);
     IndexMeta indexInfo0;
     indexInfo0.docCount = 128;
+    indexInfo0.trainStats.statsType = STATS_TYPE_JSON_STRING;
+    indexInfo0.trainStats.stats = "{\"train_stats_prop\", 1}";
+    indexInfo0.buildStats.statsType = STATS_TYPE_JSON_STRING;
+    indexInfo0.buildStats.stats = "{\"build_stats_prop\", 2}";
     segmentMeta.AddIndexMeta(0, indexInfo0);
     IndexMeta indexInfo1;
     indexInfo1.docCount = 256;
+    indexInfo1.trainStats.statsType = STATS_TYPE_JSON_STRING;
+    indexInfo1.trainStats.stats = "{\"train_stats_prop\", 3}";
+    indexInfo1.buildStats.statsType = STATS_TYPE_JSON_STRING;
+    indexInfo1.buildStats.stats = "{\"build_stats_prop\", 4}";
     ASSERT_FALSE(segmentMeta.AddIndexMeta(0, indexInfo1));
     ASSERT_TRUE(segmentMeta.AddIndexMeta(1, indexInfo1));
     auto path = _rootDir->MakeDirectory("TestGeneral");
@@ -65,9 +85,87 @@ TEST_F(SegmentMetaTest, TestGeneral)
     IndexMeta actualIndexInfo0;
     ASSERT_TRUE(actualSegmentMeta.GetIndexMeta(0, actualIndexInfo0));
     ASSERT_EQ(128, actualIndexInfo0.docCount);
+    ASSERT_EQ(STATS_TYPE_JSON_STRING, actualIndexInfo0.trainStats.statsType);
+    ASSERT_EQ("{\"train_stats_prop\", 1}", actualIndexInfo0.trainStats.stats);
+    ASSERT_EQ(STATS_TYPE_JSON_STRING, actualIndexInfo0.buildStats.statsType);
+    ASSERT_EQ("{\"build_stats_prop\", 2}", actualIndexInfo0.buildStats.stats);
+
     IndexMeta actualIndexInfo1;
     ASSERT_TRUE(actualSegmentMeta.GetIndexMeta(1, actualIndexInfo1));
     ASSERT_EQ(256, actualIndexInfo1.docCount);
+    ASSERT_EQ(STATS_TYPE_JSON_STRING, actualIndexInfo1.trainStats.statsType);
+    ASSERT_EQ("{\"train_stats_prop\", 3}", actualIndexInfo1.trainStats.stats);
+    ASSERT_EQ(STATS_TYPE_JSON_STRING, actualIndexInfo1.buildStats.statsType);
+    ASSERT_EQ("{\"build_stats_prop\", 4}", actualIndexInfo1.buildStats.stats);
+}
+
+TEST_F(SegmentMetaTest, TestCompat)
+{
+    auto path = _rootDir->MakeDirectory("TestCompat");
+
+    SegmentMeta segmentMeta;
+    IndexMeta indexMeta;
+
+    DumpMetaString(path, "{"
+                         "  \"segment_type\":1,"
+                         "  \"segment_type_string\":\"normal\","
+                         "  \"doc_count\":1024,"
+                         "  \"index_count\":2,"
+                         "  \"segment_data_size\":102400,"
+                         "  \"dimension\":25,"
+                         "  \"index_info\":["
+                         "    [1, {"
+                         "      \"doc_count\":512,"
+                         "      \"builder_name\":\"some_builder\","
+                         "      \"searcher_name\":\"some_searcher\""
+                         "    }],"
+                         "    [3, {"
+                         "      \"doc_count\":600,"
+                         "      \"builder_name\":\"some_builder\","
+                         "      \"searcher_name\":\"some_searcher\""
+                         "    }]"
+                         "  ]"
+                         "}");
+
+    ASSERT_TRUE(segmentMeta.Load(path));
+
+    DumpMetaString(path, "{"
+                         "  \"segment_type\":1,"
+                         "  \"segment_type_string\":\"normal\","
+                         "  \"doc_count\":1024,"
+                         "  \"index_count\":2,"
+                         "  \"segment_data_size\":102400,"
+                         "  \"dimension\":25,"
+                         "  \"index_info\":["
+                         "    [1, {"
+                         "      \"doc_count\":512,"
+                         "      \"builder_name\":\"some_builder\","
+                         "      \"searcher_name\":\"some_searcher\","
+                         "      \"train_stats\":{"
+                         "        \"stats_type\": \"json_string\","
+                         "        \"stats\": \"{\\\"prop\\\":\\\"value\\\"}\""
+                         "      },"
+                         "      \"build_stats\":{"
+                         "        \"stats_type\": \"json_string\","
+                         "        \"stats\": \"{\\\"prop\\\":\\\"value\\\"}\""
+                         "      }"
+                         "    }],"
+                         "    [3, {"
+                         "      \"doc_count\":600,"
+                         "      \"builder_name\":\"some_builder\","
+                         "      \"searcher_name\":\"some_searcher\""
+                         "    }]"
+                         "  ]"
+                         "}");
+
+    ASSERT_TRUE(segmentMeta.Load(path));
+
+    segmentMeta.GetIndexMeta(1, indexMeta);
+
+    ASSERT_EQ(STATS_TYPE_JSON_STRING, indexMeta.trainStats.statsType);
+    ASSERT_EQ("{\"prop\":\"value\"}", indexMeta.trainStats.stats);
+    ASSERT_EQ(STATS_TYPE_JSON_STRING, indexMeta.buildStats.statsType);
+    ASSERT_EQ("{\"prop\":\"value\"}", indexMeta.buildStats.stats);
 }
 
 TEST_F(SegmentMetaTest, TestMerge)

@@ -1,6 +1,14 @@
 #include "build_service/proto/ErrorCollector.h"
 
+#include <cstddef>
+#include <deque>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

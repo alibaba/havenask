@@ -25,8 +25,9 @@ namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, SegmentPosting);
 
 void SegmentPosting::Init(uint8_t compressMode, const std::shared_ptr<util::ByteSliceList>& sliceList,
-                          docid_t baseDocId, uint64_t docCount)
+                          docid64_t baseDocId, uint64_t docCount)
 {
+    assert(baseDocId >= INVALID_DOCID);
     _sliceList = sliceList;
     _baseDocId = baseDocId;
     _docCount = docCount;
@@ -37,14 +38,16 @@ void SegmentPosting::Init(uint8_t compressMode, const std::shared_ptr<util::Byte
     _resource = nullptr;
 }
 
-void SegmentPosting::Init(docid_t baseDocId, uint64_t docCount)
+void SegmentPosting::Init(docid64_t baseDocId, uint64_t docCount)
 {
+    assert(baseDocId >= INVALID_DOCID);
     _baseDocId = baseDocId;
     _docCount = docCount;
 }
 
-void SegmentPosting::Init(uint8_t* data, size_t dataLen, docid_t baseDocId, uint64_t docCount, dictvalue_t dictValue)
+void SegmentPosting::Init(uint8_t* data, size_t dataLen, docid64_t baseDocId, uint64_t docCount, dictvalue_t dictValue)
 {
+    assert(baseDocId >= INVALID_DOCID);
     assert(data != nullptr);
     _isSingleSlice = true;
     util::ByteSlice slice;
@@ -60,8 +63,9 @@ void SegmentPosting::Init(uint8_t* data, size_t dataLen, docid_t baseDocId, uint
     _resource = nullptr;
 }
 
-void SegmentPosting::Init(docid_t baseDocId, uint64_t docCount, dictvalue_t dictValue, bool isDocList, bool dfFirst)
+void SegmentPosting::Init(docid64_t baseDocId, uint64_t docCount, dictvalue_t dictValue, bool isDocList, bool dfFirst)
 {
+    assert(baseDocId >= INVALID_DOCID);
     _baseDocId = baseDocId;
     _docCount = docCount;
     _compressMode = ShortListOptimizeUtil::GetCompressMode(dictValue);
@@ -74,8 +78,9 @@ void SegmentPosting::Init(docid_t baseDocId, uint64_t docCount, dictvalue_t dict
     _resource = nullptr;
 }
 
-void SegmentPosting::Init(docid_t baseDocId, uint32_t docCount, PostingWriter* postingWriter)
+void SegmentPosting::Init(docid64_t baseDocId, uint32_t docCount, PostingWriter* postingWriter)
 {
+    assert(baseDocId >= INVALID_DOCID);
     _baseDocId = baseDocId;
     _docCount = docCount;
     _isSingleSlice = false;
@@ -89,14 +94,14 @@ TermMeta SegmentPosting::GetCurrentTermMeta() const
         TermMeta tm;
         TermMetaLoader tmLoader(_postingFormatOption);
         file_system::ByteSliceReader reader;
-        reader.Open(const_cast<util::ByteSlice*>(&_singleSlice));
+        reader.Open(const_cast<util::ByteSlice*>(&_singleSlice)).GetOrThrow();
         tmLoader.Load(&reader, tm);
         return tm;
     }
 
     if (ShortListOptimizeUtil::GetDocCompressMode(_compressMode) == DICT_INLINE_COMPRESS_MODE) {
         if (_isDocListDictInline) { // doclist dictinline
-            docid_t beginDocid;
+            docid32_t beginDocid;
             df_t df;
             assert(_dfFirstDictInline != std::nullopt);
             DictInlineDecoder::DecodeContinuousDocId({_dfFirstDictInline.value(), _dictInlinePostingData}, beginDocid,
@@ -118,7 +123,8 @@ TermMeta SegmentPosting::GetCurrentTermMeta() const
     if (_sliceList) {
         TermMeta tm;
         TermMetaLoader tmLoader(_postingFormatOption);
-        file_system::ByteSliceReader reader(_sliceList.get());
+        file_system::ByteSliceReader reader;
+        reader.Open(_sliceList.get()).GetOrThrow();
         tmLoader.Load(&reader, tm);
         return tm;
     }

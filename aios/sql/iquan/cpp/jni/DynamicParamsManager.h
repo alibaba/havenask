@@ -25,8 +25,8 @@ namespace iquan {
 
 class DynamicParamsManager {
 public:
-    bool addLayerTableMeta(const std::string name, LayerTableMetaPtr meta) {
-        return layerTableMetaMap.insert(std::make_pair(name, meta)).second;
+    bool addLayerTableMeta(const std::string &fullPath, LayerTableMetaPtr meta) {
+        return layerTableMetaMap.insert(std::make_pair(fullPath, meta)).second;
     }
 
     const std::unordered_map<std::string, LayerTableMetaPtr> &getLayerTableMetaMap() const {

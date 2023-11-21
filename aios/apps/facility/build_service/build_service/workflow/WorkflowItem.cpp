@@ -15,6 +15,14 @@
  */
 #include "build_service/workflow/WorkflowItem.h"
 
+#include <assert.h>
+#include <string>
+#include <typeinfo>
+#include <unistd.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+
 namespace build_service { namespace workflow {
 BS_LOG_SETUP(workflow, WorkflowItemBase);
 
@@ -31,6 +39,8 @@ WorkflowItemBase::WorkflowItemBase(ProducerBase* producer, ConsumerBase* consume
     , _producer(producer)
     , _consumer(consumer)
 {
+    BS_LOG(INFO, "WorkflowItemBase: Procucer[%s] --> Consumer[%s]", producer ? typeid(*producer).name() : "",
+           consumer ? typeid(*consumer).name() : "");
 }
 
 WorkflowItemBase::~WorkflowItemBase()
@@ -72,6 +82,7 @@ void WorkflowItemBase::stop(StopOption stopOption)
 
 void WorkflowItemBase::drop()
 {
+    BS_LOG(INFO, "drop WorkflowItem, status[%d]", _status);
     assert(!_running);
     _status = WFS_STOPPING;
     if (processFinished() && !_consumer->getLocator(_stopLocator)) {

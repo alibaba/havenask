@@ -13,7 +13,7 @@ cc_library(
 )
 cc_library(
     name='document',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[':document_parser', ':document_query', ':raw_document']
 )
 cc_library(
@@ -22,7 +22,7 @@ cc_library(
     hdrs=['index_locator.h'],
     copts=['-Werror'],
     include_prefix='indexlib/document',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/base:Progress',
         '//aios/storage/indexlib/framework:Locator',
@@ -37,7 +37,7 @@ cc_library(
     hdrs=['locator.h'],
     copts=['-Werror'],
     include_prefix='indexlib/document',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib:indexlib_h',
         '//aios/storage/indexlib/indexlib:indexlib_misc'
@@ -67,7 +67,7 @@ cc_library(
                   'builtin_parser_init_param.h'
               ]),
     include_prefix='indexlib/document',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         ':index_locator', ':kv_fbs_h', ':locator', '//aios/autil:hash_map',
         '//aios/autil:object_allocator',
@@ -106,7 +106,7 @@ cc_library(
         '//aios/storage/indexlib/indexlib:indexlib_plugin',
         '//aios/storage/indexlib/indexlib/common:field_format',
         '//aios/storage/indexlib/indexlib/config',
-        '//aios/storage/indexlib/indexlib/util:base'
+        '//aios/storage/indexlib/indexlib/util:util_all'
     ],
     alwayslink=True
 )
@@ -116,7 +116,7 @@ cc_library(
     hdrs=glob(['document_rewriter/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/document',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':raw_document', '//aios/autil:scope'],
     alwayslink=True
 )
@@ -126,8 +126,7 @@ cc_library(
         glob([
             'document_parser/*.cpp', 'document_parser/kv_parser/*.cpp',
             'document_parser/line_data_parser/*.cpp',
-            'document_parser/normal_parser/*.cpp',
-            'document_parser/source_schema_parser/*.cpp'
+            'document_parser/normal_parser/*.cpp'
         ]) + [
             'document_factory.cpp', 'document_factory_wrapper.cpp',
             'built_in_document_factory.cpp'
@@ -137,8 +136,7 @@ cc_library(
         glob([
             'document_parser/*.h', 'document_parser/kv_parser/*.h',
             'document_parser/line_data_parser/*.h',
-            'document_parser/normal_parser/*.h',
-            'document_parser/source_schema_parser/*.h'
+            'document_parser/normal_parser/*.h'
         ]) + [
             'document_factory.h', 'document_factory_wrapper.h',
             'built_in_document_factory.h', 'builtin_parser_init_param.h'
@@ -146,7 +144,7 @@ cc_library(
     ),
     copts=['-Werror'],
     include_prefix='indexlib/document',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':document_rewriter', ':raw_document', '//aios/autil:scope',
         '//aios/storage/indexlib/index/common/field_format/date:DateFieldEncoder',
@@ -161,7 +159,7 @@ cc_library(
     hdrs=glob(['query/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/document',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':raw_document', '//aios/autil:url_util'],
     alwayslink=True
 )

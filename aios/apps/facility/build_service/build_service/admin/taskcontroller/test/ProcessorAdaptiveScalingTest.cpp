@@ -1,7 +1,21 @@
 #include "build_service/admin/taskcontroller/ProcessorAdaptiveScaling.h"
 
+#include <iosfwd>
+#include <memory>
+#include <optional>
+#include <stdint.h>
+#include <utility>
+#include <vector>
+
+#include "autil/TimeUtility.h"
+#include "build_service/admin/taskcontroller/NodeStatusManager.h"
+#include "build_service/config/ProcessorAdaptiveScalingConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/proto/WorkerNodeCreator.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

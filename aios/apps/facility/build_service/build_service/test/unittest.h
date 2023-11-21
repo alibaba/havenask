@@ -1,5 +1,4 @@
-#ifndef __BUILD_SERVICE_UNITTEST_H
-#define __BUILD_SERVICE_UNITTEST_H
+#pragma once
 
 #include <chrono>
 #include <dlfcn.h>
@@ -74,5 +73,3 @@ bool timeWait(std::function<bool()> predicate, Duration checkDuration, size_t ch
 }
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(build_service, test);
-
-#endif //__BUILD_SERVICE_UNITTEST_H

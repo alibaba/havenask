@@ -1,7 +1,16 @@
 #include "build_service/config/SrcNodeConfig.h"
 
+#include <iosfwd>
+#include <string>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/test/unittest.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/online_config.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

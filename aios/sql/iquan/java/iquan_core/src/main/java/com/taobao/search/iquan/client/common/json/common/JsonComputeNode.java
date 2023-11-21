@@ -10,15 +10,15 @@ public class JsonComputeNode {
     @JsonProperty(value = "location", required = true)
     private JsonLocation location;
 
+    public JsonComputeNode() {
+    }
+
     public JsonLocation getLocation() {
         return location;
     }
 
     public void setLocation(JsonLocation location) {
         this.location = location;
-    }
-
-    public JsonComputeNode() {
     }
 
     @JsonIgnore

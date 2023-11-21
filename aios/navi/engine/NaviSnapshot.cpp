@@ -17,22 +17,55 @@
 
 #include "autil/StringUtil.h"
 #include "lockless_allocator/LocklessApi.h"
+#include "multi_call/interface/QuerySession.h"
+#include "navi/engine/EvTimer.h"
 #include "navi/engine/NaviSession.h"
-#include "navi/engine/NaviSnapshotStat.h"
+#include "navi/engine/NaviSnapshotSummary.h"
 #include "navi/engine/NaviStreamSession.h"
 #include "navi/engine/NaviThreadPool.h"
-#include "navi/engine/NaviSnapshotSummary.h"
-#include "navi/engine/EvTimer.h"
+#include "navi/engine/TaskQueue.h"
+#include "navi/engine/NaviHostInfo.h"
 #include "navi/ops/ResourceData.h"
 #include "navi/perf/NaviSymbolTable.h"
 #include "navi/resource/GigClientR.h"
-#include <multi_call/interface/QuerySession.h>
 
 namespace navi {
 
-NaviSnapshot::NaviSnapshot(const std::string &naviName)
-    : _naviName(naviName)
-    , _testMode(TM_NOT_TEST)
+template <typename T, typename... U>
+static int64_t timerAllocAndNewObject(T *&obj, U &&...args) {
+    autil::ScopedTime2 timer;
+    obj = (T *)operator new(sizeof(T));
+    int64_t latency = timer.done_us();
+    new (obj) T(std::forward<U>(args)...);
+    return latency;
+}
+
+class NaviSessionScheduleItem : public TaskQueueScheduleItemBase {
+public:
+    NaviSessionScheduleItem(NaviSession *session) : _session(session) {}
+    ~NaviSessionScheduleItem() {}
+
+public:
+    void process() override {
+        if (_session) {
+            auto logger = _session->getLogger();
+            NaviLoggerScope scope(logger);
+            _session->initSchedule();
+        }
+        _session = nullptr;
+    }
+    void destroy() override {
+        DELETE_AND_SET_NULL(_session);
+        delete this;
+    }
+
+private:
+    NaviSession *_session = nullptr;
+};
+
+NaviSnapshot::NaviSnapshot(const NaviHostInfoPtr &hostInfo)
+    : _hostInfo(hostInfo)
+    , _testMode(TM_NONE)
     , _gigRpcServer(nullptr)
 {
 }
@@ -120,25 +153,19 @@ bool NaviSnapshot::initLogger(InstanceId instanceId,
 
 bool NaviSnapshot::initSingleTaskQueue(const std::string &name,
                                        const ConcurrencyConfig &config,
-                                       TaskQueueUPtr &taskQueue) {
-    NAVI_LOG(INFO, "init with name[%s] config[%s]", name.c_str(), ToJsonString(config).c_str());
+                                       std::unique_ptr<TaskQueue> &taskQueue)
+{
     taskQueue = std::make_unique<TaskQueue>();
-    taskQueue->name = name;
-    auto threadPool = std::make_shared<NaviThreadPool>();
-    if (!threadPool->start(config, _logger.logger, name == "" ? "navi_worker" : "nvworker_" + name)) {
-        NAVI_LOG(ERROR, "extra thread pool [%s] start failed, config[%s]",
-                 name.c_str(), ToJsonString(config).c_str());
+    if (!taskQueue->init(name, config, getTestMode())) {
         return false;
     }
-    taskQueue->threadPool = threadPool;
-    atomic_set(&taskQueue->processingCount, 0);
-    taskQueue->processingMax = config.processingSize;
-    taskQueue->scheduleQueueMax = config.queueSize;
     return true;
 }
 
 bool NaviSnapshot::initTaskQueue() {
-    if (!initSingleTaskQueue("", _config->engineConfig.builtinTaskQueue, _defaultTaskQueue)) {
+    if (!initSingleTaskQueue("", _config->engineConfig.builtinTaskQueue,
+                             _defaultTaskQueue))
+    {
         NAVI_LOG(ERROR, "init default task queue failed");
         return false;
     }
@@ -147,7 +174,7 @@ bool NaviSnapshot::initTaskQueue() {
             NAVI_LOG(ERROR, "config error, empty extra queue name is not allowed");
             return false;
         }
-        TaskQueueUPtr entry;
+        std::unique_ptr<TaskQueue> entry;
         if (!initSingleTaskQueue(pair.first, pair.second, entry)) {
             NAVI_LOG(ERROR, "init task queue[%s] failed", pair.first.c_str());
             return false;
@@ -164,18 +191,18 @@ bool NaviSnapshot::initTaskQueue() {
 }
 
 bool NaviSnapshot::initNaviPerf() {
-    if (_testMode != TM_NOT_TEST) {
+    if (_testMode != TM_NONE) {
         return true;
     }
     if (_config->engineConfig.disablePerf) {
         return true;
     }
-    const auto &pidVec = _defaultTaskQueue->threadPool->getPidVec();
+    const auto &pidVec = _defaultTaskQueue->getThreadPool()->getPidVec();
     for (auto pid : pidVec) {
         _naviPerf.addPid(pid);
     }
     for (const auto &pair : _extraTaskQueueMap) {
-        const auto &extraPidVec = pair.second->threadPool->getPidVec();
+        const auto &extraPidVec = pair.second->getThreadPool()->getPidVec();
         for (auto pid : extraPidVec) {
             _naviPerf.addPid(pid);
         }
@@ -191,7 +218,7 @@ bool NaviSnapshot::initNaviPerf() {
 }
 
 bool NaviSnapshot::initSymbolTable() {
-    if (_testMode != TM_NOT_TEST) {
+    if (_testMode != TM_NONE) {
         return true;
     }
     if (_config->engineConfig.disableSymbolTable) {
@@ -228,7 +255,7 @@ bool NaviSnapshot::initBizManager(const ModuleManagerPtr &moduleManager,
     }
     ResourceMap resourceMap(rootResourceMap.getMap());
     addBuildinRootResource(gigRpcServer, resourceMap);
-    _bizManager = std::make_shared<BizManager>(_naviName, moduleManager);
+    _bizManager = std::make_shared<BizManager>(_hostInfo->getNaviName(), moduleManager);
     _bizManager->setTestMode(_testMode);
     auto ret = _bizManager->preInit(_logger.logger, oldBizManager.get(),
                                     *_config, resourceMap);
@@ -263,6 +290,7 @@ bool NaviSnapshot::initBizResource(const ResourceMap &rootResourceMap) {
     NAVI_LOG(INFO, "root resource map [%s]", autil::StringUtil::toString(rootResourceMap).c_str());
     RunGraphParams params;
     params.setResourceStage(RS_SNAPSHOT);
+    params.setCollectMetric(true);
     auto result = runGraph(graphDef, params, &rootResourceMap);
     if (!result) {
         NAVI_LOG(ERROR, "run resource graph failed");
@@ -376,7 +404,36 @@ bool NaviSnapshot::collectResultResource(const NaviUserResultPtr &result,
     if (waiter) {
         waiter->stop();
     }
-    return EC_NONE == result->getNaviResult()->ec;
+    auto naviResult = result->getNaviResult();
+    if (!naviResult) {
+        NAVI_LOG(ERROR, "get navi result failed");
+        return false;
+    }
+    logVisData(naviResult);
+    return !naviResult->hasError();
+}
+
+void NaviSnapshot::logVisData(const NaviResultPtr &naviResult) const {
+    if (!naviResult) {
+        NAVI_LOG(ERROR, "log init vis data failed, null navi result");
+        return;
+    }
+    auto visProto = naviResult->getVisProto();
+    if (!visProto) {
+        NAVI_LOG(ERROR, "log init vis data failed, null vis data");
+        return;
+    }
+    const auto &naviName = _hostInfo->getNaviName();
+    std::string filePrefix;
+    if (!naviName.empty()) {
+        filePrefix = "./navi." + naviName + ".snapshot";
+    } else {
+        filePrefix = "./navi.snapshot";
+    }
+    NaviSnapshotSummary::writeFile(filePrefix + ".vis",
+                                   visProto->SerializeAsString());
+    NaviSnapshotSummary::writeFile(filePrefix + ".vis.str",
+                                   visProto->DebugString());
 }
 
 NaviObjectLogger NaviSnapshot::getObjectLogger(SessionId id) {
@@ -412,27 +469,6 @@ void NaviSnapshot::cleanupModule() {
     }
 }
 
-void NaviSnapshot::stopSingleTaskQueue(TaskQueue *taskQueue) {
-    size_t count = 0;
-    while (!taskQueue->sessionScheduleQueue.Empty()) {
-        if (count++ % 200 == 0) {
-            NAVI_LOG(INFO,
-                     "taskQueue[%s] session schedule queue not empty, size[%lu], loop[%lu], waiting...",
-                     taskQueue->name.c_str(),
-                     taskQueue->sessionScheduleQueue.Size(),
-                     count);
-        }
-        usleep(1 * 1000);
-    }
-    auto threadPool = std::move(taskQueue->threadPool);
-    if (threadPool) {
-        CommonUtil::waitUseCount(threadPool, 1);
-        threadPool->stop();
-        threadPool.reset();
-    }
-    assert(atomic_read(&taskQueue->processingCount) == 0 && "processing count must be zero");
-}
-
 void NaviSnapshot::stop() {
     if (_naviRpcServer) {
         _naviRpcServer->stop();
@@ -443,9 +479,11 @@ void NaviSnapshot::stop() {
     _collectThread.reset();
     NaviLoggerScope scope(_logger);
     _naviPerf.stop();
-    stopSingleTaskQueue(_defaultTaskQueue.get());
+    if (_defaultTaskQueue) {
+        _defaultTaskQueue->stop();
+    }
     for (auto &pair : _extraTaskQueueMap) {
-        stopSingleTaskQueue(pair.second.get());
+        pair.second->stop();
     }
     auto destructThreadPool = std::move(_destructThreadPool);
     if (destructThreadPool) {
@@ -491,34 +529,21 @@ void NaviSnapshot::runGraphAsync(GraphDef *graphDef,
     }
 }
 
-void NaviSnapshot::onSessionDestruct(TaskQueue *taskQueue) {
-    assert(taskQueue && "task queue entry must not be nullptr");
-    NAVI_KERNEL_LOG(SCHEDULE1,
-                    "session destruct, queue size[%lu] processing count[%lld]",
-                    taskQueue->sessionScheduleQueue.Size(),
-                    atomic_read(&taskQueue->processingCount));
-    NaviWorkerBase *session = nullptr;
-    if (taskQueue->sessionScheduleQueue.Pop(&session)) {
-        auto logger = session->getLogger();
-        NaviLoggerScope scope(logger);
-        NAVI_KERNEL_LOG(SCHEDULE1, "pop session from schedule queue. queue size[%lu]", taskQueue->sessionScheduleQueue.Size());
-        session->initSchedule(false, this);
-    } else {
-        atomic_dec(&taskQueue->processingCount);
-        assert(atomic_read(&taskQueue->processingCount) >= 0 && "processing count must not be negative");
-        doSchedule(taskQueue);
-    }
-}
+// push stream session to schedule queue
+void NaviSnapshot::runStreamSession(const std::string &taskQueueName,
+                                    const SessionId &sessionId,
+                                    TaskQueueScheduleItemBase *item,
+                                    std::shared_ptr<NaviLogger> &logger)
+{
 
-void NaviSnapshot::doSchedule(TaskQueue *taskQueue) {
-    NaviWorkerBase *session = nullptr;
-    if (atomic_read(&taskQueue->processingCount) < taskQueue->processingMax && taskQueue->sessionScheduleQueue.Pop(&session)) {
-        auto logger = session->getLogger();
-        NaviLoggerScope scope(logger);
-        NAVI_KERNEL_LOG(SCHEDULE1, "pop session from schedule queue. queue size[%lu]",
-                        taskQueue->sessionScheduleQueue.Size());
-        atomic_inc(&taskQueue->processingCount);
-        session->initSchedule(false, this);
+    auto objectLogger = getObjectLogger(sessionId);
+    logger = objectLogger.logger;
+    NaviLoggerScope scope(objectLogger);
+
+    auto *taskQueue = getTaskQueue(taskQueueName);
+    if (!taskQueue->push(item)) { // dropped as schedule queue full
+        NAVI_KERNEL_LOG(WARN, "session push failed, dropped");
+        REPORT_USER_MUTABLE_QPS(_metricsReporter, "dropQps");
     }
 }
 
@@ -541,112 +566,66 @@ bool NaviSnapshot::runGraphImpl(GraphDef *graphDef,
     auto *taskQueue = getTaskQueue(params.getTaskQueueName());
     auto logger = getObjectLogger(SessionId());
     NaviLoggerScope scope(logger);
-    NAVI_KERNEL_LOG(SCHEDULE1,
-                    "snapshot run graph, queue size[%lu] processing count[%lld]",
-                    taskQueue->sessionScheduleQueue.Size(),
-                    atomic_read(&taskQueue->processingCount));
-    size_t queueSize = taskQueue->sessionScheduleQueue.Size();
-    if (TM_NOT_TEST == _testMode && queueSize >= taskQueue->scheduleQueueMax) {
-        DELETE_AND_SET_NULL(graphDef);
-        NAVI_KERNEL_LOG(WARN, "session schedule queue full, limit [%lu], dropped",
-                        taskQueue->scheduleQueueMax);
-        REPORT_USER_MUTABLE_QPS(_metricsReporter, "dropQps");
-        return false;
-    }
-
-    auto runStartTime = autil::TimeUtility::currentTime();
     NaviSession *session = nullptr;
     {
         DisablePoolScope disableScope;
-        session = new NaviSession(logger.logger, taskQueue, _bizManager.get(), graphDef, resourceMap, closure);
+        int64_t latency = timerAllocAndNewObject(session, taskQueue, _bizManager.get(), graphDef, resourceMap, closure);
+        session->setNewSessionLatency(latency);
     }
-    session->setRunStartTime(runStartTime);
+    session->setTestMode(getTestMode());
 
     naviUserResult = session->getUserResult();
     if (_metricsReporter) {
         session->setMetricsReporter(*_metricsReporter);
     }
+    fillSnapshotResource(params, session);
     if (!session->init(params, nullptr)) {
         DELETE_AND_SET_NULL(session);
-        NAVI_KERNEL_LOG(WARN, "session init failed, dropped");
+        NAVI_KERNEL_LOG(WARN, "session init failed");
         REPORT_USER_MUTABLE_QPS(_metricsReporter, "initFailedQps");
         return false;
     }
-    initSnapshotResource(session);
-    if (_testMode != TM_NOT_TEST) {
-        atomic_inc(&taskQueue->processingCount);
-        session->initSchedule(true, this);
-    } else if (queueSize == 0 && atomic_read(&taskQueue->processingCount) < taskQueue->processingMax) {
-        NAVI_KERNEL_LOG(SCHEDULE1,
-                        "schedule session directly, queue size[%lu] processing count[%lld]",
-                        taskQueue->sessionScheduleQueue.Size(),
-                        atomic_read(&taskQueue->processingCount));
-        atomic_inc(&taskQueue->processingCount);
-        session->initSchedule(false, this);
-    } else {
-        NAVI_KERNEL_LOG(SCHEDULE1,
-                        "push session to schedule queue, queue size[%lu] processing count[%lld]",
-                        taskQueue->sessionScheduleQueue.Size(),
-                        atomic_read(&taskQueue->processingCount));
-        taskQueue->sessionScheduleQueue.Push(session);
-        doSchedule(taskQueue);
+    auto *item = new NaviSessionScheduleItem(session);
+    if (!taskQueue->push(item)) {
+        NAVI_KERNEL_LOG(WARN, "session push failed, dropped");
+        REPORT_USER_MUTABLE_QPS(_metricsReporter, "dropQps");
+        return false;
     }
     return true;
 }
 
-bool NaviSnapshot::runGraph(
-        NaviMessage *request,
-        const ArenaPtr &arena,
-        const RunParams &pbParams,
-        const std::shared_ptr<multi_call::GigStreamBase> &stream,
-        NaviLoggerPtr &logger)
-{
+// run stream session after popped from schedule queue
+bool NaviSnapshot::doRunStreamSession(NaviMessage *request,
+                                      const ArenaPtr &arena,
+                                      const RunParams &pbParams,
+                                      const std::shared_ptr<multi_call::GigStreamBase> &stream) {
     auto *taskQueue = getTaskQueue(pbParams.task_queue_name());
-    SessionId sessionId;
-    sessionId.instance = pbParams.id().instance();
-    sessionId.queryId = pbParams.id().query_id();
-    auto objectLogger = getObjectLogger(sessionId);
-    logger = objectLogger.logger;
-    NaviLoggerScope scope(objectLogger);
-    // TODO: add schedule queue
-    auto processingCount = atomic_read(&taskQueue->processingCount);
-    if (processingCount > taskQueue->processingMax) {
-        NAVI_KERNEL_LOG(WARN, "processing count too much, dropped, current [%lld] limit [%lu]",
-                        processingCount, taskQueue->processingMax);
-        REPORT_USER_MUTABLE_QPS(_metricsReporter, "dropQps");
-        return false;
-    }
-
-    auto runStartTime = autil::TimeUtility::currentTime();
     NaviStreamSession *session = nullptr;
     {
         DisablePoolScope disableScope;
-        session = new NaviStreamSession(objectLogger.logger, taskQueue, _bizManager.get(), request, arena, stream);
+        int64_t latency = timerAllocAndNewObject(session, taskQueue, _bizManager.get(), request, arena, stream);
+        session->setNewSessionLatency(latency);
     }
-    session->setRunStartTime(runStartTime);
+    session->setTestMode(getTestMode());
     RunGraphParams params;
     if (!parseRunParams(pbParams, params)) {
         DELETE_AND_SET_NULL(session);
+        taskQueue->scheduleNext();
         return false;
     }
     params.setAsyncIo(stream->isAsyncMode());
+    fillSnapshotResource(params, session);
     if (!session->init(params, stream->getQueryInfo())) {
         DELETE_AND_SET_NULL(session);
         NAVI_KERNEL_LOG(WARN, "stream session init failed, dropped");
         REPORT_USER_MUTABLE_QPS(_metricsReporter, "initStreamFailedQps");
+        taskQueue->scheduleNext();
         return false;
     }
     if (_metricsReporter) {
         session->setMetricsReporter(*_metricsReporter);
     }
-    initSnapshotResource(session);
-
-    NAVI_KERNEL_LOG(SCHEDULE1,
-                    "schedule session directly, processing count[%lld]",
-                    processingCount);
-    atomic_inc(&taskQueue->processingCount);
-    session->initSchedule(true, this);
-
+    session->initSchedule();
     return true;
 }
 
@@ -657,11 +636,14 @@ bool NaviSnapshot::parseRunParams(const RunParams &pbParams,
     return RunGraphParams::fromProto(pbParams, creatorManager.get(), params);
 }
 
-void NaviSnapshot::initSnapshotResource(NaviWorkerBase *session) {
+void NaviSnapshot::fillSnapshotResource(const RunGraphParams &params, NaviWorkerBase *session) {
     session->setDestructThreadPool(_destructThreadPool);
     session->setNaviPerf(&_naviPerf);
     session->setNaviSymbolTable(_naviSymbolTable);
     session->setEvTimer(_evTimer.get());
+    if (params.needCollect()) {
+        session->setHostInfo(_hostInfo.get());
+    }
 }
 
 bool NaviSnapshot::createResource(const std::string &bizName,
@@ -687,35 +669,22 @@ bool NaviSnapshot::createResource(const std::string &bizName,
     return true;
 }
 
-void NaviSnapshot::getTaskQueueStat(const TaskQueue *taskQueue, NaviSnapshotStat &stat) const
-{
-    stat.activeThreadCount = taskQueue->threadPool->getRunningThreadCount();
-    stat.activeThreadQueueSize = taskQueue->threadPool->getQueueSize();
-    stat.processingCount = atomic_read(&taskQueue->processingCount);
-    stat.queueCount = taskQueue->sessionScheduleQueue.Size();
-    stat.processingCountRatio =
-        taskQueue->processingMax > 0 ? stat.processingCount * 100 / taskQueue->processingMax : 0;
-    stat.queueCountRatio =
-        taskQueue->scheduleQueueMax > 0 ? stat.queueCount * 100 / taskQueue->scheduleQueueMax : 0;
-}
-
 void NaviSnapshot::reportStat(kmonitor::MetricsReporter &reporter) {
-    NaviSnapshotStat stat;
-    getTaskQueueStat(_defaultTaskQueue.get(), stat);
     {
+        auto stat = _defaultTaskQueue->getStat();
         kmonitor::MetricsTags tag{"name", "builtin"};
-        _metricsReporter->report<NaviSnapshotStatMetrics>(&tag, &stat);
+        _metricsReporter->report<TaskQueueStatMetrics>(&tag, &stat);
     }
     for (auto &pair : _extraTaskQueueMap) {
-        getTaskQueueStat(pair.second.get(), stat);
+        auto stat = pair.second->getStat();
         kmonitor::MetricsTags tag{"name", pair.first};
-        _metricsReporter->report<NaviSnapshotStatMetrics>(&tag, &stat);
+        _metricsReporter->report<TaskQueueStatMetrics>(&tag, &stat);
     }
 }
 
 void NaviSnapshot::logSummary(const std::string &stage) const {
     NaviSnapshotSummary summary;
-    summary.naviName = _naviName;
+    summary.naviName = _hostInfo->getNaviName();
     summary.stage = stage;
     summary.config = _config.get();
     if (_bizManager) {

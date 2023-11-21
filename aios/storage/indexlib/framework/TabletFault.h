@@ -15,8 +15,14 @@
  */
 #pragma once
 
+#include <limits>
+#include <optional>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
 #include "autil/Log.h"
-#include "autil/NoCopyable.h"
 #include "autil/legacy/jsonizable.h"
 
 namespace indexlibv2::framework {

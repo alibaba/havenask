@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ONLINE_CONFIG_BASE_H
-#define __INDEXLIB_ONLINE_CONFIG_BASE_H
+#pragma once
 
 #include <memory>
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/build_config.h"
 #include "indexlib/config/configurator_define.h"
 #include "indexlib/config/kv_online_config.h"
 #include "indexlib/config/load_config_list.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -108,10 +107,8 @@ private:
     bool needDeployIndex;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(OnlineConfigBase);
+typedef std::shared_ptr<OnlineConfigBase> OnlineConfigBasePtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_ONLINE_CONFIG_BASE_H

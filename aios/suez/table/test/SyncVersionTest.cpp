@@ -23,7 +23,7 @@ public:
         _versionPublisher = std::make_unique<NiceMockVersionPublisher>();
         _versionSync = std::make_unique<NiceMockVersionSynchronizer>();
 
-        _pid = TableMetaUtil::makePid("t1", 1);
+        _pid = TableMetaUtil::makePid("table", 1);
         _table = TableTestUtil::make(_pid);
     }
 
@@ -43,9 +43,8 @@ TEST_F(SyncVersionTest, testSyncForLeader) {
     ASSERT_EQ(fslib::EC_OK, ec);
     TargetPartitionMeta target;
     target.setRawIndexRoot(indexRoot);
-    target.setConfigPath("dfs://xxxx/0");
-    std::string expectedLocalConfigPath =
-        TablePathDefine::constructLocalConfigPath(_pid.getTableName(), target.getConfigPath());
+    target.setConfigPath(GET_TEST_DATA_PATH() + "/table_test/empty_config");
+    std::string expectedConfigPath = target.getConfigPath();
     SyncVersion sync(_table,
                      target,
                      _leaderElectionMgr.get(),
@@ -54,7 +53,7 @@ TEST_F(SyncVersionTest, testSyncForLeader) {
                      _versionSync.get(),
                      SyncVersion::SE_COMMIT);
     EXPECT_CALL(*_leaderElectionMgr, getRoleType(_)).WillRepeatedly(Return(RT_LEADER));
-    EXPECT_CALL(*_versionSync, persistVersion(_, expectedLocalConfigPath, _)).Times(0);
+    EXPECT_CALL(*_versionSync, persistVersion(_, _, _, expectedConfigPath, _)).Times(0);
     EXPECT_CALL(*_versionPublisher, publish(_, _, _)).Times(0);
     EXPECT_CALL(*_leaderElectionMgr, removePartition(_)).Times(0);
     sync.run();
@@ -62,7 +61,7 @@ TEST_F(SyncVersionTest, testSyncForLeader) {
     TableVersion localVersion(1);
     localVersion.setIsLeaderVersion(true);
     ASSERT_TRUE(_versionMgr->updateLocalVersion(_pid, localVersion));
-    EXPECT_CALL(*_versionSync, persistVersion(_pid, expectedLocalConfigPath, _)).WillOnce(Return(true));
+    EXPECT_CALL(*_versionSync, persistVersion(_pid, _, _, expectedConfigPath, _)).WillOnce(Return(true));
     EXPECT_CALL(*_versionPublisher, publish(_, _pid, _)).WillOnce(Return(true));
     EXPECT_CALL(*_leaderElectionMgr, removePartition(_)).Times(0);
     sync.run();
@@ -77,7 +76,7 @@ TEST_F(SyncVersionTest, testSyncForLeader) {
     sealedVersion.setFinished(true);
     sealedVersion.setIsLeaderVersion(true);
     ASSERT_TRUE(_versionMgr->updateLocalVersion(_pid, sealedVersion));
-    EXPECT_CALL(*_versionSync, persistVersion(_pid, _, _)).WillOnce(Return(false));
+    EXPECT_CALL(*_versionSync, persistVersion(_pid, _, _, _, _)).WillOnce(Return(false));
     EXPECT_CALL(*_versionPublisher, publish(_, _pid, _)).Times(0);
     EXPECT_CALL(*_leaderElectionMgr, removePartition(_)).Times(0);
     sync.run();
@@ -91,7 +90,7 @@ TEST_F(SyncVersionTest, testSyncForLeader) {
         ASSERT_EQ(pv.leaderVersion, pv.publishedVersion);
     }
 
-    EXPECT_CALL(*_versionSync, persistVersion(_pid, _, _)).WillOnce(Return(true));
+    EXPECT_CALL(*_versionSync, persistVersion(_pid, _, _, _, _)).WillOnce(Return(true));
     EXPECT_CALL(*_versionPublisher, publish(_, _pid, _)).WillOnce(Return(false));
     EXPECT_CALL(*_leaderElectionMgr, removePartition(_)).Times(0);
     sync.run();
@@ -105,7 +104,7 @@ TEST_F(SyncVersionTest, testSyncForLeader) {
         ASSERT_NE(pv.localVersion, pv.publishedVersion);
     }
 
-    EXPECT_CALL(*_versionSync, persistVersion(_pid, _, _)).Times(0);
+    EXPECT_CALL(*_versionSync, persistVersion(_pid, _, _, _, _)).Times(0);
     EXPECT_CALL(*_versionPublisher, publish(_, _pid, _)).WillOnce(Return(true));
     EXPECT_CALL(*_leaderElectionMgr, seal(_)).Times(1);
     sync.run();
@@ -121,6 +120,7 @@ TEST_F(SyncVersionTest, testSyncForLeader) {
 TEST_F(SyncVersionTest, testSyncForFollower) {
     TargetPartitionMeta target;
     target.setRawIndexRoot("/index/root");
+    target.setConfigPath(GET_TEST_DATA_PATH() + "/table_test/empty_config");
     SyncVersion sync(_table,
                      target,
                      _leaderElectionMgr.get(),
@@ -132,8 +132,8 @@ TEST_F(SyncVersionTest, testSyncForFollower) {
 
     {
         TableVersion leaderVersion(1);
-        EXPECT_CALL(*_versionSync, syncFromPersist(_pid, _, _))
-            .WillOnce(DoAll(SetArgReferee<2>(leaderVersion), Return(true)));
+        EXPECT_CALL(*_versionSync, syncFromPersist(_pid, _, _, _, _))
+            .WillOnce(DoAll(SetArgReferee<4>(leaderVersion), Return(true)));
         EXPECT_CALL(*_versionPublisher, getPublishedVersion(_, _, _, _)).Times(0);
         EXPECT_CALL(*_leaderElectionMgr, removePartition(_pid)).Times(0);
         sync.run();
@@ -146,8 +146,8 @@ TEST_F(SyncVersionTest, testSyncForFollower) {
     {
         TableVersion leaderVersion(2);
         leaderVersion.setFinished(true);
-        EXPECT_CALL(*_versionSync, syncFromPersist(_pid, _, _))
-            .WillOnce(DoAll(SetArgReferee<2>(leaderVersion), Return(true)));
+        EXPECT_CALL(*_versionSync, syncFromPersist(_pid, _, _, _, _))
+            .WillOnce(DoAll(SetArgReferee<4>(leaderVersion), Return(true)));
         EXPECT_CALL(*_versionPublisher, getPublishedVersion(_, _, _, _)).WillOnce(Return(false));
         EXPECT_CALL(*_leaderElectionMgr, removePartition(_pid)).Times(0);
         sync.run();
@@ -160,7 +160,7 @@ TEST_F(SyncVersionTest, testSyncForFollower) {
     {
         TableVersion leaderVersion(2);
         leaderVersion.setFinished(true);
-        EXPECT_CALL(*_versionSync, syncFromPersist(_pid, _, _)).Times(0);
+        EXPECT_CALL(*_versionSync, syncFromPersist(_pid, _, _, _, _)).Times(0);
         EXPECT_CALL(*_versionPublisher, getPublishedVersion(_, _, _, _))
             .WillOnce(DoAll(SetArgReferee<3>(leaderVersion), Return(true)));
         EXPECT_CALL(*_leaderElectionMgr, removePartition(_pid)).Times(0);
@@ -174,7 +174,7 @@ TEST_F(SyncVersionTest, testSyncForFollower) {
     }
 
     {
-        EXPECT_CALL(*_versionSync, syncFromPersist(_pid, _, _)).Times(0);
+        EXPECT_CALL(*_versionSync, syncFromPersist(_pid, _, _, _, _)).Times(0);
         EXPECT_CALL(*_versionPublisher, getPublishedVersion(_, _, _, _)).Times(0);
         EXPECT_CALL(*_leaderElectionMgr, removePartition(_pid)).Times(0);
         EXPECT_CALL(*_leaderElectionMgr, seal(_pid)).Times(1);
@@ -187,8 +187,13 @@ TEST_F(SyncVersionTest, testUpdateVersionList) {
     auto partitionRoot = TablePathDefine::constructIndexPath(indexRoot, _pid);
     auto ec = fslib::fs::FileSystem::mkDir(partitionRoot, true);
     ASSERT_EQ(fslib::EC_OK, ec);
+    ASSERT_EQ(fslib::EC_OK,
+              fslib::fs::FileSystem::writeFile(partitionRoot + "/../realtime_info.json",
+                                               "{\"app_name\":\"appName\",\"data_table\":\"dataTable\"}"));
+
     TargetPartitionMeta target;
     target.setRawIndexRoot(indexRoot);
+    target.setConfigPath(GET_TEST_DATA_PATH() + "/table_test/empty_config");
     for (int32_t i = 3; i < 5; ++i) {
         indexlibv2::framework::Version version(i);
         auto versionFile = fslib::fs::FileSystem::joinFilePath(partitionRoot, "version." + std::to_string(i));
@@ -216,11 +221,12 @@ TEST_F(SyncVersionTest, testUpdateVersionList) {
     newVersionList.push_back(localVersion);
 
     EXPECT_CALL(*_leaderElectionMgr, getRoleType(_)).WillRepeatedly(Return(RT_LEADER));
-    EXPECT_CALL(*_versionSync, getVersionList(_, _)).WillOnce(DoAll(SetArgReferee<1>(versionList), Return(true)));
-    EXPECT_CALL(*_versionSync, updateVersionList(_pid, newVersionList)).WillOnce(Return(true));
+    EXPECT_CALL(*_versionSync, getVersionList(_, "appName", "dataTable", _))
+        .WillOnce(DoAll(SetArgReferee<3>(versionList), Return(true)));
+    EXPECT_CALL(*_versionSync, updateVersionList(_pid, "appName", "dataTable", newVersionList)).WillOnce(Return(true));
 
     ASSERT_TRUE(_versionMgr->updateLocalVersion(_pid, localVersion));
-    EXPECT_CALL(*_versionSync, persistVersion(_pid, _, _)).WillOnce(Return(true));
+    EXPECT_CALL(*_versionSync, persistVersion(_pid, "appName", "dataTable", _, _)).WillOnce(Return(true));
     EXPECT_CALL(*_versionPublisher, publish(_, _pid, _)).WillOnce(Return(true));
     EXPECT_CALL(*_leaderElectionMgr, removePartition(_)).Times(0);
     sync.run();

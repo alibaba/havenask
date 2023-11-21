@@ -9,30 +9,30 @@ cc_library(
     name='ll_alloc',
     srcs=[],
     copts=['-fPIC', '-fno-sanitize=all'],
+    linkstatic=0,
+    visibility=['//visibility:public'],
     deps=select({
         ':ll_static_link_mode': [':lockless_allocator'],
         '//conditions:default': [':lockless_api']
     }),
-    alwayslink=True,
-    linkstatic=0,
-    visibility=['//visibility:public']
+    alwayslink=True
 )
 cc_library(
     name='lockless_api_header',
     hdrs=glob(['MallocPoolScope.h', 'LocklessApi.h', 'LocklessStat.h']),
-    include_prefix='lockless_allocator',
-    deps=[],
     copts=['-Werror', '-Wno-aligned-new'],
-    visibility=['//visibility:public']
+    include_prefix='lockless_allocator',
+    visibility=['//visibility:public'],
+    deps=[]
 )
 cc_library(
     name='lockless_api',
     srcs=glob(['MallocPoolScope.cpp', 'LocklessApi.cpp']),
     copts=['-fPIC', '-fno-sanitize=all'],
     include_prefix='lockless_allocator',
+    visibility=['//visibility:public'],
     deps=[':lockless_api_header'],
-    alwayslink=True,
-    visibility=['//visibility:public']
+    alwayslink=True
 )
 bundle_version_tar(
     name='ll_alloc_pkg',

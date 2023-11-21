@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DEFAULT_SEGMENT_ATTRIBUTE_UPDATER_H
-#define __INDEXLIB_DEFAULT_SEGMENT_ATTRIBUTE_UPDATER_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -145,5 +144,3 @@ bool MaxMinSegmentMetricsUpdater::GetAttrValues(T& maxValue, T& minValue) const
     return true;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DEFAULT_SEGMENT_METRICS_UPDATER_H

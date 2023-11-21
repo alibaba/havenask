@@ -39,8 +39,7 @@ bool CountAggFunc::initCollectInput(const TablePtr &inputTable) {
 
 bool CountAggFunc::initAccumulatorOutput(const TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
-    _countColumn
-        = TableUtil::declareAndGetColumnData<int64_t>(outputTable, _outputFields[0], false);
+    _countColumn = TableUtil::declareAndGetColumnData<int64_t>(outputTable, _outputFields[0]);
     if (_countColumn == nullptr) {
         return false;
     }

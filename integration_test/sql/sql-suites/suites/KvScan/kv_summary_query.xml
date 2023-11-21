@@ -1,20 +1,20 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Root>
-    <TestCase name="kv_summary_query">
-        <Resource name="sqls">
-            <Element>
+  <TestCase name="kv_summary_query">
+    <Resource name="sqls">
+      <Element>
 <![CDATA[
-SELECT cat_id, category_name FROM kv2_summary_ where cat_id=2
+         SELECT cat_id, category_name FROM kv2_summary_ where cat_id=2
 ]]>
 </Element>
-        </Resource>
-        <Resource name="column_names">"cat_id", "category_name"</Resource>
-        <Resource name="column_types">int32, multi_char</Resource>
-        <Resource name="seq_required">false</Resource>
-        <Resource name="kvpair">databaseName:kv2;</Resource>
-        <Resource name="expect_data">
+    </Resource>
+    <Resource name="column_names">"cat_id", "category_name"</Resource>
+    <Resource name="column_types">int32, multi_char</Resource>
+    <Resource name="seq_required">false</Resource>
+    <Resource name="kvpair">databaseName:kv2;</Resource>
+    <Resource name="expect_data">
 <![CDATA[
-2, "pad"
+         2, "pad"
 ]]>
 </Resource>
 <Resource name="plan">

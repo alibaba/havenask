@@ -60,7 +60,7 @@ PartitionPatchMetaPtr PartitionPatchMetaCreator::Create(const DirectoryPtr& root
         return CreatePatchMetaForModifySchema(rootDir, schema, version);
     }
 
-    schemavid_t lastSchemaId = DEFAULT_SCHEMAID;
+    schemaid_t lastSchemaId = DEFAULT_SCHEMAID;
     PartitionPatchMetaPtr lastPatchMeta = GetLastPartitionPatchMeta(rootDir, lastSchemaId);
     if (lastSchemaId > schema->GetSchemaVersionId()) {
         INDEXLIB_FATAL_ERROR(UnSupported,
@@ -74,11 +74,11 @@ PartitionPatchMetaPtr PartitionPatchMetaCreator::Create(const DirectoryPtr& root
 
 PartitionPatchMetaPtr
 PartitionPatchMetaCreator::GetLastPartitionPatchMeta(const file_system::DirectoryPtr& rootDirectory,
-                                                     schemavid_t& lastSchemaId)
+                                                     schemaid_t& lastSchemaId)
 {
     Version lastVersion;
-    VersionLoader::GetVersion(rootDirectory, lastVersion, INVALID_VERSION);
-    if (lastVersion.GetVersionId() == INVALID_VERSION || lastVersion.GetSchemaVersionId() == DEFAULT_SCHEMAID) {
+    VersionLoader::GetVersion(rootDirectory, lastVersion, INVALID_VERSIONID);
+    if (lastVersion.GetVersionId() == INVALID_VERSIONID || lastVersion.GetSchemaVersionId() == DEFAULT_SCHEMAID) {
         lastSchemaId = DEFAULT_SCHEMAID;
         return PartitionPatchMetaPtr();
     }
@@ -149,19 +149,19 @@ void PartitionPatchMetaCreator::GetValidIndexAndAttribute(const IndexPartitionSc
     }
 }
 
-bool ReverseCompareSchemaId(schemavid_t lft, schemavid_t rht) { return lft > rht; }
+bool ReverseCompareSchemaId(schemaid_t lft, schemaid_t rht) { return lft > rht; }
 
 PartitionPatchMetaPtr PartitionPatchMetaCreator::CreatePatchMeta(const file_system::DirectoryPtr& rootDirectory,
                                                                  const IndexPartitionSchemaPtr& schema,
                                                                  const Version& version,
                                                                  const PartitionPatchMetaPtr& lastPatchMeta,
-                                                                 schemavid_t lastSchemaId)
+                                                                 schemaid_t lastSchemaId)
 {
-    vector<schemavid_t> schemaIdVec;
+    vector<schemaid_t> schemaIdVec;
     FileList patchRootList;
     PartitionPatchIndexAccessor::ListPatchRootDirs(rootDirectory, patchRootList);
     for (size_t i = 0; i < patchRootList.size(); i++) {
-        schemavid_t schemaId;
+        schemaid_t schemaId;
         PartitionPatchIndexAccessor::ExtractSchemaIdFromPatchRootDir(patchRootList[i], schemaId);
         if (schemaId > lastSchemaId && schemaId <= schema->GetSchemaVersionId()) {
             schemaIdVec.push_back(schemaId);
@@ -174,7 +174,7 @@ PartitionPatchMetaPtr PartitionPatchMetaCreator::CreatePatchMeta(const file_syst
 PartitionPatchMetaPtr PartitionPatchMetaCreator::CreatePatchMeta(const file_system::DirectoryPtr& rootDirectory,
                                                                  const IndexPartitionSchemaPtr& schema,
                                                                  const Version& version,
-                                                                 const vector<schemavid_t>& schemaIdVec,
+                                                                 const vector<schemaid_t>& schemaIdVec,
                                                                  const PartitionPatchMetaPtr& lastPatchMeta)
 {
     PartitionPatchMetaPtr patchMeta(new PartitionPatchMeta);
@@ -206,7 +206,7 @@ PartitionPatchMetaPtr PartitionPatchMetaCreator::CreatePatchMeta(const file_syst
         PartitionPatchMeta::Iterator iter = lastPatchMeta->CreateIterator();
         while (iter.HasNext()) {
             SchemaPatchInfoPtr patchInfo = iter.Next();
-            schemavid_t schemaId = patchInfo->GetSchemaId();
+            schemaid_t schemaId = patchInfo->GetSchemaId();
             assert(schemaId != DEFAULT_SCHEMAID);
             SchemaPatchInfo::Iterator sIter = patchInfo->Begin();
             for (; sIter != patchInfo->End(); sIter++) {

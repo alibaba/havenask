@@ -32,7 +32,7 @@ public:
 
 public:
     Status Open(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-                        const indexlibv2::framework::TabletData* tabletData);
+                const indexlibv2::framework::TabletData* tabletData);
 
     // virtual for test
     virtual SectionAttributeReader* Clone() const;

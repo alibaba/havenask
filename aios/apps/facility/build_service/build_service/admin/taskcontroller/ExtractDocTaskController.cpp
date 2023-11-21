@@ -15,12 +15,20 @@
  */
 #include "build_service/admin/taskcontroller/ExtractDocTaskController.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <memory>
+#include <stdint.h>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
-#include "build_service/config/BuildRuleConfig.h"
-#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/TaskTarget.h"
+#include "build_service/proto/Admin.pb.h"
 
 using namespace std;
 using build_service::common::CheckpointAccessorPtr;

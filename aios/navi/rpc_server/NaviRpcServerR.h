@@ -51,10 +51,6 @@ private:
     bool flushRegistry();
     bool flushOneRegistry(const std::shared_ptr<ArpcServiceRegistry> &registry);
     void stop();
-private:
-    static std::map<std::string, std::string> getHttpAliasMap(
-            const std::shared_ptr<google::protobuf::Service> &service,
-            const RegistryArpcParam &arpcParam);
 public:
     static const std::string RESOURCE_ID;
 private:

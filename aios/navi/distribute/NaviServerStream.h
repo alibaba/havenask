@@ -25,15 +25,18 @@ namespace navi {
 class ServerRemoteGraph;
 class NaviServerStreamCreator;
 
-class NaviServerStream : public multi_call::GigServerStream,
+class NaviServerStream : public autil::ObjectTracer<NaviServerStream>,
+                         public multi_call::GigServerStream,
                          public NaviStreamBase
 {
 public:
     NaviServerStream(NaviServerStreamCreator *creator, Navi *navi);
     ~NaviServerStream();
+
 private:
     NaviServerStream(const NaviServerStream &);
     NaviServerStream &operator=(const NaviServerStream &);
+
 public:
     google::protobuf::Message *newReceiveMessage(
             google::protobuf::Arena *arena) const override;
@@ -42,16 +45,20 @@ public:
                        multi_call::MultiCallErrorCode ec) override;
     void notifyIdle(multi_call::PartIdTy partId) override;
     bool notifyReceive(multi_call::PartIdTy partId) override;
-private:
-    void doFinish() override;
+    int64_t getCreateTime() const {
+        return _createTime;
+    }
+
 private:
     void initThreadPool();
+    bool notifyInitReceive(multi_call::PartIdTy partId);
     bool runGraph(NaviMessage *request, const ArenaPtr &arena);
-    Navi *getNavi() const;
-    std::shared_ptr<NaviSnapshot> getSnapshot() const;
+
 private:
+    int64_t _createTime = 0;
     NaviServerStreamCreator *_creator = nullptr;
-    Navi *_navi = nullptr;
+    std::shared_ptr<NaviSnapshot> _snapshot;
+    bool _initMessage = true;
     bool _needGraphDef = true;
 };
 

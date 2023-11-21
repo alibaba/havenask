@@ -107,7 +107,6 @@ TEST_F(LimitKernelTest, testLimit) {
     auto outputTable = getTable(odata);
     ASSERT_TRUE(inputTable);
     ASSERT_TRUE(outputTable);
-    checkDependentTable(inputTable, outputTable);
 
     ASSERT_TRUE(eof);
 }
@@ -229,7 +228,6 @@ TEST_F(LimitKernelTest, testReuseInput) {
         auto outputTable = getTable(odata);
         ASSERT_TRUE(inputTable);
         ASSERT_TRUE(outputTable);
-        checkDependentTable(inputTable, outputTable);
     }
 }
 
@@ -307,7 +305,6 @@ TEST_F(LimitKernelTest, testBatchLimit) {
     auto outputTable = getTable(odata);
     ASSERT_TRUE(inputTable);
     ASSERT_TRUE(outputTable);
-    checkDependentTable(inputTable, outputTable);
 }
 
 TEST_F(LimitKernelTest, testBatchLimitOversize) {

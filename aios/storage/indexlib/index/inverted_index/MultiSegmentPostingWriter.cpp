@@ -102,7 +102,7 @@ MultiSegmentPostingWriter::CreatePostingIterator(std::shared_ptr<file_system::In
     bool dfFirst = true;
     if (postingWriter->GetDictInlinePostingValue(dictInlineValue, isDocList)) {
         SegmentPosting segPosting(_postingFormatOption);
-        segPosting.Init((docid_t)0, (uint64_t)0,
+        segPosting.Init((docid64_t)0, (uint64_t)0,
                         ShortListOptimizeUtil::CreateDictInlineValue(dictInlineValue, isDocList, dfFirst), isDocList,
                         dfFirst);
         segPostings->push_back(std::move(segPosting));

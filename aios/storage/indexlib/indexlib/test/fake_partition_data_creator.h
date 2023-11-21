@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_PARTITION_DATA_CREATOR_H
-#define __INDEXLIB_FAKE_PARTITION_DATA_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -202,5 +201,3 @@ private:
 
 DEFINE_SHARED_PTR(FakePartitionDataCreator);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_FAKE_PARTITION_DATA_CREATOR_H

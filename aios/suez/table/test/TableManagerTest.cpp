@@ -1409,7 +1409,7 @@ TEST_F(TableManagerTest, testGenerateCleanIncVersion) {
 
     {
         // cur:-1, tar:1, dpMap:null
-        ASSERT_EQ(INVALID_VERSION, current->getIncVersion());
+        ASSERT_EQ(indexlib::INVALID_VERSIONID, current->getIncVersion());
         auto target = prepareTarget({{"t1", "1"}});
         ASSERT_EQ(0, current->deployMeta->deployStatusMap.size());
 
@@ -1424,7 +1424,7 @@ TEST_F(TableManagerTest, testGenerateCleanIncVersion) {
 
     {
         // cur:-1, tar:2, dpMap:1
-        ASSERT_EQ(INVALID_VERSION, current->getIncVersion());
+        ASSERT_EQ(indexlib::INVALID_VERSIONID, current->getIncVersion());
         auto target = prepareTarget({{"t1", "2"}});
         current->setDeployStatus(1, DS_DEPLOYDONE);
         ASSERT_EQ(1, current->deployMeta->deployStatusMap.size());

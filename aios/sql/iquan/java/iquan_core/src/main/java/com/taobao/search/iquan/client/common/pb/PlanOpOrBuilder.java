@@ -4,115 +4,130 @@
 package com.taobao.search.iquan.client.common.pb;
 
 public interface PlanOpOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:iquan.pb.PlanOp)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:iquan.pb.PlanOp)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int32 id = 1;</code>
-   */
-  int getId();
+    /**
+     * <code>int32 id = 1;</code>
+     */
+    int getId();
 
-  /**
-   * <code>string op_name = 2;</code>
-   */
-  java.lang.String getOpName();
-  /**
-   * <code>string op_name = 2;</code>
-   */
-  com.google.protobuf.ByteString
-      getOpNameBytes();
+    /**
+     * <code>string op_name = 2;</code>
+     */
+    java.lang.String getOpName();
 
-  /**
-   * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-   */
-  int getInputsCount();
-  /**
-   * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-   */
-  boolean containsInputs(
-      java.lang.String key);
-  /**
-   * Use {@link #getInputsMap()} instead.
-   */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
-  getInputs();
-  /**
-   * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-   */
-  java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
-  getInputsMap();
-  /**
-   * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-   */
+    /**
+     * <code>string op_name = 2;</code>
+     */
+    com.google.protobuf.ByteString
+    getOpNameBytes();
 
-  com.taobao.search.iquan.client.common.pb.IdList getInputsOrDefault(
-      java.lang.String key,
-      com.taobao.search.iquan.client.common.pb.IdList defaultValue);
-  /**
-   * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-   */
+    /**
+     * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+     */
+    int getInputsCount();
 
-  com.taobao.search.iquan.client.common.pb.IdList getInputsOrThrow(
-      java.lang.String key);
+    /**
+     * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+     */
+    boolean containsInputs(
+            java.lang.String key);
 
-  /**
-   * <code>repeated int32 reuse_inputs = 5;</code>
-   */
-  java.util.List<java.lang.Integer> getReuseInputsList();
-  /**
-   * <code>repeated int32 reuse_inputs = 5;</code>
-   */
-  int getReuseInputsCount();
-  /**
-   * <code>repeated int32 reuse_inputs = 5;</code>
-   */
-  int getReuseInputs(int index);
+    /**
+     * Use {@link #getInputsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
+    getInputs();
 
-  /**
-   * <code>repeated int32 outputs = 4;</code>
-   */
-  java.util.List<java.lang.Integer> getOutputsList();
-  /**
-   * <code>repeated int32 outputs = 4;</code>
-   */
-  int getOutputsCount();
-  /**
-   * <code>repeated int32 outputs = 4;</code>
-   */
-  int getOutputs(int index);
+    /**
+     * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+     */
+    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
+    getInputsMap();
 
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-   */
-  int getAttrsCount();
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-   */
-  boolean containsAttrs(
-      java.lang.String key);
-  /**
-   * Use {@link #getAttrsMap()} instead.
-   */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-  getAttrs();
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-   */
-  java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-  getAttrsMap();
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-   */
+    /**
+     * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+     */
 
-  com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrDefault(
-      java.lang.String key,
-      com.taobao.search.iquan.client.common.pb.AnyValue defaultValue);
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-   */
+    com.taobao.search.iquan.client.common.pb.IdList getInputsOrDefault(
+            java.lang.String key,
+            com.taobao.search.iquan.client.common.pb.IdList defaultValue);
 
-  com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrThrow(
-      java.lang.String key);
+    /**
+     * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+     */
+
+    com.taobao.search.iquan.client.common.pb.IdList getInputsOrThrow(
+            java.lang.String key);
+
+    /**
+     * <code>repeated int32 reuse_inputs = 5;</code>
+     */
+    java.util.List<java.lang.Integer> getReuseInputsList();
+
+    /**
+     * <code>repeated int32 reuse_inputs = 5;</code>
+     */
+    int getReuseInputsCount();
+
+    /**
+     * <code>repeated int32 reuse_inputs = 5;</code>
+     */
+    int getReuseInputs(int index);
+
+    /**
+     * <code>repeated int32 outputs = 4;</code>
+     */
+    java.util.List<java.lang.Integer> getOutputsList();
+
+    /**
+     * <code>repeated int32 outputs = 4;</code>
+     */
+    int getOutputsCount();
+
+    /**
+     * <code>repeated int32 outputs = 4;</code>
+     */
+    int getOutputs(int index);
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+     */
+    int getAttrsCount();
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+     */
+    boolean containsAttrs(
+            java.lang.String key);
+
+    /**
+     * Use {@link #getAttrsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+    getAttrs();
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+     */
+    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+    getAttrsMap();
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+     */
+
+    com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrDefault(
+            java.lang.String key,
+            com.taobao.search.iquan.client.common.pb.AnyValue defaultValue);
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+     */
+
+    com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrThrow(
+            java.lang.String key);
 }

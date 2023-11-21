@@ -16,8 +16,11 @@
 #pragma once
 
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "autil/Log.h"
+#include "autil/mem_pool/PoolBase.h"
 #include "indexlib/util/Bitmap.h"
 
 namespace indexlib { namespace util {

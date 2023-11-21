@@ -19,6 +19,7 @@
 #include "autil/NoCopyable.h"
 #include "autil/StringView.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/document/IMessageIterator.h"
 
 namespace indexlibv2::config {
 class ITabletSchema;
@@ -48,6 +49,9 @@ public:
 
     virtual std::pair<Status, std::unique_ptr<IDocumentBatch>>
     ParseRawDoc(const std::shared_ptr<RawDocument>& rawDoc) const = 0;
+
+    virtual std::pair<Status, std::unique_ptr<IDocumentBatch>>
+    BatchParse(document::IMessageIterator* inputIterator) const = 0;
 };
 
 } // namespace indexlibv2::document

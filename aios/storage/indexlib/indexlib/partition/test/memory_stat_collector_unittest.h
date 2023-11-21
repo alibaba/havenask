@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MEMORYSTATCOLLECTORTEST_H
-#define __INDEXLIB_MEMORYSTATCOLLECTORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/memory_stat_collector.h"
@@ -33,5 +32,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(MemoryStatCollectorTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MEMORYSTATCOLLECTORTEST_H

@@ -14,7 +14,6 @@ using namespace autil;
 using namespace autil::legacy;
 using namespace indexlib::index;
 using namespace indexlib::index::legacy;
-using namespace indexlib::common;
 using namespace indexlib::index_base;
 using namespace indexlib::util;
 using namespace indexlib::file_system;

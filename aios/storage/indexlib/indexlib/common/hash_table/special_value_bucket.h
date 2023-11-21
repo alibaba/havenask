@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SPECIAL_VALUE_BUCKET_H
-#define __INDEXLIB_SPECIAL_VALUE_BUCKET_H
+#pragma once
 
 namespace indexlib { namespace common {
 
@@ -66,5 +65,3 @@ private:
 };
 #pragma pack(pop)
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_SPECIAL_VALUE_BUCKET_H

@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_AND_INDEX_RECLAIMER_H
-#define __INDEXLIB_AND_INDEX_RECLAIMER_H
+#pragma once
 
-#include <memory>
-
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/index/normal/inverted_index/accessor/multi_field_index_reader.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/merger/document_reclaimer/index_reclaimer.h"
+#include "indexlib/merger/document_reclaimer/index_reclaimer_param.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "indexlib/util/metrics/Monitor.h"
 
 DECLARE_REFERENCE_CLASS(config, IndexSchema);
-DECLARE_REFERENCE_CLASS(index, InvertedIndexReader);
+
 namespace indexlib { namespace merger {
 
 class AndIndexReclaimer : public IndexReclaimer
@@ -46,5 +48,3 @@ private:
 
 DEFINE_SHARED_PTR(AndIndexReclaimer);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_AND_INDEX_RECLAIMER_H

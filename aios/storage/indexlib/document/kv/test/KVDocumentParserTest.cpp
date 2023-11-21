@@ -38,19 +38,19 @@ void KvDocumentParserTest::setUp()
 {
     _extendDoc.reset(new ExtendDocument());
     std::shared_ptr<RawDocument> rawDoc(new DefaultRawDocument());
-    _extendDoc->setRawDocument(rawDoc);
+    _extendDoc->SetRawDocument(rawDoc);
 }
 
 TEST_F(KvDocumentParserTest, testKVAdd)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    _extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
     _schemaPtr.reset(
         framework::TabletSchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "document_parser_kv_schema.json")
             .release());
     ASSERT_TRUE(_schemaPtr);
     ASSERT_TRUE(framework::TabletSchemaLoader::ResolveSchema(nullptr, "", _schemaPtr.get()).IsOK());
 
-    FillRawDoc(_extendDoc->getRawDocument());
+    FillRawDoc(_extendDoc->GetRawDocument());
     auto parser = std::make_unique<KVDocumentParser>();
     ASSERT_TRUE(parser->Init(_schemaPtr, nullptr).IsOK());
     auto [status, batch] = parser->Parse(*_extendDoc);
@@ -73,14 +73,14 @@ TEST_F(KvDocumentParserTest, testKVAdd)
 
 TEST_F(KvDocumentParserTest, testKVUpdate)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+    _extendDoc->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
     _schemaPtr.reset(
         framework::TabletSchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "document_parser_kv_schema.json")
             .release());
     ASSERT_TRUE(_schemaPtr);
     ASSERT_TRUE(framework::TabletSchemaLoader::ResolveSchema(nullptr, "", _schemaPtr.get()).IsOK());
 
-    FillRawDoc(_extendDoc->getRawDocument());
+    FillRawDoc(_extendDoc->GetRawDocument());
     auto parser = std::make_unique<KVDocumentParser>();
     ASSERT_TRUE(parser->Init(_schemaPtr, nullptr).IsOK());
     auto [status, batch] = parser->Parse(*_extendDoc);
@@ -102,12 +102,12 @@ TEST_F(KvDocumentParserTest, testKVUpdate)
 
 TEST_F(KvDocumentParserTest, TestSkipTypeRawDocumentParse)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(SKIP_DOC);
+    _extendDoc->GetRawDocument()->setDocOperateType(SKIP_DOC);
     _schemaPtr.reset(
         framework::TabletSchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "/document_parser_kv_schema.json")
             .release());
 
-    FillRawDoc(_extendDoc->getRawDocument());
+    FillRawDoc(_extendDoc->GetRawDocument());
     auto parser = std::make_unique<KVDocumentParser>();
     ASSERT_TRUE(parser->Init(_schemaPtr, nullptr).IsOK());
     auto [status, batch] = parser->Parse(*_extendDoc);
@@ -154,7 +154,7 @@ std::shared_ptr<ExtendDocument> KvDocumentParserTest::CreateExtendDoc(const stri
         rawDoc->setField(kv[0], kv[1]);
     }
     rawDoc->setDocOperateType(ADD_DOC);
-    extendDoc->setRawDocument(rawDoc);
+    extendDoc->SetRawDocument(rawDoc);
     return extendDoc;
 }
 

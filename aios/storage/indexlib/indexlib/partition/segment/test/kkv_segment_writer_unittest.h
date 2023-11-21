@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KKVSEGMENTWRITERTEST_H
-#define __INDEXLIB_KKVSEGMENTWRITERTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/pack_attribute/pack_attribute_formatter.h"
 #include "indexlib/common_define.h"
@@ -63,5 +62,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(KKVSegmentWriterTest, TestMmapFileDump);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(KKVSegmentWriterTest, TestCalculateMemoryRatio);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(KKVSegmentWriterTest, TestBuildSKeyFull);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_KKVSEGMENTWRITERTEST_H

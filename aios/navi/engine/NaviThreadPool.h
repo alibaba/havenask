@@ -107,6 +107,7 @@ public:
     int64_t getIdleThreadCount() const;
     int64_t getRunningThreadCount() const;
     size_t getQueueSize() const;
+    size_t getIdleQueueSize() const;
     std::vector<pid_t> getPidVec() const;
 private:
     bool createThreads(const ConcurrencyConfig &config, const std::string &name);

@@ -74,7 +74,6 @@ Status SectionAttributeRewriter::RewriteIndexDocument(const std::shared_ptr<Sect
     if (!indexDocument) {
         RETURN_IF_STATUS_ERROR(Status::InternalError(), "indexDocument is NULL!");
     }
-    auto [status, ret] = appender->AppendSectionAttribute(indexDocument);
-    return status;
+    return appender->AppendSectionAttribute(indexDocument);
 }
 }} // namespace indexlibv2::document

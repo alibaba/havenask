@@ -72,7 +72,10 @@ MultiShardIndexMergeOperation::PrepareSegmentMergeInfos(const framework::IndexTa
             tabletData->GetSegmentWithBaseDocid(segMergePlan.GetSrcSegmentId(i));
         auto multiShardSegment = dynamic_pointer_cast<plain::MultiShardDiskSegment>(sourceSegment.segment);
         sourceSegment.segment = multiShardSegment->GetShardSegment(inLevelIdx);
-        assert(sourceSegment.segment);
+        if (sourceSegment.segment == nullptr) {
+            // bulkload segment may be merged segment in level0
+            continue;
+        }
         segMergeInfos.srcSegments.push_back(sourceSegment);
     }
     std::shared_ptr<framework::SegmentMeta> segMeta(new framework::SegmentMeta(targetSegmentId));

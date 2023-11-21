@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_RECLAIM_MAP_H
-#define __INDEXLIB_FAKE_RECLAIM_MAP_H
+#pragma once
 
 #include <memory>
 
@@ -34,5 +33,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeReclaimMap);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_FAKE_RECLAIM_MAP_H

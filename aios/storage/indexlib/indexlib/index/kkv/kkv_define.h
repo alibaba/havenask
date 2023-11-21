@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KKV_DEFINE_H
-#define __INDEXLIB_KKV_DEFINE_H
+#pragma once
 
 #include <memory>
 #include <unordered_set>
@@ -433,5 +432,3 @@ struct ClosedHashTableTraits<_KT, NonDeleteValue<_RealVT>, false> {
     typedef SpecialValueBucket<_KT, _VT> Bucket;
 };
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_KKV_DEFINE_H

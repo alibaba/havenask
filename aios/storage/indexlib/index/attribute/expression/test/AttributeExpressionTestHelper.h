@@ -1,3 +1,4 @@
+#pragma once
 #include "indexlib/base/FieldTypeUtil.h"
 #include "indexlib/document/extractor/plain/DocumentInfoExtractorFactory.h"
 #include "indexlib/framework/Segment.h"
@@ -32,7 +33,10 @@ public:
         _indexer->AddField(docid, encodeStr, false);
         _segmentMeta.segmentInfo->docCount++;
     }
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override { return 0; }
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override
+    {
+        return {Status::OK(), 0};
+    }
     size_t EvaluateCurrentMemUsed() override { return 0; }
 
 private:
@@ -49,7 +53,7 @@ public:
     {
         _docInfoExtractorFactory = std::make_shared<indexlibv2::plain::DocumentInfoExtractorFactory>();
         AttributeIndexFactory indexFactory;
-        IndexerParameter indexParam;
+        MemIndexerParameter indexParam;
         _config = AttributeTestUtil::CreateAttrConfig<ft>(isMulti, "");
         auto memIndexer = indexFactory.CreateMemIndexer(_config, indexParam);
         if (!memIndexer->Init(_config, _docInfoExtractorFactory.get()).IsOK()) {

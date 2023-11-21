@@ -22,24 +22,28 @@ namespace indexlibv2::index::ann {
 
 bool RealtimeIndexBuilder::Build(docid_t docId, const embedding_t& embedding)
 {
-    auto [_, context] = _contextHolder->CreateIfNotExist(_streamer, _streamer->meta().searcher_name(), "");
+    auto [_, context] = _contextHolder->CreateIfNotExist(_streamer, _streamerName);
     ANN_CHECK(context != nullptr, "get context failed");
 
     auto ctx = AiThetaContext::Pointer(context);
     autil::ScopeGuard guard([&ctx]() { ctx.release(); });
 
-    ANN_CHECK_OK(_streamer->add_impl(docId, embedding.get(), _indexQueryMeta, ctx), "build failed");
+    ANN_CHECK_OK(_streamer->add_impl(docId, embedding.get(), _queryMeta, ctx), "build failed");
     return true;
 }
 
 bool RealtimeIndexBuilder::Delete(docid_t docId)
 {
-    auto [_, context] = _contextHolder->CreateIfNotExist(_streamer, _streamer->meta().searcher_name(), "");
+    if (_streamerName == QGRAPH_SEARCHER || _streamerName == HNSW_STREAMER) {
+        AUTIL_LOG(DEBUG, "not support deletion for[%s]", _streamerName.c_str());
+        return true;
+    }
+
+    auto [_, context] = _contextHolder->CreateIfNotExist(_streamer, _streamerName);
     ANN_CHECK(context != nullptr, "create context failed");
 
     auto ctx = AiThetaContext::Pointer(context);
     autil::ScopeGuard guard([&ctx]() { ctx.release(); });
-
     ANN_CHECK_OK(_streamer->remove(docId, ctx), "delete failed");
     return true;
 }

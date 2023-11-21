@@ -65,6 +65,9 @@ public:
     std::unique_ptr<document::IDocumentFactory>
     CreateDocumentFactory(const std::shared_ptr<config::ITabletSchema>& schema) override;
     std::unique_ptr<indexlib::framework::ITabletValidator> CreateTabletValidator() override;
+    std::unique_ptr<framework::IMemoryControlStrategy>
+    CreateMemoryControlStrategy(const std::shared_ptr<MemoryQuotaSynchronizer>& buildMemoryQuotaSynchronizer) override;
+    std::unique_ptr<framework::EnvironmentVariablesProvider> CreateEnvironmentVariablesProvider() override;
 
 private:
     std::unique_ptr<KKVTabletOptions> _options;

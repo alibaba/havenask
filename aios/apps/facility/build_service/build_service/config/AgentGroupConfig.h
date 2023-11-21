@@ -15,6 +15,13 @@
  */
 #pragma once
 
+#include <map>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 

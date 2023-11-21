@@ -1,3 +1,4 @@
+#pragma once
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_COMPRESSOPERATIONWRITERTEST_H
-#define __INDEXLIB_COMPRESSOPERATIONWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/operation_queue/compress_operation_writer.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(CompressOperationWriterTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_COMPRESSOPERATIONWRITERTEST_H

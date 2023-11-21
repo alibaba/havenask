@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 #pragma once
+#include <memory>
+#include <stdint.h>
+#include <string>
+
 #include "autil/NoCopyable.h"
 #include "autil/WorkItem.h"
 #include "build_service/task_base/TaskBase.h"
 #include "build_service/util/Log.h"
+#include "future_lite/Executor.h"
 #include "future_lite/TaskScheduler.h"
 #include "indexlib/base/MemoryQuotaController.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/ITabletMergeController.h"
 #include "indexlib/framework/IdGenerator.h"

@@ -6,6 +6,9 @@
 
 namespace navi {
 
+extern const std::string NAVI_TEST_DATA_PATH;
+extern const std::string NAVI_TEST_PYTHON_HOME;
+
 class HelloData : public Data {
 public:
     HelloData();

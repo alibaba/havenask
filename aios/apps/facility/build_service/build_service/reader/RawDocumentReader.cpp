@@ -19,6 +19,7 @@
 
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/PeriodDocCounter.h"
 #include "build_service/common/PkTracer.h"
 #include "build_service/config/BuilderConfig.h"
@@ -81,7 +82,7 @@ bool RawDocumentReader::initialize(const ReaderInitParam& initParams)
     _extendFieldValue = getValueFromKeyValueMap(params.kvMap, EXTEND_FIELD_VALUE);
     const std::string enableIngestionTimestamp = getValueFromKeyValueMap(params.kvMap, ENABLE_INGESTION_TIMESTAMP);
     if (!StringUtil::fromString(enableIngestionTimestamp, _enableIngestionTimestamp)) {
-        BS_LOG(WARN, "de-serialize enable_ingenstion_timestamp failed.");
+        BS_LOG(WARN, "de-serialize enable_ingestion_timestamp failed.");
         _enableIngestionTimestamp = false;
     }
 
@@ -170,7 +171,7 @@ RawDocumentReader::ErrorCode RawDocumentReader::read(document::RawDocumentPtr& r
     if (!_documentFactoryWrapper) {
         // for test case : make EOF effective
         string docStr;
-        DocInfo docInfo(0, INVALID_TIMESTAMP, 0);
+        DocInfo docInfo(0, INVALID_TIMESTAMP, 0, 0);
         ErrorCode ec = readDocStr(docStr, checkpoint, docInfo);
         if (ec != ERROR_NONE) {
             return ec;

@@ -43,6 +43,7 @@ public:
     virtual future_lite::coro::Lazy<std::pair<Status, versionid_t>> GetLastMergeTaskResult() = 0;
     virtual std::unique_ptr<IndexTaskContext> CreateTaskContext(versionid_t baseVersionId, const std::string& taskType,
                                                                 const std::string& taskName,
+                                                                const std::string& taskTraceId,
                                                                 const std::map<std::string, std::string>& params) = 0;
     virtual future_lite::coro::Lazy<Status> SubmitMergeTask(std::unique_ptr<IndexTaskPlan> plan,
                                                             IndexTaskContext* context) = 0;

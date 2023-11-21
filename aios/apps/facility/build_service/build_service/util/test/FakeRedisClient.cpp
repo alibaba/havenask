@@ -2,8 +2,17 @@
 // Only support redis hash
 #include "build_service/util/test/FakeRedisClient.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <limits>
+#include <map>
+#include <string>
+#include <utility>
+
 #include "autil/Lock.h"
+#include "autil/Span.h"
 #include "autil/TimeUtility.h"
+#include "build_service/util/RedisClient.h"
 
 using namespace std;
 using namespace autil;

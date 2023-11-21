@@ -24,7 +24,7 @@ namespace indexlibv2::table {
 class KVTableAlterTablePlanCreator : public SimpleIndexTaskPlanCreator
 {
 public:
-    explicit KVTableAlterTablePlanCreator(const std::string& taskName = "",
+    explicit KVTableAlterTablePlanCreator(const std::string& taskName = "", const std::string& taskTraceId = "",
                                           const std::map<std::string, std::string>& params = {});
     ~KVTableAlterTablePlanCreator();
 

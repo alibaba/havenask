@@ -7,6 +7,7 @@ strict_cc_library(
     deps=[
         '//aios/autil:log',
         '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_util',
         '@proxima2//:proxima2_headers'
     ]
 )

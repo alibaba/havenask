@@ -15,8 +15,13 @@
  */
 #include "build_service/processor/SingleDocProcessorChain.h"
 
-#include "build_service/document/ProcessedDocument.h"
+#include <cstddef>
+
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/RawDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
 
 using namespace std;
 using namespace build_service::document;

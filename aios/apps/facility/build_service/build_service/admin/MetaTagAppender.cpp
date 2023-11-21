@@ -15,6 +15,13 @@
  */
 #include "build_service/admin/MetaTagAppender.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <iosfwd>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 
 using namespace std;

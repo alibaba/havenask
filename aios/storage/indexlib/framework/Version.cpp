@@ -15,14 +15,22 @@
  */
 #include "indexlib/framework/Version.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
+#include <exception>
 #include <memory>
 #include <sstream>
 #include <string>
 
 #include "autil/NetUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable_exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/file_system/JsonUtil.h"
+#include "indexlib/framework/IndexTaskQueue.h"
 #include "indexlib/framework/LevelInfo.h"
 #include "indexlib/framework/SegmentDescriptions.h"
 #include "indexlib/framework/SegmentStatistics.h"
@@ -32,20 +40,26 @@ namespace indexlibv2::framework {
 
 AUTIL_LOG_SETUP(indexlib.framework, Version);
 
-const std::string IndexTaskMeta::READY = "READY";
-const std::string IndexTaskMeta::ABORTED = "ABORTED";
-const std::string IndexTaskMeta::SUSPENDED = "SUSPENDED";
-const std::string IndexTaskMeta::DONE = "DONE";
-const std::string IndexTaskMeta::UNKNOWN = "UNKNOWN";
+Version::Version()
+    : _versionId(INVALID_VERSIONID)
+    , _timestamp(-1)
+    , _segmentDescs(new SegmentDescriptions)
+    , _indexTaskQueue(std::make_shared<IndexTaskQueue>())
+{
+}
 
-Version::Version() : _versionId(INVALID_VERSIONID), _timestamp(-1), _segmentDescs(new SegmentDescriptions) {}
-
-Version::Version(versionid_t versionId) : _versionId(versionId), _segmentDescs(new SegmentDescriptions) {}
+Version::Version(versionid_t versionId)
+    : _versionId(versionId)
+    , _segmentDescs(new SegmentDescriptions)
+    , _indexTaskQueue(std::make_shared<IndexTaskQueue>())
+{
+}
 
 Version::Version(versionid_t versionId, int64_t timestamp)
     : _versionId(versionId)
     , _timestamp(timestamp)
     , _segmentDescs(new SegmentDescriptions)
+    , _indexTaskQueue(std::make_shared<IndexTaskQueue>())
 {
 }
 
@@ -97,7 +111,7 @@ void Version::Jsonize(JsonWrapper& json)
         UpdateSchemaVersionRoadMap();
         json.Jsonize("schema_version_road_map", _schemaVersionRoadMap);
         json.Jsonize("index_task_history", _indexTaskHistory);
-        if (!_indexTaskQueue.empty()) {
+        if (!_indexTaskQueue->Empty()) {
             json.Jsonize("index_task_queue", _indexTaskQueue, _indexTaskQueue);
         }
     } else {
@@ -164,9 +178,6 @@ void Version::Jsonize(JsonWrapper& json)
             json.Jsonize("index_task_history", _indexTaskHistory);
         }
         json.Jsonize("index_task_queue", _indexTaskQueue, _indexTaskQueue);
-        for (const auto& task : _indexTaskQueue) {
-            _indexTaskSet.emplace(task->taskType, task->taskName);
-        }
         if (_versionLine.GetHeadVersion().GetVersionId() != _versionId && (_versionId & PUBLIC_VERSION_ID_MASK) &&
             !_fenceName.empty()) {
             _versionLine.AddCurrentVersion(VersionCoord(_versionId, _fenceName));
@@ -338,7 +349,9 @@ void Version::UpdateSchemaVersionRoadMap()
         }
     }
     std::sort(newRoadMap.begin(), newRoadMap.end());
-    _schemaVersionRoadMap = newRoadMap;
+    if (newRoadMap.size() != _schemaVersionRoadMap.size()) {
+        _schemaVersionRoadMap = newRoadMap;
+    }
 }
 
 void Version::UpdateVersionFormate2To3()
@@ -368,107 +381,6 @@ void Version::AddIndexTaskLog(const std::string& taskType, const std::shared_ptr
     _indexTaskHistory.AddLog(taskType, logItem);
 }
 
-void Version::SetIndexTasks(const std::vector<std::shared_ptr<IndexTaskMeta>>& indexTasks)
-{
-    _indexTaskQueue = indexTasks;
-    std::set<std::pair<std::string, std::string>> indexTaskSet;
-    for (const auto& task : _indexTaskQueue) {
-        indexTaskSet.emplace(task->taskType, task->taskName);
-    }
-    _indexTaskSet = indexTaskSet;
-}
-
-bool Version::ValidateStateTransfer(const std::string& srcState, const std::string& dstState) const
-{
-    bool isValid = true;
-    if (srcState == dstState) {
-        return isValid;
-    }
-    if (srcState == IndexTaskMeta::DONE) {
-        isValid = false;
-    } else if (srcState == IndexTaskMeta::ABORTED) {
-        isValid = false;
-    } else if (srcState == IndexTaskMeta::SUSPENDED) {
-        if (dstState == IndexTaskMeta::DONE) {
-            isValid = false;
-        }
-    }
-    if (!isValid) {
-        AUTIL_LOG(ERROR, "validate task state transfer failed: [%s]=>[%s] is forbidden", srcState.c_str(),
-                  dstState.c_str());
-    }
-    AUTIL_LOG(INFO, "state transfer succeed, [%s]=>[%s]", srcState.c_str(), dstState.c_str());
-    return isValid;
-}
-
-void Version::AddIndexTask(const std::string& taskType, const std::string& taskName,
-                           const std::map<std::string, std::string>& params, const std::string& state,
-                           const std::string& comment)
-{
-    // ignore duplicate index task
-    auto iter = _indexTaskSet.find(std::make_pair(taskType, taskName));
-    if (iter == _indexTaskSet.end()) {
-        auto meta = std::make_shared<IndexTaskMeta>(taskType, taskName, params);
-        if (!ValidateStateTransfer(meta->state, state)) {
-            return;
-        }
-        meta->state = state;
-        meta->comment = comment;
-        meta->beginTimeInSecs = autil::TimeUtility::currentTimeInSeconds();
-        _indexTaskQueue.emplace_back(meta);
-        _indexTaskSet.emplace(taskType, taskName);
-    }
-}
-
-void Version::UpdateIndexTaskState(const std::string& taskType, const std::string& taskName, const std::string& state,
-                                   const std::string& comment)
-{
-    for (auto& task : _indexTaskQueue) {
-        if (task->taskType == taskType && task->taskName == taskName) {
-            if (!ValidateStateTransfer(task->state, state)) {
-                return;
-            }
-            task->state = state;
-            task->comment = comment;
-            if (task->state == IndexTaskMeta::DONE || task->state == IndexTaskMeta::ABORTED) {
-                task->params.clear();
-                task->endTimeInSecs = autil::TimeUtility::currentTimeInSeconds();
-            }
-            return;
-        }
-    }
-    AUTIL_LOG(WARN, "update index task state failed: cannot find task, staskType[%s], taskName[%s]", taskType.c_str(),
-              taskName.c_str());
-}
-
-void Version::OverwriteIndexTask(const std::string& taskType, const std::string& taskName,
-                                 const std::map<std::string, std::string>& params)
-{
-    for (auto& task : _indexTaskQueue) {
-        if (task->taskType == taskType && task->taskName == taskName) {
-            auto meta = std::make_shared<IndexTaskMeta>(taskType, taskName, params);
-            meta->beginTimeInSecs = autil::TimeUtility::currentTimeInSeconds();
-            task = meta;
-            _indexTaskSet.emplace(taskType, taskName);
-            return;
-        }
-    }
-    AUTIL_LOG(WARN, "overwrite index task failed: cannot find task, staskType[%s], taskName[%s]", taskType.c_str(),
-              taskName.c_str());
-}
-
-std::shared_ptr<IndexTaskMeta> Version::GetIndexTask(const std::string& taskType, const std::string& taskName) const
-{
-    for (const auto& task : _indexTaskQueue) {
-        if (task->taskType == taskType && task->taskName == taskName) {
-            return task;
-        }
-    }
-    return nullptr;
-}
-
-std::vector<std::shared_ptr<IndexTaskMeta>> Version::GetIndexTasks() const { return _indexTaskQueue; }
-
 void Version::AddDescription(const std::string& key, const std::string& value) { _description[key] = value; }
 
 bool Version::GetDescription(const std::string& key, std::string& value) const
@@ -497,6 +409,8 @@ void Version::MergeDescriptions(const Version& version)
 
 const VersionLine& Version::GetVersionLine() const { return _versionLine; }
 void Version::SetVersionLine(const VersionLine& versionLine) { _versionLine = versionLine; }
+
+std::shared_ptr<IndexTaskQueue> Version::GetIndexTaskQueue() const { return _indexTaskQueue; }
 
 void Version::Finalize()
 {

@@ -21,6 +21,7 @@
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/IndexRoot.h"
 #include "indexlib/framework/LevelInfo.h"
@@ -28,7 +29,6 @@
 #include "indexlib/partition/index_application.h"
 #include "indexlib/partition/index_partition.h"
 #include "indexlib/table/kv_table/test/KVTableTestHelper.h"
-#include "indexlib/test/schema_maker.h"
 #include "matchdoc/ValueType.h"
 #include "matchdoc/VectorDocStorage.h"
 #include "navi/common.h"
@@ -78,14 +78,6 @@ using namespace isearch::common;
     }
 
 namespace sql {
-
-class MockKVScanForInit : public KVScanR {
-public:
-    MockKVScanForInit() {}
-
-public:
-    MOCK_METHOD0(startLookupCtx, void(void));
-};
 
 class KVScanTestR : public OpTestBase {
 public:
@@ -216,6 +208,15 @@ public:
         ttl = std::numeric_limits<int64_t>::max();
     }
 
+    WatermarkR *prepareWatermarkR(const std::string &tableName) {
+        std::map<std::string, std::string> configMap;
+        configMap["table_name"] = tableName;
+        auto *naviRHelper = getNaviRHelper();
+        naviRHelper->kernelConfig(autil::legacy::FastToJsonString(configMap));
+        auto watermarkR = naviRHelper->getOrCreateRes<WatermarkR>();
+        return watermarkR;
+    }
+
     ScanInitParamR *preparePk64ScanInitParam(const string &conditionJson) {
         auto *naviRHelper = getNaviRHelper();
         auto paramR = std::make_shared<ScanInitParamR>();
@@ -234,12 +235,16 @@ public:
         paramR->hashType = "HASH";
         paramR->hashFields = {"pk"};
         paramR->usedFields = {"attr2", "attr1", "pk"};
-        paramR->targetWatermark = 1111;
-        paramR->targetWatermarkType = WatermarkType::WM_TYPE_SYSTEM_TS;
         if (!naviRHelper->addExternalRes(calcR)) {
             return nullptr;
         }
         if (!naviRHelper->addExternalRes(paramR)) {
+            return nullptr;
+        }
+        if (!naviRHelper->addExternalRes(paramR)) {
+            return nullptr;
+        }
+        if (!prepareWatermarkR(paramR->tableName)) {
             return nullptr;
         }
         return paramR.get();
@@ -263,12 +268,13 @@ public:
         paramR->hashType = "HASH";
         paramR->hashFields = {"pk"};
         paramR->usedFields = {"attr2", "attr1", "pk"};
-        paramR->targetWatermark = 1111;
-        paramR->targetWatermarkType = WatermarkType::WM_TYPE_SYSTEM_TS;
         if (!naviRHelper->addExternalRes(calcR)) {
             return nullptr;
         }
         if (!naviRHelper->addExternalRes(paramR)) {
+            return nullptr;
+        }
+        if (!prepareWatermarkR(paramR->tableName)) {
             return nullptr;
         }
         return paramR.get();
@@ -292,12 +298,13 @@ public:
         paramR->hashType = "HASH";
         paramR->hashFields = {"pk"};
         paramR->usedFields = {"attr2", "pk"};
-        paramR->targetWatermark = 1111;
-        paramR->targetWatermarkType = WatermarkType::WM_TYPE_SYSTEM_TS;
         if (!naviRHelper->addExternalRes(calcR)) {
             return nullptr;
         }
         if (!naviRHelper->addExternalRes(paramR)) {
+            return nullptr;
+        }
+        if (!prepareWatermarkR(paramR->tableName)) {
             return nullptr;
         }
         return paramR.get();

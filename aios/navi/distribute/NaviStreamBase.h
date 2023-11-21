@@ -22,10 +22,11 @@
 #include "navi/engine/DomainHolder.h"
 #include "navi/engine/GraphDomainRemoteBase.h"
 #include "navi/engine/NaviThreadPool.h"
+#include "navi/engine/TaskQueue.h"
 
 namespace navi {
 
-class NaviStreamReceiveItem : public NaviThreadPoolItemBase
+class NaviStreamReceiveItem : public TaskQueueScheduleItemBase
 {
 public:
     NaviStreamReceiveItem(const multi_call::GigStreamBasePtr &stream, multi_call::PartIdTy partId)
@@ -43,7 +44,10 @@ public:
         }
     }
     void destroy() override {
-        process();
+        if (_stream) {
+            _stream->sendCancel(_partId, nullptr);
+            _stream.reset();
+        }
         delete this;
     }
 private:
@@ -51,7 +55,7 @@ private:
     multi_call::PartIdTy _partId;
 };
 
-class NaviStreamBase : public autil::ObjectTracer<NaviStreamBase>
+class NaviStreamBase
 {
 public:
     NaviStreamBase(const NaviLoggerPtr &logger);
@@ -79,6 +83,7 @@ protected:
     std::shared_ptr<NaviThreadPool> _threadPool;
     DomainHolder<GraphDomainRemoteBase> _domainHolder;
     bool _initialized;
+    GraphDomainRemoteBase *_domainGdb = nullptr;
 };
 
 }

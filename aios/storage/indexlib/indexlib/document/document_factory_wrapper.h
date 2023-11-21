@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_FACTORY_WRAPPER_H
-#define __INDEXLIB_DOCUMENT_FACTORY_WRAPPER_H
+#pragma once
 
 #include <memory>
 
@@ -108,5 +107,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_DOCUMENT_FACTORY_WRAPPER_H

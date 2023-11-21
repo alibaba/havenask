@@ -50,8 +50,8 @@ public:
 
     Status Init(const std::vector<std::shared_ptr<config::IIndexConfig>>& indexConfigs,
                 const std::shared_ptr<document::DocumentInitParam>& initParam) override;
-    indexlib::util::PooledUniquePtr<document::IIndexFields> Parse(const document::ExtendDocument& extendDoc,
-                                                                  autil::mem_pool::Pool* pool) const override;
+    indexlib::util::PooledUniquePtr<document::IIndexFields>
+    Parse(const document::ExtendDocument& extendDoc, autil::mem_pool::Pool* pool, bool& hasFormatError) const override;
     indexlib::util::PooledUniquePtr<document::IIndexFields> Parse(autil::StringView serializedData,
                                                                   autil::mem_pool::Pool* pool) const override;
 
@@ -60,7 +60,8 @@ private:
     InitCounter(const std::shared_ptr<document::DocumentInitParam>& initParam) const;
 
     bool ParseSingleField(const FieldResource& fieldResource, const std::shared_ptr<document::RawDocument>& rawDoc,
-                          autil::mem_pool::Pool* pool, KVIndexFields::SingleField* singleField) const;
+                          autil::mem_pool::Pool* pool, KVIndexFields::SingleField* singleField,
+                          bool* hasFormatError) const;
     bool ParseKey(const FieldResource& fieldResource, const std::shared_ptr<document::RawDocument>& rawDoc,
                   autil::mem_pool::Pool* pool, KVIndexFields::SingleField* singleField) const;
     bool NeedParseValue(DocOperateType opType) const;

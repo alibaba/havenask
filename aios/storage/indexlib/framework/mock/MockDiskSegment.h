@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 #include "gmock/gmock.h"
 #include <memory>
 
@@ -32,6 +33,7 @@ public:
     MOCK_METHOD(Status, Open, (const std::shared_ptr<MemoryQuotaController>&, DiskSegment::OpenMode), (override));
     MOCK_METHOD(Status, Reopen, (const std::vector<std::shared_ptr<config::ITabletSchema>>&), (override));
     MOCK_METHOD(size_t, EvaluateCurrentMemUsed, (), (override));
-    MOCK_METHOD(size_t, EstimateMemUsed, (const std::shared_ptr<config::ITabletSchema>&), (override));
+    MOCK_METHOD((std::pair<Status, size_t>), EstimateMemUsed, (const std::shared_ptr<config::ITabletSchema>&),
+                (override));
 };
 } // namespace indexlibv2::framework

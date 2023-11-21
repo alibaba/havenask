@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_NORMALINDEXWRITERTEST_H
-#define __INDEXLIB_NORMALINDEXWRITERTEST_H
+#pragma once
 
 #include <memory>
 #include <set>
@@ -160,5 +159,3 @@ INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForDumpIndexFormatOffline
 INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForEstimateDumpMemoryUse);
 INDEXLIB_UNIT_TEST_CASE(NormalIndexWriterTest, TestCaseForNullTerm);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_NORMALINDEXWRITERTEST_H

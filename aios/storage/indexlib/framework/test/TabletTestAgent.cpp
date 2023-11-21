@@ -1,5 +1,6 @@
 #include "indexlib/framework/test/TabletTestAgent.h"
 
+#include "indexlib/config/BuildConfig.h"
 #include "indexlib/file_system/FileSystemMetrics.h"
 #include "indexlib/file_system/IFileSystem.h"
 
@@ -41,7 +42,10 @@ MemoryQuotaSynchronizer* TabletTestAgent::TEST_GetBuildMemoryQuotaSynchronizer()
     return _tablet->_buildMemoryQuotaSynchronizer.get();
 }
 MetricsManager* TabletTestAgent::TEST_GetMetricsManager() const { return _tablet->_metricsManager.get(); }
-Status TabletTestAgent::TEST_TriggerDump() { return _tablet->_tabletDumper->Dump(); }
+Status TabletTestAgent::TEST_TriggerDump()
+{
+    return _tablet->_tabletDumper->Dump(_tablet->_tabletOptions->GetBuildConfig().GetDumpThreadCount());
+}
 Version TabletTestAgent::TEST_GetVersion(const VersionCoord& versionCoord) const
 {
     Version version;

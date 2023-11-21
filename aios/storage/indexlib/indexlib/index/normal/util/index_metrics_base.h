@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_METRICS_BASE_H
-#define __INDEXLIB_INDEX_METRICS_BASE_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -84,5 +83,3 @@ private:
 
 DEFINE_SHARED_PTR(IndexMetricsBase);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEX_METRICS_BASE_H

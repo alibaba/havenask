@@ -15,9 +15,21 @@
  */
 #include "indexlib/merger/split_strategy/temperature_split_strategy.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
-#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
+#include "autil/legacy/exception.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index/segment_metrics_updater/multi_segment_metrics_updater.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/partition_data.h"
+#include "indexlib/index_define.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace autil;

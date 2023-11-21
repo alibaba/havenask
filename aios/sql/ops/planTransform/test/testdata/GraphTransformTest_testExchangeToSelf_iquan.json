@@ -8,7 +8,7 @@
     "limit" : 2147483647,
     "location" : {
       "partition_cnt" : 5,
-      "table_group_name" : "searcher"
+      "node_name" : "searcher"
     },
     "op_scope" : "default",
     "output_distribution" : {
@@ -112,7 +112,7 @@
         "id" : "default.db1.tj_inshop_item.id"
       }
     },
-    "table_group_name" : "searcher",
+    "node_name" : "searcher",
     "table_name" : "tj_inshop_item",
     "table_type" : "normal"
   },
@@ -186,7 +186,7 @@
     },
     "location" : {
       "partition_cnt" : 5,
-      "table_group_name" : "searcher"
+      "node_name" : "searcher"
     },
     "op_scope" : "default",
     "output_distribution" : {
@@ -225,7 +225,7 @@
   "attrs" : {
     "location" : {
       "partition_cnt" : 5,
-      "table_group_name" : "searcher"
+      "node_name" : "searcher"
     },
     "op_scope" : "default",
     "output_distribution" : {
@@ -252,7 +252,7 @@
     "limit" : 100,
     "location" : {
       "partition_cnt" : 5,
-      "table_group_name" : "searcher"
+      "node_name" : "searcher"
     },
     "offset" : 0,
     "op_scope" : "default",
@@ -301,7 +301,7 @@
       "partition_cnt" : 5,
       "type" : "HASH_DISTRIBUTED"
     },
-    "table_group_name" : "searcher"
+    "node_name" : "searcher"
   },
   "id" : 5,
   "inputs" : {
@@ -314,7 +314,7 @@
     "limit" : 100,
     "location" : {
       "partition_cnt" : 1,
-      "table_group_name" : "qrs"
+      "node_name" : "qrs"
     },
     "offset" : 0,
     "op_scope" : "default",
@@ -337,7 +337,7 @@
   "attrs" : {
     "location" : {
       "partition_cnt" : 1,
-      "table_group_name" : "qrs"
+      "node_name" : "qrs"
     },
     "op_scope" : "default",
     "output_distribution" : {

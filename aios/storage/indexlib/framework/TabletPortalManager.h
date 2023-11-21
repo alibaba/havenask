@@ -15,12 +15,15 @@
  */
 #pragma once
 
+#include <map>
+#include <memory>
 #include <mutex>
+#include <stdint.h>
+#include <string>
 
 #include "autil/Log.h"
 #include "autil/LoopThread.h"
-#include "autil/NoCopyable.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "fslib/common/common_type.h"
 #include "indexlib/framework/ITabletPortal.h"
 #include "indexlib/util/KeyValueMap.h"
 #include "indexlib/util/Singleton.h"

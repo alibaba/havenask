@@ -1,20 +1,51 @@
 
 #include "build_service_tasks/extract_doc/ExtractDocTask.h"
 
-#include "autil/EnvUtil.h"
-#include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <initializer_list>
+#include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "autil/legacy/exception.h"
+#include "build_service/common_define.h"
+#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskOutputConfig.h"
+#include "build_service/config/TaskTarget.h"
 #include "build_service/io/FileOutput.h"
+#include "build_service/io/Input.h"
+#include "build_service/io/MultiFileOutput.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/reader/ParserCreator.h"
-#include "build_service/reader/StandardRawDocumentParser.h"
+#include "build_service/reader/RawDocumentParser.h"
+#include "build_service/task_base/Task.h"
 #include "build_service/util/IndexPathConstructor.h"
+#include "build_service/util/Monitor.h"
 #include "build_service_tasks/extract_doc/RawDocumentOutput.h"
 #include "build_service_tasks/extract_doc/test/FakeOutputCreator.h"
+#include "build_service_tasks/extract_doc/test/FakeSwiftOutput.h"
 #include "build_service_tasks/test/unittest.h"
+#include "fslib/common/common_type.h"
 #include "fslib/fs/FileSystem.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/index_partition_options.h"
 #include "indexlib/document/raw_document/default_raw_document.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
+#include "indexlib/document/raw_document_parser.h"
+#include "indexlib/partition/partition_group_resource.h"
 #include "indexlib/test/partition_state_machine.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
+#include "swift/common/MessageInfo.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

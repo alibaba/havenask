@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_LOCALBROKERFACTORY_H
-#define ISEARCH_BS_LOCALBROKERFACTORY_H
+#pragma once
 
-#include "build_service/common_define.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/local_job/ReduceDocumentQueue.h"
-#include "build_service/util/Log.h"
+#include "build_service/workflow/BuildFlowMode.h"
+#include "build_service/workflow/Consumer.h"
 #include "build_service/workflow/FlowFactory.h"
+#include "build_service/workflow/Producer.h"
+#include "build_service/workflow/SwiftProcessedDocConsumer.h"
 #include "indexlib/util/counter/CounterMap.h"
 
 namespace build_service { namespace local_job {
@@ -55,5 +57,3 @@ private:
 };
 
 }} // namespace build_service::local_job
-
-#endif // ISEARCH_BS_LOCALBROKERFACTORY_H

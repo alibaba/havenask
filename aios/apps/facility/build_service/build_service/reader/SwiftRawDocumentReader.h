@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SWIFTRAWDOCUMENTREADER_H
-#define ISEARCH_BS_SWIFTRAWDOCUMENTREADER_H
+#pragma once
 
 #include "build_service/common/SwiftLinkFreshnessReporter.h"
 #include "build_service/common/SwiftParam.h"
@@ -77,8 +76,7 @@ protected:
 
     virtual void reportTimestampFieldValue(int64_t value) override;
     virtual void doFillDocTags(document::RawDocument& rawDoc) override;
-    bool doSeek(int64_t timestamp, const std::vector<indexlibv2::base::Progress>& progress,
-                const std::string& topicName);
+    bool doSeek(int64_t timestamp, const indexlibv2::base::MultiProgress& progress, const std::string& topicName);
 
 private:
     bool initSwiftReader(SwiftReaderWrapper* swiftReader, const KeyValueMap& kvMap);
@@ -121,5 +119,3 @@ private:
 BS_TYPEDEF_PTR(SwiftRawDocumentReader);
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_SWIFTRAWDOCUMENTREADER_H

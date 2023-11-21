@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_EXTENDDOCUMENT_H
-#define ISEARCH_BS_EXTENDDOCUMENT_H
+#pragma once
+
+#include <assert.h>
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/legacy/any.h"
 #include "build_service/document/ClassifiedDocument.h"
 #include "build_service/document/ProcessedDocument.h"
 #include "build_service/document/RawDocument.h"
 #include "build_service/document/TokenizeDocument.h"
-#include "indexlib/document/document.h"
+#include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/ExtendDocument.h"
 #include "indexlib/document/extend_document/indexlib_extend_document.h"
 #include "indexlib/document/normal/NormalExtendDocument.h"
+#include "indexlib/index/kv/Constant.h"
+#include "indexlib/index/kv/Types.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace document {
 
@@ -34,6 +47,7 @@ enum class ProcessorWarningFlag {
 };
 
 class ExtendDocument;
+
 typedef std::shared_ptr<ExtendDocument> ExtendDocumentPtr;
 
 class ExtendDocument
@@ -54,9 +68,9 @@ private:
     ExtendDocument& operator=(const ExtendDocument&);
 
 public:
-    void setRawDocument(const RawDocumentPtr& doc) { _indexExtendDoc->setRawDocument(doc); }
+    void setRawDocument(const RawDocumentPtr& doc) { _indexExtendDoc->SetRawDocument(doc); }
 
-    const RawDocumentPtr& getRawDocument() const { return _indexExtendDoc->getRawDocument(); }
+    const RawDocumentPtr& getRawDocument() const { return _indexExtendDoc->GetRawDocument(); }
 
     TokenizeDocumentPtr getTokenizeDocument() const;
 
@@ -164,6 +178,8 @@ public:
     // user-processor can set raw document string, which will be set to processedDocument
     void setRawDocString(const std::string& docStr) { _rawDocStr = docStr; }
     const std::string& getRawDocString() const { return _rawDocStr; }
+    std::shared_ptr<indexlibv2::document::RawDocument::Snapshot> getOriginalSnapshot() const;
+    void setOriginalSnapshot(const std::shared_ptr<indexlibv2::document::RawDocument::Snapshot>& rawDocument);
 
     void setWarningFlag(ProcessorWarningFlag warningFlag)
     {
@@ -205,5 +221,3 @@ private:
 };
 
 }} // namespace build_service::document
-
-#endif // BUILD_EXTENDDOCUMENT_H

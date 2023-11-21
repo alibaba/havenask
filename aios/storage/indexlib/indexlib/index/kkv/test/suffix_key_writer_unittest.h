@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SUFFIXKEYWRITERTEST_H
-#define __INDEXLIB_SUFFIXKEYWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/kkv_define.h"
@@ -39,5 +38,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(SuffixKeyWriterTest, TestLinkSkeyNode);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SUFFIXKEYWRITERTEST_H

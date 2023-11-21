@@ -43,19 +43,20 @@ public:
 public:
     virtual OperationBlock* Clone() const;
     virtual std::pair<Status, std::shared_ptr<OperationBlock>>
-    CreateOperationBlockForRead(const OperationFactory& mOpFactory);
+    CreateOperationBlockForRead(const OperationFactory& opFactory);
     void AddOperation(OperationBase* operation);
     size_t GetTotalMemoryUse() const;
     virtual size_t Size() const;
     virtual Status Dump(const std::shared_ptr<file_system::FileWriter>& fileWriter, size_t maxOpSerializeSize,
-                        bool hasConcurrentIdx);
+                        bool hasConcurrentIdx, bool hasSourceIdx);
     autil::mem_pool::Pool* GetPool() const;
     const indexlibv2::base::Progress::Offset& GetMinOffset() const;
     const indexlibv2::base::Progress::Offset& GetMaxOffset() const;
     const OperationVec& GetOperations() const;
     void Reset();
 
-    static size_t DumpSingleOperation(OperationBase* op, char* buffer, size_t bufLen, bool hasConcurrentIdx);
+    static size_t DumpSingleOperation(OperationBase* op, char* buffer, size_t bufLen, bool hasConcurrentIdx,
+                                      bool hasSourceIdx);
 
 private:
     void UpdateOffset(const indexlibv2::base::Progress::Offset& offset);

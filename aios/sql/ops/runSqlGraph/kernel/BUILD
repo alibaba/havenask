@@ -5,6 +5,7 @@ cc_library(
     hdrs=glob(['*.h']),
     include_prefix='sql/ops/runSqlGraph',
     deps=[
+        '//aios/sql/data:sql_query_config_data',
         '//aios/sql/ops/metaCollect:sql_meta_collector',
         '//aios/sql/ops/runSqlGraph:sql_ops_run_sql_graph'
     ],

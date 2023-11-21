@@ -87,9 +87,9 @@ bool AggFuncCreatorR::initFunctionModel(const std::string &accTypes,
             SQL_LOG(ERROR, "parse return types failed: %s", returnTypesVec[i].c_str());
             return false;
         }
-        _functionModel.functionContent.prototypes.emplace_back(singleDef);
+        _functionModel.functionDef.prototypes.emplace_back(singleDef);
     }
-    _functionModel.functionContent.properties = properties;
+    _functionModel.functionDef.properties = properties;
     return true;
 }
 

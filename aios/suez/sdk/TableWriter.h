@@ -16,6 +16,7 @@
 #pragma once
 
 #include <functional>
+#include <future_lite/Executor.h>
 #include <memory>
 #include <string>
 
@@ -76,7 +77,8 @@ public:
 
     void write(const std::string &format,
                const WalDocVector &docs,
-               const std::function<void(autil::Result<WriteResult>)> &done);
+               const std::function<void(autil::Result<WriteResult>)> &done,
+               future_lite::Executor *executor);
 
     void
     updateSchema(uint32_t version, const std::string &configPath, std::function<void(autil::Result<int64_t>)> done);
@@ -88,6 +90,7 @@ public:
     void setRoleType(const std::string &roleType) { _roleType = roleType; }
 
 private:
+    void DoWrite(const WalDocVector &docs, const std::function<void(autil::Result<std::vector<int64_t>>)> &done);
     void maybeInitWALLocked();
     autil::Result<WalDocVector> parseWalDocs(const std::string &format, const WalDocVector &docs);
     std::unique_ptr<indexlib::document::RawDocumentParser> getParser(const std::string &format);

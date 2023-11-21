@@ -20,6 +20,7 @@
 #include "autil/TimeUtility.h"
 #include "future_lite/Future.h"
 #include "indexlib/config/BuildOptionConfig.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocumentBatch.h"
@@ -31,7 +32,7 @@
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/IIndexReader.h"
 #include "indexlib/index/IndexFactoryCreator.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
 #include "indexlib/index/primary_key/PrimaryKeyIndexReader.h"
 #include "indexlib/table/normal_table/Common.h"
 #include "indexlib/table/normal_table/NormalDocIdDispatcher.h"
@@ -146,7 +147,6 @@ Status NormalTabletWriter::PrepareBuiltinIndex(const std::shared_ptr<framework::
 Status NormalTabletWriter::PreparePrimaryKeyReader(const std::shared_ptr<framework::TabletData>& tabletData)
 {
     std::string indexType = index::PRIMARY_KEY_INDEX_TYPE_STR;
-    index::IndexerParameter emptyIndexerParam;
     auto indexFactoryCreator = index::IndexFactoryCreator::GetInstance();
     auto pkConfigs = _schema->GetIndexConfigs(indexType);
     if (pkConfigs.size() != 1) {
@@ -159,7 +159,7 @@ Status NormalTabletWriter::PreparePrimaryKeyReader(const std::shared_ptr<framewo
         AUTIL_LOG(ERROR, "create index factory for index type [%s] failed", indexType.c_str());
         return status;
     }
-    auto indexReader = indexFactory->CreateIndexReader(pkConfig, emptyIndexerParam);
+    auto indexReader = indexFactory->CreateIndexReader(pkConfig, index::IndexReaderParameter {});
     status = indexReader->Open(pkConfig, tabletData.get());
     if (!status.IsOK()) {
         return status;
@@ -307,9 +307,9 @@ void NormalTabletWriter::ValidateDocumentBatch(document::IDocumentBatch* batch)
             onlyDeleteDoc = false;
         }
         if (_versionLocator.IsSameSrc((*batch)[i]->GetLocatorV2(), true)) {
-            auto docInfo = (*batch)[i]->GetDocInfo();
-            if (_versionLocator.IsFasterThan(docInfo.hashId, {docInfo.timestamp, docInfo.concurrentIdx}) ==
-                framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
+            auto ret = _versionLocator.IsFasterThan((*batch)[i]->GetDocInfo());
+            assert(ret != framework::Locator::LocatorCompareResult::LCR_INVALID);
+            if (ret == framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
                 batch->DropDoc(i);
             }
         }

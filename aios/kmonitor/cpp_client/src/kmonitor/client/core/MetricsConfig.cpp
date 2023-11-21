@@ -35,10 +35,13 @@ MetricsConfig::MetricsConfig() {
 MetricsConfig::~MetricsConfig() { delete global_tags_; }
 
 void MetricsConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
+    json.Jsonize("tenant_name", tenant_name_);
+    json.Jsonize("service_name", service_name_);
+    json.Jsonize("enable_log_file_sink", enable_log_file_sink_, enable_log_file_sink_);
+    json.Jsonize("manually_mode", manually_mode_, manually_mode_);
+    json.Jsonize("use_common_tag", use_common_tag_, use_common_tag_);
     if (json.GetMode() == FROM_JSON) {
         map<string, string> default_params;
-        json.Jsonize("tenant_name", tenant_name_);
-        json.Jsonize("service_name", service_name_);
         bool assigned = true;
         json.Jsonize("assigned", assigned, assigned);
         // ignore sink_address if "assigned" is false for compatibility
@@ -47,19 +50,13 @@ void MetricsConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
         }
         json.Jsonize("global_tags", default_params, default_params);
         // 用于异步flume client配置
-        json.Jsonize("enable_log_file_sink", enable_log_file_sink_, enable_log_file_sink_);
-        json.Jsonize("use_common_tag", use_common_tag_, use_common_tag_);
         map<string, string>::iterator iter = default_params.begin();
         for (; iter != default_params.end(); ++iter) {
             AddGlobalTag(iter->first, iter->second);
         }
         inited_ = true;
     } else if (json.GetMode() == TO_JSON) {
-        json.Jsonize("tenant_name", tenant_name_);
-        json.Jsonize("service_name", service_name_);
         json.Jsonize("sink_address", sink_address_);
-        json.Jsonize("enable_log_file_sink", enable_log_file_sink_);
-        json.Jsonize("use_common_tag", use_common_tag_, use_common_tag_);
         map<string, string> params = global_tags_->GetTagsMap();
         json.Jsonize("global_tags", params);
     }
@@ -72,6 +69,7 @@ MetricsConfig &MetricsConfig::operator=(const MetricsConfig &config) {
         service_name_ = config.service_name();
         sink_address_ = config.sink_address();
         enable_log_file_sink_ = config.enable_log_file_sink();
+        manually_mode_ = config.manually_mode();
         *global_tags_ = *config.global_tags();
         use_common_tag_ = config.use_common_tag();
     }
@@ -99,6 +97,10 @@ bool MetricsConfig::enable_log_file_sink() const { return enable_log_file_sink_;
 void MetricsConfig::set_enable_log_file_sink(bool enable_log_file_sink) {
     enable_log_file_sink_ = enable_log_file_sink;
 }
+
+bool MetricsConfig::manually_mode() const { return manually_mode_; }
+
+void MetricsConfig::set_manually_mode(bool mode) { manually_mode_ = mode; }
 
 bool MetricsConfig::use_common_tag() const { return use_common_tag_; }
 

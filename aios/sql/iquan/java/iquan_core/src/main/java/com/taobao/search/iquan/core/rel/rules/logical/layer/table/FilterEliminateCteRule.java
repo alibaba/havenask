@@ -1,7 +1,6 @@
 package com.taobao.search.iquan.core.rel.rules.logical.layer.table;
 
 import com.taobao.search.iquan.core.rel.ops.logical.CTEConsumer;
-import com.taobao.search.iquan.core.rel.ops.logical.CTEProducer;
 import com.taobao.search.iquan.core.utils.LayerTableUtils;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;

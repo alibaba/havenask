@@ -15,12 +15,22 @@
  */
 #include "indexlib/framework/TabletData.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <map>
+#include <set>
+#include <type_traits>
+
+#include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/config/ITabletSchema.h"
-#include "indexlib/framework/MemSegment.h"
 #include "indexlib/framework/ResourceMap.h"
 #include "indexlib/framework/Segment.h"
+#include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/framework/TabletDataInfo.h"
 #include "indexlib/framework/TabletDataSchemaGroup.h"
+#include "indexlib/framework/index_task/IndexTaskHistory.h"
 
 #define TABLET_NAME _tabletName.c_str()
 
@@ -38,7 +48,12 @@ TabletData::TabletData(std::string tabletName)
 {
 }
 
-TabletData::~TabletData() { TABLET_LOG(INFO, "release tablet data, version[%d]", _onDiskVersion.GetVersionId()); }
+TabletData::~TabletData()
+{
+    if (!autil::StringUtil::startsWith(_tabletName, "__TMP__")) {
+        TABLET_LOG(INFO, "release tablet data, version[%d]", _onDiskVersion.GetVersionId());
+    }
+}
 
 Status TabletData::Init(Version onDiskVersion, std::vector<SegmentPtr> segments,
                         const std::shared_ptr<ResourceMap>& resourceMap)
@@ -139,9 +154,9 @@ TabletData::SegmentPtr TabletData::GetSegment(segmentid_t segmentId) const
     return nullptr;
 }
 
-std::pair<SegmentPtr, docid_t> TabletData::GetSegmentWithBaseDocid(segmentid_t segmentId)
+std::pair<SegmentPtr, docid64_t> TabletData::GetSegmentWithBaseDocid(segmentid_t segmentId)
 {
-    docid_t baseDocId = 0;
+    docid64_t baseDocId = 0;
     auto slice = CreateSlice(framework::Segment::SegmentStatus::ST_UNSPECIFY);
     for (auto iter = slice.begin(); iter != slice.end(); iter++) {
         if (segmentId == (*iter)->GetSegmentId()) {

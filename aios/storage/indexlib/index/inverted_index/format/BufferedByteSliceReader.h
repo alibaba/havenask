@@ -34,7 +34,7 @@ public:
      */
     void Seek(uint32_t pos)
     {
-        _byteSliceReader.Seek(pos);
+        _byteSliceReader.Seek(pos).GetOrThrow();
         _locationCursor = 0;
         _shortBufferCursor = 0;
     }

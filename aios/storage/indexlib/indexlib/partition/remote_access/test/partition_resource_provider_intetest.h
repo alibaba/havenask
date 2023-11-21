@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONRESOURCEPROVIDERINTETEST_H
-#define __INDEXLIB_PARTITIONRESOURCEPROVIDERINTETEST_H
+#pragma once
 
 #include <cmath>
 
@@ -74,5 +73,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITIONRESOURCEPROVIDERINTETEST_H

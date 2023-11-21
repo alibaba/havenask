@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DUMPABLE_PKEY_OFFSET_ITERATOR_H
-#define __INDEXLIB_DUMPABLE_PKEY_OFFSET_ITERATOR_H
+#pragma once
 
 #include <deque>
 #include <memory>
@@ -72,5 +71,3 @@ private:
 
 DEFINE_SHARED_PTR(DumpablePKeyOffsetIterator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DUMPABLE_PKEY_OFFSET_ITERATOR_H

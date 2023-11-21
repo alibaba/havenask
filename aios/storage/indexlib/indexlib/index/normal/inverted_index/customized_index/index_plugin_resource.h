@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_PLUGIN_RESOURCE_H
-#define __INDEXLIB_INDEX_PLUGIN_RESOURCE_H
+#pragma once
 
 #include <memory>
 
@@ -30,8 +29,7 @@ class IndexPluginResource : public plugin::PluginResource
 public:
     IndexPluginResource(const config::IndexPartitionSchemaPtr& _schema, const config::IndexPartitionOptions& _options,
                         const util::CounterMapPtr& _counterMap, const index_base::PartitionMeta& _partitionMeta,
-                        const std::string& _pluginPath,
-                        util::MetricProviderPtr _metricProvider = util::MetricProviderPtr())
+                        const std::string& _pluginPath, const util::MetricProviderPtr& _metricProvider)
         : PluginResource(_schema, _options, _counterMap, _pluginPath, _metricProvider)
         , partitionMeta(_partitionMeta)
     {
@@ -42,5 +40,3 @@ public:
 
 DEFINE_SHARED_PTR(IndexPluginResource);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEX_PLUGIN_RESOURCE_H

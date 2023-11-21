@@ -15,7 +15,13 @@
  */
 #pragma once
 
+#include <algorithm>
+#include <cstdint>
+#include <map>
+#include <memory>
 #include <mutex>
+#include <string>
+#include <vector>
 
 #include "autil/Log.h"
 #include "autil/LoopThread.h"

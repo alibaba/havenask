@@ -79,6 +79,36 @@ TEST_F(SqlQueryRequestTest, testGetDefaultValue) {
     }
 }
 
+TEST_F(SqlQueryRequestTest, isResultAllowSoftFailure) {
+    {
+        // compatible with `lackResultEnable`
+        SqlQueryRequest request;
+        request._kvPair = {{SQL_LACK_RESULT_ENABLE, "true"}};
+        ASSERT_TRUE(request.isResultAllowSoftFailure(false));
+        ASSERT_TRUE(request.isResultAllowSoftFailure(true));
+        request._kvPair = {{SQL_LACK_RESULT_ENABLE, "false"}};
+        ASSERT_FALSE(request.isResultAllowSoftFailure(false));
+        ASSERT_FALSE(request.isResultAllowSoftFailure(true));
+    }
+    {
+        SqlQueryRequest request;
+        request._kvPair
+            = {{SQL_LACK_RESULT_ENABLE, "false"}, {SQL_RESULT_ALLOW_SOFT_FAILURE, "true"}};
+        ASSERT_TRUE(request.isResultAllowSoftFailure(false));
+        ASSERT_TRUE(request.isResultAllowSoftFailure(true));
+        request._kvPair
+            = {{SQL_LACK_RESULT_ENABLE, "true"}, {SQL_RESULT_ALLOW_SOFT_FAILURE, "false"}};
+        ASSERT_FALSE(request.isResultAllowSoftFailure(false));
+        ASSERT_FALSE(request.isResultAllowSoftFailure(true));
+    }
+    {
+        SqlQueryRequest request;
+        request._kvPair = {};
+        ASSERT_FALSE(request.isResultAllowSoftFailure(false));
+        ASSERT_TRUE(request.isResultAllowSoftFailure(true));
+    }
+}
+
 TEST_F(SqlQueryRequestTest, testInit) {
     {
         string query = "select * from a";

@@ -1,4 +1,9 @@
-package(default_visibility=['//aios/sql:__subpackages__'])
+package(
+    default_visibility=[
+        '//aios/sql:__subpackages__',
+        '//aios/apps/engine/vector_service:__subpackages__'
+    ]
+)
 cc_library(
     name='sql_ops_table_merge',
     srcs=glob(['*.cpp']),

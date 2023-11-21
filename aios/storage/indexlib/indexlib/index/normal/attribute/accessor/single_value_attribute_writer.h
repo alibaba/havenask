@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_WRITER_H
-#define __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_WRITER_H
+#pragma once
 
 #include <memory>
 
@@ -235,5 +234,3 @@ DEFINE_SHARED_PTR(Int8AttributeWriter);
 typedef SingleValueAttributeWriter<uint8_t> UInt8AttributeWriter;
 DEFINE_SHARED_PTR(UInt8AttributeWriter);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_ATTRIBUTE_WRITER_H

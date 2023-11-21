@@ -15,31 +15,65 @@
  */
 #include "indexlib/merger/custom_partition_merger.h"
 
-#include "autil/EnvUtil.h"
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/LoopThread.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/configurator_define.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/merge_config.h"
+#include "indexlib/config/offline_config.h"
+#include "indexlib/document/locator.h"
 #include "indexlib/file_system/Directory.h"
-#include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/RemoveOption.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/framework/SegmentStatistics.h"
+#include "indexlib/index/util/segment_directory_base.h"
 #include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/common_branch_hinter.h"
+#include "indexlib/index_base/deploy_index_wrapper.h"
 #include "indexlib/index_base/index_meta/progress_synchronizer.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/index_base/partition_data.h"
+#include "indexlib/index_base/patch/partition_patch_meta_creator.h"
 #include "indexlib/index_base/segment/segment_data.h"
 #include "indexlib/index_base/segment/segment_data_base.h"
 #include "indexlib/index_base/version_committer.h"
+#include "indexlib/merger/index_partition_merger_metrics.h"
 #include "indexlib/merger/merge_file_system.h"
 #include "indexlib/merger/merge_meta.h"
+#include "indexlib/merger/merge_scheduler.h"
+#include "indexlib/merger/merge_task.h"
 #include "indexlib/merger/merge_task_executor.h"
 #include "indexlib/merger/merge_work_item.h"
-#include "indexlib/merger/merger_branch_hinter.h"
 #include "indexlib/merger/multi_part_segment_directory.h"
 #include "indexlib/merger/table_merge_meta.h"
-#include "indexlib/plugin/plugin_manager.h"
 #include "indexlib/table/merge_policy.h"
+#include "indexlib/table/merge_task_dispatcher.h"
+#include "indexlib/table/table_common.h"
 #include "indexlib/table/table_factory_wrapper.h"
 #include "indexlib/table/table_merge_plan_meta.h"
-#include "indexlib/util/resource_control_thread_pool.h"
+#include "indexlib/table/table_merge_plan_resource.h"
+#include "indexlib/table/task_execute_meta.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
+#include "indexlib/util/PathUtil.h"
 #include "indexlib/util/resource_control_work_item.h"
 
 using namespace std;
@@ -173,7 +207,7 @@ void CustomPartitionMerger::DoMerge(bool optimize, const MergeMetaPtr& mergeMeta
 void CustomPartitionMerger::EndMerge(const MergeMetaPtr& mergeMeta, versionid_t alignVersionId)
 {
     const Version& targetVersion = mergeMeta->GetTargetVersion();
-    if (targetVersion == index_base::Version(INVALID_VERSION)) {
+    if (targetVersion == index_base::Version(INVALID_VERSIONID)) {
         AlignVersion(mDumpStrategy->GetRootDirectory(), alignVersionId);
         return;
     }
@@ -181,7 +215,7 @@ void CustomPartitionMerger::EndMerge(const MergeMetaPtr& mergeMeta, versionid_t 
     if (!tableMergeMeta) {
         INDEXLIB_FATAL_ERROR(Runtime, "fail to cast MergeMeta to TableMergeMeta");
     }
-    assert(targetVersion.GetVersionId() != INVALID_VERSION);
+    assert(targetVersion.GetVersionId() != INVALID_VERSIONID);
     Version alignVersion = targetVersion;
     alignVersion.SetVersionId(GetTargetVersionId(targetVersion, alignVersionId));
     alignVersion.SyncSchemaVersionId(mSchema);
@@ -193,7 +227,7 @@ void CustomPartitionMerger::EndMerge(const MergeMetaPtr& mergeMeta, versionid_t 
     }
 
     Version latestOnDiskVersion;
-    VersionLoader::GetVersion(rootDirectory, latestOnDiskVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDirectory, latestOnDiskVersion, INVALID_VERSIONID);
 
     if (latestOnDiskVersion == alignVersion) {
         // handle failover
@@ -304,7 +338,7 @@ Version CustomPartitionMerger::CreateNewVersion(const vector<TableMergePlanPtr>&
         }
     }
     mDumpStrategy->IncVersionId();
-    return mDumpStrategy->IsDirty() ? mDumpStrategy->GetVersion() : Version(INVALID_VERSION);
+    return mDumpStrategy->IsDirty() ? mDumpStrategy->GetVersion() : Version(INVALID_VERSIONID);
 }
 
 bool CustomPartitionMerger::FilterEmptyTableMergePlan(vector<TableMergePlanPtr>& tableMergePlans)

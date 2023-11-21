@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_MERGER_H
-#define __INDEXLIB_PARTITION_MERGER_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
 
-#include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/version.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -40,5 +39,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionMerger);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PARTITION_MERGER_H

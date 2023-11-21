@@ -15,31 +15,62 @@
  */
 #include "build_service/worker/BuilderServiceImpl.h"
 
-#include <deque>
+#include <assert.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <unordered_map>
+#include <utility>
 
-#include "autil/Lock.h"
-#include "build_service/builder/BuilderMetrics.h"
-#include "build_service/common/ConfigDownloader.h"
+#include "autil/CommonMacros.h"
+#include "autil/Log.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "beeper/beeper.h"
+#include "build_service/builder/Builder.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CounterSynchronizer.h"
 #include "build_service/common/CounterSynchronizerCreator.h"
 #include "build_service/common/CpuSpeedEstimater.h"
+#include "build_service/common/ExceedTsAction.h"
+#include "build_service/common/Locator.h"
+#include "build_service/common/NetworkTrafficEstimater.h"
 #include "build_service/common/ResourceKeeperCreator.h"
+#include "build_service/common/SwiftResourceKeeper.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ControlConfig.h"
-#include "build_service/config/IndexPartitionOptionsWrapper.h"
+#include "build_service/config/ResourceReaderManager.h"
 #include "build_service/config/SwiftConfig.h"
+#include "build_service/config/SwiftTopicConfig.h"
 #include "build_service/config/TaskInputConfig.h"
 #include "build_service/proto/DataDescription.h"
 #include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/ProtoComparator.h"
 #include "build_service/proto/ProtoUtil.h"
+#include "build_service/reader/RawDocumentReader.h"
+#include "build_service/task_base/RestartIntervalController.h"
 #include "build_service/task_base/UpdateLocatorTaskItem.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/SwiftClientCreator.h"
-#include "build_service/worker/ServiceWorker.h"
-#include "fslib/util/FileUtil.h"
+#include "build_service/workflow/AsyncStarter.h"
+#include "build_service/workflow/Producer.h"
+#include "build_service/workflow/RealtimeBuilderDefine.h"
+#include "build_service/workflow/SwiftProcessedDocProducer.h"
+#include "build_service/workflow/Workflow.h"
+#include "build_service/workflow/WorkflowItem.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
+#include "indexlib/util/TaskItem.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
-#include "indexlib/util/counter/CounterMap.h"
+#include "swift/protocol/AdminRequestResponse.pb.h"
+#include "swift/protocol/Common.pb.h"
 
 using namespace indexlib::common;
 using namespace indexlib::util;
@@ -420,7 +451,9 @@ common::ResourceKeeperMap BuilderServiceImpl::createResources(const ResourceRead
 workflow::FlowFactory* BuilderServiceImpl::createFlowFactory(const ResourceReaderPtr& resourceReader,
                                                              const PartitionId& pid, KeyValueMap& kvMap)
 {
-    return new FlowFactory(createResources(resourceReader, pid, kvMap), SwiftClientCreatorPtr(new SwiftClientCreator));
+    return new FlowFactory(
+        createResources(resourceReader, pid, kvMap),
+        SwiftClientCreatorPtr(new SwiftClientCreator(_metricProvider ? _metricProvider->GetReporter() : nullptr)));
 }
 
 workflow::BuildFlow* BuilderServiceImpl::createBuildFlow() { return new BuildFlow(); }

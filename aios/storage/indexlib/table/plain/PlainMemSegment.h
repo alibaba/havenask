@@ -21,13 +21,14 @@
 #include "autil/Log.h"
 #include "indexlib/base/MemoryQuotaController.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/SortDescription.h"
 #include "indexlib/document/extractor/plain/DocumentInfoExtractorFactory.h"
 #include "indexlib/framework/MemSegment.h"
 #include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/framework/SegmentMeta.h"
 #include "indexlib/index/IIndexFactory.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 
 namespace indexlib::config {
 // class IndexPartitionOptions;
@@ -90,7 +91,7 @@ public:
     struct IndexerResource {
         std::shared_ptr<config::IIndexConfig> indexConfig;
         index::IIndexFactory* indexerFactory = nullptr;
-        index::IndexerParameter indexerParam;
+        index::MemIndexerParameter indexerParam;
         size_t lastMemUseSize = 0;
     };
 
@@ -118,7 +119,7 @@ public:
     void Seal() override;
     std::pair<Status, std::vector<std::shared_ptr<framework::SegmentDumpItem>>> CreateSegmentDumpItems() override;
     void EndDump() override { UpdateMemUse(); }
-    void ValidateDocumentBatch(document::IDocumentBatch* batch);
+    void ValidateDocumentBatch(document::IDocumentBatch* batch) const override;
     size_t EvaluateCurrentMemUsed() override { return _segmentMemController->GetAllocatedQuota(); }
     bool IsDirty() const override { return _isDirty; }
 
@@ -139,12 +140,12 @@ protected:
     {
         return std::make_pair(Status::NotFound(), 0);
     }
+    void UpdateMemUse();
     virtual void PrepareIndexerParameter(const framework::BuildResource& resource, int64_t maxMemoryUseInBytes,
-                                         index::IndexerParameter& indexerParam) const;
+                                         index::MemIndexerParameter& indexerParam) const;
 
 private:
     Status PrepareIndexers(const framework::BuildResource& resource);
-    void UpdateMemUse();
     void Cleanup() { _indexMap.clear(); }
 
     IndexMapKey GenerateIndexMapKey(const std::string& indexType, const std::string& indexName) const
@@ -157,7 +158,7 @@ private:
     Status GenerateIndexerResource(const framework::BuildResource& resource,
                                    std::vector<IndexerResource>& indexerResources);
     Status BuildPlainDoc(document::TemplateDocumentBatch<document::PlainDocument>* plainDocBatch);
-    void ValidateDocumentBatch(document::TemplateDocumentBatch<document::PlainDocument>* plainDocBatch);
+    void ValidateDocumentBatch(document::TemplateDocumentBatch<document::PlainDocument>* plainDocBatch) const;
 
 protected:
     const config::TabletOptions* _options = nullptr;
@@ -173,6 +174,7 @@ protected:
     std::map<IndexMapKey, IndexerAndMemUpdaterPair> _indexMapForValidation;
     std::vector<std::shared_ptr<indexlibv2::index::IMemIndexer>> _indexers;
     std::shared_ptr<indexlib::framework::SegmentMetrics> _lastSegmentMetrics;
+    std::shared_ptr<docid64_t> _currentBuildDocId;
 
 private:
     std::unique_ptr<MemoryQuotaController> _segmentMemController;

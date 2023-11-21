@@ -3,6 +3,7 @@ load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 strict_cc_fast_test(
     name='atomic_value_typed_test',
     srcs=['AtomicValueTypedTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/common:AtomicValueTyped',
         '//aios/storage/indexlib/util/testutil:unittest'
@@ -11,6 +12,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='short_buffer_test',
     srcs=['ShortBufferTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/common:ShortBuffer',
         '//aios/storage/indexlib/util/testutil:unittest'
@@ -52,6 +54,7 @@ strict_cc_fast_test(
     srcs=[
         'RadixTreeNodeTest.cpp', 'RadixTreePerfTest.cpp', 'RadixTreeTest.cpp'
     ],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/common:radix_tree',
         '//aios/storage/indexlib/util/testutil:unittest'
@@ -60,8 +63,19 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='typed_slice_list_test',
     srcs=['TypedSliceListTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/common:typed_slice_list',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+strict_cc_fast_test(
+    name='plain_doc_mapper_test',
+    srcs=['PlainDocMapperTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/framework/mock:FakeDiskSegment',
+        '//aios/storage/indexlib/index/common:PlainDocMapper',
         '//aios/storage/indexlib/util/testutil:unittest'
     ]
 )

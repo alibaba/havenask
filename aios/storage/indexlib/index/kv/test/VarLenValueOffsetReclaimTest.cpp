@@ -39,7 +39,7 @@ protected:
         auto memReclaimer = std::make_shared<indexlibv2::framework::EpochBasedMemReclaimer>(reclaimFreq, nullptr);
 
         auto indexer = std::make_unique<VarLenKVMemIndexer>(
-            DEFAULT_MEMORY_USE_IN_BYTES, VarLenKVMemIndexer::DEFAULT_KEY_VALUE_MEM_RATIO,
+            true, DEFAULT_MEMORY_USE_IN_BYTES, VarLenKVMemIndexer::DEFAULT_KEY_VALUE_MEM_RATIO,
             VarLenKVMemIndexer::DEFAULT_VALUE_COMPRESSION_RATIO, memReclaimer.get());
         ASSERT_TRUE(indexer->Init(_indexConfig, nullptr).IsOK());
 

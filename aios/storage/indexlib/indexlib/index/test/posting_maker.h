@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_POSTING_MAKER_H
-#define __INDEXLIB_POSTING_MAKER_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -130,5 +129,3 @@ inline void PostingMaker::BuildPostingData(WriterType& writer, const DocMap& doc
     }
 }
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_POSTING_MAKER_H

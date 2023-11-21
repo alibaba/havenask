@@ -99,10 +99,10 @@ IIndexFactory* SummaryMaker::GetIndexFactory(const std::shared_ptr<indexlibv2::c
 
 std::shared_ptr<IIndexReader> SummaryMaker::CreateIndexReader(std::shared_ptr<framework::TabletData>& tabletData,
                                                               const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                              IndexerParameter& indexerParam)
+                                                              const IndexReaderParameter& indexReaderParam)
 {
     auto indexFactory = GetIndexFactory(indexConfig);
-    auto indexReader = indexFactory->CreateIndexReader(indexConfig, indexerParam);
+    auto indexReader = indexFactory->CreateIndexReader(indexConfig, indexReaderParam);
     auto status = indexReader->Open(indexConfig, tabletData.get());
     if (!status.IsOK()) {
         return nullptr;

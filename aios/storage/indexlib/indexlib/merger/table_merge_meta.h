@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_MERGE_META_H
-#define __INDEXLIB_TABLE_MERGE_META_H
+#pragma once
 
-#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/file_system/Directory.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/index_merge_meta.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/table/merge_policy.h"
 #include "indexlib/table/merge_task_description.h"
-#include "indexlib/table/merge_task_dispatcher.h"
+#include "indexlib/table/table_merge_plan.h"
+#include "indexlib/table/table_merge_plan_resource.h"
+#include "indexlib/table/task_execute_meta.h"
 
-DECLARE_REFERENCE_CLASS(table, TableMergePlan);
 DECLARE_REFERENCE_CLASS(table, TableMergePlanMeta);
-DECLARE_REFERENCE_CLASS(table, TableMergePlanResource);
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 
 namespace indexlib { namespace merger {
 
@@ -83,5 +87,3 @@ private:
 
 DEFINE_SHARED_PTR(TableMergeMeta);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TABLE_MERGE_META_H

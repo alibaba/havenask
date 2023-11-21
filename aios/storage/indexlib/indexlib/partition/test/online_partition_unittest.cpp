@@ -3,6 +3,7 @@
 #include "autil/LoopThread.h"
 #include "indexlib/common/executor_scheduler.h"
 #include "indexlib/config/disable_fields_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/config/updateable_schema_standards.h"
 #include "indexlib/config/virtual_attribute_config_creator.h"
 #include "indexlib/file_system/Directory.h"
@@ -40,7 +41,6 @@
 #include "indexlib/test/query_parser.h"
 #include "indexlib/test/result.h"
 #include "indexlib/test/result_checker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/searcher.h"
 #include "indexlib/test/version_maker.h"
 #include "indexlib/util/TaskScheduler.h"
@@ -333,7 +333,7 @@ void OnlinePartitionTest::TestTemperatureIndexCallBack()
                      ",time=" + StringUtil::toString(currentTime - 20000) + ";"; // cold
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs, "pk:3", "status=0"));
     Version incVerson;
-    VersionLoader::GetVersionS(mRootDir, incVerson, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, incVerson, INVALID_VERSIONID);
     ASSERT_EQ(2, incVerson.GetSegmentCount());
     ASSERT_EQ(incVerson.GetSegmentCount(), incVerson.GetSegTemperatureMetas().size());
     index::Term term;
@@ -415,7 +415,7 @@ void OnlinePartitionTest::TestTemperatureCallBack2()
     string incDocs = "cmd=add,pk=3,status=0,time=" + StringUtil::toString(currentTime - 20000) + ";"; // cold
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs, "pk:3", "status=0"));
     Version incVerson;
-    VersionLoader::GetVersionS(mRootDir, incVerson, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, incVerson, INVALID_VERSIONID);
     ASSERT_EQ(2, incVerson.GetSegmentCount());
     ASSERT_EQ(incVerson.GetSegmentCount(), incVerson.GetSegTemperatureMetas().size());
     Term term;
@@ -492,7 +492,7 @@ void OnlinePartitionTest::TestTemperaturePkLookup()
                      ",time=" + StringUtil::toString(currentTime - 20000) + ";"; // cold
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs, "pk:3", "status=0"));
     Version incVerson;
-    VersionLoader::GetVersionS(mRootDir, incVerson, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, incVerson, INVALID_VERSIONID);
     ASSERT_EQ(2, incVerson.GetSegmentCount());
     ASSERT_EQ(incVerson.GetSegmentCount(), incVerson.GetSegTemperatureMetas().size());
     auto& pkReader = psm.GetIndexPartition()->GetReader()->GetPrimaryKeyReader();
@@ -690,7 +690,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopenWithSub()
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocs, "pk:pk1", "long1=1"));
 
     Version fullVersion;
-    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "version [%s]", ToJsonString(fullVersion).c_str());
     ASSERT_EQ(2, fullVersion.GetSegmentCount());
 
@@ -731,7 +731,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopenWithSub()
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC_NO_REOPEN, incDocString, "sub_pk:sub11", "sub_int=2"));
 
     Version incVersion;
-    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSIONID);
     ASSERT_EQ(2, incVersion.GetVersionId());
     ASSERT_EQ(6, incVersion.GetSegmentCount());
     IE_LOG(INFO, "version [%s]", ToJsonString(incVersion).c_str());
@@ -885,7 +885,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopenReclaimBuilding()
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocString, "", ""));
 
     Version fullVersion;
-    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "version [%s]", ToJsonString(fullVersion).c_str());
     ASSERT_EQ(2, fullVersion.GetSegmentCount());
 
@@ -927,14 +927,14 @@ void OnlinePartitionTest::TestOptimizedNormalReopenReclaimBuilding()
     OnlinePartition* onlinePartition = dynamic_cast<OnlinePartition*>(indexPartition.get());
 
     Version incVersion;
-    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "version [%s]", ToJsonString(incVersion).c_str());
     ASSERT_EQ(7, incVersion.GetSegmentCount());
     INDEXLIB_TEST_TRUE(psm.Transfer(PE_BUILD_RT, rtDocString, "", ""));
     CheckDocCount(15, indexPartition);
 
     Version version;
-    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSIONID);
     ASSERT_EQ(2, version.GetVersionId());
     OpenExecutorChainCreator creator("", onlinePartition);
     ASSERT_TRUE(creator.CanOptimizedReopen(options, mSchema, version));
@@ -968,7 +968,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopenReclaimBuilding()
                     ASSERT_TRUE(query == NULL) << iter->first;
                     continue;
                 }
-                std::vector<std::pair<docid_t, bool>> docPairs;
+                std::vector<std::pair<docid64_t, bool>> docPairs;
                 string pk = StringUtil::split(iter->first, ":")[1];
                 pkReader->LookupAll(pk, docPairs);
                 int64_t pkCount = 0;
@@ -1039,7 +1039,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopenWithDumping()
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocString, "", ""));
 
     Version fullVersion;
-    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "version [%s]", ToJsonString(fullVersion).c_str());
     ASSERT_EQ(2, fullVersion.GetSegmentCount());
 
@@ -1079,14 +1079,14 @@ void OnlinePartitionTest::TestOptimizedNormalReopenWithDumping()
     OnlinePartition* onlinePartition = dynamic_cast<OnlinePartition*>(indexPartition.get());
 
     Version incVersion;
-    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "version [%s]", ToJsonString(incVersion).c_str());
     ASSERT_EQ(8, incVersion.GetSegmentCount());
     INDEXLIB_TEST_TRUE(psm.Transfer(PE_BUILD_RT, rtDocString, "pk:pk10", "long1=0"));
     CheckDocCount(11, indexPartition);
 
     Version version;
-    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSIONID);
     ASSERT_EQ(2, version.GetVersionId());
     OpenExecutorChainCreator creator("", onlinePartition);
     ASSERT_TRUE(creator.CanOptimizedReopen(options, mSchema, version));
@@ -1120,7 +1120,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopenWithDumping()
                     ASSERT_TRUE(query == NULL) << iter->first;
                     continue;
                 }
-                std::vector<std::pair<docid_t, bool>> docPairs;
+                std::vector<std::pair<docid64_t, bool>> docPairs;
                 string pk = StringUtil::split(iter->first, ":")[1];
                 pkReader->LookupAll(pk, docPairs);
                 int64_t pkCount = 0;
@@ -1191,7 +1191,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopen()
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocString, "", ""));
 
     Version fullVersion;
-    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "version [%s]", ToJsonString(fullVersion).c_str());
     ASSERT_EQ(2, fullVersion.GetSegmentCount());
 
@@ -1233,14 +1233,14 @@ void OnlinePartitionTest::TestOptimizedNormalReopen()
     OnlinePartition* onlinePartition = dynamic_cast<OnlinePartition*>(indexPartition.get());
 
     Version incVersion;
-    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "version [%s]", ToJsonString(incVersion).c_str());
     ASSERT_EQ(6, incVersion.GetSegmentCount());
     INDEXLIB_TEST_TRUE(psm.Transfer(PE_BUILD_RT, rtDocString, "pk:pk6", ""));
     CheckDocCount(10, indexPartition);
 
     Version version;
-    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSIONID);
     ASSERT_EQ(2, version.GetVersionId());
     OpenExecutorChainCreator creator("", onlinePartition);
     ASSERT_TRUE(creator.CanOptimizedReopen(options, mSchema, version));
@@ -1276,7 +1276,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopen()
                     ASSERT_TRUE(query == NULL) << iter->first;
                     continue;
                 }
-                std::vector<std::pair<docid_t, bool>> docPairs;
+                std::vector<std::pair<docid64_t, bool>> docPairs;
                 string pk = StringUtil::split(iter->first, ":")[1];
                 pkReader->LookupAll(pk, docPairs);
                 int64_t pkCount = 0;
@@ -1332,7 +1332,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopenWithReclaimBuilding()
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocString, "", ""));
 
     Version fullVersion;
-    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "full version [%s]", ToJsonString(fullVersion).c_str());
     ASSERT_EQ(2, fullVersion.GetSegmentCount());
 
@@ -1363,7 +1363,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopenWithReclaimBuilding()
 
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC_NO_REOPEN, incDocString, "", ""));
     Version incVersion;
-    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "inc version [%s]", ToJsonString(incVersion).c_str());
     ASSERT_EQ(6, incVersion.GetSegmentCount());
 
@@ -1374,7 +1374,7 @@ void OnlinePartitionTest::TestOptimizedNormalReopenWithReclaimBuilding()
     CheckDocCount(10, indexPartition);
     OnlinePartition* onlinePartition = dynamic_cast<OnlinePartition*>(indexPartition.get());
     Version version;
-    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSIONID);
     OpenExecutorChainCreator creator("", onlinePartition);
     ASSERT_TRUE(creator.CanOptimizedReopen(options, mSchema, version));
 
@@ -1498,7 +1498,7 @@ void OnlinePartitionTest::TestSeriesReopen()
     OnlinePartition* onlinePartition = dynamic_cast<OnlinePartition*>(indexPartition.get());
 
     Version fullVersion;
-    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "full version [%s]", ToJsonString(fullVersion).c_str());
     ASSERT_EQ(2, fullVersion.GetSegmentCount());
     {
@@ -1516,7 +1516,7 @@ void OnlinePartitionTest::TestSeriesReopen()
         INDEXLIB_TEST_TRUE(psm.Transfer(PE_BUILD_INC, incDocString1, "", ""));
         CheckDocCount(4, indexPartition);
         Version incVersion1;
-        VersionLoader::GetVersionS(mRootDir, incVersion1, INVALID_VERSION);
+        VersionLoader::GetVersionS(mRootDir, incVersion1, INVALID_VERSIONID);
         IE_LOG(INFO, "inc version1 [%s]", ToJsonString(incVersion1).c_str());
         ASSERT_EQ(5, incVersion1.GetSegmentCount());
         INDEXLIB_TEST_TRUE(psm.Transfer(PE_BUILD_RT, rtDocString1, "", ""));
@@ -1546,7 +1546,7 @@ void OnlinePartitionTest::TestSeriesReopen()
                                "cmd=add,string1=pk10,long1=1,ts=10;";
         INDEXLIB_TEST_TRUE(psm.Transfer(PE_BUILD_INC, incDocString2, "", ""));
         Version incVersion2;
-        VersionLoader::GetVersionS(mRootDir, incVersion2, INVALID_VERSION);
+        VersionLoader::GetVersionS(mRootDir, incVersion2, INVALID_VERSIONID);
         IE_LOG(INFO, "inc version2 [%s]", ToJsonString(incVersion2).c_str());
         ASSERT_EQ(8, incVersion2.GetSegmentCount());
 
@@ -1580,7 +1580,7 @@ void OnlinePartitionTest::TestSeriesReopen()
         INDEXLIB_TEST_TRUE(psm.Transfer(PE_BUILD_RT, rtDocString3, "", ""));
         CheckDocCount(11, indexPartition);
         Version incVersion3;
-        VersionLoader::GetVersionS(mRootDir, incVersion3, INVALID_VERSION);
+        VersionLoader::GetVersionS(mRootDir, incVersion3, INVALID_VERSIONID);
         IE_LOG(INFO, "inc version3 [%s]", ToJsonString(incVersion3).c_str());
         ASSERT_EQ(10, incVersion3.GetSegmentCount());
 
@@ -1854,7 +1854,7 @@ void OnlinePartitionTest::TestSimpleOpen()
     schema = SchemaAdapter::LoadSchemaByVersionId(partitionRoot);
 
     OnlinePartitionPtr onlinePartition(new partition::OnlinePartition(partitionResource));
-    IndexPartition::OpenStatus os = onlinePartition->Open(partitionRoot, "", schema, options, INVALID_VERSION);
+    IndexPartition::OpenStatus os = onlinePartition->Open(partitionRoot, "", schema, options, INVALID_VERSIONID);
     ASSERT_EQ(IndexPartition::OS_OK, os);
 
     OnlinePartitionMetrics* onlinePartMetrics = onlinePartition->GetPartitionMetrics();
@@ -2369,7 +2369,7 @@ void OnlinePartitionTest::TestOpenAndForceReopenDisableLoadSpeedLimit()
     EXPECT_CALL(*fs, SwitchLoadSpeedLimit(true)).WillOnce(Return());
 
     Version version;
-    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
 
     partition.Open(mRootDir, "", mSchema, options);
     ASSERT_TRUE(fakeExecutor->mHasExecute);
@@ -2411,7 +2411,7 @@ void OnlinePartitionTest::TestReOpenDoesNotDisableLoadSpeedLimit()
     ASSERT_TRUE(fakeExecutor->mHasExecute);
     // reopen does not disable load speed switch
     Version version;
-    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
 
     fakeExecutor = new FakeReopenPartitionReaderExecutor(false);
     fakeChainPtr->mExecutor.reset(fakeExecutor);
@@ -3048,7 +3048,7 @@ void OnlinePartitionTest::TestVersionWithPatchInfo()
 
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, docs, "", ""));
     Version lastVersion;
-    VersionLoader::GetVersionS(mRootDir, lastVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, lastVersion, INVALID_VERSIONID);
     ASSERT_EQ(0, lastVersion.GetVersionId());
     ASSERT_EQ(patch.GetTableName(), lastVersion.GetUpdateableSchemaStandards().GetTableName());
     ASSERT_EQ(*patch.GetTemperatureLayerConfig(),
@@ -3057,14 +3057,14 @@ void OnlinePartitionTest::TestVersionWithPatchInfo()
     string incDocs = "cmd=add,pk=3,status=0,range=100,date=" + StringUtil::toString(currentTimeInMs - 1000) +
                      ",time=" + StringUtil::toString(currentTime - 20000) + ";"; // cold
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs, "pk:3", "status=0"));
-    VersionLoader::GetVersionS(mRootDir, lastVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, lastVersion, INVALID_VERSIONID);
     ASSERT_EQ(1, lastVersion.GetVersionId());
     ASSERT_EQ(patch.GetTableName(), lastVersion.GetUpdateableSchemaStandards().GetTableName());
     ASSERT_EQ(*patch.GetTemperatureLayerConfig(),
               *lastVersion.GetUpdateableSchemaStandards().GetTemperatureLayerConfig());
     ASSERT_FALSE(lastVersion.GetUpdateableSchemaStandards().IsEmpty());
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC, incDocs, "pk:3", "status=0"));
-    VersionLoader::GetVersionS(mRootDir, lastVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, lastVersion, INVALID_VERSIONID);
     ASSERT_EQ(3, lastVersion.GetVersionId());
     ASSERT_EQ(patch.GetTableName(), lastVersion.GetUpdateableSchemaStandards().GetTableName());
     ASSERT_EQ(*patch.GetTemperatureLayerConfig(),
@@ -3098,7 +3098,7 @@ void OnlinePartitionTest::TestTemperatureLayerChange()
 
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_FULL, docs, "", ""));
     Version version;
-    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSIONID);
     ASSERT_EQ(version.GetSegmentCount(), version.GetSegTemperatureMetas().size());
     string schemaPatch = GET_PRIVATE_TEST_DATA_PATH() + "schema_temperature_patch.json";
     string patchContent;
@@ -3115,7 +3115,7 @@ void OnlinePartitionTest::TestTemperatureLayerChange()
                      StringUtil::toString(currentTime - 2000000) + ";"; // cold
 
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs, "", ""));
-    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSIONID);
     segmentid_t segId = version.GetLastSegment();
     SegmentTemperatureMeta meta;
     ASSERT_TRUE(version.GetSegmentTemperatureMeta(segId, meta));
@@ -3124,7 +3124,7 @@ void OnlinePartitionTest::TestTemperatureLayerChange()
     ASSERT_EQ("COLD", meta.segTemperature);
 
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC, "", "", ""));
-    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSIONID);
     ASSERT_EQ(1, version.GetSegmentCount());
     segId = version.GetLastSegment();
     ASSERT_TRUE(version.GetSegmentTemperatureMeta(segId, meta));

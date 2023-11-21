@@ -23,17 +23,17 @@ namespace ha3 {
 MatchValue::MatchValue() {}
 MatchValue::~MatchValue() {}
 
-int8_t MatchValue::GetInt8(CavaCtx *ctx) { return ((matchvalue_t *)this)->GetInt8(); }
+int8_t MatchValue::GetInt8(CavaCtx *ctx) { return ((indexlib::matchvalue_t *)this)->GetInt8(); }
 
-uint8_t MatchValue::GetUint8(CavaCtx *ctx) { return ((matchvalue_t *)this)->GetUint8(); }
+uint8_t MatchValue::GetUint8(CavaCtx *ctx) { return ((indexlib::matchvalue_t *)this)->GetUint8(); }
 
-int16_t MatchValue::GetInt16(CavaCtx *ctx) { return ((matchvalue_t *)this)->GetInt16(); }
+int16_t MatchValue::GetInt16(CavaCtx *ctx) { return ((indexlib::matchvalue_t *)this)->GetInt16(); }
 
-uint16_t MatchValue::GetUint16(CavaCtx *ctx) { return ((matchvalue_t *)this)->GetUint16(); }
+uint16_t MatchValue::GetUint16(CavaCtx *ctx) { return ((indexlib::matchvalue_t *)this)->GetUint16(); }
 
-int32_t MatchValue::GetInt32(CavaCtx *ctx) { return ((matchvalue_t *)this)->GetInt32(); }
+int32_t MatchValue::GetInt32(CavaCtx *ctx) { return ((indexlib::matchvalue_t *)this)->GetInt32(); }
 
-uint32_t MatchValue::GetUint32(CavaCtx *ctx) { return ((matchvalue_t *)this)->GetUint32(); }
+uint32_t MatchValue::GetUint32(CavaCtx *ctx) { return ((indexlib::matchvalue_t *)this)->GetUint32(); }
 
-float MatchValue::GetFloat(CavaCtx *ctx) { return ((matchvalue_t *)this)->GetFloat(); }
+float MatchValue::GetFloat(CavaCtx *ctx) { return ((indexlib::matchvalue_t *)this)->GetFloat(); }
 } // namespace ha3

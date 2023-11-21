@@ -15,12 +15,32 @@
  */
 #include "build_service/config/IndexPartitionOptionsWrapper.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/CheckpointList.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/config/OfflineIndexConfigMap.h"
+#include "build_service/config/OfflineMergeConfig.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/merge_config.h"
+#include "indexlib/config/offline_config.h"
+#include "indexlib/config/online_config.h"
+#include "indexlib/config/updateable_schema_standards.h"
 #include "indexlib/index_define.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/misc/log.h"
 
 using namespace std;
 using namespace autil;

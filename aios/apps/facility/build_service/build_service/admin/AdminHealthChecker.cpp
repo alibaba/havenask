@@ -15,14 +15,30 @@
  */
 #include "build_service/admin/AdminHealthChecker.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <functional>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <stddef.h>
+#include <unistd.h>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "beeper/beeper.h"
 #include "build_service/admin/GenerationKeeper.h"
-#include "build_service/admin/IndexInfoCollector.h"
 #include "build_service/admin/ServiceKeeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/ProtoComparator.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/util/Monitor.h"
+#include "kmonitor/client/MetricLevel.h"
 
 using namespace std;
 using namespace autil;

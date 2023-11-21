@@ -17,7 +17,6 @@
 
 #include "aios/network/http_arpc/HTTPRPCServer.h"
 #include "autil/LoopThread.h"
-#include "kmonitor/client/MetricsReporter.h"
 #include "suez/sdk/RpcServer.h"
 #include "suez/worker/EnvParam.h"
 #include "suez/worker/TaskExecutor.h"
@@ -30,6 +29,7 @@ namespace suez {
 class HeartbeatManager;
 class SelfKillerService;
 class DebugServiceImpl;
+class KMonitorManager;
 } // namespace suez
 
 namespace suez {
@@ -54,7 +54,6 @@ private:
     bool startRdma(const EnvParam &param);
     bool startGigRpcServer(const EnvParam &param);
     void waitForDebugger(const EnvParam &param);
-    bool initMetrics(const EnvParam &param);
     bool initTaskExecutor(const EnvParam &param);
     void report();
     bool initGrpcServer(const EnvParam &param);
@@ -62,9 +61,9 @@ private:
 
 private:
     std::shared_ptr<multi_call::GigRpcServer> _rpcServer;
+    std::unique_ptr<KMonitorManager> _kmonManager;
     std::string _installRoot;
     RpcServer _rpcServerWrapper;
-    KMonitorMetaInfo _kmonMetaInfo;
     std::shared_ptr<TaskExecutor> _taskExecutor;
     std::shared_ptr<DebugServiceImpl> _debugService;
     std::shared_ptr<HeartbeatManager> _hbManager;

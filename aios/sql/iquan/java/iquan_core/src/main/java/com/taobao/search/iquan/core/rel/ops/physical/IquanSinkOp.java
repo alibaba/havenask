@@ -1,15 +1,18 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.ComputeNode;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.common.ConstantDefine;
-import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
@@ -17,10 +20,6 @@ import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.SingleRel;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
-
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class IquanSinkOp extends SingleRel implements IquanRelNode {
     private final SinkType sinkType;
@@ -103,15 +102,15 @@ public class IquanSinkOp extends SingleRel implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         IquanRelNode input = RelDistributionUtil.checkIquanRelType(inputs.get(0));
-        ComputeNode computeNode = RelDistributionUtil.getSingleComputeNode(catalog, dbName, config);
-        if (input.getLocation().equals(computeNode.getLocation())) {
+        Location computeNode = RelDistributionUtil.getSingleLocationNode(catalog, config);
+        if (input.getLocation().equals(computeNode)) {
             return simpleRelDerive(input);
         } else {
             replaceInput(0, input.singleExchange());
             setOutputDistribution(Distribution.SINGLETON);
-            setLocation(computeNode.getLocation());
+            setLocation(computeNode);
             return this;
         }
     }
@@ -141,17 +140,10 @@ public class IquanSinkOp extends SingleRel implements IquanRelNode {
         SWIFT("swift"),
         API("api");
 
+        private final String type;
+
         SinkType(String type) {
             this.type = type;
-        }
-
-        @Override
-        public String toString() {
-            return type;
-        }
-
-        public String getType() {
-            return type;
         }
 
         public static SinkType from(String type) {
@@ -168,6 +160,13 @@ public class IquanSinkOp extends SingleRel implements IquanRelNode {
             }
         }
 
-        private final String type;
+        @Override
+        public String toString() {
+            return type;
+        }
+
+        public String getType() {
+            return type;
+        }
     }
 }

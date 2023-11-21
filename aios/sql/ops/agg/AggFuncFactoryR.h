@@ -53,7 +53,7 @@ public:
     navi::ErrorCode init(navi::ResourceInitContext &ctx) override;
 
 public:
-    const iquan::FunctionModels &getFunctionModels() const;
+    const std::vector<iquan::FunctionModel> &getFunctionModels() const;
     AggFunc *createAggFunction(const std::string &aggFuncName,
                                const std::vector<table::ValueType> &inputTypes,
                                const std::vector<std::string> &inputFields,
@@ -64,7 +64,7 @@ private:
     std::set<AggFuncCreatorR *> _aggFuncCreators;
     std::map<std::string, AggFuncCreatorR *> _funcToCreator;
     std::map<std::string, size_t> _accSize;
-    iquan::FunctionModels _functionModels;
+    std::vector<iquan::FunctionModel> _functionModels;
 
 public:
     static const std::string RESOURCE_ID;

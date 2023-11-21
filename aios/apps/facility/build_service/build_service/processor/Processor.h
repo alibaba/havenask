@@ -13,38 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSOR_H
-#define ISEARCH_BS_PROCESSOR_H
+#pragma once
 
 #include <atomic>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/Lock.h"
 #include "build_service/common_define.h"
 #include "build_service/config/DocProcessorChainConfig.h"
 #include "build_service/config/ProcessorConfigReader.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/document/ProcessedDocument.h"
+#include "build_service/document/RawDocument.h"
 #include "build_service/processor/DocumentProcessorChain.h"
 #include "build_service/processor/ProcessorChainSelector.h"
 #include "build_service/processor/ProcessorMetricReporter.h"
+#include "build_service/processor/ProcessorWorkItem.h"
 #include "build_service/processor/ProcessorWorkItemExecutor.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
 #include "build_service/util/Log.h"
-#include "indexlib/config/index_partition_schema.h"
-
-DECLARE_REFERENCE_CLASS(util, CounterMap);
-DECLARE_REFERENCE_CLASS(util, AccumulativeCounter);
+#include "indexlib/document/builtin_parser_init_param.h"
+#include "indexlib/document/document_parser.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace util {
-class MetricProvider;
-class Metric;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util
-
-namespace build_service { namespace config {
-class DocProcessorChainConfig;
-}} // namespace build_service::config
 
 namespace build_service { namespace processor {
 
@@ -141,5 +142,3 @@ private:
 BS_TYPEDEF_PTR(Processor);
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_PROCESSOR_H

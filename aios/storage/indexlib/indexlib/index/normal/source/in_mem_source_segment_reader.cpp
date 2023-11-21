@@ -55,7 +55,8 @@ bool InMemSourceSegmentReader::GetDocument(docid_t localDocId, document::SourceD
     autil::StringView meta((char*)metaValue, metaSize);
     serDoc->SetMeta(meta);
 
-    for (auto& groupReader : mDataAccessors) {
+    for (sourcegroupid_t groupId = 0; groupId < mDataAccessors.size(); ++groupId) {
+        auto& groupReader = mDataAccessors[groupId];
         uint8_t* value = NULL;
         uint32_t size = 0;
         groupReader->ReadData(localDocId, value, size);
@@ -63,7 +64,7 @@ bool InMemSourceSegmentReader::GetDocument(docid_t localDocId, document::SourceD
             return false;
         }
         autil::StringView groupValue((char*)value, size);
-        serDoc->AddGroupValue(groupValue);
+        serDoc->SetGroupValue(groupId, groupValue);
     }
 
     document::SourceDocumentFormatter formatter;

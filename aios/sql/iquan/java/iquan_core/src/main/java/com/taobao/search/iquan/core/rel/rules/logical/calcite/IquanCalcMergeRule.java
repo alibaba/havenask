@@ -1,19 +1,14 @@
 package com.taobao.search.iquan.core.rel.rules.logical.calcite;
 
-import com.taobao.search.iquan.client.common.pb.Iquan;
 import com.taobao.search.iquan.core.utils.IquanRuleUtils;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.core.Calc;
 import org.apache.calcite.rel.rules.CalcMergeRule;
-import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexOver;
 import org.apache.calcite.rex.RexProgram;
-import org.apache.calcite.rex.RexUtil;
 import org.apache.calcite.tools.RelBuilderFactory;
 import org.immutables.value.Value;
-
-import java.util.List;
 
 @Value.Enclosing
 public class IquanCalcMergeRule extends CalcMergeRule {
@@ -25,7 +20,8 @@ public class IquanCalcMergeRule extends CalcMergeRule {
         super(relBuilderFactory);
     }
 
-    @Override public boolean matches(RelOptRuleCall call) {
+    @Override
+    public boolean matches(RelOptRuleCall call) {
         final Calc topCalc = call.rel(0);
         final Calc bottomCalc = call.rel(1);
 
@@ -48,12 +44,12 @@ public class IquanCalcMergeRule extends CalcMergeRule {
     }
 
 
-
     @Value.Immutable
     public interface Config extends RelRule.Config {
         IquanCalcMergeRule.Config DEFAULT = ImmutableIquanCalcMergeRule.Config.builder().build();
 
-        @Override default IquanCalcMergeRule toRule() {
+        @Override
+        default IquanCalcMergeRule toRule() {
             return new IquanCalcMergeRule(this);
         }
     }

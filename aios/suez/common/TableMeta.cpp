@@ -38,7 +38,7 @@ namespace suez {
 IncVersion DeployMeta::getLatestDeployVersion() const {
     autil::ScopedLock lock(_mutex);
     if (deployStatusMap.empty()) {
-        return INVALID_VERSION;
+        return indexlib::INVALID_VERSIONID;
     }
     return deployStatusMap.rbegin()->first;
 }
@@ -174,7 +174,7 @@ bool PartitionMeta::isAvailable(bool allowForceLoad, const PartitionMeta &target
 
 bool PartitionMeta::validate() const {
     return !getIndexRoot().empty() && !getConfigPath().empty() &&
-           (tableMeta.mode == TM_READ_WRITE || INVALID_VERSION != incVersion);
+           (tableMeta.mode == TM_READ_WRITE || indexlib::INVALID_VERSIONID != incVersion);
 }
 
 void PartitionMeta::clearIncVersion(const set<IncVersion> &inUseVersions) {

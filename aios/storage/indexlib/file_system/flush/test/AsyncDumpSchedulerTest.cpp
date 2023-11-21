@@ -62,6 +62,7 @@ public:
     {
         ASSERT_TRUE(_dumpScheduler->HasDumpTask() == false);
         autil::ThreadCond cond;
+        cond.lock();
         DumpablePtr dumpTask = DumpablePtr(new FakeDumpTask(&cond));
         ASSERT_EQ(FSEC_OK, _dumpScheduler->Push(dumpTask));
         ASSERT_TRUE(_dumpScheduler->HasDumpTask() == true);

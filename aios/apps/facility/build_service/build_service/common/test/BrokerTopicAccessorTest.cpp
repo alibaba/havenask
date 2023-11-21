@@ -1,11 +1,15 @@
-#include "build_service/common/BrokerTopicAccessor.h"
+#include <iosfwd>
+#include <memory>
+#include <string>
 
 #include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/common/test/FakeBrokerTopicAccessor.h"
-#include "build_service/common_define.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/test/ProtoCreator.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;
@@ -58,7 +62,7 @@ TEST_F(BrokerTopicAccessorTest, testRegistAndDeregistTopic)
     ASSERT_TRUE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster1"));
     ASSERT_TRUE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster2"));
     ASSERT_TRUE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster3"));
-    ASSERT_TRUE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_1_processed_1_cluster4"));
+    ASSERT_TRUE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster4"));
 
     facade.init(buildId, _resourceReader, "cluster1");
     topicName = facade.getTopicName("topic_full");
@@ -71,14 +75,14 @@ TEST_F(BrokerTopicAccessorTest, testRegistAndDeregistTopic)
     ASSERT_TRUE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster1"));
     ASSERT_TRUE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster2"));
     ASSERT_TRUE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster3"));
-    ASSERT_FALSE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_1_processed_1_cluster4"));
+    ASSERT_FALSE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster4"));
 
     ASSERT_TRUE(_brokerTopicAccessor->clearUselessBrokerTopics(true));
     ASSERT_FALSE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_full_processed_1_cluster1"));
     ASSERT_FALSE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster1"));
     ASSERT_FALSE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster2"));
     ASSERT_FALSE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster3"));
-    ASSERT_FALSE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_1_processed_1_cluster4"));
+    ASSERT_FALSE(_brokerTopicAccessor->checkBrokerTopicExist("user_name_service_name_processed_1_cluster4"));
 }
 
 TEST_F(BrokerTopicAccessorTest, testProcessedTopicNeedVersionControl)

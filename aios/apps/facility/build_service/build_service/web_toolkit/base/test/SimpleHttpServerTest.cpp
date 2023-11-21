@@ -103,7 +103,7 @@ TEST_F(SimpleHttpServerTest, TestSimpleProcess)
     };
     httpServer.setErrorHandler(errorHandler);
 
-    ASSERT_TRUE(httpServer.start(8888));
+    ASSERT_TRUE(httpServer.start());
 
     // wait until running
     int cnt = 0;

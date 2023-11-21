@@ -39,7 +39,7 @@ RangeLevelLeafReader::RangeLevelLeafReader(const std::shared_ptr<indexlibv2::con
 RangeLevelLeafReader::~RangeLevelLeafReader() {}
 
 future_lite::coro::Lazy<Result<SegmentPosting>>
-RangeLevelLeafReader::FillOneSegment(dictvalue_t value, docid_t baseDocId, autil::mem_pool::Pool* sessionPool,
+RangeLevelLeafReader::FillOneSegment(dictvalue_t value, docid64_t baseDocId, autil::mem_pool::Pool* sessionPool,
                                      file_system::ReadOption option, InvertedIndexSearchTracer* tracer) noexcept
 {
     SegmentPosting segPosting;
@@ -50,9 +50,11 @@ RangeLevelLeafReader::FillOneSegment(dictvalue_t value, docid_t baseDocId, autil
     co_return result;
 }
 
-future_lite::coro::Lazy<ErrorCode> RangeLevelLeafReader::FillSegmentPostings(
-    const RangeFieldEncoder::Ranges& ranges, docid_t baseDocId, const std::shared_ptr<SegmentPostings>& segmentPostings,
-    autil::mem_pool::Pool* sessionPool, file_system::ReadOption option, InvertedIndexSearchTracer* tracer) noexcept
+future_lite::coro::Lazy<ErrorCode>
+RangeLevelLeafReader::FillSegmentPostings(const RangeFieldEncoder::Ranges& ranges, docid64_t baseDocId,
+                                          const std::shared_ptr<SegmentPostings>& segmentPostings,
+                                          autil::mem_pool::Pool* sessionPool, file_system::ReadOption option,
+                                          InvertedIndexSearchTracer* tracer) noexcept
 {
     if (_isHashTypeDict) {
         AUTIL_LOG(ERROR, "range index should use tiered dictionary.");

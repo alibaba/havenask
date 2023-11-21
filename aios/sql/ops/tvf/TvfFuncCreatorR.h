@@ -30,8 +30,7 @@ class ResourceInitContext;
 } // namespace navi
 
 namespace iquan {
-class TvfModel;
-class TvfModels;
+class FunctionModel;
 } // namespace iquan
 
 namespace sql {
@@ -62,13 +61,13 @@ public:
     virtual std::string getResourceName() const = 0;
 
 private:
-    virtual bool initTvfModel(iquan::TvfModel &tvfModel, const SqlTvfProfileInfo &info) {
+    virtual bool initTvfModel(iquan::FunctionModel &tvfModel, const SqlTvfProfileInfo &info) {
         return true;
     }
     virtual TvfFunc *createFunction(const SqlTvfProfileInfo &info) = 0;
 
 public:
-    bool regTvfModels(iquan::TvfModels &tvfModels);
+    bool regTvfModels(std::vector<iquan::FunctionModel> &tvfModels);
     TvfFunc *createFunction(const std::string &name);
     void addTvfFunction(const SqlTvfProfileInfo &sqlTvfProfileInfo);
     const std::map<std::string, SqlTvfProfileInfo> &getSqlTvfProfileInfos() const {
@@ -76,8 +75,8 @@ public:
     }
 
 private:
-    static bool checkTvfModel(const iquan::TvfModel &tvfModel);
-    bool generateTvfModel(iquan::TvfModel &tvfModel, const SqlTvfProfileInfo &info);
+    static bool checkTvfModel(const iquan::FunctionModel &tvfModel);
+    bool generateTvfModel(iquan::FunctionModel &tvfModel, const SqlTvfProfileInfo &info);
 
 protected:
     std::string _configPath;

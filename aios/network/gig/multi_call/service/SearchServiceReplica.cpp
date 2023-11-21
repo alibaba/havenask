@@ -149,19 +149,28 @@ bool SearchServiceReplica::getProviderVecByMatchTag(const MatchTagMapPtr &matchT
                                                     SearchServiceProviderVector &preferVec) {
     fillTagMaxVersion(matchTagMap);
     bool usePrefer = false;
+    bool haveHealthInPrefer = false;
+    bool haveHealthInRequire = false;
     bool enableNull = (HashPolicy::CONSISTENT_HASH == _hashPolicy);
     for (const auto &provider : _serviceVector) {
         auto level = provider->matchTags(matchTagMap);
         if (TML_PREFER == level) {
             preferVec.push_back(provider);
             usePrefer = true;
+            haveHealthInPrefer = haveHealthInPrefer || provider->isHealth();
         } else if (enableNull) {
             preferVec.push_back(SearchServiceProviderPtr());
         }
         if (TML_REQUIRE == level) {
             requireVec.push_back(provider);
+            haveHealthInRequire = haveHealthInRequire || provider->isHealth();
         } else if (enableNull) {
             requireVec.push_back(SearchServiceProviderPtr());
+        }
+    }
+    if (usePrefer) {
+        if (!haveHealthInPrefer && haveHealthInRequire) {
+            usePrefer = false;
         }
     }
     return usePrefer;

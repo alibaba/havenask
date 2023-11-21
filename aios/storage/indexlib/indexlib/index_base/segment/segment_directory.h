@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_SEGMENT_DIRECTORY_H
-#define __INDEXLIB_PARTITION_SEGMENT_DIRECTORY_H
+#pragma once
 
 #include <memory>
 
@@ -69,7 +68,7 @@ public:
 
 public:
     void Init(const file_system::DirectoryPtr& directory,
-              index_base::Version version = index_base::Version(INVALID_VERSION), bool hasSub = false);
+              index_base::Version version = index_base::Version(INVALID_VERSIONID), bool hasSub = false);
 
     void Reopen(const index_base::Version& version);
 
@@ -103,7 +102,7 @@ public:
 
     virtual void IncLastSegmentId();
 
-    virtual void UpdateSchemaVersionId(schemavid_t id);
+    virtual void UpdateSchemaVersionId(schemaid_t id);
     virtual void SetOngoingModifyOperations(const std::vector<schema_opid_t>& opIds);
 
     virtual void AddSegment(segmentid_t segId, timestamp_t ts);
@@ -194,5 +193,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_PARTITION_SEGMENT_DIRECTORY_H

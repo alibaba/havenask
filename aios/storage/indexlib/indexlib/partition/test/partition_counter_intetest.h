@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONCOUNTERTEST_H
-#define __INDEXLIB_PARTITIONCOUNTERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -76,5 +75,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(PartitionCounterTest, TestSizeCounters);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(PartitionCounterTest, TestSizeCounterSkipOnlineSegments);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(PartitionCounterTest, TestPartitionDocCounter);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITIONCOUNTERTEST_H

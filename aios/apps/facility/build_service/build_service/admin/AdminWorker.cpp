@@ -563,6 +563,14 @@ void AdminWorker::getBulkloadInfo(::google::protobuf::RpcController* controller,
     _keeper->getBulkloadInfo(request, response);
 }
 
+void AdminWorker::bulkload(::google::protobuf::RpcController* controller, const proto::BulkloadRequest* request,
+                           proto::InformResponse* response, ::google::protobuf::Closure* done)
+{
+    RPC_GUARD();
+    BS_LOG(INFO, "bulkload request[%s]", request->ShortDebugString().c_str());
+    _keeper->bulkload(request, response);
+}
+
 void AdminWorker::doIdle()
 {
     if (!isLeader()) {

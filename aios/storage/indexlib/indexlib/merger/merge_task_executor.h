@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_TASK_EXECUTOR_H
-#define __INDEXLIB_MERGE_TASK_EXECUTOR_H
+#pragma once
 
-#include <memory>
+#include <map>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/table/task_execute_meta.h"
 
-DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
 DECLARE_REFERENCE_CLASS(merger, IndexPartitionMergerMetrics);
 DECLARE_REFERENCE_CLASS(merger, MergeWorkItem);
 DECLARE_REFERENCE_CLASS(merger, MergeFileSystem);
@@ -70,5 +72,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeTaskExecutor);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_TASK_EXECUTOR_H

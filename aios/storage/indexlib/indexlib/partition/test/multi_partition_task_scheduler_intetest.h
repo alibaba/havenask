@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIPARTITIONTASKSCHEDULERINTETEST_H
-#define __INDEXLIB_MULTIPARTITIONTASKSCHEDULERINTETEST_H
+#pragma once
 
 #include <queue>
 
@@ -65,5 +64,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(MultiPartitionTaskSchedulerIntetest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MULTIPARTITIONTASKSCHEDULERINTETEST_H

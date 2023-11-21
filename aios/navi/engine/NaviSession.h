@@ -32,8 +32,7 @@ class Graph;
 class NaviSession : public NaviWorkerBase
 {
 public:
-    NaviSession(const NaviLoggerPtr &logger,
-                TaskQueue *taskQueue,
+    NaviSession(TaskQueue *taskQueue,
                 BizManager *bizManager,
                 GraphDef *graphDef,
                 const ResourceMap *resourceMap,

@@ -21,7 +21,7 @@
 #include "indexlib/index/ann/aitheta2/impl/IndexSearcher.h"
 #include "indexlib/index/ann/aitheta2/impl/SegmentMeta.h"
 #include "indexlib/index/ann/aitheta2/util/AiThetaContextHolder.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingDataHolder.h"
+#include "indexlib/index/ann/aitheta2/util/EmbeddingHolder.h"
 #include "indexlib/index/ann/aitheta2/util/MetricReporter.h"
 #include "indexlib/index/ann/aitheta2/util/QueryParser.h"
 #include "indexlib/index/ann/aitheta2/util/ResultHolder.h"

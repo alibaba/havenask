@@ -15,10 +15,11 @@
  */
 #pragma once
 #include <atomic>
-#include <iostream>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "indexlib/base/Status.h"
 

@@ -15,7 +15,12 @@
  */
 #include "build_service/common/CounterFileSynchronizer.h"
 
+#include <iosfwd>
+#include <memory>
+
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

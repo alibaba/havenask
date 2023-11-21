@@ -238,4 +238,10 @@ constexpr char SUB_GRAPH_RUN_PARAM_OTHER_KV[] = "sub_graph_run_param_other_kv";
 
 // navi
 constexpr char SQL_OUTPUT_NAME[] = "sql_output";
+
+// function type
+constexpr char SQL_UDF_FUNCTION_TYPE[] = "UDF";
+constexpr char SQL_UDAF_FUNCTION_TYPE[] = "UDAF";
+constexpr char SQL_UDTF_FUNCTION_TYPE[] = "UDTF";
+constexpr char SQL_TVF_FUNCTION_TYPE[] = "TVF";
 } // namespace iquan

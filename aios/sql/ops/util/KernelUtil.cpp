@@ -18,6 +18,7 @@
 #include <iosfwd>
 #include <memory>
 
+#include "autil/StringUtil.h"
 #include "navi/engine/Data.h"
 #include "navi/resource/GraphMemoryPoolR.h"
 #include "sql/common/common.h"
@@ -83,6 +84,13 @@ table::TablePtr KernelUtil::getTable(const navi::DataPtr &data,
     }
 
     return inputTable;
+}
+
+void KernelUtil::stripKernelNamePrefix(std::string &kernelName) {
+    static const std::string prefix = "sql.";
+    if (autil::StringUtil::startsWith(kernelName, prefix)) {
+        kernelName.erase(0, prefix.length());
+    }
 }
 
 } // namespace sql

@@ -15,6 +15,13 @@
  */
 #include "indexlib/config/FieldConfig.h"
 
+#include <algorithm>
+#include <map>
+#include <ostream>
+#include <strings.h>
+#include <utility>
+
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "indexlib/base/Constant.h"

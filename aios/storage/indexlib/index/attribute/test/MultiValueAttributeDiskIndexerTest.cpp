@@ -72,7 +72,7 @@ private:
     std::shared_ptr<mem_pool::Pool> _pool;
     std::shared_ptr<Directory> _attrDir;
     std::shared_ptr<indexlibv2::document::extractor::IDocumentInfoExtractorFactory> _docInfoExtractorFactory;
-    IndexerParameter _indexerParam;
+    DiskIndexerParameter _indexerParam;
     std::string _rootPath;
     std::shared_ptr<kmonitor::MetricsReporter> _metricsReporter;
     std::shared_ptr<indexlibv2::framework::IIndexMemoryReclaimer> _indexMemoryReclaimer;
@@ -129,9 +129,10 @@ void MultiValueAttributeDiskIndexerTest::MakeOneAttributeSegment(std::vector<std
 
     _indexerParam.docCount = DOC_NUM;
     _indexerParam.indexMemoryReclaimer = _indexMemoryReclaimer.get();
-    _indexerParam.readerOpenType = IndexerParameter::READER_NORMAL;
+    _indexerParam.readerOpenType = DiskIndexerParameter::READER_NORMAL;
 
-    auto memIndexer = std::make_unique<MultiValueAttributeMemIndexer<T>>(_indexerParam);
+    MemIndexerParameter memIndexerParam;
+    auto memIndexer = std::make_unique<MultiValueAttributeMemIndexer<T>>(memIndexerParam);
     ASSERT_TRUE(memIndexer != nullptr);
     ASSERT_TRUE(memIndexer->Init(attrConfig, _docInfoExtractorFactory.get()).IsOK());
 
@@ -247,7 +248,7 @@ void MultiValueAttributeDiskIndexerTest::DoTestRead(uint64_t offsetThreshold, ui
         ss << "1" << MULTI_VALUE_SEPARATOR << "2" << MULTI_VALUE_SEPARATOR << "3" << MULTI_VALUE_SEPARATOR << "4";
         fieldConfig->SetDefaultValue(ss.str());
         _indexerParam.docCount = DOC_NUM;
-        _indexerParam.readerOpenType = IndexerParameter::READER_DEFAULT_VALUE;
+        _indexerParam.readerOpenType = DiskIndexerParameter::READER_DEFAULT_VALUE;
     } else {
         MakeOneAttributeSegment<T>(expectData, attrConfig, offsetUnitSize, needEqualCompress);
     }

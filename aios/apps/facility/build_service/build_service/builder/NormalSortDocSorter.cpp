@@ -15,6 +15,11 @@
  */
 #include "build_service/builder/NormalSortDocSorter.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <iosfwd>
+#include <string.h>
+
 #include "build_service/builder/DocumentMerger.h"
 
 using namespace std;

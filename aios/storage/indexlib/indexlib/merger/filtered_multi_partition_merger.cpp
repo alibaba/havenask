@@ -15,12 +15,36 @@
  */
 #include "indexlib/merger/filtered_multi_partition_merger.h"
 
-#include "autil/StringUtil.h"
+#include <algorithm>
+#include <cstddef>
+
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/TimeUtility.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/merge_config.h"
+#include "indexlib/config/merge_strategy_parameter.h"
+#include "indexlib/config/offline_config.h"
+#include "indexlib/config/offline_config_base.h"
+#include "indexlib/config/online_config.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/load_config/CacheLoadStrategy.h"
+#include "indexlib/file_system/load_config/LoadConfig.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/index_base/meta_cache_preloader.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/index_base/segment/segment_data.h"
-#include "indexlib/util/PathUtil.h"
+#include "indexlib/index_define.h"
+#include "indexlib/merger/doc_filter.h"
+#include "indexlib/merger/multi_part_segment_directory.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/cache/BlockCacheOption.h"
 
 using namespace std;
 using namespace autil;
@@ -39,7 +63,7 @@ FilteredMultiPartitionMerger::FilteredMultiPartitionMerger(const config::IndexPa
                                                            const std::string& epochId)
     : MultiPartitionMerger(options, metricProvider, indexPluginPath, CommonBranchHinterOption::Normal(0, epochId))
     , mDocFilterCreator(docFilterCreator)
-    , mTargetVersion(INVALID_VERSION)
+    , mTargetVersion(INVALID_VERSIONID)
 {
 }
 
@@ -53,7 +77,7 @@ bool FilteredMultiPartitionMerger::Init(const std::vector<std::string>& mergeSrc
         return false;
     }
 
-    if (version == INVALID_VERSION) {
+    if (version == INVALID_VERSIONID) {
         IE_LOG(ERROR, "no valid version for merge");
         return false;
     }

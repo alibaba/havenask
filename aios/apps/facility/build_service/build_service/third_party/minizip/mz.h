@@ -1,3 +1,4 @@
+#pragma once
 /* mz.h -- Errors codes, zip flags and magic
    Version 2.8.9, July 4, 2019
    part of the MiniZip project
@@ -8,9 +9,6 @@
    This program is distributed under the terms of the same license as zlib.
    See the accompanying LICENSE file for the full text of the license.
 */
-
-#ifndef MZ_H
-#define MZ_H
 
 /***************************************************************************/
 
@@ -246,5 +244,3 @@ typedef unsigned long long uint64_t;
 #endif
 
 /***************************************************************************/
-
-#endif

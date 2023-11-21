@@ -15,6 +15,7 @@
  */
 #include "build_service/util/MemUtil.h"
 
+#include <iosfwd>
 #include <unistd.h>
 
 using namespace std;

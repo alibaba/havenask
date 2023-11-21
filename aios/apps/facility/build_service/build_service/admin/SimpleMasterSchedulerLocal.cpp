@@ -15,15 +15,24 @@
  */
 #include "build_service/admin/SimpleMasterSchedulerLocal.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
 #include <dirent.h>
+#include <functional>
+#include <memory>
 #include <sstream>
-#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/wait.h>
+#include <type_traits>
 #include <unistd.h>
 
 #include "autil/EnvUtil.h"
-#include "fslib/fs/File.h"
-#include "fslib/fs/FileSystem.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "build_service/util/Log.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

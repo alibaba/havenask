@@ -29,10 +29,10 @@ public:
                             bool enableShortListVbyteCompress);
     ~ShortListSegmentDecoder() = default;
 
-    bool DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
+    bool DecodeDocBuffer(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId, docid32_t& lastDocId,
                          ttf_t& currentTTF) override;
-    bool DecodeDocBufferMayCopy(docid_t startDocId, docid_t*& docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                ttf_t& currentTTF) override;
+    bool DecodeDocBufferMayCopy(docid32_t startDocId, docid32_t*& docBuffer, docid32_t& firstDocId,
+                                docid32_t& lastDocId, ttf_t& currentTTF) override;
 
     bool DecodeCurrentTFBuffer(tf_t* tfBuffer) override
     {

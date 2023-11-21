@@ -15,6 +15,7 @@
  */
 #pragma once
 #include <deque>
+#include <stdio.h>
 #include <xmmintrin.h>
 
 #include "future_lite/experimental/coroutine.h"

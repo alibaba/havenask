@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PACKATTRIBUTEFORMATTERTEST_H
-#define __INDEXLIB_PACKATTRIBUTEFORMATTERTEST_H
+#pragma once
 
 #include "autil/MultiValueType.h"
 #include "autil/StringUtil.h"
@@ -278,5 +277,3 @@ void PackAttributeFormatterTest::CheckCountedMultiValue<float>(AttributeReferenc
     ASSERT_EQ(expectedDataValue, typedRef->GetDataValue(baseAddr).valueStr);
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_PACKATTRIBUTEFORMATTERTEST_H

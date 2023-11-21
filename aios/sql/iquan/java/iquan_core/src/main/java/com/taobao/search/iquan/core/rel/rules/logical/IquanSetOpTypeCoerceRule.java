@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.rules.logical;
 
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.stream.IntStream;
+
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.RelNode;
@@ -11,11 +16,6 @@ import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.tools.RelBuilder;
 import org.immutables.value.Value;
-
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
-import java.util.stream.IntStream;
 
 @Value.Enclosing
 public class IquanSetOpTypeCoerceRule
@@ -37,15 +37,27 @@ public class IquanSetOpTypeCoerceRule
         call.transformTo(newNode);
     }
 
+    @Value.Immutable
+    public interface Config extends RelRule.Config {
+        Config DEFAULT = ImmutableIquanSetOpTypeCoerceRule.Config.builder().operandSupplier(b0 ->
+                        b0.operand(SetOp.class).anyInputs())
+                .build();
+
+        @Override
+        default IquanSetOpTypeCoerceRule toRule() {
+            return new IquanSetOpTypeCoerceRule(this);
+        }
+    }
+
     public static class SetOpTypeCoerce {
 
+        final List<RelNode> inputs;
+        final List<BitSet> diffSets;
+        final List<Boolean> hasDiffs;
         private final SetOp setOp;
         private final RelBuilder relBuilder;
         private final RexBuilder rexBuilder;
         private final List<RelDataTypeField> outputFields;
-        final List<RelNode> inputs;
-        final List<BitSet> diffSets;
-        final List<Boolean> hasDiffs;
 
         public SetOpTypeCoerce(SetOp setOp, RelBuilder relBuilder) {
             this.setOp = setOp;
@@ -56,6 +68,40 @@ public class IquanSetOpTypeCoerceRule
             final int nInputs = inputs.size();
             this.diffSets = new ArrayList<>(nInputs);
             this.hasDiffs = new ArrayList<>(nInputs);
+        }
+
+        public static boolean equalRelDataType(RelDataType lhs, RelDataType rhs) {
+            assert lhs != null && rhs != null;
+            if (lhs.getSqlTypeName() != rhs.getSqlTypeName() || lhs.isNullable() != rhs.isNullable()) {
+                return false;
+            }
+            RelDataType innerL = lhs.getComponentType();
+            RelDataType innerR = rhs.getComponentType();
+            if ((innerR != null && innerL != null)) {
+                return equalRelDataType(innerL, innerR);
+            }
+            if ((innerR == null) != (innerL == null)) {
+                return false;
+            }
+            if (lhs.isStruct() != rhs.isStruct()) {
+                return false;
+            }
+
+            if (lhs.isStruct() && rhs.isStruct()) {
+                List<RelDataTypeField> lFields = lhs.getFieldList();
+                List<RelDataTypeField> rFields = rhs.getFieldList();
+                if (lFields.size() != rFields.size()) {
+                    return false;
+                }
+                for (int i = 0; i < lFields.size(); ++i) {
+                    if (!equalRelDataType(lFields.get(i).getType(), rFields.get(i).getType())
+                            || !(lFields.get(i).getName().equals(rFields.get(i).getName()))) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return lhs.equals(rhs);
         }
 
         public boolean needConvert() {
@@ -108,52 +154,6 @@ public class IquanSetOpTypeCoerceRule
             return relBuilder.push(input)
                     .projectNamed(exprs, input.getRowType().getFieldNames(), true)
                     .build();
-        }
-
-        public static boolean equalRelDataType(RelDataType lhs, RelDataType rhs) {
-            assert lhs != null && rhs != null;
-            if (lhs.getSqlTypeName() != rhs.getSqlTypeName() || lhs.isNullable() != rhs.isNullable()) {
-                return false;
-            }
-            RelDataType innerL = lhs.getComponentType();
-            RelDataType innerR = rhs.getComponentType();
-            if ((innerR != null && innerL != null)) {
-                return equalRelDataType(innerL, innerR);
-            }
-            if ((innerR == null) != (innerL == null)) {
-                return false;
-            }
-            if (lhs.isStruct() != rhs.isStruct()) {
-                return false;
-            }
-
-            if (lhs.isStruct() && rhs.isStruct()) {
-                List<RelDataTypeField> lFields = lhs.getFieldList();
-                List<RelDataTypeField> rFields = rhs.getFieldList();
-                if (lFields.size() != rFields.size()) {
-                    return false;
-                }
-                for (int i = 0; i < lFields.size(); ++i) {
-                    if (!equalRelDataType(lFields.get(i).getType(), rFields.get(i).getType())
-                            || !(lFields.get(i).getName().equals(rFields.get(i).getName()))) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            return lhs.equals(rhs);
-        }
-    }
-
-    @Value.Immutable
-    public interface Config extends RelRule.Config {
-        Config DEFAULT = ImmutableIquanSetOpTypeCoerceRule.Config.builder().operandSupplier(b0 ->
-                        b0.operand(SetOp.class).anyInputs())
-                .build();
-
-        @Override
-        default IquanSetOpTypeCoerceRule toRule() {
-            return new IquanSetOpTypeCoerceRule(this);
         }
     }
 }

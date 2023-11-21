@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILTIN_PARSER_INIT_RESOURCE_H
-#define __INDEXLIB_BUILTIN_PARSER_INIT_RESOURCE_H
+#pragma once
 
 #include <memory>
 
@@ -37,5 +36,3 @@ struct BuiltInParserInitResource {
 typedef DocumentInitParamTyped<BuiltInParserInitResource> BuiltInParserInitParam;
 DEFINE_SHARED_PTR(BuiltInParserInitParam);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_BUILTIN_PARSER_INIT_RESOURCE_H

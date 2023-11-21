@@ -1,11 +1,10 @@
-#ifndef __INDEXLIB_TRUNCATE_CONFIG_MAKER_H
-#define __INDEXLIB_TRUNCATE_CONFIG_MAKER_H
+#pragma once
 
 #include <memory>
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/truncate_option_config.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -76,10 +75,8 @@ private:
                                   DiversityConstrain& diverConstrain);
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(TruncateConfigMaker);
+typedef std::shared_ptr<TruncateConfigMaker> TruncateConfigMakerPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_TRUNCATE_CONFIG_MAKER_H

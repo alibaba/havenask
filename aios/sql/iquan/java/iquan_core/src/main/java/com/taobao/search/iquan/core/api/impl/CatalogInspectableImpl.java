@@ -1,18 +1,22 @@
 package com.taobao.search.iquan.core.api.impl;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
 import com.taobao.search.iquan.core.api.CatalogInspectable;
 import com.taobao.search.iquan.core.api.SqlTranslator;
 import com.taobao.search.iquan.core.api.exception.CatalogException;
 import com.taobao.search.iquan.core.api.exception.DatabaseNotExistException;
 import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
 import com.taobao.search.iquan.core.api.exception.TableNotExistException;
-import com.taobao.search.iquan.core.catalog.*;
-import com.google.common.collect.Lists;
+import com.taobao.search.iquan.core.catalog.GlobalCatalog;
+import com.taobao.search.iquan.core.catalog.GlobalCatalogManager;
+import com.taobao.search.iquan.core.catalog.IquanCatalogTable;
+import com.taobao.search.iquan.core.catalog.IquanLayerTable;
 import com.taobao.search.iquan.core.catalog.function.IquanFunction;
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 public class CatalogInspectableImpl implements CatalogInspectable {
     private static final Logger logger = LoggerFactory.getLogger(CatalogInspectableImpl.class);
@@ -72,16 +76,16 @@ public class CatalogInspectableImpl implements CatalogInspectable {
     }
 
     @Override
-    public String getTableDetailInfo(String catalogName, String dbName, String tableName) {
+    public String getTableDetailInfo(String catalogName, String dbName, String tableName, boolean debug) {
         try {
             GlobalCatalog catalog = catalogManager.getCatalog(catalogName);
             IquanCatalogTable table = catalog.getTable(dbName, tableName);
 
             if (table instanceof IquanLayerTable) {
                 IquanLayerTable iquanLayerTable = IquanLayerTable.unwrap(table);
-                return iquanLayerTable.getDetailInfo();
+                return iquanLayerTable.getDetailInfo(debug);
             } else if (table != null) {
-                return table.getDetailInfo();
+                return table.getDetailInfo(debug);
             }
         } catch (CatalogException ex) {
             logger.warn(String.format("Get catalog %s failed, not exists!", catalogName), ex);
@@ -97,7 +101,7 @@ public class CatalogInspectableImpl implements CatalogInspectable {
     public String getFunctionDetailInfo(String catalogName, String dbName, String functionName) {
         try {
             GlobalCatalog catalog = catalogManager.getCatalog(catalogName);
-            IquanFunction function = catalog.getFunction(dbName, functionName);
+            IquanFunction function = catalog.getPreciseFunction(dbName, functionName);
             return function.getDetailInfo();
         } catch (CatalogException ex) {
             logger.warn(String.format("Get catalog %s failed, not exists!", catalogName), ex);
@@ -107,6 +111,11 @@ public class CatalogInspectableImpl implements CatalogInspectable {
             logger.error(String.format("Get function %s.%s.%s failed!", catalogName, dbName, functionName), ex);
         }
         return "";
+    }
+
+    @Override
+    public String getLoctionsDetailInfo(String catalogName) {
+        return IquanRelOptUtils.toJson(catalogManager.getCatalog(catalogName).getLocationNodeManager().getLocationMap());
     }
 
     public static class Factory implements CatalogInspectable.Factory {

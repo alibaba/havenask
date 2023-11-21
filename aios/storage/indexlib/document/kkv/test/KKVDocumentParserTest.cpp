@@ -37,7 +37,7 @@ protected:
         for (auto& [field, value] : field2value) {
             rawDoc->setField(field, value);
         }
-        extendDoc->setRawDocument(rawDoc);
+        extendDoc->SetRawDocument(rawDoc);
         return extendDoc;
     }
 

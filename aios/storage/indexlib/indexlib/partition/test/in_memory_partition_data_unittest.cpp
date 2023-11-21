@@ -1,12 +1,12 @@
 #include "indexlib/partition/test/in_memory_partition_data_unittest.h"
 
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/schema_rewriter.h"
 #include "indexlib/index_base/segment/online_segment_directory.h"
 #include "indexlib/partition/segment/dump_segment_container.h"
 #include "indexlib/partition/segment/normal_segment_dump_item.h"
 #include "indexlib/partition/segment/test/segment_iterator_helper.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/version_maker.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
@@ -69,7 +69,7 @@ void InMemoryPartitionDataTest::TestAddSegmentForSub()
 {
     Version onDiskVersion = VersionMaker::Make(GET_PARTITION_DIRECTORY(), 1, "0,2,4", "", "", 10, true);
     SegmentDirectoryPtr segDir(new SegmentDirectory);
-    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
 
     DumpSegmentContainerPtr dumpContainer(new DumpSegmentContainer);
     InMemoryPartitionData partitionData(dumpContainer);
@@ -93,7 +93,7 @@ void InMemoryPartitionDataTest::TestClone()
 {
     Version onDiskVersion = VersionMaker::Make(GET_PARTITION_DIRECTORY(), 0, "0", "", "", 0, true);
     SegmentDirectoryPtr segDir(new SegmentDirectory);
-    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
     DumpSegmentContainerPtr dumpContainer(new DumpSegmentContainer);
     InMemoryPartitionDataPtr partitionData(new InMemoryPartitionData(dumpContainer));
     partitionData->Open(segDir);
@@ -113,7 +113,7 @@ void InMemoryPartitionDataTest::TestCreateNewSegmentData()
     creator.Init(mSchema, options);
     Version onDiskVersion = VersionMaker::Make(GET_PARTITION_DIRECTORY(), 1, "0,2,4", "", "", 10, true);
     SegmentDirectoryPtr segDir(new SegmentDirectory);
-    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
 
     DumpSegmentContainerPtr dumpContainer(new DumpSegmentContainer);
     InMemoryPartitionData inMemPartData(dumpContainer);

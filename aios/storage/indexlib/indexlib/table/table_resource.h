@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_RESOURCE_H
-#define __INDEXLIB_TABLE_RESOURCE_H
+#pragma once
 
-#include <memory>
+#include <stddef.h>
+#include <vector>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/table/segment_meta.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 
@@ -54,5 +54,3 @@ private:
 
 DEFINE_SHARED_PTR(TableResource);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_RESOURCE_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXFORMATOPTIONTEST_H
-#define __INDEXLIB_INDEXFORMATOPTIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_schema.h"
@@ -45,5 +44,3 @@ INDEXLIB_UNIT_TEST_CASE(IndexFormatOptionTest, TestToStringFromString);
 INDEXLIB_UNIT_TEST_CASE(IndexFormatOptionTest, TestDateIndexConfig);
 
 } // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEXFORMATOPTIONTEST_H

@@ -50,7 +50,6 @@ namespace sql {
 struct ScanConfig {
     bool enableScanTimeout = true;
     size_t asyncScanConcurrency = std::numeric_limits<size_t>::max();
-    double targetWatermarkTimeoutRatio = 0.5f;
 };
 
 class ScanR : public navi::Resource {

@@ -1,0 +1,20 @@
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib/index:__subpackages__'])
+strict_cc_library(
+    name='config',
+    srcs=[],
+    hdrs=[],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[':FieldMetaConfig']
+)
+strict_cc_library(
+    name='FieldMetaConfig',
+    deps=[
+        '//aios/storage/indexlib/config:ConfigDefine',
+        '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/config:IndexConfigDeserializeResource',
+        '//aios/storage/indexlib/index/common:FieldTypeTraits',
+        '//aios/storage/indexlib/index/common:constants',
+        '//aios/storage/indexlib/index/field_meta:Common'
+    ]
+)

@@ -41,6 +41,7 @@
 #include "indexlib/index/primary_key/Constant.h"
 #include "indexlib/index/primary_key/PrimaryKeyFileWriter.h"
 #include "indexlib/index/primary_key/PrimaryKeyFileWriterCreator.h"
+#include "indexlib/index/primary_key/PrimaryKeyIndexFields.h"
 #include "indexlib/util/Exception.h"
 #include "indexlib/util/HashMap.h"
 #include "indexlib/util/memory_control/BuildResourceMetrics.h"
@@ -59,9 +60,11 @@ public:
     typedef indexlib::util::HashMap<Key, docid_t> HashMapTyped;
     typedef SingleValueAttributeMemIndexer<Key> PKAttributeWriterType;
 
-    explicit PrimaryKeyWriter(indexlib::util::BuildResourceMetrics* buildResourceMetrics)
+    explicit PrimaryKeyWriter(indexlib::util::BuildResourceMetrics* buildResourceMetrics,
+                              std::shared_ptr<const docid64_t> currentBuildDocId)
         : _docCount(0)
         , _buildResourceMetrics(buildResourceMetrics)
+        , _currentBuildDocId(currentBuildDocId)
     {
     }
     ~PrimaryKeyWriter() = default;
@@ -108,15 +111,16 @@ private:
 
     std::shared_ptr<HashMapTyped> _hashMap;
     std::shared_ptr<PKAttributeWriterType> _pkAttributeWriter;
-    docid_t _docCount;
+    size_t _docCount;
     indexlib::util::BuildResourceMetrics* _buildResourceMetrics;
-    std::shared_ptr<config::IIndexConfig> _indexConfig;
+    std::shared_ptr<indexlibv2::index::PrimaryKeyIndexConfig> _indexConfig;
     indexlib::util::MMapAllocatorPtr _allocator;
     autil::mem_pool::PoolPtr _byteSlicePool;
     indexlib::util::SimplePool _simplePool;
 
     std::unique_ptr<document::extractor::IDocumentInfoExtractor> _docInfoExtractor;
     std::shared_ptr<PrimaryKeyFileWriter<Key>> _primaryKeyFileWriter;
+    std::shared_ptr<const docid64_t> _currentBuildDocId;
     friend class PrimaryKeyTypedTest;
 
     AUTIL_LOG_DECLARE();
@@ -177,7 +181,7 @@ Status PrimaryKeyWriter<Key>::Init(const std::shared_ptr<config::IIndexConfig>& 
     assert(primaryKeyIndexConfig->GetInvertedIndexType() == it_primarykey64 ||
            primaryKeyIndexConfig->GetInvertedIndexType() == it_primarykey128);
     _primaryKeyFileWriter = PrimaryKeyFileWriterCreator<Key>::CreatePKFileWriter(primaryKeyIndexConfig);
-    _indexConfig = indexConfig;
+    _indexConfig = primaryKeyIndexConfig;
     _allocator.reset(new indexlib::util::MMapAllocator);
     _byteSlicePool.reset(new autil::mem_pool::Pool(_allocator.get(), DEFAULT_CHUNK_SIZE * 1024 * 1024));
     auto fieldConfig = primaryKeyIndexConfig->GetFieldConfig();
@@ -186,7 +190,7 @@ Status PrimaryKeyWriter<Key>::Init(const std::shared_ptr<config::IIndexConfig>& 
 
     if (primaryKeyIndexConfig->HasPrimaryKeyAttribute()) {
         auto attributeConfig = primaryKeyIndexConfig->GetPKAttributeConfig();
-        IndexerParameter params;
+        MemIndexerParameter params;
         AttributeIndexFactory factory;
         _pkAttributeWriter =
             std::dynamic_pointer_cast<PKAttributeWriterType>(factory.CreateMemIndexer(attributeConfig, params));
@@ -201,8 +205,10 @@ Status PrimaryKeyWriter<Key>::Init(const std::shared_ptr<config::IIndexConfig>& 
     }
     std::any emptyAny;
     _docCount = 0;
-    _docInfoExtractor = docInfoExtractorFactory->CreateDocumentInfoExtractor(
-        _indexConfig, document::extractor::DocumentInfoExtractorType::PRIMARY_KEY, emptyAny);
+    if (docInfoExtractorFactory) {
+        _docInfoExtractor = docInfoExtractorFactory->CreateDocumentInfoExtractor(
+            _indexConfig, document::extractor::DocumentInfoExtractorType::PRIMARY_KEY, emptyAny);
+    }
     return Status::OK();
 }
 
@@ -258,8 +264,26 @@ void PrimaryKeyWriter<Key>::UpdateMemUse(BuildingIndexMemoryUseUpdater* memUpdat
 template <typename Key>
 Status PrimaryKeyWriter<Key>::Build(const indexlibv2::document::IIndexFields* indexFields, size_t n)
 {
-    assert(0);
-    return {};
+    assert(_currentBuildDocId);
+    auto startDocId = *_currentBuildDocId;
+    for (size_t i = 0; i < n; ++i) {
+        const auto* pkFields = dynamic_cast<const PrimaryKeyIndexFields*>(indexFields + i);
+        if (!pkFields) {
+            RETURN_STATUS_ERROR(Status::InvalidArgs, "cast to pk fields failed");
+        }
+        auto field = pkFields->GetPrimaryKey();
+        Key primaryKey;
+        [[maybe_unused]] bool ret = indexlib::index::KeyHasherWrapper::GetHashKey(
+            _fieldType, _primaryKeyHashType, field.data(), field.size(), primaryKey);
+
+        if (_pkAttributeWriter) {
+            _pkAttributeWriter->AddField(startDocId, primaryKey, /*isNull=*/false);
+        }
+        _hashMap->FindAndInsert(primaryKey, _docCount);
+        _docCount++;
+        startDocId++;
+    }
+    return Status::OK();
 }
 template <typename Key>
 Status PrimaryKeyWriter<Key>::Build(indexlibv2::document::IDocumentBatch* docBatch)
@@ -280,6 +304,7 @@ Status PrimaryKeyWriter<Key>::Build(indexlibv2::document::IDocumentBatch* docBat
 template <typename Key>
 Status PrimaryKeyWriter<Key>::AddDocument(indexlibv2::document::IDocument* doc)
 {
+    assert(_docInfoExtractor);
     std::string* keyStr;
     if (!_docInfoExtractor->ExtractField(doc, (void**)&keyStr).IsOK()) {
         AUTIL_LOG(ERROR, "Failed to extract primary key.");
@@ -303,6 +328,7 @@ Status PrimaryKeyWriter<Key>::AddDocument(indexlibv2::document::IDocument* doc)
 template <typename Key>
 void PrimaryKeyWriter<Key>::ValidateDocumentBatch(document::IDocumentBatch* docBatch)
 {
+    assert(_docInfoExtractor);
     for (size_t i = 0; i < docBatch->GetBatchSize(); i++) {
         if (!docBatch->IsDropped(i)) {
             if (!_docInfoExtractor->IsValidDocument((*docBatch)[i].get())) {
@@ -314,14 +340,38 @@ void PrimaryKeyWriter<Key>::ValidateDocumentBatch(document::IDocumentBatch* docB
 template <typename Key>
 bool PrimaryKeyWriter<Key>::IsValidDocument(document::IDocument* doc)
 {
+    assert(_docInfoExtractor);
     return _docInfoExtractor->IsValidDocument(doc);
 }
 
 template <typename Key>
 bool PrimaryKeyWriter<Key>::IsValidField(const document::IIndexFields* fields)
 {
-    assert(false);
-    return false;
+    auto typedFields = dynamic_cast<const PrimaryKeyIndexFields*>(fields);
+    if (!typedFields) {
+        AUTIL_LOG(ERROR, "cast to pk index fields failed");
+        return false;
+    }
+
+    // check pk not empty
+    const auto& pkStr = typedFields->GetPrimaryKey();
+    if (pkStr.empty()) {
+        AUTIL_INTERVAL_LOG2(10, WARN, "pk is empty, not valid pk field");
+        return false;
+    }
+
+    // check original key valid
+    InvertedIndexType indexType = _indexConfig->GetInvertedIndexType();
+    auto fieldConfig = _indexConfig->GetFieldConfig();
+    auto fieldType = fieldConfig->GetFieldType();
+    auto primaryKeyHashType = _indexConfig->GetPrimaryKeyHashType();
+    bool isValid = indexlib::index::KeyHasherWrapper::IsOriginalKeyValid(fieldType, primaryKeyHashType, pkStr.c_str(),
+                                                                         pkStr.size(), indexType == it_primarykey64);
+    if (!isValid) {
+        AUTIL_INTERVAL_LOG2(10, WARN, "document with pk [%s] is not valid", pkStr.c_str());
+        return false;
+    }
+    return true;
 }
 
 }} // namespace indexlibv2::index

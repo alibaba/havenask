@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_HASH_TABLE_FIX_SEGMENT_READER_H
-#define __INDEXLIB_HASH_TABLE_FIX_SEGMENT_READER_H
+#pragma once
 
 #include <memory>
 
@@ -188,5 +187,3 @@ inline FL_LAZY(bool) HashTableFixSegmentReader::Get(const KVIndexOptions* option
     FL_CORETURN InnerCopy(value, (void*)encodedValue.data(), pool);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASH_TABLE_FIX_SEGMENT_READER_H

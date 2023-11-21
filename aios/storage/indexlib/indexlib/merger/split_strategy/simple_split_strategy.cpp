@@ -15,6 +15,8 @@
  */
 #include "indexlib/merger/split_strategy/simple_split_strategy.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace merger {

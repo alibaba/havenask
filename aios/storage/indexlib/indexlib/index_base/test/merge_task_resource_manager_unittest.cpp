@@ -2,6 +2,7 @@
 
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 
 using namespace std;
@@ -47,15 +48,18 @@ void MergeTaskResourceManagerTest::InnerTest(FenceContext* fenceContext)
         resourceid_t id = mgr.DeclareResource(data.c_str(), data.size(), StringUtil::toString(i));
         ASSERT_EQ(i, id);
     }
+    (void)mgr.CreateTempWorkingDirectory();
+    auto directory = mgr.GetTempWorkingDirectory();
+    auto fileWriter = directory->CreateFileWriter("tmpFile");
+    fileWriter->Close().GetOrThrow();
     mgr.Commit();
-
     string jsonStr = ToJsonString(mgr.GetResourceVec());
     MergeTaskResourceManager::MergeTaskResourceVec resVec;
     FromJsonString(resVec, jsonStr);
 
     MergeTaskResourceManager newMgr;
     newMgr.Init(resVec);
-
+    ASSERT_TRUE(newMgr.GetTempWorkingDirectory());
     for (resourceid_t i = 0; i < 20; i++) {
         string data = MakeDataForResource(i);
         MergeTaskResourcePtr resource = newMgr.GetResource(i);

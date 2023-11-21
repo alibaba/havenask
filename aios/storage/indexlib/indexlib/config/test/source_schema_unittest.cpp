@@ -1,8 +1,7 @@
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/impl/source_schema_impl.h"
 #include "indexlib/config/source_schema.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 using namespace std;
 using namespace autil::legacy;
@@ -26,14 +25,14 @@ public:
     void TestDisableSourceGroup();
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(SourceSchemaTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(SourceSchemaTest, TestExceptionCase);
 INDEXLIB_UNIT_TEST_CASE(SourceSchemaTest, TestDisableSourceGroup);
 
-IE_LOG_SETUP(config, SourceSchemaTest);
+AUTIL_LOG_SETUP(indexlib.config, SourceSchemaTest);
 
 SourceSchemaTest::SourceSchemaTest() {}
 
@@ -47,18 +46,6 @@ void SourceSchemaTest::TestSimpleProcess()
 {
     string configStr = R"(
     {
-        "modules": [
-            {
-                "module_name": "test_module",
-                "module_path": "testpath",
-                "parameters": {"k1":"param1"}
-            },
-            {
-                "module_name": "test_module2",
-                "module_path": "testpath2",
-                "parameters": {"k2":"param2"}
-            }
-        ],
         "group_configs": [
             {
                 "field_mode": "specified_field",
@@ -68,12 +55,10 @@ void SourceSchemaTest::TestSimpleProcess()
                 }
             },
             {
-                "field_mode": "user_define",
-                "module": "test_module"
+                "field_mode": "user_define"
             },
             {
                 "field_mode": "all_field",
-                "module": "test_module2",
                 "parameter" : {
                     "compress_type": "equal",
                     "doc_compressor": "zlib|zstd"
@@ -88,15 +73,12 @@ void SourceSchemaTest::TestSimpleProcess()
 
     ASSERT_NO_THROW(config.Check());
     SourceSchemaImplPtr configImpl = config.mImpl;
-    ASSERT_EQ(2, configImpl->mModules.size());
-    ASSERT_EQ("test_module", configImpl->mModules[0].moduleName);
-    ASSERT_EQ("testpath", configImpl->mModules[0].modulePath);
     ASSERT_EQ(3, configImpl->mGroupConfigs.size());
     ASSERT_EQ(SourceGroupConfig::SourceFieldMode::SPECIFIED_FIELD, configImpl->mGroupConfigs[0]->GetFieldMode());
     ASSERT_EQ(SourceGroupConfig::SourceFieldMode::USER_DEFINE, configImpl->mGroupConfigs[1]->GetFieldMode());
     ASSERT_EQ(SourceGroupConfig::SourceFieldMode::ALL_FIELD, configImpl->mGroupConfigs[2]->GetFieldMode());
     // test set group id in source schema
-    for (index::groupid_t i = 0; i < 3; ++i) {
+    for (index::sourcegroupid_t i = 0; i < 3; ++i) {
         ASSERT_EQ(i, configImpl->mGroupConfigs[i]->GetGroupId());
     }
     Any toAny = ToJson(config);
@@ -111,18 +93,6 @@ void SourceSchemaTest::TestDisableSourceGroup()
 {
     string configStr = R"(
     {
-        "modules": [
-            {
-                "module_name": "test_module",
-                "module_path": "testpath",
-                "parameters": {"k1":"param1"}
-            },
-            {
-                "module_name": "test_module2",
-                "module_path": "testpath2",
-                "parameters": {"k2":"param2"}
-            }
-        ],
         "group_configs": [
             {
                 "field_mode": "specified_field",
@@ -132,12 +102,10 @@ void SourceSchemaTest::TestDisableSourceGroup()
                 }
             },
             {
-                "field_mode": "user_define",
-                "module": "test_module"
+                "field_mode": "user_define"
             },
             {
                 "field_mode": "all_field",
-                "module": "test_module2",
                 "parameter" : {
                     "compress_type": "equal",
                     "doc_compressor": "zlib|zstd"
@@ -174,39 +142,9 @@ void SourceSchemaTest::TestDisableSourceGroup()
 void SourceSchemaTest::TestExceptionCase()
 {
     {
-        // not allow group config use non-existed module
-        string configStr = R"(
-        {
-            "modules": [
-                {
-                    "module_name": "test_module",
-                    "module_path": "testpath",
-                    "parameters": {"k1":"param1"}
-                }
-            ],
-            "group_configs": [
-                {
-                    "field_mode": "user_define",
-                    "module": "module_none_exist"
-                }
-            ]
-        })";
-        SourceSchema config;
-        Any any = ParseJson(configStr);
-        FromJson(config, any);
-        ASSERT_ANY_THROW(config.Check());
-    }
-    {
         // not allow source schema without group config
         string configStr = R"(
         {
-            "modules": [
-                {
-                    "module_name": "test_module",
-                    "module_path": "testpath",
-                    "parameters": {"k1":"param1"}
-                }
-            ]
         })";
         SourceSchema config;
         Any any = ParseJson(configStr);

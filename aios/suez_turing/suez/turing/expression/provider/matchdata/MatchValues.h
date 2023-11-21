@@ -36,24 +36,24 @@ private:
 
 public:
     static uint32_t sizeOf(uint32_t numTerms) {
-        return (uint32_t)(sizeof(MatchValues) + (numTerms - 1) * sizeof(matchvalue_t));
+        return (uint32_t)(sizeof(MatchValues) + (numTerms - 1) * sizeof(indexlib::matchvalue_t));
     }
 
 public:
-    matchvalue_t &nextFreeMatchValue() {
+    indexlib::matchvalue_t &nextFreeMatchValue() {
         assert(_numTerms < _maxNumTerms);
         if (_numTerms > 0) {
-            new (&_termMatchValue[_numTerms]) matchvalue_t;
+            new (&_termMatchValue[_numTerms]) indexlib::matchvalue_t;
         }
         return _termMatchValue[_numTerms++];
     }
 
-    const matchvalue_t &getTermMatchValue(uint32_t idx) const {
+    const indexlib::matchvalue_t &getTermMatchValue(uint32_t idx) const {
         assert(idx < _numTerms);
         return _termMatchValue[idx];
     }
 
-    matchvalue_t &getTermMatchValue(uint32_t idx) {
+    indexlib::matchvalue_t &getTermMatchValue(uint32_t idx) {
         assert(idx < _numTerms);
         return _termMatchValue[idx];
     }
@@ -64,7 +64,7 @@ public:
 private:
     uint32_t _numTerms;
     uint32_t _maxNumTerms;
-    matchvalue_t _termMatchValue[1];
+    indexlib::matchvalue_t _termMatchValue[1];
 
 private:
     AUTIL_LOG_DECLARE();

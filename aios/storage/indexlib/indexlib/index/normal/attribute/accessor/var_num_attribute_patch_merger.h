@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VAR_NUM_ATTRIBUTE_PATCH_MERGER_H
-#define __INDEXLIB_VAR_NUM_ATTRIBUTE_PATCH_MERGER_H
+#pragma once
 
 #include <memory>
 
@@ -104,5 +103,3 @@ void VarNumAttributePatchMerger<T>::DoMerge(const PatchReaderPtr& patchReader,
     patchFile->Close().GetOrThrow();
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VAR_NUM_ATTRIBUTE_PATCH_MERGER_H

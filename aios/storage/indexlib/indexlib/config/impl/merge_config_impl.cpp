@@ -23,7 +23,7 @@ using namespace autil::legacy;
 using namespace autil;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, MergeConfigImpl);
+AUTIL_LOG_SETUP(indexlib.config, MergeConfigImpl);
 
 MergeConfigImpl::MergeConfigImpl()
     : checkpointInterval(DEFAULT_CHECKPOINT_INTERVAL)

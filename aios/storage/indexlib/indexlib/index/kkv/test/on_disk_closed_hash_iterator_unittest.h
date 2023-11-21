@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONDISKCLOSEDHASHITERATORTEST_H
-#define __INDEXLIB_ONDISKCLOSEDHASHITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/on_disk_closed_hash_iterator.h"
@@ -39,5 +38,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(OnDiskClosedHashIteratorTest, TestDenseProcess);
 INDEXLIB_UNIT_TEST_CASE(OnDiskClosedHashIteratorTest, TestCuckooProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ONDISKCLOSEDHASHITERATORTEST_H

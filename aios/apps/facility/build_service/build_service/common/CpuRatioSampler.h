@@ -15,7 +15,12 @@
  */
 #pragma once
 
-#include "autil/Lock.h"
+#include <atomic>
+#include <deque>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+
 #include "autil/LoopThread.h"
 #include "autil/metric/ProcessCpu.h"
 #include "build_service/common_define.h"

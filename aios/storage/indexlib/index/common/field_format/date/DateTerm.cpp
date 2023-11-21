@@ -25,7 +25,9 @@ using config::DateLevelFormat;
 
 AUTIL_LOG_SETUP(indexlib.index, DateTerm);
 
+// unknown:0, ms:5, ms:5, s:3, s:3, min:3, min:3, h:2, h:3, day:2, date:3, month:4, year:9
 uint64_t DateTerm::_levelBits[13] = {0, 5, 5, 3, 3, 3, 3, 2, 3, 2, 3, 4, 9};
+// unknown, ms:10, -, s:6, -, min:6, -, h:5, -, day:5, -, month:4, year:9
 uint64_t DateTerm::_noMiddleLevelBits[13] = {0, 10, 0, 6, 0, 6, 0, 5, 0, 5, 0, 4, 9};
 uint64_t DateTerm::_levelValueLimits[13] = {0, 999, 31, 59, 8, 59, 8, 23, 5, 31, 7, 12, 512};
 

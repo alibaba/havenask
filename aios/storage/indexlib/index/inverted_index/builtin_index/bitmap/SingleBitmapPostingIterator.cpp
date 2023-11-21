@@ -52,12 +52,13 @@ void SingleBitmapPostingIterator::Init(const util::ByteSliceListPtr& sliceListPt
 {
     SetStatePool(statePool);
 
-    file_system::ByteSliceReader reader(sliceListPtr.get());
+    file_system::ByteSliceReader reader;
+    reader.Open(sliceListPtr.get()).GetOrThrow();
     uint32_t pos = reader.Tell();
     TermMetaLoader tmLoader;
     tmLoader.Load(&reader, _termMeta);
 
-    uint32_t bmSize = reader.ReadUInt32();
+    uint32_t bmSize = reader.ReadUInt32().GetOrThrow();
 
     util::ByteSlice* slice = sliceListPtr->GetHead();
     uint8_t* dataCursor = slice->data + (reader.Tell() - pos);
@@ -73,12 +74,12 @@ void SingleBitmapPostingIterator::Init(util::ByteSlice* singleSlice, BitmapPosti
     SetStatePool(statePool);
 
     file_system::ByteSliceReader reader;
-    reader.Open(singleSlice);
+    reader.Open(singleSlice).GetOrThrow();
     uint32_t pos = reader.Tell();
     TermMetaLoader tmLoader;
     tmLoader.Load(&reader, _termMeta);
 
-    uint32_t bmSize = reader.ReadUInt32();
+    uint32_t bmSize = reader.ReadUInt32().GetOrThrow();
 
     util::ByteSlice* slice = singleSlice;
     uint8_t* dataCursor = slice->data + (reader.Tell() - pos);

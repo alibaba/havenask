@@ -49,6 +49,7 @@ void ANetRPCServerClosure::doPostPacket() {
         return;
     }
     if (_tracer != nullptr) {
+        _tracer->SetServerResponseSize(packet->getDataLen());
         _tracer->EndEncodeResponse();
     }
 

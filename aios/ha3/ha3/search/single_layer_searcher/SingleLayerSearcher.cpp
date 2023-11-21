@@ -57,8 +57,8 @@ SingleLayerSearcher::SingleLayerSearcher(
     , _curBegin((*layerMeta)[0].nextBegin)
     , _curEnd((*layerMeta)[0].end)
     , _curQuota((*layerMeta)[0].quota)
-    , _cousorNextBegin(_curDocId)
-    , _rangeCousor(0)
+    , _cursorNextBegin(_curDocId)
+    , _rangeCursor(0)
     , _timeoutTerminator(timeoutTerminator)
     , _queryExecutor(queryExecutor)
     , _filterWrapper(filterWrapper)
@@ -101,24 +101,24 @@ bool SingleLayerSearcher::moveToCorrectRange(docid_t &docId) {
             return false;
         }
         // in range.
-        _cousorNextBegin = docId + 1;
+        _cursorNextBegin = docId + 1;
         return true;
     }
 }
 
 bool SingleLayerSearcher::moveToNextRange() {
     if (_curQuota > 0) {
-        (*_layerMeta)[_rangeCousor].nextBegin = _curEnd + 1;
+        (*_layerMeta)[_rangeCursor].nextBegin = _curEnd + 1;
     } else {
-        (*_layerMeta)[_rangeCousor].nextBegin = _cousorNextBegin;
+        (*_layerMeta)[_rangeCursor].nextBegin = _cursorNextBegin;
     }
-    while (++_rangeCousor < _layerMeta->size()) {
-        if ((*_layerMeta)[_rangeCousor].nextBegin <= (*_layerMeta)[_rangeCousor].end) {
-            _curQuota += (*_layerMeta)[_rangeCousor].quota;
-            _curBegin = (*_layerMeta)[_rangeCousor].nextBegin;
-            _curEnd = (*_layerMeta)[_rangeCousor].end;
-            _cousorNextBegin = _curBegin;
-            (*_layerMeta)[_rangeCousor].quota = 0;
+    while (++_rangeCursor < _layerMeta->size()) {
+        if ((*_layerMeta)[_rangeCursor].nextBegin <= (*_layerMeta)[_rangeCursor].end) {
+            _curQuota += (*_layerMeta)[_rangeCursor].quota;
+            _curBegin = (*_layerMeta)[_rangeCursor].nextBegin;
+            _curEnd = (*_layerMeta)[_rangeCursor].end;
+            _cursorNextBegin = _curBegin;
+            (*_layerMeta)[_rangeCursor].quota = 0;
             return true;
         }
     }
@@ -133,11 +133,11 @@ bool SingleLayerSearcher::moveBack() {
     for (size_t i = 0; i < _layerMeta->size(); ++i) {
         const DocIdRangeMeta &meta = (*_layerMeta)[i];
         if (meta.nextBegin <= meta.end) {
-            _rangeCousor = i;
-            _curBegin = (*_layerMeta)[_rangeCousor].nextBegin;
-            _curEnd = (*_layerMeta)[_rangeCousor].end;
+            _rangeCursor = i;
+            _curBegin = (*_layerMeta)[_rangeCursor].nextBegin;
+            _curEnd = (*_layerMeta)[_rangeCursor].end;
             _curDocId = _curBegin;
-            _cousorNextBegin = _curBegin;
+            _cursorNextBegin = _curBegin;
             _queryExecutor->reset();
             if (_filterWrapper) {
                 _filterWrapper->resetFilter();

@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SUFFIXPREFIXTOKENIZER_H
-#define ISEARCH_BS_SUFFIXPREFIXTOKENIZER_H
+#pragma once
 
-#include "autil/ConstString.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "build_service/analyzer/PrefixTokenizerImpl.h"
-#include "build_service/analyzer/SuffixPrefixTokenizerImpl.h"
 #include "build_service/analyzer/Tokenizer.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/util/Log.h"
+#include "indexlib/analyzer/ITokenizer.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/indexlib.h"
+
 namespace build_service { namespace analyzer {
 
 class SuffixPrefixTokenizer : public Tokenizer
@@ -65,5 +72,3 @@ private:
 BS_TYPEDEF_PTR(SuffixPrefixTokenizer);
 
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_SUFFIXPREFIXTOKENIZER_H

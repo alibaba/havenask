@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_MERGE_PLAN_RESOURCE_H
-#define __INDEXLIB_TABLE_MERGE_PLAN_RESOURCE_H
+#pragma once
 
-#include <memory>
+#include <stddef.h>
+#include <vector>
 
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/table/segment_meta.h"
 #include "indexlib/table/table_merge_plan.h"
-
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 
 namespace indexlib { namespace table {
 
@@ -46,5 +45,3 @@ private:
 
 DEFINE_SHARED_PTR(TableMergePlanResource);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_MERGE_PLAN_RESOURCE_H

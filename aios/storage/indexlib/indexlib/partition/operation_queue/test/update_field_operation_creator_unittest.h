@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_UPDATEFIELDOPERATIONCREATORTEST_H
-#define __INDEXLIB_UPDATEFIELDOPERATIONCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
@@ -39,5 +38,3 @@ INDEXLIB_UNIT_TEST_CASE(UpdateFieldOperationCreatorTest, TestCreateOperationItem
 INDEXLIB_UNIT_TEST_CASE(UpdateFieldOperationCreatorTest, TestUpdateIndex);
 INDEXLIB_UNIT_TEST_CASE(UpdateFieldOperationCreatorTest, TestUpdateIndexAndAttr);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_UPDATEFIELDOPERATIONCREATORTEST_H

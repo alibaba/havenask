@@ -38,7 +38,6 @@ public:
     // caller should make sure inner data buffer of dataBuffer is alway valid before IndexFields deconstruct
     void deserialize(autil::DataBuffer& dataBuffer) override;
     size_t EstimateMemory() const override;
-    bool HasFormatError() const override;
     autil::StringView GetIndexType() const override { return PACK_ATTRIBUTE_INDEX_TYPE_STR; }
 
 public:

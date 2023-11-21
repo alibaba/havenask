@@ -29,18 +29,21 @@ public:
     //     fieldName
     // truncateProfiles format:
     //     truncateName:sortDescription
-    static std::shared_ptr<config::TabletSchema> Make(const std::string& fieldNames, const std::string& indexNames,
-                                                      const std::string& attributeNames,
-                                                      const std::string& summaryNames,
-                                                      const std::string& truncateProfiles = "");
+    // source format:
+    //      field1;field2;field3|field4;field5|field6|field7
+    static std::shared_ptr<config::TabletSchema>
+    Make(const std::string& fieldNames, const std::string& indexNames, const std::string& attributeNames,
+         const std::string& summaryNames, const std::string& truncateProfiles = "", const std::string& sourceNames = "",
+         const std::string& fieldMetaNames = "");
 
 private:
     static Status MakeFieldConfig(config::UnresolvedSchema* schema, const std::string& fieldNames);
     static Status MakeIndexConfig(config::UnresolvedSchema* schema, const std::string& indexNames);
     static Status MakeAttributeConfig(config::UnresolvedSchema* schema, const std::vector<std::string>& attributeNames);
     static Status MakeSummaryConfig(config::UnresolvedSchema* schema, const std::vector<std::string>& fieldNames);
+    static Status MakeFieldMetaConfig(config::UnresolvedSchema* schema, const std::vector<std::string>& fieldNames);
     static Status MakeTruncateProfiles(config::UnresolvedSchema* schema, const std::string& truncateProfileStr);
-
+    static Status MakeSourceConfig(config::UnresolvedSchema* schema, const std::string& sourceStr);
     static std::shared_ptr<config::SingleFieldIndexConfig>
     CreateSingleFieldIndexConfig(const std::string& indexName, InvertedIndexType indexType,
                                  const std::string& fieldName, const std::string& analyzerName, bool isVirtual,

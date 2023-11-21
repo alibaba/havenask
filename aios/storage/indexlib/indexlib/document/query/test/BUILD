@@ -19,6 +19,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_document_query_unittest',
     srcs=glob(['*unittest.cpp']),
+    copts=['-fno-access-control'],
     data=([':example_function_executor_testdata'] + glob(['testdata/**'])),
     deps=[
         ':indexlib_document_query_test_helper',

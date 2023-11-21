@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_LOCALPROCESSEDDOCPRODUCER_H
-#define ISEARCH_BS_LOCALPROCESSEDDOCPRODUCER_H
+#pragma once
 
+#include <stdint.h>
+
+#include "build_service/common/Locator.h"
 #include "build_service/common_define.h"
 #include "build_service/local_job/ReduceDocumentQueue.h"
 #include "build_service/util/Log.h"
+#include "build_service/workflow/FlowError.h"
 #include "build_service/workflow/Producer.h"
+#include "build_service/workflow/StopOption.h"
 
 namespace build_service { namespace local_job {
 
@@ -51,5 +55,3 @@ private:
 BS_TYPEDEF_PTR(LocalProcessedDocProducer);
 
 }} // namespace build_service::local_job
-
-#endif // ISEARCH_BS_LOCALPROCESSEDDOCPRODUCER_H

@@ -1,8 +1,8 @@
-#ifndef ISEARCH_BS_FAKEGENERATIONTASK_H
-#define ISEARCH_BS_FAKEGENERATIONTASK_H
+#pragma once
 
 #include "build_service/admin/GenerationTask.h"
 #include "build_service/admin/test/FakeBuildServiceTaskFactory.h"
+#include "build_service/admin/test/FakeMultiClusterRealtimeSchemaListKeeper.h"
 #include "build_service/common/test/FakeBrokerTopicAccessor.h"
 #include "build_service/common_define.h"
 #include "build_service/test/unittest.h"
@@ -35,6 +35,19 @@ public:
         indexRoot = fullBuilderTmpRoot = _indexPath;
         return true;
     }
+    std::shared_ptr<config::MultiClusterRealtimeSchemaListKeeper> getSchemaListKeeper() const override
+    {
+        if (_schemaListKeeper) {
+            return _schemaListKeeper;
+        }
+        std::vector<std::string> clusterNames;
+        if (!getAllClusterNames(clusterNames)) {
+            return nullptr;
+        }
+        _schemaListKeeper.reset(new FakeMultiClusterRealtimeSchemaListKeeper);
+        _schemaListKeeper->init(_indexRoot, clusterNames, _buildId.generationid());
+        return _schemaListKeeper;
+    }
 
 private:
     std::string _indexPath;
@@ -46,5 +59,3 @@ private:
 BS_TYPEDEF_PTR(FakeGenerationTask);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_FAKEGENERATIONTASK_H

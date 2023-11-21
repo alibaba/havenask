@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDTASKBASE_H
-#define ISEARCH_BS_BUILDTASKBASE_H
+#pragma once
 
+#include <stdint.h>
+#include <string>
+
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/task_base/TaskBase.h"
-#include "build_service/util/Log.h"
 #include "build_service/workflow/BuildFlow.h"
+#include "build_service/workflow/BuildFlowMode.h"
 #include "build_service/workflow/FlowFactory.h"
 
 namespace build_service { namespace task_base {
@@ -57,5 +62,3 @@ private:
 BS_TYPEDEF_PTR(BuildTask);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_BUILDTASKBASE_H

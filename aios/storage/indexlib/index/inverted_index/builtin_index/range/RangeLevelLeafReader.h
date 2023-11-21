@@ -32,12 +32,12 @@ public:
     ~RangeLevelLeafReader();
 
     future_lite::coro::Lazy<index::ErrorCode>
-    FillSegmentPostings(const RangeFieldEncoder::Ranges& ranges, docid_t baseDocId,
+    FillSegmentPostings(const RangeFieldEncoder::Ranges& ranges, docid64_t baseDocId,
                         const std::shared_ptr<SegmentPostings>& segmentPostings, autil::mem_pool::Pool* sessionPool,
                         file_system::ReadOption option, InvertedIndexSearchTracer* tracer) noexcept;
 
 private:
-    future_lite::coro::Lazy<index::Result<SegmentPosting>> FillOneSegment(dictvalue_t value, docid_t baseDocId,
+    future_lite::coro::Lazy<index::Result<SegmentPosting>> FillOneSegment(dictvalue_t value, docid64_t baseDocId,
                                                                           autil::mem_pool::Pool* sessionPool,
                                                                           file_system::ReadOption option,
                                                                           InvertedIndexSearchTracer* tracer) noexcept;

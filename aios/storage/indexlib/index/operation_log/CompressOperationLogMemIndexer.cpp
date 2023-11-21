@@ -68,10 +68,11 @@ CompressOperationLogMemIndexer::CreateCompressOperationBlock()
     size_t bufLen = blockSerializeSize;
     size_t opCount = _blockInfo._curBlock->Size();
     auto hasConcurrentIdx = _operationMeta.GetBlockMetaVec().rbegin()->hasConcurrentIdx;
+    auto hasSourceIdx = _operationMeta.GetBlockMetaVec().rbegin()->hasSourceIdx;
     assert(opCount > 0);
     for (size_t i = 0; i < opCount; ++i) {
         size_t dumpSize = OperationBlock::DumpSingleOperation(_blockInfo._curBlock->GetOperations()[i], buffer, bufLen,
-                                                              hasConcurrentIdx);
+                                                              hasConcurrentIdx, hasSourceIdx);
         buffer += dumpSize;
         bufLen -= dumpSize;
     }

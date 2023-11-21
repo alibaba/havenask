@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#include <stdint.h>
+#include <string>
+
 #include "autil/legacy/jsonizable.h"
 #include "build_service/util/Log.h"
 

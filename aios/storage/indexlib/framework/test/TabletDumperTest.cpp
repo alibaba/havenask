@@ -19,6 +19,8 @@ public:
     void tearDown() override {}
 
 private:
+    static constexpr uint32_t DEFAULT_DUMP_THREAD_COUNT {4};
+
     std::unique_ptr<future_lite::Executor> _executor = nullptr;
 };
 
@@ -79,7 +81,7 @@ TEST_F(TabletDumperTest, testDump)
         tabletDumper->Init(dumperInterval);
         tabletDumper->PushSegmentDumper(std::move(segmentDumper));
         ASSERT_TRUE(tabletDumper->NeedDump());
-        Status status = tabletDumper->Dump();
+        Status status = tabletDumper->Dump(DEFAULT_DUMP_THREAD_COUNT);
         ASSERT_TRUE(status.IsOK());
         ASSERT_TRUE(tabletCommitter->NeedCommit());
     }
@@ -93,7 +95,7 @@ TEST_F(TabletDumperTest, testDump)
         tabletDumper->Init(dumperInterval);
         tabletDumper->PushSegmentDumper(std::move(segmentDumper));
         ASSERT_TRUE(tabletDumper->NeedDump());
-        Status status = tabletDumper->Dump();
+        Status status = tabletDumper->Dump(1);
         ASSERT_TRUE(status.IsIOError());
         ASSERT_FALSE(tabletCommitter->NeedCommit());
     }
@@ -108,7 +110,7 @@ TEST_F(TabletDumperTest, testDump)
         tabletDumper->Init(dumperInterval);
         tabletDumper->PushSegmentDumper(std::move(segmentDumper));
         ASSERT_TRUE(tabletDumper->NeedDump());
-        Status status = tabletDumper->Dump();
+        Status status = tabletDumper->Dump(DEFAULT_DUMP_THREAD_COUNT);
         ASSERT_TRUE(status.IsCorruption());
         ASSERT_TRUE(tabletCommitter->NeedCommit());
     }
@@ -144,7 +146,7 @@ TEST_F(TabletDumperTest, testDumpWithTrim)
 
     std::thread dumpThread([tabletDumper]() {
         while (!isQuit) {
-            Status status = tabletDumper->Dump();
+            Status status = tabletDumper->Dump(DEFAULT_DUMP_THREAD_COUNT);
             ASSERT_TRUE(status.IsOK());
             usleep(5 * sleepInterval);
         }

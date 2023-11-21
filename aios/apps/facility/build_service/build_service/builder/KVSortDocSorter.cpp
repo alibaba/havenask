@@ -15,6 +15,13 @@
  */
 #include "build_service/builder/KVSortDocSorter.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <iosfwd>
+#include <string.h>
+
+#include "indexlib/base/Types.h"
+
 using namespace std;
 
 namespace build_service { namespace builder {

@@ -15,9 +15,26 @@
  */
 #include "build_service/admin/controlflow/TaskBase.h"
 
+#include <assert.h>
+#include <bits/types/struct_tm.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <time.h>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/string_tools.h"
 #include "build_service/admin/TaskStatusMetricReporter.h"
 #include "build_service/admin/controlflow/ControlDefine.h"
-#include "build_service/admin/controlflow/KeyValueParamParser.h"
+#include "build_service/proto/BasicDefs.pb.h"
 
 using namespace std;
 using namespace build_service::proto;
@@ -288,6 +305,7 @@ void TaskBase::doAccept(const TaskOptimizerPtr& optimizer, TaskOptimizer::Optimi
 
 void TaskBase::syncTaskProperty(WorkerNodes& workerNodes)
 {
+    autil::ScopedTime2 timer;
     auto taskStatus = getTaskStatus();
     switch (taskStatus) {
     case TaskBase::ts_running:
@@ -317,6 +335,11 @@ void TaskBase::syncTaskProperty(WorkerNodes& workerNodes)
         workerNodes.clear();
     }
 
+    for (auto& node : workerNodes) {
+        if (node) {
+            node->setTaskIdentifier(_taskId);
+        }
+    }
     TaskStatusMetricReporterPtr reporter;
     if (_resourceManager) {
         _resourceManager->getResource(reporter);
@@ -324,6 +347,7 @@ void TaskBase::syncTaskProperty(WorkerNodes& workerNodes)
     if (reporter) {
         taskStatus = getTaskStatus();
         reporter->reportTaskStatus((int64_t)taskStatus, _kmonTags);
+        reporter->reportScheduleLatency(timer.done_us(), _kmonTags);
     }
 }
 

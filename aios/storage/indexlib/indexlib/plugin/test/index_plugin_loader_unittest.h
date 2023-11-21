@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXPLUGINLOADERTEST_H
-#define __INDEXLIB_INDEXPLUGINLOADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/plugin/index_plugin_loader.h"
@@ -30,5 +29,3 @@ INDEXLIB_UNIT_TEST_CASE(IndexPluginLoaderTest, TestSimpleProcess);
 // INDEXLIB_UNIT_TEST_CASE(IndexPluginLoaderTest, TestLoadOfflineModules);
 
 }} // namespace indexlib::plugin
-
-#endif //__INDEXLIB_INDEXPLUGINLOADERTEST_H

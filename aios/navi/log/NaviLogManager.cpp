@@ -67,7 +67,7 @@ void NaviLogManager::addFileAppender(const FileLogConfig &config) {
     for (const auto &btFilter : config.btFilters) {
         appender->addBtFilter(btFilter);
     }
-    auto patternLayout = new PatternLayout();
+    auto patternLayout = std::make_shared<PatternLayout>();
     patternLayout->setLogPattern(config.logPattern);
     appender->setLayout(patternLayout);
 
@@ -92,11 +92,13 @@ NaviLoggerPtr NaviLogManager::createLogger(SessionId id) {
     auto logger = new NaviLogger(_maxMessageLength, shared_from_this());
     if (!id.valid()) {
         id = getLoggerId();
+    } else {
+        id.currentInstance = _instanceId;
     }
     autil::ScopedReadLock guardLock(m_pendingMutex);
     logger->init(id, m_fileAppenders);
     if (_neddConsoleLog) {
-        logger->addAppender(new ConsoleAppender("DEBUG"));
+        logger->addAppender(std::make_shared<ConsoleAppender>("DEBUG"));
     }
     return NaviLoggerPtr(logger);
 }
@@ -204,6 +206,7 @@ void NaviLogManager::flushFile(FileAppender* appender)
 SessionId NaviLogManager::getLoggerId() {
     SessionId id;
     id.instance = _instanceId;
+    id.currentInstance = _instanceId;
     id.queryId = atomic_inc_return(&_logCounter);
     return id;
 }

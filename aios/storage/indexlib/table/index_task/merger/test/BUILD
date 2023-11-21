@@ -24,6 +24,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='FenceDirDeleteOperationTest',
     srcs=['FenceDirDeleteOperationTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/table/index_task/merger:FenceDirDeleteOperation',
         '//aios/unittest_framework'
@@ -53,6 +54,16 @@ strict_cc_library(
         '//aios/storage/indexlib/index/deletionmap:merger',
         '//aios/storage/indexlib/table/index_task/merger:MergeStrategy',
         '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='OptimizeMergeStrategyTest',
+    srcs=['OptimizeMergeStrategyTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/table/index_task/merger:OptimizeMergeStrategy',
+        '//aios/storage/indexlib/table/index_task/merger/test:MergeTestHelper',
         '//aios/unittest_framework'
     ]
 )

@@ -1,44 +1,34 @@
 package com.taobao.search.iquan.client.common.model;
 
-import com.taobao.search.iquan.client.common.common.ConstantDefine;
-import com.taobao.search.iquan.client.common.json.table.JsonTable;
-import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
-import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
-import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.taobao.search.iquan.client.common.json.table.JsonTableContent;
+import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
+import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import com.taobao.search.iquan.core.common.ConstantDefine;
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class IquanTableModel extends IquanModelBase {
     private static final Logger logger = LoggerFactory.getLogger(IquanTableModel.class);
 
-    private long table_version = 1;
     private String table_name = ConstantDefine.EMPTY;
     private List<String> alias_names = new ArrayList<>();
-    private String table_type = ConstantDefine.EMPTY;
-    private String table_content_version = ConstantDefine.EMPTY;
+    private String table_content_type = ConstantDefine.EMPTY;
     private String table_content = ConstantDefine.EMPTY;
 
     // for internal use
-    private JsonTable contentObj = null;
+    private JsonTableContent contentObj = null;
 
-    public long getTable_version() {
-        return table_version;
-    }
-
-    public void setTable_version(long table_version) {
-        this.table_version = table_version;
-    }
-
-    public String getTable_name() {
+    public String getTableName() {
         return table_name;
     }
 
-    public void setTable_name(String table_name) {
+    public void setTableName(String table_name) {
         this.table_name = table_name;
     }
 
@@ -50,20 +40,12 @@ public class IquanTableModel extends IquanModelBase {
         this.alias_names = alias_names;
     }
 
-    public String getTable_type() {
-        return table_type;
+    public String getTable_content_type() {
+        return table_content_type;
     }
 
-    public void setTable_type(String table_type) {
-        this.table_type = table_type;
-    }
-
-    public String getTable_content_version() {
-        return table_content_version;
-    }
-
-    public void setTable_content_version(String table_content_version) {
-        this.table_content_version = table_content_version;
+    public void setTable_content_type(String table_content_type) {
+        this.table_content_type = table_content_type;
     }
 
     public String getTable_content() {
@@ -78,20 +60,19 @@ public class IquanTableModel extends IquanModelBase {
         if (contentObj != null) {
             return;
         }
-        contentObj = IquanRelOptUtils.fromJson(table_content, JsonTable.class);
+        contentObj = IquanRelOptUtils.fromJson(table_content, JsonTableContent.class);
     }
 
-    public JsonTable getContentObj() {
+    public JsonTableContent getContentObj() {
         parseContent();
         return contentObj;
     }
 
+    @Override
     public IquanTableModel clone() {
         IquanTableModel newModel = new IquanTableModel();
-        newModel.table_version = this.table_version;
         newModel.table_name = table_name;
-        newModel.table_type = table_type;
-        newModel.table_content_version = table_content_version;
+        newModel.table_content_type = table_content_type;
         newModel.table_content = table_content;
         return newModel;
     }
@@ -106,11 +87,8 @@ public class IquanTableModel extends IquanModelBase {
     public boolean isValid() {
         try {
             ExceptionUtils.throwIfTrue(!isPathValid(), "path is not valid");
-            ExceptionUtils.throwIfTrue(table_version < 0, "table version is smaller than 0");
-            ExceptionUtils.throwIfTrue(table_type.isEmpty(),
+            ExceptionUtils.throwIfTrue(table_content_type.isEmpty(),
                     "table_type is empty");
-            ExceptionUtils.throwIfTrue(table_content_version.isEmpty(),
-                    "table_coversion.isEmpty()");
             ExceptionUtils.throwIfTrue(table_content.isEmpty(),
                     "table_content is empty");
         } catch (IquanNotValidateException e) {
@@ -159,13 +137,11 @@ public class IquanTableModel extends IquanModelBase {
 
     @Override
     public String getDigest() {
-        return String.format("%s:%s, %s:%s, %s:%d, %s:%s, %s:%s, %s:%s, %s:%s",
+        return String.format("%s:%s, %s:%s, %s:%s, %s:%s, %s:%s",
                 ConstantDefine.CATALOG_NAME, catalog_name,
                 ConstantDefine.DATABASE_NAME, database_name,
-                ConstantDefine.TABLE_VERSION, table_version,
                 ConstantDefine.TABLE_NAME, table_name,
-                ConstantDefine.TABLE_TYPE, table_type,
-                ConstantDefine.TABLE_CONTENT_VERSION, table_content_version,
+                ConstantDefine.TABLE_TYPE, table_content_type,
                 ConstantDefine.TABLE_CONTENT, table_content);
     }
 
@@ -174,7 +150,6 @@ public class IquanTableModel extends IquanModelBase {
 
         maps.put("catalog_name", getCatalog_name());
         maps.put("database_name", getDatabase_name());
-        maps.put("version", getTable_version());
 
         if (contentObj == null) {
             parseContent();
@@ -185,15 +160,11 @@ public class IquanTableModel extends IquanModelBase {
 
     // utils
     @SuppressWarnings("unchecked")
-    public static IquanTableModel createFromMap(Map<String, Object> map) {
+    public static IquanTableModel createFromMap(Map<String, Object> map, String catalogName, String databaseName) {
         IquanTableModel tableModel = new IquanTableModel();
 
-        String catalogName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.CATALOG_NAME, ConstantDefine.EMPTY);
-        String databaseName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.DATABASE_NAME, ConstantDefine.EMPTY);
-        long tableVersion = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.TABLE_VERSION, (long) 1);
         String tableName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.TABLE_NAME, ConstantDefine.EMPTY);
-        String tableType = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.TABLE_TYPE, ConstantDefine.EMPTY);
-        String tableContentVersion = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.TABLE_CONTENT_VERSION, ConstantDefine.EMPTY);
+        String tableType = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.TABLE_CONTENT_TYPE, ConstantDefine.EMPTY);
         List<String> aliasNames = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.ALIAS_NAMES, new ArrayList<>());
 
         String tableContent = ConstantDefine.EMPTY;
@@ -208,12 +179,11 @@ public class IquanTableModel extends IquanModelBase {
 
         tableModel.setCatalog_name(catalogName);
         tableModel.setDatabase_name(databaseName);
-        tableModel.setTable_version(tableVersion);
-        tableModel.setTable_name(tableName);
         tableModel.setAlias_names(aliasNames);
-        tableModel.setTable_type(tableType);
-        tableModel.setTable_content_version(tableContentVersion);
+        tableModel.setTable_content_type(tableType);
         tableModel.setTable_content(tableContent);
+        tableName = tableModel.getContentObj().getTableName();
+        tableModel.setTableName(tableName);
 
         return tableModel;
     }

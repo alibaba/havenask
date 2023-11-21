@@ -15,10 +15,14 @@
  */
 #include "indexlib/file_system/TempDirectory.h"
 
+#include <assert.h>
+#include <utility>
+
+#include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/FileSystemMetricsReporter.h"
 #include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/FileWriter.h"
-#include "indexlib/util/PathUtil.h"
+#include "indexlib/util/IoExceptionController.h"
 
 namespace indexlib::file_system {
 AUTIL_LOG_SETUP(indexlib.file_system, TempDirectory);

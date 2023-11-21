@@ -54,6 +54,7 @@ public:
                                     navi::GraphMemoryPoolR *graphMemoryPoolR);
     static table::TablePtr
     getTable(const navi::DataPtr &data, navi::GraphMemoryPoolR *graphMemoryPoolR, bool needCopy);
+    static void stripKernelNamePrefix(std::string &kernelName);
 
 public:
     static const std::string FIELD_PREIFX;

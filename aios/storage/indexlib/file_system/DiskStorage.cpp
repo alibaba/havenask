@@ -17,16 +17,14 @@
 
 #include <assert.h>
 #include <cstddef>
+#include <cstdint>
 #include <ext/alloc_traits.h>
 #include <type_traits>
 #include <utility>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
-#include "autil/legacy/jsonizable.h"
-#include "indexlib/file_system/EntryTableBuilder.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/file_system/FileSystemOptions.h"
-#include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/StorageMetrics.h"
 #include "indexlib/file_system/file/BlockFileNodeCreator.h"
 #include "indexlib/file_system/file/BufferedFileNodeCreator.h"
@@ -35,19 +33,19 @@
 #include "indexlib/file_system/file/FileCarrier.h"
 #include "indexlib/file_system/file/FileNodeCache.h"
 #include "indexlib/file_system/file/FileNodeCreator.h"
+#include "indexlib/file_system/file/FileWriterImpl.h"
 #include "indexlib/file_system/file/MemFileNodeCreator.h"
-#include "indexlib/file_system/file/MemFileWriter.h"
 #include "indexlib/file_system/file/MmapFileNode.h"
 #include "indexlib/file_system/file/MmapFileNodeCreator.h"
 #include "indexlib/file_system/file/NormalFileReader.h"
 #include "indexlib/file_system/file/SessionFileCache.h"
-#include "indexlib/file_system/file/SliceFileNode.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/load_config/LoadConfig.h"
 #include "indexlib/file_system/load_config/LoadConfigList.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
 #include "indexlib/file_system/package/InnerFileMeta.h"
 #include "indexlib/file_system/package/PackageOpenMeta.h"
-#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

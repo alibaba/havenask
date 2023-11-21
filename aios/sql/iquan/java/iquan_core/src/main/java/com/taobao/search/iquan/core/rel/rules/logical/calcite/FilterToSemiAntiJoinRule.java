@@ -1,5 +1,11 @@
 package com.taobao.search.iquan.core.rel.rules.logical.calcite;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Stack;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
@@ -9,18 +15,21 @@ import org.apache.calcite.rel.core.Filter;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.logical.LogicalFilter;
 import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.LogicVisitor;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.rex.RexSubQuery;
+import org.apache.calcite.rex.RexUtil;
+import org.apache.calcite.rex.RexVisitor;
+import org.apache.calcite.rex.RexVisitorImpl;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
 import org.apache.calcite.util.Pair;
 import org.apache.calcite.util.Util;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Stack;
-import java.util.stream.Collectors;
 
 import static org.apache.calcite.util.Util.range;
 
@@ -117,7 +126,7 @@ public class FilterToSemiAntiJoinRule extends RelOptRule {
         try {
             condition.accept(visitor);
             return false;
-        } catch(Util.FoundOne e) {
+        } catch (Util.FoundOne e) {
             return true;
         }
     }

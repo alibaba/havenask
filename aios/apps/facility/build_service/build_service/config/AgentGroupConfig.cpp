@@ -15,7 +15,16 @@
  */
 #include "build_service/config/AgentGroupConfig.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <set>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/Regex.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 
 using namespace std;
 

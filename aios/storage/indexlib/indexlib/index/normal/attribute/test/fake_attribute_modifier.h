@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_ATTRIBUTE_MODIFIER_H
-#define __INDEXLIB_FAKE_ATTRIBUTE_MODIFIER_H
+#pragma once
 
 #include <memory>
 
@@ -26,5 +25,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeAttributeModifier);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_FAKE_ATTRIBUTE_MODIFIER_H

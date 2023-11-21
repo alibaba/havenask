@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_DOCUMENT_H
-#define __INDEXLIB_KV_DOCUMENT_H
+#pragma once
 
 #include <memory>
 
@@ -118,8 +117,8 @@ public:
         Document::SetIngestionTimestamp(ingestionTimestamp);
     }
     int64_t GetIngestionTimestamp() const override { return Document::GetIngestionTimestamp(); }
-    void SetDocInfo(const indexlibv2::document::IDocument::DocInfo& docInfo) override { Document::SetDocInfo(docInfo); }
-    indexlibv2::document::IDocument::DocInfo GetDocInfo() const override { return Document::GetDocInfo(); }
+    void SetDocInfo(const indexlibv2::framework::Locator::DocInfo& docInfo) override { Document::SetDocInfo(docInfo); }
+    indexlibv2::framework::Locator::DocInfo GetDocInfo() const override { return Document::GetDocInfo(); }
 
 public:
     DocVector::iterator begin() { return _docs.begin(); }
@@ -174,5 +173,3 @@ private:
 DEFINE_SHARED_PTR(KVDocument);
 
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_KV_DOCUMENT_H

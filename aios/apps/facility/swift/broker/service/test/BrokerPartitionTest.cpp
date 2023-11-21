@@ -309,6 +309,22 @@ TEST_F(BrokerPartitionTest, testPreparePartitionConfig) {
         ASSERT_EQ(size_t(1), oldDataRoots.size());
         ASSERT_EQ(string("oldDataRoot1/topic1/1/"), oldDataRoots[0]);
     }
+    { // set overwhelm min buffer size
+        TaskInfo taskInfo;
+        *(taskInfo.mutable_partitionid()) = MessageCreator::createPartitionId("topic1_1");
+        taskInfo.set_minbuffersize(1234567);
+        taskInfo.set_maxbuffersize(7654321);
+        taskInfo.set_buffersize(7777777);
+        BrokerConfig brokerConfig;
+        brokerConfig.setTotalBufferSize(32768);
+        ThreadSafeTaskStatusPtr threadSafeTaskStatus(new ThreadSafeTaskStatus(taskInfo));
+        BrokerPartition brokerPart(threadSafeTaskStatus);
+        PartitionConfig partConfig;
+        brokerPart.preparePartitionConfig(brokerConfig, partConfig);
+        int64_t assertSize = (int64_t)16384 * 1024 * 1024;
+        ASSERT_EQ(partConfig.getPartitionMinBufferSize(), assertSize);
+        ASSERT_EQ(partConfig.getPartitionMaxBufferSize(), assertSize);
+    }
 }
 
 TEST_F(BrokerPartitionTest, testInitWithSecurityMode) {

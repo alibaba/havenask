@@ -32,7 +32,7 @@ TabletSummaryReader::TabletSummaryReader(indexlibv2::index::SummaryReader* summa
 }
 
 future_lite::coro::Lazy<indexlib::index::ErrorCodeVec>
-TabletSummaryReader::GetDocument(const std::vector<docid_t>& docIds, const SummaryGroupIdVec& groupVec,
+TabletSummaryReader::GetDocument(const std::vector<docid_t>& docIds, const indexlib::index::SummaryGroupIdVec& groupVec,
                                  autil::mem_pool::Pool* sessionPool, indexlib::file_system::ReadOption option,
                                  const indexlib::index::SearchSummaryDocVec* docs) const noexcept
 {
@@ -57,7 +57,7 @@ bool TabletSummaryReader::GetDocument(docid_t docId, indexlib::document::SearchS
 }
 
 bool TabletSummaryReader::GetDocument(docid_t docId, indexlib::document::SearchSummaryDocument* summaryDoc,
-                                      const SummaryGroupIdVec& groupVec) const
+                                      const indexlib::index::SummaryGroupIdVec& groupVec) const
 {
     auto [status, ret] = _summaryReader->GetDocument(docId, groupVec, summaryDoc);
     THROW_IF_STATUS_ERROR(status);

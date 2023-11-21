@@ -3,21 +3,19 @@
 #include <fstream>
 
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/configurator_define.h"
 #include "indexlib/config/merge_config.h"
 #include "indexlib/config/test/schema_loader.h"
 #include "indexlib/config/truncate_option_config.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/testutil/unittest.h"
 
 using namespace std;
 using namespace autil::legacy;
 using namespace autil::legacy::json;
 using namespace indexlib::util;
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, TruncateOptionConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, TruncateOptionConfigTest);
 
 void TruncateOptionConfigTest::CaseSetUp()
 {
@@ -43,7 +41,7 @@ string TruncateOptionConfigTest::LoadJsonString(const string& optionFile)
 {
     ifstream in(optionFile.c_str());
     if (!in) {
-        IE_LOG(ERROR, "OPEN INPUT FILE[%s] ERROR", optionFile.c_str());
+        AUTIL_LOG(ERROR, "OPEN INPUT FILE[%s] ERROR", optionFile.c_str());
         return "";
     }
     string line;
@@ -52,7 +50,7 @@ string TruncateOptionConfigTest::LoadJsonString(const string& optionFile)
         jsonString += line;
     }
 
-    IE_LOG(DEBUG, "jsonString:%s", jsonString.c_str());
+    AUTIL_LOG(DEBUG, "jsonString:%s", jsonString.c_str());
     return jsonString;
 }
 
@@ -75,7 +73,7 @@ void TruncateOptionConfigTest::TestCaseForInvalidDistinctConfig()
     EXPECT_ANY_THROW(config->Check(mSchema));
 
     const TruncateStrategyPtr& filterByMetaStrategy = config->GetTruncateStrategy("biz30day_filter_by_meta");
-    INDEXLIB_TEST_EQUAL(string("biz30day"), filterByMetaStrategy->GetDiversityConstrain().GetFilterField());
+    ASSERT_EQ(string("biz30day"), filterByMetaStrategy->GetDiversityConstrain().GetFilterField());
 }
 
 void TruncateOptionConfigTest::TestCaseTruncateStrategyWithZeroLimit()
@@ -127,8 +125,8 @@ void TruncateOptionConfigTest::TestCaseForTruncateMetaStrategy()
     TruncateOptionConfigPtr config = LoadFromJsonStr(mJsonString);
     config->Init(mSchema);
     const TruncateStrategyPtr& strategy = config->GetTruncateStrategy("default_filter");
-    INDEXLIB_TEST_TRUE(strategy->GetStrategyType() == TRUNCATE_META_STRATEGY_TYPE);
-    INDEXLIB_TEST_TRUE(!strategy->GetDiversityConstrain().IsFilterByMeta());
+    ASSERT_TRUE(strategy->GetStrategyType() == TRUNCATE_META_STRATEGY_TYPE);
+    ASSERT_TRUE(!strategy->GetDiversityConstrain().IsFilterByMeta());
 
     strategy->SetStrategyType("invalid_strategy_type");
     EXPECT_ANY_THROW(config->Check(mSchema));
@@ -139,12 +137,12 @@ void TruncateOptionConfigTest::TestCaseForIsFilterByTimeStamp()
     TruncateOptionConfigPtr config = LoadFromJsonStr(mJsonString);
     config->Init(mSchema);
 
-    INDEXLIB_TEST_TRUE(config->IsTruncateIndex("phrase"));
+    ASSERT_TRUE(config->IsTruncateIndex("phrase"));
     const TruncateIndexConfig& truncIndexConfig = config->GetTruncateIndexConfig("phrase");
     const TruncateIndexPropertyVector& propertyVec = truncIndexConfig.GetTruncateIndexProperties();
-    INDEXLIB_TEST_EQUAL((size_t)5, propertyVec.size());
-    INDEXLIB_TEST_EQUAL(propertyVec[4].IsFilterByTimeStamp(), true);
-    INDEXLIB_TEST_EQUAL(propertyVec[0].HasSort(), true);
+    ASSERT_EQ((size_t)5, propertyVec.size());
+    ASSERT_EQ(propertyVec[4].IsFilterByTimeStamp(), true);
+    ASSERT_EQ(propertyVec[0].HasSort(), true);
 }
 
 void TruncateOptionConfigTest::TestCaseForMultiLevelSortParam()
@@ -153,22 +151,22 @@ void TruncateOptionConfigTest::TestCaseForMultiLevelSortParam()
     config->Init(mSchema);
 
     const TruncateProfilePtr& profile = config->GetTruncateProfile("desc_biz30day");
-    INDEXLIB_TEST_EQUAL(profile->mSortParams.size(), (size_t)2);
+    ASSERT_EQ(profile->mSortParams.size(), (size_t)2);
 
-    INDEXLIB_TEST_EQUAL(profile->mSortParams[0].GetSortField(), string("biz30day"));
-    INDEXLIB_TEST_EQUAL(profile->mSortParams[0].GetSortPatternString(), string("DESC"));
-    INDEXLIB_TEST_EQUAL(profile->mSortParams[1].GetSortField(), string("nid"));
-    INDEXLIB_TEST_EQUAL(profile->mSortParams[1].GetSortPatternString(), string("ASC"));
+    ASSERT_EQ(profile->mSortParams[0].GetSortField(), string("biz30day"));
+    ASSERT_EQ(profile->mSortParams[0].GetSortPatternString(), string("DESC"));
+    ASSERT_EQ(profile->mSortParams[1].GetSortField(), string("nid"));
+    ASSERT_EQ(profile->mSortParams[1].GetSortPatternString(), string("ASC"));
 
-    INDEXLIB_TEST_TRUE(config->IsTruncateIndex("nick_name"));
+    ASSERT_TRUE(config->IsTruncateIndex("nick_name"));
     const TruncateIndexConfig& truncIndexConfig = config->GetTruncateIndexConfig("nick_name");
     const TruncateIndexPropertyVector& propertyVec = truncIndexConfig.GetTruncateIndexProperties();
-    INDEXLIB_TEST_EQUAL((size_t)1, propertyVec.size());
-    INDEXLIB_TEST_EQUAL(propertyVec[0].GetSortDimenNum(), (size_t)2);
-    INDEXLIB_TEST_EQUAL(propertyVec[0].mTruncateProfile->mSortParams[0].GetSortField(), string("biz30day"));
-    INDEXLIB_TEST_EQUAL(propertyVec[0].mTruncateProfile->mSortParams[1].GetSortField(), string("nid"));
-    INDEXLIB_TEST_EQUAL(propertyVec[0].mTruncateProfile->mSortParams[0].GetSortPattern(), indexlibv2::config::sp_desc);
-    INDEXLIB_TEST_EQUAL(propertyVec[0].mTruncateProfile->mSortParams[1].GetSortPattern(), indexlibv2::config::sp_asc);
+    ASSERT_EQ((size_t)1, propertyVec.size());
+    ASSERT_EQ(propertyVec[0].GetSortDimenNum(), (size_t)2);
+    ASSERT_EQ(propertyVec[0].mTruncateProfile->mSortParams[0].GetSortField(), string("biz30day"));
+    ASSERT_EQ(propertyVec[0].mTruncateProfile->mSortParams[1].GetSortField(), string("nid"));
+    ASSERT_EQ(propertyVec[0].mTruncateProfile->mSortParams[0].GetSortPattern(), indexlibv2::config::sp_desc);
+    ASSERT_EQ(propertyVec[0].mTruncateProfile->mSortParams[1].GetSortPattern(), indexlibv2::config::sp_asc);
 }
 
 void TruncateOptionConfigTest::TestCaseForInvalidFilter()
@@ -177,7 +175,7 @@ void TruncateOptionConfigTest::TestCaseForInvalidFilter()
     config->Init(mSchema);
     const TruncateStrategyPtr& strategy = config->GetTruncateStrategy("default_filter");
     uint64_t oldFilterMask = strategy->GetDiversityConstrain().GetFilterMask();
-    INDEXLIB_TEST_EQUAL((uint64_t)0xFFFF, oldFilterMask);
+    ASSERT_EQ((uint64_t)0xFFFF, oldFilterMask);
     // FilterByMeta && FilterByTimeStamp
     strategy->GetDiversityConstrain().SetFilterByMeta(true);
     strategy->GetDiversityConstrain().SetFilterByTimeStamp(true);
@@ -209,31 +207,31 @@ void TruncateOptionConfigTest::TestCaseForUpdateTruncateIndexConfig()
         const DiversityConstrain& constrain = strategy->GetDiversityConstrain();
         const string& strategyName = strategy->GetStrategyName();
         if (strategyName == "ends_filter_big_inc") {
-            INDEXLIB_TEST_EQUAL(64800l, constrain.GetFilterMinValue());
-            INDEXLIB_TEST_EQUAL(82800l, constrain.GetFilterMaxValue());
-            INDEXLIB_TEST_EQUAL(string("ends_1"), constrain.GetFilterField());
-            INDEXLIB_TEST_EQUAL(string("FilterByTimeStamp"), constrain.GetFilterType());
-            INDEXLIB_TEST_EQUAL(true, constrain.IsFilterByTimeStamp());
-            INDEXLIB_TEST_EQUAL(false, constrain.IsFilterByMeta());
+            ASSERT_EQ(64800l, constrain.GetFilterMinValue());
+            ASSERT_EQ(82800l, constrain.GetFilterMaxValue());
+            ASSERT_EQ(string("ends_1"), constrain.GetFilterField());
+            ASSERT_EQ(string("FilterByTimeStamp"), constrain.GetFilterType());
+            ASSERT_EQ(true, constrain.IsFilterByTimeStamp());
+            ASSERT_EQ(false, constrain.IsFilterByMeta());
         } else if (strategyName == "ends_filter_inc") {
-            INDEXLIB_TEST_EQUAL(beginTime, constrain.GetFilterMinValue());
-            INDEXLIB_TEST_EQUAL(36000l, constrain.GetFilterMaxValue());
-            INDEXLIB_TEST_EQUAL(string("ends_1"), constrain.GetFilterField());
-            INDEXLIB_TEST_EQUAL(string("FilterByTimeStamp"), constrain.GetFilterType());
-            INDEXLIB_TEST_EQUAL(true, constrain.IsFilterByTimeStamp());
-            INDEXLIB_TEST_EQUAL(false, constrain.IsFilterByMeta());
+            ASSERT_EQ(beginTime, constrain.GetFilterMinValue());
+            ASSERT_EQ(36000l, constrain.GetFilterMaxValue());
+            ASSERT_EQ(string("ends_1"), constrain.GetFilterField());
+            ASSERT_EQ(string("FilterByTimeStamp"), constrain.GetFilterType());
+            ASSERT_EQ(true, constrain.IsFilterByTimeStamp());
+            ASSERT_EQ(false, constrain.IsFilterByMeta());
         } else if (strategyName == "ends_filter_normal") {
-            INDEXLIB_TEST_EQUAL(string("desc_biz30day"), constrain.GetFilterField());
-            INDEXLIB_TEST_EQUAL(string("FilterByMeta"), constrain.GetFilterType());
-            INDEXLIB_TEST_EQUAL(false, constrain.IsFilterByTimeStamp());
-            INDEXLIB_TEST_EQUAL(true, constrain.IsFilterByMeta());
+            ASSERT_EQ(string("desc_biz30day"), constrain.GetFilterField());
+            ASSERT_EQ(string("FilterByMeta"), constrain.GetFilterType());
+            ASSERT_EQ(false, constrain.IsFilterByTimeStamp());
+            ASSERT_EQ(true, constrain.IsFilterByMeta());
         } else if (strategyName == "galaxy") {
-            INDEXLIB_TEST_EQUAL(string("DOC_PAYLOAD"), constrain.GetFilterField());
-            INDEXLIB_TEST_EQUAL((uint64_t)0xFFFF, constrain.GetFilterMask());
-            INDEXLIB_TEST_EQUAL(1l, constrain.GetFilterMinValue());
-            INDEXLIB_TEST_EQUAL(100l, constrain.GetFilterMaxValue());
+            ASSERT_EQ(string("DOC_PAYLOAD"), constrain.GetFilterField());
+            ASSERT_EQ((uint64_t)0xFFFF, constrain.GetFilterMask());
+            ASSERT_EQ(1l, constrain.GetFilterMinValue());
+            ASSERT_EQ(100l, constrain.GetFilterMaxValue());
         } else {
-            INDEXLIB_TEST_TRUE(false);
+            ASSERT_TRUE(false);
         }
     }
 }

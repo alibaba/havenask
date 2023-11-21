@@ -89,10 +89,10 @@ strict_cc_library(
         ':StatisticsTermLeafReader', ':StatisticsTermMemIndexer',
         ':StatisticsTermMerger', ':StatisticsTermReader',
         '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:IIndexFactory',
         '//aios/storage/indexlib/index:IIndexMerger',
-        '//aios/storage/indexlib/index:IIndexReader',
-        '//aios/storage/indexlib/index:IndexerParameter'
+        '//aios/storage/indexlib/index:IIndexReader'
     ],
     alwayslink=True
 )

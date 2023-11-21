@@ -1,10 +1,10 @@
 package com.taobao.search.iquan.client.common.json.catalog;
 
-import com.taobao.search.iquan.client.common.json.common.JsonComputeNode;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.client.common.json.common.JsonComputeNode;
 
 public class JsonDatabaseInfo {
     @JsonProperty("database_name")

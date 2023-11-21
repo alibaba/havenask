@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_STRATEGY_FACTORY_H
-#define __INDEXLIB_MERGE_STRATEGY_FACTORY_H
+#pragma once
 
 #include <map>
 #include <memory>
+#include <string>
 
 #include "autil/Lock.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/merger/merge_strategy/merge_strategy.h"
 #include "indexlib/merger/merge_strategy/merge_strategy_creator.h"
+#include "indexlib/merger/segment_directory.h"
 #include "indexlib/util/Singleton.h"
 
 namespace indexlib { namespace merger {
@@ -61,5 +61,3 @@ private:
 
 typedef std::shared_ptr<MergeStrategyFactory> MergeStrategyFactoryPtr;
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_STRATEGY_FACTORY_H

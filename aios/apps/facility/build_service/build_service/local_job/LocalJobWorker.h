@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_LOCALJOBWORKER_H
-#define ISEARCH_BS_LOCALJOBWORKER_H
+#pragma once
 
-#include "build_service/common_define.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/task_base/TaskBase.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace local_job {
-
-class LocalBrokerFactory;
 
 class LocalJobWorker
 {
@@ -54,5 +54,3 @@ private:
 };
 
 }} // namespace build_service::local_job
-
-#endif // ISEARCH_BS_LOCALJOBWORKER_H

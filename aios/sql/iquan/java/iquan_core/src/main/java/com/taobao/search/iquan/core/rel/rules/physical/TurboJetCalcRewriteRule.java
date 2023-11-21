@@ -20,11 +20,11 @@ public class TurboJetCalcRewriteRule extends RelOptRule {
     @Override
     public void onMatch(RelOptRuleCall call) {
         final IquanCalcOp calc = call.rel(0);
-        IquanTurboJetCalcOp newCalc = new IquanTurboJetCalcOp(calc.getCluster(), 
-                                                              calc.getTraitSet(), 
-                                                              calc.getHints(), 
-                                                              calc.getInput(), 
-                                                              calc.getProgram());
+        IquanTurboJetCalcOp newCalc = new IquanTurboJetCalcOp(calc.getCluster(),
+                calc.getTraitSet(),
+                calc.getHints(),
+                calc.getInput(),
+                calc.getProgram());
         newCalc.setParallelNum(calc.getParallelNum());
         newCalc.setParallelIndex(calc.getParallelIndex());
         call.transformTo(newCalc);

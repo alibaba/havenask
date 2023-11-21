@@ -32,6 +32,7 @@ public:
 public:
     bool init(const autil::OptionParser& optionParser);
     bool run();
+    void release();
 
 private:
     bool initARPCServer();
@@ -39,7 +40,7 @@ private:
     bool initSuezWorkerHandlerFactory(const autil::OptionParser& optionParser);
     void stopRPCServer();
     void stopSuezWorkerHandelFactory();
-    void release();
+
 private:
     std::shared_ptr<multi_call::GigRpcServer> _rpcServer;
     std::shared_ptr<suez::SuezServerWorkerHandlerFactory> _suezWorkerHandlerFactory;

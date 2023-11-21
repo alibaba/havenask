@@ -1,8 +1,8 @@
 #include "indexlib/index/kkv/test/on_disk_separate_chain_hash_iterator_unittest.h"
 
 #include "indexlib/common/hash_table/hash_table_writer.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_define.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

@@ -32,7 +32,7 @@ framework::Locator LSMTabletLoaderTest::MakeLocator(uint64_t src, int64_t minOff
         base::Progress::Offset offset = {ts, 0};
         progress.emplace_back(from, to, offset);
     }
-    locator.SetProgress(progress);
+    locator.SetMultiProgress({progress});
     return locator;
 }
 
@@ -70,7 +70,7 @@ std::unique_ptr<framework::TabletData> LSMTabletLoaderTest::CreateTabletData(con
                 base::Progress::Offset offset = {tmp[2], 0};
                 progresses.push_back({(uint32_t)tmp[0], (uint32_t)tmp[1], offset});
             }
-            locator.SetProgress(progresses);
+            locator.SetMultiProgress({progresses});
         }
         segMeta.segmentInfo->SetLocator(locator);
         segments.push_back(std::make_shared<framework::MockDiskSegment>(segMeta));

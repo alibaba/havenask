@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKSWIFTADMINFACADE_H
-#define ISEARCH_BS_MOCKSWIFTADMINFACADE_H
+#pragma once
 
 #include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/proto/BasicDefs.pb.h"
@@ -44,5 +43,3 @@ typedef ::testing::StrictMock<MockSwiftAdminFacade> StrictMockSwiftAdminFacade;
 typedef ::testing::NiceMock<MockSwiftAdminFacade> NiceMockSwiftAdminFacade;
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_MOCKSWIFTADMINFACADE_H

@@ -15,7 +15,10 @@
  */
 #include "indexlib/merger/merge_task.h"
 
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include <iosfwd>
+
+#include "indexlib/framework/SegmentInfo.h"
+
 using namespace std;
 using namespace indexlib::file_system;
 namespace indexlib { namespace merger {

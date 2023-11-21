@@ -1,15 +1,19 @@
 package com.taobao.search.iquan.client.common.json.common;
 
-import com.taobao.search.iquan.core.api.schema.FieldType;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.core.api.schema.FieldType;
+import lombok.Getter;
+import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Getter
+@Setter
 public class JsonType {
     private static final Logger logger = LoggerFactory.getLogger(JsonType.class);
 
@@ -40,49 +44,9 @@ public class JsonType {
         this.fieldType = FieldType.from(name);
     }
 
-    public String getName() {
-        return name;
-    }
-
     public void setName(String name) {
         this.name = name;
         this.fieldType = FieldType.from(name);
-    }
-
-    public FieldType getFieldType() {
-        return fieldType;
-    }
-
-    public Map<String, String> getExtendInfos() {
-        return extendInfos;
-    }
-
-    public void setExtendInfos(Map<String, String> extendInfos) {
-        this.extendInfos = extendInfos;
-    }
-
-    public JsonType getKeyType() {
-        return keyType;
-    }
-
-    public void setKeyType(JsonType keyType) {
-        this.keyType = keyType;
-    }
-
-    public JsonType getValueType() {
-        return valueType;
-    }
-
-    public void setValueType(JsonType valueType) {
-        this.valueType = valueType;
-    }
-
-    public List<JsonField> getRecordTypes() {
-        return recordTypes;
-    }
-
-    public void setRecordTypes(List<JsonField> recordTypes) {
-        this.recordTypes = recordTypes;
     }
 
     @JsonIgnore

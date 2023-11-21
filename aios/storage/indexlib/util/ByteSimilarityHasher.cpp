@@ -25,8 +25,13 @@
 
 #include "indexlib/util/ByteSimilarityHasher.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <cstring>
+#include <iosfwd>
+#include <vector>
 
+#include "autil/CommonMacros.h"
 #include "indexlib/util/Singleton.h"
 
 using namespace std;

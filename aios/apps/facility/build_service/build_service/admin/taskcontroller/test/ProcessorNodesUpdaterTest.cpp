@@ -1,11 +1,34 @@
 #include "build_service/admin/taskcontroller/ProcessorNodesUpdater.h"
 
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <optional>
+#include <ostream>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/admin/taskcontroller/NodeStatusManager.h"
+#include "build_service/admin/taskcontroller/ProcessorInput.h"
 #include "build_service/admin/taskcontroller/ProcessorTargetInfos.h"
 #include "build_service/admin/taskcontroller/ProcessorWriterVersion.h"
+#include "build_service/common/ProcessorOutput.h"
+#include "build_service/common_define.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/DataDescriptions.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/proto/WorkerNodeCreator.h"
 #include "build_service/test/unittest.h"
+#include "hippo/proto/Common.pb.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;
@@ -75,6 +98,11 @@ TEST_F(ProcessorNodesUpdaterTest, testSimple)
     updater.update(nodes, writerVersion, basicInfo, lastTargetInfo);
     checkOffsetFunc(nodes[0], 5);
     checkOffsetFunc(nodes[1], -1);
+
+    proto::ProcessorCurrent emptyCurrent;
+    nodes[0]->setCurrentStatus(emptyCurrent);
+    updater.update(nodes, writerVersion, basicInfo, lastTargetInfo);
+    checkOffsetFunc(nodes[0], 5);
 
     // src change
     basicInfo.src = 1;

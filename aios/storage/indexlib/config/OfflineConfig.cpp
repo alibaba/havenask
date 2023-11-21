@@ -15,6 +15,14 @@
  */
 #include "indexlib/config/OfflineConfig.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <map>
+#include <set>
+#include <type_traits>
+#include <utility>
+
+#include "autil/legacy/exception.h"
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/config/MergeConfig.h"
@@ -139,6 +147,10 @@ const indexlib::file_system::LoadConfigList& OfflineConfig::GetLoadConfigList() 
 indexlib::file_system::LoadConfigList& OfflineConfig::MutableLoadConfigList() { return _impl->loadConfigList; }
 BuildConfig& OfflineConfig::TEST_GetBuildConfig() { return _impl->buildConfig; }
 MergeConfig& OfflineConfig::TEST_GetMergeConfig() { return _impl->mergeConfig; }
+void OfflineConfig::TEST_AddIndexTaskConfig(const IndexTaskConfig& indexTaskConfig)
+{
+    _impl->indexTaskConfigs.push_back(indexTaskConfig);
+}
 std::vector<IndexTaskConfig>& OfflineConfig::TEST_GetIndexTaskConfigs() { return _impl->indexTaskConfigs; }
 indexlib::file_system::LoadConfigList& OfflineConfig::TEST_GetLoadConfigList() { return _impl->loadConfigList; }
 

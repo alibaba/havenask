@@ -33,9 +33,15 @@ namespace indexlibv2 {
 class MemoryQuotaController;
 }
 
+namespace indexlibv2::framework {
+class IndexTaskResource;
+class IIndexOperationCreator;
+} // namespace indexlibv2::framework
+
 namespace indexlibv2::config {
 class ITabletSchema;
 class TabletOptions;
+class CustomIndexTaskClassInfo;
 } // namespace indexlibv2::config
 
 namespace indexlibv2::table {
@@ -55,6 +61,7 @@ public:
         std::string partitionIndexRoot;
         std::string buildTempIndexRoot;
         std::shared_ptr<indexlib::util::MetricProvider> metricProvider;
+        std::vector<std::shared_ptr<framework::IndexTaskResource>> extendResources;
         uint64_t branchId = 0;
     };
 
@@ -70,7 +77,7 @@ public:
     future_lite::coro::Lazy<std::pair<Status, versionid_t>> GetLastMergeTaskResult() override;
     std::unique_ptr<framework::IndexTaskContext>
     CreateTaskContext(versionid_t baseVersionId, const std::string& taskType, const std::string& taskName,
-                      const std::map<std::string, std::string>& params) override;
+                      const std::string& taskTraceId, const std::map<std::string, std::string>& params) override;
     future_lite::coro::Lazy<Status> SubmitMergeTask(std::unique_ptr<framework::IndexTaskPlan> plan,
                                                     framework::IndexTaskContext* context) override;
     future_lite::coro::Lazy<std::pair<Status, framework::MergeTaskStatus>> WaitMergeResult() override;

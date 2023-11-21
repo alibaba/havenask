@@ -15,7 +15,12 @@
  */
 #include "build_service/task_base/Task.h"
 
+#include <iostream>
+#include <unistd.h>
+
 #include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/proto/ProtoUtil.h"
 
 using namespace std;

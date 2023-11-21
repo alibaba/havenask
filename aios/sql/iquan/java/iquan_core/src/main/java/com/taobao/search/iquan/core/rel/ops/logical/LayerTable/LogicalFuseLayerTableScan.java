@@ -1,5 +1,11 @@
 package com.taobao.search.iquan.core.rel.ops.logical.LayerTable;
 
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
@@ -12,15 +18,9 @@ import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.SqlExplainLevel;
 
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
 public class LogicalFuseLayerTableScan extends AbstractRelNode {
     private final LogicalLayerTableScan layerTableScan;
-//    private final List<RelNode> ancestors;
+    //    private final List<RelNode> ancestors;
     private final Deque<RelNode> ancestors;
     private RelDataType rowType;
 

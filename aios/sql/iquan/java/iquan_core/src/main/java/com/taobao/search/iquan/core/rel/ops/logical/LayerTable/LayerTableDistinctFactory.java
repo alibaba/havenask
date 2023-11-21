@@ -1,8 +1,8 @@
 package com.taobao.search.iquan.core.rel.ops.logical.LayerTable;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class LayerTableDistinctFactory {
     public static LayerTableDistinct createDistinct(LogicalLayerTableScan scan) {

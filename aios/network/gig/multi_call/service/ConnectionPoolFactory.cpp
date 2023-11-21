@@ -21,6 +21,8 @@
 #include "aios/network/gig/multi_call/service/HttpConnectionPool.h"
 #include "aios/network/gig/multi_call/service/TcpConnectionPool.h"
 
+#ifndef GLIBC_2_17_COMPATIBLE
+#endif
 
 using namespace std;
 
@@ -45,6 +47,8 @@ ConnectionPoolPtr ConnectionPoolFactory::createConnectionPool(ProtocolType type,
         return ConnectionPoolPtr(new GrpcConnectionPool());
     case MC_PROTOCOL_GRPC_STREAM:
         return ConnectionPoolPtr(new GrpcStreamConnectionPool());
+#ifndef GLIBC_2_17_COMPATIBLE
+#endif
     default:
         AUTIL_LOG(ERROR, "create ConnectionPool failed, unknown type [%u]", type);
         return ConnectionPoolPtr();

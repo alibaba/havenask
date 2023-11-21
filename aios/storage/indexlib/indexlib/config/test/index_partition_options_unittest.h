@@ -1,10 +1,8 @@
-#ifndef __INDEXLIB_INDEXPARTITIONOPTIONSTEST_H
-#define __INDEXLIB_INDEXPARTITIONOPTIONSTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -23,11 +21,9 @@ public:
     void TestGetBuildConfig();
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(IndexPartitionOptionsTest, TestJsonize);
 INDEXLIB_UNIT_TEST_CASE(IndexPartitionOptionsTest, TestGetBuildConfig);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_INDEXPARTITIONOPTIONSTEST_H

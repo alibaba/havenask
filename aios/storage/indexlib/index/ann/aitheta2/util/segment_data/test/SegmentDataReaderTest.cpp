@@ -37,10 +37,6 @@ private:
 
 AUTIL_LOG_SETUP(indexlib.index, SegmentDataReaderTest);
 
-// INDEXLIB_UNIT_TEST_CASE(SegmentDataReaderTest, testEmpty);
-// INDEXLIB_UNIT_TEST_CASE(SegmentDataReaderTest, testOneIndexId);
-// INDEXLIB_UNIT_TEST_CASE(SegmentDataReaderTest, testIndexIds);
-
 TEST_F(SegmentDataReaderTest, testEmpty)
 {
     IndexDataAddrHolder packIndexMeta;
@@ -79,7 +75,7 @@ TEST_F(SegmentDataReaderTest, testOneIndexId)
     packFileWriter->Close().GetOrThrow();
 
     SegmentDataReader segmentDataReader;
-    ASSERT_TRUE(segmentDataReader.Init(testDir));
+    ASSERT_TRUE(segmentDataReader.Init(testDir, /*isOnline*/ false));
     auto indexDataMap = segmentDataReader.TEST_GetIndexDataAddrHolder().TEST_GetIndexDataMap();
     ASSERT_EQ(1, indexDataMap.size());
     ASSERT_EQ(0, indexDataMap[id].offset);
@@ -91,23 +87,24 @@ TEST_F(SegmentDataReaderTest, testOneIndexId)
     ASSERT_TRUE(indexReader);
     ASSERT_EQ(8, indexReader->GetLength());
 
-    void* buf = 0;
-    ASSERT_EQ(8, indexReader->Read(&buf, 8, 0));
+    vector<char> vec(8);
+    void* buf = (void*)vec.data();
+    ASSERT_EQ(8, indexReader->Read(buf, 8, 0));
     for (size_t i = 0; i < 8; ++i) {
         ASSERT_EQ(dumpContent[i], ((char*)buf)[i]) << i;
     }
-    ASSERT_EQ(8, indexReader->Read(&buf, 8, 0));
+    ASSERT_EQ(8, indexReader->Read(buf, 8, 0));
     // length out of range
-    ASSERT_EQ(8, indexReader->Read(&buf, 9, 0));
+    ASSERT_EQ(8, indexReader->Read(buf, 9, 0));
     for (size_t i = 0; i < 8; ++i) {
         ASSERT_EQ(dumpContent[i], ((char*)buf)[i]) << i;
     }
     // offset out of range
-    ASSERT_EQ(0, indexReader->Read(&buf, 8, 8));
+    ASSERT_EQ(0, indexReader->Read(buf, 8, 8));
     // offset & length out of range
-    ASSERT_EQ(0, indexReader->Read(&buf, 9, 9));
+    ASSERT_EQ(0, indexReader->Read(buf, 9, 9));
     // (offset + length) out of range
-    ASSERT_EQ(2, indexReader->Read(&buf, 4, 6));
+    ASSERT_EQ(2, indexReader->Read(buf, 4, 6));
     ASSERT_EQ('6', ((char*)buf)[0]);
     ASSERT_EQ('7', ((char*)buf)[1]);
 }
@@ -151,23 +148,24 @@ TEST_F(SegmentDataReaderTest, testIndexIds)
     ASSERT_TRUE(aiThetaFileReader0);
     ASSERT_EQ(8, aiThetaFileReader0->GetLength());
 
-    void* buf0 = 0;
-    ASSERT_EQ(8, aiThetaFileReader0->Read(&buf0, 8, 0));
+    vector<char> vec0(8);
+    void* buf0 = (void*)vec0.data();
+    ASSERT_EQ(8, aiThetaFileReader0->Read(buf0, 8, 0));
     for (size_t i = 0; i < 8; ++i) {
         ASSERT_EQ(dumpContent[i], ((char*)buf0)[i]) << i;
     }
 
     // length out of range
-    ASSERT_EQ(8, aiThetaFileReader0->Read(&buf0, 9, 0));
+    ASSERT_EQ(8, aiThetaFileReader0->Read(buf0, 9, 0));
     for (size_t i = 0; i < 8; ++i) {
         ASSERT_EQ(dumpContent[i], ((char*)buf0)[i]) << i;
     }
     // offset out of range
-    ASSERT_EQ(0, aiThetaFileReader0->Read(&buf0, 8, 8));
+    ASSERT_EQ(0, aiThetaFileReader0->Read(buf0, 8, 8));
     // offset & length out of range
-    ASSERT_EQ(0, aiThetaFileReader0->Read(&buf0, 9, 8));
+    ASSERT_EQ(0, aiThetaFileReader0->Read(buf0, 9, 8));
     // (offset + length) out of range
-    ASSERT_EQ(2, aiThetaFileReader0->Read(&buf0, 4, 6));
+    ASSERT_EQ(2, aiThetaFileReader0->Read(buf0, 4, 6));
     ASSERT_EQ('6', ((char*)buf0)[0]);
     ASSERT_EQ('7', ((char*)buf0)[1]);
 
@@ -175,22 +173,23 @@ TEST_F(SegmentDataReaderTest, testIndexIds)
     ASSERT_TRUE(aiThetaFileReader1);
     ASSERT_EQ(4, aiThetaFileReader1->GetLength());
 
-    void* buf1 = 0;
-    ASSERT_EQ(4, aiThetaFileReader1->Read(&buf1, 4, 0));
+    vector<char> vec1(8);
+    void* buf1 = (void*)vec1.data();
+    ASSERT_EQ(4, aiThetaFileReader1->Read(buf1, 4, 0));
     for (size_t i = 0; i < 4; ++i) {
         ASSERT_EQ(dumpContent[i + 8], ((char*)buf1)[i]) << i;
     }
     // length out of range
-    ASSERT_EQ(4, aiThetaFileReader1->Read(&buf1, 5, 0));
+    ASSERT_EQ(4, aiThetaFileReader1->Read(buf1, 5, 0));
     for (size_t i = 0; i < 4; ++i) {
         ASSERT_EQ(dumpContent[i + 8], ((char*)buf1)[i]) << i;
     }
     // offset out of range
-    ASSERT_EQ(0, aiThetaFileReader1->Read(&buf1, 4, 4));
+    ASSERT_EQ(0, aiThetaFileReader1->Read(buf1, 4, 4));
     // offset & length out of range
-    ASSERT_EQ(0, aiThetaFileReader1->Read(&buf1, 5, 4));
+    ASSERT_EQ(0, aiThetaFileReader1->Read(buf1, 5, 4));
     // (offset + length) out of range
-    ASSERT_EQ(2, aiThetaFileReader1->Read(&buf1, 4, 2));
+    ASSERT_EQ(2, aiThetaFileReader1->Read(buf1, 4, 2));
     ASSERT_EQ('C', ((char*)buf1)[0]);
     ASSERT_EQ('D', ((char*)buf1)[1]);
 }

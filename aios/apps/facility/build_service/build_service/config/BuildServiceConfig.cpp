@@ -15,6 +15,11 @@
  */
 #include "build_service/config/BuildServiceConfig.h"
 
+#include <iosfwd>
+#include <type_traits>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;

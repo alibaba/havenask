@@ -25,7 +25,6 @@
 #include "autil/StringView.h"
 #include "autil/mem_pool/Pool.h"
 #include "sql/common/Log.h" // IWYU pragma: keep
-#include "sql/common/WatermarkType.h"
 #include "sql/ops/util/AsyncCallbackCtxBase.h"
 
 namespace matchdoc {
@@ -39,23 +38,21 @@ namespace indexlibv2 {
 namespace config {
 class ITabletSchema;
 } // namespace config
+namespace framework {
+class ITablet;
+} // namespace framework
 } // namespace indexlibv2
 
 namespace sql {
-
-class TabletManagerR;
 
 struct KVLookupOption {
     int64_t leftTime;
     autil::mem_pool::PoolPtr pool;
     size_t maxConcurrency;
     void *kvReader = nullptr;
-    int64_t targetWatermark = 0;
-    WatermarkType targetWatermarkType = WatermarkType::WM_TYPE_DISABLED;
-    double targetWatermarkTimeoutRatio = 0.5;
     std::string indexName;
     std::string tableName;
-    TabletManagerR *tabletManagerR = nullptr;
+    std::shared_ptr<indexlibv2::framework::ITablet> tablet = nullptr;
 };
 
 class AsyncKVLookupCallbackCtx : public AsyncCallbackCtxBase {
@@ -77,14 +74,7 @@ public: // for kernel && scan
     std::string getLookupDesc() const;
     matchdoc::ReferenceBase *getRef() const;
     virtual bool tryReportMetrics(kmonitor::MetricsReporter &opMetricsReporter) const = 0;
-    virtual size_t getDegradeDocsSize() const = 0;
     virtual int64_t getSeekTime() const = 0;
-    virtual int64_t getWaitWatermarkTime() const {
-        return 0;
-    }
-    virtual int64_t getBuildWatermark() const {
-        return 0;
-    }
 
 public: // for v1/v2
     virtual void asyncGet(KVLookupOption option) = 0;

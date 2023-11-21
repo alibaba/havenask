@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DOCTTLPROCESSOR_H
-#define ISEARCH_BS_DOCTTLPROCESSOR_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/common_define.h"
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/util/Log.h"
 
@@ -49,5 +53,3 @@ private:
 BS_TYPEDEF_PTR(DocTTLProcessor);
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_DOCTTLPROCESSOR_H

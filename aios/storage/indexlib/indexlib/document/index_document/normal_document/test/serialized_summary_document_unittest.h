@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SERIALIZEDSUMMARYDOCUMENTTEST_H
-#define __INDEXLIB_SERIALIZEDSUMMARYDOCUMENTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/index_document/normal_document/serialized_summary_document.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(SerializedSummaryDocumentTest, TestSerialize);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_SERIALIZEDSUMMARYDOCUMENTTEST_H

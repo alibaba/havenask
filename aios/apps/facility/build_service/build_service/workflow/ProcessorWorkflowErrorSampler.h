@@ -15,8 +15,12 @@
  */
 #pragma once
 
+#include <deque>
+#include <stddef.h>
+#include <stdint.h>
+
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
 #include "build_service/workflow/BuildFlow.h"
 #include "build_service/workflow/FlowError.h"
 

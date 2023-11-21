@@ -2,8 +2,14 @@
 
 #include <autil/LoopThread.h>
 #include <autil/TimeUtility.h>
+#include <functional>
+#include <iosfwd>
+#include <stdint.h>
+#include <unistd.h>
 
 #include "build_service/test/unittest.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.core.rel.visitor.relshuttle;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexOptimizeInfoCollectShuttle;
 import org.apache.calcite.rel.RelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class OptimizeInfoCollectShuttle extends IquanRelShuttleImpl {
     private static final Logger logger = LoggerFactory.getLogger(OptimizeInfoCollectShuttle.class);

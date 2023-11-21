@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_Range_QUERY_PARSER_H
-#define __INDEXLIB_Range_QUERY_PARSER_H
+#pragma once
 
 #include <memory>
 
@@ -29,5 +28,3 @@ private:
 
 DEFINE_SHARED_PTR(RangeQueryParser);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_Range_QUERY_PARSER_H

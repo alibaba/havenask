@@ -15,8 +15,21 @@
  */
 #include "build_service/proto/ProtoUtil.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <stddef.h>
+
 #include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
 #include "build_service/proto/ProcessorTaskIdentifier.h"
+#include "build_service/proto/TaskIdentifier.h"
 
 using namespace std;
 using namespace autil;
@@ -47,7 +60,7 @@ bool ProtoUtil::partitionIdToRoleGroupId(const PartitionId& pid, string& roleGro
 }
 
 std::string ProtoUtil::getGeneralTaskAppName(const std::string& appName, const std::string& clusterName,
-                                             uint16_t rangeFrom, int16_t rangeTo)
+                                             uint16_t rangeFrom, uint16_t rangeTo)
 {
     return appName + "#" + clusterName + "_" + std::to_string(rangeFrom) + "_" + std::to_string(rangeTo);
 }

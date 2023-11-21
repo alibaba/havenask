@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_READER_SNAPSHOT_H
-#define __INDEXLIB_PARTITION_READER_SNAPSHOT_H
+#pragma once
 
 #include <memory>
 
@@ -83,10 +82,6 @@ public:
 
     bool GetPackAttributeReaderInfo(const std::string& packAttrName, const std::string& tableName,
                                     PackAttributeReaderInfo& attrReaderInfo) const;
-
-    // for tbalet
-    bool GetPackAttributeReaderInfo(const std::string& packAttrName, const std::string& tableName,
-                                    PackAttributeReaderInfoV2& attrReaderInfo) const;
 
     std::string GetTableNameByAttribute(const std::string& attrName, const std::string& preferTableName);
 
@@ -242,5 +237,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionReaderSnapshot);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITION_READER_SNAPSHOT_H

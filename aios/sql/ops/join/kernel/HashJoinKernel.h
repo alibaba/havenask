@@ -41,14 +41,15 @@ public:
 
 public:
     void def(navi::KernelDefBuilder &builder) const override;
-    bool config(navi::KernelConfigContext &ctx) override;
     navi::ErrorCode compute(navi::KernelComputeContext &runContext) override;
 
 private:
+    bool doInit() override;
+    bool doConfig(navi::KernelConfigContext &ctx) override;
     bool doCompute(table::TablePtr &outputTable);
     bool tryCreateHashMap();
     bool joinTable(size_t &joinedRowCount);
-    size_t makeHashJoin(const HashValues &values);
+    size_t makeHashJoin(const HashJoinMapR::HashValues &values);
 
 private:
     KERNEL_DEPEND_DECLARE_BASE(JoinKernelBase);

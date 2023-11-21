@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_UPDATABLEUNIQENCODEDVARNUMATTRIBUTEMERGERTEST_H
-#define __INDEXLIB_UPDATABLEUNIQENCODEDVARNUMATTRIBUTEMERGERTEST_H
+#pragma once
 
 #include <memory>
 
@@ -56,5 +55,4 @@ INDEXLIB_UNIT_TEST_CASE(UpdatableUniqEncodedVarNumAttributeMergerTest, TestMerge
 INDEXLIB_UNIT_TEST_CASE(UpdatableUniqEncodedVarNumAttributeMergerTest, TestUniqEncodeMergeWithPatch);
 INDEXLIB_UNIT_TEST_CASE(UpdatableUniqEncodedVarNumAttributeMergerTest, TestMergeWithEmptyHeap);
 INDEXLIB_UNIT_TEST_CASE(UpdatableUniqEncodedVarNumAttributeMergerTest, TestFillOffsetToFirstOldDocIdMapVec);
-}}     // namespace indexlib::index
-#endif //__INDEXLIB_UPDATABLEUNIQENCODEDVARNUMATTRIBUTEMERGERTEST_H
+}} // namespace indexlib::index

@@ -12,8 +12,7 @@ public class PushProjector {
     protected final RelBuilder relBuilder;
     protected final RexBuilder rexBuilder;
 
-    public PushProjector(Project origProj, RelNode pushedNode, RelBuilder relBuilder)
-    {
+    public PushProjector(Project origProj, RelNode pushedNode, RelBuilder relBuilder) {
         this.origProj = origProj;
         this.pushedNode = pushedNode;
         this.relBuilder = relBuilder;

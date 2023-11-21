@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CUSTOMPARTITIONMERGERTEST_H
-#define __INDEXLIB_CUSTOMPARTITIONMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/custom_partition_merger.h"
@@ -73,5 +72,3 @@ INDEXLIB_UNIT_TEST_CASE(CustomPartitionMergerTest, TestEndMergeFailOver);
 INDEXLIB_UNIT_TEST_CASE(CustomPartitionMergerTest, TestEndMergeConcurrency);
 INDEXLIB_UNIT_TEST_CASE(CustomPartitionMergerTest, TestSimpleBackup);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_CUSTOMPARTITIONMERGERTEST_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_INFO_H
-#define __INDEXLIB_PARTITION_INFO_H
+#pragma once
 
 #include <memory>
 
@@ -114,6 +113,7 @@ public:
     const std::vector<docid_t>& GetBaseDocIds() const { return mBaseDocIds; }
     docid_t GetBaseDocId(segmentid_t segId) const;
     size_t GetTotalDocCount() const { return mPartitionMetrics.totalDocCount; }
+    size_t GetDelDocCount() const { return mPartitionMetrics.delDocCount; }
     segmentid_t GetSegmentCount() const { return mPartitionMetrics.segmentCount; }
 
     index_base::PartitionMetaPtr GetPartitionMeta() const { return mPartMeta; }
@@ -193,5 +193,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PARTITION_INFO_H

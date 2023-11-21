@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_VERSION_H
-#define __INDEXLIB_PARTITION_VERSION_H
+#pragma once
 
 #include <memory>
 #include <set>
@@ -52,5 +51,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITION_VERSION_H

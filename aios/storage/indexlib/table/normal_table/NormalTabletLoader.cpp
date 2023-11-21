@@ -25,7 +25,7 @@
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IIndexReader.h"
 #include "indexlib/index/IndexFactoryCreator.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
 #include "indexlib/index/deletionmap/DeletionMapModifier.h"
 #include "indexlib/index/operation_log/DoNothingRedoStrategy.h"
 #include "indexlib/index/operation_log/OperationCursor.h"
@@ -85,13 +85,13 @@ RedoParam NormalTabletLoader::CreateRedoParameters(const framework::TabletData& 
         TABLET_LOG(ERROR, "create PrimaryKeyIndexFactory failed, %s", createStatus.ToString().c_str());
         return {createStatus, nullptr, nullptr, nullptr};
     }
-    index::IndexerParameter indexParam;
+    index::IndexReaderParameter indexReaderParam;
     auto pkConfigs = _schema->GetIndexConfigs(index::PRIMARY_KEY_INDEX_TYPE_STR);
     assert(1 == pkConfigs.size());
     auto originPkConfig = std::dynamic_pointer_cast<index::PrimaryKeyIndexConfig>(pkConfigs[0]);
     std::shared_ptr<index::PrimaryKeyIndexConfig> pkConfig(originPkConfig->Clone());
     pkConfig->DisablePrimaryKeyCombineSegments();
-    auto pkReader = pkIndexFactory->CreateIndexReader(pkConfig, indexParam);
+    auto pkReader = pkIndexFactory->CreateIndexReader(pkConfig, indexReaderParam);
     assert(pkReader);
 
     std::unique_ptr<indexlib::index::PrimaryKeyIndexReader> typedPkReader(
@@ -121,9 +121,9 @@ Status NormalTabletLoader::RemoveObsoleteRtDocs(
     }
     auto createReader = [this, &newTabletData](const std::string& fieldName) -> std::shared_ptr<index::IIndexReader> {
         VirtualAttributeIndexFactory builtinAttributeIndexFactory;
-        index::IndexerParameter indexParam;
+        index::IndexReaderParameter indexReaderParam;
         auto config = _schema->GetIndexConfig(VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, fieldName);
-        auto reader = builtinAttributeIndexFactory.CreateIndexReader(config, indexParam);
+        auto reader = builtinAttributeIndexFactory.CreateIndexReader(config, indexReaderParam);
         auto status = reader->Open(config, &newTabletData);
         if (!status.IsOK()) {
             TABLET_LOG(INFO, "open reader failed, field name[%s]", fieldName.c_str());
@@ -147,44 +147,38 @@ Status NormalTabletLoader::RemoveObsoleteRtDocs(
         TABLET_LOG(ERROR, "create timestamp reader failed");
         return Status::InvalidArgs("create timestamp reader failed");
     }
-    auto hashIdReader = std::dynamic_pointer_cast<VirtualAttributeIndexReader<uint16_t>>(
-        createReader(document::DocumentInfoToAttributeRewriter::VIRTUAL_HASH_ID_FIELD_NAME));
-    if (hashIdReader == nullptr) {
-        TABLET_LOG(ERROR, "create hasid reader failed");
-        return Status::InvalidArgs("create hash id reader failed");
-    }
-    auto concurrentIdxReader = std::dynamic_pointer_cast<VirtualAttributeIndexReader<uint32_t>>(
-        createReader(document::DocumentInfoToAttributeRewriter::VIRTUAL_CONCURRENT_IDX_FIELD_NAME));
-    if (concurrentIdxReader == nullptr) {
-        TABLET_LOG(ERROR, "create concurrent idx reader failed");
-        return Status::InvalidArgs("create concurrent idx reader failed");
+    auto docInfoReader = std::dynamic_pointer_cast<VirtualAttributeIndexReader<uint64_t>>(
+        createReader(document::DocumentInfoToAttributeRewriter::VIRTUAL_DOC_INFO_FIELD_NAME));
+    if (docInfoReader == nullptr) {
+        TABLET_LOG(ERROR, "create doc info reader failed");
+        return Status::InvalidArgs("create doc info reader failed");
     }
     size_t removedDocCount = 0;
     for (const auto& [segment, baseDocId] : segments) {
         size_t segmentRemovedCount = 0;
         for (docid_t docId = 0; docId < segment->GetSegmentInfo()->docCount; docId++) {
-            uint16_t hashId;
             int64_t timestamp;
-            uint32_t concurrentIdx;
             docid_t globalDocId = baseDocId + docId;
-            if (!hashIdReader->Seek(globalDocId, hashId)) {
-                TABLET_LOG(INFO, "get hash id failed, docId[%d]]", globalDocId);
-                return Status::InvalidArgs("get hash id failed");
-            }
-
             if (!timestampReader->Seek(globalDocId, timestamp)) {
-                TABLET_LOG(INFO, "get timestamp failed, docId[%d]", globalDocId);
+                TABLET_LOG(ERROR, "get timestamp failed, docId[%d]", globalDocId);
                 return Status::InvalidArgs("get timestamp failed");
             }
-            if (!concurrentIdxReader->Seek(globalDocId, concurrentIdx)) {
-                TABLET_LOG(INFO, "get concurrentIdx failed, docId[%d]", globalDocId);
-                return Status::InvalidArgs("get concurrentIdx failed");
+            uint64_t docInfoValue;
+            if (!docInfoReader->Seek(globalDocId, docInfoValue)) {
+                TABLET_LOG(ERROR, "get doc info failed, docId[%d]", globalDocId);
+                return Status::InvalidArgs("get doc info failed");
             }
-
-            auto result = versionLocator.IsFasterThan(hashId, {timestamp, concurrentIdx});
+            auto docInfoOpt = document::DocumentInfoToAttributeRewriter::DecodeDocInfo(docInfoValue, timestamp);
+            if (!docInfoOpt.has_value()) {
+                TABLET_LOG(ERROR, "get doc info deserialize failed, docId[%d]", globalDocId);
+                return Status::InvalidArgs("get doc info deserialize failed");
+            }
+            auto docInfo = docInfoOpt.value();
+            auto result = versionLocator.IsFasterThan(docInfo);
             assert(result != framework::Locator::LocatorCompareResult::LCR_PARTIAL_FASTER);
             if (result == framework::Locator::LocatorCompareResult::LCR_INVALID) {
-                TABLET_LOG(ERROR, "locator compare failed, hash id[%u]", hashId);
+                TABLET_LOG(ERROR, "locator compare failed, locator [%s], doc info [%s]",
+                           versionLocator.DebugString().c_str(), docInfo.DebugString().c_str());
                 return Status::InvalidArgs("locator compare failed, invalid hash id");
             }
             if (result == framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER) {
@@ -430,8 +424,8 @@ NormalTabletLoader::FinalLoad(const framework::TabletData& currentTabletData)
     return make_pair(Status::OK(), std::move(tabletData));
 }
 
-size_t NormalTabletLoader::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
-                                           const std::vector<framework::Segment*>& segments)
+std::pair<Status, size_t> NormalTabletLoader::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
+                                                              const std::vector<framework::Segment*>& segments)
 {
     // 普通表内存预估包括2个部分：
     // （1） 各个segment已经加载起来的indexer(包括pk attribute)，和尚未打开的pk，由本方法进行计算
@@ -457,13 +451,18 @@ size_t NormalTabletLoader::EstimateMemUsed(const std::shared_ptr<config::ITablet
         } catch (...) {
             // TODO: if exception occurs, how-to?
             TABLET_LOG(ERROR, "fail to estimate memory size for primary key [%s].", pkConfig->GetIndexName().c_str());
+            return {Status::Corruption(), 0};
         }
     }
 
     for (auto segment : segments) {
-        totalMemUsed += segment->EstimateMemUsed(schema);
+        auto [status, segmentMemUsed] = segment->EstimateMemUsed(schema);
+        if (!status.IsOK()) {
+            return {Status::Corruption(), 0};
+        }
+        totalMemUsed += segmentMemUsed;
     }
-    return totalMemUsed;
+    return {Status::OK(), totalMemUsed};
 }
 
 } // namespace indexlibv2::table

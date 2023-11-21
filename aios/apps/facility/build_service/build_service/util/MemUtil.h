@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MEMUTIL_H
-#define ISEARCH_BS_MEMUTIL_H
+#pragma once
 
-#include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include <stdint.h>
 
 namespace build_service { namespace util {
 
@@ -28,5 +26,3 @@ public:
 };
 
 }} // namespace build_service::util
-
-#endif // ISEARCH_BS_MEMUTIL_H

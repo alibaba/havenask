@@ -53,6 +53,21 @@ bool PartMessageQueue::nextMessage(GigStreamMessage &message, MultiCallErrorCode
     return true;
 }
 
+bool PartMessageQueue::peekMessage(GigStreamMessage &message, MultiCallErrorCode &ec) {
+    autil::ScopedLock lock(_lock);
+    if (_messageList.empty()) {
+        return false;
+    }
+    message = _messageList.front();
+    ec = _ec;
+    if (1u == _messageList.size()) {
+        ec = _ec;
+    } else {
+        ec = MULTI_CALL_ERROR_NONE;
+    }
+    return true;
+}
+
 void PartMessageQueue::appendMessage(const GigStreamMessage &message, MultiCallErrorCode ec) {
     autil::ScopedLock lock(_lock);
     _messageList.push_back(message);
@@ -60,7 +75,7 @@ void PartMessageQueue::appendMessage(const GigStreamMessage &message, MultiCallE
     _count++;
 }
 
-GigStreamBase::GigStreamBase() : _asyncMode(true) {
+GigStreamBase::GigStreamBase() {
 }
 
 GigStreamBase::~GigStreamBase() {
@@ -87,18 +102,18 @@ bool GigStreamBase::appendMessage(const GigStreamMessage &message, MultiCallErro
     auto partId = message.partId;
     auto &partQueue = getPartQueue(partId);
     partQueue.appendMessage(message, ec);
-    tryNotify(partId);
-    return true;
+    return tryNotify(partId);
 }
 
-void GigStreamBase::tryNotify(PartIdTy partId) {
+bool GigStreamBase::tryNotify(PartIdTy partId) {
     auto &partQueue = getPartQueue(partId);
     if (partQueue.empty()) {
-        return;
+        return true;
     }
     if (partQueue.beginReceive()) {
-        notifyReceive(partId);
+        return notifyReceive(partId);
     }
+    return true;
 }
 
 bool GigStreamBase::asyncReceive(PartIdTy partId) {
@@ -140,6 +155,16 @@ bool GigStreamBase::doReceive(PartMessageQueue &partQueue) {
         }
     }
     return true;
+}
+
+bool GigStreamBase::peekMessage(PartIdTy partId, GigStreamMessage &message,
+                                MultiCallErrorCode &ec)
+{
+    auto &partQueue = getPartQueue(partId);
+    if (partQueue.empty()) {
+        return false;
+    }
+    return partQueue.peekMessage(message, ec);
 }
 
 PartMessageQueue &GigStreamBase::getPartQueue(PartIdTy partId) {

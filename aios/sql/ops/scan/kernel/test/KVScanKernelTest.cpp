@@ -21,6 +21,7 @@
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/IndexRoot.h"
 #include "indexlib/framework/Locator.h"
@@ -28,7 +29,6 @@
 #include "indexlib/partition/index_application.h"
 #include "indexlib/partition/index_partition.h"
 #include "indexlib/table/kv_table/test/KVTableTestHelper.h"
-#include "indexlib/test/schema_maker.h"
 #include "matchdoc/ValueType.h"
 #include "navi/common.h"
 #include "navi/tester/KernelTester.h"
@@ -192,14 +192,12 @@ public:
         return builder.build();
     }
 
-    void prepareAttributeMap() {
+    virtual void prepareAttributeMap() {
         _attributeMap["table_type"] = string("kv");
         _attributeMap["table_name"] = _tableName;
         _attributeMap["db_name"] = string("default");
         _attributeMap["catalog_name"] = string("default");
         _attributeMap["use_nest_table"] = Any(false);
-        _attributeMap["target_watermark"] = Any(1111);
-        _attributeMap["target_watermark_type"] = Any((int64_t)WatermarkType::WM_TYPE_SYSTEM_TS);
         _attributeMap["hash_type"] = string("HASH");
         _attributeMap["hash_fields"] = ParseJson(R"json(["pk"])json");
     }
@@ -277,6 +275,18 @@ private:
         ttl = std::numeric_limits<int64_t>::max();
     }
 
+    void prepareAttributeMap() override {
+        _attributeMap["table_type"] = string("kv");
+        _attributeMap["table_name"] = _tableName;
+        _attributeMap["db_name"] = string("default");
+        _attributeMap["catalog_name"] = string("default");
+        _attributeMap["use_nest_table"] = Any(false);
+        _attributeMap["target_watermark"] = Any(1111);
+        _attributeMap["target_watermark_type"] = Any((int64_t)WatermarkType::WM_TYPE_SYSTEM_TS);
+        _attributeMap["hash_type"] = string("HASH");
+        _attributeMap["hash_fields"] = ParseJson(R"json(["pk"])json");
+    }
+
     std::shared_ptr<indexlibv2::config::TabletOptions> CreateMultiColumnOptions() {
         std::string jsonStr = R"( {
     "online_index_config": {
@@ -307,6 +317,7 @@ TEST_F(KVScanKernelTest, testSimple) {
     table::TablePtr table;
     bool eof;
 
+    navi::NaviLoggerProvider provider("DEBUG");
     ASSERT_NO_FATAL_FAILURE(runNormalCase(conditionJson,
                                           R"json(["$pk", "$attr1", "$attr2"])json",
                                           R"json(["$pk", "$attr1", "$attr2"])json",

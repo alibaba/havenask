@@ -120,7 +120,7 @@ void KKVIndexDumperTest::DoTest(bool isOnline, bool compressSKey, bool compressV
     size_t maxPKeyMemUse = 4 * 1024 * 1024;
     size_t maxSKeyMemUse = 1 * 1024 * 1024;
     size_t maxValueMemUse = 1 * 1024 * 1024;
-    KKVMemIndexer<uint64_t> indexer("test", maxPKeyMemUse, maxSKeyMemUse, maxValueMemUse, 1.0f, 1.0f, true);
+    KKVMemIndexer<uint64_t> indexer("test", maxPKeyMemUse, maxSKeyMemUse, maxValueMemUse, 1.0f, 1.0f, true, true);
     ASSERT_TRUE(indexer.Init(_indexConfig, nullptr).IsOK());
     BuildIndex(indexer, docs);
 

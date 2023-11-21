@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SHARDBASEDMERGESTRATEGYTEST_H
-#define __INDEXLIB_SHARDBASEDMERGESTRATEGYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/merge_task.h"
@@ -45,5 +44,3 @@ INDEXLIB_UNIT_TEST_CASE(ShardBasedMergeStrategyTest, TestCalculateLevelPercent);
 INDEXLIB_UNIT_TEST_CASE(ShardBasedMergeStrategyTest, TestSpecialSpaceAmplification);
 INDEXLIB_UNIT_TEST_CASE(ShardBasedMergeStrategyTest, TestMultiPlanInOneShard);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_SHARDBASEDMERGESTRATEGYTEST_H

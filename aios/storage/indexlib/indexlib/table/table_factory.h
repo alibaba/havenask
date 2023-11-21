@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_FACTORY_H
-#define __INDEXLIB_TABLE_FACTORY_H
+#pragma once
 
-#include <memory>
+#include <functional>
+#include <string_view>
 
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/plugin/ModuleFactory.h"
 #include "indexlib/util/KeyValueMap.h"
 
@@ -59,5 +59,3 @@ private:
 
 DEFINE_SHARED_PTR(TableFactory);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_FACTORY_H

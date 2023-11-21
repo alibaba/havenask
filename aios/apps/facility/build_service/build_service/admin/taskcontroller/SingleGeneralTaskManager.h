@@ -15,17 +15,21 @@
  */
 #pragma once
 
-#include "autil/legacy/jsonizable.h"
+#include <memory>
+#include <mutex>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/GeneralNodeGroup.h"
 #include "build_service/admin/taskcontroller/OperationTopoManager.h"
 #include "build_service/admin/taskcontroller/TaskController.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/config/ResourceReader.h"
 #include "build_service/proto/GeneralTaskInfo.h"
-#include "build_service/util/Log.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "indexlib/file_system/wal/Wal.h"
-#include "indexlib/framework/index_task/BasicDefs.h"
 
 namespace build_service::admin {
 
@@ -57,7 +61,7 @@ private:
     void prepareNodeGroup(TaskController::Nodes* nodes, std::vector<GeneralNodeGroup>& nodeGroups) const;
     bool recover();
     void recoverNodeTargets(std::vector<GeneralNodeGroup>& nodeGroups);
-    void handlePlan(uint32_t parallelNum, uint32_t nodeRunningOpLimit, std::vector<GeneralNodeGroup>& nodeGroups);
+    bool handlePlan(uint32_t parallelNum, uint32_t nodeRunningOpLimit, std::vector<GeneralNodeGroup>& nodeGroups);
     bool storePlan(const proto::OperationPlan& plan);
     bool loadPlan(proto::OperationPlan* plan);
 
@@ -75,9 +79,10 @@ private:
     std::unique_ptr<indexlib::file_system::WAL> _wal;
     mutable std::mutex _infoMutex;
     proto::GeneralTaskInfo _taskInfo;
-    bool _isRecover;
+    bool _isRecovering;
     std::string _taskType;
     std::string _taskName;
+    bool _enableOpTargetEncode = true;
 
 private:
     BS_LOG_DECLARE();

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONLINEPARTITIONREOPENTEST_H
-#define __INDEXLIB_ONLINEPARTITIONREOPENTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/online_partition.h"
@@ -82,5 +81,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINEPARTITIONREOPENTEST_H

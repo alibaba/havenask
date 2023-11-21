@@ -12,6 +12,7 @@ import datetime
 import admin_locator
 import build_app_config
 
+
 class GetStatusCmd(AdminCmdBase):
     '''
     bs gs -c configPath
@@ -40,6 +41,7 @@ examples:
     bs gs -c config_path -t source
     '''
     ADMIN_GET_SERVICE_INFO_METHOD = 'getServiceInfo'
+
     def __init__(self):
         super(GetStatusCmd, self).__init__()
         self.generationIds = []
@@ -245,13 +247,13 @@ examples:
 
             for processorInfo in generationInfo.processorInfos:
                 for partitionInfo in processorInfo.partitionInfos:
-                    result += self.processPartitionCounters("%s.Processor"%(prefix), partitionInfo)
+                    result += self.processPartitionCounters("%s.Processor" % (prefix), partitionInfo)
 
             for clusterInfo in generationInfo.buildInfo.clusterInfos:
                 result += self.processClusterCounterStatus(prefix, clusterInfo)
 
             for jobPartitionInfo in generationInfo.jobInfo.partitionInfos:
-                result += self.processPartitionCounters("%s.Job"%(prefix), jobPartitionInfo)
+                result += self.processPartitionCounters("%s.Job" % (prefix), jobPartitionInfo)
         return result
 
     def processGenerationStatus(self, generationInfo, commandType):
@@ -262,7 +264,8 @@ examples:
         result += '%s.ConfigPath: %s\n' % (prefix, generationInfo.configPath)
         if len(generationInfo.processorInfos) != 0:
             for processorInfo in generationInfo.processorInfos:
-                result += self.printProcessorStatus(prefix, processorInfo, commandType, len(generationInfo.processorInfos))
+                result += self.printProcessorStatus(prefix, processorInfo, commandType,
+                                                    len(generationInfo.processorInfos))
         if generationInfo.HasField('buildInfo'):
             result += self.printBuilderStatus(prefix, generationInfo.buildInfo, commandType)
         if generationInfo.HasField('jobInfo'):
@@ -279,10 +282,10 @@ examples:
         result += '%s.Job.mergeConfigName: %s\n' % (clusterPrefix, jobInfo.mergeConfigName)
         dataSourceStr = ''
         try:
-            dataSourceMap = json.read(str(jobInfo.dataDescription)) # jobInfo.dataDescription is typeof unicode
-            for k,v in dataSourceMap.items():
-                dataSourceStr += '%s=%s;' % (k,v)
-        except Exception, e:
+            dataSourceMap = json.read(str(jobInfo.dataDescription))  # jobInfo.dataDescription is typeof unicode
+            for k, v in dataSourceMap.items():
+                dataSourceStr += '%s=%s;' % (k, v)
+        except Exception as e:
             pass
         result += '%s.Job.DataSource: %s\n' % (clusterPrefix, dataSourceStr)
 
@@ -298,10 +301,11 @@ examples:
             (prefix, taskId, self.getProcessorExpectWorkerCount(processorInfo))
         dataSourceStr = ''
         try:
-            dataSourceMap = json.read(str(processorInfo.dataDescription)) # processorInfo.dataDescription is typeof unicode
-            for k,v in dataSourceMap.items():
-                dataSourceStr += '%s=%s;' % (k,v)
-        except Exception, e:
+            # processorInfo.dataDescription is typeof unicode
+            dataSourceMap = json.read(str(processorInfo.dataDescription))
+            for k, v in dataSourceMap.items():
+                dataSourceStr += '%s=%s;' % (k, v)
+        except Exception as e:
             pass
         result += '%s.Processor.%sDataSource: %s\n' % (prefix, taskId, dataSourceStr)
         result += '%s.Processor.%sProcessorStep: %s\n' %\
@@ -312,7 +316,7 @@ examples:
                 processorClusterPrefix = '%s.Processor.%sRange[%s]' % \
                     (prefix, taskId, self.getRangeStr(partitionInfo.pid.range))
                 result += processorClusterPrefix + '.Address: ' +\
-                          partitionInfo.currentStatus.longAddress.ip + '\n'
+                    partitionInfo.currentStatus.longAddress.ip + '\n'
                 currentConfig, targetConfig = self.getConfigPath(partitionInfo)
                 result += processorClusterPrefix + '.Config.Current: %s\n' % currentConfig
                 result += processorClusterPrefix + '.Config.Target: %s\n' % targetConfig
@@ -463,7 +467,7 @@ examples:
             mergerResult = ''
             for lastAllocateResponse in statusResponse.lastAllocateResponse:
                 resourceTag = str(lastAllocateResponse.resourceTag)
-                if resourceTag ==  '__internal_appmaster_resource_tag__':
+                if resourceTag == '__internal_appmaster_resource_tag__':
                     continue
                 if generationIdStr == self.getGid(resourceTag):
                     if 'builder' == self.getRole(resourceTag):
@@ -475,7 +479,7 @@ examples:
                         processorResult += self.printResourceInfo('processor', lastAllocateResponse,
                                                                   resourceTag, generationInfo, resourceTag)
                     elif 'merger' == self.getRole(resourceTag):
-                        mergerCount +=1
+                        mergerCount += 1
                         mergerResult += self.printResourceInfo('merger', lastAllocateResponse,
                                                                resourceTag, generationInfo, resourceTag)
 
@@ -543,7 +547,7 @@ examples:
                     if clusterInfo.clusterName == self.getClusterName(resourceTag):
                         isExist = True
                         break
-                if isExist == True:
+                if isExist:
                     for resource in clusterInfo.builderInfo.resources:
                         expectResourceVec.append('%s: %d' % (resource.name, resource.count))
                 result += ', '.join(expectResourceVec) + ') / ('
@@ -553,7 +557,7 @@ examples:
                     if clusterInfo.clusterName == self.getClusterName(resourceTag):
                         isExist = True
                         break
-                if isExist == True:
+                if isExist:
                     for resource in clusterInfo.mergerInfo.resources:
                         expectResourceVec.append('%s: %d' % (resource.name, resource.count))
                 result += ', '.join(expectResourceVec) + ') / ('
@@ -568,17 +572,18 @@ examples:
         return len(processorInfo.partitionInfos)
 
     def getClusterExpectWorkerCount(self, clusterInfo):
-        return len(clusterInfo.builderInfo.partitionInfos) + len(clusterInfo.mergerInfo.partitionInfos) + len(clusterInfo.taskInfo.partitionInfos)
+        return len(clusterInfo.builderInfo.partitionInfos) + \
+            len(clusterInfo.mergerInfo.partitionInfos) + len(clusterInfo.taskInfo.partitionInfos)
 
     def getPendingMergeTasks(self, clusterInfo):
         return ';'.join(clusterInfo.pendingMergeTasks)
 
-    def getConfigPath(self, partitionInfo, isTask = False):
+    def getConfigPath(self, partitionInfo, isTask=False):
         if isTask:
-            return (partitionInfo.currentStatus.reachedTarget.configPath, \
+            return (partitionInfo.currentStatus.reachedTarget.configPath,
                     partitionInfo.targetStatus.configPath)
         else:
-            return (partitionInfo.currentStatus.targetStatus.configPath, \
+            return (partitionInfo.currentStatus.targetStatus.configPath,
                     partitionInfo.targetStatus.configPath)
 
     def getProcessStatus(self, status):

@@ -24,6 +24,7 @@
 #include "autil/mem_pool/MemoryChunk.h"
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/base/Constant.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/util/byte_slice_list/ByteSliceList.h"
 

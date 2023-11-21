@@ -13,15 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_NEWSLOWNODEDETECTSTRATEGY_H
-#define ISEARCH_BS_NEWSLOWNODEDETECTSTRATEGY_H
+#pragma once
 
+#include <algorithm>
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "build_service/admin/CpuSpeedDetectStrategy.h"
 #include "build_service/admin/LocatorDetectStrategy.h"
 #include "build_service/admin/SlowNodeDetectStrategy.h"
 #include "build_service/admin/taskcontroller/NodeStatusManager.h"
 #include "build_service/common/CpuSpeedEstimater.h"
-#include "build_service/common_define.h"
+#include "build_service/config/SlowNodeDetectConfig.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
@@ -192,9 +203,13 @@ public:
         if (!_enableDetectSlowByLocator) {
             return;
         }
+        auto totalNodeCount = nodeStatusManager->GetAllNodeGroups().size();
+        size_t minRunningNodes = totalNodeCount * _locatorDetectMinServiceRatio / 100;
         LocatorDetectStrategy strategy(_locatorCheckCondition, _locatorCheckGap);
         std::vector<std::string> excludeKeyWords = GetExcludeKeyWords("locator");
         const auto& runningNodes = nodeStatusManager->GetRunningNodes(excludeKeyWords);
+        size_t maxMigrateNode = runningNodes.size() > minRunningNodes ? runningNodes.size() - minRunningNodes : 0;
+        NodeStatusPtrVec locatorSlowNodes;
         for (auto& nodeGroupInfo : runningNodes) {
             auto candidateNodeStatus = GetNodeStatus(nodeStatusManager, slowNodes, nodeGroupInfo.second);
             if (!candidateNodeStatus) {
@@ -203,8 +218,25 @@ public:
             std::string workIdentifier = candidateNodeStatus->roleName + "@" + candidateNodeStatus->ip;
             bool isSlowNode = strategy.detect(candidateNodeStatus->locatorOffset, workIdentifier);
             if (isSlowNode) {
-                slowNodes->emplace_back(candidateNodeStatus);
+                locatorSlowNodes.emplace_back(candidateNodeStatus);
             }
+        }
+        if (locatorSlowNodes.size() <= maxMigrateNode) {
+            for (auto node : locatorSlowNodes) {
+                slowNodes->emplace_back(node);
+            }
+            BS_LOG(DEBUG,
+                   "[%s] total node count [%lu], min service ratio [%lu], running node [%lu] find [%lu] nodes "
+                   "slow, can migrate because max migrate node is [%lu]",
+                   nodeStatusManager->GetFirstRoleGroupName().c_str(), totalNodeCount, _locatorDetectMinServiceRatio,
+                   runningNodes.size(), locatorSlowNodes.size(), maxMigrateNode);
+        } else {
+            BS_INTERVAL_LOG2(
+                30, INFO,
+                "[%s] total node count [%lu], min service ratio [%lu], running node [%lu] find [%lu] nodes "
+                "slow, can not migrate because max migrate node is [%lu]",
+                nodeStatusManager->GetFirstRoleGroupName().c_str(), totalNodeCount, _locatorDetectMinServiceRatio,
+                runningNodes.size(), locatorSlowNodes.size(), maxMigrateNode);
         }
     }
 
@@ -310,6 +342,7 @@ private:
     bool _enableDetectSlowByLocator;
     std::string _locatorCheckCondition;
     int64_t _locatorCheckGap;
+    uint64_t _locatorDetectMinServiceRatio;
 
     BS_LOG_DECLARE();
 };
@@ -381,6 +414,7 @@ NewSlowNodeDetectStrategy<Nodes>::NewSlowNodeDetectStrategy(const config::SlowNo
     , _enableDetectSlowByLocator(config.enableDetectSlowByLocator)
     , _locatorCheckCondition(config.locatorCheckCondition)
     , _locatorCheckGap(config.locatorCheckGap)
+    , _locatorDetectMinServiceRatio(config.locatorDetectMinServiceRatio)
 {
     _slowNodeSampleRatio = std::min(std::max(0.5f, _slowNodeSampleRatio), 1.0f);
     _longTailNodeSampleRatio = std::min(std::max(0.6f, _longTailNodeSampleRatio), 1.0f);
@@ -388,15 +422,16 @@ NewSlowNodeDetectStrategy<Nodes>::NewSlowNodeDetectStrategy(const config::SlowNo
     // cpu speed fixed threshold is just a temporary solution for small sample number,
     // should not be set too big, in case of massive nodes are detected when the cluster is overloaded
     _cpuSpeedFixedThreshold = std::min(CpuSpeedDetectStrategy::CPU_FIXED_THREADHOLD, _cpuSpeedFixedThreshold);
+    _locatorDetectMinServiceRatio = std::min((uint64_t)100, _locatorDetectMinServiceRatio);
     BS_LOG(INFO,
            "NewSlowNodeDetectStrategy initial parameters: "
            "slowNodeSampleRatio[%.2f], longTailNodeSampleRatio[%.2f], longTailNodeMultiplier[%.2f], "
            "enableNetworkSpeedStrategy[%d], networkSpeedThreshold[%lu], notWorkTimeThreshold[%ld],"
-           "cpuSpeedFixedThreshold[%ld]",
+           "cpuSpeedFixedThreshold[%ld], enable locator detect [%d], locator detect condition [%s], locator check gap "
+           "[%ld], locator detect min service ratio [%lu]",
            _slowNodeSampleRatio, _longTailNodeSampleRatio, _longTailNodeMultiplier, _enableNetworkSpeedStrategy,
-           _networkSpeedThreshold, config.notWorkTimeThreshold, _cpuSpeedFixedThreshold);
+           _networkSpeedThreshold, config.notWorkTimeThreshold, _cpuSpeedFixedThreshold, _enableDetectSlowByLocator,
+           _locatorCheckCondition.c_str(), _locatorCheckGap, _locatorDetectMinServiceRatio);
 }
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_NEWSLOWNODEDETECTSTRATEGY_H

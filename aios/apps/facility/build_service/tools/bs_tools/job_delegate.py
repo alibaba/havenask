@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os, sys
+import os
+import sys
 import time
 import re
 import string
@@ -8,6 +9,7 @@ import process
 from common_define import *
 from range_util import RangeUtil
 import include.json_wrapper as json
+
 
 class JobDelegate(object):
     def __init__(self, configPath, buildAppConf, buildRuleConf,
@@ -85,7 +87,7 @@ class JobDelegate(object):
         self.__partitionSplitCheck()
         self.__initZookeeperLock()
 
-        status =  self.isJobRunning()
+        status = self.isJobRunning()
         if status == JOB_STATUS_RUNNING:
             raise Exception("ERROR: job is already running")
         elif status == JOB_STATUS_UNKNOWN:
@@ -98,15 +100,15 @@ class JobDelegate(object):
         self._renameTempIndexDir(buildMode, buildStep)
         self.__copyGenerationMetaToPartitions(generationMeta)
 
-    def getJobStatus(self, buildStep, buildMode, showDetail, timeout = 60):
+    def getJobStatus(self, buildStep, buildMode, showDetail, timeout=60):
         '''
         public function for job command.
         return [True/False]
         print Job Status.
         not throw.
         '''
-        assert(buildStep in [JOB_BOTH_STEP, JOB_BUILD_STEP, JOB_MERGE_STEP, JOB_END_MERGE_STEP])
-        assert(buildMode in [BUILD_MODE_FULL, BUILD_MODE_INC])
+        assert (buildStep in [JOB_BOTH_STEP, JOB_BUILD_STEP, JOB_MERGE_STEP, JOB_END_MERGE_STEP])
+        assert (buildMode in [BUILD_MODE_FULL, BUILD_MODE_INC])
         if buildStep in [JOB_BUILD_STEP, JOB_BOTH_STEP]:
             print "INFO: begin get build job status"
             hasBuild = True
@@ -140,7 +142,7 @@ class JobDelegate(object):
         return [True/False]
         not throw.
         '''
-        assert(False)
+        assert (False)
         return False
 
     # copy to generation dir for build plugin
@@ -160,7 +162,7 @@ class JobDelegate(object):
             return
         finalIndexGenerationDir = self.__getGenerationDir(self.buildAppConf.indexRoot)
         fileList = self.fsUtil.listDir(finalIndexGenerationDir)
-        pattern = "partition_\d+_\d+"
+        pattern = "partition_\\d+_\\d+"
         for f in fileList:
             if not re.match(pattern, f):
                 continue
@@ -172,7 +174,7 @@ class JobDelegate(object):
 
     def __getTempGenerationDir(self):
         return "%s/__temp__generation_%d/" % (os.path.join(
-                self.buildAppConf.indexRoot, self.clusterName), self.generationId)
+            self.buildAppConf.indexRoot, self.clusterName), self.generationId)
 
     def __getGenerationDir(self, indexDir):
         return "%s/generation_%d/" % (os.path.join(indexDir, self.clusterName),
@@ -215,7 +217,7 @@ class JobDelegate(object):
             self.fsUtil.remove(self.indexRoot)
             return
 
-        pattern = "partition_\d+_\d+"
+        pattern = "partition_\\d+_\\d+"
         fileList = self.fsUtil.listDir(tempIndexGenerationDir)
         for f in fileList:
             if not re.match(pattern, f):
@@ -223,7 +225,7 @@ class JobDelegate(object):
             src = tempIndexGenerationDir
             dst = finalIndexGenerationDir
             if self.fsUtil.exists(dst + '/' + f):
-                print ("ERROR: file exists[{}]".format(f))
+                print("ERROR: file exists[{}]".format(f))
                 continue
             self.fsUtil.rename(src + '/' + f, dst + '/' + f)
 
@@ -246,13 +248,13 @@ class JobDelegate(object):
         private function: start and finish all jobs.
         throw exception when run job failed.
         '''
-        if buildStep in [ JOB_BUILD_STEP, JOB_BOTH_STEP ]:
+        if buildStep in [JOB_BUILD_STEP, JOB_BOTH_STEP]:
             self.__startBuildJob()
 
-        if buildStep in [ JOB_MERGE_STEP, JOB_BOTH_STEP ]:
+        if buildStep in [JOB_MERGE_STEP, JOB_BOTH_STEP]:
             self.__startMergeJob()
 
-        if buildStep in [ JOB_END_MERGE_STEP, JOB_BOTH_STEP ]:
+        if buildStep in [JOB_END_MERGE_STEP, JOB_BOTH_STEP]:
             self.__startEndMergeJob()
 
     def __startBuildJob(self):
@@ -278,7 +280,7 @@ class JobDelegate(object):
         return buildMode == BUILD_MODE_FULL and buildStep in [JOB_BUILD_STEP, JOB_BOTH_STEP]
 
     def __runOneJob(self, buildStep, mapCount, reduceCount):
-        print "INFO: start %s job... "  % buildStep
+        print "INFO: start %s job... " % buildStep
 
         beginTime = time.time()
         self.doStartJob(buildStep, mapCount, reduceCount)
@@ -345,7 +347,7 @@ class JobDelegate(object):
         regularExpr = ".*://(.*?)/(.*)"
         m = re.match(r"" + regularExpr, self.buildAppConf.indexRoot)
 
-        if m == None:
+        if m is None:
             return self.buildAppConf.indexRoot.replace("/", "_")
         return m.group(2).replace("/", "_")
 
@@ -413,7 +415,7 @@ class JobDelegate(object):
 
         try:
             templateStr = templateStr % paramDict
-        except Exception, e:
+        except Exception as e:
             print "ERROR: make job config failed, " \
                 "some configurations may be wrong, catch exception:", e
             print "ERROR: template file content is: %s, paramDict is: %s" % (
@@ -425,7 +427,7 @@ class JobDelegate(object):
             startJobConfigFile.write(templateStr)
             startJobConfigFile.flush()
             startJobConfigFile.close()
-        except Exception, e:
+        except Exception as e:
             print "ERROR: failed to write startJobConfigString to file[%s]" \
                 % fileName
             print "       exception:", e
@@ -456,9 +458,9 @@ class JobDelegate(object):
     def _checkPartitionFromAndCount(self, partitionCount, buildPartFrom,
                                     buildPartCount, generationDir, buildStep):
         allRanges = RangeUtil.splitRange(partitionCount)
-        toBuildRanges = allRanges[buildPartFrom:(buildPartFrom+buildPartCount)]
+        toBuildRanges = allRanges[buildPartFrom:(buildPartFrom + buildPartCount)]
         fileList = self.fsUtil.listDir(generationDir)
-        pattern = "partition_\d+_\d+"
+        pattern = "partition_\\d+_\\d+"
         for f in fileList:
             if not re.match(pattern, f):
                 continue
@@ -484,14 +486,15 @@ class JobDelegate(object):
         if self.buildRuleConf.partitionSplitNum == 1:
             return
         cmd = self.toolsConfig.getPartitionSplitMerger()
-        cmd = '%(cmd)s merge \'%(generationDir)s\' %(partFrom)d %(buildPartCount)d %(globalPartCount)d %(splitNum)d %(parallelNum)d' % \
-        { 'cmd' : cmd,
-          'generationDir' : self.__getGenerationDir(self.indexRoot),
-          'partFrom' : self.buildPartFrom,
-          'buildPartCount' : self.buildPartCount,
-          'globalPartCount' : self.buildRuleConf.partitionCount,
-          'splitNum' : self.buildRuleConf.partitionSplitNum,
-          'parallelNum' : self.buildRuleConf.buildParallelNum / self.buildRuleConf.partitionSplitNum }
+        cmd = '%(cmd)s merge \'%(generationDir)s\' %(partFrom)d %(buildPartCount)d %(globalPartCount)d %(splitNum)d %(parallelNum)d' % {
+            'cmd': cmd,
+            'generationDir': self.__getGenerationDir(
+                self.indexRoot),
+            'partFrom': self.buildPartFrom,
+            'buildPartCount': self.buildPartCount,
+            'globalPartCount': self.buildRuleConf.partitionCount,
+            'splitNum': self.buildRuleConf.partitionSplitNum,
+            'parallelNum': self.buildRuleConf.buildParallelNum / self.buildRuleConf.partitionSplitNum}
 
         p = process.Process()
         data, error, code = p.run(cmd)
@@ -509,15 +512,15 @@ class JobDelegate(object):
     # return (True/False, JOB_STATUS)
     # JOB_STATUS in [JOB_STATUS_FAILED, JOB_STATUS_SUCCESS ...]
     def doGetJobStatus(self, showDetail, step, timeout):
-        assert(False)
+        assert (False)
         return False
 
     # return JOB_STATUS
     def isJobRunning(self):
-        assert(False)
+        assert (False)
         return JOB_STATUS_UNKNOWN
 
     # return True/False
     def waitJobFinish(self, timeout, step, sleepInterval):
-        assert(False)
+        assert (False)
         return False

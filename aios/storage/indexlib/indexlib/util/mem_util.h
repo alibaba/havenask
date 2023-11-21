@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MEM_UTIL_H
-#define __INDEXLIB_MEM_UTIL_H
+#pragma once
 
 #include <fstream>
 #include <memory>
@@ -72,5 +71,3 @@ public:
 };
 
 }} // namespace indexlib::util
-
-#endif //__INDEXLIB_MEM_UTIL_H

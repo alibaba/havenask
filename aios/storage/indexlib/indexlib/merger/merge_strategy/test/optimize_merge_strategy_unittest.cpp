@@ -1,7 +1,7 @@
 #include "indexlib/merger/merge_strategy/test/optimize_merge_strategy_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

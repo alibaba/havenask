@@ -25,8 +25,8 @@ indexlib::index::TermMeta *FakeNumberPostingIterator::GetTermMeta() const {
     return _termMeta;
 }
 
-docid_t FakeNumberPostingIterator::SeekDoc(docid_t id) {
-    AUTIL_LOG(TRACE3, "look for %d, size: %zu", id, _numberValuePtr->size());
+indexlib::docid64_t FakeNumberPostingIterator::SeekDoc(indexlib::docid64_t id) {
+    AUTIL_LOG(TRACE3, "look for %ld, size: %zu", id, _numberValuePtr->size());
     for (size_t pos = (size_t)id; pos < _numberValuePtr->size(); pos++) {
         AUTIL_LOG(TRACE3, "docid: %zu, value: %d", pos, _numberValuePtr->at(pos));
         if (valueInRange(_numberValuePtr->at(pos))) {

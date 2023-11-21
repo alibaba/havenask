@@ -1,23 +1,16 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
-import com.taobao.search.iquan.core.api.schema.Distribution;
-import com.taobao.search.iquan.core.api.schema.Table;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
-import com.taobao.search.iquan.core.rel.metadata.IquanMetadata;
-import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanNestedLoopJoinOp;
 import com.taobao.search.iquan.core.rel.rules.physical.join_utils.RowCountPredicator;
-import com.taobao.search.iquan.core.rel.visitor.relvisitor.ExchangeVisitor;
 import com.taobao.search.iquan.core.utils.IquanJoinUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.JoinRelType;
-import org.apache.calcite.rel.core.TableScan;
-import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.tools.RelBuilderFactory;
 
 public class ExecNonEquiJoinRule extends RelOptRule {

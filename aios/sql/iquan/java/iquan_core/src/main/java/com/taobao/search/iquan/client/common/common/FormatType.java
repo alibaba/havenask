@@ -7,22 +7,12 @@ public enum FormatType {
     FLAT_BUFFER("fb", 4),
     INVALID("invalid", 10);
 
+    private final String name;
+    private final int index;
+
     FormatType(String name, int index) {
         this.name = name;
         this.index = index;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    @Override
-    public String toString() {
-        return getName();
     }
 
     public static FormatType from(int index) {
@@ -39,6 +29,16 @@ public enum FormatType {
         }
     }
 
-    private final String name;
-    private final int index;
+    public String getName() {
+        return name;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

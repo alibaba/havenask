@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEDUPPACKATTRIBUTEPATCHFILEMERGERTEST_H
-#define __INDEXLIB_DEDUPPACKATTRIBUTEPATCHFILEMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/dedup_pack_attribute_patch_file_merger.h"
@@ -36,5 +35,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(DedupPackAttributePatchFileMergerTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DEDUPPACKATTRIBUTEPATCHFILEMERGERTEST_H

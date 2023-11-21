@@ -2,7 +2,6 @@ package com.taobao.search.iquan.core.rel.rules.physical;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -25,11 +24,11 @@ public class AggIndexPushDownRule extends RelOptRule {
 
     private AggIndexPushDownRule(RelBuilderFactory relBuilderFactory) {
         super(operand(
-            IquanAggregateOp.class,
-            operand(
-                IquanTableScanBase.class,
-                none()
-            )
+                IquanAggregateOp.class,
+                operand(
+                        IquanTableScanBase.class,
+                        none()
+                )
         ), relBuilderFactory, null);
     }
 
@@ -56,7 +55,7 @@ public class AggIndexPushDownRule extends RelOptRule {
 
         if (hasRangeConditions) {
             applyLookupAggregationIndex(scan, equalConditions, needFields,
-                conditions.get(ConstantDefine.GREATER_THAN_OR_EQUAL), conditions.get(ConstantDefine.LESS_THAN_OR_EQUAL), aggregationIndexList);
+                    conditions.get(ConstantDefine.GREATER_THAN_OR_EQUAL), conditions.get(ConstantDefine.LESS_THAN_OR_EQUAL), aggregationIndexList);
         } else {
             applyLookupAggregationIndex(scan, equalConditions, needFields, aggregationIndexList);
         }
@@ -64,42 +63,42 @@ public class AggIndexPushDownRule extends RelOptRule {
 
     private boolean isValidScanBase(IquanTableScanBase scanBase) {
         return scanBase instanceof IquanTableScanOp
-            && scanBase.getIquanCatalogTable().getTable().getTableType() == TableType.TT_AGGREGATION_TABLE;
+                && scanBase.getIquanCatalogTable().getTable().getTableType() == TableType.TT_AGGREGATION_TABLE;
     }
 
     private List<String> getNeedFields(IquanCatalogTable catalogTable, IquanTableScanBase scanBase) {
         return catalogTable.getTable().getFields()
-            .stream()
-            .map(AbstractField::getFieldName)
-            .filter(scanBase.getRowType().getFieldNames()::contains)
-            .collect(Collectors.toList());
+                .stream()
+                .map(AbstractField::getFieldName)
+                .filter(scanBase.getRowType().getFieldNames()::contains)
+                .collect(Collectors.toList());
     }
 
     private void applyLookupAggregationIndex(IquanTableScanOp scan, List<Map.Entry<String, String>> equalConditions,
-        List<String> needFields, List<Map.Entry<String, String>> fromConditions,
-        List<Map.Entry<String, String>> toConditions, List<JsonAggregationIndex> aggregationIndexList) {
+                                             List<String> needFields, List<Map.Entry<String, String>> fromConditions,
+                                             List<Map.Entry<String, String>> toConditions, List<JsonAggregationIndex> aggregationIndexList) {
         aggregationIndexList.stream()
-            .filter(index -> index.match(equalConditions, fromConditions, toConditions, needFields))
-            .findFirst()
-            .ifPresent(index -> {
-                scan.setAggIndexName(index.getIndexName());
-                scan.setAggIndexFields(index.getIndexFields());
-                scan.setAggKeys(index.getAggregationKeys(equalConditions));
-                scan.setAggRangeMap(fromConditions, toConditions);
-                scan.setAggType("lookup");
-            });
+                .filter(index -> index.match(equalConditions, fromConditions, toConditions, needFields))
+                .findFirst()
+                .ifPresent(index -> {
+                    scan.setAggIndexName(index.getIndexName());
+                    scan.setAggIndexFields(index.getIndexFields());
+                    scan.setAggKeys(index.getAggregationKeys(equalConditions));
+                    scan.setAggRangeMap(fromConditions, toConditions);
+                    scan.setAggType("lookup");
+                });
     }
 
     private void applyLookupAggregationIndex(IquanTableScanOp scan, List<Map.Entry<String, String>> equalConditions,
-        List<String> needFields, List<JsonAggregationIndex> aggregationIndexList) {
+                                             List<String> needFields, List<JsonAggregationIndex> aggregationIndexList) {
         aggregationIndexList.stream()
-            .filter(index -> index.match(equalConditions, needFields))
-            .findFirst()
-            .ifPresent(index -> {
-                scan.setAggIndexName(index.getIndexName());
-                scan.setAggIndexFields(index.getIndexFields());
-                scan.setAggKeys(index.getAggregationKeys(equalConditions));
-                scan.setAggType("lookup");
-            });
+                .filter(index -> index.match(equalConditions, needFields))
+                .findFirst()
+                .ifPresent(index -> {
+                    scan.setAggIndexName(index.getIndexName());
+                    scan.setAggIndexFields(index.getIndexFields());
+                    scan.setAggKeys(index.getAggregationKeys(equalConditions));
+                    scan.setAggType("lookup");
+                });
     }
 }

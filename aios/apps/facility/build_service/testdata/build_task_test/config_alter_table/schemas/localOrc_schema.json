@@ -1,0 +1,46 @@
+{
+    "attributes": [
+        "company_id",
+        "subject",
+        "keywords",
+        "cat_id",
+        "new_field"
+    ],
+    "fields": [
+        {
+            "field_type": "STRING",
+            "field_name": "id"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "company_id"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "subject"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "keywords"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "cat_id"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "new_field",
+            "updatable_multi_value": true
+        }
+    ],
+    "indexs": [
+        {
+            "index_fields": "id",
+            "index_type": "PRIMARYKEY64",
+            "index_name": "pk"
+        }
+    ],
+    "table_type": "normal",
+    "table_name": "localOrc",
+    "versionid": 1
+}

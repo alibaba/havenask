@@ -30,8 +30,6 @@ AUTIL_LOG_SETUP(indexlib.config, SourceGroupConfig);
 const std::string SourceGroupConfig::SOURCE_GROUP_CONFIG_FIELD_MODE = "field_mode";
 const std::string SourceGroupConfig::SOURCE_GROUP_CONFIG_FIELDS = "fields";
 const std::string SourceGroupConfig::SOURCE_GROUP_CONFIG_PARAMETER = "parameter";
-const std::string SourceGroupConfig::SOURCE_GROUP_CONFIG_MODULE = "module";
-const std::string SourceGroupConfig::SOURCE_GROUP_CONFIG_MODULE_PARAMS = "module_params";
 
 const string SourceGroupConfig::FIELD_MODE_UNKNOWN = "unknown";
 const string SourceGroupConfig::FIELD_MODE_USER_DEFINE = "user_define";
@@ -42,8 +40,7 @@ struct SourceGroupConfig::Impl {
     SourceGroupConfig::SourceFieldMode fieldMode;
     std::vector<std::string> fields;
     GroupDataParameter parameter;
-    std::string module;
-    index::groupid_t id = index::INVALID_GROUPID;
+    index::sourcegroupid_t id = index::INVALID_SOURCEGROUPID;
     bool disabled = false;
 };
 
@@ -64,7 +61,6 @@ void SourceGroupConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         _impl->fieldMode = FromSourceFieldModeStr(modeStr);
     }
     json.Jsonize(SOURCE_GROUP_CONFIG_FIELDS, _impl->fields, _impl->fields);
-    json.Jsonize(SOURCE_GROUP_CONFIG_MODULE, _impl->module, _impl->module);
     json.Jsonize(SOURCE_GROUP_CONFIG_PARAMETER, _impl->parameter, _impl->parameter);
 }
 
@@ -72,7 +68,6 @@ Status SourceGroupConfig::CheckEqual(const SourceGroupConfig& other) const
 {
     CHECK_CONFIG_EQUAL(_impl->fieldMode, other._impl->fieldMode, "FieldMode not equal");
     CHECK_CONFIG_EQUAL(_impl->fields, other._impl->fields, "Fields not equal");
-    CHECK_CONFIG_EQUAL(_impl->module, other._impl->module, "Module not equal");
     CHECK_CONFIG_EQUAL(_impl->id, other._impl->id, "groupId not equal");
     CHECK_CONFIG_EQUAL(_impl->disabled, other._impl->disabled, "disable flag not equal");
     return _impl->parameter.CheckEqual(other._impl->parameter);
@@ -80,27 +75,13 @@ Status SourceGroupConfig::CheckEqual(const SourceGroupConfig& other) const
 
 Status SourceGroupConfig::Check() const
 {
-    if (_impl->fieldMode == SourceGroupConfig::SourceFieldMode::ALL_FIELD ||
-        _impl->fieldMode == SourceGroupConfig::SourceFieldMode::SPECIFIED_FIELD) {
-        if (!_impl->module.empty()) {
-            RETURN_STATUS_ERROR(ConfigError, "source_group_config error: should not config module when field_mode=%s",
-                                SourceGroupConfig::ToSourceFieldModeStr(_impl->fieldMode).c_str());
-        }
-    }
-
     if (_impl->fieldMode == SourceGroupConfig::SourceFieldMode::SPECIFIED_FIELD && _impl->fields.empty()) {
         RETURN_STATUS_ERROR(ConfigError, "source_group_config error: must config no-empty fields when field_mode=%s",
                             SourceGroupConfig::ToSourceFieldModeStr(_impl->fieldMode).c_str());
     }
 
-    if (_impl->fieldMode == SourceGroupConfig::SourceFieldMode::USER_DEFINE && _impl->module.empty()) {
-        RETURN_STATUS_ERROR(ConfigError, "source_group_config error: must config module when field_mode=%s",
-                            SourceGroupConfig::ToSourceFieldModeStr(_impl->fieldMode).c_str());
-    }
     return Status::OK();
 }
-
-const string& SourceGroupConfig::GetModule() const { return _impl->module; }
 
 SourceGroupConfig::SourceFieldMode SourceGroupConfig::GetFieldMode() const { return _impl->fieldMode; }
 
@@ -137,9 +118,9 @@ const vector<string>& SourceGroupConfig::GetSpecifiedFields() const { return _im
 
 void SourceGroupConfig::SetSpecifiedFields(const vector<string>& fields) { _impl->fields = fields; }
 
-index::groupid_t SourceGroupConfig::GetGroupId() const { return _impl->id; }
+index::sourcegroupid_t SourceGroupConfig::GetGroupId() const { return _impl->id; }
 
-void SourceGroupConfig::SetGroupId(index::groupid_t groupId) { _impl->id = groupId; }
+void SourceGroupConfig::SetGroupId(index::sourcegroupid_t groupId) { _impl->id = groupId; }
 
 const GroupDataParameter& SourceGroupConfig::GetParameter() const { return _impl->parameter; }
 
@@ -148,4 +129,5 @@ void SourceGroupConfig::SetParameter(const GroupDataParameter& parameter) { _imp
 bool SourceGroupConfig::IsDisabled() const { return _impl->disabled; }
 
 void SourceGroupConfig::SetDisabled(bool flag) { _impl->disabled = flag; }
+
 }} // namespace indexlib::config

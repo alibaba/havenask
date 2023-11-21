@@ -15,6 +15,12 @@
  */
 #include "build_service/proto/ProcessorTaskIdentifier.h"
 
+#include <cstddef>
+#include <map>
+#include <utility>
+#include <vector>
+
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 
 using namespace std;

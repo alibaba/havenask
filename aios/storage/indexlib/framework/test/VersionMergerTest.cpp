@@ -43,7 +43,10 @@ public:
     {
         _segmentMeta.segmentId = segmentId;
     }
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override { return 0; }
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override
+    {
+        return {Status::OK(), 0};
+    }
     size_t EvaluateCurrentMemUsed() override { return 0; }
 };
 
@@ -80,7 +83,7 @@ public:
         return std::nullopt;
     }
     std::unique_ptr<IndexTaskContext> CreateTaskContext(versionid_t baseVersionId, const std::string& taskType,
-                                                        const std::string& taskName,
+                                                        const std::string& taskName, const std::string& taskTraceId,
                                                         const std::map<std::string, std::string>& params) override
     {
         return std::make_unique<IndexTaskContext>();

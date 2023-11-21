@@ -38,12 +38,18 @@ cc_proto(
     visibility=['//visibility:public'],
     deps=[':ha3_proto_basic_def', '//aios/network/arpc:proto']
 )
+ha3_fbs_input = [
+    'ha3/proto/SqlResult.fbs', 'ha3/proto/SummaryResult.fbs',
+    'ha3/proto/TsdbColumn.fbs', 'ha3/proto/TwoDimTable.fbs'
+]
+filegroup(
+    name='ha3_fbs_includes',
+    srcs=ha3_fbs_input,
+    visibility=['//visibility:public']
+)
 flatbuffer_library_public(
     name='ha3_fbs',
-    srcs=[
-        'ha3/proto/SqlResult.fbs', 'ha3/proto/SummaryResult.fbs',
-        'ha3/proto/TsdbColumn.fbs', 'ha3/proto/TwoDimTable.fbs'
-    ],
+    srcs=ha3_fbs_input,
     outs=[
         'ha3/proto/SqlResult_generated.h',
         'ha3/proto/SummaryResult_generated.h',

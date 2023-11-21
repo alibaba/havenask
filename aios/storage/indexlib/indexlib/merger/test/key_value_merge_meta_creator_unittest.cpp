@@ -1,12 +1,12 @@
 #include "indexlib/merger/test/key_value_merge_meta_creator_unittest.h"
 
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/merger/dump_strategy.h"
 #include "indexlib/merger/test/merge_task_maker.h"
 #include "indexlib/plugin/plugin_manager.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;
@@ -43,7 +43,7 @@ void KeyValueMergeMetaCreatorTest::TestSimpleProcess()
     }
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     Version version;
-    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
     merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
     segDir->Init(false, false);
     KeyValueMergeMetaCreator mergeMetaCreator(mSchema);

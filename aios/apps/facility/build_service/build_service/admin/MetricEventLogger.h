@@ -15,10 +15,17 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <stddef.h>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include "autil/Lock.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
-#include "kmonitor_adapter/Monitor.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace build_service { namespace admin {
 

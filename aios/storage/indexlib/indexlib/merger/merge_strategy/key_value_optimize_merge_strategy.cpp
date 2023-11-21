@@ -15,6 +15,23 @@
  */
 #include "indexlib/merger/merge_strategy/key_value_optimize_merge_strategy.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/segment_topology_info.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/merger/merge_plan.h"
+#include "indexlib/util/Exception.h"
+
 using namespace std;
 
 using namespace indexlib::index_base;

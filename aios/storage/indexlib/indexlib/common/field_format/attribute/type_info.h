@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TYPE_INFO_H
-#define __INDEXLIB_TYPE_INFO_H
+#pragma once
 
 #include <math.h>
 #include <memory>
@@ -439,5 +438,3 @@ inline bool CheckT(double a, double b)
     return fabs(a - b) < 1E-6;
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_TYPE_INFO_H

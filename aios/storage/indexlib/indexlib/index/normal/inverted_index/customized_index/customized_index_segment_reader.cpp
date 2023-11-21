@@ -42,7 +42,7 @@ bool CustomizedIndexSegmentReader::Init(const IndexConfigPtr& indexConfig, const
     return true;
 }
 
-bool CustomizedIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId,
+bool CustomizedIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId,
                                                      SegmentPosting& segPosting, Pool* sessionPool,
                                                      indexlib::index::InvertedIndexSearchTracer* tracer) const
 {

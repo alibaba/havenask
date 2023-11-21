@@ -8,39 +8,16 @@ namespace iquan {
 
 class IquanMultiThreadsTest : public IquanTestBase {
 public:
-    static void
-    updateCatalog(IquanPtr pIquan, TableModels &tableModels, FunctionModels &functionModels);
+    static void registerCatalogs(IquanPtr pIquan, const std::string &catalogPath);
     static void query(IquanPtr pIquan);
     static void createAndQueryTest(const std::string &catalogRootPath, size_t loopNum);
-
-private:
-    static void getCatalog(const std::string &catalogRootPath,
-                           TableModels &tableModels,
-                           FunctionModels &functionModels);
 };
 
-void IquanMultiThreadsTest::updateCatalog(IquanPtr pIquan,
-                                          TableModels &tableModels,
-                                          FunctionModels &functionModels) {
-    for (auto &model : tableModels.tables) {
-        model.tableVersion += 1;
-    }
-    Status status = pIquan->updateTables(tableModels);
+void IquanMultiThreadsTest::registerCatalogs(IquanPtr pIquan, const std::string &catalogPath) {
+    Status status = TestUtils::registerCatalogs(catalogPath, pIquan);
     if (!status.ok()) {
         AUTIL_LOG(ERROR,
-                  "updateTables fail, error code[%d], error message[%s]",
-                  status.code(),
-                  status.errorMessage().c_str());
-    }
-    ASSERT_TRUE(status.ok()) << status.errorMessage();
-
-    for (auto &model : functionModels.functions) {
-        model.functionVersion += 1;
-    }
-    status = pIquan->updateFunctions(functionModels);
-    if (!status.ok()) {
-        AUTIL_LOG(ERROR,
-                  "updateFunctions fail, error code[%d], error message[%s]",
+                  "register catalogs fail, error code[%d], error message[%s]",
                   status.code(),
                   status.errorMessage().c_str());
     }
@@ -70,57 +47,28 @@ void IquanMultiThreadsTest::query(IquanPtr pIquan) {
     ASSERT_TRUE(status.ok()) << status.errorMessage();
 }
 
-void IquanMultiThreadsTest::createAndQueryTest(const std::string &catalogRootPath, size_t loopNum) {
-    TableModels tableModels;
-    FunctionModels functionModels;
-    getCatalog(catalogRootPath, tableModels, functionModels);
-
+void IquanMultiThreadsTest::createAndQueryTest(const std::string &catalogPath, size_t loopNum) {
     for (size_t i = 0; i < loopNum; ++i) {
         IquanPtr pIquan = TestUtils::createIquan();
         ASSERT_TRUE(pIquan != nullptr);
-        updateCatalog(pIquan, tableModels, functionModels);
+        registerCatalogs(pIquan, catalogPath);
         query(pIquan);
     }
 }
 
-void IquanMultiThreadsTest::getCatalog(const std::string &catalogRootPath,
-                                       TableModels &tableModels,
-                                       FunctionModels &functionModels) {
-    {
-        Status status = TestUtils::getTableModels(
-            catalogRootPath + "/t1.json", autil::TimeUtility::currentTime(), tableModels);
-        ASSERT_TRUE(status.ok()) << status.errorMessage();
-        status = TestUtils::getTableModels(
-            catalogRootPath + "/t2.json", autil::TimeUtility::currentTime(), tableModels);
-        ASSERT_TRUE(status.ok()) << status.errorMessage();
-    }
-    {
-        Status status = TestUtils::getFunctionModels(
-            catalogRootPath + "/udf.json", autil::TimeUtility::currentTime(), functionModels);
-        ASSERT_TRUE(status.ok()) << status.errorMessage();
-        status = TestUtils::getFunctionModels(
-            catalogRootPath + "/udaf.json", autil::TimeUtility::currentTime(), functionModels);
-        ASSERT_TRUE(status.ok()) << status.errorMessage();
-        status = TestUtils::getFunctionModels(
-            catalogRootPath + "/udtf.json", autil::TimeUtility::currentTime(), functionModels);
-        ASSERT_TRUE(status.ok()) << status.errorMessage();
-    }
-}
-
 TEST_F(IquanMultiThreadsTest, testCreateAndQuery) {
-    std::string catalogRootPath
-        = GET_PRIVATE_TEST_DATA_PATH_WITHIN_TEST() + std::string("/iquan_catalog");
+    std::string catalogPath = GET_PRIVATE_TEST_DATA_PATH_WITHIN_TEST() + std::string("/iquan_catalog/catalogs.json");
 
     size_t loopNum = 20;
 
-    autil::ThreadPtr t1 = autil::Thread::createThread(
-        [&]() { IquanMultiThreadsTest::createAndQueryTest(catalogRootPath, loopNum); });
-    autil::ThreadPtr t2 = autil::Thread::createThread(
-        [&]() { IquanMultiThreadsTest::createAndQueryTest(catalogRootPath, loopNum); });
-    autil::ThreadPtr t3 = autil::Thread::createThread(
-        [&]() { IquanMultiThreadsTest::createAndQueryTest(catalogRootPath, loopNum); });
-    autil::ThreadPtr t4 = autil::Thread::createThread(
-        [&]() { IquanMultiThreadsTest::createAndQueryTest(catalogRootPath, loopNum); });
+    autil::ThreadPtr t1 =
+        autil::Thread::createThread([&]() { IquanMultiThreadsTest::createAndQueryTest(catalogPath, loopNum); });
+    autil::ThreadPtr t2 =
+        autil::Thread::createThread([&]() { IquanMultiThreadsTest::createAndQueryTest(catalogPath, loopNum); });
+    autil::ThreadPtr t3 =
+        autil::Thread::createThread([&]() { IquanMultiThreadsTest::createAndQueryTest(catalogPath, loopNum); });
+    autil::ThreadPtr t4 =
+        autil::Thread::createThread([&]() { IquanMultiThreadsTest::createAndQueryTest(catalogPath, loopNum); });
 
     t1->join();
     t2->join();
@@ -129,23 +77,13 @@ TEST_F(IquanMultiThreadsTest, testCreateAndQuery) {
 }
 
 TEST_F(IquanMultiThreadsTest, testMultiThreadQueryAndUpdate) {
-    std::string catalogRootPath
-        = GET_PRIVATE_TEST_DATA_PATH_WITHIN_TEST() + std::string("/iquan_catalog");
+    std::string catalogPath = GET_PRIVATE_TEST_DATA_PATH_WITHIN_TEST() + std::string("/iquan_catalog/catalogs.json");
     IquanPtr pIquan = TestUtils::createIquan();
     ASSERT_TRUE(pIquan != nullptr);
 
-    TableModels tableModels;
-    FunctionModels functionModels;
-    getCatalog(catalogRootPath, tableModels, functionModels);
-    updateCatalog(pIquan, tableModels, functionModels);
+    registerCatalogs(pIquan, catalogPath);
 
     size_t loopNum = 1000;
-
-    autil::ThreadPtr updateThread = autil::Thread::createThread([&]() {
-        for (size_t i = 0; i < loopNum; ++i) {
-            IquanMultiThreadsTest::updateCatalog(pIquan, tableModels, functionModels);
-        }
-    });
     autil::ThreadPtr queryThread1 = autil::Thread::createThread([&]() {
         for (size_t i = 0; i < loopNum; ++i) {
             IquanMultiThreadsTest::query(pIquan);
@@ -162,7 +100,6 @@ TEST_F(IquanMultiThreadsTest, testMultiThreadQueryAndUpdate) {
         }
     });
 
-    updateThread->join();
     queryThread1->join();
     queryThread2->join();
     queryThread3->join();

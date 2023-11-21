@@ -15,6 +15,8 @@
  */
 #include "build_service/custom_merger/BuildinCustomMergerFactory.h"
 
+#include <cstddef>
+
 #include "build_service/custom_merger/AlterDefaultFieldMerger.h"
 #include "build_service/custom_merger/ReuseAttributeAlterFieldMerger.h"
 

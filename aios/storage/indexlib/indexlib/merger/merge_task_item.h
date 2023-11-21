@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_TASK_ITEM_H
-#define __INDEXLIB_MERGE_TASK_ITEM_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/parallel_merge_item.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 class MergeTaskItem : public autil::legacy::Jsonizable
@@ -65,5 +66,3 @@ struct MergeTaskItemComp {
     bool operator()(const MergeTaskItem& lst, const MergeTaskItem& rst) { return lst.mCost > rst.mCost; }
 };
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_TASK_ITEM_H

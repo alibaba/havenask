@@ -16,20 +16,27 @@
 #include "build_service/local_job/LocalJobWorker.h"
 
 #include <iostream>
+#include <memory>
 
-#include "autil/StringUtil.h"
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/Span.h"
 #include "autil/ThreadPool.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/ConfigDownloader.h"
+#include "build_service/common_define.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/local_job/BuildInstanceWorkItem.h"
-#include "build_service/local_job/LocalBrokerFactory.h"
 #include "build_service/local_job/MergeInstanceWorkItem.h"
 #include "build_service/local_job/MergeInstanceWorkItemV2.h"
 #include "build_service/local_job/ReduceDocumentQueue.h"
-#include "build_service/task_base/TaskDefine.h"
-#include "build_service/util/LogSetupGuard.h"
+#include "build_service/task_base/JobConfig.h"
+#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/index_base/common_branch_hinter.h"
 
 using namespace std;
 using namespace autil;

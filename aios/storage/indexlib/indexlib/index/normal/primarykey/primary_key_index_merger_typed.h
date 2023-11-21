@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIMARY_KEY_INDEX_MERGER_TYPED_H
-#define __INDEXLIB_PRIMARY_KEY_INDEX_MERGER_TYPED_H
+#pragma once
 
 #include <memory>
 
@@ -321,5 +320,3 @@ PrimaryKeyIndexMergerTyped<Key>::CreateFileWriter(const file_system::DirectoryPt
     return pkDirectory->CreateFileWriter(PRIMARY_KEY_DATA_FILE_NAME);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARY_KEY_INDEX_MERGER_TYPED_H

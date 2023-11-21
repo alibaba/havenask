@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORCONFIG_H
-#define ISEARCH_BS_PROCESSORCONFIG_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "autil/legacy/jsonizable.h"
-#include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace config {
@@ -60,5 +61,3 @@ private:
 };
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_PROCESSORCONFIG_H

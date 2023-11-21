@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
 #include "gmock/gmock.h"
 
@@ -31,14 +32,15 @@ public:
     MOCK_METHOD(const framework::Locator&, GetLocatorV2, (), (const, override));
     MOCK_METHOD(void, SetLocator, (const Locator&), (override));
     MOCK_METHOD(void, SetTrace, (bool), (override));
-    MOCK_METHOD(DocInfo, GetDocInfo, (), (const, override));
-    MOCK_METHOD(void, SetDocInfo, (const DocInfo&), (override));
+    MOCK_METHOD(framework::Locator::DocInfo, GetDocInfo, (), (const, override));
+    MOCK_METHOD(void, SetDocInfo, (const framework::Locator::DocInfo&), (override));
     MOCK_METHOD(uint32_t, GetTTL, (), (const, override));
     MOCK_METHOD(docid_t, GetDocId, (), (const, override));
     MOCK_METHOD(autil::StringView, GetTraceId, (), (const, override));
     MOCK_METHOD(size_t, EstimateMemory, (), (const, override));
     MOCK_METHOD(DocOperateType, GetDocOperateType, (), (const, override));
     MOCK_METHOD(int64_t, GetIngestionTimestamp, (), (const, override));
+    MOCK_METHOD(schemaid_t, GetSchemaId, (), (const, override));
     MOCK_METHOD(autil::StringView, GetSource, (), (const, override));
     MOCK_METHOD(void, SetDocOperateType, (DocOperateType), (override));
     MOCK_METHOD(bool, HasFormatError, (), (const, override));
@@ -59,6 +61,9 @@ public:
     MOCK_METHOD(std::unique_ptr<IDocumentBatch>, Create, (), (const, override));
     MOCK_METHOD(int64_t, GetMaxTimestamp, (), (const, override));
     MOCK_METHOD(const Locator&, GetLastLocator, (), (const, override));
+
+    MOCK_METHOD(void, SetBatchLocator, (const framework::Locator&), (override));
+    MOCK_METHOD(const Locator&, GetBatchLocator, (), (const, override));
     MOCK_METHOD(void, DropDoc, (int64_t), (override));
     MOCK_METHOD(void, ReleaseDoc, (int64_t), (override));
     MOCK_METHOD(int64_t, GetMaxTTL, (), (const, override));

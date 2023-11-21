@@ -13,17 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKERMAINTAINER_H
-#define ISEARCH_BS_WORKERMAINTAINER_H
+#pragma once
 
+#include <algorithm>
+#include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
+
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/AdminTaskBase.h"
+#include "build_service/admin/CounterCollector.h"
+#include "build_service/admin/DefaultSlowNodeDetectStrategy.h"
 #include "build_service/admin/FatalErrorDiscoverer.h"
+#include "build_service/admin/NewSlowNodeDetectStrategy.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/admin/taskcontroller/NodeStatusManager.h"
 #include "build_service/admin/taskcontroller/TaskController.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/ErrorCollector.h"
 #include "build_service/proto/TaskIdentifier.h"
 #include "build_service/proto/WorkerNode.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
 class TaskMaintainer : public AdminTaskBase
@@ -103,5 +117,3 @@ private:
 BS_TYPEDEF_PTR(TaskMaintainer);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_WORKERMAINTAINER_H

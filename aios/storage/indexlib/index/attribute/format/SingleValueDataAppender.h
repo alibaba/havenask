@@ -16,6 +16,7 @@
 #pragma once
 #include <memory>
 
+#include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/index/attribute/format/SingleValueAttributeUpdatableFormatter.h"
@@ -32,7 +33,7 @@ public:
 public:
     void Init(uint32_t capacity, const std::shared_ptr<indexlib::file_system::FileWriter>& dataFile);
     bool IsFull() const { return _inBufferCount == _capacity; }
-    void Flush();
+    Status Flush();
     template <typename T>
     void FlushCompressBuffer(EqualValueCompressDumper<T>* dumper);
 

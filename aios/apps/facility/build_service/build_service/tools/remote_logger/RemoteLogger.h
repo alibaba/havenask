@@ -69,6 +69,7 @@ private:
     int32_t _sourceFd;
 
     // self
+    std::string _role;
     std::shared_ptr<util::MemControlStreamQueue<std::string>> _pendingLogs;
     std::atomic<bool> _stopped;
     proto::PartitionId _pid;

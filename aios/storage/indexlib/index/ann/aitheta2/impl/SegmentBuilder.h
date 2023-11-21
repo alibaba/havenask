@@ -17,7 +17,7 @@
 #include "indexlib/index/ann/aitheta2/CommonDefine.h"
 #include "indexlib/index/ann/aitheta2/impl/Segment.h"
 #include "indexlib/index/ann/aitheta2/impl/SegmentBuildResource.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingFieldData.h"
+#include "indexlib/index/ann/aitheta2/util/IndexFields.h"
 #include "indexlib/index/ann/aitheta2/util/MetricReporter.h"
 #include "indexlib/index/ann/aitheta2/util/PkDataHolder.h"
 namespace indexlibv2::index::ann {
@@ -37,7 +37,7 @@ public:
 
 public:
     virtual bool Init(const SegmentBuildResourcePtr& resource) = 0;
-    virtual bool Build(const EmbeddingFieldData& data) = 0;
+    virtual bool Build(const IndexFields& data) = 0;
     virtual bool Dump(const indexlib::file_system::DirectoryPtr& directory,
                       const std::vector<docid_t>* old2NewDocId = nullptr) = 0;
 
@@ -47,14 +47,14 @@ public:
     virtual size_t EstimateDumpFileSize() = 0;
 
 protected:
-    bool DumpPrimaryKey(const PkDataHolder& pkDataHolder, Segment& segment);
+    bool DumpPrimaryKey(PkDataHolder& pkHolder, Segment& segment);
 
 protected:
     AithetaIndexConfig _indexConfig;
     std::string _indexName;
     MetricReporterPtr _metricReporter;
     AiThetaMeta _aiThetaMeta;
-    PkDataHolder _pkDataHolder;
+    PkDataHolder _pkHolder;
     AUTIL_LOG_DECLARE();
 };
 typedef std::shared_ptr<SegmentBuilder> SegmentBuilderPtr;

@@ -17,6 +17,9 @@
 
 #include "indexlib/framework/index_task/IndexOperation.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
+#include "indexlib/index/field_meta/Common.h"
+#include "indexlib/index/field_meta/config/FieldMetaConfig.h"
+#include "indexlib/index/source/Common.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/add_index/PatchSegmentMoveOperation.h"
 #include "indexlib/table/index_task/merger/CommonTaskOperationCreator.h"
@@ -33,6 +36,7 @@
 #include "indexlib/table/normal_table/index_task/PackAttributeIndexMergeOperation.h"
 #include "indexlib/table/normal_table/index_task/PrepareIndexReclaimParamOperation.h"
 #include "indexlib/table/normal_table/index_task/ReclaimMapOperation.h"
+#include "indexlib/table/normal_table/index_task/SourceIndexMergeOperation.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTableTaskOperationCreator);
@@ -76,6 +80,8 @@ NormalTableTaskOperationCreator::CreateOperationForMerge(const framework::IndexO
             operation = std::make_unique<PackAttributeIndexMergeOperation>(opDesc);
         } else if (indexType == index::DELETION_MAP_INDEX_TYPE_STR) {
             operation.reset(new DeletionMapIndexMergeOperation(opDesc));
+        } else if (indexType == index::SOURCE_INDEX_TYPE_STR) {
+            operation.reset(new SourceIndexMergeOperation(opDesc));
         } else if (indexType == indexlib::index::INVERTED_INDEX_TYPE_STR) {
             std::string shardIndexName;
             if (opDesc.GetParameter(SHARD_INDEX_NAME, shardIndexName)) {
@@ -94,6 +100,13 @@ NormalTableTaskOperationCreator::CreateOperationForMerge(const framework::IndexO
         }
         return operation;
     }
+    return nullptr;
+}
+
+std::unique_ptr<framework::IndexOperation>
+NormalTableTaskOperationCreator::CreateOtherOperation(const framework::IndexOperationDescription& opDesc)
+{
+    AUTIL_LOG(ERROR, "can not create operation for [%s]", opDesc.GetType().c_str());
     return nullptr;
 }
 
@@ -145,8 +158,7 @@ NormalTableTaskOperationCreator::CreateOperation(const framework::IndexOperation
             return operation;
         }
     }
-    assert(false);
-    return nullptr;
+    return CreateOtherOperation(opDesc);
 }
 
 } // namespace indexlibv2::table

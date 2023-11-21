@@ -26,9 +26,9 @@ cc_library(
     strip_include_prefix='cpp_client/src',
     visibility=['//visibility:public'],
     deps=[
-        '//aios/alog', '//aios/autil:data_buffer', '//aios/autil:json',
-        '//aios/autil:metric', '//aios/autil:stack_buf', '//aios/autil:thread',
-        '//aios/autil:env_util', '@com_google_googletest//:gtest_prod'
+        '//aios/alog', '//aios/autil:data_buffer', '//aios/autil:env_util',
+        '//aios/autil:json', '//aios/autil:metric', '//aios/autil:thread',
+        '@com_google_googletest//:gtest_prod'
     ],
     alwayslink=1
 )
@@ -36,9 +36,9 @@ cc_library(
     name='metrics_report_navi_resource',
     srcs=['cpp_client/src/kmonitor/client/MetricsReporterR.cpp'],
     hdrs=['cpp_client/src/kmonitor/client/MetricsReporterR.h'],
-    deps=[':kmonitor_client_cpp', '//aios/navi:navi'],
     strip_include_prefix='cpp_client/src',
     visibility=['//visibility:public'],
+    deps=[':kmonitor_client_cpp', '//aios/navi'],
     alwayslink=1
 )
 gen_conf_lib(

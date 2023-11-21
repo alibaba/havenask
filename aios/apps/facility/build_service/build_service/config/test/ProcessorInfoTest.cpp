@@ -1,5 +1,14 @@
-#include "build_service/config/DocProcessorChainConfig.h"
+#include "build_service/config/ProcessorInfo.h"
+
+#include <iosfwd>
+#include <string>
+
+#include "autil/legacy/jsonizable_exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
 #include "build_service/test/unittest.h"
+#include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 

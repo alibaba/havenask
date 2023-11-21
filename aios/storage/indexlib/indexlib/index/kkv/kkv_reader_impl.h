@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEX_KKV_READER_IMPL_H
-#define __INDEX_KKV_READER_IMPL_H
+#pragma once
 
 #include <memory>
 
@@ -343,5 +342,3 @@ inline void KKVReaderImpl<SKeyType>::TEST_collectCodegenResult(CodegenCheckers& 
     checkers["KKVReaderImpl"] = checker;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEX_KKV_READER_IMPL_H

@@ -1,9 +1,17 @@
 #include "build_service/common/PathDefine.h"
 
+#include <iosfwd>
+#include <string>
+
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/TaskIdentifier.h"
 #include "build_service/proto/test/ProtoCreator.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/common/common_type.h"
 #include "fslib/fs/FileSystem.h"
+#include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

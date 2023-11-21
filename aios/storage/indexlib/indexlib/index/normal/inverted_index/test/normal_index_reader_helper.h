@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_NORMAL_INDEX_READER_HELPER_H
-#define __INDEXLIB_NORMAL_INDEX_READER_HELPER_H
+#pragma once
 
 #include <memory>
 
@@ -31,5 +30,3 @@ private:
 
 DEFINE_SHARED_PTR(NormalIndexReaderHelper);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_NORMAL_INDEX_READER_HELPER_H

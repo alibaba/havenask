@@ -15,12 +15,25 @@
  */
 #include "indexlib/plugin/index_plugin_loader.h"
 
+#include <iosfwd>
+#include <memory>
+#include <set>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "indexlib/config/customized_index_config.h"
+#include "indexlib/config/index_config.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_schema.h"
+#include "indexlib/config/offline_config.h"
+#include "indexlib/config/schema_modify_operation.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/plugin/Module.h"
+#include "indexlib/index/common/Types.h"
 #include "indexlib/plugin/plugin_manager.h"
+#include "indexlib/util/Exception.h"
+#include "indexlib/util/KeyValueMap.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROHIBITEDIPSTABLE_H
-#define ISEARCH_BS_PROHIBITEDIPSTABLE_H
+#pragma once
 
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
+#include "autil/Lock.h"
 #include "build_service/admin/ProhibitedIpCollector.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
-#include "master_framework/ScheduleUnit.h"
+
 namespace build_service { namespace admin {
 
 class ProhibitedIpsTable
@@ -83,5 +87,3 @@ private:
 BS_TYPEDEF_PTR(ProhibitedIpsTable);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_PROHIBITEDIPSTABLE_H

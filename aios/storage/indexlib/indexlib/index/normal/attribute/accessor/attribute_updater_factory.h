@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_UPDATER_FACTORY_H
-#define __INDEXLIB_ATTRIBUTE_UPDATER_FACTORY_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -69,5 +68,3 @@ private:
 
 typedef std::shared_ptr<AttributeUpdaterFactory> AttributeUpdaterFactoryPtr;
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_UPDATER_FACTORY_H

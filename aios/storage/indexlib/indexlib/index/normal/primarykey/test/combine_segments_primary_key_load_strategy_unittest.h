@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_COMBINESEGMENTSPRIMARYKEYLOADSTRATEGYTEST_H
-#define __INDEXLIB_COMBINESEGMENTSPRIMARYKEYLOADSTRATEGYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/primarykey/combine_segments_primary_key_load_strategy.h"
@@ -34,5 +33,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(CombineSegmentsPrimaryKeyLoadStrategyTest, Te
 
 INSTANTIATE_TEST_CASE_P(BuildMode, CombineSegmentsPrimaryKeyLoadStrategyTest, testing::Values(0, 1, 2));
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_COMBINESEGMENTSPRIMARYKEYLOADSTRATEGYTEST_H

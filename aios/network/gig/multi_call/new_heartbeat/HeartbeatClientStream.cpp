@@ -67,13 +67,9 @@ bool HeartbeatClientStream::receive(const GigStreamMessage &message) {
 
 void HeartbeatClientStream::receiveCancel(const GigStreamMessage &message, MultiCallErrorCode ec) {
     _hostStats->updateLastHeartbeatTime(false);
-    auto oldMap = getClientMap();
-    if (oldMap) {
-        oldMap->disableAllProvider();
-    }
-    AUTIL_LOG(DEBUG,
-              "cancel message received, server stopped or timeout, host [%s] disabled, this [%p]",
-              getSpec().getAnetSpec(MC_PROTOCOL_GRPC_STREAM).c_str(), this);
+    AUTIL_LOG(WARN, "receive cancel, host [%s] disabled, this [%p], ec [%s]",
+              getSpec().getAnetSpec(MC_PROTOCOL_GRPC_STREAM).c_str(), this, translateErrorCode(ec));
+    disableProvider();
     _notifier->notify();
 }
 
@@ -96,6 +92,15 @@ bool HeartbeatClientStream::tick() {
     }
 }
 
+void HeartbeatClientStream::disableProvider() {
+    auto clientMap = getClientMap();
+    if (clientMap) {
+        clientMap->disableAllProvider();
+        AUTIL_LOG(WARN, "server stopped or timeout, host [%s] disabled, this [%p]",
+                  getSpec().getAnetSpec(MC_PROTOCOL_GRPC_STREAM).c_str(), this);
+    }
+}
+
 void HeartbeatClientStream::fillRequest(NewHeartbeatRequest &request) {
     request.set_rpc_version(GIG_STREAM_HEARTBEAT_VERSION);
     auto clientMap = getClientMap();
@@ -106,7 +111,11 @@ void HeartbeatClientStream::fillRequest(NewHeartbeatRequest &request) {
 
 bool HeartbeatClientStream::doReceive(const NewHeartbeatResponse &response, int64_t netLatencyUs) {
     auto oldMap = getClientMap();
-    if (oldMap && oldMap->update(response, netLatencyUs)) {
+    bool needNotify = false;
+    if (oldMap && oldMap->update(response, netLatencyUs, needNotify)) {
+        if (needNotify) {
+            _notifier->notify();
+        }
         return true;
     }
     auto newClientId = response.client_id();

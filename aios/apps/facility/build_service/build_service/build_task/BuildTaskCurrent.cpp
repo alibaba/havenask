@@ -15,6 +15,10 @@
  */
 #include "build_service/build_task/BuildTaskCurrent.h"
 
+#include <iosfwd>
+
+#include "autil/legacy/legacy_jsonizable.h"
+
 using namespace std;
 
 namespace build_service { namespace build_task {

@@ -1,6 +1,11 @@
 #include "build_service/util/test/FakeSwiftClient.h"
 
+#include <iosfwd>
+
+#include "alog/Logger.h"
 #include "build_service/util/test/FakeSwiftWriter.h"
+#include "swift/client/SwiftClientConfig.h"
+#include "swift/network/SwiftAdminAdapter.h"
 
 using namespace std;
 using namespace swift::client;

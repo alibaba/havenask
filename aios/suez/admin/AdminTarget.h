@@ -34,6 +34,8 @@ namespace catalog {
 class Table;
 class Partition;
 struct PartitionId;
+class LoadStrategy;
+class TableGroup;
 } // namespace catalog
 
 namespace catalog {
@@ -75,11 +77,14 @@ struct GenerationInfo final : public autil::legacy::Jsonizable {
               const std::string &tempaltePath,
               const catalog::Table *table,
               const catalog::Partition *part,
-              const std::map<catalog::PartitionId, catalog::proto::Build> &builds);
+              const std::map<catalog::PartitionId, std::map<uint32_t, catalog::proto::Build>> &builds,
+              const catalog::LoadStrategy *loadStrategy);
     bool uploadFile(const std::string &srcPath, const std::string &content);
     bool genPartitions(int32_t shardCount, int32_t roleId = 1, int32_t roleCount = 1);
     bool splitPartitions(const PartitionInfoMap &oldPartitions, int32_t shardCount, int32_t roleId, int32_t roleCount);
     bool uploadSchema(const std::string &indexRoot, const catalog::Table *table);
+    bool getLatestReadyBuild(const std::map<uint32_t, catalog::proto::Build> &partBuild,
+                             catalog::proto::Build &latestBuild);
 
     uint32_t generationId;
     std::string configPath;
@@ -107,7 +112,8 @@ public:
     bool fillTableInfos(const std::string &rootPath,
                         const std::string &templatePath,
                         const std::vector<const catalog::Table *> &tables,
-                        const std::map<catalog::PartitionId, catalog::proto::Build> &builds);
+                        const std::map<catalog::PartitionId, std::map<uint32_t, catalog::proto::Build>> &builds,
+                        const catalog::TableGroup *tableGroup);
     autil::Result<ZoneTarget> split(int32_t idx, int32_t totalRoleCount) const;
 
     bool operator==(const ZoneTarget &other) const;

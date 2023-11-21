@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMNORMALINDEXSEGMENTREADERTEST_H
-#define __INDEXLIB_INMEMNORMALINDEXSEGMENTREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/field_schema.h"
@@ -29,5 +28,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(InMemNormalIndexSegmentReaderTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INMEMNORMALINDEXSEGMENTREADERTEST_H

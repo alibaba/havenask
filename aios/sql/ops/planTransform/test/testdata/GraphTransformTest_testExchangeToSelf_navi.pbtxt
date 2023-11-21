@@ -1,13 +1,14 @@
+version: 196608
 sub_graphs {
   nodes {
     name: "6"
     kernel_name: "sql.LimitKernel"
-    json_attrs: "{\"source_spec\":\"\",\"op_id\":10006,\"limit\":100,\"location\":{\"partition_cnt\":1,\"table_group_name\":\"qrs\"},\"offset\":0,\"op_scope\":\"default\",\"output_distribution\":{\"hash_mode\":{\"hash_function\":\"INVALID\"},\"partition_cnt\":1,\"type\":\"SINGLETON\"},\"output_fields_hash\":-1847300724}"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10006,\"limit\":100,\"location\":{\"partition_cnt\":1,\"node_name\":\"qrs\"},\"offset\":0,\"op_scope\":\"default\",\"output_distribution\":{\"hash_mode\":{\"hash_function\":\"INVALID\"},\"partition_cnt\":1,\"type\":\"SINGLETON\"},\"output_fields_hash\":-1847300724}"
   }
   nodes {
     name: "7"
     kernel_name: "sql.SinkKernel"
-    json_attrs: "{\"source_spec\":\"\",\"op_id\":10007,\"location\":{\"partition_cnt\":1,\"table_group_name\":\"qrs\"},\"op_scope\":\"default\",\"output_distribution\":{\"hash_mode\":{\"hash_function\":\"INVALID\"},\"partition_cnt\":1,\"type\":\"SINGLETON\"},\"output_fields_hash\":-1847300724,\"type\":\"api\"}"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10007,\"location\":{\"partition_cnt\":1,\"node_name\":\"qrs\"},\"op_scope\":\"default\",\"output_distribution\":{\"hash_mode\":{\"hash_function\":\"INVALID\"},\"partition_cnt\":1,\"type\":\"SINGLETON\"},\"output_fields_hash\":-1847300724,\"type\":\"api\"}"
   }
   nodes {
     name: "merge:3:2"
@@ -67,11 +68,15 @@ sub_graphs {
       node: "merge:3:2"
     }
   }
+  option {
+    error_handle_strategy: EHS_ERROR_AS_EOF
+  }
   binary_attrs {
     key: "table_distribution"
     value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
   }
-  scopes: 0
+  scopes {
+  }
   next_scope_id: 1
 }
 sub_graphs {
@@ -79,17 +84,17 @@ sub_graphs {
   nodes {
     name: "2"
     kernel_name: "sql.LookupJoinKernel"
-    json_attrs: "{\"source_spec\":\"\",\"op_id\":10002,\"build_node\":{\"catalog_name\":\"default\",\"db_name\":\"db1\",\"limit\":2147483647,\"output_fields\":[\"$id\"],\"output_fields_internal\":[\"$id\"],\"output_fields_internal_type\":[\"BIGINT\"],\"output_fields_type\":[\"BIGINT\"],\"push_down_ops\":[{\"attrs\":{\"output_fields\":[\"$id\"],\"output_fields_type\":[\"BIGINT\"]},\"op_name\":\"CalcOp\"}],\"table_distribution\":{\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5},\"table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"}]},\"table_name\":\"tj_item\",\"table_type\":\"normal\",\"use_nest_table\":false,\"used_fields\":[\"$id\"]},\"condition\":{\"op\":\"=\",\"params\":[\"$id\",\"$id0\"],\"type\":\"OTHER\"},\"equi_condition\":{\"op\":\"=\",\"params\":[\"$id\",\"$id0\"],\"type\":\"OTHER\"},\"is_equi_join\":true,\"is_internal_build\":false,\"join_type\":\"LEFT\",\"left_input_fields\":[\"$id\"],\"left_is_build\":false,\"left_table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"}]},\"location\":{\"partition_cnt\":5,\"table_group_name\":\"searcher\"},\"op_scope\":\"default\",\"output_distribution\":{\"equal_hash_fields\":[[\"id0\",\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id0\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"},\"output_fields\":[\"$id\",\"$id0\"],\"output_fields_hash\":-1333272614,\"output_fields_internal\":[\"$id\",\"$id0\"],\"output_fields_type\":[\"BIGINT\",\"BIGINT\"],\"right_input_fields\":[\"$id\"],\"right_table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"}]},\"semi_join_type\":\"LEFT\",\"system_field_num\":0}"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10002,\"build_node\":{\"catalog_name\":\"default\",\"db_name\":\"db1\",\"limit\":2147483647,\"output_fields\":[\"$id\"],\"output_fields_internal\":[\"$id\"],\"output_fields_internal_type\":[\"BIGINT\"],\"output_fields_type\":[\"BIGINT\"],\"push_down_ops\":[{\"attrs\":{\"output_fields\":[\"$id\"],\"output_fields_type\":[\"BIGINT\"]},\"op_name\":\"CalcOp\"}],\"table_distribution\":{\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5},\"table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"}]},\"table_name\":\"tj_item\",\"table_type\":\"normal\",\"use_nest_table\":false,\"used_fields\":[\"$id\"]},\"condition\":{\"op\":\"=\",\"params\":[\"$id\",\"$id0\"],\"type\":\"OTHER\"},\"equi_condition\":{\"op\":\"=\",\"params\":[\"$id\",\"$id0\"],\"type\":\"OTHER\"},\"is_equi_join\":true,\"is_internal_build\":false,\"join_type\":\"LEFT\",\"left_input_fields\":[\"$id\"],\"left_is_build\":false,\"left_table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"}]},\"location\":{\"partition_cnt\":5,\"node_name\":\"searcher\"},\"op_scope\":\"default\",\"output_distribution\":{\"equal_hash_fields\":[[\"id0\",\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id0\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"},\"output_fields\":[\"$id\",\"$id0\"],\"output_fields_hash\":-1333272614,\"output_fields_internal\":[\"$id\",\"$id0\"],\"output_fields_type\":[\"BIGINT\",\"BIGINT\"],\"right_input_fields\":[\"$id\"],\"right_table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"}]},\"semi_join_type\":\"LEFT\",\"system_field_num\":0}"
   }
   nodes {
     name: "3"
     kernel_name: "sql.CalcKernel"
-    json_attrs: "{\"source_spec\":\"\",\"op_id\":10003,\"location\":{\"partition_cnt\":5,\"table_group_name\":\"searcher\"},\"op_scope\":\"default\",\"output_distribution\":{\"equal_hash_fields\":[[\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"},\"output_fields\":[\"$id\"],\"output_fields_hash\":-1847300724,\"output_fields_type\":[\"BIGINT\"]}"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10003,\"location\":{\"partition_cnt\":5,\"node_name\":\"searcher\"},\"op_scope\":\"default\",\"output_distribution\":{\"equal_hash_fields\":[[\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"},\"output_fields\":[\"$id\"],\"output_fields_hash\":-1847300724,\"output_fields_type\":[\"BIGINT\"]}"
   }
   nodes {
     name: "4"
     kernel_name: "sql.LimitKernel"
-    json_attrs: "{\"source_spec\":\"\",\"op_id\":10004,\"limit\":100,\"location\":{\"partition_cnt\":5,\"table_group_name\":\"searcher\"},\"offset\":0,\"op_scope\":\"default\",\"output_distribution\":{\"equal_hash_fields\":[[\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"},\"output_fields_hash\":-1847300724}"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10004,\"limit\":100,\"location\":{\"partition_cnt\":5,\"node_name\":\"searcher\"},\"offset\":0,\"op_scope\":\"default\",\"output_distribution\":{\"equal_hash_fields\":[[\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"},\"output_fields_hash\":-1847300724}"
   }
   nodes {
     name: "merge:1:0"
@@ -216,11 +221,15 @@ sub_graphs {
       node: "split:2:3"
     }
   }
+  option {
+    error_handle_strategy: EHS_ERROR_AS_EOF
+  }
   binary_attrs {
     key: "table_distribution"
     value: "{\"equal_hash_fields\":[[\"id\"]],\"hash_mode\":{\"hash_fields\":[\"$id\"],\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"HASH_DISTRIBUTED\"}"
   }
-  scopes: 0
+  scopes {
+  }
   next_scope_id: 1
 }
 sub_graphs {
@@ -228,7 +237,7 @@ sub_graphs {
   nodes {
     name: "0"
     kernel_name: "sql.ScanKernel"
-    json_attrs: "{\"source_spec\":\"\",\"op_id\":10000,\"catalog_name\":\"default\",\"db_name\":\"db1\",\"limit\":2147483647,\"location\":{\"partition_cnt\":5,\"table_group_name\":\"searcher\"},\"op_scope\":\"default\",\"output_distribution\":{\"hash_mode\":{\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"RANDOM_DISTRIBUTED\",\"unique_key_map\":{\"id\":\"default.db1.tj_inshop_item.id\"}},\"output_fields\":[\"$id\"],\"output_fields_hash\":-1847300724,\"output_fields_internal\":[\"$id\"],\"output_fields_internal_type\":[\"BIGINT\"],\"output_fields_type\":[\"BIGINT\"],\"push_down_ops\":[{\"attrs\":{\"condition\":{\"op\":\"=\",\"params\":[\"$shop_id\",100],\"type\":\"OTHER\"},\"output_fields\":[\"$id\"],\"output_fields_type\":[\"BIGINT\"]},\"op_name\":\"CalcOp\"}],\"table_distribution\":{\"hash_mode\":{\"hash_fields\":[\"$shop_id\"],\"hash_function\":\"HASH\"},\"hash_values\":{\"$shop_id\":[\"100\"]},\"partition_cnt\":5},\"table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"},{\"field_name\":\"$shop_id\",\"field_type\":\"int64\",\"index_name\":\"shop_id\",\"index_type\":\"number\",\"is_attribute\":\"true\"}]},\"table_name\":\"tj_inshop_item\",\"table_type\":\"normal\",\"use_nest_table\":false,\"used_fields\":[\"$id\",\"$shop_id\"]}"
+    json_attrs: "{\"source_spec\":\"\",\"op_id\":10000,\"catalog_name\":\"default\",\"db_name\":\"db1\",\"limit\":2147483647,\"location\":{\"partition_cnt\":5,\"node_name\":\"searcher\"},\"op_scope\":\"default\",\"output_distribution\":{\"hash_mode\":{\"hash_function\":\"HASH\"},\"partition_cnt\":5,\"type\":\"RANDOM_DISTRIBUTED\",\"unique_key_map\":{\"id\":\"default.db1.tj_inshop_item.id\"}},\"output_fields\":[\"$id\"],\"output_fields_hash\":-1847300724,\"output_fields_internal\":[\"$id\"],\"output_fields_internal_type\":[\"BIGINT\"],\"output_fields_type\":[\"BIGINT\"],\"push_down_ops\":[{\"attrs\":{\"condition\":{\"op\":\"=\",\"params\":[\"$shop_id\",100],\"type\":\"OTHER\"},\"output_fields\":[\"$id\"],\"output_fields_type\":[\"BIGINT\"]},\"op_name\":\"CalcOp\"}],\"table_distribution\":{\"hash_mode\":{\"hash_fields\":[\"$shop_id\"],\"hash_function\":\"HASH\"},\"hash_values\":{\"$shop_id\":[\"100\"]},\"partition_cnt\":5},\"table_meta\":{\"field_meta\":[{\"field_name\":\"$id\",\"field_type\":\"int64\",\"index_name\":\"id\",\"index_type\":\"primarykey128\",\"is_attribute\":\"true\"},{\"field_name\":\"$shop_id\",\"field_type\":\"int64\",\"index_name\":\"shop_id\",\"index_type\":\"number\",\"is_attribute\":\"true\"}]},\"table_name\":\"tj_inshop_item\",\"table_type\":\"normal\",\"use_nest_table\":false,\"used_fields\":[\"$id\",\"$shop_id\"]}"
   }
   nodes {
     name: "split:0:1"
@@ -296,11 +305,15 @@ sub_graphs {
       node: "split:0:1"
     }
   }
+  option {
+    error_handle_strategy: EHS_ERROR_AS_EOF
+  }
   binary_attrs {
     key: "table_distribution"
     value: "{\"hash_mode\":{\"hash_fields\":[\"$shop_id\"],\"hash_function\":\"HASH\"},\"hash_values\":{\"$shop_id\":[\"100\"]},\"partition_cnt\":5,\"type\":\"RANDOM_DISTRIBUTED\",\"unique_key_map\":{\"id\":\"default.db1.tj_inshop_item.id\"}}"
   }
-  scopes: 0
+  scopes {
+  }
   next_scope_id: 1
 }
 counter_info {

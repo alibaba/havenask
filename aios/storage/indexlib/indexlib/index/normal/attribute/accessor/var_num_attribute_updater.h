@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VAR_NUM_ATTRIBUTE_UPDATER_H
-#define __INDEXLIB_VAR_NUM_ATTRIBUTE_UPDATER_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -185,5 +184,3 @@ typedef VarNumAttributeUpdater<float> FloatMultiValueAttributeUpdater;
 typedef VarNumAttributeUpdater<double> DoubleMultiValueAttributeUpdater;
 typedef VarNumAttributeUpdater<autil::MultiChar> MultiStringAttributeUpdater;
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VAR_NUM_ATTRIBUTE_UPDATER_H

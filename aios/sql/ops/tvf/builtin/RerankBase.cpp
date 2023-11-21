@@ -220,7 +220,7 @@ bool RerankBase::makeGroup(const table::TablePtr &table,
         SQL_LOG(ERROR, "Failed to check quota field");
         return false;
     }
-    SQL_LOG(DEBUG, "Check quota field success");
+    SQL_LOG(TRACE3, "Check quota field success");
 
     std::vector<size_t> hashValues;
     hashValues.resize(_quotaFieldValues.size());

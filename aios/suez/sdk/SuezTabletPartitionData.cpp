@@ -44,7 +44,7 @@ bool SuezTabletPartitionData::getDataTimestamp(int64_t &dataTimestamp) const {
         return false;
     }
     auto latestLocator = _tablet->GetTabletInfos()->GetLatestLocator();
-    dataTimestamp = build_service::util::LocatorUtil::GetSwiftWatermark(latestLocator);
+    dataTimestamp = build_service::util::LocatorUtil::getSwiftWatermark(latestLocator);
     return true;
 }
 

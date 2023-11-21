@@ -15,6 +15,8 @@
  */
 #include "indexlib/framework/TabletFault.h"
 
+#include <algorithm>
+
 #include "autil/TimeUtility.h"
 
 namespace indexlibv2::framework {

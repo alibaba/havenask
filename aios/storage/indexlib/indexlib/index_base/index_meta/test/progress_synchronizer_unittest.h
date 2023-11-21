@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PROGRESSSYNCHRONIZERTEST_H
-#define __INDEXLIB_PROGRESSSYNCHRONIZERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/progress_synchronizer.h"
@@ -36,5 +35,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(ProgressSynchronizerTest, TestSimpleProcess);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_PROGRESSSYNCHRONIZERTEST_H

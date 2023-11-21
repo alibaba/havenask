@@ -1,6 +1,15 @@
 #include "build_service/config/BuilderConfig.h"
 
+#include <cstddef>
+#include <memory>
+#include <stdint.h>
+#include <string>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/test/unittest.h"
+#include "indexlib/config/SortDescription.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil::legacy;

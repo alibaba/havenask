@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIREGIONKKVKEYSEXTRACTORTEST_H
-#define __INDEXLIB_MULTIREGIONKKVKEYSEXTRACTORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_parser/kv_parser/multi_region_kkv_keys_extractor.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(MultiRegionKkvKeysExtractorTest, TestSimpleProcess);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_MULTIREGIONKKVKEYSEXTRACTORTEST_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVREADERIMPLFACTORYTEST_H
-#define __INDEXLIB_KVREADERIMPLFACTORYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/kv_index_config.h"
@@ -44,5 +43,3 @@ INDEXLIB_UNIT_TEST_CASE(KVReaderCreatorTest, TestGetKVTypeId);
 INDEXLIB_UNIT_TEST_CASE(KVReaderCreatorTest, TestCreate);
 INDEXLIB_UNIT_TEST_CASE(KVReaderCreatorTest, TestCompactHashKeyInKVTypeId);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KVREADERIMPLFACTORYTEST_H

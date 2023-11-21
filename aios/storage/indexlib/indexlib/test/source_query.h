@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SOURCE_QUERY_H
-#define __INDEXLIB_SOURCE_QUERY_H
+#pragma once
 
 #include <memory>
 
@@ -17,20 +16,18 @@ public:
     ~SourceQuery();
 
 public:
-    bool Init(index::PostingIterator* iter, std::string indexName, index::groupid_t groupId);
-    index::groupid_t GetGroupId() const;
+    bool Init(index::PostingIterator* iter, std::string indexName, index::sourcegroupid_t groupId);
+    index::sourcegroupid_t GetGroupId() const;
     virtual docid_t Seek(docid_t docid) override;
     virtual pos_t SeekPosition(pos_t pos) override;
     std::string GetIndexName() const;
 
 private:
     index::PostingIterator* mIter;
-    index::groupid_t mGroupId;
+    index::sourcegroupid_t mGroupId;
     std::string mIndexName;
     IE_LOG_DECLARE();
 };
 
 DEFINE_SHARED_PTR(SourceQuery);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_SOURCE_QUERY_H

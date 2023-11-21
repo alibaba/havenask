@@ -8,7 +8,7 @@
 using namespace std;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, IndexPartitionOptionsTest);
+AUTIL_LOG_SETUP(indexlib.config, IndexPartitionOptionsTest);
 
 IndexPartitionOptionsTest::IndexPartitionOptionsTest() {}
 

@@ -15,16 +15,26 @@
  */
 #include "indexlib/merger/merge_partition_data.h"
 
+#include <assert.h>
+#include <iosfwd>
+
+#include "alog/Logger.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/FileCompressSchema.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/file_system/LocalDirectory.h"
-#include "indexlib/index_base/index_meta/version_loader.h"
-#include "indexlib/index_base/segment/in_memory_segment.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
+#include "indexlib/framework/LevelInfo.h"
+#include "indexlib/framework/SegmentInfo.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/segment/offline_segment_directory.h"
 #include "indexlib/index_base/segment/partition_segment_iterator.h"
 #include "indexlib/index_base/segment/segment_data.h"
 #include "indexlib/index_base/segment/segment_directory.h"
 #include "indexlib/index_base/segment/segment_directory_creator.h"
+#include "indexlib/index_base/segment/segment_iterator.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace indexlib::index;

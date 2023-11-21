@@ -1,6 +1,7 @@
 #include "indexlib/partition/test/partition_resource_calculator_unittest.h"
 
 #include "indexlib/common/file_system_factory.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
 #include "indexlib/index_base/index_meta/version.h"
@@ -10,7 +11,6 @@
 #include "indexlib/partition/operation_queue/test/mock_operation.h"
 #include "indexlib/test/directory_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"
 
@@ -177,7 +177,7 @@ void PartitionResourceCalculatorTest::TestEstimateLoadPatchMemoryUse()
     PartitionResourceCalculatorPtr calcular(new PartitionResourceCalculator(options.GetOnlineConfig()));
     Version invalidVersion;
     Version version;
-    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
 
     FileSystemOptions fsOptions = FileSystemFactory::CreateFileSystemOptions(
         GET_TEMP_DATA_PATH(), options, MemoryQuotaControllerCreator::CreatePartitionMemoryController(),

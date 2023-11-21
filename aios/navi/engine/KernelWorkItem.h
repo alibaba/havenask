@@ -27,8 +27,7 @@ class Node;
 class KernelWorkItem : public NaviWorkerItem
 {
 public:
-    KernelWorkItem(NaviWorkerBase *worker,
-                   Node *node);
+    KernelWorkItem(NaviWorkerBase *worker, Node *node, bool collectPerf);
 public:
     void doProcess() override;
     friend class TestEngine;

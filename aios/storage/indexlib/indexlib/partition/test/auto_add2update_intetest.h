@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_AUTOADD2UPDATETEST_H
-#define __INDEXLIB_AUTOADD2UPDATETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -32,5 +31,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(AutoAdd2updateTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(AutoAdd2updateTest, TestIncCoverRt);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(AutoAdd2updateTest, TestBug_22229643);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_AUTOADD2UPDATETEST_H

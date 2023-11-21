@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MULTI_PARTITION_MERGER_H
-#define __INDEXLIB_MULTI_PARTITION_MERGER_H
+#pragma once
 
-#include <memory>
+#include <algorithm>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/file_system/Directory.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
+#include "indexlib/index_base/index_meta/partition_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/index_partition_merger.h"
 #include "indexlib/merger/multi_part_segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/metrics/MetricProvider.h"
-
-DECLARE_REFERENCE_CLASS(plugin, PluginManager);
 
 namespace indexlib { namespace merger {
 class MultiPartitionMerger
@@ -94,5 +97,3 @@ private:
 
 DEFINE_SHARED_PTR(MultiPartitionMerger);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MULTI_PARTITION_MERGER_H

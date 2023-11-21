@@ -15,9 +15,18 @@
  */
 #include "indexlib/framework/TabletReaderContainer.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <type_traits>
+#include <utility>
+
 #include "indexlib/base/Constant.h"
 #include "indexlib/file_system/DeployIndexMeta.h"
+#include "indexlib/file_system/FileInfo.h"
+#include "indexlib/file_system/IndexFileList.h"
+#include "indexlib/framework/Segment.h"
 #include "indexlib/framework/VersionDeployDescription.h"
+#include "indexlib/framework/index_task/IndexTaskHistory.h"
 
 namespace indexlibv2::framework {
 

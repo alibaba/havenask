@@ -1,5 +1,8 @@
 package com.taobao.search.iquan.core.rel.visitor.sqlshuttle;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import org.apache.calcite.sql.SqlDynamicParam;
@@ -7,9 +10,6 @@ import org.apache.calcite.sql.SqlLiteral;
 import org.apache.calcite.sql.SqlNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SqlDynamicParamsShuttle extends SqlDeepCopyShuttle {
     private static final Logger logger = LoggerFactory.getLogger(SqlDynamicParamsShuttle.class);
@@ -19,6 +19,21 @@ public class SqlDynamicParamsShuttle extends SqlDeepCopyShuttle {
 
     private SqlDynamicParamsShuttle(List<List<Object>> dynamicParams) {
         this.dynamicParams = dynamicParams;
+    }
+
+    public static List<SqlNode> go(List<List<Object>> dynamicParams, List<SqlNode> roots) {
+        assert dynamicParams.size() == roots.size();
+
+        SqlDynamicParamsShuttle sqlShuttle = new SqlDynamicParamsShuttle(dynamicParams);
+        List<SqlNode> newRoots = new ArrayList<>();
+
+        for (int i = 0; i < roots.size(); ++i) {
+            sqlShuttle.setIndex(i);
+            newRoots.add(
+                    roots.get(i).accept(sqlShuttle)
+            );
+        }
+        return newRoots;
     }
 
     private void setIndex(int index) {
@@ -51,20 +66,5 @@ public class SqlDynamicParamsShuttle extends SqlDeepCopyShuttle {
 
         throw new SqlQueryException(IquanErrorCode.IQUAN_EC_DYNAMIC_PARAMS_UNSUPPORT_PARAM_TYPE,
                 String.format("sql[%d], param[%d], value[%s]", index, i, actualParam.toString()));
-    }
-
-    public static List<SqlNode> go(List<List<Object>> dynamicParams, List<SqlNode> roots) {
-        assert dynamicParams.size() == roots.size();
-
-        SqlDynamicParamsShuttle sqlShuttle = new SqlDynamicParamsShuttle(dynamicParams);
-        List<SqlNode> newRoots = new ArrayList<>();
-
-        for (int i = 0; i < roots.size(); ++i) {
-            sqlShuttle.setIndex(i);
-            newRoots.add(
-                    roots.get(i).accept(sqlShuttle)
-            );
-        }
-        return newRoots;
     }
 }

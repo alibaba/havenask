@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_LOG_H
-#define ISEARCH_BS_LOG_H
+#pragma once
 
 #include <iostream>
 
@@ -114,5 +113,3 @@
             logTimestamp = now;                                                                                        \
         }                                                                                                              \
     } while (0)
-
-#endif // ISEARCH_BS_LOG_H

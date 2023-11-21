@@ -33,7 +33,7 @@ protected:
     std::pair<Status, size_t> GetLastSegmentMemUse(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                                                    const indexlib::framework::SegmentMetrics* metrics) const override;
     void PrepareIndexerParameter(const framework::BuildResource& resource, int64_t maxMemoryUseInBytes,
-                                 index::IndexerParameter& indexerParam) const override;
+                                 index::MemIndexerParameter& indexerParam) const override;
 
 private:
     bool _hasCheckPKValueIndex = false;

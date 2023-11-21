@@ -55,7 +55,7 @@ SuezTabletPartition::SuezTabletPartition(const TableResource &tableResource,
     , _executor(tableResource.executor)
     , _dumpExecutor(tableResource.dumpExecutor)
     , _taskScheduler(tableResource.taskScheduler) {
-    // Tablet mode support load empty version, target starts from INVALID_VERSION
+    // Tablet mode support load empty version, target starts from indexlib::INVALID_VERSIONID
     // make sure target_version > current_version to invoke a load
     _partitionMeta->setIncVersion(getUnloadedIncVersion());
 }
@@ -84,8 +84,8 @@ pair<bool, TableVersion> SuezTabletPartition::commit() {
 }
 
 DeployStatus SuezTabletPartition::doDeployIndex(const TargetPartitionMeta &target, bool distDeploy) {
-    if (target.getIncVersion() == INVALID_VERSION) {
-        SUEZ_PREFIX_LOG(INFO, "target inc version is %d, do not need deploy", INVALID_VERSION);
+    if (target.getIncVersion() == indexlib::INVALID_VERSIONID) {
+        SUEZ_PREFIX_LOG(INFO, "target inc version is %d, do not need deploy", indexlib::INVALID_VERSIONID);
         return DS_DEPLOYDONE;
     }
     return SuezIndexPartition::doDeployIndex(target, distDeploy);
@@ -140,8 +140,12 @@ TableBuilder *SuezTabletPartition::createTableBuilder(IIndexlibAdapter *indexlib
     if (!getBsPartitionId(properties, pid)) {
         return nullptr;
     }
-    build_service::workflow::RealtimeBuilderResource rtResource(
-        _metricsReporter, nullptr, _swiftClientCreator, _globalBuilderThreadResource, properties.realtimeInfo);
+    build_service::workflow::RealtimeBuilderResource rtResource(_metricsReporter,
+                                                                nullptr,
+                                                                _swiftClientCreator,
+                                                                properties.rawIndexRoot,
+                                                                _globalBuilderThreadResource,
+                                                                properties.realtimeInfo);
     rtResource.executor = _executor;
     rtResource.taskScheduler2 = _taskScheduler;
     return indexlibAdapter->createBuilder(pid, rtResource, properties);
@@ -186,6 +190,7 @@ SuezTabletPartition::createMergeController(const PartitionProperties &properties
         param.rangeTo = static_cast<uint16_t>(_pid.to);
         param.configPath = properties.remoteConfigPath;
         param.bsServerAddress = properties.realtimeInfo.getBsServerAddress();
+        param.appName = properties.realtimeInfo.getAppName();
         if (pid.buildid().has_datatable()) {
             param.dataTable = pid.buildid().datatable();
         }

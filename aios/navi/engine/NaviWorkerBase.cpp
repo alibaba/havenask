@@ -19,8 +19,8 @@
 #include "aios/network/gig/multi_call/interface/QuerySession.h"
 #include "aios/network/opentelemetry/core/eagleeye/EagleeyeUtil.h"
 #include "navi/engine/BizManager.h"
-#include "navi/engine/NaviSnapshot.h"
-#include "navi/engine/NaviThreadPool.h"
+#include "navi/engine/ComputeScope.h"
+#include "navi/engine/TaskQueue.h"
 #include "navi/log/TraceAppender.h"
 #include "navi/resource/GigClientR.h"
 #include "navi/util/CommonUtil.h"
@@ -33,7 +33,7 @@ thread_local extern size_t current_thread_wait_counter;
 
 void NaviWorkerItem::process() {
     if (!_worker->isStopped()) {
-        auto collectPerf = _worker->collectPerf();
+        auto collectPerf = _collectPerf;
         if (collectPerf) {
             _worker->enablePerf();
         }
@@ -91,7 +91,7 @@ void NaviNoDropWorkerItem::drop() {
 
 void NaviNoDropWorkerItem::doWork() {
     if (!_done) {
-        auto collectPerf = _worker->collectPerf();
+        auto collectPerf = _collectPerf;
         if (collectPerf) {
             _worker->enablePerf();
         }
@@ -105,30 +105,6 @@ void NaviNoDropWorkerItem::doWork() {
         }
     }
 }
-
-class NaviSessionDestructItem : public NaviThreadPoolItemBase
-{
-public:
-    NaviSessionDestructItem(NaviSnapshot *snapshot, TaskQueue *taskQueue)
-        : _snapshot(snapshot)
-        , _taskQueue(taskQueue)
-    {
-    }
-public:
-    void process() override {
-        if (_snapshot) {
-            _snapshot->onSessionDestruct(_taskQueue);
-            _snapshot = nullptr;
-        }
-    }
-    void destroy() override {
-        process();
-        delete this;
-    }
-private:
-    NaviSnapshot *_snapshot;
-    TaskQueue *_taskQueue;
-};
 
 class WorkerDestructItem : public NaviThreadPoolItemBase
 {
@@ -152,32 +128,38 @@ private:
     NaviWorkerBase *_worker;
 };
 
+void NaviWorkerBase::WorkerInitItem::doProcess()  {
+    ComputeScope scope(_worker->_metric.get(), GET_GRAPH_INIT, 0, _worker,
+                       _schedInfo, _worker->_collectMetric, _collectPerf);
+    _worker->run();
+}
+
 NaviWorkerBase::NaviWorkerBase(
-        const NaviLoggerPtr &logger,
         TaskQueue *taskQueue,
         BizManager *bizManager,
         NaviUserResultClosure *closure)
-    : _logger(this, "session", logger)
+    : _logger(this, "session")
     , _metricsReporter(nullptr)
     , _bizManager(bizManager)
-    , _errorCode(EC_NONE)
     , _finish(false)
+    , _testMode(TM_NONE)
     , _initSuccess(false)
-    , _threadPool(taskQueue->threadPool.get())
+    , _threadPool(taskQueue->getThreadPool())
     , _taskQueue(taskQueue)
-    , _snapshot(nullptr)
     , _naviPerf(nullptr)
     , _evTimer(nullptr)
-    , _collectPerf(false)
+    , _hostInfo(nullptr)
     , _threadLimit(DEFAULT_THREAD_LIMIT)
     , _maxInline(DEFAULT_MAX_INLINE)
+    , _collectPerf(false)
+    , _metric(std::make_shared<KernelMetric>(INVALID_GRAPH_ID, "navi.graph_init", ""))
 {
-    _metricsCollector.createTime = autil::TimeUtility::currentTime();
+    _metricsCollector.sessionBeginTime = autil::TimeUtility::currentTime();
 
     if (closure) {
-        _userResult.reset(new NaviAsyncUserResult(closure));
+        _userResult = std::make_shared<NaviAsyncUserResult>(closure);
     } else {
-        _userResult.reset(new NaviSyncUserResult());
+        _userResult = std::make_shared<NaviSyncUserResult>();
     }
     _userResult->setWorker(this);
     initCounters();
@@ -186,6 +168,7 @@ NaviWorkerBase::NaviWorkerBase(
 
 NaviWorkerBase::~NaviWorkerBase() {
     if (_metricsReporter) {
+        fillResultMetrics();
         _metricsReporter->report<RunGraphMetrics>(nullptr, &_metricsCollector);
     }
     assert(_scheduleQueue.Empty());
@@ -198,15 +181,8 @@ void NaviWorkerBase::setMetricsReporter(kmonitor::MetricsReporter &reporter)
     _metricsReporter = reporter.getSubReporter("kmon.sql", {});
 }
 
-bool NaviWorkerBase::init(const RunGraphParams &params,
-                          const std::shared_ptr<multi_call::QueryInfo> &queryInfo)
-{
-    initRunParams(params);
-    return initGraph(params, queryInfo);
-}
-
-void NaviWorkerBase::setRunStartTime(int64_t runStartTime) {
-    _metricsCollector.runStartTime = runStartTime;
+void NaviWorkerBase::setNewSessionLatency(int64_t newSessionLatency) {
+    _metricsCollector.newSessionLatency = newSessionLatency;
 }
 
 void NaviWorkerBase::setDestructThreadPool(
@@ -222,8 +198,11 @@ void NaviWorkerBase::setNaviPerf(NaviPerf *naviPerf) {
 void NaviWorkerBase::setNaviSymbolTable(
     const NaviSymbolTablePtr &naviSymbolTable)
 {
-    auto naviResult = _userResult->getNaviResult();
-    naviResult->graphMetric.setNaviSymbolTable(naviSymbolTable);
+    _naviSymbolTable = naviSymbolTable;
+}
+
+const NaviSymbolTablePtr &NaviWorkerBase::getNaviSymbolTable() const {
+    return _naviSymbolTable;
 }
 
 void NaviWorkerBase::setEvTimer(EvTimer *evTimer) {
@@ -234,16 +213,12 @@ EvTimer *NaviWorkerBase::getEvTimer() const {
     return _evTimer;
 }
 
-bool NaviWorkerBase::collectPerf() const {
-    return _collectPerf;
+bool NaviWorkerBase::enablePerf() {
+    return _naviPerf->enable(current_thread_id);
 }
 
-void NaviWorkerBase::enablePerf() {
-    _naviPerf->enable(current_thread_id);
-}
-
-void NaviWorkerBase::disablePerf() {
-    _naviPerf->disable(current_thread_id);
+bool NaviWorkerBase::disablePerf() {
+    return _naviPerf->disable(current_thread_id);
 }
 
 void NaviWorkerBase::beginSample() {
@@ -254,60 +229,71 @@ NaviPerfResultPtr NaviWorkerBase::endSample() {
     return _naviPerf->endSample(current_thread_id);
 }
 
-void NaviWorkerBase::initRunParams(const RunGraphParams &params) {
-    auto sessionId = params.getSessionId();
-    if (sessionId.valid()) {
-        _logger.logger->setLoggerId(sessionId);
-    } else {
-        sessionId = _logger.logger->getLoggerId();
-    }
-    _userResult->getNaviResult()->setSessionId(sessionId);
-    auto naviResult = _userResult->getNaviResult();
-    naviResult->setCollectMetric(params.collectMetric());
-    naviResult->setTraceFormatPattern(params.getTraceFormatPattern());
-    _collectPerf = params.collectPerf();
-    _threadLimit = params.getThreadLimit();
-    _maxInline = params.getMaxInline();
+ScheduleInfo NaviWorkerBase::makeInlineSchedInfo() {
+    auto time = CommonUtil::getTimelineTimeNs();
+    auto threadId = current_thread_id;
+    ScheduleInfo schedInfo;
+    schedInfo.enqueueTime = time;
+    schedInfo.dequeueTime = time;
+    schedInfo.schedTid = threadId;
+    schedInfo.signalTid = threadId;
+    schedInfo.processTid = threadId;
+    schedInfo.runningThread = getRunningThreadCount();
+    schedInfo.threadCounter = current_thread_counter;
+    schedInfo.threadWaitCounter = current_thread_wait_counter;
+    schedInfo.queueSize = getQueueSize();
+    return schedInfo;
 }
 
-bool NaviWorkerBase::initGraph(const RunGraphParams &runParams,
-                               const std::shared_ptr<multi_call::QueryInfo> &queryInfo)
+bool NaviWorkerBase::init(
+    const RunGraphParams &runParams,
+    const std::shared_ptr<multi_call::QueryInfo> &queryInfo)
 {
-    auto param = new GraphParam();
-    param->logger = _logger.logger;
-    param->bizManager = _bizManager;
-    param->creatorManager = _bizManager->getBuildinCreatorManager().get();
-    param->graphMetric = _userResult->getNaviResult()->getGraphMetric();
-    param->worker = this;
-    param->runParams = runParams;
-    param->runParams.setSessionId(_logger.logger->getLoggerId());
+    _collectMetric = runParams.collectMetric();
+    _collectPerf = runParams.collectPerf();
+    auto schedInfo = makeInlineSchedInfo();
+    ComputeScope scope(_metric.get(), GET_GRAPH_INIT_PREPARE, 0, this,
+                       schedInfo, _collectMetric, _collectPerf);
     if (!_logger.logger->hasTraceAppender()) {
-        const auto &traceLevel = runParams.getTraceLevel();
-        auto traceAppender = new TraceAppender(traceLevel);
-        param->runParams.fillFilterParam(traceAppender);
+        const auto &traceLevel = runParams.getTraceLevelStr();
+        auto traceAppender = std::make_shared<TraceAppender>(traceLevel);
+        runParams.fillFilterParam(traceAppender.get());
         _logger.logger->setTraceAppender(traceAppender);
-        NAVI_LOG(DEBUG, "finish init tracer with level[%s]", traceLevel.c_str());
     }
-    tryCreateQuerySession(runParams.getQuerySession(), queryInfo, param);
+    _threadLimit = runParams.getThreadLimit();
+    _maxInline = runParams.getMaxInline();
+    auto param = new GraphParam();
+    auto sessionId = _logger.logger->getLoggerId();
+    if (!param->init(sessionId, this, _logger.logger, runParams,
+                     _naviSymbolTable, _hostInfo))
+    {
+        delete param;
+        return false;
+    }
+    if (_collectMetric || _collectPerf) {
+        param->graphResult->getGraphMetric()->addKernelMetric(NAVI_BUILDIN_BIZ,
+                                                              _metric);
+    }
+    param->querySession = tryCreateQuerySession(runParams.getQuerySession(), queryInfo);
+    _userResult->setGraphResult(param->graphResult);
     return doInit(param);
 }
 
-void NaviWorkerBase::tryCreateQuerySession(const std::shared_ptr<multi_call::QuerySession> &originQuerySession,
-                                           const std::shared_ptr<multi_call::QueryInfo> &queryInfo,
-                                           GraphParam *param)
+std::shared_ptr<multi_call::QuerySession> NaviWorkerBase::tryCreateQuerySession(
+        const std::shared_ptr<multi_call::QuerySession> &originQuerySession,
+        const std::shared_ptr<multi_call::QueryInfo> &queryInfo)
 {
-    auto bizManager = param->bizManager;
-    auto resource = bizManager->getSnapshotResource(GIG_CLIENT_RESOURCE_ID);
+    auto resource = _bizManager->getSnapshotResource(GIG_CLIENT_RESOURCE_ID);
     if (!resource) {
         NAVI_LOG(SCHEDULE1, "get gig client resource failed, skip");
-        return;
+        return nullptr;
     }
     auto gigResource = dynamic_cast<GigClientR *>(resource.get());
     assert(gigResource != nullptr && "gig resource type error");
     auto searchService = gigResource->getSearchService();
     if (!searchService) {
         NAVI_LOG(SCHEDULE1, "get search service failed, skip");
-        return;
+        return nullptr;
     }
     if (originQuerySession) {
         auto querySession = multi_call::QuerySession::createWithOrigin(searchService, originQuerySession);
@@ -316,7 +302,7 @@ void NaviWorkerBase::tryCreateQuerySession(const std::shared_ptr<multi_call::Que
                  querySession->getTraceServerSpan()
                      ? opentelemetry::EagleeyeUtil::getETraceId(querySession->getTraceServerSpan()).c_str()
                      : "");
-        param->querySession = std::move(querySession);
+        return querySession;
     } else {
         auto querySession = std::make_shared<multi_call::QuerySession>(searchService, queryInfo);
         NAVI_LOG(SCHEDULE1,
@@ -325,7 +311,7 @@ void NaviWorkerBase::tryCreateQuerySession(const std::shared_ptr<multi_call::Que
                  querySession->getTraceServerSpan()
                      ? opentelemetry::EagleeyeUtil::getETraceId(querySession->getTraceServerSpan()).c_str()
                      : "");
-        param->querySession = std::move(querySession);
+        return querySession;
     }
 }
 
@@ -334,15 +320,14 @@ void NaviWorkerBase::initCounters() {
     atomic_set(&_processingCount, 0);
 }
 
-void NaviWorkerBase::initSchedule(bool syncMode, NaviSnapshot *snapshot) {
-    NAVI_LOG(SCHEDULE1, "init schedule, syncMode [%d] snapshot [%p]", syncMode, snapshot);
-    _snapshot = snapshot;
+void NaviWorkerBase::initSchedule() {
+    NAVI_LOG(SCHEDULE1, "init schedule with sync mode");
     _metricsCollector.initScheduleTime = autil::TimeUtility::currentTime();
 
     if (_threadPool->incWorkerCount()) {
         _initSuccess = true;
-        auto item = new WorkerInitItem(this);
-        item->setSyncMode(syncMode);
+        auto item = new WorkerInitItem(this, _collectPerf);
+        item->setSyncMode(true);
         schedule(item);
     } else {
         drop();
@@ -391,25 +376,7 @@ const NaviThreadPoolPtr &NaviWorkerBase::getDestructThreadPool() const {
     return _destructThreadPool;
 }
 
-void NaviWorkerBase::setErrorCode(ErrorCode ec) {
-    if (_errorCode == EC_NONE) {
-        if (EC_NONE != ec) {
-            NAVI_LOG(ERROR, "ec: %s", CommonUtil::getErrorString(ec));
-        }
-        _errorCode = ec;
-    }
-}
-
-ErrorCode NaviWorkerBase::getErrorCode() const {
-    return _errorCode;
-}
-
-const NaviObjectLogger &NaviWorkerBase::getLogger() const {
-    return _logger;
-}
-
-void NaviWorkerBase::setFinish(ErrorCode ec) {
-    setErrorCode(ec);
+void NaviWorkerBase::setFinish() {
     NAVI_LOG(SCHEDULE1, "finish");
     // _logger.logger->stop();
     _finish = true;
@@ -443,15 +410,17 @@ void NaviWorkerBase::fillResultMetrics() {
     // for: may enter multiple times
     if (_metricsCollector.fillResultTime == 0) {
         _metricsCollector.fillResultTime = autil::TimeUtility::currentTime();
-
-        auto graphMetricTime = _userResult->getNaviResult()->getGraphMetricTime();
-        _metricsCollector.totalQueueLatency = graphMetricTime.queueUs / 1000;
-        _metricsCollector.totalComputeLatency = graphMetricTime.computeUs / 1000;
-        _metricsCollector.hasError = getErrorCode() != EC_NONE;
-
-        auto rpcInfoMap = _userResult->getNaviResult()->stealRpcInfoMap();
-        _metricsCollector.hasLack = reportRpcLackByBiz(rpcInfoMap);
-        _userResult->getNaviResult()->setRpcInfoMap(std::move(rpcInfoMap));
+        const auto &naviResult = _userResult->getNaviResultWithoutCheck();
+        if (naviResult) {
+            _metricsCollector.totalQueueLatency = naviResult->queueUs / 1000;
+            _metricsCollector.totalComputeLatency =
+                naviResult->computeUs / 1000;
+            _metricsCollector.hasError = (nullptr != naviResult->error);
+            auto rpcInfoMap = naviResult->getRpcInfoMap();
+            if (rpcInfoMap) {
+                _metricsCollector.hasLack = reportRpcLackByBiz(*rpcInfoMap);
+            }
+        }
     }
 }
 
@@ -459,29 +428,9 @@ const NaviUserResultPtr &NaviWorkerBase::getUserResult() const {
     return _userResult;
 }
 
-void NaviWorkerBase::fillResult() {
-    NAVI_LOG(SCHEDULE1, "fill result");
-    finalizeMetaInfoToResult();
-    NaviResult result;
-    auto logger = _logger.logger;
-    result.ec = getErrorCode();
-    result.errorEvent = logger->firstErrorEvent();
-    result.errorBackTrace = logger->firstErrorBackTrace();
-    logger->collectTrace(result.traceCollector);
-    _userResult->appendNaviResult(result);
-    _userResult->getNaviResult()->end();
-
-    fillResultMetrics();
+void NaviWorkerBase::notifyFinish() {
+    NAVI_LOG(SCHEDULE1, "worker finish");
     _userResult->notify(true);
-}
-
-void NaviWorkerBase::appendTrace(TraceCollector &collector) {
-    _userResult->appendTrace(collector);
-}
-
-void NaviWorkerBase::appendResult(NaviResult &result) {
-    setErrorCode(result.ec);
-    _userResult->appendNaviResult(result);
 }
 
 void NaviWorkerBase::dec() {
@@ -512,12 +461,8 @@ void NaviWorkerBase::decItemCount() {
     NAVI_LOG(SCHEDULE2, "dec item count from [%lld]", atomic_read(&_itemCount));
     doSchedule();
     if (unlikely(atomic_dec_return(&_itemCount) == 0)) {
-        NAVI_LOG(SCHEDULE1, "item count clear, snapshot [%p]", _snapshot);
-        if (_snapshot) {
-            auto destructItem = new NaviSessionDestructItem(_snapshot, _taskQueue);
-            _snapshot = nullptr;
-            _threadPool->push(destructItem);
-        }
+        NAVI_LOG(SCHEDULE1, "item count clear");
+        _taskQueue->scheduleNext();
         auto item = new WorkerDestructItem(this);
         _destructThreadPool->push(item);
     }
@@ -560,5 +505,4 @@ void NaviWorkerBase::inlineEnd() const {
     }
 }
 
-TestMode NaviWorkerBase::getTestMode() const { return _snapshot->getTestMode(); }
 }

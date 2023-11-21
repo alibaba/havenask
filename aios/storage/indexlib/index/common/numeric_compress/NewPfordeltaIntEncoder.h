@@ -83,11 +83,15 @@ NewPForDeltaIntEncoder<T, Compressor>::Decode(T* dest, uint32_t destLen,
                                               indexlib::file_system::ByteSliceReader& sliceReader) const
 {
     uint8_t buffer[ENCODER_BUFFER_BYTE_SIZE];
-    uint32_t header = (uint32_t)sliceReader.PeekInt32();
+    auto peekRet = sliceReader.PeekInt32();
+    RETURN_RESULT_IF_FS_ERROR(peekRet.Code(), std::make_pair(peekRet.Status(), 0), "PeekInt32 failed");
+    uint32_t header = (uint32_t)peekRet.Value();
     size_t compLen = _compressor.GetCompressedLength(header) * sizeof(uint32_t);
     assert(compLen <= ENCODER_BUFFER_BYTE_SIZE);
     void* bufPtr = buffer;
-    size_t len = sliceReader.ReadMayCopy(bufPtr, compLen);
+    auto ret = sliceReader.ReadMayCopy(bufPtr, compLen);
+    RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0), "PeekInt32 failed");
+    size_t len = ret.Value();
     if (len != compLen) {
         RETURN2_IF_STATUS_ERROR(Status::Corruption(), 0, "Decode posting FAILED.");
     }

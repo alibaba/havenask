@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OFFLINE_CONFIG_BASE_H
-#define __INDEXLIB_OFFLINE_CONFIG_BASE_H
+#pragma once
 
 #include <memory>
 
 #include "autil/EnvUtil.h"
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/build_config.h"
 #include "indexlib/config/configurator_define.h"
 #include "indexlib/config/merge_config.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -88,10 +87,8 @@ public:
     bool fullIndexStoreKKVTs;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(OfflineConfigBase);
+typedef std::shared_ptr<OfflineConfigBase> OfflineConfigBasePtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_OFFLINE_CONFIG_BASE_H

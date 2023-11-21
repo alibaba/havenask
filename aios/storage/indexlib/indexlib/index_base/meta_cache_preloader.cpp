@@ -47,7 +47,7 @@ MetaCachePreloader::~MetaCachePreloader() {}
 void MetaCachePreloader::Load(const DirectoryPtr& indexDir, versionid_t version)
 {
     std::string indexPath = indexDir->GetOutputPath();
-    if (version == INVALID_VERSION) {
+    if (version == INVALID_VERSIONID) {
         return;
     }
 

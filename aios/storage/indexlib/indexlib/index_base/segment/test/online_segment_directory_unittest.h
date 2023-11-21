@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONLINESEGMENTDIRECTORYTEST_H
-#define __INDEXLIB_ONLINESEGMENTDIRECTORYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/segment/online_segment_directory.h"
@@ -55,5 +54,3 @@ INDEXLIB_UNIT_TEST_CASE(OnlineSegmentDirectoryTest, TestDirectoryLifecycle);
 INDEXLIB_UNIT_TEST_CASE(OnlineSegmentDirectoryTest, TestFlushRtSegment);
 
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_ONLINESEGMENTDIRECTORYTEST_H

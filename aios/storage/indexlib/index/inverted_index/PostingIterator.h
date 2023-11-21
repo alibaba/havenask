@@ -58,9 +58,9 @@ public:
     /**
      * Find the docid which is equal to or greater than /docId/ in posting-list
      */
-    virtual docid_t SeekDoc(docid_t docId) = 0;
+    virtual docid64_t SeekDoc(docid64_t docId) = 0;
 
-    virtual index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) = 0;
+    virtual index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) = 0;
 
     /**
      * Return true if position-list exists

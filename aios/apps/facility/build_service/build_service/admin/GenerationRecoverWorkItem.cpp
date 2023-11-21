@@ -15,7 +15,12 @@
  */
 #include "build_service/admin/GenerationRecoverWorkItem.h"
 
+#include <memory>
+
+#include "alog/Logger.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;

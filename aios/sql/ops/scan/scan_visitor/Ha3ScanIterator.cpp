@@ -62,12 +62,16 @@ Ha3ScanIterator::Ha3ScanIterator(const Ha3ScanIteratorParam &param)
 
 Ha3ScanIterator::~Ha3ScanIterator() {}
 
-uint32_t Ha3ScanIterator::getTotalScanCount() {
+uint32_t Ha3ScanIterator::getTotalScanCount() const {
     return _singleLayerSearcher->getSeekTimes();
 }
 
-uint32_t Ha3ScanIterator::getTotalSeekDocCount() {
-    return _singleLayerSearcher->getSeekDocCount();
+uint32_t Ha3ScanIterator::getTotalSeekedCount() const {
+    return _singleLayerSearcher->getSeekedCount();
+}
+
+uint32_t Ha3ScanIterator::getTotalWholeDocCount() const {
+    return _singleLayerSearcher->getWholeDocCount();
 }
 
 bool Ha3ScanIterator::useTruncate() {

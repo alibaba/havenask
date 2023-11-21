@@ -109,7 +109,7 @@ std::shared_ptr<framework::Segment> MultiShardDiskSegment::GetShardSegment(size_
     return _shardSegments[shardIdx];
 }
 
-size_t MultiShardDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
+std::pair<Status, size_t> MultiShardDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto segmentInfo = GetSegmentInfo();
     auto shardCount = segmentInfo->GetShardCount();
@@ -130,14 +130,18 @@ size_t MultiShardDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITab
             if (!result.Status().IsOK()) {
                 AUTIL_LOG(ERROR, "get shard dir [%s] failed, segment dir [%s] [%s]", shardDirName.c_str(),
                           GetSegmentDirectory()->DebugString().c_str(), result.Status().ToString().c_str());
-                continue;
+                return {Status::Corruption(), 0};
             }
             segMeta.segmentDir = indexlib::file_system::IDirectory::ToLegacyDirectory(result.result);
             segMeta.schema = _tabletSchema;
             auto diskSegment = std::make_unique<PlainDiskSegment>(_tabletSchema, segMeta, _buildResource);
-            memEstimate += diskSegment->EstimateMemUsed(schema);
+            auto [status, segmentMemUse] = diskSegment->EstimateMemUsed(schema);
+            if (!status.IsOK()) {
+                return {status, 0};
+            }
+            memEstimate += segmentMemUse;
         }
-        return memEstimate;
+        return {Status::OK(), memEstimate};
     }
 }
 

@@ -33,8 +33,9 @@ using indexlibv2::config::IIndexConfig;
 using indexlibv2::config::InvertedIndexConfig;
 AUTIL_LOG_SETUP(indexlib.index, MultiShardInvertedIndexReader);
 
-MultiShardInvertedIndexReader::MultiShardInvertedIndexReader(const indexlibv2::index::IndexerParameter& indexerParam)
-    : _indexerParam(indexerParam)
+MultiShardInvertedIndexReader::MultiShardInvertedIndexReader(
+    const indexlibv2::index::IndexReaderParameter& indexReaderParam)
+    : _indexReaderParam(indexReaderParam)
 {
 }
 
@@ -50,7 +51,7 @@ Status MultiShardInvertedIndexReader::Open(const std::shared_ptr<IIndexConfig>& 
     }
     auto segments = tabletData->CreateSlice();
     std::vector<InvertedIndexReaderImpl::Indexer> indexers;
-    docid_t baseDocId = 0;
+    docid64_t baseDocId = 0;
     for (auto it = segments.begin(); it != segments.end(); ++it) {
         const auto& segment = *it;
         auto [status, indexer] = segment->GetIndexer(indexConfig->GetIndexType(), config->GetIndexName());
@@ -90,7 +91,7 @@ Status MultiShardInvertedIndexReader::DoOpen(const std::shared_ptr<InvertedIndex
     RETURN_IF_STATUS_ERROR(status, "get index factory for index type [%s] failed", indexConfig->GetIndexType().c_str());
 
     for (const auto& shardIndexConfig : shardIndexConfigs) {
-        std::shared_ptr<IIndexReader> reader = indexFactory->CreateIndexReader(shardIndexConfig, _indexerParam);
+        std::shared_ptr<IIndexReader> reader = indexFactory->CreateIndexReader(shardIndexConfig, _indexReaderParam);
         if (reader == nullptr) {
             AUTIL_LOG(ERROR, "failed to create index reader [%s]", shardIndexConfig->GetIndexName().c_str());
             return Status::InvalidArgs();

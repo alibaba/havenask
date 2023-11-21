@@ -1,11 +1,11 @@
 #include "indexlib/partition/test/memory_stat_collector_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/partition/group_memory_reporter.h"
 #include "indexlib/partition/memory_stat_reporter.h"
 #include "indexlib/partition/online_partition.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/TaskScheduler.h"
 
 using namespace std;

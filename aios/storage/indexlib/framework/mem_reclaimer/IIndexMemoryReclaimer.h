@@ -26,8 +26,10 @@ public:
     virtual ~IIndexMemoryReclaimer() = default;
 
 public:
-    virtual void Retire(void* addr, std::function<void(void*)> deAllocator) = 0;
+    virtual int64_t Retire(void* addr, std::function<void(void*)> deAllocator) = 0;
+    virtual void DropRetireItem(int64_t itemId) = 0;
     virtual void TryReclaim() = 0;
+    virtual void Reclaim() = 0;
 };
 
 } // namespace indexlibv2::framework

@@ -79,11 +79,11 @@ public:
     }
     void report(const kmonitor::MetricsTags *tags, SortInfo *sortInfo) {
         REPORT_MUTABLE_METRIC(_totalComputeTimes, sortInfo->totalcomputetimes());
-        REPORT_MUTABLE_METRIC(_totalSortTime, sortInfo->totalusetime() / 1000);
-        REPORT_MUTABLE_METRIC(_totalMergeTime, sortInfo->totalmergetime() / 1000);
-        REPORT_MUTABLE_METRIC(_totalTopKTime, sortInfo->totaltopktime() / 1000);
-        REPORT_MUTABLE_METRIC(_totalCompactTime, sortInfo->totalcompacttime() / 1000);
-        REPORT_MUTABLE_METRIC(_outputTime, sortInfo->totaloutputtime() / 1000);
+        REPORT_MUTABLE_METRIC(_totalSortTime, sortInfo->totalusetime() / 1000.0);
+        REPORT_MUTABLE_METRIC(_totalMergeTime, sortInfo->totalmergetime() / 1000.0);
+        REPORT_MUTABLE_METRIC(_totalTopKTime, sortInfo->totaltopktime() / 1000.0);
+        REPORT_MUTABLE_METRIC(_totalCompactTime, sortInfo->totalcompacttime() / 1000.0);
+        REPORT_MUTABLE_METRIC(_outputTime, sortInfo->totaloutputtime() / 1000.0);
         REPORT_MUTABLE_METRIC(_totalInputCount, sortInfo->totalinputcount());
     }
 
@@ -151,7 +151,7 @@ navi::ErrorCode SortKernel::compute(navi::KernelComputeContext &runContext) {
     incTotalTime(TimeUtility::currentTime() - beginTime);
     if (eof) {
         outputResult(runContext);
-        SQL_LOG(DEBUG, "sort info: [%s]", _sortInfo.ShortDebugString().c_str());
+        SQL_LOG(TRACE1, "sort info: [%s]", _sortInfo.ShortDebugString().c_str());
     }
     _sqlSearchInfoCollectorR->getCollector()->overwriteSortInfo(_sortInfo);
     return navi::EC_NONE;
@@ -176,7 +176,7 @@ void SortKernel::outputResult(navi::KernelComputeContext &runContext) {
             TableUtil::sort(_table, _comparator.get());
         }
     }
-    SQL_LOG(TRACE1, "sort output table: [%s]", TableUtil::toString(_table, 10).c_str());
+    SQL_LOG(TRACE2, "sort output table: [%s]", TableUtil::toString(_table, 10).c_str());
     TableDataPtr tableData(new TableData(_table));
     runContext.setOutput(outputIndex, tableData, true);
     incOutputTime(TimeUtility::currentTime() - beginTime);
@@ -204,7 +204,6 @@ bool SortKernel::doCompute(const navi::DataPtr &data) {
             SQL_LOG(ERROR, "merge input table failed");
             return false;
         }
-        _table->mergeDependentPools(inputTable);
     }
     uint64_t afterMergeTime = TimeUtility::currentTime();
     incMergeTime(afterMergeTime - beginTime);
@@ -213,13 +212,13 @@ bool SortKernel::doCompute(const navi::DataPtr &data) {
     incTopKTime(afterTopKTime - afterMergeTime);
     _table->compact();
     incCompactTime(TimeUtility::currentTime() - afterTopKTime);
-    SQL_LOG(TRACE1, "sort-topk output table: [%s]", TableUtil::toString(_table, 10).c_str());
+    SQL_LOG(TRACE3, "sort-topk output table: [%s]", TableUtil::toString(_table, 10).c_str());
     return true;
 }
 
 void SortKernel::reportMetrics() {
     if (_queryMetricReporterR) {
-        string pathName = "sql.user.ops." + getKernelName();
+        static const string pathName = "sql.user.ops.SortKernel";
         auto opMetricsReporter = _queryMetricReporterR->getReporter()->getSubReporter(pathName, {});
         opMetricsReporter->report<SortOpMetrics, SortInfo>(nullptr, &_sortInfo);
     }

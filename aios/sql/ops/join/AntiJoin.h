@@ -26,7 +26,7 @@ namespace sql {
 
 class AntiJoin : public JoinBase {
 public:
-    AntiJoin(const JoinBaseParam &joinBaseParam);
+    AntiJoin(const JoinBaseParamR &joinBaseParam);
     ~AntiJoin() {}
     AntiJoin(const AntiJoin &) = delete;
     AntiJoin &operator=(const AntiJoin &) = delete;

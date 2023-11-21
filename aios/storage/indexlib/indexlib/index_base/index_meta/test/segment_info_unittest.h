@@ -1,5 +1,4 @@
-#ifndef SEGMENT_INFOS_TEST
-#define SEGMENT_INFOS_TEST
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
@@ -36,5 +35,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(SegmentInfoTest, TestCaseForJson);
 INDEXLIB_UNIT_TEST_CASE(SegmentInfoTest, TestCaseForStore);
 }} // namespace indexlib::index_base
-
-#endif // SEGMENT_INFOS_TEST

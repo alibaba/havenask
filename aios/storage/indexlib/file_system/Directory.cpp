@@ -15,12 +15,16 @@
  */
 #include "indexlib/file_system/Directory.h"
 
+#include <assert.h>
+
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileInfo.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/ListOption.h"
 #include "indexlib/file_system/ReaderOption.h"
 #include "indexlib/file_system/RemoveOption.h"
 #include "indexlib/file_system/WriterOption.h"
+#include "indexlib/util/Exception.h"
 
 namespace indexlib { namespace file_system {
 AUTIL_LOG_SETUP(indexlib.file_system, Directory);

@@ -15,6 +15,13 @@
  */
 #include "build_service/admin/catalog/CatalogVersionPublisher.h"
 
+#include <arpc/ANetRPCController.h>
+#include <google/protobuf/service.h>
+#include <stddef.h>
+#include <string>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "build_service/common/RpcChannelManager.h"
 #include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"

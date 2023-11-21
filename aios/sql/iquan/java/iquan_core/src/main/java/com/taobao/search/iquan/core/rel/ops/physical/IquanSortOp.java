@@ -1,16 +1,21 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.ComputeNode;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.common.ConstantDefine;
-import com.taobao.search.iquan.core.utils.RelDistributionUtil;
-import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelCollation;
@@ -18,11 +23,12 @@ import org.apache.calcite.rel.RelDistribution;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.core.Sort;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexDynamicParam;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.commons.lang3.tuple.Triple;
-import java.math.BigDecimal;
-import java.util.*;
 
 public class IquanSortOp extends Sort implements IquanRelNode {
     private int parallelNum = -1;
@@ -180,10 +186,9 @@ public class IquanSortOp extends Sort implements IquanRelNode {
         }
     }
 
-    public IquanRelNode derivePendingUnion(IquanUnionOp pendingUnion, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
-        Location finalUnionLocation;
-        ComputeNode computeNode = RelDistributionUtil.getSingleComputeNode(catalog, dbName, config);
-        finalUnionLocation = computeNode.getLocation();
+    @Override
+    public IquanRelNode derivePendingUnion(IquanUnionOp pendingUnion, GlobalCatalog catalog, IquanConfigManager config) {
+        Location finalUnionLocation = RelDistributionUtil.getSingleLocationNode(catalog, config);
         List<Triple<Location, Distribution, List<RelNode>>> locationList = pendingUnion.getLocationList();
         List<RelNode> newInputs = new ArrayList<>(locationList.size());
         for (Triple<Location, Distribution, List<RelNode>> triple : locationList) {
@@ -221,10 +226,10 @@ public class IquanSortOp extends Sort implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         IquanRelNode iquanRelNode = RelDistributionUtil.checkIquanRelType(inputs.get(0));
         if (isPendingUnion(iquanRelNode)) {
-            return derivePendingUnion((IquanUnionOp) iquanRelNode, catalog, dbName, config);
+            return derivePendingUnion((IquanUnionOp) iquanRelNode, catalog, config);
         }
         Distribution inputDistribution = iquanRelNode.getOutputDistribution();
         RelDistribution.Type inputDistributionType = inputDistribution.getType();
@@ -246,7 +251,7 @@ public class IquanSortOp extends Sort implements IquanRelNode {
             } else {
                 newInput = RelDistributionUtil.genLocalSort(this, iquanRelNode);
             }
-            return RelDistributionUtil.genGlobalSort(newInput, this, catalog, dbName, config);
+            return RelDistributionUtil.genGlobalSort(newInput, this, catalog, config);
         }
     }
 
@@ -255,7 +260,7 @@ public class IquanSortOp extends Sort implements IquanRelNode {
         if (iquanRelNode instanceof IquanTableScanBase) {
             iquanScanBase = (IquanTableScanBase) iquanRelNode;
         } else if (iquanRelNode instanceof IquanIdentityOp) {
-            IquanRelNode inputRelNode = (IquanRelNode)((IquanIdentityOp) iquanRelNode).getInput();
+            IquanRelNode inputRelNode = (IquanRelNode) ((IquanIdentityOp) iquanRelNode).getInput();
             if (inputRelNode instanceof IquanTableScanBase) {
                 iquanScanBase = (IquanTableScanBase) inputRelNode;
             } else {

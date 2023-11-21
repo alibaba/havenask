@@ -53,6 +53,7 @@ class Appender
 {
 public:
     Appender(const std::string &levelStr, NaviLogManager *manager);
+    Appender(const Appender &other);
     virtual ~Appender();
 public:
     /**
@@ -66,7 +67,7 @@ public:
     /**
     *@brief layout set function.
     */
-    virtual void setLayout(Layout* layout = NULL);
+    virtual void setLayout(const std::shared_ptr<Layout> &layout);
     /**
     *@brief release all the static Appender object.
     *@warning can only be called in Logger::shutdown() method
@@ -86,7 +87,7 @@ public:
 protected:
     //the lock for append() function
     Mutex m_appendMutex;
-    Layout* m_layout;
+    std::shared_ptr<Layout> m_layout;
     bool m_bAutoFlush;
     LogLevel _level;
     NaviLogManager *_manager;

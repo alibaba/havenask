@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONSTATEMACHINETEST_H
-#define __INDEXLIB_PARTITIONSTATEMACHINETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/partition_state_machine.h"
@@ -37,5 +36,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(PartitionStateMachineTest, TestDocIdQuery);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(PartitionStateMachineTest, TestBuildWithBinaryString);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(PartitionStateMachineTest, TestCustomizedDocumentFactory);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_PARTITIONSTATEMACHINETEST_H

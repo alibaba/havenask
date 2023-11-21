@@ -15,6 +15,9 @@
  */
 #include "build_service/workflow/RealTimeBuilderTaskItem.h"
 
+#include <assert.h>
+#include <iosfwd>
+
 #include "build_service/workflow/RealtimeBuilderImplBase.h"
 
 using namespace std;

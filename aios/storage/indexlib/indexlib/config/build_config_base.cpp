@@ -27,7 +27,7 @@ using namespace autil::legacy;
 using namespace autil;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, BuildConfigBase);
+AUTIL_LOG_SETUP(indexlib.config, BuildConfigBase);
 
 #ifdef DEFAULT_DISABLE_PACKAGE_FILE
 const bool BuildConfigBase::DEFAULT_USE_PACKAGE_FILE = false;

@@ -46,7 +46,7 @@ private:
     void DumpThread() noexcept;
 
 private:
-    volatile bool _running;
+    std::atomic_bool _running;
     std::exception_ptr _exception;
     autil::ThreadPtr _dumpThread;
     autil::SynchronizedQueue<DumpablePtr> _dumpQueue;

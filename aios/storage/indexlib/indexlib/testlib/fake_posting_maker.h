@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_POSTING_MAKER_H
-#define __INDEXLIB_FAKE_POSTING_MAKER_H
+#pragma once
 
 #include <memory>
 
@@ -30,5 +29,3 @@ private:
 
 DEFINE_SHARED_PTR(FakePostingMaker);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKE_POSTING_MAKER_H

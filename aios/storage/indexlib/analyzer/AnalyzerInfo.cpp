@@ -15,9 +15,10 @@
  */
 #include "indexlib/analyzer/AnalyzerInfo.h"
 
-#include "autil/legacy/any.h"
-#include "autil/legacy/json.h"
+#include <utility>
+
 #include "autil/legacy/jsonizable.h"
+#include "indexlib/analyzer/AnalyzerDefine.h"
 
 namespace indexlibv2 { namespace analyzer {
 AUTIL_LOG_SETUP(indexlib.analyzer, AnalyzerInfo);

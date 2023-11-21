@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_RAW_DOCUMENT_FIELD_EXTRACTOR_H
-#define __INDEXLIB_RAW_DOCUMENT_FIELD_EXTRACTOR_H
+#pragma once
 
 #include <memory>
 
@@ -72,9 +71,9 @@ public:
     };
 
     struct FieldInfo {
-        FieldInfo() : summaryFieldId(INVALID_SUMMARYFIELDID) {}
+        FieldInfo() : summaryFieldId(index::INVALID_SUMMARYFIELDID) {}
         index::AttributeReaderPtr attrReader;
-        summaryfieldid_t summaryFieldId;
+        index::summaryfieldid_t summaryFieldId;
     };
 
 public:
@@ -134,5 +133,3 @@ private:
 
 DEFINE_SHARED_PTR(RawDocumentFieldExtractor);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_RAW_DOCUMENT_FIELD_EXTRACTOR_H

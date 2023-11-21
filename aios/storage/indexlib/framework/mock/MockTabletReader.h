@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 #include "gmock/gmock.h"
 #include <memory>
 
@@ -27,7 +28,7 @@ public:
     MockTabletReader() : TabletReader(nullptr) {}
     ~MockTabletReader() {}
 
-    MOCK_METHOD(Status, Open, (const std::shared_ptr<TabletData>&, const ReadResource&), (override));
+    MOCK_METHOD(Status, DoOpen, (const std::shared_ptr<TabletData>&, const ReadResource&), (override));
     MOCK_METHOD(std::shared_ptr<index::IIndexReader>, GetIndexReader, (const std::string&, const std::string&),
                 (const, override));
     MOCK_METHOD(std::shared_ptr<config::ITabletSchema>, GetSchema, (), (const, override));

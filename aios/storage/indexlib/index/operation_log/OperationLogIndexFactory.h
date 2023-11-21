@@ -29,13 +29,13 @@ public:
 public:
     std::shared_ptr<indexlibv2::index::IDiskIndexer>
     CreateDiskIndexer(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-                      const indexlibv2::index::IndexerParameter& indexerParam) const override;
+                      const indexlibv2::index::DiskIndexerParameter& indexerParam) const override;
     std::shared_ptr<indexlibv2::index::IMemIndexer>
     CreateMemIndexer(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-                     const indexlibv2::index::IndexerParameter& indexerParam) const override;
+                     const indexlibv2::index::MemIndexerParameter& indexerParam) const override;
     std::unique_ptr<indexlibv2::index::IIndexReader>
     CreateIndexReader(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-                      const indexlibv2::index::IndexerParameter& indexerParam) const override;
+                      const indexlibv2::index::IndexReaderParameter&) const override;
     std::unique_ptr<indexlibv2::index::IIndexMerger>
     CreateIndexMerger(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig) const override;
     std::unique_ptr<indexlibv2::config::IIndexConfig> CreateIndexConfig(const autil::legacy::Any& any) const override;

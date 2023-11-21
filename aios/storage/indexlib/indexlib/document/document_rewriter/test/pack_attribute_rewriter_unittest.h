@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PACKATTRIBUTEREWRITERTEST_H
-#define __INDEXLIB_PACKATTRIBUTEREWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_rewriter/pack_attribute_rewriter.h"
@@ -37,5 +36,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(PackAttributeRewriterTest, TestRewriteWithSubDoc);
 INDEXLIB_UNIT_TEST_CASE(PackAttributeRewriterTest, TestRewriteCheckPackField);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_PACKATTRIBUTEREWRITERTEST_H

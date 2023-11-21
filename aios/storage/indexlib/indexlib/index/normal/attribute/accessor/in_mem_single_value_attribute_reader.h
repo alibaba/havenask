@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_IN_MEM_SINGLE_VALUE_ATTRIBUTE_READER_H
-#define __INDEXLIB_IN_MEM_SINGLE_VALUE_ATTRIBUTE_READER_H
+#pragma once
 
 #include <memory>
 
@@ -237,5 +236,3 @@ inline bool InMemSingleValueAttributeReader<float>::Read(docid_t docId, autil::S
     return true;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_IN_MEM_SINGLE_VALUE_ATTRIBUTE_READER_H

@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BATCH_CONTROL_TASK_H
-#define ISEARCH_BS_BATCH_CONTROL_TASK_H
+#pragma once
 
-#include "autil/Lock.h"
+#include <stdint.h>
+#include <string>
+
 #include "build_service/common_define.h"
-#include "build_service/config/TaskConfig.h"
 #include "build_service/config/TaskTarget.h"
 #include "build_service/proto/DataDescription.h"
 #include "build_service/task_base/Task.h"
 #include "build_service/util/Log.h"
 #include "build_service_tasks/batch_control/BatchControlWorker.h"
+#include "indexlib/util/counter/CounterMap.h"
 #include "swift/client/SwiftClient.h"
 #include "swift/client/SwiftReader.h"
 
@@ -71,5 +72,3 @@ private:
 BS_TYPEDEF_PTR(BatchControlTask);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_BATCH_CONTROL_TASK_H

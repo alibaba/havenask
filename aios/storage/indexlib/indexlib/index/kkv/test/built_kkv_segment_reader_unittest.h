@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_BUILTKKVSEGMENTREADERTEST_H
-#define __INDEXLIB_BUILTKKVSEGMENTREADERTEST_H
+#pragma once
 
 #include "future_lite/executors/SimpleExecutor.h"
 #include "indexlib/common_define.h"
@@ -46,5 +45,3 @@ INSTANTIATE_TEST_CASE_P(p1, BuiltKKVSegmentReaderTest,
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(BuiltKKVSegmentReaderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(BuiltKKVSegmentReaderTest, TestMultiRegion);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_BUILTKKVSEGMENTREADERTEST_H

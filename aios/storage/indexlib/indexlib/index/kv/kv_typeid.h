@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_TYPEID_H
-#define __INDEXLIB_KV_TYPEID_H
+#pragma once
 
 #include "indexlib/index/kv/KVCommonDefine.h"
 #include "indexlib/index/kv/kv_define.h"
@@ -69,5 +68,3 @@ public:
 };
 #pragma pack(pop)
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_TYPEID_H

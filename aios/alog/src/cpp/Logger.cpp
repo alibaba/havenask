@@ -85,6 +85,11 @@ void Logger::flushAll()
     }
 }
 
+void Logger::flushCachedPidTid() {
+    sysPid = getpid();
+    sysTid = (long)syscall(SYS_gettid);
+}
+
 void Logger::shutdown()
 {
     // Stop the I/O worker thread of gEventBase if it is started
@@ -230,7 +235,7 @@ void Logger::logVaList(uint32_t level, const char *format, va_list ap) {
     LoggingEvent event(m_loggerName, msg, level);
 
     _log(event);
-    
+
 }
 void Logger::logVaList(uint32_t level, const char * file, int line, const char * func, const char* fmt, va_list ap)
 {

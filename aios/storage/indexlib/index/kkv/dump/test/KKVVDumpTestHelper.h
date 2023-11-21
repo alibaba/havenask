@@ -1,3 +1,4 @@
+#pragma once
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/index/kkv/dump/InlineSKeyDumper.h"

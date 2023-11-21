@@ -6,7 +6,7 @@ import java.util.List;
 
 import static java.lang.Math.max;
 
-public class Range implements Comparable<Range>{
+public class Range implements Comparable<Range> {
     private Long left;
     private Long right;
 
@@ -20,42 +20,13 @@ public class Range implements Comparable<Range>{
         this.right = other.right;
     }
 
-    public Long getLeft() {
-        return left;
-    }
-
-    public void setLeft(Long left) {
-        this.left = left;
-    }
-
-    public Long getRight() {
-        return right;
-    }
-
-    public void setRight(Long right) {
-        this.right = right;
-    }
-
-    public List<Long> toList() {
-        List<Long> ret = new ArrayList<>();
-        ret.add(left);
-        ret.add(right);
-        return ret;
-    }
-
-
-    @Override
-    public int compareTo(Range o) {
-        return left.equals(o.left) ? right.compareTo(o.right) : left.compareTo(o.left);
-    }
-
     private static List<Range> trim(List<Range> ranges) {
         if (ranges == null || ranges.size() < 2) {
             return ranges;
         }
         List<Range> newRanges = new ArrayList<>();
         newRanges.add(new Range(ranges.get(0)));
-        for(int i = 1; i < ranges.size(); ++i) {
+        for (int i = 1; i < ranges.size(); ++i) {
             Range cur = ranges.get(i);
             Range last = newRanges.get(newRanges.size() - 1);
             if (last.right < cur.left) {
@@ -104,5 +75,33 @@ public class Range implements Comparable<Range>{
             }
         }
         return res;
+    }
+
+    public Long getLeft() {
+        return left;
+    }
+
+    public void setLeft(Long left) {
+        this.left = left;
+    }
+
+    public Long getRight() {
+        return right;
+    }
+
+    public void setRight(Long right) {
+        this.right = right;
+    }
+
+    public List<Long> toList() {
+        List<Long> ret = new ArrayList<>();
+        ret.add(left);
+        ret.add(right);
+        return ret;
+    }
+
+    @Override
+    public int compareTo(Range o) {
+        return left.equals(o.left) ? right.compareTo(o.right) : left.compareTo(o.left);
     }
 }

@@ -15,6 +15,8 @@
  */
 #include "indexlib/document/DocumentInitParam.h"
 
+#include <utility>
+
 namespace indexlibv2::document {
 
 void DocumentInitParam::AddValue(const std::string& key, const std::string& value) { _kvMap[key] = value; }

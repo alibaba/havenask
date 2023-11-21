@@ -222,7 +222,8 @@ public:
                const iquan::DynamicParams &innerDynamicParams);
 
     private:
-        const std::string &getRequestParam(const std::string &key) const;
+        const std::string &getRequestParam(const std::string &key,
+                                           const std::string &defaultValue = EMPTY_STRING) const;
         bool enableDynamicReplacement() const;
 
     private:
@@ -233,7 +234,7 @@ public:
     public:
         bool debug {false};
         size_t parallelNum;
-        bool lackResultEnable;
+        bool resultAllowSoftFailure;
         std::string sourceId;
         std::string sourceSpec;
         std::string taskQueue;
@@ -320,6 +321,9 @@ private:
                            bool sameGraph);
     void addTargetWatermark(plan::ScanNode &node);
     void buildEdge(const std::string &outputNode, const navi::P &buildInput);
+
+public:
+    static const std::string EMPTY_STRING;
 
 private:
     const Config &_config;

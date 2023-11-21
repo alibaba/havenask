@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KKVINDEXDUMPERTEST_H
-#define __INDEXLIB_KKVINDEXDUMPERTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/pack_attribute/pack_attribute_formatter.h"
 #include "indexlib/common_define.h"
@@ -64,5 +63,3 @@ INSTANTIATE_TEST_CASE_P(p1, KKVIndexDumperTest,
                         testing::Values(index::PKT_DENSE, index::PKT_CUCKOO, index::PKT_SEPARATE_CHAIN));
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(KKVIndexDumperTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KKVINDEXDUMPERTEST_H

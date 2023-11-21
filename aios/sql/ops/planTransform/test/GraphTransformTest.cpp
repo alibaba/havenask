@@ -47,6 +47,7 @@ public:
     void setUp() override {
         ASSERT_NO_FATAL_FAILURE(loadSqlPlan());
         _request.sqlParams[IQUAN_PLAN_PREPARE_LEVEL] = string(IQUAN_REL_POST_OPTIMIZE);
+        _execConfig.thisBizName = "qrs.default_sql";
     }
 
     void tearDown() override {

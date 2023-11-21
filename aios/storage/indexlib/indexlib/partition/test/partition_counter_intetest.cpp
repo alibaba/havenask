@@ -1,6 +1,7 @@
 #include "indexlib/partition/test/partition_counter_intetest.h"
 
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
 #include "indexlib/index/calculator/on_disk_segment_size_calculator.h"
@@ -12,7 +13,6 @@
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/partition/segment/in_memory_segment_container.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"
@@ -78,7 +78,7 @@ void PartitionCounterTest::TestUpdateCounters()
     auto checkOfflineCounters = [&psm](int64_t addVal, int64_t updateVal, int64_t delVal) {
         Version version;
         auto rootDir = psm.GetRootDirectory();
-        VersionLoader::GetVersion(rootDir, version, INVALID_VERSION);
+        VersionLoader::GetVersion(rootDir, version, INVALID_VERSIONID);
         segmentid_t segId = version[version.GetSegmentCount() - 1];
         string segPath = "segment_" + std::to_string(segId) + "_level_0";
         auto seg = rootDir->GetDirectory(segPath, true);
@@ -391,7 +391,7 @@ void PartitionCounterTest::TestPartitionMergeWithNoCounterFile()
 
     RESET_FILE_SYSTEM(LoadConfigListCreator::CreateLoadConfigList(READ_MODE_CACHE), false, true, true, false, true);
     Version version;
-    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, version, INVALID_VERSIONID);
     ASSERT_EQ(FSEC_OK, GET_FILE_SYSTEM()->MountVersion(mRootDir, version.GetVersionId(), "", FSMT_READ_ONLY, nullptr));
     auto rootDir = GET_PARTITION_DIRECTORY();
 
@@ -506,7 +506,7 @@ void PartitionCounterTest::TestMergeTimeCounters()
     RESET_FILE_SYSTEM(LoadConfigListCreator::CreateLoadConfigList(READ_MODE_CACHE), false, true, true, false, true);
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     Version version;
-    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
 
     merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
     segDir->Init(false, true);

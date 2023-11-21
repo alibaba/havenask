@@ -28,9 +28,8 @@ function graphDef()
    --prepare inc processor
    incParam["buildStep"] = "incremental"
    -- legacy code for control config
-   local hasIncProcessor = Graph.parameter["hasIncProcessor"] == "true"
-   local disableIncProcessor = Graph.parameter["disableIncProcessor"] == "true"
-   if (hasIncProcessor and (not disableIncProcessor))
+   local hasIncProcessor = (Graph.parameter["hasIncProcessor"] == "true") and (not (Graph.parameter["disableIncProcessor"] == "true")) and (Graph.parameter["hasRealtimeDataDesc"] == "true")
+   if (hasIncProcessor)
    then
       incProcessor = Graph.loadSimpleFlow("processor", "incProcessor", incParam)
       incProcessor:addTag("BSIncProcess")
@@ -49,12 +48,20 @@ function graphDef()
 
    --prepare inc build
 
-   local disableIncBuilder = Graph.parameter["disableIncBuilder"] == "true"
+   local disableIncBuilder = Graph.parameter["disableIncBuilder"] == "true" or (Graph.parameter["hasRealtimeDataDesc"] == "false")
    if (not disableIncBuilder)
    then
-      incBuild = Graph.loadSimpleFlow("builderV2", "incBuilder", incParam)
+      if (hasIncProcessor)
+      then
+            incParam["incProcessorFlowId"] = incProcessor:getFlowId()
+      end
+      incBuild = Graph.loadFlow("IncBuildV2.flow", incParam)
       incBuild:addTag(clusterName..":IncBuild")
       incBuild:addTag("BSBuildV2")
+      if (hasIncProcessor)
+      then
+         Graph.declareFriend(incProcessor, incBuild)
+      end
    end
 
    if (hasFullBuild)

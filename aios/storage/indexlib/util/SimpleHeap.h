@@ -15,9 +15,9 @@
  */
 #pragma once
 
-#include <algorithm>
 #include <functional>
 #include <inttypes.h>
+#include <queue>
 #include <utility>
 #include <vector>
 

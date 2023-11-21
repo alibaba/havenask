@@ -15,17 +15,45 @@
  */
 #include "indexlib/merger/parallel_partition_data_merger.h"
 
-#include "autil/EnvUtil.h"
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <set>
+#include <stdint.h>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "beeper/beeper.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/FileCompressSchema.h"
+#include "indexlib/config/attribute_config.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/document/locator.h"
 #include "indexlib/file_system/Directory.h"
-#include "indexlib/file_system/FenceDirectory.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemDefine.h"
+#include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/MergeDirsOption.h"
-#include "indexlib/file_system/MountOption.h"
+#include "indexlib/file_system/RemoveOption.h"
+#include "indexlib/file_system/WriterOption.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/framework/LevelInfo.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/framework/SegmentStatistics.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_segment_writer.h"
 #include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/common_branch_hinter.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
 #include "indexlib/index_base/deploy_index_wrapper.h"
 #include "indexlib/index_base/index_meta/parallel_build_info.h"
 #include "indexlib/index_base/index_meta/progress_synchronizer.h"
@@ -35,13 +63,20 @@
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/index_base/offline_recover_strategy.h"
 #include "indexlib/index_base/partition_data.h"
+#include "indexlib/index_base/patch/partition_patch_meta_creator.h"
 #include "indexlib/index_base/patch/patch_file_finder.h"
 #include "indexlib/index_base/patch/patch_file_finder_creator.h"
+#include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/index_base/segment/segment_data.h"
+#include "indexlib/index_base/segment/segment_directory.h"
 #include "indexlib/index_base/version_committer.h"
+#include "indexlib/index_define.h"
 #include "indexlib/merger/merge_partition_data_creator.h"
 #include "indexlib/merger/merger_branch_hinter.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
+#include "indexlib/util/counter/CounterBase.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"
 
@@ -96,7 +131,7 @@ Version ParallelPartitionDataMerger::MergeSegmentData(const vector<std::string>&
 {
     IE_LOG(INFO, "Begin merge all data of parallel inc build into merge path.");
     Version lastVersion;
-    VersionLoader::GetVersion(mRoot, lastVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(mRoot, lastVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "lastest version [%d] in parent path : [%s]", lastVersion.GetVersionId(),
            lastVersion.ToString().c_str());
 
@@ -133,10 +168,10 @@ Version ParallelPartitionDataMerger::MergeSegmentData(const vector<std::string>&
     }
     versionid_t baseVersionId = GetBaseVersionIdFromParallelBuildInfo(branchDirectorys);
     auto versions = GetVersionList(branchDirectorys);
-    if (baseVersionId == INVALID_VERSION) {
-        if (lastVersion.GetVersionId() != INVALID_VERSION) {
+    if (baseVersionId == INVALID_VERSIONID) {
+        if (lastVersion.GetVersionId() != INVALID_VERSIONID) {
             baseVersionId = GetBaseVersionFromLagecyParallelBuild(versions);
-            if (baseVersionId == INVALID_VERSION) {
+            if (baseVersionId == INVALID_VERSIONID) {
                 // empty instance versions, use root last version
                 baseVersionId = lastVersion.GetVersionId();
             }
@@ -144,7 +179,7 @@ Version ParallelPartitionDataMerger::MergeSegmentData(const vector<std::string>&
     }
 
     Version baseVersion;
-    if (baseVersionId != INVALID_VERSION) {
+    if (baseVersionId != INVALID_VERSIONID) {
         const string versionFileName = Version::GetVersionFileName(baseVersionId);
         VersionLoader::GetVersion(mRoot, baseVersion, baseVersionId);
     }
@@ -254,7 +289,7 @@ vector<Version> ParallelPartitionDataMerger::GetVersionList(const DirectoryVecto
     vector<Version> versions;
     for (const auto& directory : directorys) {
         Version version;
-        VersionLoader::GetVersion(directory, version, INVALID_VERSION);
+        VersionLoader::GetVersion(directory, version, INVALID_VERSIONID);
         Version recoverVersion = OfflineRecoverStrategy::Recover(version, directory);
         Version diffVersion = recoverVersion - version;
         if (diffVersion.GetSegmentCount() > 0) {
@@ -263,7 +298,7 @@ vector<Version> ParallelPartitionDataMerger::GetVersionList(const DirectoryVecto
         }
 
         versions.push_back(version);
-        if (version.GetVersionId() == INVALID_VERSION) {
+        if (version.GetVersionId() == INVALID_VERSIONID) {
             IE_LOG(INFO, "build parallel [%s] has no data.", directory->DebugString().c_str());
         }
     }
@@ -277,7 +312,7 @@ ParallelPartitionDataMerger::GetValidVersions(const vector<Version>& versions, c
     set<segmentid_t> newSegments;
     for (size_t i = 0; i < versions.size(); i++) {
         const Version& version = versions[i];
-        if (version.GetVersionId() == INVALID_VERSION) {
+        if (version.GetVersionId() == INVALID_VERSIONID) {
             continue;
         }
         /**
@@ -757,7 +792,7 @@ string ParallelPartitionDataMerger::GetParentPath(const vector<string>& srcPaths
 
 bool ParallelPartitionDataMerger::IsEmptyVersions(const vector<Version>& versions, const Version& lastVersion)
 {
-    if (lastVersion.GetVersionId() != INVALID_VERSION) {
+    if (lastVersion.GetVersionId() != INVALID_VERSIONID) {
         return false;
     }
 
@@ -772,13 +807,13 @@ bool ParallelPartitionDataMerger::IsEmptyVersions(const vector<Version>& version
 // todo : remove legacy code
 versionid_t ParallelPartitionDataMerger::GetBaseVersionFromLagecyParallelBuild(const vector<Version>& versions)
 {
-    versionid_t vid = INVALID_VERSION;
+    versionid_t vid = INVALID_VERSIONID;
     for (auto& version : versions) {
-        if (version.GetVersionId() == INVALID_VERSION) {
+        if (version.GetVersionId() == INVALID_VERSIONID) {
             continue;
         }
 
-        if (vid == INVALID_VERSION) {
+        if (vid == INVALID_VERSIONID) {
             vid = version.GetVersionId();
         } else if (vid != version.GetVersionId()) {
             INDEXLIB_FATAL_ERROR(BadParameter,
@@ -787,9 +822,9 @@ versionid_t ParallelPartitionDataMerger::GetBaseVersionFromLagecyParallelBuild(c
                                  version.GetVersionId(), vid);
         }
     }
-    if (vid != INVALID_VERSION) {
+    if (vid != INVALID_VERSIONID) {
         return (vid - 1);
     }
-    return INVALID_VERSION;
+    return INVALID_VERSIONID;
 }
 }} // namespace indexlib::merger

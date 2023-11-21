@@ -5,7 +5,7 @@
 using namespace std;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, MergeConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, MergeConfigTest);
 
 MergeConfigTest::MergeConfigTest() {}
 

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_INPUT_H
-#define ISEARCH_BS_INPUT_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/config/TaskInputConfig.h"
@@ -50,5 +49,3 @@ private:
 BS_TYPEDEF_PTR(Input);
 
 }} // namespace build_service::io
-
-#endif // ISEARCH_BS_INPUT_H

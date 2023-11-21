@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_NAMEDFACTORYMODULE_H
-#define ISEARCH_BS_NAMEDFACTORYMODULE_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/plugin/ModuleFactory.h"
@@ -19,5 +18,3 @@ public:
 DEFINE_SHARED_PTR(NamedFactoryModule);
 
 }} // namespace indexlib::plugin
-
-#endif // ISEARCH_BS_NAMEDFACTORYMODULE_H

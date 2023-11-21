@@ -1,5 +1,6 @@
 #include "indexlib/partition/test/table_reader_container_updater_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/custom_online_partition.h"
 #include "indexlib/partition/custom_online_partition_reader.h"
 #include "indexlib/partition/table_reader_container.h"
@@ -10,7 +11,6 @@
 #include "indexlib/table/table_factory_wrapper.h"
 #include "indexlib/table/table_resource.h"
 #include "indexlib/table/table_writer.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/TaskScheduler.h"
 #include "indexlib/util/memory_control/MemoryQuotaController.h"
 

@@ -111,7 +111,7 @@ void SerializedSourceDocument::deserialize(autil::DataBuffer& dataBuffer, autil:
     }
 }
 
-const StringView SerializedSourceDocument::GetGroupValue(index::groupid_t groupId) const
+StringView SerializedSourceDocument::GetGroupValue(index::sourcegroupid_t groupId) const
 {
     if (groupId >= _data.size()) {
         return StringView::empty_instance();
@@ -119,10 +119,20 @@ const StringView SerializedSourceDocument::GetGroupValue(index::groupid_t groupI
     return _data[groupId];
 }
 
-void SerializedSourceDocument::AddGroupValue(StringView& value) { _data.push_back(value); }
+void SerializedSourceDocument::SetGroupValue(index::sourcegroupid_t groupId, StringView value)
+{
+    if (groupId >= _data.size()) {
+        size_t oldSize = _data.size();
+        _data.resize(groupId + 1);
+        for (size_t i = oldSize; i < _data.size() - 1; ++i) {
+            _data[i] = autil::StringView::empty_instance();
+        }
+    }
+    _data[groupId] = value;
+}
 
-const StringView SerializedSourceDocument::GetMeta() const { return _meta; }
-void SerializedSourceDocument::SetMeta(StringView& meta) { _meta = meta; }
+StringView SerializedSourceDocument::GetMeta() const { return _meta; }
+void SerializedSourceDocument::SetMeta(const StringView& meta) { _meta = meta; }
 
 void SerializedSourceDocument::AddAccessaryGroupValue(const StringView& groupMeta, const StringView& groupValue)
 {

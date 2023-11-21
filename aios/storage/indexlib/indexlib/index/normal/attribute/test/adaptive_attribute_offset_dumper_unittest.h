@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ADAPTIVEATTRIBUTEOFFSETDUMPERTEST_H
-#define __INDEXLIB_ADAPTIVEATTRIBUTEOFFSETDUMPERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/data_structure/adaptive_attribute_offset_dumper.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(AdaptiveAttributeOffsetDumperTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ADAPTIVEATTRIBUTEOFFSETDUMPERTEST_H

@@ -265,7 +265,7 @@ RerankByQuotaTvfFunc::rerankByQuota(const table::TablePtr &table,
         }
         it->second.push_back(group[i]);
     }
-    SQL_LOG(DEBUG, "Success to make a rerank group");
+    SQL_LOG(TRACE3, "Success to make a rerank group");
 
     std::unordered_map<int32_t, size_t> ihIndex; // indexid -> hashid
     std::unordered_map<size_t, size_t> hsIndex;  // hashid -> sequence
@@ -396,7 +396,7 @@ bool RerankByQuotaTvfFunc::computeTable(const table::TablePtr &table) {
     std::vector<std::vector<table::Row>> groups;
     groups.resize(_quotaFieldValues.size());
     makeGroup(table, &groups);
-    SQL_LOG(DEBUG, "Success to make group");
+    SQL_LOG(TRACE3, "Success to make group");
     // 2: make a rerank by using rerankFields in every group (using sort function) with a quota
     std::vector<table::Row> target, extra;
     std::vector<int32_t> targetNums, extraNums;
@@ -411,13 +411,13 @@ bool RerankByQuotaTvfFunc::computeTable(const table::TablePtr &table) {
         if (needMakeUp) {
             extraNums.push_back(groupNum.second);
         }
-        SQL_LOG(DEBUG,
+        SQL_LOG(TRACE3,
                 "Group index [%lu], target size [%d], extra size [%d]",
                 i,
                 groupNum.first,
                 groupNum.second);
     }
-    SQL_LOG(DEBUG, "Success to make rerank");
+    SQL_LOG(TRACE3, "Success to make rerank");
     if (needMakeUp) {
         makeUp(target, extra);
     }

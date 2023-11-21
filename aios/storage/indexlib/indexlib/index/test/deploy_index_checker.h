@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEPLOY_INDEX_CHECKER_H
-#define __INDEXLIB_DEPLOY_INDEX_CHECKER_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -127,5 +126,3 @@ fslib::FileList DeployIndexChecker::DeployIndexMeta2FileList(const file_system::
     return actualFileList;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DEPLOY_INDEX_CHECKER_H

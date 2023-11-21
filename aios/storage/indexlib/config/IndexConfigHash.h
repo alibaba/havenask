@@ -15,8 +15,9 @@
  */
 #pragma once
 
-#include <functional>
+#include <cstddef>
 #include <memory>
+#include <string_view>
 
 #include "indexlib/config/IIndexConfig.h"
 

@@ -21,12 +21,11 @@
 
 #include "iquan/common/Common.h"
 #include "iquan/common/Status.h"
-#include "iquan/common/catalog/CatalogInfo.h"
+#include "iquan/common/catalog/CatalogDef.h"
 #include "iquan/common/catalog/FunctionModel.h"
 #include "iquan/common/catalog/LayerTableModel.h"
 #include "iquan/common/catalog/PlanMeta.h"
 #include "iquan/common/catalog/TableModel.h"
-#include "iquan/common/catalog/TvfFunctionModel.h"
 #include "iquan/config/ClientConfig.h"
 #include "iquan/config/ExecConfig.h"
 #include "iquan/config/JniConfig.h"
@@ -53,7 +52,6 @@ public:
     }
 
     Status init(const JniConfig &jniConfig, const ClientConfig &sqlConfig);
-    Status updateCatalog(const CatalogInfo &catalog);
     bool getSecHashKeyStr(PlanMetaPtr planMetaPtr,
                           const DynamicParams &dynamicParams,
                           std::string &hashStr);
@@ -81,16 +79,7 @@ public:
     void resetPlanCache();
     void resetPlanMetaCache();
 
-    // TODO delete
-    Status updateTables(const TableModels &tables);
-    Status updateTables(const std::string &tableContent);
-
-    Status updateLayerTables(const LayerTableModels &tables);
-    Status updateLayerTables(const std::string &tableContent);
-
-    Status updateFunctions(FunctionModels &functions);
-    Status updateFunctions(const TvfModels &functions);
-    Status updateFunctions(const std::string &functionContent);
+    Status registerCatalogs(const CatalogDefs &catalogs);
 
     Status listCatalogs(std::string &result);
     Status listDatabases(const std::string &catalogName, std::string &result);
@@ -106,14 +95,21 @@ public:
                               const std::string &dbName,
                               const std::string &functionName,
                               std::string &result);
+    static std::string concatFullPath(const std::string &catalogName,
+                                      const std::string &dbName,
+                                      const std::string objectName);
 
 private:
     std::string readValue(const autil::legacy::json::JsonMap &params,
                           const std::string &key,
                           const std::string &defValue);
-    bool addLayerTableMeta(const LayerTableModels &models);
+    bool addLayerTableMeta(const std::string &catalogName,
+                           const std::string &dbName,
+                           const LayerTableModel &models);
+    bool addLayerTableMeta(const CatalogDefs &catalogs);
     void writeWarnupLog(IquanDqlRequest &request);
     static Status getHashKeyStr(IquanDqlRequest &request, std::string &hashKeyStr);
+    Status registerCatalogs(const std::string &catalogsContent);
 
 private:
     JniConfig _jniConfig;

@@ -15,6 +15,8 @@
  */
 #include "indexlib/config/GroupDataParameter.h"
 
+#include <assert.h>
+
 #include "indexlib/config/ConfigDefine.h"
 #include "indexlib/config/FileCompressConfig.h"
 #include "indexlib/config/FileCompressSchema.h"

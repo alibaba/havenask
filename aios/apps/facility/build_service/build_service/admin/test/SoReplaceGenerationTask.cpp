@@ -1,5 +1,11 @@
 #include "build_service/admin/test/SoReplaceGenerationTask.h"
 
+#include <iosfwd>
+
+#include "build_service/admin/GenerationTask.h"
+#include "build_service/admin/GenerationTaskBase.h"
+#include "unittest/unittest.h"
+
 using namespace std;
 
 namespace build_service { namespace admin {

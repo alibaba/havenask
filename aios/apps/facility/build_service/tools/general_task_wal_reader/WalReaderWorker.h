@@ -29,6 +29,7 @@ private:
 
 private:
     std::set<int64_t> _finishedOp;
+    std::set<int64_t> _runOp;
 };
 
 }} // namespace build_service::tools

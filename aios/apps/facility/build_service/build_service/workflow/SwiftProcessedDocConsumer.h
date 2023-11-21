@@ -13,20 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SWIFTPROCESSEDDOCCONSUMER_H
-#define ISEARCH_BS_SWIFTPROCESSEDDOCCONSUMER_H
+#pragma once
 
+#include <deque>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+
+#include "autil/Lock.h"
 #include "autil/LoopThread.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common/PeriodDocCounter.h"
 #include "build_service/common_define.h"
-#include "build_service/document/ProcessedDocument.h"
 #include "build_service/util/Log.h"
 #include "build_service/workflow/Consumer.h"
+#include "build_service/workflow/FlowError.h"
+#include "build_service/workflow/StopOption.h"
+#include "indexlib/misc/common.h"
 #include "indexlib/util/counter/CounterBase.h"
 #include "swift/client/SwiftWriter.h"
 
 namespace indexlib { namespace util {
 class Metric;
+
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util
 
@@ -35,6 +46,7 @@ DECLARE_REFERENCE_CLASS(util, AccumulativeCounter);
 DECLARE_REFERENCE_CLASS(util, CounterMap);
 DECLARE_REFERENCE_CLASS(util, StateCounter);
 DECLARE_REFERENCE_CLASS(util, StringCounter);
+
 namespace build_service { namespace workflow {
 
 struct SwiftWriterWithMetric {
@@ -119,5 +131,3 @@ private:
 BS_TYPEDEF_PTR(SwiftProcessedDocConsumer);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_SWIFTPROCESSEDDOCCONSUMER_H

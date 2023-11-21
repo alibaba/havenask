@@ -1,14 +1,22 @@
 package com.taobao.search.iquan.core.utils;
 
-import com.google.common.io.CharStreams;
-import com.taobao.search.iquan.client.common.model.IquanFunctionModel;
-import com.taobao.search.iquan.client.common.utils.ModelUtils;
-import com.taobao.search.iquan.client.common.utils.TestCatalogsBuilder;
-import com.taobao.search.iquan.core.api.common.IquanErrorCode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.api.exception.IquanFunctionValidationException;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.*;
-import com.taobao.search.iquan.core.catalog.function.*;
+import com.taobao.search.iquan.core.api.schema.Function;
+import com.taobao.search.iquan.core.api.schema.FunctionType;
+import com.taobao.search.iquan.core.api.schema.TvfFunction;
+import com.taobao.search.iquan.core.api.schema.TvfInputTable;
+import com.taobao.search.iquan.core.api.schema.TvfSignature;
+import com.taobao.search.iquan.core.api.schema.UdxfFunction;
+import com.taobao.search.iquan.core.api.schema.UdxfSignature;
+import com.taobao.search.iquan.core.catalog.function.IquanAggregateFunction;
+import com.taobao.search.iquan.core.catalog.function.IquanFunction;
+import com.taobao.search.iquan.core.catalog.function.IquanScalarFunction;
+import com.taobao.search.iquan.core.catalog.function.IquanTableFunction;
+import com.taobao.search.iquan.core.catalog.function.IquanTableValueFunction;
 import com.taobao.search.iquan.core.catalog.function.internal.AggregateFunction;
 import com.taobao.search.iquan.core.catalog.function.internal.ScalarFunction;
 import com.taobao.search.iquan.core.catalog.function.internal.TableFunction;
@@ -20,19 +28,15 @@ import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.sql.SqlCallBinding;
 import org.apache.calcite.sql.SqlOperandCountRange;
 import org.apache.calcite.sql.SqlOperator;
-import org.apache.calcite.sql.type.*;
+import org.apache.calcite.sql.type.SqlOperandCountRanges;
+import org.apache.calcite.sql.type.SqlOperandMetadata;
+import org.apache.calcite.sql.type.SqlOperandTypeInference;
+import org.apache.calcite.sql.type.SqlReturnTypeInference;
+import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.calcite.sql.type.SqlTypeUtil;
 import org.apache.calcite.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class FunctionUtils {
     private static final Logger logger = LoggerFactory.getLogger(FunctionUtils.class);

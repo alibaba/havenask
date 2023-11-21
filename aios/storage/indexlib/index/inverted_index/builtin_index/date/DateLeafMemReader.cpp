@@ -34,7 +34,7 @@ DateLeafMemReader::DateLeafMemReader(const std::shared_ptr<InvertedLeafMemReader
 
 DateLeafMemReader::~DateLeafMemReader() {}
 
-bool DateLeafMemReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId,
+bool DateLeafMemReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid64_t baseDocId,
                                const std::shared_ptr<SegmentPostings>& segPostings, autil::mem_pool::Pool* sessionPool,
                                InvertedIndexSearchTracer* tracer) const
 {
@@ -62,8 +62,9 @@ bool DateLeafMemReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t ba
     return true;
 }
 
-bool DateLeafMemReader::GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
-                                          autil::mem_pool::Pool* sessionPool, indexlib::file_system::ReadOption option,
+bool DateLeafMemReader::GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId,
+                                          SegmentPosting& segPosting, autil::mem_pool::Pool* sessionPool,
+                                          indexlib::file_system::ReadOption option,
                                           InvertedIndexSearchTracer* tracer) const
 {
     if (!_invertedLeafMemReader) {

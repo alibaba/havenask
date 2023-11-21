@@ -90,13 +90,14 @@ bool RemoteScanR::doBatchScan(TablePtr &table, bool &eof) {
         SQL_LOG(ERROR, "pk of table [%s] not find", _scanInitParamR->tableName.c_str());
         return false;
     }
-    auto zoneName = _scanInitParamR->location.tableGroupName + isearch::ZONE_BIZ_NAME_SPLITTER
+    auto zoneName = _scanInitParamR->location.sign.nodeName + isearch::ZONE_BIZ_NAME_SPLITTER
                     + TABLE_SERVICE_TOPO_NAME;
     auto serviceName = zoneName + isearch::ZONE_BIZ_NAME_SPLITTER + _scanInitParamR->tableName;
     auto timeoutTerminator = _timeoutTerminatorR->getTimeoutTerminator();
+
     Connector::ScanOptions options(_pks,
-                                   _scanInitParamR->calcInitParamR->outputFields,
-                                   _scanInitParamR->calcInitParamR->outputFieldsType,
+                                   _scanInitParamR->usedFields,
+                                   _scanInitParamR->usedFieldsType,
                                    _scanInitParamR->tableName,
                                    indexName,
                                    serviceName,
@@ -108,16 +109,20 @@ bool RemoteScanR::doBatchScan(TablePtr &table, bool &eof) {
         SQL_LOG(ERROR, "remote scan failed, options: %s", options.toString().c_str());
         return false;
     }
-    SQL_LOG(TRACE3,
+    SQL_LOG(TRACE2,
             "pks: %s, remote scan batch table: %s",
             autil::StringUtil::toString(_pks).c_str(),
-            TableUtil::toString(table, 20).c_str());
+            TableUtil::toString(table, 10).c_str());
     auto reporter = _queryMetricReporterR->getReporter()->getSubReporter(
         "", {{{"table_name", getTableNameForMetrics()}}});
     if (!_connector->tryReportMetrics(*reporter)) {
         SQL_LOG(TRACE3, "ignore report metrics");
     }
     eof = true;
+    if (!_calcTableR->calcTable(table)) {
+        SQL_LOG(ERROR, "calc table failed");
+        return false;
+    }
     return true;
 }
 

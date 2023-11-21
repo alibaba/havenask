@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_CONFIG_H
-#define __INDEXLIB_MERGE_CONFIG_H
+#pragma once
 
 #include <memory>
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/merge_config_base.h"
 #include "indexlib/config/module_class_config.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
-DECLARE_REFERENCE_CLASS(config, MergeConfigImpl);
-DECLARE_REFERENCE_CLASS(file_system, PackageFileTagConfigList);
+namespace indexlib::config {
+class MergeConfigImpl;
+typedef std::shared_ptr<MergeConfigImpl> MergeConfigImplPtr;
+} // namespace indexlib::config
+namespace indexlib::file_system {
+class PackageFileTagConfigList;
+typedef std::shared_ptr<PackageFileTagConfigList> PackageFileTagConfigListPtr;
+} // namespace indexlib::file_system
 
 namespace indexlib { namespace config {
 
@@ -75,10 +80,8 @@ private:
     MergeConfigImplPtr mImpl;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(MergeConfig);
+typedef std::shared_ptr<MergeConfig> MergeConfigPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_MERGE_CONFIG_H

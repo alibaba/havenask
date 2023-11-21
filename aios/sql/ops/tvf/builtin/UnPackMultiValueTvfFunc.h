@@ -77,7 +77,6 @@ private:
 
 private:
     std::vector<std::string> _unpackFields;
-    autil::mem_pool::Pool *_queryPool;
 };
 typedef std::shared_ptr<UnPackMultiValueTvfFunc> UnPackMultiValueTvfFuncPtr;
 

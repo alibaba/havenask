@@ -4,13 +4,13 @@
 #include "indexlib/config/index_partition_schema_maker.h"
 #include "indexlib/config/index_schema.h"
 #include "indexlib/config/test/schema_loader.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_factory_wrapper.h"
 #include "indexlib/document/document_parser/kv_parser/kkv_document_parser.h"
 #include "indexlib/document/document_parser/kv_parser/kv_key_extractor.h"
 #include "indexlib/document/document_parser/kv_parser/multi_region_kkv_keys_extractor.h"
 #include "indexlib/document/kv_document/kv_document.h"
 #include "indexlib/document/raw_document/default_raw_document.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/test.h"
 #include "indexlib/test/unittest.h"
 
@@ -43,8 +43,8 @@ void KkvDocumentParserTest::CaseSetUp()
 {
     _extendDoc.reset(new IndexlibExtendDocument());
     RawDocumentPtr rawDoc(new DefaultRawDocument());
-    _extendDoc->setRawDocument(rawDoc);
-    _extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    _extendDoc->SetRawDocument(rawDoc);
+    _extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
 }
 
 void KkvDocumentParserTest::CaseTearDown() {}
@@ -52,7 +52,7 @@ void KkvDocumentParserTest::CaseTearDown() {}
 TEST_F(KkvDocumentParserTest, testKKV)
 {
     _schemaPtr = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "/document_parser_kkv_schema.json");
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("nick", "jack");
     rawDoc->setField("nid", "1");
     rawDoc->setField("uid", "hello");
@@ -112,7 +112,7 @@ TEST_F(KkvDocumentParserTest, testSetPrimaryKeyFieldForKKV)
     string fields = "pkey:int32;skey:int32;value:int32";
     IndexPartitionSchemaPtr schema = SchemaMaker::MakeKKVSchema(fields, "pkey", "skey", "value");
 
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("pkey", "1");
     rawDoc->setField("skey", "3");
 
@@ -132,7 +132,7 @@ TEST_F(KkvDocumentParserTest, testSetPrimaryKeyFieldForKKV)
 TEST_F(KkvDocumentParserTest, testAddFieldLatencyTag)
 {
     _schemaPtr = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "/document_parser_kkv_schema.json");
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("nick", "jack");
     rawDoc->setField("nid", "1");
     rawDoc->setField("uid", "hello");
@@ -160,7 +160,7 @@ IndexlibExtendDocumentPtr KkvDocumentParserTest::createExtendDoc(const string& f
         rawDoc->setField(kv[0], kv[1]);
     }
     rawDoc->setDocOperateType(ADD_DOC);
-    extendDoc->setRawDocument(rawDoc);
+    extendDoc->SetRawDocument(rawDoc);
     extendDoc->setRegionId(regionId);
     return extendDoc;
 }
@@ -169,7 +169,7 @@ TEST_F(KkvDocumentParserTest, testDeleteDocWithoutSKey)
 {
     _schemaPtr = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "/document_parser_kkv_schema.json");
     _schemaPtr->GetUserDefinedParam()["deny_empty_skey"] = true;
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("nick", "jack");
     rawDoc->setField("uid", "hello");
     rawDoc->setField("stay_time", "123");

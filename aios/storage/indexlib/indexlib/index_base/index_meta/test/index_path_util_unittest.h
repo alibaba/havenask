@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXPATHUTILTEST_H
-#define __INDEXLIB_INDEXPATHUTILTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/index_path_util.h"
@@ -37,5 +36,3 @@ INDEXLIB_UNIT_TEST_CASE(IndexPathUtilTest, TestGetPatchMetaId);
 INDEXLIB_UNIT_TEST_CASE(IndexPathUtilTest, TestGetSchemaId);
 INDEXLIB_UNIT_TEST_CASE(IndexPathUtilTest, TestGetPatchIndexId);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_INDEXPATHUTILTEST_H

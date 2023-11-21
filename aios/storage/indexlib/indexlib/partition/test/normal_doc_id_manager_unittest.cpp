@@ -4,6 +4,7 @@
 #include "indexlib/common_define.h"
 #include "indexlib/config/field_config.h"
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/serialized_summary_document.h"
 #include "indexlib/index/normal/deletionmap/in_mem_deletion_map_reader.h"
 #include "indexlib/index/normal/framework/multi_field_index_segment_reader.h"
@@ -16,7 +17,6 @@
 #include "indexlib/partition/segment/single_segment_writer.h"
 #include "indexlib/partition/test/doc_id_manager_test_util.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 
 namespace indexlib { namespace partition {

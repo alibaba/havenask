@@ -15,14 +15,13 @@
  */
 #include "indexlib/file_system/FileSystemCreator.h"
 
-#include <iosfwd>
 #include <memory>
 
 #include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/LogicalFileSystem.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
-#include "indexlib/util/memory_control/PartitionMemoryQuotaController.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace file_system {

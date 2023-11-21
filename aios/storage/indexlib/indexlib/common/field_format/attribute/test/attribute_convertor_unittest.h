@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTECONVERTORTEST_H
-#define __INDEXLIB_ATTRIBUTECONVERTORTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/attribute/attribute_convertor.h"
 #include "indexlib/common_define.h"
@@ -49,5 +48,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(AttributeConvertorTest, TestAllocate);
 INDEXLIB_UNIT_TEST_CASE(AttributeConvertorTest, TestEncode);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_ATTRIBUTECONVERTORTEST_H

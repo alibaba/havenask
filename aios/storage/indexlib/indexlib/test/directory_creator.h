@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FILE_SYSTEM_DIRECTORY_CREATOR_H
-#define __INDEXLIB_FILE_SYSTEM_DIRECTORY_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -52,5 +51,3 @@ private:
 
 DEFINE_SHARED_PTR(DirectoryCreator);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_FILE_SYSTEM_DIRECTORY_CREATOR_H

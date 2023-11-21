@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIPARTPATCHFINDERTEST_H
-#define __INDEXLIB_MULTIPARTPATCHFINDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/patch/multi_part_patch_finder.h"
@@ -47,5 +46,3 @@ INDEXLIB_UNIT_TEST_CASE(MultiPartPatchFinderTest, TestFindAttrPatchFilesInSegmen
 INDEXLIB_UNIT_TEST_CASE(MultiPartPatchFinderTest, TestFindAttrPatchFilesInSegmentWithException);
 INDEXLIB_UNIT_TEST_CASE(MultiPartPatchFinderTest, TestFindAttrPatchFilesForSegment);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_MULTIPARTPATCHFINDERTEST_H

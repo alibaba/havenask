@@ -29,8 +29,7 @@ typedef std::map<GraphId, std::string> MirrorGraphInfoMap;
 class NaviStreamSession : public NaviWorkerBase
 {
 public:
-    NaviStreamSession(const std::shared_ptr<NaviLogger> &loggerPtr,
-                      TaskQueue *taskQueue,
+    NaviStreamSession(TaskQueue *taskQueue,
                       BizManager *bizManager,
                       NaviMessage *request,
                       const ArenaPtr &arena,

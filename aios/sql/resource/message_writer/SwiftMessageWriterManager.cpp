@@ -75,7 +75,7 @@ bool SwiftMessageWriterManager::init(const std::string &config) {
             return false;
         }
         auto swiftWriterAsyncHelper = make_shared<SwiftWriterAsyncHelper>();
-        if (!swiftWriterAsyncHelper->init(std::move(swiftWriter))) {
+        if (!swiftWriterAsyncHelper->init(std::move(swiftWriter), "")) {
             SQL_LOG(
                 WARN, "init swift writer async helper failed, table is [%s]", iter.first.c_str());
             reset();

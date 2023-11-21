@@ -15,7 +15,13 @@
  */
 #include "build_service/admin/controlflow/OpenApiHandler.h"
 
+#include <iosfwd>
+#include <memory>
+#include <vector>
+
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "build_service/common/ResourceKeeper.h"
 
 using namespace std;
 using namespace autil;

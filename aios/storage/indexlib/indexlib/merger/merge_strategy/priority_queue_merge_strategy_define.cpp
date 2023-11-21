@@ -15,7 +15,14 @@
  */
 #include "indexlib/merger/merge_strategy/priority_queue_merge_strategy_define.h"
 
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 
 using namespace std;
 using namespace autil;

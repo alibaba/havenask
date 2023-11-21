@@ -1,7 +1,7 @@
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/operation_queue/optimized_reopen_redo_strategy.h"
 #include "indexlib/partition/operation_queue/test/mock_operation.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 
 using namespace std;

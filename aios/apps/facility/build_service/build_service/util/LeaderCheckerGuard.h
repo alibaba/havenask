@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_LEADERCHECKERGUARD_H
-#define ISEARCH_BS_LEADERCHECKERGUARD_H
+#pragma once
 
 class LeaderCheckerGuard
 {
@@ -31,5 +30,3 @@ public:
 private:
     worker_framework::LeaderElector* _elector;
 };
-
-#endif // ISEARCH_BS_LEADERCHECKERGUARD_H

@@ -3,7 +3,7 @@ package com.taobao.search.iquan.core.catalog;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class ObjectPath  implements Serializable {
+public class ObjectPath implements Serializable {
     private final String databaseName;
     private final String objectName;
 
@@ -15,18 +15,6 @@ public class ObjectPath  implements Serializable {
 
         this.databaseName = databaseName;
         this.objectName = objectName;
-    }
-
-    public String getDatabaseName() {
-        return databaseName;
-    }
-
-    public String getObjectName() {
-        return objectName;
-    }
-
-    public String getFullName() {
-        return String.format("%s.%s", databaseName, objectName);
     }
 
     public static ObjectPath fromString(String fullName) {
@@ -41,6 +29,29 @@ public class ObjectPath  implements Serializable {
         }
 
         return new ObjectPath(paths[0], paths[1]);
+    }
+
+    public static boolean isNullOrWhitespaceOnly(String str) {
+        if (str != null && str.length() != 0) {
+            for (int i = 0; i < str.length(); ++i) {
+                if (!Character.isWhitespace(str.charAt(i))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public String getDatabaseName() {
+        return databaseName;
+    }
+
+    public String getObjectName() {
+        return objectName;
+    }
+
+    public String getFullName() {
+        return String.format("%s.%s", databaseName, objectName);
     }
 
     @Override
@@ -67,16 +78,5 @@ public class ObjectPath  implements Serializable {
     @Override
     public String toString() {
         return String.format("%s.%s", databaseName, objectName);
-    }
-
-    public static boolean isNullOrWhitespaceOnly(String str) {
-        if (str != null && str.length() != 0) {
-            for(int i = 0; i < str.length(); ++i) {
-                if (!Character.isWhitespace(str.charAt(i))) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }

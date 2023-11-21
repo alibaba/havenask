@@ -15,12 +15,35 @@
  */
 #include "build_service/workflow/RawDocRtServiceBuilderImpl.h"
 
-#include "autil/TimeUtility.h"
+#include <assert.h>
+#include <atomic>
+#include <functional>
+#include <ostream>
+#include <stddef.h>
+
+#include "alog/Logger.h"
+#include "autil/Lock.h"
+#include "autil/Span.h"
+#include "build_service/builder/Builder.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/workflow/AsyncStarter.h"
 #include "build_service/workflow/BuildFlow.h"
+#include "build_service/workflow/BuildFlowMode.h"
 #include "build_service/workflow/DocReaderProducer.h"
+#include "build_service/workflow/Producer.h"
+#include "build_service/workflow/RealtimeErrorDefine.h"
+#include "build_service/workflow/Workflow.h"
+#include "build_service/workflow/WorkflowItem.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/document/locator.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/online_join_policy.h"
+#include "indexlib/index_base/partition_data.h"
+#include "indexlib/partition/builder_branch_hinter.h"
 #include "indexlib/partition/index_partition.h"
 
 using namespace std;
@@ -91,9 +114,6 @@ bool RawDocRtServiceBuilderImpl::getBuilderAndProducer()
 bool RawDocRtServiceBuilderImpl::producerSeek(const common::Locator& locator)
 {
     assert(_producer != NULL);
-    // indexlibv2::base::Progress progress(_partitionId.range().from(), _partitionId.range().to(), locator.GetOffset());
-    // common::Locator targetLocator = locator;
-    // targetLocator.SetProgress({progress});
     if (!_producer->seek(locator)) {
         stringstream ss;
         ss << "seek to locator[" << locator.DebugString() << "] failed";

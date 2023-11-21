@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKEPARTITIONREADERSNAPSHOTCREATOR_H
-#define __INDEXLIB_FAKEPARTITIONREADERSNAPSHOTCREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -132,5 +131,3 @@ private:
 
 DEFINE_SHARED_PTR(FakePartitionReaderSnapshotCreator);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKEPARTITIONREADERSNAPSHOTCREATOR_H

@@ -61,18 +61,13 @@ config_setting(
     visibility=['//visibility:public']
 )
 config_setting(
-    name='cpu_with_avx512',
-    define_values={'cpu_avx512': 'true'},
-    visibility=['//visibility:public']
-)
-config_setting(
-    name='cpu_without_avx512',
-    define_values={'cpu_avx512': 'false'},
-    visibility=['//visibility:public']
-)
-config_setting(
     name='hack_get_set_env',
     define_values={'hack_get_set_env': 'true'},
+    visibility=['//visibility:public']
+)
+config_setting(
+    name='glibc_2_17_compatible',
+    define_values={'glibc_2_17_compatible': 'true'},
     visibility=['//visibility:public']
 )
 bool_flag(name='using_cuda', build_setting_default=False)
@@ -101,7 +96,6 @@ config_setting(
     },
     visibility=['//visibility:public']
 )
-
 config_setting(
     name='disable_catalog_mongodb',
     values={'define': 'disable_catalog_mongodb=true'},

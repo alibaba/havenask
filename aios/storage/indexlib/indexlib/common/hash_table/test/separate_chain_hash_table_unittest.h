@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEPARATECHAINHASHTABLETEST_H
-#define __INDEXLIB_SEPARATECHAINHASHTABLETEST_H
+#pragma once
 
 #include "indexlib/common/hash_table/separate_chain_hash_table.h"
 #include "indexlib/common_define.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(SeparateChainHashTableTest, TestSimpleProcess);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_SEPARATECHAINHASHTABLETEST_H

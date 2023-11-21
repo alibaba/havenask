@@ -57,4 +57,14 @@ TEST_F(KVSchemaResolverTest, testTTLForLegacy)
     ASSERT_FALSE(indexConfig->DenyEmptyPrimaryKey());
     ASSERT_FALSE(indexConfig->IgnoreEmptyPrimaryKey());
 }
+
+TEST_F(KVSchemaResolverTest, testStorePKForLegacy)
+{
+    auto resolver = std::make_shared<KVSchemaResolver>();
+    auto schema = framework::TabletSchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "legacy_store_pk_schema.json");
+
+    auto [status, needStorePKValue] = schema->GetRuntimeSettings().GetValue<bool>("need_store_pk_value");
+    ASSERT_TRUE(status.IsOK());
+    ASSERT_TRUE(needStorePKValue);
+}
 } // namespace indexlibv2::table

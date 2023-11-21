@@ -46,6 +46,14 @@ private:
     struct CallbackItem {
     public:
         typedef std::function<void(autil::result::Result<CallbackParam>)> CallbackFunc;
+        struct Payload {
+            CallbackFunc callback;
+            int64_t timeoutInUs = 0;
+        };
+
+    public:
+        CallbackItem()
+            : payload(std::make_shared<Payload>()) {}
 
     public:
         bool onDone(CallbackParam param);
@@ -53,22 +61,19 @@ private:
 
     public:
         int64_t targetTs = 0;
-        CallbackFunc callback;
         int64_t expireTimeInUs = 0;
-        int64_t timeoutInUs = 0;
+        std::shared_ptr<Payload> payload;
     };
 
-    typedef std::shared_ptr<CallbackItem> CallbackItemPtr;
-
-    struct CallbackItemPtrCmpTargetTs {
-        bool operator()(const CallbackItemPtr &lhs, const CallbackItemPtr &rhs) {
-            return lhs->targetTs > rhs->targetTs;
+    struct CallbackItemCmpTargetTs {
+        bool operator()(const CallbackItem &lhs, const CallbackItem &rhs) {
+            return lhs.targetTs > rhs.targetTs;
         }
     };
 
-    struct CallbackItemPtrCmpExpireTime {
-        bool operator()(const CallbackItemPtr &lhs, const CallbackItemPtr &rhs) {
-            return lhs->expireTimeInUs > rhs->expireTimeInUs;
+    struct CallbackItemCmpExpireTime {
+        bool operator()(const CallbackItem &lhs, const CallbackItem &rhs) {
+            return lhs.expireTimeInUs > rhs.expireTimeInUs;
         }
     };
 
@@ -124,9 +129,9 @@ private:
     autil::ThreadPtr _workerThread;
     mutable autil::ThreadMutex _lock;
     std::atomic<size_t> _pendingItemCount = {0};
-    std::priority_queue<CallbackItemPtr, std::vector<CallbackItemPtr>, CallbackItemPtrCmpTargetTs>
+    std::priority_queue<CallbackItem, std::vector<CallbackItem>, CallbackItemCmpTargetTs>
         _targetTsQueue;
-    std::priority_queue<CallbackItemPtr, std::vector<CallbackItemPtr>, CallbackItemPtrCmpExpireTime>
+    std::priority_queue<CallbackItem, std::vector<CallbackItem>, CallbackItemCmpExpireTime>
         _timeoutQueue;
 
 private:
@@ -137,7 +142,7 @@ AUTIL_LOG_SETUP_TEMPLATE(sql, GenericWaiter, D);
 
 template <typename T>
 bool GenericWaiter<T>::CallbackItem::onDone(CallbackParam param) {
-    auto callback_ = std::move(callback);
+    auto callback_ = std::move(payload->callback);
     if (callback_) {
         callback_(std::move(param));
         return true;
@@ -147,12 +152,12 @@ bool GenericWaiter<T>::CallbackItem::onDone(CallbackParam param) {
 
 template <typename T>
 bool GenericWaiter<T>::CallbackItem::onTimeout(void *parent) {
-    auto callback_ = std::move(callback);
+    auto callback_ = std::move(payload->callback);
     if (callback_) {
         callback_(autil::result::RuntimeError::make(
             "[%p] GenericWaiter timeout, timeoutInUs %ld, targetTs %ld",
             parent,
-            timeoutInUs,
+            payload->timeoutInUs,
             targetTs));
         return true;
     }
@@ -178,12 +183,12 @@ void GenericWaiter<T>::stop() {
     auto timeoutQueue = std::move(_timeoutQueue);
     size_t timeoutCnt = 0;
     for (; !targetTsQueue.empty(); targetTsQueue.pop()) {
-        if (targetTsQueue.top()->onTimeout(this)) {
+        if (auto top = targetTsQueue.top(); top.onTimeout(this)) {
             ++timeoutCnt;
         }
     }
     for (; !timeoutQueue.empty(); timeoutQueue.pop()) {
-        if (timeoutQueue.top()->onTimeout(this)) {
+        if (auto top = timeoutQueue.top(); top.onTimeout(this)) {
             ++timeoutCnt;
         }
     }
@@ -227,16 +232,16 @@ void GenericWaiter<T>::wait(int64_t targetTs,
         return;
     }
     auto now = autil::TimeUtility::currentTime();
-    auto itemPtr = std::make_shared<CallbackItem>();
-    itemPtr->timeoutInUs = timeoutInUs;
-    itemPtr->expireTimeInUs = autil::TIME_ADD(now, timeoutInUs);
-    itemPtr->targetTs = targetTs;
+    CallbackItem item;
+    item.payload->timeoutInUs = timeoutInUs;
+    item.expireTimeInUs = autil::TIME_ADD(now, timeoutInUs);
+    item.targetTs = targetTs;
     AUTIL_LOG(TRACE1, "[%p] start emplace targetTs[%ld]", this, targetTs);
     {
         autil::ScopedLock _(_lock);
-        itemPtr->callback = std::move(callback);
-        _timeoutQueue.emplace(itemPtr); // DO NOT std::move
-        _targetTsQueue.emplace(std::move(itemPtr));
+        item.payload->callback = std::move(callback);
+        _timeoutQueue.emplace(item); // DO NOT std::move
+        _targetTsQueue.emplace(std::move(item));
     }
     auto pendingItemCount = _pendingItemCount.fetch_add(1, std::memory_order_release) + 1;
     if (pendingItemCount == 1) {
@@ -265,8 +270,8 @@ void GenericWaiter<T>::checkCallback() {
     if (getPendingItemCount() == 0) {
         return;
     }
-    std::list<std::shared_ptr<CallbackItem>> timeoutList;
-    std::list<std::shared_ptr<CallbackItem>> targetTsList;
+    std::list<CallbackItem> timeoutList;
+    std::list<CallbackItem> targetTsList;
     Status status = getCurrentStatus();
     int64_t checkpoint = transToKey(status);
     AUTIL_LOG(DEBUG, "[%p] start handle for checkpoint[%ld]", this, checkpoint);
@@ -276,39 +281,39 @@ void GenericWaiter<T>::checkCallback() {
         autil::ScopedLock _(_lock);
         for (; !_targetTsQueue.empty(); _targetTsQueue.pop()) {
             auto &top = _targetTsQueue.top();
-            if (top->targetTs >= checkpoint) {
+            if (top.targetTs >= checkpoint) {
                 break;
             }
-            targetTsList.emplace_back(std::move(top));
+            targetTsList.emplace_back(top);
         }
         for (; !_timeoutQueue.empty(); _timeoutQueue.pop()) {
             auto &top = _timeoutQueue.top();
-            if (top->expireTimeInUs > now) {
+            if (top.expireTimeInUs > now) {
                 break;
             }
-            timeoutList.emplace_back(std::move(top));
+            timeoutList.emplace_back(top);
         }
     }
     // DO NOT callback in lock
     size_t doneCnt = 0, timeoutCnt = 0;
     auto param = transToCallbackParam(status);
-    for (auto &itemPtr : targetTsList) {
+    for (auto &item : targetTsList) {
         AUTIL_LOG(TRACE1,
                   "[%p] onDone for checkpoint[%ld] targetTs[%ld]",
                   this,
                   checkpoint,
-                  itemPtr->targetTs);
-        if (itemPtr->onDone(param)) {
+                  item.targetTs);
+        if (item.onDone(param)) {
             ++doneCnt;
         }
     }
-    for (auto &itemPtr : timeoutList) {
+    for (auto &item : timeoutList) {
         AUTIL_LOG(TRACE1,
                   "[%p] onTimeout for checkpoint[%ld] targetTs[%ld]",
                   this,
                   checkpoint,
-                  itemPtr->targetTs);
-        if (itemPtr->onTimeout(this)) {
+                  item.targetTs);
+        if (item.onTimeout(this)) {
             ++timeoutCnt;
         }
     }

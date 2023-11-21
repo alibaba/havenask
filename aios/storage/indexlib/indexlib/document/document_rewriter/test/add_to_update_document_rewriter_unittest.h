@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ADDTOUPDATEDOCUMENTREWRITERTEST_H
-#define __INDEXLIB_ADDTOUPDATEDOCUMENTREWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_rewriter/add_to_update_document_rewriter.h"
@@ -41,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE(AddToUpdateDocumentRewriterTest, TestRewrite);
 INDEXLIB_UNIT_TEST_CASE(AddToUpdateDocumentRewriterTest, TestRewriteForPackFields);
 INDEXLIB_UNIT_TEST_CASE(AddToUpdateDocumentRewriterTest, TestRewriteIndexUpdate);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_ADDTOUPDATEDOCUMENTREWRITERTEST_H

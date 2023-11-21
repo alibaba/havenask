@@ -1,0 +1,16 @@
+{
+    "table_name" : "test",
+    "table_type" : "khronos",
+    "indexes": {
+        "time_series" : [
+            {
+                "index_name": "series1",
+                "default_columns":  ["min_value", "max_value", "avg_value", "raw_value"],
+                "extend_column_limit": 10,
+                "granularity": 10,
+                "message_type": "khronos.fbs"
+            }
+        ]
+    },
+    "fields":[]
+}

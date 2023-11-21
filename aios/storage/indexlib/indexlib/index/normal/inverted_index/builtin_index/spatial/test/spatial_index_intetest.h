@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SPATIALINDEXINTETEST_H
-#define __INDEXLIB_SPATIALINDEXINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -82,5 +81,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(SpatialIndexInteTestMode, TestLazyloadSpatial
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(SpatialIndexInteTestMode, TestSchemaMaker);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(SpatialIndexInteTestMode, TestMergeMulitSegment);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SPATIALINDEXINTETEST_H

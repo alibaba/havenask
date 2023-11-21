@@ -1,27 +1,29 @@
 package com.taobao.search.iquan.core.catalog;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
-import com.taobao.search.iquan.core.api.exception.CatalogException;
-import com.taobao.search.iquan.core.api.exception.DatabaseNotExistException;
+import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.catalog.function.IquanFunction;
 import com.taobao.search.iquan.core.catalog.function.IquanStdOperatorTable;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.jdbc.CalciteSchema;
-import org.apache.calcite.plan.RelOptSchema;
 import org.apache.calcite.prepare.CalciteCatalogReader;
-import org.apache.calcite.prepare.Prepare;
-import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.sql.*;
+import org.apache.calcite.sql.SqlFunction;
+import org.apache.calcite.sql.SqlFunctionCategory;
+import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlOperator;
+import org.apache.calcite.sql.SqlSyntax;
 import org.apache.calcite.sql.validate.SqlNameMatcher;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IquanCalciteCatalogReader extends CalciteCatalogReader {
+    private static final Logger logger = LoggerFactory.getLogger(IquanCalciteCatalogReader.class);
     private final GlobalCatalogManager catalogManager;
     private final String defaultCatalogName;
     private final String defaultDbName;
@@ -51,58 +53,64 @@ public class IquanCalciteCatalogReader extends CalciteCatalogReader {
         this.defaultDbName = defaultDbName;
     }
 
+    protected static SqlFunctionCategory category(SqlOperator operator) {
+        if (operator instanceof SqlFunction) {
+            return ((SqlFunction) operator).getFunctionType();
+        } else {
+            return SqlFunctionCategory.SYSTEM;
+        }
+    }
+
     @Override
     public void lookupOperatorOverloads(SqlIdentifier opName,
                                         SqlFunctionCategory category,
                                         SqlSyntax syntax,
                                         List<SqlOperator> operatorList,
-                                        SqlNameMatcher nameMatcher)
-    {
+                                        SqlNameMatcher nameMatcher) {
         if (opName.isStar()) {
             return;
         }
 
         String catalogName = defaultCatalogName;
         String dbName = defaultDbName;
-        int nameSize = opName.names.size();
+        List<String> namePath = opName.names;
+        if (!nameMatcher.isCaseSensitive()) {
+            namePath = namePath.stream().map(String::toLowerCase).collect(Collectors.toList());
+            catalogName = catalogName.toLowerCase();
+            dbName = dbName.toLowerCase();
+        }
+        int nameSize = namePath.size();
+        String funcName = namePath.get(nameSize - 1);
 
         switch (nameSize) {
-            case 3 : catalogName = opName.names.get(0);
-            case 2 : dbName = opName.names.get(nameSize - 2);
+            case 3 : catalogName = namePath.get(0);
+            case 2 : dbName = namePath.get(nameSize - 2);
             case 1 : break;
             default :
                 throw new SqlQueryException(IquanErrorCode.IQUAN_EC_INVALID_FUNCTION_PATH,
                         String.format("function path [%s] is invalid", opName.toString()));
         }
         try {
-            IquanDataBase dataBase = catalogManager.getCatalog(catalogName).getDatabase(dbName);
-            findFunction(dataBase.getFunctions(), opName.names.get(nameSize - 1), category, syntax, operatorList, nameMatcher);
-        } catch (DatabaseNotExistException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void findFunction(Map<String, IquanFunction> functionMap,
-                              String funcName,
-                              SqlFunctionCategory category,
-                              SqlSyntax syntax,
-                              List<SqlOperator> operatorList,
-                              SqlNameMatcher nameMatcher) {
-        for (IquanFunction function : functionMap.values()) {
-            String name = function.getName();
-            if (!nameMatcher.matches(funcName, name)) {
-                continue;
+            if (IquanStdOperatorTable.BUILD_IN_FUNC_MAP.containsKey(funcName)) {
+                if (operatorList.isEmpty()) {
+                    operatorList.add(IquanStdOperatorTable.BUILD_IN_FUNC_MAP.get(funcName));
+                }
+                return;
             }
-            SqlFunction sqlFunction = function.build();
+            GlobalCatalog catalog = catalogManager.getCatalog(catalogName);
+            IquanFunction iquanFunction = catalog.getFunction(dbName, funcName);
+            SqlFunction sqlFunction = iquanFunction.build();
             if (sqlFunction.getSyntax() != syntax) {
-                continue;
+                return;
             }
             if (category != null
-                    && category != category(sqlFunction)
-                    && !category.isUserDefinedNotSpecificFunction()) {
-                continue;
+                && category != category(sqlFunction)
+                && !category.isUserDefinedNotSpecificFunction()) {
+                return;
             }
             operatorList.add(sqlFunction);
+        } catch (FunctionNotExistException e) {
+            logger.warn(String.format("function [%s] not exist!", funcName));
         }
     }
 
@@ -110,7 +118,7 @@ public class IquanCalciteCatalogReader extends CalciteCatalogReader {
     public List<SqlOperator> getOperatorList() {
         List<SqlOperator> operators = new ArrayList<>();
         for (GlobalCatalog catalog : catalogManager.getCatalogMap().values()) {
-            for (IquanDataBase dataBase : catalog.getDatabases().values()) {
+            for (IquanDatabase dataBase : catalog.getDatabases().values()) {
                 operators.addAll(dataBase.getFunctions().values()
                         .stream()
                         .map(IquanFunction::build)
@@ -119,13 +127,5 @@ public class IquanCalciteCatalogReader extends CalciteCatalogReader {
         }
         operators.addAll(IquanStdOperatorTable.instance().getOperatorList());
         return operators;
-    }
-
-    protected static SqlFunctionCategory category(SqlOperator operator) {
-        if (operator instanceof SqlFunction) {
-            return ((SqlFunction) operator).getFunctionType();
-        } else {
-            return SqlFunctionCategory.SYSTEM;
-        }
     }
 }

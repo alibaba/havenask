@@ -32,7 +32,7 @@ public:
     };
 
 public:
-    ResultHolder(const std::string& distanceType) { _dropLargeScoreIfNeed = IsDropLargeScoreIfNeed(distanceType); }
+    ResultHolder(const std::string& distanceType) { _isSmallerScoreBetter = IsSmallerScoreBetter(distanceType); }
     ~ResultHolder() = default;
     ResultHolder(const ResultHolder&) = delete;
     ResultHolder& operator=(const ResultHolder&) = delete;
@@ -54,13 +54,13 @@ protected:
     void TruncateResult(size_t topk);
 
 private:
-    bool IsDropLargeScoreIfNeed(const std::string& distanceType) const;
+    bool IsSmallerScoreBetter(const std::string& distanceType) const;
 
 protected:
     docid_t _baseDocId {0};
     std::vector<ANNMatchItem> _matchItems {};
     SearchStats _stats {};
-    bool _dropLargeScoreIfNeed {false};
+    bool _isSmallerScoreBetter {false};
 
 private:
     AUTIL_LOG_DECLARE();
@@ -74,9 +74,9 @@ inline void ResultHolder::AppendResult(docid_t localDocId, match_score_t score)
 
 inline void ResultHolder::AppendResult(docid_t localDocId, match_score_t score, match_score_t threshold)
 {
-    if (_dropLargeScoreIfNeed && score >= threshold) {
+    if (_isSmallerScoreBetter && score >= threshold) {
         return;
-    } else if (!_dropLargeScoreIfNeed && score <= threshold) {
+    } else if (!_isSmallerScoreBetter && score <= threshold) {
         return;
     }
     AppendResult(localDocId, score);
@@ -91,7 +91,7 @@ inline void ResultHolder::TruncateResult(size_t topk)
 
 inline void ResultHolder::OrderByScore()
 {
-    bool byAscendingOrder = _dropLargeScoreIfNeed ? true : false;
+    bool byAscendingOrder = _isSmallerScoreBetter ? true : false;
     if (byAscendingOrder) {
         std::sort(_matchItems.begin(), _matchItems.end(),
                   [](const ANNMatchItem& lhs, const ANNMatchItem& rhs) { return lhs.score < rhs.score; });

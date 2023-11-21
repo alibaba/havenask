@@ -35,7 +35,7 @@ AUTIL_LOG_SETUP(swift, SwiftWriterConfig);
 
 const uint32_t SwiftWriterConfig::DEFAULT_RETRY_TIMES = 3;
 const uint64_t SwiftWriterConfig::DEFAULT_RETRY_TIME_INTERVAL = 1000 * 1000;                           // 1s
-const uint64_t SwiftWriterConfig::DEFAULT_REQUEST_SEND_BYTE = 128 * 1024;                              // 128KB
+const uint64_t SwiftWriterConfig::DEFAULT_REQUEST_SEND_BYTE = 512 * 1024;                              // 512KB
 const uint64_t SwiftWriterConfig::DEFAULT_MAX_BUFFER_BYTE = 512 * 1024 * 1024;                         // 512M
 const uint64_t SwiftWriterConfig::DEFAULT_MAX_KEEP_IN_BUFFER_TIME = 1000 * 1000;                       // 1s
 const uint64_t SwiftWriterConfig::SEND_REQUEST_LOOP_INTERVAL = 10 * 1000;                              // 10ms

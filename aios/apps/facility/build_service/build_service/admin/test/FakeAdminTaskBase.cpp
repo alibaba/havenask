@@ -1,5 +1,7 @@
 #include "build_service/admin/test/FakeAdminTaskBase.h"
 
+#include <iosfwd>
+
 using namespace std;
 using namespace build_service::proto;
 

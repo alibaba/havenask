@@ -8,7 +8,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/util',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/config:FileCompressConfigV2',
         '//aios/storage/indexlib/config:SingleFileCompressConfig',

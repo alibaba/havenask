@@ -15,8 +15,20 @@
  */
 #include "build_service/processor/SubDocumentExtractorProcessor.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <stddef.h>
+
+#include "alog/Logger.h"
+#include "build_service/document/ClassifiedDocument.h"
 #include "build_service/document/RawDocument.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/legacy_schema_adapter.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
 
 using namespace build_service::config;
 using namespace build_service::document;

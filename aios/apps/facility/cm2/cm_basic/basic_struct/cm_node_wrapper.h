@@ -98,7 +98,8 @@ protected:
     CMNode* _cm_node;
 };
 
-DEFINE_SHARED_PTR(CMNodeWrapper);
+typedef std::shared_ptr<CMNodeWrapper> CMNodeWrapperPtr;
+
 } // namespace cm_basic
 
 #endif //__CM_NODE_WRAPPER_

@@ -1,9 +1,18 @@
 #include "build_service/analyzer/SimpleTokenizer.h"
 
+#include <iosfwd>
+#include <stdint.h>
 #include <string>
 
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/LongHashValue.h"
 #include "build_service/analyzer/Token.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "build_service/util/Log.h"
+#include "indexlib/analyzer/ITokenizer.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

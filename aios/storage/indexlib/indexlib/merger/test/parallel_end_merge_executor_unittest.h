@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARALLELENDMERGEEXECUTORTEST_H
-#define __INDEXLIB_PARALLELENDMERGEEXECUTORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/parallel_end_merge_executor.h"
@@ -36,5 +35,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(ParallelEndMergeExecutorTest, TestExtractParallelMergeTaskGroup);
 INDEXLIB_UNIT_TEST_CASE(ParallelEndMergeExecutorTest, TestSingleGroupParallelEndMerge);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PARALLELENDMERGEEXECUTORTEST_H

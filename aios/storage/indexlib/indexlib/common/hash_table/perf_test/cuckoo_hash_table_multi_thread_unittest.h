@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CUCKOOHASHTABLEMULTITHREADTEST_H
-#define __INDEXLIB_CUCKOOHASHTABLEMULTITHREADTEST_H
+#pragma once
 
 #include "indexlib/common/hash_table/cuckoo_hash_table.h"
 #include "indexlib/common_define.h"
@@ -29,5 +28,3 @@ private:
 // INDEXLIB_UNIT_TEST_CASE(CuckooHashTableMultiThreadTest, TestMultiThreadWithTs);
 // INDEXLIB_UNIT_TEST_CASE(CuckooHashTableMultiThreadTest, TestMultiThreadWithOffset);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CUCKOOHASHTABLEMULTITHREADTEST_H

@@ -1,10 +1,33 @@
 package com.taobao.search.iquan.core.common;
 
-import com.google.common.collect.ImmutableSet;
-
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+
 public interface ConstantDefine {
+    //catalog
+    String CATALOG_NAME = "catalog_name";
+    String DATABASES = "databases";
+    String LOCATIONS = "locations";
+    String DATABASE_NAME = "database_name";
+    String TABLES = "tables";
+    String FUNCTIONS = "functions";
+    String LAYER_TABLES = "layer_tables";
+    String TABLE_VERSION = "table_version";
+    String TABLE_NAME = "table_name";
+    String ALIAS_NAMES = "alias_names";
+    String TABLE_TYPE = "table_type";
+    String TABLE_CONTENT_TYPE = "table_content_type";
+    String TABLE_CONTENT = "table_content";
+    String LAYER_TABLE_NAME = "layer_table_name";
+    String CONTENT = "content";
+
+    String FUNCTION_VERSION = "function_version";
+    String FUNCTION_NAME = "function_name";
+    String FUNCTION_TYPE = "function_type";
+    String IS_DETERMINISTIC = "is_deterministic";
+    String FUNCTION_CONTENT_VERSION = "function_content_version";
+    String FUNCTION_CONTENT = "function_content";
 
     // attr name: common
     String ID = "id";
@@ -63,11 +86,8 @@ public interface ConstantDefine {
     String EQUI_CONDITION = "equi_condition";
     String REMAINING_CONDITION = "remaining_condition";
 
-    String CATALOG_NAME = "catalog_name";
     String DB_NAME = "db_name";
-    String TABLE_NAME = "table_name";
     String AUX_TABLE_NAME = "aux_table_name";
-    String TABLE_TYPE = "table_type";
     String TABLE_DISTRIBUTION = "table_distribution";
     String OUTPUT_DISTRIBUTION = "output_distribution";
     String OUTPUT_PRUNABLE = "output_prunable";
@@ -86,6 +106,7 @@ public interface ConstantDefine {
     String PK_VALUES_SEP = "pk_values_sep";
     String ASSIGNED_PARTITION_IDS = "assigned_partition_ids";
     String ASSIGNED_HASH_VALUES = "assigned_hash_values";
+    String SYSTEM = "system";
 
     // attr name
     String LEFT_TABLE_META = "left_table_meta";
@@ -257,7 +278,7 @@ public interface ConstantDefine {
     String SOURCE_TYPE = "source_type";
 
     // location
-    String TABLE_GROUP_NAME= "table_group_name";
+    String NODE_NAME = "node_name";
 
     Set<String> SupportSortFunctionNames = ImmutableSet.of(
             "sortTvf", "_sortTvf"
@@ -267,7 +288,7 @@ public interface ConstantDefine {
     String AGG_INDEX_NAME = "aggregation_index_name";
     String AGG_KEYS = "aggregation_keys";
     String AGG_TYPE = "aggregation_type";
-    String AGG_VALUE_FIELD= "aggregation_value_field";
+    String AGG_VALUE_FIELD = "aggregation_value_field";
     String AGG_DISTINCT = "aggregation_distinct";
     String AGG_RANGE_MAP = "aggregation_range_map";
 }

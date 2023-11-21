@@ -15,11 +15,18 @@
  */
 #pragma once
 
-#include <any>
 #include <memory>
-#include <mutex>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
 #include <vector>
 
+#include "autil/Log.h"
+#include "autil/NoCopyable.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/framework/Locator.h"
 #include "indexlib/framework/MemSegment.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/Version.h"
@@ -28,6 +35,7 @@ namespace indexlibv2::framework {
 class ResourceMap;
 class TabletDataInfo;
 struct TabletDataSchemaGroup;
+
 class TabletData : private autil::NoCopyable
 {
 public:
@@ -78,7 +86,7 @@ public:
     // return all segments
     Slice CreateSlice() const { return CreateSlice(Segment::SegmentStatus::ST_UNSPECIFY); };
     SegmentPtr GetSegment(segmentid_t segmentId) const;
-    std::pair<SegmentPtr, docid_t> GetSegmentWithBaseDocid(segmentid_t segmentId);
+    std::pair<SegmentPtr, docid64_t> GetSegmentWithBaseDocid(segmentid_t segmentId);
     uint64_t GetTabletDocCount() const;
     size_t GetIncSegmentCount() const;
     size_t GetSegmentCount() const { return _segments.size(); }

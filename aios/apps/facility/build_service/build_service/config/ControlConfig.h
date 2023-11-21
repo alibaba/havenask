@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONTROLCONFIG_H
-#define ISEARCH_BS_CONTROLCONFIG_H
+#pragma once
+
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/legacy/jsonizable.h"
-#include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace config {
-class ResourceReader;
 
 class ControlConfig : public autil::legacy::Jsonizable
 {
@@ -58,6 +60,8 @@ public:
     }
 
     DataLinkMode getDataLinkMode() const { return _dataLinkMode; }
+    // if _dataLinkMode is FP_INP, may transfter mode to NORMAL or FP_INP according to incProcessor existence
+    DataLinkMode getTransferedDataLinkMode(const std::string& clusterName) const;
     bool isAllClusterNeedIncProcessor(const std::vector<std::string>& clusterNames) const;
     bool isAnyClusterNeedIncProcessor(const std::vector<std::string>& clusterNames) const;
     void setIsInc(bool isInc) { _isIncProcessorExistByDefault = isInc; }
@@ -73,5 +77,3 @@ private:
 };
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_CONTROLCONFIG_H

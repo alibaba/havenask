@@ -3,6 +3,8 @@
 #include "future_lite/CoroInterface.h"
 #include "future_lite/executors/SimpleExecutor.h"
 #include "indexlib/config/kv_index_config.h"
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
 #include "indexlib/index/kv/hash_table_fix_segment_reader.h"
 #include "indexlib/index/kv/kv_common.h"
@@ -13,8 +15,6 @@
 #include "indexlib/index_base/segment/segment_data.h"
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

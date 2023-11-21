@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMSINGLEVALUEATTRIBUTEFORMATTERTEST_H
-#define __INDEXLIB_INMEMSINGLEVALUEATTRIBUTEFORMATTERTEST_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "autil/mem_pool/Pool.h"
@@ -110,5 +109,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(InMemSingleValueAttributeFormatterTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(InMemSingleValueAttributeFormatterTest, TestUpdateValue);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INMEMSINGLEVALUEATTRIBUTEFORMATTERTEST_H

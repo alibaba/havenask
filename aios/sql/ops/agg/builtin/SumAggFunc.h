@@ -63,10 +63,7 @@ private:
     SumAggFunc &operator=(const SumAggFunc &);
 
 public:
-    DEF_CREATE_ACCUMULATOR_FUNC(SumAccumulator<AccumulatorType>)
-    bool needDependInputTablePools() const override {
-        return false;
-    }
+    DEF_CREATE_ACCUMULATOR_FUNC(SumAccumulator<AccumulatorType>);
 
 private:
     // local
@@ -95,8 +92,8 @@ template <typename InputType, typename AccumulatorType>
 bool SumAggFunc<InputType, AccumulatorType>::initAccumulatorOutput(
     const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
-    _sumColumn = table::TableUtil::declareAndGetColumnData<AccumulatorType>(
-        outputTable, _outputFields[0], false);
+    _sumColumn
+        = table::TableUtil::declareAndGetColumnData<AccumulatorType>(outputTable, _outputFields[0]);
     if (_sumColumn == nullptr) {
         return false;
     }

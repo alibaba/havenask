@@ -15,7 +15,9 @@
  */
 #pragma once
 
-#include "autil/LoopThread.h"
+#include <atomic>
+#include <memory>
+
 #include "build_service/config/TaskTarget.h"
 #include "build_service/proto/BuildTaskTargetInfo.h"
 #include "build_service/proto/ErrorCollector.h"
@@ -26,7 +28,7 @@
 
 namespace indexlibv2::framework {
 class ITablet;
-}
+} // namespace indexlibv2::framework
 
 namespace build_service::build_task {
 
@@ -41,10 +43,8 @@ public:
     }
     ~BuilderController() = default;
 
-public:
     bool handleTarget(const config::TaskTarget& target);
-    bool isDone() const;
-    bool hasFatalError() const;
+    bool hasFatalError() const { return _hasFatalError; }
 
 private:
     indexlib::Status loadVersion(const proto::VersionProgress& vp, bool isFullBuild,
@@ -53,10 +53,8 @@ private:
 private:
     const task_base::Task::TaskInitParam _initParam;
     std::shared_ptr<indexlibv2::framework::ITablet> _tablet;
-    std::atomic<bool> _isDone = false;
     std::atomic<bool> _hasFatalError = false;
 
-private:
     BS_LOG_DECLARE();
 };
 

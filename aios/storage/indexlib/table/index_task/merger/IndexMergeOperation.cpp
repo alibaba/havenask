@@ -73,7 +73,7 @@ Status IndexMergeOperation::Init(const std::shared_ptr<config::ITabletSchema> sc
 
     status = _indexMerger->Init(indexConfig, params);
     RETURN_IF_STATUS_ERROR(status, "init index merger failed. index type [%s], index name [%s]",
-                           _indexConfig->GetIndexType().c_str(), _indexConfig->GetIndexName().c_str());
+                           indexConfig->GetIndexType().c_str(), indexConfig->GetIndexName().c_str());
     _indexConfig = indexConfig;
     _indexPath = indexFactory->GetIndexPath();
     return Status::OK();

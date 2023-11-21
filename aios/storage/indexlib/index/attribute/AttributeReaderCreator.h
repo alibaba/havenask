@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "indexlib/base/Types.h"
+#include "indexlib/index/IndexReaderParameter.h"
 #include "indexlib/index/attribute/AttributeReader.h"
 
 namespace indexlibv2::index {
@@ -27,9 +28,9 @@ namespace indexlibv2::index {
     public:                                                                                                            \
         FieldType GetAttributeType() const override { return indextype; }                                              \
         std::unique_ptr<AttributeReader> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,              \
-                                                const IndexerParameter& indexerParam) const override                   \
+                                                const IndexReaderParameter& indexReaderParam) const override           \
         {                                                                                                              \
-            return std::make_unique<classname>(GetSortPattern(indexConfig, indexerParam));                             \
+            return std::make_unique<classname>(GetSortPattern(indexConfig, indexReaderParam));                         \
         }                                                                                                              \
     };
 
@@ -42,16 +43,16 @@ public:
 public:
     virtual FieldType GetAttributeType() const = 0;
     virtual std::unique_ptr<AttributeReader> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const = 0;
+                                                    const IndexReaderParameter& indexReaderParam) const = 0;
 
 protected:
     config::SortPattern GetSortPattern(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                       const IndexerParameter& indexerParam) const
+                                       const IndexReaderParameter& indexReaderParam) const
     {
         auto attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
         assert(nullptr != attrConfig);
-        if (indexerParam.sortPatternFunc) {
-            return indexerParam.sortPatternFunc(attrConfig->GetAttrName());
+        if (indexReaderParam.sortPatternFunc) {
+            return indexReaderParam.sortPatternFunc(attrConfig->GetAttrName());
         }
         return config::sp_nosort;
     }

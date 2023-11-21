@@ -15,9 +15,18 @@
  */
 #include "build_service/task_base/JobConfig.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RangeUtil.h"
 
 using namespace std;

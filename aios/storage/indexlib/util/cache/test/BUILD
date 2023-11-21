@@ -2,6 +2,7 @@ load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
 strict_cc_fast_test(
     name='indexlib_cache_unittest',
     srcs=['MemoryCacheTest.cpp', 'SearchCacheCreatorTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/util/cache',
         '//aios/storage/indexlib/util/testutil:unittest'

@@ -15,10 +15,13 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
-#include "build_service/util/Monitor.h"
 #include "build_service/workflow/FlowError.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace build_service { namespace workflow {
 

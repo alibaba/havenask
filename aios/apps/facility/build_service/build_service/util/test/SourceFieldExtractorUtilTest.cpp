@@ -1,6 +1,16 @@
 #include "build_service/util/SourceFieldExtractorUtil.h"
 
+#include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
+
+#include "autil/legacy/any.h"
+#include "autil/legacy/json.h"
 #include "indexlib/base/Constant.h"
+#include "indexlib/config/FieldConfig.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
 #include "unittest/unittest.h"

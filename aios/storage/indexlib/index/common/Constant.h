@@ -40,6 +40,7 @@ inline const std::string COMPRESS_TYPE = "compress_type";
 inline const std::string FILE_COMPRESSOR = "file_compressor";
 inline const std::string INDEX_DIR_NAME = "index";
 inline const std::string ATTRIBUTE_DIR_NAME = "attribute";
+inline const std::string FIELD_META_DIR_NAME = "field_meta";
 inline const std::string GENERAL_VALUE_INDEX_TYPE_STR = "__value__";
 } // namespace indexlib::index
 
@@ -53,6 +54,7 @@ using indexlib::index::ATTRIBUTE_DIR_NAME;
 using indexlib::index::COMPRESS_TYPE;
 using indexlib::index::EQUAL_COMPRESS_UPDATE_MAX_SLICE_COUNT;
 using indexlib::index::EQUAL_COMPRESS_UPDATE_SLICE_LEN;
+using indexlib::index::FIELD_META_DIR_NAME;
 using indexlib::index::FILE_COMPRESSOR;
 using indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR;
 using indexlib::index::INDEX_DIR_NAME;

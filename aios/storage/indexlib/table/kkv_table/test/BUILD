@@ -3,7 +3,9 @@ strict_cc_library(
     name='KKVTabletSchemaMaker',
     testonly=True,
     copts=['-fno-access-control'],
-    visibility=['//visibility:public'],
+    export_name='kkv_table_schema_maker',
+    export_visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/config:schema',
         '//aios/storage/indexlib/config/test:field_config_test_helper',
@@ -38,7 +40,7 @@ strict_cc_fast_test(
     srcs=['KKVTabletFieldTypeInteTest.cpp'],
     copts=['-fno-access-control'],
     data=['testdata/kkv_schema.json'],
-    shard_count=16,
+    shard_count=2,
     deps=[
         ':kkv_table_test_helper',
         '//aios/storage/indexlib/config:TabletOptions',
@@ -54,7 +56,7 @@ strict_cc_fast_test(
     srcs=['KKVTabletV1SchemaInteTest.cpp'],
     copts=['-fno-access-control'],
     data=['testdata/kkv_schema_v1.json'],
-    shard_count=20,
+    shard_count=2,
     deps=[
         ':kkv_table_test_helper',
         '//aios/storage/indexlib/config:TabletOptions',

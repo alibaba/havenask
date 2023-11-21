@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKRAWDOCUMENTREADER_H
-#define ISEARCH_BS_MOCKRAWDOCUMENTREADER_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/reader/RawDocumentReader.h"
@@ -44,5 +43,3 @@ typedef ::testing::StrictMock<MockRawDocumentReader> StrictMockRawDocumentReader
 typedef ::testing::NiceMock<MockRawDocumentReader> NiceMockRawDocumentReader;
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_MOCKRAWDOCUMENTREADER_H

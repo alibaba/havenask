@@ -17,7 +17,7 @@
 
 #include "kmonitor/client/MetricMacro.h"
 #include "kmonitor/client/core/MutableMetric.h"
-#include "navi/engine/NaviSnapshotStat.h"
+#include "navi/engine/TaskQueue.h"
 #include "navi/engine/NaviStat.h"
 
 namespace navi {
@@ -29,7 +29,6 @@ bool RunGraphMetrics::init(kmonitor::MetricsGroupManager *manager) {
     REGISTER_LATENCY_MUTABLE_METRIC(_totalQueueLatency, "user.tf.run_sql.totalQueueLatency");
     REGISTER_LATENCY_MUTABLE_METRIC(_totalComputeLatency, "user.tf.run_sql.totalComputeLatency");
     REGISTER_LATENCY_MUTABLE_METRIC(_newSessionLatency, "user.tf.run_sql.newSessionLatency");
-    REGISTER_LATENCY_MUTABLE_METRIC(_allocatedPoolSize, "user.tf.run_sql.allocatedPoolSize");
     REGISTER_QPS_MUTABLE_METRIC(_naviRunSuccessQps, "user.tf.run_sql.naviRunSuccesssQps");
     REGISTER_QPS_MUTABLE_METRIC(_naviRunFailedQps, "user.tf.run_sql.naviRunFailedQps");
     REGISTER_QPS_MUTABLE_METRIC(_naviRunQps, "user.tf.run_sql.naviRunQps");
@@ -39,21 +38,20 @@ bool RunGraphMetrics::init(kmonitor::MetricsGroupManager *manager) {
 
 void RunGraphMetrics::report(const kmonitor::MetricsTags *tags,
                              RunGraphMetricsCollector *collector) {
-    if (collector->createTime) {
-        REPORT_MUTABLE_METRIC(_newSessionLatency, collector->createTime - collector->runStartTime); // us
+    if (collector->newSessionLatency) {
+        REPORT_MUTABLE_METRIC(_newSessionLatency, collector->newSessionLatency); // us
     }
     if (collector->fillResultTime) {
-        REPORT_MUTABLE_METRIC(_latency, (collector->fillResultTime - collector->createTime) / 1000);
+        REPORT_MUTABLE_METRIC(_latency, (collector->fillResultTime - collector->sessionBeginTime) / 1000);
         REPORT_MUTABLE_METRIC(_naviRunLatency,
                               (collector->fillResultTime - collector->initScheduleTime) / 1000);
     }
     if (collector->initScheduleTime) {
         REPORT_MUTABLE_METRIC(_sessionScheduleWaitLatency,
-                              (collector->initScheduleTime - collector->createTime) / 1000);
+                              (collector->initScheduleTime - collector->sessionBeginTime) / 1000);
     }
     REPORT_MUTABLE_METRIC(_totalQueueLatency, collector->totalQueueLatency);
     REPORT_MUTABLE_METRIC(_totalComputeLatency, collector->totalComputeLatency);
-    REPORT_MUTABLE_METRIC(_allocatedPoolSize, collector->allocatedPoolSize);
     if (collector->hasError) {
         REPORT_MUTABLE_QPS(_naviRunFailedQps);
     } else {
@@ -75,9 +73,10 @@ void NaviStatMetrics::report(const kmonitor::MetricsTags *tags,
     REPORT_MUTABLE_METRIC(_serviceStatus, stat->serviceStatus);
 }
 
-bool NaviSnapshotStatMetrics::init(kmonitor::MetricsGroupManager *manager) {
+bool TaskQueueStatMetrics::init(kmonitor::MetricsGroupManager *manager) {
     REGISTER_GAUGE_MUTABLE_METRIC(_activeThreadCount, "run_sql.NaviActiveThreadCount");
     REGISTER_GAUGE_MUTABLE_METRIC(_activeThreadQueueCount, "run_sql.NaviActiveThreadQueueSize");
+    REGISTER_GAUGE_MUTABLE_METRIC(_idleThreadQueueCount, "run_sql.NaviIdleThreadQueueSize");
     REGISTER_GAUGE_MUTABLE_METRIC(_processingCount, "run_sql.NaviRunCount");
     REGISTER_GAUGE_MUTABLE_METRIC(_processingCountRatio, "run_sql.NaviRunCountRatio");
     REGISTER_GAUGE_MUTABLE_METRIC(_queueCount, "run_sql.NaviQueueCount");
@@ -85,14 +84,14 @@ bool NaviSnapshotStatMetrics::init(kmonitor::MetricsGroupManager *manager) {
     return true;
 }
 
-void NaviSnapshotStatMetrics::report(const kmonitor::MetricsTags *tags,
-                                     const NaviSnapshotStat *stat) {
+void TaskQueueStatMetrics::report(const kmonitor::MetricsTags *tags,
+                                  const TaskQueueStat *stat) {
     REPORT_MUTABLE_METRIC(_activeThreadCount, stat->activeThreadCount);
     REPORT_MUTABLE_METRIC(_activeThreadQueueCount, stat->activeThreadQueueSize);
+    REPORT_MUTABLE_METRIC(_idleThreadQueueCount, stat->idleThreadQueueSize);
     REPORT_MUTABLE_METRIC(_processingCount, stat->processingCount);
     REPORT_MUTABLE_METRIC(_processingCountRatio, stat->processingCountRatio);
     REPORT_MUTABLE_METRIC(_queueCount, stat->queueCount);
     REPORT_MUTABLE_METRIC(_queueCountRatio, stat->queueCountRatio);
 }
-
 }

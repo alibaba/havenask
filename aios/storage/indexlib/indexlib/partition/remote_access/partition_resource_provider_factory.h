@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_RESOURCE_PROVIDER_FACTORY_H
-#define __INDEXLIB_PARTITION_RESOURCE_PROVIDER_FACTORY_H
+#pragma once
 
 #include <memory>
 
@@ -41,7 +40,7 @@ public:
     PartitionResourceProviderPtr DeclareProvider(const std::string& indexPath,
                                                  const config::IndexPartitionOptions& options,
                                                  const std::string& pluginPath,
-                                                 versionid_t targetVersionId = INVALID_VERSION);
+                                                 versionid_t targetVersionId = INVALID_VERSIONID);
 
     /*
        remove all providers manully
@@ -54,7 +53,7 @@ public:
     PartitionResourceProviderPtr CreateProvider(const std::string& indexPath,
                                                 const config::IndexPartitionOptions& options,
                                                 const std::string& pluginPath,
-                                                versionid_t targetVersionId = INVALID_VERSION);
+                                                versionid_t targetVersionId = INVALID_VERSIONID);
 
 private:
     bool MatchProvider(const PartitionResourceProviderPtr& provider, const std::string& indexPath, versionid_t version);
@@ -71,5 +70,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionResourceProviderFactory);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITION_RESOURCE_PROVIDER_FACTORY_H

@@ -23,7 +23,7 @@ using namespace autil::legacy;
 using namespace autil;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, BuildConfig);
+AUTIL_LOG_SETUP(indexlib.config, BuildConfig);
 
 BuildConfig::BuildConfig() { mImpl.reset(new BuildConfigImpl); }
 

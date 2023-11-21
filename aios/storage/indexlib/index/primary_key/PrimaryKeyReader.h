@@ -59,7 +59,8 @@ template <typename Key, typename DerivedType = void>
 class PrimaryKeyReader : public indexlib::index::PrimaryKeyIndexReader, public autil::NoCopyable
 {
 public:
-    using PKPairTyped = index::PKPair<Key, docid_t>;
+    using PKPairTyped = index::PKPair<Key, docid64_t>;
+    using SegmentPKPairTyped = index::PKPair<Key, docid_t>;
     using Segments = std::vector<framework::Segment*>;
 
     using HashMapTyped = indexlib::util::HashMap<Key, docid_t>;
@@ -67,7 +68,7 @@ public:
 
     using SegmentReader = PrimaryKeyDiskIndexer<Key>;
     using SegmentReaderPtr = std::shared_ptr<SegmentReader>;
-    using PrimaryKeySegment = std::pair<docid_t, SegmentReaderPtr>;
+    using PrimaryKeySegment = std::pair<docid64_t, SegmentReaderPtr>;
     using PrimaryKeyBuildingReader = indexlib::index::PrimaryKeyBuildingIndexReader<Key>;
     using InMemPrimaryKeySegmentReaderPtr = std::shared_ptr<indexlib::index::InMemPrimaryKeySegmentReaderTyped<Key>>;
 
@@ -104,23 +105,27 @@ public:
     indexlib::index::Result<indexlib::index::PostingIterator*>
     Lookup(const indexlib::index::Term& term, uint32_t statePoolSize = 1000, PostingType type = pt_default,
            autil::mem_pool::Pool* sessionPool = NULL) override;
-    docid_t Lookup(const autil::StringView& pkStr) const override;
-    docid_t Lookup(const std::string& strKey, future_lite::Executor* executor) const override;
-    docid_t LookupWithHintValues(const autil::uint128_t& pkHash, int32_t hintValues) const override;
-    docid_t LookupWithPKHash(const autil::uint128_t& pkHash, future_lite::Executor* executor) const override;
-    bool LookupWithPKHash(const autil::uint128_t& pkHash, segmentid_t specifySegment, docid_t* docid) const override;
-    docid_t LookupWithDocRange(const autil::uint128_t& pkHash, std::pair<docid_t, docid_t> docRange,
-                               future_lite::Executor* executor) const override;
-    bool LookupAll(const std::string& pkStr, std::vector<std::pair<docid_t, bool>>& docidPairVec) const override;
+    docid64_t Lookup(const autil::StringView& pkStr) const override;
+    docid64_t Lookup(const std::string& strKey, future_lite::Executor* executor) const override;
+    docid64_t LookupWithHintValues(const autil::uint128_t& pkHash, int32_t hintValues) const override;
+    docid64_t LookupWithPKHash(const autil::uint128_t& pkHash, future_lite::Executor* executor) const override;
+    bool LookupWithPKHash(const autil::uint128_t& pkHash, segmentid_t specifySegment, docid64_t* docid) const override;
+    docid64_t LookupWithDocRange(const autil::uint128_t& pkHash, std::pair<docid_t, docid_t> docRange,
+                                 future_lite::Executor* executor) const override;
+    bool LookupAll(const std::string& pkStr, std::vector<std::pair<docid64_t, bool>>& docidPairVec) const override;
 
-    docid_t Lookup(const std::string& strKey) const override { return Lookup(strKey, nullptr); }
+    docid64_t Lookup(const std::string& strKey) const override { return Lookup(strKey, nullptr); }
 
     bool CheckDuplication() const override;
 
 public:
-    docid_t Lookup(const Key& key, future_lite::Executor* executor = nullptr) const __ALWAYS_INLINE;
-    docid_t Lookup(const Key& key, docid_t& lastDocId) const;
-    docid_t Lookup(const std::string& pkStr, docid_t& lastDocId) const;
+    docid64_t Lookup(const Key& key, future_lite::Executor* executor = nullptr) const __ALWAYS_INLINE;
+    docid64_t Lookup(const Key& key, docid64_t& lastDocId) const;
+    docid64_t Lookup(const std::string& pkStr, docid64_t& lastDocId) const;
+
+    // TODO (远轫) 可能需要用executor加速查询
+    std::pair<Status, std::vector<bool>>
+    Contains(const std::vector<const document::IIndexFields*>& indexFields) const override;
 
 public:
     static std::string Identifier()
@@ -154,23 +159,23 @@ protected:
     void AddBuildingIndex(segmentid_t segId, const framework::SegmentInfo& segInfo,
                           const std::shared_ptr<const HashMapTyped>& hashMap);
 
-    bool IsDocIdValid(docid_t docid) const __ALWAYS_INLINE;
-    docid_t LookupInMemorySegment(const Key& hashKey) const;
-    docid_t LookupOnDiskSegments(const Key& hashKey, docid_t& lastDocId) const __ALWAYS_INLINE;
-    docid_t LookupOnDiskSegments(const Key& hashKey, future_lite::Executor* executor) const __ALWAYS_INLINE;
-    future_lite::coro::Lazy<indexlib::index::Result<docid_t>>
+    bool IsDocIdValid(docid64_t docid) const __ALWAYS_INLINE;
+    docid64_t LookupInMemorySegment(const Key& hashKey) const;
+    docid64_t LookupOnDiskSegments(const Key& hashKey, docid64_t& lastDocId) const __ALWAYS_INLINE;
+    docid64_t LookupOnDiskSegments(const Key& hashKey, future_lite::Executor* executor) const __ALWAYS_INLINE;
+    future_lite::coro::Lazy<indexlib::index::Result<docid64_t>>
     LookupOnDiskSegmentsAsync(const Key& hashKey, future_lite::Executor* executor) const noexcept;
-    future_lite::coro::Lazy<indexlib::index::Result<docid_t>>
-    LookupOneSegmentAsync(const Key& hashKey, docid_t baseDocid,
+    future_lite::coro::Lazy<indexlib::index::Result<docid64_t>>
+    LookupOneSegmentAsync(const Key& hashKey, docid64_t baseDocid,
                           const std::shared_ptr<PrimaryKeyDiskIndexer<Key>>& segReader,
                           future_lite::Executor* executor) const noexcept;
-    indexlib::index::Result<docid_t>
-    LookupOneSegment(const Key& hashKey, docid_t baseDocid,
+    indexlib::index::Result<docid64_t>
+    LookupOneSegment(const Key& hashKey, docid64_t baseDocid,
                      const std::shared_ptr<PrimaryKeyDiskIndexer<Key>>& segReader) const noexcept __ALWAYS_INLINE;
-    bool InnerLookupWithPKHash(const Key& hashKey, segmentid_t specifySegment, docid_t* docid) const;
-    docid_t InnerLookupWithHintValues(const Key& pkHash, int32_t hintValues) const;
-    docid_t InnerLookupWithDocRange(const Key& hashKey, const std::pair<docid_t, docid_t> docRange,
-                                    future_lite::Executor* executor) const;
+    bool InnerLookupWithPKHash(const Key& hashKey, segmentid_t specifySegment, docid64_t* docid) const;
+    docid64_t InnerLookupWithHintValues(const Key& pkHash, int32_t hintValues) const;
+    docid64_t InnerLookupWithDocRange(const Key& hashKey, const std::pair<docid32_t, docid32_t> docRange,
+                                      future_lite::Executor* executor) const;
     bool GetDocIdRanges(int32_t hintValues, DocIdRangeVector& docIdRanges) const;
 
     void CreateLoadPlans(std::vector<SegmentDataAdapter::SegmentDataType>& segmentDatas,
@@ -192,8 +197,11 @@ protected:
     DoEstimateLoadSize(std::vector<SegmentDataAdapter::SegmentDataType>& segmentDatas,
                        const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig,
                        bool isValidVersion);
-    bool DocDeleted(docid_t docid) const;
-    inline bool IsDocDeleted(docid_t docid) const { return _deletionMapReader && _deletionMapReader->IsDeleted(docid); }
+    bool DocDeleted(docid64_t docid) const;
+    inline bool IsDocDeleted(docid64_t docid) const
+    {
+        return _deletionMapReader && _deletionMapReader->IsDeleted(docid);
+    }
 
 protected:
     // protected for fake
@@ -208,7 +216,7 @@ protected:
     }
 
 private:
-    bool GetLocalDocidInfo(docid_t gDocId, std::string& segIds, docid_t& localDocid) const;
+    //    bool GetLocalDocidInfo(docid64_t gDocId, std::string& segIds, docid64_t& localDocid) const;
 
 private:
     std::shared_ptr<AttributeReader> _pkAttributeReader;
@@ -218,7 +226,7 @@ protected:
     PrimaryKeyHashType _primaryKeyHashType = pk_default_hash;
 
     bool _needLookupReverse = false;
-    docid_t _baseDocid = 0;
+    docid64_t _baseDocid = 0;
 
     std::unique_ptr<DeletionMapIndexReader> _deletionMapReader;
     future_lite::Executor* _buildExecutor = nullptr;
@@ -364,11 +372,10 @@ inline bool PrimaryKeyReader<Key, DerivedType>::DoOpen(std::vector<SegmentDataAd
     }
     for (auto& plan : _loadPlans) {
         std::string fileName(PRIMARY_KEY_DATA_FILE_NAME);
-        IndexerParameter indexerParam;
+        DiskIndexerParameter indexerParam;
         std::vector<segmentid_t> segments;
         plan->GetSegmentIdList(&segments);
         indexerParam.metricsManager = _metricsManager;
-        indexerParam.segmentId = segments.back();
         indexerParam.docCount = plan->GetLastSegmentDocCount();
         auto diskIndexer = std::make_shared<PrimaryKeyDiskIndexer<Key>>(indexerParam);
         _baseDocid += plan->GetDocCount();
@@ -377,10 +384,16 @@ inline bool PrimaryKeyReader<Key, DerivedType>::DoOpen(std::vector<SegmentDataAd
             AUTIL_LOG(ERROR, "fail to get primary key directory");
             return false;
         }
+        auto [st, pkDataDir] = directory->GetDirectory(_primaryKeyIndexConfig->GetIndexName()).StatusWith();
+        if (!st.IsOK() || nullptr == pkDataDir) {
+            AUTIL_LOG(ERROR, "fail to get primary key data directory");
+            return false;
+        }
+
         if (!CanDirectLoad(_primaryKeyIndexConfig) || plan->GetSegmentNum() > 1) {
             fileName = plan->GetTargetSliceFileName();
             auto [readerStatus, sliceFileReader] =
-                directory->CreateFileReader(fileName, indexlib::file_system::FSOT_SLICE).StatusWith();
+                pkDataDir->CreateFileReader(fileName, indexlib::file_system::FSOT_SLICE).StatusWith();
             std::shared_ptr<indexlib::file_system::FileWriter> fileWriter;
             if (!readerStatus.IsOK() || !sliceFileReader) {
                 fileWriter = CreateTargetSliceFile(plan.get(), fileName);
@@ -394,7 +407,7 @@ inline bool PrimaryKeyReader<Key, DerivedType>::DoOpen(std::vector<SegmentDataAd
                     fileWriter->Close().GetOrThrow();
                 }
             });
-            if (!diskIndexer->OpenWithSliceFile(_primaryKeyIndexConfig, directory, fileName)) {
+            if (!diskIndexer->OpenWithSliceFile(_primaryKeyIndexConfig, pkDataDir, fileName)) {
                 AUTIL_LOG(ERROR, "primary key reader open fail [%s]", fileName.c_str());
                 return false;
             }
@@ -449,7 +462,7 @@ void PrimaryKeyReader<Key, DerivedType>::CreateLoadPlans(
 {
     auto pkIndexConfig = std::dynamic_pointer_cast<indexlibv2::index::PrimaryKeyIndexConfig>(indexConfig);
     auto param = pkIndexConfig->GetPKLoadStrategyParam();
-    docid_t baseDocid = 0;
+    docid64_t baseDocid = 0;
     if (param.NeedCombineSegments()) {
         std::unique_ptr<PrimaryKeyLoadPlan> plan = std::make_unique<PrimaryKeyLoadPlan>();
         plan->Init(baseDocid);
@@ -490,10 +503,16 @@ template <typename Key, typename DerivedType>
 std::shared_ptr<indexlib::file_system::FileWriter>
 PrimaryKeyReader<Key, DerivedType>::CreateTargetSliceFile(PrimaryKeyLoadPlan* plan, const std::string& fileName)
 {
+    // TODO(xiaohao.yxh) combined not work wi
     AUTIL_LOG(INFO, "Begin to create pk slice file: [%s]", fileName.c_str());
     auto [status, directory] = plan->GetPrimaryKeyDirectory(_primaryKeyIndexConfig);
     if (!status.IsOK()) {
         AUTIL_LOG(ERROR, "get primary key directory failed");
+        return nullptr;
+    }
+    auto [st, pkDataDir] = directory->GetDirectory(_primaryKeyIndexConfig->GetIndexName()).StatusWith();
+    if (!st.IsOK() || nullptr == pkDataDir) {
+        AUTIL_LOG(ERROR, "fail to get primary key data directory");
         return nullptr;
     }
     std::unique_ptr<PrimaryKeyIterator<Key>> pkIterator(new PrimaryKeyIterator<Key>());
@@ -512,7 +531,7 @@ PrimaryKeyReader<Key, DerivedType>::CreateTargetSliceFile(PrimaryKeyLoadPlan* pl
         return nullptr;
     }
     auto [writerStatus, sliceFileWriter] =
-        directory->CreateFileWriter(fileName, indexlib::file_system::WriterOption::Slice(sliceFileLen, 1)).StatusWith();
+        pkDataDir->CreateFileWriter(fileName, indexlib::file_system::WriterOption::Slice(sliceFileLen, 1)).StatusWith();
     if (!writerStatus.IsOK() || !sliceFileWriter) {
         AUTIL_LOG(ERROR, "create slice file for file [%s] failed", fileName.c_str());
         return nullptr;
@@ -527,7 +546,10 @@ PrimaryKeyReader<Key, DerivedType>::CreateTargetSliceFile(PrimaryKeyLoadPlan* pl
             sliceFileWriter->Close().GetOrThrow();
             return nullptr;
         }
-        pkHashTable.Insert(pkPair);
+        SegmentPKPairTyped pkPair32;
+        pkPair32.key = pkPair.key;
+        pkPair32.docid = pkPair.docid;
+        pkHashTable.Insert(pkPair32);
     }
     AUTIL_LOG(INFO, "Finish to create pk slice file: [%s]", fileName.c_str());
     return sliceFileWriter;
@@ -564,6 +586,11 @@ PrimaryKeyReader<Key, DerivedType>::DoEstimateLoadSize(std::vector<SegmentDataAd
             AUTIL_LOG(ERROR, "get primary key directory failed");
             AUTIL_LEGACY_THROW(indexlib::util::FileIOException, "get primary key directory failed");
         }
+        auto [st, pkDataDir] = dir->GetDirectory(indexConfig->GetIndexName()).StatusWith();
+        if (!st.IsOK() || !pkDataDir) {
+            AUTIL_LOG(ERROR, "get primary key data directory failed");
+            AUTIL_LEGACY_THROW(indexlib::util::FileIOException, "get primary key directory failed");
+        }
         if (!CanDirectLoad(indexConfig) || plan->GetSegmentNum() > 1) {
             fileName = plan->GetTargetSliceFileName();
             PrimaryKeyIterator<Key> iter;
@@ -571,16 +598,16 @@ PrimaryKeyReader<Key, DerivedType>::DoEstimateLoadSize(std::vector<SegmentDataAd
                 AUTIL_LOG(ERROR, "create PrimaryKeyIterator for directory [%s] failed", dir->DebugString().c_str());
                 AUTIL_LEGACY_THROW(indexlib::util::FileIOException, "create PrimaryKeyIterator failed");
             }
-            if (isValidVersion && dir->IsExistInCache(fileName)) {
+            if (isValidVersion && pkDataDir->IsExistInCache(fileName)) {
                 continue;
             }
             totalLoadSize +=
                 index::PrimaryKeyHashTable<Key>::CalculateMemorySize(iter.GetPkCount(), iter.GetDocCount());
         } else {
-            if (isValidVersion && dir->IsExistInCache(fileName)) {
+            if (isValidVersion && pkDataDir->IsExistInCache(fileName)) {
                 continue;
             }
-            totalLoadSize += index::PrimaryKeyDiskIndexer<Key>::CalculateLoadSize(pkIndexConfig, dir, fileName);
+            totalLoadSize += index::PrimaryKeyDiskIndexer<Key>::CalculateLoadSize(pkIndexConfig, pkDataDir, fileName);
         }
     }
     return totalLoadSize;
@@ -601,7 +628,7 @@ PrimaryKeyReader<Key, DerivedType>::Lookup(const indexlib::index::Term& term, ui
     }
     // TODO(xiaohao.yxh) remove try-catch
     try {
-        docid_t docId = Lookup(hashKey);
+        docid64_t docId = Lookup(hashKey);
         if (docId != INVALID_DOCID) {
             return IE_POOL_COMPATIBLE_NEW_CLASS(sessionPool, indexlib::index::PrimaryKeyPostingIterator, docId,
                                                 sessionPool);
@@ -614,7 +641,7 @@ PrimaryKeyReader<Key, DerivedType>::Lookup(const indexlib::index::Term& term, ui
 }
 
 template <typename Key, typename DerivedType>
-docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const autil::StringView& pkStr) const
+docid64_t PrimaryKeyReader<Key, DerivedType>::Lookup(const autil::StringView& pkStr) const
 {
     Key key;
     if (!indexlib::index::KeyHasherWrapper::GetHashKey(_fieldType, _primaryKeyHashType, pkStr.data(), pkStr.size(),
@@ -625,7 +652,7 @@ docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const autil::StringView& pkSt
 }
 
 template <typename Key, typename DerivedType>
-docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const std::string& strKey, future_lite::Executor* executor) const
+docid64_t PrimaryKeyReader<Key, DerivedType>::Lookup(const std::string& strKey, future_lite::Executor* executor) const
 {
     Key hashKey;
     if (!Hash(strKey, hashKey)) {
@@ -635,10 +662,10 @@ docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const std::string& strKey, fu
 }
 
 template <typename Key, typename DerivedType>
-docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const Key& hashKey, docid_t& lastDocId) const
+docid64_t PrimaryKeyReader<Key, DerivedType>::Lookup(const Key& hashKey, docid64_t& lastDocId) const
 {
     // look up in memory segment reader first
-    docid_t docId = LookupInMemorySegment(hashKey);
+    docid64_t docId = LookupInMemorySegment(hashKey);
     lastDocId = docId; // INVALID or building docid
     if (IsDocIdValid(docId)) {
         return docId;
@@ -648,7 +675,7 @@ docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const Key& hashKey, docid_t& 
 }
 
 template <typename Key, typename DerivedType>
-docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const std::string& pkStr, docid_t& lastDocId) const
+docid64_t PrimaryKeyReader<Key, DerivedType>::Lookup(const std::string& pkStr, docid64_t& lastDocId) const
 {
     Key hashKey;
     if (!Hash(pkStr, hashKey)) {
@@ -658,8 +685,8 @@ docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const std::string& pkStr, doc
 }
 
 template <typename Key, typename DerivedType>
-inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupWithHintValues(const autil::uint128_t& pkHash,
-                                                                        int32_t hintValues) const
+inline docid64_t PrimaryKeyReader<Key, DerivedType>::LookupWithHintValues(const autil::uint128_t& pkHash,
+                                                                          int32_t hintValues) const
 {
     if constexpr (std::is_same_v<Key, autil::uint128_t>) {
         return InnerLookupWithHintValues(pkHash, hintValues);
@@ -671,8 +698,8 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupWithHintValues(const au
 }
 
 template <typename Key, typename DerivedType>
-inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupWithPKHash(const autil::uint128_t& pkHash,
-                                                                    future_lite::Executor* executor) const
+inline docid64_t PrimaryKeyReader<Key, DerivedType>::LookupWithPKHash(const autil::uint128_t& pkHash,
+                                                                      future_lite::Executor* executor) const
 {
     if constexpr (std::is_same_v<Key, autil::uint128_t>) {
         return Lookup(pkHash, executor);
@@ -685,7 +712,7 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupWithPKHash(const autil:
 
 template <typename Key, typename DerivedType>
 inline bool PrimaryKeyReader<Key, DerivedType>::LookupWithPKHash(const autil::uint128_t& pkHash,
-                                                                 segmentid_t specifySegment, docid_t* docid) const
+                                                                 segmentid_t specifySegment, docid64_t* docid) const
 {
     if constexpr (std::is_same_v<Key, autil::uint128_t>) {
         return InnerLookupWithPKHash(pkHash, specifySegment, docid);
@@ -697,9 +724,9 @@ inline bool PrimaryKeyReader<Key, DerivedType>::LookupWithPKHash(const autil::ui
 }
 
 template <typename Key, typename DerivedType>
-inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupWithDocRange(const autil::uint128_t& pkHash,
-                                                                      std::pair<docid_t, docid_t> docRange,
-                                                                      future_lite::Executor* executor) const
+inline docid64_t PrimaryKeyReader<Key, DerivedType>::LookupWithDocRange(const autil::uint128_t& pkHash,
+                                                                        std::pair<docid_t, docid_t> docRange,
+                                                                        future_lite::Executor* executor) const
 {
     if constexpr (std::is_same_v<Key, autil::uint128_t>) {
         return InnerLookupWithDocRange(pkHash, docRange, executor);
@@ -712,7 +739,7 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupWithDocRange(const auti
 
 template <typename Key, typename DerivedType>
 bool PrimaryKeyReader<Key, DerivedType>::LookupAll(const std::string& pkStr,
-                                                   std::vector<std::pair<docid_t, bool>>& docidPairVec) const
+                                                   std::vector<std::pair<docid64_t, bool>>& docidPairVec) const
 {
     Key hashKey;
     if (!Hash(pkStr, hashKey)) {
@@ -722,13 +749,13 @@ bool PrimaryKeyReader<Key, DerivedType>::LookupAll(const std::string& pkStr,
     for (const auto& readerInfo : _segmentReaderList) {
         auto retWithEc = future_lite::coro::syncAwait(
             LookupOneSegmentAsync(hashKey, readerInfo._segmentPair.first, readerInfo._segmentPair.second, nullptr));
-        docid_t docId = retWithEc.ValueOrThrow();
+        docid64_t docId = retWithEc.ValueOrThrow();
         if (docId != INVALID_DOCID) {
             bool isDeleted = DocDeleted(docId);
             docidPairVec.push_back(std::make_pair(docId, isDeleted));
         }
     }
-    docid_t docId = LookupInMemorySegment(hashKey);
+    docid64_t docId = LookupInMemorySegment(hashKey);
     if (docId != INVALID_DOCID) {
         bool isDeleted = DocDeleted(docId);
         docidPairVec.push_back(std::make_pair(docId, isDeleted));
@@ -737,7 +764,7 @@ bool PrimaryKeyReader<Key, DerivedType>::LookupAll(const std::string& pkStr,
 }
 
 template <typename Key, typename DerivedType>
-docid_t PrimaryKeyReader<Key, DerivedType>::LookupInMemorySegment(const Key& hashKey) const
+docid64_t PrimaryKeyReader<Key, DerivedType>::LookupInMemorySegment(const Key& hashKey) const
 {
     if (!_buildingIndexReader) {
         return INVALID_DOCID;
@@ -746,11 +773,11 @@ docid_t PrimaryKeyReader<Key, DerivedType>::LookupInMemorySegment(const Key& has
 }
 
 template <typename Key, typename DerivedType>
-inline future_lite::coro::Lazy<indexlib::index::Result<docid_t>>
+inline future_lite::coro::Lazy<indexlib::index::Result<docid64_t>>
 PrimaryKeyReader<Key, DerivedType>::LookupOnDiskSegmentsAsync(const Key& hashKey,
                                                               future_lite::Executor* executor) const noexcept
 {
-    std::vector<future_lite::coro::Lazy<indexlib::index::Result<docid_t>>> tasks;
+    std::vector<future_lite::coro::Lazy<indexlib::index::Result<docid64_t>>> tasks;
     tasks.reserve(_segmentReaderList.size());
     for (const auto& readerInfo : _segmentReaderList) {
         tasks.push_back(
@@ -763,7 +790,7 @@ PrimaryKeyReader<Key, DerivedType>::LookupOnDiskSegmentsAsync(const Key& hashKey
         if (!ret.Ok()) {
             co_return ret.GetErrorCode();
         }
-        docid_t docid = ret.Value();
+        docid64_t docid = ret.Value();
         if (!IsDocIdValid(docid)) {
             continue;
         }
@@ -773,8 +800,8 @@ PrimaryKeyReader<Key, DerivedType>::LookupOnDiskSegmentsAsync(const Key& hashKey
 }
 
 template <typename Key, typename DerivedType>
-inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupOnDiskSegments(const Key& hashKey,
-                                                                        future_lite::Executor* executor) const
+inline docid64_t PrimaryKeyReader<Key, DerivedType>::LookupOnDiskSegments(const Key& hashKey,
+                                                                          future_lite::Executor* executor) const
 {
     if (executor) {
         auto retWithEc = future_lite::coro::syncAwait(LookupOnDiskSegmentsAsync(hashKey, executor));
@@ -794,7 +821,7 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupOnDiskSegments(const Ke
 }
 
 template <typename Key, typename DerivedType>
-inline bool PrimaryKeyReader<Key, DerivedType>::IsDocIdValid(docid_t docid) const
+inline bool PrimaryKeyReader<Key, DerivedType>::IsDocIdValid(docid64_t docid) const
 {
     if (docid == INVALID_DOCID) {
         return false;
@@ -806,8 +833,8 @@ inline bool PrimaryKeyReader<Key, DerivedType>::IsDocIdValid(docid_t docid) cons
 }
 
 template <typename Key, typename DerivedType>
-inline future_lite::coro::Lazy<indexlib::index::Result<docid_t>>
-PrimaryKeyReader<Key, DerivedType>::LookupOneSegmentAsync(const Key& hashKey, docid_t baseDocid,
+inline future_lite::coro::Lazy<indexlib::index::Result<docid64_t>>
+PrimaryKeyReader<Key, DerivedType>::LookupOneSegmentAsync(const Key& hashKey, docid64_t baseDocid,
                                                           const std::shared_ptr<PrimaryKeyDiskIndexer<Key>>& segReader,
                                                           future_lite::Executor* executor) const noexcept
 {
@@ -823,8 +850,9 @@ PrimaryKeyReader<Key, DerivedType>::LookupOneSegmentAsync(const Key& hashKey, do
 }
 
 template <typename Key, typename DerivedType>
-inline indexlib::index::Result<docid_t> PrimaryKeyReader<Key, DerivedType>::LookupOneSegment(
-    const Key& hashKey, docid_t baseDocid, const std::shared_ptr<PrimaryKeyDiskIndexer<Key>>& segReader) const noexcept
+inline indexlib::index::Result<docid64_t> PrimaryKeyReader<Key, DerivedType>::LookupOneSegment(
+    const Key& hashKey, docid64_t baseDocid,
+    const std::shared_ptr<PrimaryKeyDiskIndexer<Key>>& segReader) const noexcept
 {
     auto retWithEc = segReader->Lookup(hashKey);
     if (!retWithEc.Ok()) {
@@ -838,7 +866,8 @@ inline indexlib::index::Result<docid_t> PrimaryKeyReader<Key, DerivedType>::Look
 }
 
 template <typename Key, typename DerivedType>
-inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupOnDiskSegments(const Key& hashKey, docid_t& lastDocId) const
+inline docid64_t PrimaryKeyReader<Key, DerivedType>::LookupOnDiskSegments(const Key& hashKey,
+                                                                          docid64_t& lastDocId) const
 {
     for (const auto& readerInfo : _segmentReaderList) {
         auto retWithEc = future_lite::coro::syncAwait(
@@ -858,9 +887,9 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::LookupOnDiskSegments(const Ke
 }
 
 template <typename Key, typename DerivedType>
-inline docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const Key& hashKey, future_lite::Executor* executor) const
+inline docid64_t PrimaryKeyReader<Key, DerivedType>::Lookup(const Key& hashKey, future_lite::Executor* executor) const
 {
-    docid_t docId = INVALID_DOCID;
+    docid64_t docId = INVALID_DOCID;
     if (_needLookupReverse) {
         docId = LookupInMemorySegment(hashKey);
         if (IsDocIdValid(docId)) {
@@ -884,7 +913,7 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::Lookup(const Key& hashKey, fu
 
 template <typename Key, typename DerivedType>
 inline bool PrimaryKeyReader<Key, DerivedType>::InnerLookupWithPKHash(const Key& hashKey, segmentid_t specifySegment,
-                                                                      docid_t* docid) const
+                                                                      docid64_t* docid) const
 {
     for (auto& segmentReaderInfo : _segmentReaderList) {
         for (segmentid_t segId : segmentReaderInfo._segmentIds) {
@@ -924,15 +953,14 @@ inline bool PrimaryKeyReader<Key, DerivedType>::InnerLookupWithPKHash(const Key&
 }
 
 template <typename Key, typename DerivedType>
-inline docid_t PrimaryKeyReader<Key, DerivedType>::InnerLookupWithDocRange(const Key& pkHash,
-                                                                           const std::pair<docid_t, docid_t> docRange,
-                                                                           future_lite::Executor* executor) const
+inline docid64_t PrimaryKeyReader<Key, DerivedType>::InnerLookupWithDocRange(
+    const Key& pkHash, const std::pair<docid32_t, docid32_t> docRange, future_lite::Executor* executor) const
 {
-    docid_t id = INVALID_DOCID;
+    docid64_t id = INVALID_DOCID;
 
     if (executor) {
-        auto getDocidFunc = [&]() -> future_lite::coro::Lazy<docid_t> {
-            std::vector<future_lite::coro::Lazy<indexlib::index::Result<docid_t>>> tasks;
+        auto getDocidFunc = [&]() -> future_lite::coro::Lazy<docid64_t> {
+            std::vector<future_lite::coro::Lazy<indexlib::index::Result<docid64_t>>> tasks;
             for (auto& segmentReaderInfo : _segmentReaderList) {
                 if (segmentReaderInfo._segmentPair.first < docRange.second) {
                     tasks.push_back(LookupOneSegmentAsync(pkHash, segmentReaderInfo._segmentPair.first,
@@ -942,7 +970,7 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::InnerLookupWithDocRange(const
             auto results = co_await future_lite::coro::collectAll(std::move(tasks));
             for (size_t i = 0; i < results.size(); ++i) {
                 assert(!results[i].hasError());
-                docid_t docId = results[i].value().ValueOrThrow();
+                docid64_t docId = results[i].value().ValueOrThrow();
                 if (docId != INVALID_DOCID && docId >= docRange.first && docId < docRange.second) {
                     if (IsDocIdValid(docId)) {
                         co_return docId;
@@ -960,7 +988,7 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::InnerLookupWithDocRange(const
             if (segmentReaderInfo._segmentPair.first < docRange.second) {
                 auto retWithEc = future_lite::coro::syncAwait(LookupOneSegmentAsync(
                     pkHash, segmentReaderInfo._segmentPair.first, segmentReaderInfo._segmentPair.second, executor));
-                docid_t docId = retWithEc.ValueOrThrow();
+                docid64_t docId = retWithEc.ValueOrThrow();
                 if (docId != INVALID_DOCID && docId >= docRange.first && docId < docRange.second) {
                     if (IsDocIdValid(docId)) {
                         return docId;
@@ -983,8 +1011,8 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::InnerLookupWithDocRange(const
 }
 
 template <typename Key, typename DerivedType>
-inline docid_t PrimaryKeyReader<Key, DerivedType>::InnerLookupWithHintValues(const Key& pkHash,
-                                                                             int32_t hintValues) const
+inline docid64_t PrimaryKeyReader<Key, DerivedType>::InnerLookupWithHintValues(const Key& pkHash,
+                                                                               int32_t hintValues) const
 {
     DocIdRangeVector docIdRanges;
     bool ret = false;
@@ -995,7 +1023,7 @@ inline docid_t PrimaryKeyReader<Key, DerivedType>::InnerLookupWithHintValues(con
     }
     if (ret) {
         for (auto& docIdRange : docIdRanges) {
-            docid_t docId = InnerLookupWithDocRange(pkHash, docIdRange, nullptr);
+            docid64_t docId = InnerLookupWithDocRange(pkHash, docIdRange, nullptr);
             if (docId != INVALID_DOCID) {
                 return docId;
             }
@@ -1028,7 +1056,7 @@ inline bool PrimaryKeyReader<Key, DerivedType>::CheckDuplication() const
         return false;
     }
 
-    auto PushKey = [&checker, this](Key key, docid_t docId) -> bool {
+    auto PushKey = [&checker, this](Key key, docid64_t docId) -> bool {
         if (this->DocDeleted(docId)) {
             return true;
         }
@@ -1044,17 +1072,17 @@ inline bool PrimaryKeyReader<Key, DerivedType>::CheckDuplication() const
         auto baseDocid = readerInfo._segmentPair.first;
         auto leafIter = readerInfo._segmentPair.second->CreatePrimaryKeyLeafIterator();
         if (!leafIter) {
-            AUTIL_LOG(ERROR, "create leaf iterator fail for segmentReader with base docid [%d]", baseDocid);
+            AUTIL_LOG(ERROR, "create leaf iterator fail for segmentReader with base docid [%ld]", baseDocid);
             return false;
         }
 
-        PKPairTyped pkPair;
+        SegmentPKPairTyped pkPair;
         while (leafIter->HasNext()) {
             if (!leafIter->Next(pkPair).IsOK()) {
                 AUTIL_LOG(ERROR, "primaryKeyIter do next failed!");
                 return false;
             }
-            docid_t docId = baseDocid + pkPair.docid;
+            docid64_t docId = baseDocid + pkPair.docid;
             if (!PushKey(pkPair.key, docId)) {
                 return false;
             }
@@ -1070,7 +1098,7 @@ inline bool PrimaryKeyReader<Key, DerivedType>::CheckDuplication() const
             auto iter = segmentReader->CreateIterator();
             while (iter.HasNext()) {
                 typename HashMapTyped::KeyValuePair& kvPair = iter.Next();
-                docid_t docId = baseDocId + kvPair.second;
+                docid64_t docId = baseDocId + kvPair.second;
                 if (!PushKey(kvPair.first, docId)) {
                     return false;
                 }
@@ -1092,50 +1120,88 @@ inline bool PrimaryKeyReader<Key, DerivedType>::CheckDuplication() const
 }
 
 template <typename Key, typename DerivedType>
-bool PrimaryKeyReader<Key, DerivedType>::GetLocalDocidInfo(docid_t gDocId, std::string& segIds,
-                                                           docid_t& localDocid) const
+std::pair<Status, std::vector<bool>>
+PrimaryKeyReader<Key, DerivedType>::Contains(const std::vector<const document::IIndexFields*>& indexFields) const
 {
-    docid_t baseDocid = INVALID_DOCID;
-    if (gDocId >= _baseDocid && _buildingIndexReader) {
-        // building segments
-        baseDocid = _baseDocid;
-        segmentid_t targetSegId = INVALID_SEGMENTID;
-        for (const auto& [currentBaseDocId, segmentId, segmentReader] : _buildingIndexReader->GetSegReaderItems()) {
-            if (currentBaseDocId > gDocId) {
-                break;
+    std::unordered_set<std::string> pksInBatch;
+
+    auto isDuplicated = [&pksInBatch, this](const auto* indexField) -> bool {
+        if (auto* typedFields = dynamic_cast<const PrimaryKeyIndexFields*>(indexField)) {
+            const std::string& pkStr = typedFields->GetPrimaryKey();
+            if (!pkStr.empty()) {
+                if (pksInBatch.count(pkStr)) {
+                    AUTIL_INTERVAL_LOG2(60, INFO, "find duplicated pk [%s]", pkStr.c_str());
+                    return true;
+                }
+                pksInBatch.insert(pkStr);
+
+                if (Lookup(pkStr) != INVALID_DOCID) {
+                    AUTIL_INTERVAL_LOG2(60, INFO, "find duplicated pk [%s]", pkStr.c_str());
+                    return true;
+                }
             }
-            baseDocid = currentBaseDocId;
-            targetSegId = segmentId;
         }
-
-        if (targetSegId == INVALID_SEGMENTID) {
-            return false;
-        }
-        segIds = autil::StringUtil::toString(targetSegId);
-        localDocid = gDocId - baseDocid;
-        return true;
-    }
-
-    // built segments
-    size_t idx = 0;
-    for (size_t i = 0; i < _segmentReaderList.size(); i++) {
-        docid_t tmpBaseDocid = _segmentReaderList[i]._segmentPair.first;
-        if (gDocId < tmpBaseDocid) {
-            continue;
-        }
-        if (tmpBaseDocid >= baseDocid) {
-            baseDocid = tmpBaseDocid;
-            idx = i;
-        }
-    }
-
-    if (baseDocid == INVALID_DOCID) {
         return false;
+    };
+
+    std::vector<bool> ret;
+    for (auto* indexField : indexFields) {
+        try {
+            ret.push_back(isDuplicated(indexField));
+        } catch (const autil::legacy::ExceptionBase& e) {
+            RETURN2_IF_STATUS_ERROR(Status::Corruption(), std::vector<bool> {}, "catch exception [%s]", e.what());
+        } catch (...) {
+            RETURN2_IF_STATUS_ERROR(Status::Corruption(), std::vector<bool> {}, "catch unknow exception ");
+        }
     }
-    segIds = autil::StringUtil::toString(_segmentReaderList[idx]._segmentIds, ",");
-    localDocid = gDocId - baseDocid;
-    return true;
+    return {Status::OK(), ret};
 }
+
+// template <typename Key, typename DerivedType>
+// bool PrimaryKeyReader<Key, DerivedType>::GetLocalDocidInfo(docid64_t gDocId, std::string& segIds,
+//                                                            docid64_t& localDocid) const
+// {
+//     docid64_t baseDocid = INVALID_DOCID;
+//     if (gDocId >= _baseDocid && _buildingIndexReader) {
+//         // building segments
+//         baseDocid = _baseDocid;
+//         segmentid_t targetSegId = INVALID_SEGMENTID;
+//         for (const auto& [currentBaseDocId, segmentId, segmentReader] : _buildingIndexReader->GetSegReaderItems()) {
+//             if (currentBaseDocId > gDocId) {
+//                 break;
+//             }
+//             baseDocid = currentBaseDocId;
+//             targetSegId = segmentId;
+//         }
+
+//         if (targetSegId == INVALID_SEGMENTID) {
+//             return false;
+//         }
+//         segIds = autil::StringUtil::toString(targetSegId);
+//         localDocid = gDocId - baseDocid;
+//         return true;
+//     }
+
+//     // built segments
+//     size_t idx = 0;
+//     for (size_t i = 0; i < _segmentReaderList.size(); i++) {
+//         docid64_t tmpBaseDocid = _segmentReaderList[i]._segmentPair.first;
+//         if (gDocId < tmpBaseDocid) {
+//             continue;
+//         }
+//         if (tmpBaseDocid >= baseDocid) {
+//             baseDocid = tmpBaseDocid;
+//             idx = i;
+//         }
+//     }
+
+//     if (baseDocid == INVALID_DOCID) {
+//         return false;
+//     }
+//     segIds = autil::StringUtil::toString(_segmentReaderList[idx]._segmentIds, ",");
+//     localDocid = gDocId - baseDocid;
+//     return true;
+// }
 
 template <typename Key, typename DerivedType>
 size_t PrimaryKeyReader<Key, DerivedType>::EvaluateCurrentMemUsed()
@@ -1148,7 +1214,7 @@ size_t PrimaryKeyReader<Key, DerivedType>::EvaluateCurrentMemUsed()
 }
 
 template <typename Key, typename DerivedType>
-inline bool PrimaryKeyReader<Key, DerivedType>::DocDeleted(docid_t docid) const
+inline bool PrimaryKeyReader<Key, DerivedType>::DocDeleted(docid64_t docid) const
 {
     if constexpr (std::is_same_v<DerivedType, void>) {
         return IsDocDeleted(docid);

@@ -2,49 +2,48 @@
 #import(Log)
 
 function graphDef()
-   local clusterName = Graph.parameter["clusterName"]
-   local schemaId = Graph.parameter["schemaId"]
-   local flowParam = Tool.copyMap(Graph.parameter)
-   local cleanIndex = Graph.loadSimpleFlow("drop_building_index", "drop_building_index", flowParam)
-   local alterFieldTag = clusterName..":AlterField"
-   -- stop inc build flows                     
-   local incBuildTag = clusterName..":IncBuild"
-   local incBuildFlowIds = Graph.getFlowIdByTag(incBuildTag)
-   for i, v in ipairs(incBuildFlowIds)
-   do
-         local flow = Graph.getFlow(v)
-         if (flow ~= nil) 
-         then
-            flow:stopFlow()
-            Graph.setUpstream(cleanIndex, flow, "stopped|finish")
-         end
+   local param = Tool.copyMap(Graph.parameter)
+   local clusterName = param["clusterName"]
+
+   --get last inc flow, set upstream
+   local incFlowTag = clusterName..":IncBuild"
+   local incFlowIds = Graph.getFlowIdByTag(incFlowTag)
+   if (#incFlowIds) > 0
+   then
+      lastFlowId = incFlowIds[#incFlowIds]
+      lastIncFlow = Graph.getFlow(lastFlowId)
    end
-   -- deal alter field flows
-   local alterFieldFlowIds = Graph.getFlowIdByTag(alterFieldTag)
-   for i, v in ipairs(alterFieldFlowIds)
-   do
-         local flow = Graph.getFlow(v)
-         if (flow ~= nil) 
-         then
-            flow:stopFlow(true) 
-            Graph.setUpstream(cleanIndex, flow, "stopped|finish")
-         end
+
+   --stop old processor and add new processor
+   local incProcessorIds = Graph.getFlowIdByTag(clusterName..":BSIncProcessor")
+   if (#incProcessorIds) > 0
+   then
+      Graph.batchStopFlows(incProcessorIds)
+      incProcessor = Graph.loadSimpleFlow("processor", "incProcessor", param)  
+      incProcessor:addTag("BSIncProcess")
+      incProcessor:addTag(clusterName..":BSIncProcessor")
+      Graph.batchSetUpstream(incProcessor:getFlowId(), incProcessorIds, "stopped|finish")
+      param['incProcessorFlowId'] = incProcessor:getFlowId()
+   else
+      local dsJson = Graph.parameter["realtimeDataDescription"]
+      param["data_description"] = dsJson
+      if (#incFlowIds) > 0
+      then
+          Graph.batchStopFlows(incFlowIds)
+      end
    end
-   cleanIndex:addTag(alterFieldTag)
-   local mergeCrontabTag = clusterName..":MergeCrontab" 
-   local mergeCrontabFlowId = Graph.getFlowIdByTag(mergeCrontabTag)
-   local mergeCrontabFlow = Graph.getFlow(mergeCrontabFlowId[1])
-   flowParam['mergeCrontabFlowId'] = mergeCrontabFlowId[1]
-   local incProcessor = Graph.loadSimpleFlow("processor", "incProcessor", flowParam)
-   incProcessor:addTag("BSIncProcess")
-   local incBuildFlow = Graph.loadFlow("IncBuild.flow", flowParam)
-   incBuildFlow:addTag(incBuildTag)
-   Graph.declareFriend(mergeCrontabFlow, incBuildFlow)
-   flowParam['schemaId'] = schemaId
-   local alterFieldFlow = Graph.loadFlow("AlterField.flow", flowParam)
-   alterFieldFlow:addTag(alterFieldTag)
-   Graph.setUpstream(alterFieldFlow, cleanIndex)
-   Graph.setUpstream(incProcessor, alterFieldFlow)
-   Graph.setUpstream(incBuildFlow, alterFieldFlow)
+
+   --create new flow
+   local incBuildFlow = Graph.loadFlow("IncBuildV2.flow", param)
+   incBuildFlow:addTag(incFlowTag)
+   incBuildFlow:addTag("BSBuildV2")
+   if (#incProcessorIds) > 0
+   then
+      Graph.declareFriend(incProcessor, incBuildFlow)
+   end
+   if lastIncFlow ~= nil
+   then
+      Graph.setUpstream(incBuildFlow, lastIncFlow, "stopped|finish") 
+   end
    return true
 end

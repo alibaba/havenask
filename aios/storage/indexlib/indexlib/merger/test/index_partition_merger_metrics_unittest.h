@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXPARTITIONMERGERMETRICSTEST_H
-#define __INDEXLIB_INDEXPARTITIONMERGERMETRICSTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/index_partition_merger_metrics.h"
@@ -34,5 +33,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(IndexPartitionMergerMetricsTest, TestProgress);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_INDEXPARTITIONMERGERMETRICSTEST_H

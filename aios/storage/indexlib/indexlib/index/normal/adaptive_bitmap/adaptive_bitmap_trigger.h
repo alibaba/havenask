@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ADAPTIVE_BITMAP_TRIGGER_H
-#define __INDEXLIB_ADAPTIVE_BITMAP_TRIGGER_H
+#pragma once
 
 #include <memory>
 
@@ -67,5 +66,3 @@ inline bool AdaptiveBitmapTrigger::NeedGenerateAdaptiveBitmap(const index::DictK
 
 DEFINE_SHARED_PTR(AdaptiveBitmapTrigger);
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_ADAPTIVE_BITMAP_TRIGGER_H

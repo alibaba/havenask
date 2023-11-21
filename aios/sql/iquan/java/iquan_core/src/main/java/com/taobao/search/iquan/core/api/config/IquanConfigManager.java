@@ -5,9 +5,9 @@ import java.util.Optional;
 
 public class IquanConfigManager {
     protected final HashMap<String, Object> confData = new HashMap<>();
-    
-    
-// ------------ String ----------------------
+
+
+    // ------------ String ----------------------
     public String getString(String key, String defaultValue) {
         return getRawValue(key)
                 .map(IquanConfigUtils::convertToString)
@@ -26,7 +26,7 @@ public class IquanConfigManager {
     public void setString(String key, String value) {
         setValueInternal(key, value);
     }
-    
+
     public void setString(IquanConfiguration<String> key, String value) {
         setValueInternal(key.key(), value);
     }
@@ -122,7 +122,7 @@ public class IquanConfigManager {
         } else if (value == null) {
             throw new NullPointerException("Value must not be null.");
         } else {
-            synchronized(confData) {
+            synchronized (confData) {
                 confData.put(key, value);
             }
         }
@@ -132,7 +132,7 @@ public class IquanConfigManager {
         if (key == null) {
             throw new NullPointerException("Key must not be null.");
         } else {
-            synchronized(confData) {
+            synchronized (confData) {
                 return Optional.ofNullable(confData.get(key));
             }
         }
@@ -142,12 +142,12 @@ public class IquanConfigManager {
         setValueInternal(option.key(), value);
         return this;
     }
-    
+
     public boolean containsKey(String key) {
         if (key == null) {
             return false;
         }
-        synchronized(confData) {
+        synchronized (confData) {
             return confData.containsKey(key);
         }
     }

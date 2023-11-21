@@ -15,8 +15,12 @@
  */
 #pragma once
 
+#include <map>
+#include <memory>
 #include <string>
+#include <vector>
 
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/SourceFieldExtractorUtil.h"

@@ -3,6 +3,7 @@
 #include "future_lite/CoroInterface.h"
 #include "indexlib/common/field_format/pack_attribute/pack_attribute_formatter.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_rewriter/pack_attribute_rewriter.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/FileSystemDefine.h"
@@ -19,7 +20,6 @@
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_data_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PrimeNumberTable.h"
 
 using namespace std;

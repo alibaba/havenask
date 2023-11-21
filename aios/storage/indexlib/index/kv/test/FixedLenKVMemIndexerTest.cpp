@@ -46,13 +46,14 @@ protected:
     {
         std::string fieldTypeStr(indexlibv2::config::FieldConfig::FieldTypeToStr(ft));
         MakeSchema(fieldTypeStr, ttl);
-        FixedLenKVMemIndexer indexer(DEFAULT_MEMORY_USE_IN_BYTES);
+        FixedLenKVMemIndexer indexer(true, DEFAULT_MEMORY_USE_IN_BYTES);
         ASSERT_TRUE(indexer.Init(_indexConfig, nullptr).IsOK());
 
         // build
         std::string docStr = "cmd=add,key=1,value=10,ts=101000000;"
                              "cmd=add,key=2,value=20,ts=102000000;"
                              "cmd=add,key=3,value=30,ts=103000000;"
+                             "cmd=update,key=4,not_exist_value=40,ts=103000000;"
                              "cmd=delete,key=2,ts=104000000;";
         auto rawDocs = document::RawDocumentMaker::MakeBatch(docStr);
         for (const auto& rawDoc : rawDocs) {
@@ -61,7 +62,6 @@ protected:
             auto s = indexer.Build(docBatch.get());
             ASSERT_TRUE(s.IsOK()) << s.ToString();
         }
-
         // fill and check statistics
         auto metrics = std::make_shared<indexlib::framework::SegmentMetrics>();
         indexer.FillStatistics(metrics);

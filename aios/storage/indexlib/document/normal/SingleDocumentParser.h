@@ -24,6 +24,7 @@
 namespace indexlibv2::config {
 class ITabletSchema;
 class SummaryIndexConfig;
+class FieldConfig;
 } // namespace indexlibv2::config
 
 namespace indexlib::util {
@@ -63,6 +64,10 @@ public:
     {
         return _invertedFieldIds.find(fieldId) != _invertedFieldIds.end();
     }
+    bool IsFieldMetaIndexField(fieldid_t fieldId) const
+    {
+        return _fieldMetaFieldIds.find(fieldId) != _fieldMetaFieldIds.end();
+    }
 
 protected:
     virtual std::unique_ptr<ExtendDocFieldsConvertor> CreateExtendDocFieldsConvertor() const;
@@ -83,6 +88,7 @@ protected:
     std::shared_ptr<config::ITabletSchema> _schema;
     std::vector<std::shared_ptr<index::AttributeConfig>> _fieldIdToAttrConfigs;
     std::shared_ptr<config::SummaryIndexConfig> _summaryIndexConfig;
+    std::shared_ptr<config::SourceIndexConfig> _sourceIndexConfig;
 
 private:
     std::shared_ptr<ExtendDocFieldsConvertor> _fieldConvertPtr;
@@ -95,7 +101,11 @@ private:
     std::set<fieldid_t> _summaryFieldIds;
     std::set<fieldid_t> _attributeFieldIds;
     std::set<fieldid_t> _invertedFieldIds;
+    std::set<fieldid_t> _fieldMetaFieldIds;
     std::string _orderPreservingField;
+    std::vector<std::string> _summaryReuseSourceFields;
+    std::vector<std::vector<std::string>> _sourceDeterministicFieldsInGroups;
+    std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> _fieldConfigs;
 
 private:
     AUTIL_LOG_DECLARE();

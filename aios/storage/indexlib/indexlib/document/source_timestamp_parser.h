@@ -16,14 +16,15 @@
 #pragma once
 
 #include "indexlib/config/index_partition_schema.h"
-#include "indexlib/document/extend_document/indexlib_extend_document.h"
 #include "indexlib/document/document.h"
+#include "indexlib/document/extend_document/indexlib_extend_document.h"
 
 namespace indexlib { namespace document {
 
-class SourceTimestampParser {
+class SourceTimestampParser
+{
 public:
-    SourceTimestampParser(config::IndexPartitionSchemaPtr schema): _schema(schema) {}
+    SourceTimestampParser(config::IndexPartitionSchemaPtr schema) : _schema(schema) {}
     ~SourceTimestampParser() = default;
 
 public:
@@ -31,7 +32,7 @@ public:
     void Parse(const IndexlibExtendDocumentPtr& extendDoc, Document* docment);
 
 private:
-    void ExtractSouceTimestampFields(index::regionid_t regionId);
+    void ExtractSouceTimestampFields(regionid_t regionId);
 
 public:
     static constexpr const char* SOURCE_TIMESTAMP_REPORT_KEY = "source_timestamp_report_key";
@@ -52,5 +53,4 @@ private:
     IE_LOG_DECLARE();
 };
 
-} // namespace document
-} // namespace indexlib
+}} // namespace indexlib::document

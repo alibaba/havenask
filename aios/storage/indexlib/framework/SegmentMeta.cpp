@@ -15,6 +15,7 @@
  */
 #include "indexlib/framework/SegmentMeta.h"
 
+#include "indexlib/base/Constant.h"
 #include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/framework/SegmentMetrics.h"
 

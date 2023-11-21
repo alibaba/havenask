@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SINGLEVALUENULLATTRFORMATTERTEST_H
-#define __INDEXLIB_SINGLEVALUENULLATTRFORMATTERTEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common_define.h"
@@ -77,5 +76,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(SingleValueNullAttrFormatterTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(SingleValueNullAttrFormatterTest, TestForFloatCompress);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLEVALUENULLATTRFORMATTERTEST_H

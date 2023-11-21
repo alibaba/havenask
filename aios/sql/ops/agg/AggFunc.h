@@ -76,11 +76,6 @@ public:
     virtual bool accumulatorTriviallyDestruct() const = 0;
     virtual void destroyAccumulator(Accumulator *acc[], size_t n) = 0;
 
-public:
-    virtual bool needDependInputTablePools() const {
-        return true;
-    }
-
 private:
     // local
     virtual bool initCollectInput(const table::TablePtr &inputTable) = 0;

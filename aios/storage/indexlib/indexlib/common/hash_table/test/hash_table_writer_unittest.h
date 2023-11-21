@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_HASHTABLEWRITERTEST_H
-#define __INDEXLIB_HASHTABLEWRITERTEST_H
+#pragma once
 
 #include "indexlib/common/hash_table/hash_table_writer.h"
 #include "indexlib/common_define.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(HashTableWriterTest, TestSimpleProcess);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_HASHTABLEWRITERTEST_H

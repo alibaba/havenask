@@ -15,13 +15,20 @@
  */
 #include "indexlib/plugin/plugin_manager.h"
 
-#include <cassert>
+#include <algorithm>
+#include <ostream>
+#include <stddef.h>
+#include <vector>
 
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "fslib/common/common_type.h"
 #include "fslib/fs/FileSystem.h"
+#include "indexlib/config/load_config_list.h"
 #include "indexlib/plugin/Module.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

@@ -3,6 +3,7 @@ syntax = "proto3";
 message AithetaQuery {
     int64 indexId = 1;
     repeated float embeddings = 10;
+    repeated int32 binaryEmbeddings = 11;
     uint32 embeddingCount = 20;
     uint32 topk = 30;
     bool lrSearch = 40;
@@ -10,6 +11,7 @@ message AithetaQuery {
     float scorethreshold = 80;
     bool hasscorethreshold = 90;
     string searchParams = 100;
+    string namespace_ = 110;
 }
 
 message AithetaQueries {

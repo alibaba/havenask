@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEDUPPATCHFILEMERGERTEST_H
-#define __INDEXLIB_DEDUPPATCHFILEMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/dedup_patch_file_merger.h"
@@ -46,5 +45,3 @@ INDEXLIB_UNIT_TEST_CASE(DedupPatchFileMergerTest, TestNotCollectPatchForDstSegId
 INDEXLIB_UNIT_TEST_CASE(DedupPatchFileMergerTest, TestCollectPatchForSegIdBetweenMergingSegId);
 INDEXLIB_UNIT_TEST_CASE(DedupPatchFileMergerTest, TestMergePatchFiles);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DEDUPPATCHFILEMERGERTEST_H

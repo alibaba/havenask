@@ -15,11 +15,22 @@
  */
 #include "build_service/processor/ProcessorWorkItem.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <string>
+
+#include "alog/Logger.h"
+#include "build_service/document/ClassifiedDocument.h"
 #include "build_service/processor/DeleteSubRawDocRewriter.h"
 #include "build_service/processor/ProcessorMetricReporter.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/IDocument.h"
+#include "indexlib/document/IDocumentBatch.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "indexlib/util/metrics/Metric.h"
 
 using namespace std;
 using namespace build_service::document;

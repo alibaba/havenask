@@ -20,6 +20,7 @@
 #include "indexlib/document/DocumentIterator.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/normal/NormalDocument.h"
+#include "indexlib/index/IndexReaderParameter.h"
 #include "indexlib/index/attribute/InplaceAttributeModifier.h"
 #include "indexlib/index/attribute/PatchAttributeModifier.h"
 #include "indexlib/index/deletionmap/DeletionMapModifier.h"
@@ -108,7 +109,7 @@ Status NormalTabletModifier::InitPrimaryKeyReader(const std::shared_ptr<config::
     auto pkConfig = std::dynamic_pointer_cast<indexlibv2::index::PrimaryKeyIndexConfig>(pkConfigs[0]);
     assert(pkConfig);
     index::PrimaryKeyIndexFactory factory;
-    auto pkReader = factory.CreateIndexReader(pkConfig, index::IndexerParameter {});
+    auto pkReader = factory.CreateIndexReader(pkConfig, index::IndexReaderParameter {});
     _pkReader.reset(autil::dynamic_unique_cast<indexlib::index::PrimaryKeyIndexReader>(std::move(pkReader)).release());
     // OpenWithoutPKAttribute 会更新segment中的indexer，但是不会重新打开pk attribute
     // 在reader open的时候去更改segment中的indexer行为不太好

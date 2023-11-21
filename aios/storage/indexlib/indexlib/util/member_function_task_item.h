@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MEMBER_FUNCTION_TASK_ITEM_H
-#define __INDEXLIB_MEMBER_FUNCTION_TASK_ITEM_H
+#pragma once
 
 #include <memory>
 
@@ -38,5 +37,3 @@ private:
     X& mRef;
 };
 }} // namespace indexlib::util
-
-#endif //__INDEXLIB_MEMBER_FUNCTION_TASK_ITEM_H

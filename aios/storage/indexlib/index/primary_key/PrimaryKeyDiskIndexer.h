@@ -15,8 +15,8 @@
  */
 #pragma once
 #include "autil/Log.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IDiskIndexer.h"
-#include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/attribute/AttributeDiskIndexer.h"
 #include "indexlib/index/attribute/AttributeIndexFactory.h"
 #include "indexlib/index/common/Constant.h"
@@ -32,7 +32,7 @@ template <typename Key>
 class PrimaryKeyDiskIndexer : public autil::NoCopyable, public IDiskIndexer
 {
 public:
-    PrimaryKeyDiskIndexer(const IndexerParameter& parameter) : _indexerParam(parameter) {}
+    PrimaryKeyDiskIndexer(const DiskIndexerParameter& parameter) : _indexerParam(parameter) {}
     ~PrimaryKeyDiskIndexer() {}
 
 public:
@@ -65,7 +65,10 @@ public:
         }
         assert(indexDirectory);
         auto pkIndexConfig = std::dynamic_pointer_cast<indexlibv2::index::PrimaryKeyIndexConfig>(indexConfig);
-        bool ret = InnerOpen(pkIndexConfig, indexDirectory);
+        auto [st, pkDataDir] = indexDirectory->GetDirectory(pkIndexConfig->GetIndexName()).StatusWith();
+        RETURN_IF_STATUS_ERROR(st, "get pk data dir failed");
+
+        bool ret = InnerOpen(pkIndexConfig, pkDataDir);
 
         if (!ret) {
             AUTIL_LOG(ERROR, "open disk indexer failed");
@@ -324,7 +327,7 @@ private:
     std::unique_ptr<HashTablePrimaryKeyDiskIndexer<Key>> _hashTablePrimaryKeyDiskIndexer;
     std::unique_ptr<SortArrayPrimaryKeyDiskIndexer<Key>> _sortArrayPrimaryKeyDiskIndexer;
     std::unique_ptr<BlockArrayPrimaryKeyDiskIndexer<Key>> _blockArrayPrimaryKeyDiskIndexer;
-    IndexerParameter _indexerParam;
+    DiskIndexerParameter _indexerParam;
     std::shared_ptr<AttributeDiskIndexer> _pkAttrDiskIndexer;
 
 private:

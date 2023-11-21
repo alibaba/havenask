@@ -6,7 +6,7 @@ cc_library(
     include_prefix='iquan/jni',
     visibility=['//visibility:public'],
     deps=[
-        '//aios/filesystem/fslib:fslib-framework',
+        '//aios/filesystem/fslib:fslib-framework', '//aios/protocol/access_log',
         '//aios/sql/iquan/cpp/common:iquan_common',
         '//aios/sql/iquan/cpp/common/catalog:iquan_catalog',
         '//aios/sql/iquan/cpp/config:iquan_config',

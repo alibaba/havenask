@@ -45,6 +45,8 @@
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/deletionmap/DeletionMapConfig.h"
+#include "indexlib/index/field_meta/Common.h"
+#include "indexlib/index/field_meta/config/FieldMetaConfig.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/config/DateIndexConfig.h"
 #include "indexlib/index/inverted_index/config/HighFreqVocabularyCreator.h"
@@ -62,6 +64,8 @@
 #include "indexlib/index/primary_key/Common.h"
 #include "indexlib/index/primary_key/config/PrimaryKeyIndexConfig.h"
 #include "indexlib/index/primary_key/config/PrimaryKeyLoadStrategyParam.h"
+#include "indexlib/index/source/Common.h"
+#include "indexlib/index/source/config/SourceIndexConfig.h"
 #include "indexlib/index/statistics_term/Constant.h"
 #include "indexlib/index/statistics_term/StatisticsTermIndexConfig.h"
 #include "indexlib/index/summary/Common.h"
@@ -127,7 +131,7 @@ Status ResolveFileCompressConfig(
     const std::shared_ptr<std::vector<config::SingleFileCompressConfig>>& singleFileCompressConfigVec,
     std::shared_ptr<indexlibv2::config::SummaryIndexConfig>& summaryIndexConfig)
 {
-    for (summarygroupid_t groupId = 0; groupId < summaryIndexConfig->GetSummaryGroupConfigCount(); ++groupId) {
+    for (index::summarygroupid_t groupId = 0; groupId < summaryIndexConfig->GetSummaryGroupConfigCount(); ++groupId) {
         auto groupConfig = summaryIndexConfig->GetSummaryGroupConfig(groupId);
         auto currentParam = groupConfig->GetSummaryGroupDataParam();
         auto legacyCompressConfig = currentParam.GetFileCompressConfig();
@@ -400,7 +404,7 @@ Status NormalSchemaResolver::CheckTruncateSortParams(
         auto sortParams = truncateProfileConfig.GetTruncateSortParams();
         for (const auto& sortParam : sortParams) {
             std::string sortFieldName = sortParam.GetSortField();
-            if (DOC_PAYLOAD_FIELD_NAME == sortFieldName) {
+            if (indexlib::DOC_PAYLOAD_FIELD_NAME == sortFieldName) {
                 continue;
             }
             auto fieldConfig = schema.GetFieldConfig(sortFieldName);
@@ -435,7 +439,7 @@ Status NormalSchemaResolver::CheckTruncateProfileSchema(
     for (const auto& truncateProfileConfig : truncateProfileConfigs) {
         auto sortParams = truncateProfileConfig.GetTruncateSortParams();
         for (const auto& sortParam : sortParams) {
-            if (DOC_PAYLOAD_FIELD_NAME == sortParam.GetSortField()) {
+            if (indexlib::DOC_PAYLOAD_FIELD_NAME == sortParam.GetSortField()) {
                 if (truncateProfileConfig.GetPayloadConfig().IsInitialized()) {
                     payloadNameSpecified = true;
                 } else {
@@ -520,6 +524,22 @@ Status NormalSchemaResolver::Check(const config::TabletSchema& schema) const
     RETURN_IF_STATUS_ERROR(CheckInvertedIndexConfig(schema), "check inverted index config failed.");
     RETURN_IF_STATUS_ERROR(CheckAttributeConfig(schema), "check attribute config failed");
     RETURN_IF_STATUS_ERROR(CheckSummaryConfig(schema), "check summary config failed");
+    RETURN_IF_STATUS_ERROR(CheckFieldMetaConfig(schema), "check field meta config failed");
+    return Status::OK();
+}
+
+Status NormalSchemaResolver::CheckFieldMetaConfig(const config::TabletSchema& schema) const
+{
+    auto fieldMetaConfigs = schema.GetIndexConfigs(indexlib::index::FIELD_META_INDEX_TYPE_STR);
+    for (const auto& fieldMetaConfig : fieldMetaConfigs) {
+        try {
+            fieldMetaConfig->Check();
+        } catch (const std::exception& e) {
+            AUTIL_LOG(ERROR, "check fieldMetaConfig [%s] failed exception [%s].",
+                      fieldMetaConfig->GetIndexName().c_str(), e.what());
+            return Status::ConfigError("check fieldMetaConfig failed");
+        }
+    }
     return Status::OK();
 }
 
@@ -532,6 +552,8 @@ Status NormalSchemaResolver::LegacySchemaToTabletSchema(const indexlib::config::
                            "fill index configs from legacy schema to tablet schema failed");
     FillTTLToSettings(legacySchema, schema);
     RETURN_IF_STATUS_ERROR(FillTruncateProfile(legacySchema, schema), "fill truncate profile failed");
+    RETURN_IF_STATUS_ERROR(FillDictionaryToSettings(legacySchema, schema), "fill dictionary failed");
+    RETURN_IF_STATUS_ERROR(FillAdaptiveDictionaryToSettings(legacySchema, schema), "fill adaptive dictionary failed");
     return Status::OK();
 }
 
@@ -545,10 +567,69 @@ Status NormalSchemaResolver::ResolveLegacySchema(const std::string& indexPath,
 Status NormalSchemaResolver::ResolveTabletSchema(const std::string& indexPath, config::UnresolvedSchema* schema)
 {
     RETURN_IF_STATUS_ERROR(ResolveRuntimeSettings(indexPath, schema), "resolve runtime settings failed");
+    RETURN_IF_STATUS_ERROR(ResolveFieldMeta(schema), "resolve field meta failed");
     RETURN_IF_STATUS_ERROR(AddBuiltinIndex(schema), "add built index failed");
     RETURN_IF_STATUS_ERROR(ResolveInvertedIndex(schema), "resolve inverted index failed");
     RETURN_IF_STATUS_ERROR(ResolveSummary(schema, _options), "resolve summary failed");
+    RETURN_IF_STATUS_ERROR(ResolveSource(schema, _options), "resolve source failed");
     RETURN_IF_STATUS_ERROR(ResolveAttribute(schema, _options), "resolve attribute failed");
+    return Status::OK();
+}
+
+Status NormalSchemaResolver::ResolveFieldMeta(config::UnresolvedSchema* schema)
+{
+    // const auto& indexConfigs = schema->GetIndexConfigs(indexlib::index::FIELD_META_INDEX_TYPE_STR);
+    // for (auto indexConfig : indexConfigs) {
+    //     auto fieldMetaConfig = std::dynamic_pointer_cast<indexlib::index::FieldMetaConfig>(indexConfig);
+    //     if (!fieldMetaConfig) {
+    //         assert(false);
+    //         return Status::Corruption("cast config [%s] to field meta config failed",
+    //                                   indexConfig->GetIndexName().c_str());
+    //     }
+    //     if (fieldMetaConfig->GetStoreMetaSourceType() == FieldMetaConfig::MetaSourceType::MST_NONE) {
+    //         continue;
+    //     }
+    //     auto fieldConfig = fieldMetaConfig->GetFieldConfig();
+    //     const std::string& fieldName = fieldConfig->GetFieldName();
+    //     auto attributeConfig = schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, fieldName);
+    //     if (!attributeConfig) {
+    //         auto addAttrConfig = std::make_shared<index::AttributeConfig>();
+    //         RETURN_IF_STATUS_ERROR(addAttrConfig->Init(fieldConfig), "attribute config init failed");
+    //         addAttrConfig->SetUpdatable(true);
+    //         addAttrConfig->SetAttrId(schema->GetIndexConfigs(addAttrConfig->GetIndexType()).size());
+    //         RETURN_IF_STATUS_ERROR(schema->AddIndexConfig(addAttrConfig), "add attribute config [%s] failed",
+    //                                fieldName.c_str());
+    //         AUTIL_LOG(INFO, "add attribute config [%s] for field meta [%s]", fieldName.c_str(),
+    //                   fieldMetaConfig->GetIndexName().c_str());
+    //     }
+    // }
+
+    auto [status, enableAllTextFieldMeta] = schema->GetRuntimeSettings().GetValue<bool>("enable_all_text_field_meta");
+    if (status.IsOK() && enableAllTextFieldMeta) {
+        const auto& indexConfigs = schema->GetIndexConfigs(indexlib::index::FIELD_META_INDEX_TYPE_STR);
+        std::set<std::string> metaFields;
+        for (const auto& indexConfig : indexConfigs) {
+            const auto& fieldMetaConfig = std::dynamic_pointer_cast<indexlib::index::FieldMetaConfig>(indexConfig);
+            const auto& fieldConfig = fieldMetaConfig->GetFieldConfig();
+            assert(fieldConfig);
+            metaFields.insert(fieldConfig->GetFieldName());
+        }
+
+        const auto& fieldConfigs = schema->GetFieldConfigs();
+        for (const auto& fieldConfig : fieldConfigs) {
+            const std::string& fieldName = fieldConfig->GetFieldName();
+            if (fieldConfig->GetFieldType() == ft_text && !metaFields.count(fieldName)) {
+                auto addFieldMetaConfig = std::make_shared<indexlib::index::FieldMetaConfig>();
+                RETURN_IF_STATUS_ERROR(addFieldMetaConfig->Init(fieldConfig, fieldName),
+                                       "field meta config init failed");
+                RETURN_IF_STATUS_ERROR(schema->AddIndexConfig(addFieldMetaConfig), "add field meta config [%s] failed",
+                                       fieldName.c_str());
+                AUTIL_LOG(INFO, "add field meta config [%s] for enableAllTextFieldMeta", fieldName.c_str());
+            }
+        }
+    } else if (!status.IsNotFound()) {
+        RETURN_IF_STATUS_ERROR(status, "%s", status.ToString().c_str());
+    }
     return Status::OK();
 }
 
@@ -748,33 +829,103 @@ Status NormalSchemaResolver::ResolveSummary(config::UnresolvedSchema* schema, co
     }
     // disableSummarys
     std::string disableSummarys;
-    if (auto status = options->GetFromRawJson("online_index_config.disable_fields.summarys", &disableSummarys);
+    if (auto status = options->GetFromRawJson("%index_config%.disable_fields.summarys", &disableSummarys);
         !status.IsOKOrNotFound()) {
-        AUTIL_LOG(ERROR, "get online_index_config.disable_fields.summarys failed");
+        AUTIL_LOG(ERROR, "get %%index_config%%.disable_fields.summarys failed");
         return status;
     }
     if (disableSummarys == "__SUMMARY_FIELD_ALL__") {
         summaryConfig->DisableAllFields();
         return Status::OK();
     }
+
     // SetNeedStoreSummary
-    auto attrFields = schema->GetIndexFieldConfigs(indexlib::index::ATTRIBUTE_INDEX_TYPE_STR);
-    const auto& packAttrFields = schema->GetIndexFieldConfigs(indexlib::index::PACK_ATTRIBUTE_INDEX_TYPE_STR);
-    attrFields.insert(attrFields.end(), packAttrFields.begin(), packAttrFields.end());
-    if (attrFields.empty()) {
-        summaryConfig->SetNeedStoreSummary(true);
+    std::set<std::string> attributeFields;
+    std::set<std::string> packAttributeFields;
+    std::set<std::string> sourceFields;
+
+    for (auto fieldConfig : schema->GetIndexFieldConfigs(indexlib::index::ATTRIBUTE_INDEX_TYPE_STR)) {
+        attributeFields.insert(fieldConfig->GetFieldName());
+    }
+    for (auto fieldConfig : schema->GetIndexFieldConfigs(indexlib::index::PACK_ATTRIBUTE_INDEX_TYPE_STR)) {
+        packAttributeFields.insert(fieldConfig->GetFieldName());
+    }
+
+    if (auto sourceIndexConfig = std::dynamic_pointer_cast<config::SourceIndexConfig>(
+            schema->GetIndexConfig(index::SOURCE_INDEX_TYPE_STR, index::SOURCE_INDEX_NAME))) {
+        auto [status, notReuseFields] =
+            schema->GetRuntimeSettings().GetValue<std::vector<std::string>>("summary_not_reuse_source_fields");
+        if (!status.IsOK() && !status.IsNotFound()) {
+            AUTIL_LOG(ERROR, "get summary not reuse source fields failed, error [%s]", status.ToString().c_str());
+            return status;
+        }
+        std::set<std::string> notReuseSourceFields(notReuseFields.begin(), notReuseFields.end());
+        for (auto fieldConfig : schema->GetIndexFieldConfigs(indexlib::index::SOURCE_INDEX_TYPE_STR)) {
+            auto fieldName = fieldConfig->GetFieldName();
+            if (summaryConfig->IsInSummary(fieldConfig->GetFieldId()) &&
+                sourceIndexConfig->GetGroupIdByFieldName(fieldName) != index::INVALID_SOURCEGROUPID &&
+                !notReuseSourceFields.count(fieldName) && fieldConfig->GetFieldType() != ft_text) {
+                // 过滤掉udf字段、禁止复用字段、TEXT字段、不在summary里的字段
+                sourceFields.insert(fieldName);
+            }
+        }
+
+        std::vector<std::string> sourceFieldvec(sourceFields.begin(), sourceFields.end());
+        if (!sourceFieldvec.empty() &&
+            !schema->SetRuntimeSetting(NORMAL_TABLE_SUMMARY_REUSE_SOURCE_FIELDS, sourceFieldvec, true)) {
+            RETURN_STATUS_ERROR(Corruption, "set summary reuse source runtime setting failed");
+        }
+    }
+
+    summaryConfig->SetNeedStoreSummary(false);
+    for (const auto& summaryField : summaryConfig->GetFieldConfigs()) {
+        auto fieldName = summaryField->GetFieldName();
+        auto fieldId = summaryField->GetFieldId();
+        if (!sourceFields.count(fieldName) && !attributeFields.count(fieldName) &&
+            !packAttributeFields.count(fieldName)) {
+            summaryConfig->SetNeedStoreSummary(fieldId);
+        }
+    }
+    return Status::OK();
+}
+
+Status NormalSchemaResolver::ResolveSource(config::UnresolvedSchema* schema, config::TabletOptions* options)
+{
+    const auto& sourceConfig = std::dynamic_pointer_cast<config::SourceIndexConfig>(
+        schema->GetIndexConfig(indexlib::index::SOURCE_INDEX_TYPE_STR, indexlib::index::SOURCE_INDEX_NAME));
+    if (!sourceConfig) {
         return Status::OK();
     }
-    std::set<fieldid_t> attrFieldIds;
-    for (const auto& attrField : attrFields) {
-        attrFieldIds.insert(attrField->GetFieldId());
+
+    if (!schema->SetRuntimeSetting("need_original_field_value", true, true)) {
+        assert(false); // to jsonize 按说不会抛异常
+        RETURN_STATUS_ERROR(InternalError, "set runtime setting faield");
     }
-    summaryConfig->SetNeedStoreSummary(false);
-    const auto& summaryFields = summaryConfig->GetFieldConfigs();
-    for (const auto& summaryField : summaryFields) {
-        auto fieldId = summaryField->GetFieldId();
-        if (attrFieldIds.find(fieldId) == attrFieldIds.end()) {
-            summaryConfig->SetNeedStoreSummary(fieldId);
+
+    // disableSources
+    std::string disableSources;
+    if (auto status = options->GetFromRawJson("online_index_config.disable_fields.sources", &disableSources);
+        !status.IsOKOrNotFound()) {
+        AUTIL_LOG(ERROR, "get online_index_config.disable_fields.sources failed");
+        return status;
+    }
+    if (disableSources == "__SOURCE_FIELD_ALL__") {
+        sourceConfig->DisableAllFields();
+        return Status::OK();
+    }
+    std::string SOURCE_FIELD_GROUP = "__SOURCE_FIELD_GROUP__:";
+
+    if (disableSources.find(SOURCE_FIELD_GROUP) == 0) {
+        std::string groupIdStr = disableSources.substr(SOURCE_FIELD_GROUP.size());
+        auto splitedStrs = autil::StringUtil::split(groupIdStr, ",");
+        for (const auto& groupStr : splitedStrs) {
+            index::sourcegroupid_t gid = 0;
+            if (!autil::StringUtil::numberFromString(groupStr, gid)) {
+                AUTIL_LOG(ERROR, "parse groupid str [%s] failed, original string is [%s]", groupStr.c_str(),
+                          disableSources.c_str());
+                return Status::ConfigError("parse groupid failed");
+            }
+            sourceConfig->DisableFieldGroup(gid);
         }
     }
     return Status::OK();
@@ -883,7 +1034,7 @@ Status NormalSchemaResolver::ResolveTTLField(config::UnresolvedSchema* schema)
         // default ttl
         auto [status1, defaultTTL] = schema->GetRuntimeSettings().GetValue<int64_t>("default_ttl");
         if (status1.IsNotFound()) {
-            bool ret = schema->SetRuntimeSetting("default_ttl", DEFAULT_TIME_TO_LIVE, false);
+            bool ret = schema->SetRuntimeSetting("default_ttl", indexlib::DEFAULT_TIME_TO_LIVE, false);
             if (!ret) {
                 RETURN_STATUS_DIRECTLY_IF_ERROR(Status::InternalError(""));
             }
@@ -1007,8 +1158,12 @@ Status NormalSchemaResolver::LoadAdaptiveVocabulary(indexlib::config::IndexParti
         return Status::OK();
     }
     indexlib::file_system::FileSystemOptions options;
+    options.loadConfigList.PushBack(indexlib::file_system::LoadConfigList::MakeMmapLoadConfig(
+        {".*"}, /*warmup*/ false, /*isLock*/ true, /*adviseRandom*/ false,
+        /*lockSlice*/ 4 * 1024 * 1024, /*lockInterval*/ 0));
     auto [st, fileSystem] =
-        indexlib::file_system::FileSystemCreator::CreateForRead("adaptive-bitmap-tmp", indexPath, options).StatusWith();
+        indexlib::file_system::FileSystemCreator::CreateForRead("__TMP__adaptive_bitmap", indexPath, options)
+            .StatusWith();
     if (!st.IsOK()) {
         AUTIL_LOG(ERROR, "load adaptive vocabulary failed to create fs [%s]", st.ToString().c_str());
         return st;
@@ -1029,8 +1184,12 @@ Status NormalSchemaResolver::LoadAdaptiveVocabulary(config::UnresolvedSchema* sc
         return Status::OK();
     }
     indexlib::file_system::FileSystemOptions options;
+    options.loadConfigList.PushBack(indexlib::file_system::LoadConfigList::MakeMmapLoadConfig(
+        {".*"}, /*warmup*/ false, /*isLock*/ true, /*adviseRandom*/ false,
+        /*lockSlice*/ 4 * 1024 * 1024, /*lockInterval*/ 0));
     auto [st, fileSystem] =
-        indexlib::file_system::FileSystemCreator::CreateForRead("adaptive-bitmap-tmp", indexPath, options).StatusWith();
+        indexlib::file_system::FileSystemCreator::CreateForRead("__TMP__adaptive_bitmap", indexPath, options)
+            .StatusWith();
     if (!st.IsOK()) {
         AUTIL_LOG(ERROR, "load adaptive vocabulary failed to create fs [%s]", st.ToString().c_str());
         return st;
@@ -1117,13 +1276,9 @@ Status NormalSchemaResolver::AddBuiltinIndex(config::UnresolvedSchema* schema)
     RETURN_IF_STATUS_ERROR(addBuiltinAttribute(document::DocumentInfoToAttributeRewriter::VIRTUAL_TIMESTAMP_FIELD_NAME,
                                                document::DocumentInfoToAttributeRewriter::VIRTUAL_TIMESTAMP_FIELD_TYPE),
                            "add virtual timestamp field failed");
-    RETURN_IF_STATUS_ERROR(addBuiltinAttribute(document::DocumentInfoToAttributeRewriter::VIRTUAL_HASH_ID_FIELD_NAME,
-                                               document::DocumentInfoToAttributeRewriter::VIRTUAL_HASH_ID_FIELD_TYPE),
+    RETURN_IF_STATUS_ERROR(addBuiltinAttribute(document::DocumentInfoToAttributeRewriter::VIRTUAL_DOC_INFO_FIELD_NAME,
+                                               document::DocumentInfoToAttributeRewriter::VIRTUAL_DOC_INFO_FIELD_TYPE),
                            "add virtual hashid field failed");
-    RETURN_IF_STATUS_ERROR(
-        addBuiltinAttribute(document::DocumentInfoToAttributeRewriter::VIRTUAL_CONCURRENT_IDX_FIELD_NAME,
-                            document::DocumentInfoToAttributeRewriter::VIRTUAL_CONCURRENT_IDX_FIELD_TYPE),
-        "add virtual concurrent idx field failed");
     return Status::OK();
 }
 
@@ -1143,9 +1298,9 @@ NormalSchemaResolver::CreateInvertedIndexConfig(const std::shared_ptr<indexlib::
 Status NormalSchemaResolver::ResolveGeneralValue(config::UnresolvedSchema* schema, config::TabletOptions* options)
 {
     std::set<std::string> disableAttributes;
-    if (auto status = options->GetFromRawJson("online_index_config.disable_fields.attributes", &disableAttributes);
+    if (auto status = options->GetFromRawJson("%index_config%.disable_fields.attributes", &disableAttributes);
         !status.IsOKOrNotFound()) {
-        AUTIL_LOG(ERROR, "get online_index_config.disable_fields.attributes failed");
+        AUTIL_LOG(ERROR, "get %%index_config%%.disable_fields.attributes failed");
         return status;
     }
     attrid_t attrId = 0;
@@ -1165,10 +1320,9 @@ Status NormalSchemaResolver::ResolveGeneralValue(config::UnresolvedSchema* schem
     }
 
     std::set<std::string> disablePackAttributes;
-    if (auto status =
-            options->GetFromRawJson("online_index_config.disable_fields.pack_attributes", &disablePackAttributes);
+    if (auto status = options->GetFromRawJson("%index_config%.disable_fields.pack_attributes", &disablePackAttributes);
         !status.IsOKOrNotFound()) {
-        AUTIL_LOG(ERROR, "get online_index_config.disable_fields.pack_attributes failed");
+        AUTIL_LOG(ERROR, "get %%index_config%%.disable_fields.pack_attributes failed");
         return status;
     }
     const auto& packAttrIndexConfigs = schema->GetIndexConfigs(index::PACK_ATTRIBUTE_INDEX_TYPE_STR);
@@ -1202,9 +1356,9 @@ Status NormalSchemaResolver::ResolveGeneralInvertedIndex(config::UnresolvedSchem
                                                          config::TabletOptions* options)
 {
     std::set<std::string> disableIndexes;
-    if (auto status = options->GetFromRawJson("online_index_config.disable_fields.indexes", &disableIndexes);
+    if (auto status = options->GetFromRawJson("%index_config%.disable_fields.indexes", &disableIndexes);
         !status.IsOKOrNotFound()) {
-        AUTIL_LOG(ERROR, "get online_index_config.disable_fields.indexes failed");
+        AUTIL_LOG(ERROR, "get %%index_config%%.disable_fields.indexes failed");
         return status;
     }
     auto invertedIndexConfigs = schema->GetIndexConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR);
@@ -1318,6 +1472,10 @@ Status NormalSchemaResolver::doLoadAdaptiveBitmap(
     }
 
     auto adaptiveDictFolder = adaptiveBitmapDir->LEGACY_CreateArchiveFolder(false, "");
+    if (adaptiveDictFolder == nullptr) {
+        AUTIL_LOG(ERROR, "create archiveFolder failed, dir[%s]", adaptiveBitmapDir->GetLogicalPath().c_str());
+        return Status::IOError("create archive folder failed, dir[%s]", adaptiveBitmapDir->GetLogicalPath().c_str());
+    }
     for (size_t i = 0; i < adaptiveDictIndexConfigs.size(); i++) {
         auto indexConfig = adaptiveDictIndexConfigs[i];
         auto [status, vol] =
@@ -1356,6 +1514,9 @@ Status NormalSchemaResolver::FillIndexConfigs(const indexlib::config::IndexParti
         for (auto it = indexSchema->Begin(); it != indexSchema->End(); it++) {
             auto indexConfig = *it;
             if (indexConfig == pkConfig) {
+                continue;
+            }
+            if (indexSchema->IsDeleted(indexConfig->GetIndexId())) {
                 continue;
             }
             auto shardingType = indexConfig->GetShardingType();
@@ -1403,6 +1564,9 @@ Status NormalSchemaResolver::FillIndexConfigs(const indexlib::config::IndexParti
             auto attrConfig = *it;
             if (schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, attrConfig->GetIndexName())) {
                 // already added
+                continue;
+            }
+            if (attrSchema->IsDeleted(attrConfig->GetAttrId())) {
                 continue;
             }
             if (attrConfig->GetPackAttributeConfig()) {
@@ -1503,6 +1667,58 @@ Status NormalSchemaResolver::ResolveTruncateIndexConfigs(const std::string& inde
     return Status::OK();
 }
 
+Status NormalSchemaResolver::FillDictionaryToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,
+                                                      config::UnresolvedSchema* schema) const
+{
+    auto [isExist, _] = schema->GetRuntimeSetting("dictionaries");
+    if (isExist) {
+        return Status::OK();
+    }
+    auto dictSchema = legacySchema.GetDictSchema();
+    if (!dictSchema) {
+        return Status::OK();
+    }
+    try {
+        auto any = autil::legacy::ToJson(dictSchema);
+        auto jsonMap = autil::legacy::AnyCast<autil::legacy::json::JsonMap>(any);
+        auto success = schema->SetRuntimeSetting("dictionaries", jsonMap["dictionaries"],
+                                                 /*overwrite*/ false);
+        if (!success) {
+            RETURN_IF_STATUS_ERROR(Status::InvalidArgs(), "set dictionaries to settings failed.");
+        }
+    } catch (const std::exception& e) {
+        AUTIL_LOG(ERROR, "fill dictionary failed, exception[%s]", e.what());
+        return Status::InvalidArgs();
+    }
+    return Status::OK();
+}
+Status
+NormalSchemaResolver::FillAdaptiveDictionaryToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,
+                                                       config::UnresolvedSchema* schema) const
+{
+    auto [isExist, _] = schema->GetRuntimeSetting("adaptive_dictionaries");
+    if (isExist) {
+        return Status::OK();
+    }
+    auto adaptiveDictSchema = legacySchema.GetAdaptiveDictSchema();
+    if (!adaptiveDictSchema) {
+        return Status::OK();
+    }
+    try {
+        auto any = autil::legacy::ToJson(adaptiveDictSchema);
+        auto jsonMap = autil::legacy::AnyCast<autil::legacy::json::JsonMap>(any);
+        auto success = schema->SetRuntimeSetting("adaptive_dictionaries", jsonMap["adaptive_dictionaries"],
+                                                 /*overwrite*/ false);
+        if (!success) {
+            RETURN_IF_STATUS_ERROR(Status::InvalidArgs(), "set adaptive_dictionaries to settings failed.");
+        }
+    } catch (const std::exception& e) {
+        AUTIL_LOG(ERROR, "fill adaptive dictionary failed, exception[%s]", e.what());
+        return Status::InvalidArgs();
+    }
+    return Status::OK();
+}
+
 Status NormalSchemaResolver::FillTruncateProfile(const indexlib::config::IndexPartitionSchema& legacySchema,
                                                  config::UnresolvedSchema* schema) const
 {
@@ -1511,7 +1727,7 @@ Status NormalSchemaResolver::FillTruncateProfile(const indexlib::config::IndexPa
         std::vector<indexlibv2::config::TruncateProfileConfig> truncateProfileConfigs;
         auto truncateSchema = legacySchema.GetTruncateProfileSchema();
         if (truncateSchema == nullptr) {
-            AUTIL_LOG(INFO, "truncate profile schema not exist.");
+            AUTIL_LOG(DEBUG, "truncate profile schema not exist.");
             return Status::OK();
         }
         for (auto it = truncateSchema->Begin(); it != truncateSchema->End(); ++it) {
@@ -1546,8 +1762,11 @@ Status NormalSchemaResolver::LoadTruncateTermVocabulary(const std::string& index
     assert(schema->GetTableType() == indexlib::table::TABLE_TYPE_NORMAL);
     // if option is online & need not rebuild truncate index (for FilteredMultiPartitionMerger)
     indexlib::file_system::FileSystemOptions options;
+    options.loadConfigList.PushBack(indexlib::file_system::LoadConfigList::MakeMmapLoadConfig(
+        {".*"}, /*warmup*/ false, /*isLock*/ true, /*adviseRandom*/ false,
+        /*lockSlice*/ 4 * 1024 * 1024, /*lockInterval*/ 0));
     auto [st1, fileSystem] =
-        indexlib::file_system::FileSystemCreator::CreateForRead("truncate-tmp", indexPath, options).StatusWith();
+        indexlib::file_system::FileSystemCreator::CreateForRead("__TMP__truncate", indexPath, options).StatusWith();
     if (!st1.IsOK()) {
         AUTIL_LOG(ERROR, "load truncate term failed to create fs [%s]", st1.ToString().c_str());
         return st1;
@@ -1731,7 +1950,7 @@ bool NormalSchemaResolver::IsValidTruncateSortParam(const std::vector<indexlib::
 {
     for (auto& sortParam : sortParams) {
         auto sortField = sortParam.GetSortField();
-        if (sortField == DOC_PAYLOAD_FIELD_NAME) {
+        if (sortField == indexlib::DOC_PAYLOAD_FIELD_NAME) {
             continue;
         }
         auto indexConfig = schema->GetIndexConfig(index::ATTRIBUTE_INDEX_TYPE_STR, sortField);

@@ -46,13 +46,21 @@ extern std::shared_ptr<CacheBase> NewLRUCache(size_t capacity,
                                               double high_pri_pool_ratio = 0.0,
                                               const CacheAllocatorPtr &allocator = CacheAllocatorPtr());
 
+extern std::shared_ptr<CacheBase> NewLRUCache(size_t capacity,
+                                              int num_shard_bits,
+                                              bool strict_capacity_limit,
+                                              double high_pri_pool_ratio,
+                                              double low_pri_pool_ratio,
+                                              const CacheAllocatorPtr &allocator = CacheAllocatorPtr());
+
 class CacheBase {
 public:
     // Depending on implementation, cache entries with high priority could be less
     // likely to get evicted than low priority entries.
     enum class Priority {
         HIGH,
-        LOW
+        LOW,
+        BOTTOM
     };
 
     CacheBase() {}

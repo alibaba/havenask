@@ -1,21 +1,24 @@
 #include "indexlib/config/test/high_freq_vocabulary_creator_unittest.h"
 
+#include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/archive/ArchiveFolder.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/common/KeyHasherWrapper.h"
 using namespace std;
 using namespace indexlib::file_system;
-using namespace indexlib::file_system;
 
 namespace indexlib { namespace config {
 
-IE_LOG_SETUP(config, HighFreqVocabularyCreatorTest);
+AUTIL_LOG_SETUP(indexlib.config, HighFreqVocabularyCreatorTest);
 
 HighFreqVocabularyCreatorTest::HighFreqVocabularyCreatorTest() {}
 
 HighFreqVocabularyCreatorTest::~HighFreqVocabularyCreatorTest() {}
 
-void HighFreqVocabularyCreatorTest::CaseSetUp() {}
+void HighFreqVocabularyCreatorTest::CaseSetUp()
+{
+    mRootDir = IDirectory::Get(FileSystemCreator::Create("", GET_TEMP_DATA_PATH()).GetOrThrow());
+}
 
 void HighFreqVocabularyCreatorTest::CaseTearDown() {}
 
@@ -62,10 +65,11 @@ void HighFreqVocabularyCreatorTest::TestLoadAdaptiveVocabularyWithDir()
         // test load with dict config
         tearDown();
         setUp();
+
         std::shared_ptr<DictionaryConfig> dictConfig(new DictionaryConfig("dict", "4;5"));
         PrepareAdaptiveDictFile("index_dict", false);
         ArchiveFolderPtr folder(new ArchiveFolder(true));
-        ASSERT_EQ(FSEC_OK, folder->Open(GET_PARTITION_DIRECTORY()->GetIDirectory(), ""));
+        ASSERT_EQ(FSEC_OK, folder->Open(mRootDir, ""));
         std::shared_ptr<HighFrequencyVocabulary> volPtr =
             HighFreqVocabularyCreator::LoadAdaptiveVocabulary(folder, "index", it_number_int8, "", dictConfig, {})
                 .GetOrThrow();
@@ -86,7 +90,7 @@ void HighFreqVocabularyCreatorTest::TestLoadAdaptiveVocabularyWithDir()
         std::shared_ptr<DictionaryConfig> dictConfig;
         PrepareAdaptiveDictFile("index");
         ArchiveFolderPtr folder(new ArchiveFolder(true));
-        ASSERT_EQ(FSEC_OK, folder->Open(GET_PARTITION_DIRECTORY()->GetIDirectory(), ""));
+        ASSERT_EQ(FSEC_OK, folder->Open(mRootDir, ""));
         std::shared_ptr<HighFrequencyVocabulary> volPtr =
             HighFreqVocabularyCreator::LoadAdaptiveVocabulary(folder, "index", it_number_int8, "", dictConfig, {})
                 .GetOrThrow();
@@ -116,7 +120,7 @@ void HighFreqVocabularyCreatorTest::TestLoadAdaptiveVocabularyWithDir()
 
         PrepareAdaptiveDictFile("index");
         ArchiveFolderPtr folder(new ArchiveFolder(false));
-        ASSERT_EQ(FSEC_OK, folder->Open(GET_PARTITION_DIRECTORY()->GetIDirectory(), ""));
+        ASSERT_EQ(FSEC_OK, folder->Open(mRootDir, ""));
         std::shared_ptr<HighFrequencyVocabulary> volPtr =
             HighFreqVocabularyCreator::LoadAdaptiveVocabulary(folder, "index", it_number_int8, "", dictConfig, {})
                 .GetOrThrow();
@@ -133,7 +137,7 @@ void HighFreqVocabularyCreatorTest::PrepareAdaptiveDictFile(const string& fileNa
     ss << 2 << endl;
     ss << index::DictKeyInfo::NULL_TERM.ToString() << endl;
     ArchiveFolder folder(!useArchiveFile);
-    ASSERT_EQ(FSEC_OK, folder.Open(GET_PARTITION_DIRECTORY()->GetIDirectory(), ""));
+    ASSERT_EQ(FSEC_OK, folder.Open(mRootDir, ""));
     auto file = folder.CreateFileWriter(fileName).GetOrThrow();
     string content = ss.str();
     file->Write(content.c_str(), content.size()).GetOrThrow();

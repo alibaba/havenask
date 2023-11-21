@@ -15,18 +15,32 @@
  */
 #include "build_service/workflow/RealtimeBuilderV2.h"
 
+#include <assert.h>
 #include <chrono>
+#include <map>
+#include <type_traits>
 
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common/ConfigDownloader.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ControlConfig.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/proto/DataDescriptions.h"
+#include "build_service/workflow/DocumentBatchRtBuilderImplV2.h"
 #include "build_service/workflow/ProcessedDocRtBuilderImplV2.h"
 #include "build_service/workflow/RawDocRtServiceBuilderImplV2.h"
+#include "build_service/workflow/StopOption.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/framework/CommitOptions.h"
 #include "indexlib/framework/ITablet.h"
+#include "indexlib/framework/IndexRoot.h"
 #include "indexlib/framework/TabletInfos.h"
 
 namespace build_service::workflow {
@@ -55,6 +69,13 @@ bool RealtimeBuilderV2::start(const proto::PartitionId& partitionId)
                partitionId.buildid().generationid(), _configPath.c_str());
         return false;
     }
+    _schemaListKeeper.reset(new config::RealtimeSchemaListKeeper);
+    assert(partitionId.clusternames_size() == 1);
+    const std::string& clusterName = partitionId.clusternames(0);
+    std::string generationPath = fslib::util::FileUtil::getParentDir(_builderResource.rawIndexRoot);
+    std::string clusterPath = fslib::util::FileUtil::getParentDir(generationPath);
+    std::string indexPath = fslib::util::FileUtil::getParentDir(clusterPath);
+    _schemaListKeeper->init(indexPath, clusterName, partitionId.buildid().generationid());
     std::lock_guard<std::mutex> lock(_implLock);
     if (!_impl) {
         _impl.reset(createRealtimeBuilderImpl(partitionId, kvMap));
@@ -96,6 +117,34 @@ void RealtimeBuilderV2::checkAndReconstruct(const proto::PartitionId& partitionI
         _impl.reset();
         lock.unlock();
         start(partitionId);
+    } else {
+        if (_impl && _impl->needAlterTable()) {
+            if (!_schemaListKeeper->updateSchemaCache()) {
+                BS_LOG(ERROR, "update schema list failed");
+                return;
+            }
+            auto nextSchemaId = _impl->getAlterTableSchemaId();
+            std::vector<std::shared_ptr<indexlibv2::config::TabletSchema>> schemaList;
+            if (!_schemaListKeeper->getSchemaList(_tablet->GetTabletSchema()->GetSchemaId() + 1, nextSchemaId,
+                                                  schemaList)) {
+                BS_LOG(ERROR, "get schema list failed");
+                return;
+            }
+            if (schemaList.size() == 0) {
+                BS_LOG(ERROR, "get schema list empty");
+                return;
+            }
+            for (auto schema : schemaList) {
+                auto status = _tablet->AlterTable(schema);
+                if (!status.IsOK()) {
+                    return;
+                }
+            }
+            _impl->stop(SO_INSTANT);
+            _impl.reset();
+            lock.unlock();
+            start(partitionId);
+        }
     }
 }
 
@@ -289,7 +338,7 @@ RealtimeBuilderImplV2* RealtimeBuilderV2::createRealtimeBuilderImpl(const proto:
         return new ProcessedDocRtBuilderImplV2(_configPath, _tablet, _builderResource, _tasker.get());
     }
     if (iter->second == config::REALTIME_SERVICE_NPC_MODE) {
-        return new ProcessedDocRtBuilderImplV2(_configPath, _tablet, _builderResource, _tasker.get());
+        return new DocumentBatchRtBuilderImplV2(_configPath, _tablet, _builderResource, _tasker.get());
     }
     assert(false);
     // TODO(hanyao): add service mode and job mode

@@ -1,0 +1,77 @@
+{
+    "build_option_config":
+    {
+        "async_build" : true,
+        "async_queue_size": 6000,
+        "batch_build_size":128
+    },
+    "cluster_config" : {
+        "table_name" : "schedule_20s",
+        "builder_rule_config" : {
+            "build_parallel_num" : 2,
+            "inc_build_parallel_num" : 8,
+            "merge_parallel_num" : 4,
+            "partition_count" : 8
+        },
+        "cluster_name": "schedule_20s",
+        "hash_mode": {
+            "hash_fields": [
+                "metric",
+                "tags"
+            ],
+            "hash_function": "ROUTING_HASH",
+            "hash_params": {
+                "routing_ratio": "1.0"
+            }
+        }
+    },
+    "offline_index_config" : {
+        "build_config" : {
+            "enable_package_file" : false,
+            "keep_version_count" : 20,
+            "build_total_memory" : 12000,
+            "max_doc_count" : 250000000,
+            "dump_thread_count" : 1,
+            "enable_async_dump_segment": true
+        },
+        "customized_merge_config" : {
+            "full" : {
+                "merge_config" : {
+                    "merge_strategy_params" :
+                    {
+                        "output_limits" : "level1_time_stride_in_second=3600;"
+                    }
+                }
+            },
+            "inc" : {
+                "merge_config" : {
+                    "merge_thread_count": 2,
+                    "merge_strategy_params" :
+                    {
+                        "output_limits" : ""
+                    }
+                },
+                "period" : "period=3600"
+            }
+        }
+    },
+    "swift_config" : {
+        "topic": {
+            "partition_count" : 32
+        },
+        "swift_topic_configs": {
+            "topic_raw" : {
+                "reader_config": "uint8FilterMask=2;uint8MaskResult=2"
+            }
+        }
+    },
+    "slow_node_detect_config" : {
+        "max_kill_times" : 4,
+        "enable_slow_node_detect" : true,
+        "slow_time_threshold" : 1200,
+        "slow_node_handle_strategy" : "backup_node",
+        "enable_high_quality_slot" : true,
+        "enable_brutal_strategy" : true,
+        "enable_network_speed_strategy" : true
+    }
+}

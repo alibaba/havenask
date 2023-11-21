@@ -21,6 +21,7 @@
 #include "indexlib/index/common/DictHasher.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertor.h"
 #include "indexlib/index/common/field_format/date/DateFieldEncoder.h"
+#include "indexlib/index/common/field_format/field_meta/FieldMetaConvertor.h"
 #include "indexlib/index/common/field_format/range/RangeFieldEncoder.h"
 #include "indexlib/index/common/field_format/spatial/SpatialFieldEncoder.h"
 
@@ -42,15 +43,17 @@ public:
 public:
     ExtendDocFieldsConvertor(const std::shared_ptr<config::ITabletSchema>& schema);
     virtual ~ExtendDocFieldsConvertor();
-    void init();
+    bool init();
 
 private:
     ExtendDocFieldsConvertor(const ExtendDocFieldsConvertor&);
     ExtendDocFieldsConvertor& operator=(const ExtendDocFieldsConvertor&);
 
 private:
-    typedef std::shared_ptr<indexlibv2::index::AttributeConvertor> AttributeConvertorPtr;
+    typedef std::shared_ptr<index::AttributeConvertor> AttributeConvertorPtr;
+    typedef std::shared_ptr<indexlib::index::FieldMetaConvertor> FieldMetaConvertorPtr;
     typedef std::vector<AttributeConvertorPtr> AttributeConvertorVector;
+    typedef std::vector<FieldMetaConvertorPtr> FieldMetaConvertorVector;
 
 public:
     void convertIndexField(const NormalExtendDocument* document,
@@ -60,6 +63,11 @@ public:
                                bool emptyFieldNotEncode = false);
     void convertSummaryField(const NormalExtendDocument* document,
                              const std::shared_ptr<config::FieldConfig>& fieldConfig);
+    void convertFieldMetaField(const NormalExtendDocument* document,
+                               const std::shared_ptr<config::FieldConfig>& fieldConfig);
+    void convertTokenizeField(const std::shared_ptr<indexlib::document::TokenizeField>& tokenizeField,
+                              fieldid_t fieldId, autil::mem_pool::Pool* pool,
+                              const std::shared_ptr<indexlib::document::IndexDocument>& indexDoc);
 
 protected:
     virtual std::vector<std::shared_ptr<index::AttributeConfig>> GetAttributeConfigs() const;
@@ -69,22 +77,21 @@ private:
                           const std::shared_ptr<indexlib::document::TokenizeField>& tokenizeField,
                           const std::shared_ptr<ClassifiedDocument>& classifiedDoc,
                           indexlib::document::IndexTokenizeField** indexTokenizeField, bool* isNull);
-    void transTokenizeFieldToField(const std::shared_ptr<indexlib::document::TokenizeField>& tokenizeField,
-                                   indexlib::document::IndexTokenizeField* field, fieldid_t fieldId,
-                                   const std::shared_ptr<ClassifiedDocument>& classifiedDoc);
     void addModifiedTokens(fieldid_t fieldId, const indexlib::document::IndexTokenizeField* tokenizeField, bool isNull,
                            const indexlib::document::IndexTokenizeField* lastTokenizeField, bool lastIsNull,
                            const std::shared_ptr<indexlib::document::IndexDocument>& indexDoc);
 
 private:
     void initAttrConvert();
+    bool initFieldMetaConvert();
     void initFieldTokenHasherTypeVector();
     std::string transTokenizeFieldToSummaryStr(const std::shared_ptr<indexlib::document::TokenizeField>& tokenizeField,
                                                const std::shared_ptr<config::FieldConfig>& fieldConfig);
 
     bool addSection(indexlib::document::IndexTokenizeField* field, indexlib::document::TokenizeSection* tokenizeSection,
                     autil::mem_pool::Pool* pool, fieldid_t fieldId,
-                    const std::shared_ptr<ClassifiedDocument>& classifiedDoc, pos_t& lastTokenPos, pos_t& curPos);
+                    const std::shared_ptr<indexlib::document::IndexDocument>& indexDoc, pos_t& lastTokenPos,
+                    pos_t& curPos);
     bool addToken(indexlib::document::Section* indexSection, const indexlib::document::AnalyzerToken* token,
                   autil::mem_pool::Pool* pool, fieldid_t fieldId, pos_t& lastTokenPos, pos_t& curPos,
                   indexlib::document::IndexDocument::TermOriginValueMap& termOriginValueMap);
@@ -94,7 +101,7 @@ private:
     template <typename EncoderPtr>
     void addSectionTokens(const EncoderPtr& encoder, indexlib::document::IndexTokenizeField* field,
                           indexlib::document::TokenizeSection* tokenizeSection, autil::mem_pool::Pool* pool,
-                          fieldid_t fieldId, const std::shared_ptr<ClassifiedDocument>& classifiedDoc);
+                          fieldid_t fieldId);
     template <typename EncoderPtr>
     bool supportMultiToken(const EncoderPtr& encoder) const
     {
@@ -108,6 +115,8 @@ protected:
 
 private:
     AttributeConvertorVector _attrConvertVec;
+    FieldMetaConvertorVector _fieldMetaConvertVec;
+    std::vector<bool>_hasfieldTokenLengthMetaVec;
     std::vector<indexlib::index::TokenHasher> _fieldIdToTokenHasher;
     std::shared_ptr<indexlib::index::SpatialFieldEncoder> _spatialFieldEncoder;
     std::shared_ptr<indexlib::index::DateFieldEncoder> _dateFieldEncoder;

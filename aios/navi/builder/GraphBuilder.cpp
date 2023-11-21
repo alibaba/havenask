@@ -95,6 +95,20 @@ N GraphBuilder::getScopeTerminator(ScopeId scope) {
     return graphBuildInfo->createScopeTerminator(scope.scopeIndex);
 }
 
+GraphBuilder &GraphBuilder::scopeErrorHandleStrategy(
+        ScopeId scope,
+        ErrorHandleStrategy strategy)
+{
+    auto graphId = scope.graphId;
+    if (INVALID_GRAPH_ID == graphId) {
+        graphId = _graphId;
+    }
+    auto graphBuildInfo = getGraphBuildInfo(graphId);
+    assert(graphBuildInfo);
+    graphBuildInfo->scopeErrorHandleStrategy(scope.scopeIndex, strategy);
+    return *this;
+}
+
 GraphBuilder &GraphBuilder::location(const std::string &bizName,
                                      NaviPartId partCount,
                                      NaviPartId partId)
@@ -131,6 +145,13 @@ GraphBuilder &GraphBuilder::inlineMode(bool inlineMode) {
     auto graphBuildInfo = getGraphBuildInfo(_graphId);
     assert(graphBuildInfo);
     graphBuildInfo->inlineMode(inlineMode);
+    return *this;
+}
+
+GraphBuilder &GraphBuilder::errorHandleStrategy(ErrorHandleStrategy strategy) {
+    auto graphBuildInfo = getGraphBuildInfo(_graphId);
+    assert(graphBuildInfo);
+    graphBuildInfo->errorHandleStrategy(strategy);
     return *this;
 }
 

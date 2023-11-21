@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TOKEN_H
-#define ISEARCH_BS_TOKEN_H
+#pragma once
 
 #include "indexlib/document/extend_document/tokenize/analyzer_token.h"
 
@@ -24,5 +23,3 @@ typedef indexlib::document::AnalyzerToken Token;
 typedef std::shared_ptr<Token> TokenPtr;
 
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_TOKEN_H

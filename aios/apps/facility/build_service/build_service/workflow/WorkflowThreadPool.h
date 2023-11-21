@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKFLOWTHREADPOOL_H
-#define ISEARCH_BS_WORKFLOWTHREADPOOL_H
+#pragma once
 
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/CircularQueue.h"
 #include "autil/Lock.h"
 #include "autil/Thread.h"
-#include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace workflow {
@@ -76,5 +78,3 @@ private:
 typedef std::shared_ptr<WorkflowThreadPool> WorkflowThreadPoolPtr;
 
 }} // namespace build_service::workflow
-
-#endif //__INDEXLIB_DUMP_THREAD_POOL_H

@@ -116,4 +116,23 @@ size_t RangeScanIterator::batchFilter(const std::vector<int32_t> &docIds,
     return count;
 }
 
+uint32_t RangeScanIterator::getTotalSeekedCount() const {
+    uint32_t docCount = 0;
+    for (size_t cursor = 0; cursor < _rangeIdx; ++cursor) {
+        docCount += (*_layerMeta)[cursor].end - (*_layerMeta)[cursor].begin;
+    }
+    if (_rangeIdx < _layerMeta->size()) { // accumulate for last cursor
+        docCount += _curId - (*_layerMeta)[_rangeIdx].begin;
+    }
+    return docCount;
+}
+
+uint32_t RangeScanIterator::getTotalWholeDocCount() const {
+    uint32_t docCount = 0;
+    for (size_t cursor = 0; cursor < _layerMeta->size(); ++cursor) {
+        docCount += (*_layerMeta)[cursor].end - (*_layerMeta)[cursor].begin;
+    }
+    return docCount;
+}
+
 } // namespace sql

@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/common/numeric_compress/VbyteInt32Encoder.h"
 
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/index/common/numeric_compress/VbyteCompressor.h"
 
 namespace indexlib::index {
@@ -54,9 +55,13 @@ std::pair<Status, uint32_t> VbyteInt32Encoder::Encode(uint8_t* dest, const uint3
 std::pair<Status, uint32_t> VbyteInt32Encoder::Decode(uint32_t* dest, uint32_t destLen,
                                                       file_system::ByteSliceReader& sliceReader) const
 {
-    uint32_t len = (uint32_t)sliceReader.ReadByte();
+    auto ret = sliceReader.ReadByte();
+    RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0), "read byte failed");
+    uint32_t len = (uint32_t)ret.Value();
     for (uint32_t i = 0; i < len; ++i) {
-        dest[i] = sliceReader.ReadVInt32();
+        auto ret = sliceReader.ReadVInt32();
+        RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0), "read byte failed");
+        dest[i] = ret.Value();
     }
     return std::make_pair(Status::OK(), len);
 }

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_RAWDOCUMENTFIELDEXTRACTORTEST_H
-#define __INDEXLIB_RAWDOCUMENTFIELDEXTRACTORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/raw_document_field_extractor.h"
@@ -51,5 +50,3 @@ INDEXLIB_UNIT_TEST_CASE(RawDocumentFieldExtractorTest, TestExtractNullField);
 INDEXLIB_UNIT_TEST_CASE(RawDocumentFieldExtractorTest, TestExtractTimeAttribute);
 INDEXLIB_UNIT_TEST_CASE(RawDocumentFieldExtractorTest, TestExtractFromSourceIndex);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_RAWDOCUMENTFIELDEXTRACTORTEST_H

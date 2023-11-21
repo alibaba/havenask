@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MODULE_FACTORY_WRAPPER_H
-#define __INDEXLIB_MODULE_FACTORY_WRAPPER_H
+#pragma once
 
 #include <memory>
 
@@ -110,5 +109,3 @@ inline bool ModuleFactoryWrapper<FactoryType>::Init(const std::string& moduleRoo
 }
 
 }} // namespace indexlib::plugin
-
-#endif //__INDEXLIB_MODULE_FACTORY_WRAPPER_H

@@ -15,14 +15,36 @@
  */
 #include "indexlib/merger/table_merge_work_item.h"
 
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/attribute_config.h"
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/index_partition_merger_metrics.h"
 #include "indexlib/merger/table_merge_meta.h"
+#include "indexlib/table/merge_task_description.h"
 #include "indexlib/table/segment_meta.h"
 #include "indexlib/table/table_merge_plan.h"
 #include "indexlib/table/table_merge_plan_meta.h"
 #include "indexlib/table/table_merger.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/counter/CounterMap.h"
+#include "indexlib/util/counter/StateCounter.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 

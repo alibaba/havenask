@@ -15,13 +15,15 @@
  */
 #pragma once
 
+#include <google/protobuf/service.h>
+#include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
 #include "aios/network/arpc/arpc/ANetRPCChannel.h"
 #include "aios/network/arpc/arpc/ANetRPCChannelManager.h"
 #include "build_service/util/Log.h"
-#include "worker_framework/ZkState.h"
 
 namespace build_service::common {
 

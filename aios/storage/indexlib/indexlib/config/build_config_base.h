@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILD_CONFIG_BASE_H
-#define __INDEXLIB_BUILD_CONFIG_BASE_H
+#pragma once
 
 #include <memory>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/framework/LevelInfo.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -80,10 +79,8 @@ public:
     static const double DEFAULT_BUILD_RESOURCE_MEM_LIMIT_RATIO;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(BuildConfigBase);
+typedef std::shared_ptr<BuildConfigBase> BuildConfigBasePtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_BUILD_CONFIG_BASE_H

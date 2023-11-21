@@ -204,11 +204,14 @@ bool ResourceManager::collectPublish(std::vector<multi_call::ServerBizTopoInfo> 
 void ResourceManager::startPublish(multi_call::GigRpcServer *gigRpcServer) {
     {
         autil::ScopedLock lock(_publishLock);
+        _oldResourceManager = nullptr;
+        if (NAVI_BIZ_PART_ID == _partId) {
+            return;
+        }
         _gigRpcServer = gigRpcServer;
         if (!_gigRpcServer) {
             NAVI_KERNEL_LOG(INFO, "publish disabled, no gigRpcServer");
         }
-        _oldResourceManager = nullptr;
     }
     updatePublishMeta();
 }
@@ -366,7 +369,7 @@ ErrorCode ResourceManager::createResource(const std::string &name,
                         _bizName.c_str());
         return EC_ILLEGAL_RESOURCE_STAGE;
     }
-    if (getTestMode() == TM_NOT_TEST && stage < minStage) {
+    if (getTestMode() == TM_NONE && stage < minStage) {
         NAVI_KERNEL_LOG(ERROR,
                         "can't create resource [%s stage: %s] in stage [%s], biz [%s]",
                         name.c_str(),

@@ -29,13 +29,11 @@ class DatabaseInfo : public autil::legacy::Jsonizable {
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("database_name", databaseName);
-        json.Jsonize("tables", tables, tables);
         json.Jsonize("functions", functions, functions);
     }
 
 public:
     std::string databaseName;
-    std::vector<std::string> tables;
     std::vector<std::string> functions;
 };
 

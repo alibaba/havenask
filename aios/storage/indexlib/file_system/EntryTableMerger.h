@@ -16,6 +16,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -24,8 +25,6 @@
 
 namespace indexlib { namespace file_system {
 
-struct FileSystemOptions;
-class EntryMeta;
 class EntryTable;
 
 // TODO(panghai.hj): Handle set physical path correctly for merge.

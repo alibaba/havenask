@@ -46,6 +46,8 @@ class KernelInitContext;
 namespace sql {
 class SqlConfig;
 class SqlQueryRequest;
+class SqlQueryConfig;
+class SqlQueryConfigData;
 
 struct PlanTransformMetricsCollector {
     int64_t plan2GraphTime = 0;
@@ -67,6 +69,7 @@ public:
 public:
     bool initExecConfig(const SqlQueryRequest *sqlQueryRequest,
                         const SqlConfig &sqlConfig,
+                        const SqlQueryConfig &sqlQueryConfig,
                         iquan::ExecConfig &execConfig);
     size_t getParallelNum(const sql::SqlQueryRequest *sqlQueryRequest, const SqlConfig &sqlConfig);
     std::vector<std::string> getParallelTalbes(const sql::SqlQueryRequest *sqlQueryRequest,
@@ -81,6 +84,8 @@ private:
                    std::vector<std::string> &outputNode);
     static std::string ToSqlPlanString(const iquan::SqlPlan &sqlPlan,
                                        const iquan::DynamicParams &dynamicParams);
+    std::shared_ptr<SqlQueryConfigData>
+    createSqlQueryConfigData(const SqlQueryRequest &request) const;
     void reportMetrics() const;
 
 private:
@@ -92,6 +97,7 @@ private:
     KERNEL_DEPEND_ON(SqlSearchInfoCollectorR, _sqlSearchInfoCollectorR);
     KERNEL_DEPEND_ON(QueryMetricReporterR, _queryMetricReporterR);
     PlanTransformMetricsCollector _metricsCollector;
+    std::string _thisBizName;
 };
 
 typedef std::shared_ptr<PlanTransformKernel> PlanTransformKernelPtr;

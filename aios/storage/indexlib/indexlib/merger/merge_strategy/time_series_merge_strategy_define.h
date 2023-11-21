@@ -13,15 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TIME_SERIES_MERGE_STRATEGY_DEFINE_H
-#define __INDEXLIB_TIME_SERIES_MERGE_STRATEGY_DEFINE_H
+#pragma once
 
+#include <limits>
+#include <map>
 #include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
 #include "indexlib/merger/merge_strategy/strategy_config_value_creator.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 static std::string TIME_SERIES_INPUT_INTERVAL_KEY = "input-interval";
@@ -224,5 +232,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TIME_SERIES_META_BASE_MERGE_STRATEGY_DEFINE_H

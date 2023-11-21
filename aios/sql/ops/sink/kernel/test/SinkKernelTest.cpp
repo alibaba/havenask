@@ -63,7 +63,6 @@ private:
         for (size_t i = 0; i < expect.size(); i++) {
             ASSERT_EQ(expect[i], id->get(i));
         }
-        checkDependentTable(_table, outputTable);
     }
 
     void prepareTable() {
@@ -76,7 +75,7 @@ private:
             _matchDocUtil.extendMatchDocAllocator(_allocator, docs, "b", {"b1", "b2", "b3", "b4"}));
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<char>(
             _allocator, docs, "c", {{'c', '1'}, {'2'}, {'3'}, {'4'}}));
-        _table.reset(new Table(docs, _allocator));
+        _table = Table::fromMatchDocs(docs, _allocator);
     }
     KernelTesterPtr buildTester(KernelTesterBuilder &builder) {
         setResource(builder);
@@ -124,7 +123,6 @@ TEST_F(SinkKernelTest, testSimpleProcess) {
         checkOutputMultiColumn<char>(outputTable, "c", {{'c', '1'}, {'2'}, {'3'}, {'4'}}));
     ASSERT_EQ(EC_NONE, tester.getErrorCode());
     ASSERT_EQ("", tester.getErrorMessage());
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(SinkKernelTest, testReuseInputs) {

@@ -1,6 +1,10 @@
 #include "build_service/common/test/FakeBrokerTopicKeeper.h"
 
-#include "build_service/config/ResourceReaderManager.h"
+#include <iosfwd>
+#include <memory>
+
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/config/CounterConfig.h"
 
 using namespace std;
 using namespace build_service::config;

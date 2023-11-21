@@ -46,13 +46,12 @@ void RemoteTableWriter::write(const std::string &tableName, const std::string &f
     param.format = format;
     param.docs = std::move(writeParam.docs);
     param.timeoutUs = writeParam.timeoutUs;
-    if (_allowFollowWrite) {
-        param.tagInfo.type = multi_call::TMT_PREFER;
-    } else {
-        param.tagInfo.type = multi_call::TMT_REQUIRE;
-    }
     auto generator = std::make_shared<RemoteTableWriterRequestGenerator>(std::move(param));
-    generator->setFlowControlStrategy(param.bizName);
+    if (_allowFollowWrite) {
+        generator->setLeaderTags(multi_call::TMT_PREFER);
+    } else {
+        generator->setLeaderTags(multi_call::TMT_REQUIRE);
+    }
     multi_call::SearchParam searchParam;
     searchParam.generatorVec.push_back(generator);
     auto *closure = new RemoteTableWriterClosure(std::move(writeParam.cb));

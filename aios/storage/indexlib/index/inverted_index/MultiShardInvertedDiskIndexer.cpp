@@ -34,7 +34,8 @@ using indexlibv2::config::InvertedIndexConfig;
 
 AUTIL_LOG_SETUP(indexlib.index, MultiShardInvertedDiskIndexer);
 
-MultiShardInvertedDiskIndexer::MultiShardInvertedDiskIndexer(const indexlibv2::index::IndexerParameter& indexerParam)
+MultiShardInvertedDiskIndexer::MultiShardInvertedDiskIndexer(
+    const indexlibv2::index::DiskIndexerParameter& indexerParam)
     : _indexerParam(indexerParam)
 {
 }

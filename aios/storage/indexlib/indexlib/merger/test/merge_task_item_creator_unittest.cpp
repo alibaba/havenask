@@ -1,5 +1,6 @@
 #include "indexlib/merger/test/merge_task_item_creator_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/normal/inverted_index/customized_index/index_plugin_resource.h"
 #include "indexlib/index/normal/source/source_group_merger.h"
 #include "indexlib/index/normal/source/source_meta_merger.h"
@@ -12,7 +13,6 @@
 #include "indexlib/merger/test/mock_merge_task_item_creator.h"
 #include "indexlib/merger/test/segment_directory_creator.h"
 #include "indexlib/plugin/plugin_manager.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/counter/CounterMap.h"
 
 using namespace std;
@@ -105,7 +105,8 @@ void MergeTaskItemCreatorTest::TestParallelMerge()
     string pluginRoot = GET_PRIVATE_TEST_DATA_PATH() + "demo_indexer_plugins";
     PluginManagerPtr pluginManager(new PluginManager(pluginRoot));
     CounterMapPtr counterMap(new CounterMap());
-    PluginResourcePtr resource(new IndexPluginResource(schema, options, counterMap, PartitionMeta(), pluginRoot));
+    PluginResourcePtr resource(
+        new IndexPluginResource(schema, options, counterMap, PartitionMeta(), pluginRoot, nullptr));
     pluginManager->SetPluginResource(resource);
     ModuleInfo moduleInfo;
     moduleInfo.moduleName = "merger_demo_indexer";

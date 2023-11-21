@@ -15,11 +15,31 @@
  */
 #include "build_service/config/ProcessorConfigurator.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <iosfwd>
+#include <iterator>
+#include <map>
+#include <utility>
+
+#include "autil/Span.h"
+#include "autil/StringTokenizer.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/BuilderClusterConfig.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ProcessorRuleConfig.h"
 #include "build_service/config/SwiftConfig.h"
 #include "build_service/config/SwiftTopicConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "swift/protocol/AdminRequestResponse.pb.h"
+#include "swift/protocol/Common.pb.h"
 
 using namespace std;
 using namespace autil;

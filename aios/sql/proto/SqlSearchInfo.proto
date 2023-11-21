@@ -45,7 +45,7 @@ message ScanInfo
     uint64 totalOutputTime = 12;
     uint32 totalComputeTimes = 13;
     uint64 totalInitTime = 14;
-    uint64 totalSeekCount = 15;
+    uint64 totalSeekedCount = 15;
     uint32 mergeCount = 16;
     uint64 durationTime = 17;
     uint64 queryPoolSize = 18;
@@ -55,6 +55,7 @@ message ScanInfo
     uint64 degradedDocsCount = 22;
     uint64 totalScanTime = 23;
     string extraInfo = 24;
+    uint64 totalWholeDocCount = 25;
 }
 
 message BlockAccessInfo
@@ -231,6 +232,21 @@ message DelayDpInfo
     repeated int32 partIds = 3;
 }
 
+enum DegradedErrorCode
+{
+    UNKOWN_ERROR = 0;
+    IO_ERROR = 1;
+    RPC_ERROR = 2;
+    INCOMPLETE_DATA_ERROR = 3;
+    LACK_PART_ERROR = 4;
+}
+
+message DegradedInfo
+{
+    uint32 hashKey = 1;
+    repeated DegradedErrorCode degradedErrorCodes = 2;
+}
+
 message SqlSearchInfo
 {
     RunSqlTimeInfo runSqlTimeInfo = 1;
@@ -248,4 +264,5 @@ message SqlSearchInfo
     repeated IdentityInfo identityInfos = 13;
     repeated InvertedIndexSearchInfo invertedInfos = 14;
     repeated DelayDpInfo delayDpInfos = 15;
+    repeated DegradedInfo degradedInfos = 16;
 }

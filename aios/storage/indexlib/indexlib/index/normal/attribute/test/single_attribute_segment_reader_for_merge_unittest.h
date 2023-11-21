@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SINGLEATTRIBUTESEGMENTREADERFORMERGETEST_H
-#define __INDEXLIB_SINGLEATTRIBUTESEGMENTREADERFORMERGETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -35,5 +34,3 @@ INDEXLIB_UNIT_TEST_CASE(SingleAttributeSegmentReaderForMergeTest, TestOpenWithou
 INDEXLIB_UNIT_TEST_CASE(SingleAttributeSegmentReaderForMergeTest, TestOpenWithPatch);
 INDEXLIB_UNIT_TEST_CASE(SingleAttributeSegmentReaderForMergeTest, TestReadNullField);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLEATTRIBUTESEGMENTREADERFORMERGETEST_H

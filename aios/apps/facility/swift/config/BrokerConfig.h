@@ -48,8 +48,8 @@ public:
     int64_t getPartitionMaxBufferSize() const;
 
     void setTotalBufferSize(double value);
-    int64_t getTotalBufferSize();
-    int64_t getTotalFileBufferSize();
+    int64_t getTotalBufferSize() const;
+    int64_t getTotalFileBufferSize() const;
     int64_t getBrokerFileBufferSize() const;
     int64_t getBrokerFileMetaBufferSize() const;
     int64_t getBrokerMessageBufferSize() const;

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOC_RANGE_PARTITIONER_H
-#define __INDEXLIB_DOC_RANGE_PARTITIONER_H
+#pragma once
 
 #include <memory>
 
@@ -50,5 +49,3 @@ private:
 
 DEFINE_SHARED_PTR(DocRangePartitioner);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_DOC_RANGE_PARTITIONER_H

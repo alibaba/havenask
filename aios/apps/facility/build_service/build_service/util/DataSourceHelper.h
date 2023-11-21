@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DATASOURCEHELPER_H
-#define ISEARCH_BS_DATASOURCEHELPER_H
-
-#include "build_service/common_define.h"
+#pragma once
 
 namespace build_service {
 
@@ -34,5 +31,3 @@ public:
 
 } // namespace util
 } // namespace build_service
-
-#endif // ISEARCH_BS_DATASOURCEHELPER_H

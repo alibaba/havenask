@@ -15,6 +15,11 @@
  */
 #pragma once
 
+#include <string>
+#include <vector>
+
+#include "build_service/common_define.h"
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/processor/SubDocumentExtractor.h"
 #include "build_service/util/Log.h"

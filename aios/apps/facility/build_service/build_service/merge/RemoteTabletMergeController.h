@@ -15,13 +15,29 @@
  */
 #pragma once
 
+#include <atomic>
+#include <map>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <random>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
 
 #include "build_service/common/RpcChannelManager.h"
 #include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/util/Log.h"
+#include "future_lite/Executor.h"
+#include "future_lite/coro/Lazy.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/ITabletMergeController.h"
+#include "indexlib/framework/index_task/MergeTaskDefine.h"
 
 namespace indexlibv2::config {
 class ITabletSchema;
@@ -30,6 +46,7 @@ class TabletOptions;
 
 namespace indexlibv2::framework {
 class ITabletFactory;
+class IndexTaskResource;
 } // namespace indexlibv2::framework
 
 namespace build_service::merge {
@@ -59,6 +76,7 @@ public:
         std::string configPath;
         std::string dataTable;
         std::string bsServerAddress;
+        std::vector<std::shared_ptr<indexlibv2::framework::IndexTaskResource>> extendResources;
     };
 
 public:
@@ -74,6 +92,7 @@ public:
     future_lite::coro::Lazy<std::pair<indexlib::Status, indexlibv2::versionid_t>> GetLastMergeTaskResult() override;
     std::unique_ptr<IndexTaskContext> CreateTaskContext(indexlibv2::versionid_t baseVersionId,
                                                         const std::string& taskType, const std::string& taskName,
+                                                        const std::string& taskTraceId,
                                                         const std::map<std::string, std::string>& params) override;
     future_lite::coro::Lazy<indexlib::Status> SubmitMergeTask(std::unique_ptr<IndexTaskPlan> plan,
                                                               IndexTaskContext* context) override;
@@ -103,13 +122,15 @@ private:
         indexlibv2::versionid_t baseVersionId = indexlibv2::INVALID_VERSIONID;
         int64_t finishedOpCount = 0;
         int64_t totalOpCount = 0;
+        std::string taskTraceId;
     };
 
 private:
     int64_t GenerateTaskId(int32_t timestamp) const;
     int32_t ExtractTaskEpochId(int64_t taskId) const;
     void fillPlan(const IndexTaskPlan& plan, proto::OperationPlan* planMessage) const;
-    void SetTaskDescription(int64_t taskId, int32_t taskEpochId, indexlibv2::versionid_t baseVersionId);
+    void SetTaskDescription(const std::string& taskTraceId, int64_t taskId, int32_t taskEpochId,
+                            indexlibv2::versionid_t baseVersionId);
     void ResetTaskDescription();
     TaskDescription GetTaskDescription() const;
     void UpdateTaskDescription(int64_t finishedOpCount, int64_t totalOpCount);

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCID_QUERY_H
-#define __INDEXLIB_DOCID_QUERY_H
+#pragma once
 
 #include <memory>
 
@@ -30,5 +29,3 @@ private:
 
 DEFINE_SHARED_PTR(DocidQuery);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_DOCID_QUERY_H

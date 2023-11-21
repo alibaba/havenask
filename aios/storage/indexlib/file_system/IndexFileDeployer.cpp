@@ -21,7 +21,6 @@
 #include <utility>
 #include <vector>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
 #include "indexlib/base/Constant.h"
@@ -32,10 +31,11 @@
 #include "indexlib/file_system/FileInfo.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/LifecycleTable.h"
-#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/load_config/LoadConfig.h"
 #include "indexlib/file_system/load_config/LoadConfigList.h"
+#include "indexlib/util/PathUtil.h"
+
 using namespace std;
 
 namespace indexlib { namespace file_system {

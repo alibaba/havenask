@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SUMMARY_FORMATTER_H
-#define __INDEXLIB_SUMMARY_FORMATTER_H
+#pragma once
 
 #include <memory>
 
@@ -70,5 +69,3 @@ typedef std::shared_ptr<SummaryFormatter> SummaryFormatterPtr;
 
 ///////////////////////////////////////////////////////////////////////////////
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_SUMMARY_FORMATTER_H

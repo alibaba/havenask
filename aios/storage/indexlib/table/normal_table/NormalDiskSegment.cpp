@@ -40,7 +40,7 @@ NormalDiskSegment::NormalDiskSegment(const std::shared_ptr<indexlibv2::config::I
 
 NormalDiskSegment::~NormalDiskSegment() {}
 
-size_t NormalDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
+std::pair<Status, size_t> NormalDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto segDir = GetSegmentDirectory();
     assert(segDir);
@@ -60,26 +60,26 @@ size_t NormalDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletS
         }
         auto [status, indexFactory] = indexFactoryCreator->Create(indexType);
         if (!status.IsOK()) {
-            continue;
+            return {status, 0};
         }
         auto indexer = indexFactory->CreateDiskIndexer(indexConfig, indexerParam);
         if (!indexer) {
-            continue;
+            return {Status::Corruption(), 0};
         }
 
         auto [dirStatus, indexDir] = GetIndexDirectory(segDir, indexConfig, indexFactory);
         if (!dirStatus.IsOK()) {
             AUTIL_LOG(ERROR, "get index directory fail, error [%s]", dirStatus.ToString().c_str());
-            continue;
+            return {dirStatus, 0};
         }
         try {
             totalMemUsed += indexer->EstimateMemUsed(indexConfig, (indexDir ? indexDir->GetIDirectory() : nullptr));
         } catch (...) {
             AUTIL_LOG(ERROR, "fail to estimate mem use for indexer [%s]", indexName.c_str());
-            continue;
+            return {Status::Corruption(), 0};
         }
     }
-    return totalMemUsed;
+    return {Status::OK(), totalMemUsed};
 }
 
 bool NormalDiskSegment::NeedDrop(const std::string& indexType, const std::string& indexName,

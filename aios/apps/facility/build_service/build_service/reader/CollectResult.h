@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_COLLECTRESULT_H
-#define ISEARCH_BS_COLLECTRESULT_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "autil/legacy/jsonizable.h"
@@ -58,5 +57,3 @@ struct CollectResult : public autil::legacy::Jsonizable {
 typedef std::vector<CollectResult> CollectResults;
 typedef std::map<std::string, CollectResults> DescriptionToCollectResultsMap;
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_COLLECTRESULT_H

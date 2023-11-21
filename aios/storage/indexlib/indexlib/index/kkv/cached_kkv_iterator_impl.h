@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CACHED_KKV_ITERATOR_IMPL_H
-#define __INDEXLIB_CACHED_KKV_ITERATOR_IMPL_H
+#pragma once
 
 #include <memory>
 
@@ -84,5 +83,3 @@ private:
     int64_t mCursor;
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_CACHED_KKV_ITERATOR_IMPL_H

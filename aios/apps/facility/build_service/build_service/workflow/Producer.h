@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PRODUCER_H
-#define ISEARCH_BS_PRODUCER_H
+#pragma once
 
 #include "build_service/common/ExceedTsAction.h"
 #include "build_service/common/Locator.h"
@@ -23,6 +22,7 @@
 #include "build_service/util/Log.h"
 #include "build_service/workflow/FlowError.h"
 #include "build_service/workflow/StopOption.h"
+#include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/document_factory_wrapper.h"
 
 namespace build_service { namespace document {
@@ -31,6 +31,7 @@ class ProcessedDocument;
 BS_TYPEDEF_PTR(ProcessedDocument);
 typedef std::vector<ProcessedDocumentPtr> ProcessedDocumentVec;
 BS_TYPEDEF_PTR(ProcessedDocumentVec);
+typedef std::shared_ptr<indexlibv2::document::IDocumentBatch> IDocumentBatchPtr;
 
 }} // namespace build_service::document
 
@@ -65,7 +66,6 @@ protected:
 
 typedef Producer<document::RawDocumentPtr> RawDocProducer;
 typedef Producer<document::ProcessedDocumentVecPtr> ProcessedDocProducer;
+typedef Producer<document::IDocumentBatchPtr> DocumentBatchProducer;
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_PRODUCER_H

@@ -30,9 +30,9 @@ TruncatePostingIterator::~TruncatePostingIterator() {}
 
 TermMeta* TruncatePostingIterator::GetTermMeta() const { return _curIter->GetTermMeta(); }
 
-docid_t TruncatePostingIterator::SeekDoc(docid_t docId) { return _curIter->SeekDoc(docId); }
+docid64_t TruncatePostingIterator::SeekDoc(docid64_t docId) { return _curIter->SeekDoc(docId); }
 
-index::ErrorCode TruncatePostingIterator::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+index::ErrorCode TruncatePostingIterator::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
     return _curIter->SeekDocWithErrorCode(docId, result);
 }

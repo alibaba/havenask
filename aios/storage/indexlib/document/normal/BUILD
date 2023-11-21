@@ -35,7 +35,10 @@ strict_cc_library(
         '//aios/storage/indexlib/document:RawDocument',
         '//aios/storage/indexlib/document/normal/tokenize',
         '//aios/storage/indexlib/index/ann:constants',
-        '//aios/storage/indexlib/index/inverted_index:constants'
+        '//aios/storage/indexlib/index/inverted_index:constants',
+        '//aios/storage/indexlib/index/primary_key:constants',
+        '//aios/storage/indexlib/index/summary:constants',
+        '//aios/storage/indexlib/util:Algorithm'
     ]
 )
 strict_cc_library(
@@ -102,6 +105,10 @@ strict_cc_library(
     ]
 )
 strict_cc_library(
+    name='FieldMetaDocument',
+    deps=[':SummaryDocument', '//aios/storage/indexlib/base:Define']
+)
+strict_cc_library(
     name='SerializedSummaryDocument',
     deps=['//aios/autil:data_buffer', '//aios/storage/indexlib/base:constants']
 )
@@ -150,11 +157,19 @@ strict_cc_library(
     ]
 )
 strict_cc_library(
+    name='SourceFormatter',
+    deps=[
+        ':GroupFieldFormatter', ':SerializedSourceDocument', ':SourceDocument',
+        '//aios/storage/indexlib/index/source:config',
+        '//aios/storage/indexlib/util:status_to_exception'
+    ]
+)
+strict_cc_library(
     name='NormalDocument',
     deps=[
-        ':AttributeDocument', ':IndexDocument', ':SerializedSourceDocument',
-        ':SerializedSummaryDocument', '//aios/autil:env_util',
-        '//aios/storage/indexlib/document:interface'
+        ':AttributeDocument', ':FieldMetaDocument', ':IndexDocument',
+        ':SerializedSourceDocument', ':SerializedSummaryDocument',
+        '//aios/autil:env_util', '//aios/storage/indexlib/document:interface'
     ]
 )
 strict_cc_library(
@@ -173,9 +188,9 @@ strict_cc_library(
 strict_cc_library(
     name='ClassifiedDocument',
     deps=[
-        ':AttributeDocument', ':IndexDocument', ':SerializedSummaryDocument',
-        ':SourceDocument', ':SummaryDocument', ':SummaryFormatter',
-        '//aios/autil:mem_pool_base',
+        ':AttributeDocument', ':FieldMetaDocument', ':IndexDocument',
+        ':SerializedSummaryDocument', ':SourceDocument', ':SourceFormatter',
+        ':SummaryDocument', ':SummaryFormatter', '//aios/autil:mem_pool_base',
         '//aios/storage/indexlib/document:RawDocument'
     ]
 )
@@ -201,6 +216,7 @@ strict_cc_library(
         ':NormalExtendDocument', '//aios/storage/indexlib/config:TabletSchema',
         '//aios/storage/indexlib/index/common/field_format/attribute:attribute_convertor',
         '//aios/storage/indexlib/index/common/field_format/date:DateFieldEncoder',
+        '//aios/storage/indexlib/index/common/field_format/field_meta:field_meta_convertor',
         '//aios/storage/indexlib/index/common/field_format/range:RangeFieldEncoder',
         '//aios/storage/indexlib/index/inverted_index/config',
         '//aios/storage/indexlib/index/statistics_term:StatisticsTermIndexConfig',
@@ -213,7 +229,8 @@ strict_cc_library(
         ':ExtendDocFieldsConvertor', ':NormalDocument', ':NormalExtendDocument',
         ':NullFieldAppender', '//aios/storage/indexlib/config:TabletSchema',
         '//aios/storage/indexlib/document/normal/rewriter:PackAttributeAppender',
-        '//aios/storage/indexlib/document/normal/rewriter:SectionAttributeAppender'
+        '//aios/storage/indexlib/document/normal/rewriter:SectionAttributeAppender',
+        '//aios/storage/indexlib/table/normal_table:Common'
     ]
 )
 strict_cc_library(

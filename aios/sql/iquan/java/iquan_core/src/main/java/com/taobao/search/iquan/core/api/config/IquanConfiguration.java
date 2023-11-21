@@ -19,6 +19,10 @@ public class IquanConfiguration<T> {
 
     }
 
+    public static <K> IquanConfigBuilder<K> builder() {
+        return new IquanConfigBuilder<K>();
+    }
+
     public String key() {
         return this.key;
     }
@@ -56,14 +60,10 @@ public class IquanConfiguration<T> {
             return true;
         }
         if (o != null && o.getClass() == IquanConfiguration.class) {
-            IquanConfiguration<?> that = (IquanConfiguration)o;
+            IquanConfiguration<?> that = (IquanConfiguration) o;
             return Objects.equals(this.key, that.key) && Objects.equals(this.defaultValue, that.defaultValue);
         }
         return false;
-    }
-
-    public static <K> IquanConfigBuilder<K> builder() {
-        return new IquanConfigBuilder<K>();
     }
 
     public static class IquanConfigBuilder<T> {

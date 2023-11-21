@@ -48,6 +48,11 @@ public:
     virtual void free() { delete this; }
 
     virtual int64_t getSpaceUsed() { return 0; };
+
+    /**
+     * @brief 获取序列化后所占用的内存大小
+     */
+    virtual size_t getSerializedSize() const { return 0; }
 };
 
 } /*end namespace anet*/

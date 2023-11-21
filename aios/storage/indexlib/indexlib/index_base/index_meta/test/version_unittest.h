@@ -1,3 +1,4 @@
+#pragma once
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/test/unittest.h"

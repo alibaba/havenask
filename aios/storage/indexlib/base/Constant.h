@@ -24,8 +24,9 @@ namespace indexlib {
 
 constexpr docid_t INVALID_DOCID = -1;
 constexpr globalid_t INVALID_GLOBALID = -1;
+constexpr size_t MAX_SEGMENT_DOC_COUNT = (uint64_t)std::numeric_limits<docid32_t>::max() + 1ULL;
 constexpr fieldid_t INVALID_FIELDID = -1;
-constexpr uint32_t DOCUMENT_BINARY_VERSION = 11;
+constexpr uint32_t DOCUMENT_BINARY_VERSION = 12;
 constexpr uint32_t LEGACY_DOCUMENT_BINARY_VERSION = 10;
 constexpr uint32_t UNINITIALIZED_TTL = 0;
 constexpr size_t DEFAULT_CHUNK_SIZE = 10; // 10MB
@@ -48,7 +49,7 @@ constexpr int64_t MAX_BRANCH_COUNT = 100;
 constexpr uint32_t INVALID_DOC_VERSION = -1;
 constexpr char MULTI_VALUE_SEPARATOR = '\x1D'; // equal with autil::MULTI_VALUE_DELIMITER;
 
-static constexpr int64_t DEFAULT_DONE_TASK_TTL_IN_SECONDS = 24 * 3600 * 2;
+static constexpr int64_t DEFAULT_DONE_TASK_TTL_IN_SECONDS = 24 * 3600 * 5;
 static constexpr int64_t INVALID_TTL = -1;
 // default time to live in seconds, make sure not overflow when converted to microsecond
 static constexpr int64_t DEFAULT_TIME_TO_LIVE = std::numeric_limits<int64_t>::max() >> 20;

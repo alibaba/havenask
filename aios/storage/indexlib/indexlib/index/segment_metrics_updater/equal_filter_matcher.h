@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_EQUAL_FILTER_MATCHER_H
-#define __INDEXLIB_EQUAL_FILTER_MATCHER_H
+#pragma once
 
 #include <memory>
 
@@ -293,5 +292,3 @@ inline void EqualFilterMatcher<std::string, std::string>::Match(segmentid_t segI
 
 IE_LOG_SETUP_TEMPLATE2(index, EqualFilterMatcher);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_EQUAL_FILTER_MATCHER_H

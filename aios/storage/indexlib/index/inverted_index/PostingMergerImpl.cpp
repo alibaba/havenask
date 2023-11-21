@@ -27,12 +27,10 @@ AUTIL_LOG_SETUP(indexlib.index, PostingMergerImpl);
 class PostingListSortedItem
 {
 public:
-    PostingListSortedItem(const PostingFormatOption& formatOption, docid_t baseDocId,
+    PostingListSortedItem(const PostingFormatOption& formatOption, docid64_t baseDocId,
                           const std::shared_ptr<indexlibv2::index::DocMapper>& docMapper, PostingDecoderImpl* decoder,
                           SingleTermIndexSegmentPatchIterator* patchIter)
         : _baseDocId(baseDocId)
-        , _newDocId(INVALID_DOCID)
-        , _oldDocId(INVALID_DOCID)
         , _docMapper(docMapper)
         , _oneDocMerger(formatOption, decoder, patchIter)
     {
@@ -46,29 +44,30 @@ public:
             return false;
         }
         _oldDocId = _baseDocId + _oneDocMerger.CurrentDoc();
-        _newDocId = _docMapper->GetNewId(_oldDocId);
+        _current = _docMapper->Map(_oldDocId);
         return true;
     }
 
     void MergeDoc(const std::shared_ptr<MultiSegmentPostingWriter>& posWriter)
     {
-        if (_newDocId == INVALID_DOCID) {
+        auto [newSegId, newLocalDocId] = _current;
+        if (newLocalDocId == INVALID_DOCID) {
+            assert(newSegId == INVALID_SEGMENTID);
             _oneDocMerger.Merge(INVALID_DOCID, nullptr);
             return;
         }
-        auto [newSegId, newLocalDocId] = _docMapper->Map(_oldDocId);
         auto postingWriterPtr =
             std::dynamic_pointer_cast<PostingWriterImpl>(posWriter->GetSegmentPostingWriterBySegId(newSegId));
         assert(postingWriterPtr);
         _oneDocMerger.Merge(newLocalDocId, postingWriterPtr.get());
     }
 
-    docid_t GetDocId() const { return _newDocId; }
+    std::pair<segmentid_t, docid32_t> GetCurrent() const { return _current; }
 
 private:
-    docid_t _baseDocId;
-    docid_t _newDocId;
-    docid_t _oldDocId;
+    docid64_t _baseDocId;
+    docid64_t _oldDocId = INVALID_DOCID;
+    std::pair<segmentid_t, docid32_t> _current = {INVALID_SEGMENTID, INVALID_DOCID};
     std::shared_ptr<indexlibv2::index::DocMapper> _docMapper;
     OneDocMerger _oneDocMerger;
 };
@@ -76,7 +75,7 @@ private:
 struct PostingListSortedItemComparator {
     bool operator()(const PostingListSortedItem* item1, const PostingListSortedItem* item2)
     {
-        return (item1->GetDocId() > item2->GetDocId());
+        return (item1->GetCurrent() > item2->GetCurrent());
     }
 };
 
@@ -107,7 +106,7 @@ void PostingMergerImpl::Merge(const SegmentTermInfos& segTermInfos,
     PriorityQueue queue;
     for (size_t i = 0; i < segTermInfos.size(); ++i) {
         SegmentTermInfo* segInfo = segTermInfos[i];
-        docid_t baseDocId = segInfo->GetBaseDocId();
+        docid64_t baseDocId = segInfo->GetBaseDocId();
         auto decoder = dynamic_cast<PostingDecoderImpl*>(segInfo->GetPosting().first);
         _termPayload = 0;
         if (decoder) {

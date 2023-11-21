@@ -75,7 +75,7 @@ void ParallelMergeInteTest::TestSimpleProcess()
     // merge
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     Version version;
-    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
     merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
     string mergeMetaDir = mRootDir + "/merge_meta";
     segDir->Init(false, true);
@@ -83,7 +83,8 @@ void ParallelMergeInteTest::TestSimpleProcess()
     string pluginRoot = GET_PRIVATE_TEST_DATA_PATH() + "demo_indexer_plugins";
     PluginManagerPtr pluginManager(new PluginManager(pluginRoot));
     CounterMapPtr counterMap(new CounterMap());
-    PluginResourcePtr resource(new IndexPluginResource(mSchema, mOptions, counterMap, PartitionMeta(), pluginRoot));
+    PluginResourcePtr resource(
+        new IndexPluginResource(mSchema, mOptions, counterMap, PartitionMeta(), pluginRoot, nullptr));
     pluginManager->SetPluginResource(resource);
     ModuleInfo moduleInfo;
     moduleInfo.moduleName = "indexer_for_intetest";

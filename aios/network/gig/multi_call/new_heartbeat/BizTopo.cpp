@@ -161,8 +161,16 @@ void BizTopo::updateVolatileInfo(const BizVolatileInfo &info) {
     initTagSignature();
 }
 
+void BizTopo::start() {
+    _info.targetWeight = MAX_WEIGHT;
+}
+
 void BizTopo::stop() {
     _info.targetWeight = MIN_WEIGHT;
+}
+
+bool BizTopo::isStopped() const {
+    return (MIN_WEIGHT == _info.targetWeight);
 }
 
 void BizTopo::addToBuilder(TopoInfoBuilder &builder) const {

@@ -1,6 +1,16 @@
 #include "build_service/analyzer/SingleWSTokenizer.h"
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "build_service/analyzer/Token.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "build_service/util/Log.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

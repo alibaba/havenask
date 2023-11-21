@@ -1,7 +1,15 @@
 #include "build_service/analyzer/Token.h"
 
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
+#include "alog/Logger.h"
 #include "autil/DataBuffer.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/Log.h"
+#include "indexlib/document/normal/tokenize/AnalyzerToken.h"
+#include "unittest/unittest.h"
 
 namespace build_service { namespace analyzer {
 

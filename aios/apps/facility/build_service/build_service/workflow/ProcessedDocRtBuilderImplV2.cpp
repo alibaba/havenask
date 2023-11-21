@@ -15,8 +15,18 @@
  */
 #include "build_service/workflow/ProcessedDocRtBuilderImplV2.h"
 
-#include "autil/TimeUtility.h"
-#include "build_service/builder/Builder.h"
+#include <assert.h>
+#include <atomic>
+#include <map>
+#include <mutex>
+#include <ostream>
+#include <stddef.h>
+#include <unordered_map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/builder/BuilderV2.h"
 #include "build_service/common/Locator.h"
 #include "build_service/common/ResourceKeeperCreator.h"
 #include "build_service/common/SwiftAdminFacade.h"
@@ -24,40 +34,24 @@
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/DataLinkModeUtil.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/SwiftTopicConfig.h"
 #include "build_service/config/TaskInputConfig.h"
-#include "build_service/util/Monitor.h"
+#include "build_service/workflow/AsyncStarter.h"
+#include "build_service/workflow/BuildFlow.h"
+#include "build_service/workflow/BuildFlowMode.h"
+#include "build_service/workflow/Producer.h"
+#include "build_service/workflow/RealtimeErrorDefine.h"
+#include "build_service/workflow/StopOption.h"
+#include "build_service/workflow/Workflow.h"
+#include "build_service/workflow/WorkflowItem.h"
+#include "indexlib/base/Progress.h"
 #include "indexlib/framework/ITablet.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/misc/common.h"
+
 namespace build_service { namespace workflow {
 
 BS_LOG_SETUP(workflow, ProcessedDocRtBuilderImplV2);
-
-class ProcessedDocRtBuilderImplV2::ForceSeekStatus
-{
-public:
-    ForceSeekStatus() : _done(false), _skipBegin(-1), _skipEnd(-1) {}
-    ~ForceSeekStatus() = default;
-
-public:
-    bool isDone() const { return _done; }
-    void markDone(int64_t skipBeginTs, int64_t skipEndTs)
-    {
-        _skipBegin = skipBeginTs;
-        _skipEnd = skipEndTs;
-    }
-    int64_t getLostTimeInterval(int64_t versionTs)
-    {
-        int64_t lost = _skipEnd - std::max(versionTs, _skipBegin);
-        if (lost <= 0) {
-            return 0;
-        }
-        return lost;
-    }
-
-private:
-    bool _done;
-    int64_t _skipBegin;
-    int64_t _skipEnd;
-};
 
 ProcessedDocRtBuilderImplV2::ProcessedDocRtBuilderImplV2(const std::string& configPath,
                                                          std::shared_ptr<indexlibv2::framework::ITablet> tablet,
@@ -66,7 +60,6 @@ ProcessedDocRtBuilderImplV2::ProcessedDocRtBuilderImplV2(const std::string& conf
     : RealtimeBuilderImplV2(configPath, std::move(tablet), builderResource, tasker)
     , _producer(NULL)
     , _startSkipCalibrateDone(false)
-    , _seekToLatestInForceRecover(false)
 {
 }
 
@@ -89,18 +82,14 @@ bool ProcessedDocRtBuilderImplV2::doStart(const proto::PartitionId& partitionId,
     WorkflowMode workflowMode = build_service::workflow::REALTIME;
     kvMap[config::SRC_SIGNATURE] = std::to_string(config::SwiftTopicConfig::INC_TOPIC_SRC_SIGNATURE);
     // set step to BUILD_STEP_INC so that RtBuilder could find corresponding broker topic
-    // resetStartSkipTimestamp(kvMap);
-    auto iter = kvMap.find(config::REALTIME_MODE);
-    if (iter != kvMap.end() && iter->second == config::REALTIME_SERVICE_NPC_MODE) {
-        if (!prepareForNPCMode(resourceReader, partitionId, kvMap)) {
-            return false;
-        }
-    } else {
-        if (!prepareForNormalMode(resourceReader, partitionId, kvMap)) {
-            return false;
-        }
-    }
 
+    // resetStartSkipTimestamp(kvMap);
+
+    const std::string& clusterName = partitionId.clusternames(0);
+    std::string topicPrefix = getValueFromKeyValueMap(kvMap, config::PROCESSED_DOC_SWIFT_TOPIC_PREFIX);
+    std::string realtimeTopicName =
+        common::SwiftAdminFacade::getRealtimeTopicName(topicPrefix, partitionId.buildid(), clusterName);
+    kvMap[config::PROCESSED_DOC_SWIFT_TOPIC_NAME] = realtimeTopicName;
     _brokerFactory.reset(createFlowFactory(resourceReader, rtPartitionId, kvMap));
     _buildFlow->startWorkLoop(resourceReader, rtPartitionId, kvMap, _brokerFactory.get(), buildFlowMode, workflowMode,
                               _metricProvider);
@@ -110,104 +99,16 @@ bool ProcessedDocRtBuilderImplV2::doStart(const proto::PartitionId& partitionId,
     return true;
 }
 
-bool ProcessedDocRtBuilderImplV2::prepareForNormalMode(const config::ResourceReaderPtr& resourceReader,
-                                                       const proto::PartitionId& partitionId, KeyValueMap& kvMap)
-{
-    std::string topicPrefix = getValueFromKeyValueMap(kvMap, config::PROCESSED_DOC_SWIFT_TOPIC_PREFIX);
-    const std::string& clusterName = partitionId.clusternames(0);
-    std::string realtimeTopicName =
-        common::SwiftAdminFacade::getRealtimeTopicName(topicPrefix, partitionId.buildid(), clusterName);
-    kvMap[config::PROCESSED_DOC_SWIFT_TOPIC_NAME] = realtimeTopicName;
-    return true;
-}
-
-bool ProcessedDocRtBuilderImplV2::prepareForNPCMode(const config::ResourceReaderPtr& resourceReader,
-                                                    const proto::PartitionId& partitionId, KeyValueMap& kvMap)
-{
-    const std::string& clusterName = partitionId.clusternames(0);
-    std::string relativePath = config::ResourceReader::getClusterConfRelativePath(clusterName);
-    if (!resourceReader->getConfigWithJsonPath(relativePath, "build_option_config.seek_to_latest_when_recover_fail",
-                                               _seekToLatestInForceRecover)) {
-        std::string errorMsg = "fail to read seek_to_latest_when_recover_fail from config path " + relativePath;
-        BS_LOG(ERROR, "%s", errorMsg.c_str());
-        return false;
-    }
-    if (_seekToLatestInForceRecover) {
-        BS_LOG(INFO, "set seek_to_latest_when_recover_fail = true in cluster[%s]", clusterName.c_str());
-        _lostRtMetric = DECLARE_METRIC(_metricProvider, "basic/lostRealtime", kmonitor::STATUS, "us");
-    }
-    return true;
-}
-
-bool ProcessedDocRtBuilderImplV2::seekProducerToLatest()
-{
-    int64_t maxTimestamp;
-    if (!getLastTimestampInProducer(maxTimestamp)) {
-        std::string errorMsg = "get last timestamp in producer failed";
-        BS_LOG(WARN, "%s", errorMsg.c_str());
-        return false;
-    }
-    int64_t lastReadTs = -1;
-    if (!getLastReadTimestampInProducer(lastReadTs)) {
-        std::string errorMsg = "get last read timestamp in producer failed";
-        BS_LOG(WARN, "%s", errorMsg.c_str());
-        return false;
-    }
-    if (_builder == nullptr) {
-        BS_LOG(ERROR, "UNEXPECTED: builder is NULL");
-        return false;
-    }
-    auto [latestLocator, _] = getLatestLocator();
-    if (latestLocator.GetOffset().first >= maxTimestamp) {
-        BS_LOG(INFO, "LOCATOR offset[%zu] exceeds maxTimestamp[%zu], no need to skip", latestLocator.GetOffset().first,
-               maxTimestamp);
-        return true;
-    }
-    common::Locator locatorToJump(latestLocator.GetSrc(), maxTimestamp);
-    producerSeek(locatorToJump);
-    _forceSeekStatus->markDone(lastReadTs, maxTimestamp);
-    return true;
-}
-
-void ProcessedDocRtBuilderImplV2::handleRecoverTimeout()
-{
-    if (!_isRecovered) {
-        BS_LOG(INFO, "force recover for partition [%s]", _partitionId.ShortDebugString().c_str());
-        if (_seekToLatestInForceRecover) {
-            _forceSeekStatus.reset(new ForceSeekStatus());
-        }
-    }
-}
-
-void ProcessedDocRtBuilderImplV2::reportProducerSkipInterval()
-{
-    if (_forceSeekStatus == nullptr || _builder == nullptr) {
-        return;
-    }
-    auto incLocator = _builder->getLatestVersionLocator();
-    if (!incLocator.IsValid()) {
-        return;
-    }
-    int64_t lostTime = _forceSeekStatus->getLostTimeInterval(incLocator.GetOffset().first);
-    REPORT_METRIC(_lostRtMetric, (double)lostTime);
-}
-
 void ProcessedDocRtBuilderImplV2::externalActions()
 {
     setProducerRecovered();
     reportFreshnessWhenSuspendBuild();
-    reportProducerSkipInterval();
 }
 
 void ProcessedDocRtBuilderImplV2::setProducerRecovered()
 {
     if (!_isProducerRecovered) {
         if (_producer && _isRecovered) {
-            if (_forceSeekStatus != nullptr && !_forceSeekStatus->isDone()) {
-                if (false == seekProducerToLatest()) {
-                    BS_LOG(INFO, "force seek failed for partition [%s]", _partitionId.ShortDebugString().c_str());
-                }
-            }
             _producer->setRecovered(true);
             _isProducerRecovered = true;
         }
@@ -220,6 +121,22 @@ bool ProcessedDocRtBuilderImplV2::producerAndBuilderPrepared() const
         return false;
     }
     return true;
+}
+
+schemaid_t ProcessedDocRtBuilderImplV2::getAlterTableSchemaId() const
+{
+    if (_producer) {
+        return _producer->getAlterTableSchemaId();
+    }
+    return DEFAULT_SCHEMAID;
+}
+
+bool ProcessedDocRtBuilderImplV2::needAlterTable() const
+{
+    if (_producer) {
+        return _producer->needAlterTable();
+    }
+    return false;
 }
 
 bool ProcessedDocRtBuilderImplV2::getBuilderAndProducer()
@@ -325,7 +242,7 @@ void ProcessedDocRtBuilderImplV2::reportFreshnessWhenSuspendBuild()
         return;
     }
 
-    auto [tmpLocator, _] = getLatestLocator();
+    auto tmpLocator = getLatestLocator();
 
     tmpLocator.DebugString();
     // TODO(tianxiao.ttx) conver locator to common::Locator

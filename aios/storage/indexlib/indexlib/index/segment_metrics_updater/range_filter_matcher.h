@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_RANGE_FILTER_MATCHER_H
-#define __INDEXLIB_RANGE_FILTER_MATCHER_H
+#pragma once
 
 #include <memory>
 
@@ -282,5 +281,3 @@ inline void RangeFilterMatcher<std::string, std::string>::MatchRange(std::vector
     assert(false);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_RANGE_FILTER_MATCHER_H

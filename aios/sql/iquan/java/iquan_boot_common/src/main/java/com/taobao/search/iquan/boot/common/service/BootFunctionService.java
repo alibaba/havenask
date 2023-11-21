@@ -98,11 +98,7 @@ public class BootFunctionService {
     // ****************************************
     // Service For Catalog
     // ****************************************
-    public SqlResponse updateFunctions(SqlTranslator sqlTranslator, Map<String, Object> reqMap) {
-        return FunctionService.updateFunctions(sqlTranslator, reqMap);
-    }
-
-    public SqlResponse dropFunctions(SqlTranslator sqlTranslator, Map<String, Object> reqMap) {
-        return FunctionService.dropFunctions(sqlTranslator, reqMap);
-    }
+//    public SqlResponse updateFunctions(SqlTranslator sqlTranslator, Map<String, Object> reqMap) {
+//        return FunctionService.registerFunctions(sqlTranslator, reqMap);
+//    }
 }

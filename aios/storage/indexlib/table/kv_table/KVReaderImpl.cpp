@@ -182,6 +182,17 @@ Status KVReaderImpl::LoadDiskSegmentReader(const std::shared_ptr<indexlibv2::con
         for (size_t segIdx = 0; segIdx < segIds.size(); ++segIdx) {
             auto segment = tabletData->GetSegment(segIds[segIdx]);
             auto shardCount = segment->GetSegmentInfo()->shardCount;
+            auto shardId = segment->GetSegmentInfo()->shardId;
+            auto isMergedSegment = segment->GetSegmentInfo()->IsMergedSegment();
+            uint32_t levelIdx = 0;
+            uint32_t inLevelIdx = 0;
+            if (levelInfo->FindPosition(segIds[segIdx], levelIdx, inLevelIdx)) {
+                // bulkload segment appear in level 0 maybe single shard segment,
+                // exclude unmatched shard id bulkload segment in level 0
+                if (shardId != shardIdx && levelIdx == 0 && isMergedSegment) {
+                    continue;
+                }
+            }
             auto multiShardDiskSegment = std::dynamic_pointer_cast<MultiShardDiskSegment>(segment);
             SegmentPtr shardSegment;
             if (1 == shardCount) {

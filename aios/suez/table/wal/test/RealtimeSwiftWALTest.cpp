@@ -28,13 +28,13 @@ public:
 
 TEST_F(RealtimeSwiftWALTest, testStop) {
     auto wal = RealtimeSwiftWAL();
-    wal._swiftWriterAsyncHelper.reset(new MockSwiftWriterAsyncHelper);
+    wal._swiftWriterAsyncHelper.reset(new MockFixedTimeoutSwiftWriterAsyncHelper);
     wal.stop();
 }
 
 TEST_F(RealtimeSwiftWALTest, testLogAfterStop) {
     auto wal = RealtimeSwiftWAL();
-    wal._swiftWriterAsyncHelper.reset(new MockSwiftWriterAsyncHelper);
+    wal._swiftWriterAsyncHelper.reset(new MockFixedTimeoutSwiftWriterAsyncHelper);
     wal.stop();
 
     Result<vector<int64_t>> ret;
@@ -45,7 +45,7 @@ TEST_F(RealtimeSwiftWALTest, testLogAfterStop) {
 
 TEST_F(RealtimeSwiftWALTest, testStopWhileLog) {
     auto wal = RealtimeSwiftWAL();
-    auto *mockSwiftHelper = new MockSwiftWriterAsyncHelper;
+    auto *mockSwiftHelper = new MockFixedTimeoutSwiftWriterAsyncHelper;
     wal._swiftWriterAsyncHelper.reset(mockSwiftHelper);
 
     mutex mu;
@@ -54,11 +54,11 @@ TEST_F(RealtimeSwiftWALTest, testStopWhileLog) {
 
     std::vector<int64_t> timestamps;
 
-    EXPECT_CALL(*mockSwiftHelper, write(_, _, _, _))
+    EXPECT_CALL(*mockSwiftHelper, write(_, _, _))
         .WillOnce(testing::Invoke([&](MessageInfo *msgInfos,
                                       size_t count,
-                                      SwiftWriteCallbackItem::WriteCallbackFunc callback,
-                                      int64_t timeout) {
+                                      SwiftWriteCallbackItem::WriteCallbackFunc callback
+                                      ) {
             {
                 unique_lock<mutex> lock(mu);
                 isStart = true;
@@ -84,15 +84,14 @@ TEST_F(RealtimeSwiftWALTest, testStopWhileLog) {
 
 TEST_F(RealtimeSwiftWALTest, testLogSuccess) {
     auto wal = RealtimeSwiftWAL();
-    auto *mockSwiftHelper = new MockSwiftWriterAsyncHelper;
+    auto *mockSwiftHelper = new MockFixedTimeoutSwiftWriterAsyncHelper;
     wal._swiftWriterAsyncHelper.reset(mockSwiftHelper);
 
     std::vector<int64_t> timestamps;
-    EXPECT_CALL(*mockSwiftHelper, write(_, _, _, _))
+    EXPECT_CALL(*mockSwiftHelper, write(_, _, _))
         .WillRepeatedly(testing::Invoke([&](MessageInfo *msgInfos,
                                             size_t count,
-                                            SwiftWriteCallbackItem::WriteCallbackFunc callback,
-                                            int64_t timeout) {
+                                            SwiftWriteCallbackItem::WriteCallbackFunc callback) {
             timestamps.resize(count);
             callback(SwiftWriteCallbackParam{timestamps.data(), count});
         }));
@@ -129,14 +128,13 @@ TEST_F(RealtimeSwiftWALTest, testLogSuccess) {
 
 TEST_F(RealtimeSwiftWALTest, testLogFailed) {
     auto wal = RealtimeSwiftWAL();
-    auto *mockSwiftHelper = new MockSwiftWriterAsyncHelper;
+    auto *mockSwiftHelper = new MockFixedTimeoutSwiftWriterAsyncHelper;
     wal._swiftWriterAsyncHelper.reset(mockSwiftHelper);
 
-    EXPECT_CALL(*mockSwiftHelper, write(_, _, _, _))
+    EXPECT_CALL(*mockSwiftHelper, write(_, _, _))
         .WillOnce(testing::Invoke([](MessageInfo *msgInfos,
                                      size_t count,
-                                     SwiftWriteCallbackItem::WriteCallbackFunc callback,
-                                     int64_t timeout) { callback(RuntimeError::make("mock write has error")); }));
+                                     SwiftWriteCallbackItem::WriteCallbackFunc callback) { callback(RuntimeError::make("mock write has error")); }));
 
     Result<vector<int64_t>> ret;
     auto done = [&ret](Result<vector<int64_t>> result) { ret = std::move(result); };

@@ -15,7 +15,16 @@
  */
 #include "build_service/admin/controlflow/FlowFactory.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/controlflow/ControlDefine.h"
 
 using namespace std;

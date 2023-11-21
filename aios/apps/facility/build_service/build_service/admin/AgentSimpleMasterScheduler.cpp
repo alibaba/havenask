@@ -15,14 +15,34 @@
  */
 #include "build_service/admin/AgentSimpleMasterScheduler.h"
 
-#include "autil/EnvUtil.h"
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <functional>
+
+#include "autil/CommonMacros.h"
+#include "autil/Log.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "autil/ZlibCompressor.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/HippoProtoHelper.h"
-#include "build_service/admin/SimpleMasterSchedulerLocal.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/ProtoComparator.h"
 #include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/RoleNameGenerator.h"
 #include "build_service/proto/WorkerNode.h"
+#include "build_service/util/Monitor.h"
 #include "fslib/util/FileUtil.h"
+#include "hippo/HippoUtil.h"
+#include "hippo/proto/Common.pb.h"
+#include "kmonitor/client/MetricLevel.h"
+#include "master_framework/Plan.h"
+#include "worker_framework/LeaderElector.h"
+#include "worker_framework/WorkerState.h"
 
 using namespace std;
 using namespace build_service::common;
@@ -63,6 +83,8 @@ AgentSimpleMasterScheduler::AgentSimpleMasterScheduler(
     , _lastClearTimestamp(-1)
     , _lastSyncSlotTimestamp(0)
     , _needSyncBlackList(false)
+    , _totalCpuAmount(0)
+    , _totalMemAmount(0)
 {
     if (!_scheduler) {
         _scheduler.reset(new master_framework::simple_master::SimpleMasterScheduler);
@@ -74,6 +96,9 @@ AgentSimpleMasterScheduler::AgentSimpleMasterScheduler(
         _blackListNodeCount = monitor->registerGaugeMetric("agent.blackListNodeCount", kmonitor::FATAL);
         _useAgentRoleCount = monitor->registerGaugeMetric("agent.useAgentRoleCount", kmonitor::FATAL);
         _reclaimingAgentNodeCount = monitor->registerGaugeMetric("agent.reclaimingAgentNodeCount", kmonitor::FATAL);
+
+        _cpuAmountMetric = monitor->registerGaugeMetric("resource.allocatedCpuAmount", kmonitor::FATAL);
+        _memAmountMetric = monitor->registerGaugeMetric("resource.allocatedMemAmount", kmonitor::FATAL);
     }
 }
 
@@ -109,8 +134,9 @@ bool AgentSimpleMasterScheduler::init(const std::string& hippoZkRoot, worker_fra
     }
 
     recoverBlackListRoleMap();
-    _loopThread = autil::LoopThread::createLoopThread(bind(&AgentSimpleMasterScheduler::workLoop, this), 1000,
-                                                      "AgentScheduler"); // 1s
+    _loopThread =
+        autil::LoopThread::createLoopThread(bind(&AgentSimpleMasterScheduler::workLoop, this), 1 * 1000 * 1000,
+                                            /*name = */ "AgentScheduler", /*strictMode = */ true); // 1s
     if (!_loopThread) {
         return false;
     }
@@ -291,13 +317,19 @@ std::vector<hippo::SlotInfo> AgentSimpleMasterScheduler::getRoleSlots(const std:
     return ret;
 }
 
-void AgentSimpleMasterScheduler::getAllRoleSlots(std::map<std::string, SlotInfos>& roleSlots)
+void AgentSimpleMasterScheduler::syncSlotInfosUnsafe(std::map<std::string, SlotInfos>& roleSlots)
 {
-    autil::ScopedLock lock(_lock);
     _scheduler->getAllRoleSlots(roleSlots);
+    updateResourceStatistic(roleSlots);
     fillAgentSlotInfo(roleSlots);
     fillAgentIdentifier(roleSlots);
     _lastSyncSlotTimestamp = autil::TimeUtility::currentTimeInSeconds();
+}
+
+void AgentSimpleMasterScheduler::getAllRoleSlots(std::map<std::string, SlotInfos>& roleSlots)
+{
+    autil::ScopedLock lock(_lock);
+    syncSlotInfosUnsafe(roleSlots);
     for (auto& agentRole : _agentRoles) {
         auto iter = roleSlots.find(agentRole.first);
         if (iter == roleSlots.end()) {
@@ -682,8 +714,7 @@ void AgentSimpleMasterScheduler::updateAgentNodeInfos()
     if (currentTimeInSec - _lastSyncSlotTimestamp > 10) {
         BS_LOG(INFO, "trigger force sync agent slot info.");
         std::map<std::string, SlotInfos> roleSlots;
-        _scheduler->getAllRoleSlots(roleSlots);
-        fillAgentSlotInfo(roleSlots);
+        syncSlotInfosUnsafe(roleSlots);
     }
     _workerTable->syncNodesStatus();
 }
@@ -918,6 +949,35 @@ bool AgentSimpleMasterScheduler::isAgentServiceReady(const std::string& agentRol
     }
     AUTIL_LOG(INFO, "agent [%s] has not serviceready info, not ready", agentRoleName.c_str());
     return false;
+}
+
+void AgentSimpleMasterScheduler::updateResourceStatistic(const std::map<std::string, SlotInfos>& roleSlots)
+{
+    int64_t cpuAmount = 0;
+    int64_t memAmount = 0;
+    for (auto iter = roleSlots.begin(); iter != roleSlots.end(); iter++) {
+        const SlotInfos& slots = iter->second;
+        for (const auto& slot : slots) {
+            auto resource = slot.slotResource.find("cpu");
+            if (resource) {
+                cpuAmount += resource->amount;
+            }
+            resource = slot.slotResource.find("mem");
+            if (resource) {
+                memAmount += resource->amount;
+            }
+        }
+    }
+    _totalCpuAmount = cpuAmount;
+    _totalMemAmount = memAmount;
+    REPORT_KMONITOR_METRIC(_cpuAmountMetric, cpuAmount);
+    REPORT_KMONITOR_METRIC(_memAmountMetric, memAmount);
+}
+
+void AgentSimpleMasterScheduler::getTotalResourceAmount(int64_t& totalCpuAmount, int64_t& totalMemAmount) const
+{
+    totalCpuAmount = _totalCpuAmount;
+    totalMemAmount = _totalMemAmount;
 }
 
 }} // namespace build_service::admin

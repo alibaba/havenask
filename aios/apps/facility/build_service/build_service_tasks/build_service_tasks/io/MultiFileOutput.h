@@ -13,25 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BUILD_SERVICE_TASKS_MULTI_FILE_OUTPUT_H
-#define ISEARCH_BUILD_SERVICE_TASKS_MULTI_FILE_OUTPUT_H
+#pragma once
 
 #include <memory>
-#include <unordered_map>
+#include <stdint.h>
+#include <string>
 
-#include "autil/HashFuncFactory.h"
+#include "autil/legacy/any.h"
 #include "build_service/common_define.h"
 #include "build_service/config/TaskOutputConfig.h"
-#include "build_service/io/IODefine.h"
 #include "build_service/io/Output.h"
 #include "build_service/io/OutputCreator.h"
-#include "build_service/task_base/TaskFactory.h"
 #include "build_service/util/Log.h"
 #include "build_service_tasks/io/IODefine.h"
-
-namespace indexlib { namespace file_system {
-class BufferedFileWriter;
-}} // namespace indexlib::file_system
+#include "indexlib/file_system/archive/LogFile.h"
 
 namespace build_service_tasks {
 
@@ -97,5 +92,3 @@ private:
 BS_TYPEDEF_PTR(MultiFileOutputCreator);
 
 } // namespace build_service_tasks
-
-#endif

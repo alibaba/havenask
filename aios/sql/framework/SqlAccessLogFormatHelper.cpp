@@ -29,6 +29,7 @@ SqlAccessLogFormatHelper::SqlAccessLogFormatHelper(const SqlAccessLog &accessLog
     : _accessLog(accessLog) {
     _hasSoftFailure = parseSoftFailure(_accessLog);
     _coveredPercent = parseCoveredPercent(_accessLog.getRpcInfoMap());
+    _softFailureCodes = parseSoftFailureCodes(_accessLog);
 }
 
 SqlAccessLogFormatHelper::~SqlAccessLogFormatHelper() {}
@@ -40,9 +41,8 @@ bool SqlAccessLogFormatHelper::parseSoftFailure(const SqlAccessLog &accessLog) {
     }
 
     const auto &searchInfo = accessLog.getSearchInfo();
-    // * scan op has degraded docs
-    for (auto &scanInfo : searchInfo.scaninfos()) {
-        if (scanInfo.degradeddocscount() > 0) {
+    for (auto &degradedInfo : searchInfo.degradedinfos()) {
+        if (degradedInfo.degradederrorcodes_size() > 0) {
             return true;
         }
     }
@@ -60,4 +60,17 @@ SqlAccessLogFormatHelper::parseCoveredPercent(const multi_call::GigStreamRpcInfo
     }
 }
 
+vector<int64_t> SqlAccessLogFormatHelper::parseSoftFailureCodes(const SqlAccessLog &accessLog) {
+    vector<int64_t> softFailureCodes;
+    const auto &searchInfo = accessLog.getSearchInfo();
+    for (auto &degradedInfo : searchInfo.degradedinfos()) {
+        for (auto &errorCode : degradedInfo.degradederrorcodes()) {
+            softFailureCodes.emplace_back(errorCode);
+        }
+    }
+    if (parseCoveredPercent(accessLog.getRpcInfoMap()) < 1.0 - 1e-5) {
+        softFailureCodes.emplace_back(LACK_PART_ERROR);
+    }
+    return softFailureCodes;
+}
 } // namespace sql

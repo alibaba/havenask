@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEPLOYINDEXMETATEST_H
-#define __INDEXLIB_DEPLOYINDEXMETATEST_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
@@ -42,5 +41,3 @@ INDEXLIB_UNIT_TEST_CASE(DeployIndexMetaTest, TestDeployFileMeta);
 INDEXLIB_UNIT_TEST_CASE(DeployIndexMetaTest, TestDeployIndexMeta);
 INDEXLIB_UNIT_TEST_CASE(DeployIndexMetaTest, TestLegacyDeployIndexMetaFile);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_DEPLOYINDEXMETATEST_H

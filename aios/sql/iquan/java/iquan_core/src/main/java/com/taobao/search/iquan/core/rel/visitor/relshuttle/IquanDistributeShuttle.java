@@ -1,38 +1,73 @@
 package com.taobao.search.iquan.core.rel.visitor.relshuttle;
 
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.*;
+import com.taobao.search.iquan.core.api.schema.Distribution;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
+import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
-import com.taobao.search.iquan.core.utils.RelDistributionUtil;
+import com.taobao.search.iquan.core.rel.ops.physical.ExecCorrelateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.ExecLookupJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCorrelateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanHashJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanIdentityOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanLeftMultiJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMatchOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMergeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMultiJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanNestedLoopJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSinkOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUncollectOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUnionOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanValuesOp;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import org.apache.calcite.rel.RelDistribution;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.TableFunctionScan;
 import org.apache.calcite.rel.core.TableScan;
-import org.apache.calcite.rel.logical.*;
+import org.apache.calcite.rel.logical.LogicalAggregate;
+import org.apache.calcite.rel.logical.LogicalCalc;
+import org.apache.calcite.rel.logical.LogicalCorrelate;
+import org.apache.calcite.rel.logical.LogicalExchange;
+import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rel.logical.LogicalIntersect;
+import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.calcite.rel.logical.LogicalMatch;
+import org.apache.calcite.rel.logical.LogicalMinus;
+import org.apache.calcite.rel.logical.LogicalProject;
+import org.apache.calcite.rel.logical.LogicalSort;
+import org.apache.calcite.rel.logical.LogicalTableModify;
+import org.apache.calcite.rel.logical.LogicalUnion;
+import org.apache.calcite.rel.logical.LogicalValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 public class IquanDistributeShuttle extends IquanRelShuttle {
     private static final Logger logger = LoggerFactory.getLogger(IquanDistributeShuttle.class);
     private final GlobalCatalog catalog;
-    private final String dbName;
     private final IquanConfigManager config;
 
-    public IquanDistributeShuttle(GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanDistributeShuttle(GlobalCatalog catalog, IquanConfigManager config) {
         this.catalog = catalog;
-        this.dbName = dbName;
         this.config = config;
     }
 
-    public static RelNode go(RelNode root, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
-        IquanDistributeShuttle relShuttle = new IquanDistributeShuttle(catalog, dbName, config);
+    public static RelNode go(RelNode root, GlobalCatalog catalog, IquanConfigManager config) {
+        IquanDistributeShuttle relShuttle = new IquanDistributeShuttle(catalog, config);
         return relShuttle.optimize(root);
     }
 
@@ -89,17 +124,17 @@ public class IquanDistributeShuttle extends IquanRelShuttle {
 
     @Override
     protected RelNode visit(IquanAggregateOp rel) {
-        return rel.deriveDistribution(rel.getInputs(), catalog, dbName, config);
+        return rel.deriveDistribution(rel.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(IquanCalcOp rel) {
-        return rel.deriveDistribution(rel.getInputs(), catalog, dbName, config);
+        return rel.deriveDistribution(rel.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(IquanCorrelateOp rel) {
-        return rel.deriveDistribution(rel.getInputs(), catalog, dbName, config);
+        return rel.deriveDistribution(rel.getInputs(), catalog, config);
     }
 
     @Override
@@ -114,22 +149,22 @@ public class IquanDistributeShuttle extends IquanRelShuttle {
 
     @Override
     protected RelNode visit(IquanSinkOp rel) {
-        return rel.deriveDistribution(rel.getInputs(), catalog, dbName, config);
+        return rel.deriveDistribution(rel.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(IquanSortOp rel) {
-        return rel.deriveDistribution(rel.getInputs(), catalog, dbName, config);
+        return rel.deriveDistribution(rel.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(IquanTableFunctionScanOp rel) {
-        return rel.deriveDistribution(rel.getInputs(), catalog, dbName, config);
+        return rel.deriveDistribution(rel.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(IquanTableScanOp rel) {
-        return rel.deriveDistribution(null, catalog, dbName, config);
+        return rel.deriveDistribution(null, catalog, config);
     }
 
     @Override
@@ -139,7 +174,7 @@ public class IquanDistributeShuttle extends IquanRelShuttle {
 
     @Override
     protected RelNode visit(IquanUnionOp rel) {
-        return rel.deriveDistribution(rel.getInputs(), catalog, dbName, config);
+        return rel.deriveDistribution(rel.getInputs(), catalog, config);
     }
 
     @Override
@@ -154,28 +189,28 @@ public class IquanDistributeShuttle extends IquanRelShuttle {
 
     @Override
     protected RelNode visit(IquanMatchOp rel) {
-        return rel.deriveDistribution(rel.getInputs(), catalog, dbName, config);
+        return rel.deriveDistribution(rel.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(IquanHashJoinOp hashJoinOp) {
-        return hashJoinOp.deriveDistribution(hashJoinOp.getInputs(), catalog, dbName, config);
+        return hashJoinOp.deriveDistribution(hashJoinOp.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(IquanNestedLoopJoinOp loopJoinOp) {
-        return loopJoinOp.deriveDistribution(loopJoinOp.getInputs(), catalog, dbName, config);
+        return loopJoinOp.deriveDistribution(loopJoinOp.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(ExecLookupJoinOp lookupJoinOp) {
         lookupJoinOp.getBuildOp().accept(this);
-        return lookupJoinOp.deriveDistribution(lookupJoinOp.getInputs(), catalog, dbName, config);
+        return lookupJoinOp.deriveDistribution(lookupJoinOp.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(IquanLeftMultiJoinOp leftMultiJoinOp) {
-        return leftMultiJoinOp.deriveDistribution(leftMultiJoinOp.getInputs(), catalog, dbName, config);
+        return leftMultiJoinOp.deriveDistribution(leftMultiJoinOp.getInputs(), catalog, config);
     }
 
     @Override
@@ -185,12 +220,12 @@ public class IquanDistributeShuttle extends IquanRelShuttle {
 
     @Override
     protected RelNode visit(IquanIdentityOp iquanIdentityOp) {
-        return iquanIdentityOp.deriveDistribution(iquanIdentityOp.getInputs(), catalog, dbName, config);
+        return iquanIdentityOp.deriveDistribution(iquanIdentityOp.getInputs(), catalog, config);
     }
 
     @Override
     protected RelNode visit(ExecCorrelateOp rel) {
-        return rel.deriveDistribution(rel.getInputs(), catalog, dbName, config);
+        return rel.deriveDistribution(rel.getInputs(), catalog, config);
     }
 
     @Override
@@ -203,10 +238,10 @@ public class IquanDistributeShuttle extends IquanRelShuttle {
                     String.format("not support rel node: %s", scan.toString()));
         }
         List<String> tablePath = iquanTableScanBase.getTable().getQualifiedName();
-        Table table = IquanRelOptUtils.getIquanTable(iquanTableScanBase.getTable());
-        Location tableLocation = table.getLocation();
-        Distribution distribution = table.getDistribution().copy();
-        distribution.setPartFixKeyMap(RelDistributionUtil.getPartFixKeyMap(tablePath, table));
+        IquanTable iquanTable = IquanRelOptUtils.getIquanTable(iquanTableScanBase.getTable());
+        Location tableLocation = iquanTable.getLocations(catalog).get(0);
+        Distribution distribution = iquanTable.getDistribution().copy();
+        distribution.setPartFixKeyMap(RelDistributionUtil.getPartFixKeyMap(tablePath, iquanTable));
         IquanRelNode preRel = iquanTableScanBase;
         preRel.setLocation(tableLocation);
         preRel.setOutputDistribution(distribution);
@@ -230,13 +265,13 @@ public class IquanDistributeShuttle extends IquanRelShuttle {
                 preRel = relNode.simpleRelDerive(preRel);
             } else {
                 //when beyond db query, push down ops located the same with table
-                preRel = relNode.deriveDistribution(ImmutableList.of(preRel), catalog, tablePath.get(tablePath.size() - 2), config);
+                preRel = relNode.deriveDistribution(ImmutableList.of(preRel), catalog, config);
             }
         }
         if (needGlobalSort) {
             iquanTableScanBase.setLocation(preRel.getLocation());
             iquanTableScanBase.setOutputDistribution(preRel.getOutputDistribution());
-            return RelDistributionUtil.genGlobalSort(iquanTableScanBase, pushDownSortOp, catalog, dbName, config);
+            return RelDistributionUtil.genGlobalSort(iquanTableScanBase, pushDownSortOp, catalog, config);
         }
         if (preRel != iquanTableScanBase) {
             iquanTableScanBase.setLocation(preRel.getLocation());
@@ -248,7 +283,7 @@ public class IquanDistributeShuttle extends IquanRelShuttle {
     @Override
     public RelNode visit(TableFunctionScan scan) {
         if (scan instanceof IquanTableFunctionScanOp) {
-            return ((IquanTableFunctionScanOp) scan).deriveDistribution(scan.getInputs(), catalog, dbName, config);
+            return ((IquanTableFunctionScanOp) scan).deriveDistribution(scan.getInputs(), catalog, config);
         } else {
             throw new SqlQueryException(IquanErrorCode.IQUAN_FAIL,
                     String.format("not support rel node: %s", scan.toString()));

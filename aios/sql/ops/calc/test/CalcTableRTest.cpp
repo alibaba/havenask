@@ -67,7 +67,7 @@ private:
             _matchDocUtil.extendMatchDocAllocator(_allocator, docs, "b", {"b1", "b2", "b3", "b4"}));
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<char>(
             _allocator, docs, "c", {{'c', '1'}, {'2'}, {'3'}, {'4'}}));
-        _table.reset(new Table(docs, _allocator));
+        _table = Table::fromMatchDocs(docs, _allocator);
         _exprCreator.reset(new MatchDocsExpressionCreator(
             _poolPtr.get(), _allocator.get(), &_funcCreator, nullptr, nullptr, nullptr));
     }
@@ -121,7 +121,7 @@ TEST_F(CalcTableRTest, testFilterTable) {
         vector<MatchDoc> docs = _allocator->batchAllocate(4);
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMatchDocAllocator<uint32_t>(
             _allocator, docs, "AVG(t2.price)", {1, 2, 3, 4}));
-        _table.reset(new Table(docs, _allocator));
+        _table = Table::fromMatchDocs(docs, _allocator);
 
         string conditionStr = "{\"op\":\">\", \"params\":[\"$AVG(t2.price)\", 1]}";
         ConditionParser parser(_poolPtr.get());
@@ -137,7 +137,7 @@ TEST_F(CalcTableRTest, testFilterTable) {
         vector<MatchDoc> docs = _allocator->batchAllocate(4);
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMatchDocAllocator<uint32_t>(
             _allocator, docs, "AVG(t2.price)", {1, 2, 3, 4}));
-        _table.reset(new Table(docs, _allocator));
+        _table = Table::fromMatchDocs(docs, _allocator);
 
         string conditionStr = "{\"op\":\">\", \"params\":[\"$AVG(t2.price)\", 1]}";
         ConditionParser parser(_poolPtr.get());
@@ -153,7 +153,7 @@ TEST_F(CalcTableRTest, testFilterTable) {
         vector<MatchDoc> docs = _allocator->batchAllocate(4);
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMatchDocAllocator<uint32_t>(
             _allocator, docs, "AVG(t2.price)", {1, 2, 3, 4}));
-        _table.reset(new Table(docs, _allocator));
+        _table = Table::fromMatchDocs(docs, _allocator);
 
         string conditionStr = "";
         ConditionParser parser(_poolPtr.get());
@@ -177,7 +177,7 @@ TEST_F(CalcTableRTest, testFilterTableWith$) {
         _matchDocUtil.extendMatchDocAllocator(_allocator, docs, "b", {"b1", "b2", "b3", "b4"}));
     ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<char>(
         _allocator, docs, "c", {{'c', '1'}, {'2'}, {'3'}, {'4'}}));
-    _table.reset(new Table(docs, _allocator));
+    _table = Table::fromMatchDocs(docs, _allocator);
 
     string conditionStr = "{\"op\":\">\", \"params\":[\"$$f1\", 1]}";
     ConditionParser parser(_poolPtr.get());
@@ -196,7 +196,7 @@ TEST_F(CalcTableRTest, testCloneColumn) {
         ASSERT_TRUE(_calcTable->cloneColumnData(_table->getColumn("id"), output, "a", vec));
         ASSERT_TRUE(_calcTable->cloneColumnData(_table->getColumn("c"), output, "c", vec));
         output->batchAllocateRow(4);
-        ASSERT_TRUE(_calcTable->calcTableCloumn(output, vec));
+        ASSERT_TRUE(_calcTable->calcTableColumn(output, vec));
         ASSERT_NO_FATAL_FAILURE(
             TableTestUtil::checkOutputColumn<uint32_t>(output, "a", {1, 2, 3, 4}));
         ASSERT_NO_FATAL_FAILURE(TableTestUtil::checkOutputMultiColumn<char>(
@@ -208,7 +208,7 @@ TEST_F(CalcTableRTest, testCloneColumn) {
         ASSERT_TRUE(_calcTable->cloneColumnData(_table->getColumn("id"), output, "a", vec));
         ASSERT_FALSE(_calcTable->cloneColumnData(_table->getColumn("id"), output, "a", vec));
         output->batchAllocateRow(4);
-        ASSERT_TRUE(_calcTable->calcTableCloumn(output, vec));
+        ASSERT_TRUE(_calcTable->calcTableColumn(output, vec));
         ASSERT_NO_FATAL_FAILURE(
             TableTestUtil::checkOutputColumn<uint32_t>(output, "a", {1, 2, 3, 4}));
         vec.clear();
@@ -218,7 +218,7 @@ TEST_F(CalcTableRTest, testCloneColumn) {
         ASSERT_TRUE(_calcTable->cloneColumnData(_table->getColumn("id"), output, "a", vec));
         ASSERT_TRUE(_calcTable->cloneColumnData(_table->getColumn("id"), output, "b", vec));
         output->batchAllocateRow(4);
-        ASSERT_TRUE(_calcTable->calcTableCloumn(output, vec));
+        ASSERT_TRUE(_calcTable->calcTableColumn(output, vec));
         ASSERT_NO_FATAL_FAILURE(
             TableTestUtil::checkOutputColumn<uint32_t>(output, "a", {1, 2, 3, 4}));
         ASSERT_NO_FATAL_FAILURE(

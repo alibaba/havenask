@@ -20,6 +20,7 @@
 
 #include "autil/Lock.h"
 #include "autil/Log.h"
+#include "autil/ObjectTracer.h"
 #include "autil/SanitizerUtil.h"
 #include "autil/mem_pool/AllocatePolicy.h"
 #include "autil/mem_pool/MemoryChunk.h"
@@ -29,7 +30,7 @@ namespace autil {
 namespace mem_pool {
 class ChunkAllocatorBase;
 
-class Pool : public PoolBase, public std::enable_shared_from_this<Pool> {
+class Pool : public PoolBase, public ObjectTracer<Pool>, public std::enable_shared_from_this<Pool> {
 public:
     static const size_t DEFAULT_CHUNK_SIZE = 10 * 1024 * 1024; // 10M
     static const size_t DEFAULT_ALIGN_SIZE = sizeof(char *);

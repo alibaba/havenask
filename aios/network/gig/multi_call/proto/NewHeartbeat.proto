@@ -29,6 +29,7 @@ message TopoSignatureDef {
 
 message TopoHeartbeatRequest {
     optional TopoSignatureDef signature = 1;
+    optional bool all_provider_stopped = 2;
 }
 
 message NewHeartbeatRequest {

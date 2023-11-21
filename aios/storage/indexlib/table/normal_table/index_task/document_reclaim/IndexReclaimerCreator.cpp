@@ -17,6 +17,7 @@
 
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/TabletData.h"
+#include "indexlib/index/IndexReaderParameter.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/InvertedIndexFactory.h"
 #include "indexlib/index/inverted_index/InvertedIndexReaderImpl.h"
@@ -24,6 +25,7 @@
 #include "indexlib/table/normal_table/index_task/document_reclaim/AndIndexReclaimer.h"
 #include "indexlib/table/normal_table/index_task/document_reclaim/IndexFieldReclaimer.h"
 #include "indexlib/table/normal_table/index_task/document_reclaim/IndexReclaimerParam.h"
+
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, IndexReclaimerCreator);
 
@@ -68,8 +70,8 @@ IndexReclaimer* IndexReclaimerCreator::Create(const IndexReclaimerParam& param) 
         }
         if (!_multiFieldIndexReader->GetIndexReader(indexName)) {
             indexlib::index::InvertedIndexFactory factory;
-            index::IndexerParameter indexerParam;
-            std::shared_ptr<index::IIndexReader> iReader = factory.CreateIndexReader(indexConfig, indexerParam);
+            std::shared_ptr<index::IIndexReader> iReader =
+                factory.CreateIndexReader(indexConfig, index::IndexReaderParameter {});
             auto reader = std::dynamic_pointer_cast<indexlib::index::InvertedIndexReader>(iReader);
             if (!reader) {
                 AUTIL_LOG(ERROR, "get index reader for [%s] failed", indexName.c_str());

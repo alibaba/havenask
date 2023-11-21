@@ -1,4 +1,9 @@
-package(default_visibility=['//aios/sql:__subpackages__'])
+package(
+    default_visibility=[
+        '//aios/apps/engine/vector_service:__subpackages__',
+        '//aios/sql:__subpackages__'
+    ]
+)
 cc_library(
     name='sql_resource',
     srcs=glob(['*.cpp']),
@@ -26,7 +31,7 @@ cc_library(
 )
 cc_test(
     name='sql_resource_test',
-    srcs=glob(['test/*Test.cpp'], exclude=[]),
+    srcs=glob(['test/*Test.cpp']),
     copts=['-fno-access-control'],
     data=[
         '//aios/filesystem/fslib:fslib_plugin_hdfs', '//aios/sql:testdata',
@@ -36,6 +41,10 @@ cc_test(
         ':sql_resource', '//aios/filesystem/fslib:fslib-framework',
         '//aios/filesystem/fslib/fslib/fs/zookeeper:fslib_zookeeper_casehelper',
         '//aios/navi:navi_log_testlib', '//aios/navi:navi_ops_testlib',
+        '//aios/sql/resource/testlib:mock_tablet_manager_r',
+        '//aios/sql/iquan/cpp/common:iquan_common',
+        '//aios/sql/ops/tvf:sql_ops_tvf_mock',
+        '//aios/storage/indexlib/indexlib/index_base',
         '//aios/unittest_framework'
     ]
 )

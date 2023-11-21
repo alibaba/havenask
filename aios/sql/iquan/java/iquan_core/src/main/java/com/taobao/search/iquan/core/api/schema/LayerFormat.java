@@ -9,6 +9,10 @@ public class LayerFormat {
     private String valueType;
     private LayerInfoValueType layerInfoValueType;
 
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
     public String getFieldName() {
         return fieldName;
     }
@@ -51,10 +55,6 @@ public class LayerFormat {
         map.put("layer_method", layerMethod);
         map.put("value_type", valueType);
         return map;
-    }
-
-    public static Builder newBuilder() {
-        return new Builder();
     }
 
     public static class Builder {

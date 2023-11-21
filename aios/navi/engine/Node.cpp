@@ -24,6 +24,7 @@
 #include "navi/engine/LocalSubGraph.h"
 #include "navi/engine/OutputPortGroup.h"
 #include "navi/engine/ScopeTerminatorKernel.h"
+#include "navi/engine/ComputeScope.h"
 #include "navi/log/NaviLogger.h"
 #include "navi/ops/ResourceData.h"
 #include "navi/proto/GraphVis.pb.h"
@@ -36,85 +37,13 @@
 
 namespace navi {
 
-class ComputeScope {
-public:
-    ComputeScope(KernelMetric *metric,
-                 GraphEventType type,
-                 NaviPartId partId,
-                 NaviWorkerBase *worker,
-                 const ScheduleInfo &schedInfo)
-        : _metric(metric)
-        , _type(type)
-        , _partId(partId)
-        , _worker(worker)
-        , _schedInfo(schedInfo)
-        , _beginTime(CommonUtil::getTimelineTimeNs())
-        , _endTime(0)
-        , _collectPerf(worker->collectPerf())
-        , _prevPoolMallocCount(mySwapPoolMallocCount(0))
-        , _poolMallocCount(0)
-        , _prevPoolMallocSize(mySwapPoolMallocSize(0))
-        , _poolMallocSize(0)
-    {
-        if (_collectPerf) {
-            _worker->beginSample();
-            getrusage(RUSAGE_THREAD, &_usageBegin);
-        }
-        _metric->incScheduleCount();
-    }
-    float finish() {
-        stop();
-        return (_endTime - _beginTime) / 1000.0f;
-    }
-    void stop() {
-        if (_endTime == 0) {
-            if (_collectPerf) {
-                getrusage(RUSAGE_THREAD, &_usageEnd);
-                _result = _worker->endSample();
-            }
-            _endTime = CommonUtil::getTimelineTimeNs();
-            _poolMallocCount = mySwapPoolMallocCount(_prevPoolMallocCount);
-            _poolMallocSize = mySwapPoolMallocSize(_prevPoolMallocSize);
-        }
-    }
-    size_t mySwapPoolMallocSize(size_t size) {
-        return swapPoolMallocSize(size);
-    }
-
-    size_t mySwapPoolMallocCount(size_t count) {
-        return swapPoolMallocCount(count);
-    }
-    ~ComputeScope() {
-        stop();
-        _metric->reportTime((int32_t)_type, _partId, _beginTime, _endTime,
-                            _usageBegin, _usageEnd, _schedInfo, _result,
-                            _poolMallocCount, _poolMallocSize);
-    }
-private:
-    MallocPoolScope mallocScope;
-    KernelMetric *_metric;
-    GraphEventType _type;
-    NaviPartId _partId;
-    NaviWorkerBase *_worker;
-    const ScheduleInfo &_schedInfo;
-    int64_t _beginTime;
-    int64_t _endTime;
-    bool _collectPerf;
-    struct rusage _usageBegin;
-    struct rusage _usageEnd;
-    NaviPerfResultPtr _result;
-    size_t _prevPoolMallocCount;
-    size_t _poolMallocCount;
-    size_t _prevPoolMallocSize;
-    size_t _poolMallocSize;
-};
-
 class DataDestructItem : public NaviNoDropWorkerItem
 {
 public:
     DataDestructItem(NaviWorkerBase *worker,
+                     bool collectPerf,
                      DataPtr &&data)
-        : NaviNoDropWorkerItem(worker)
+        : NaviNoDropWorkerItem(worker, collectPerf)
         , _data(data)
     {
     }
@@ -135,7 +64,7 @@ public:
                        LocalSubGraph *graph,
                        KernelMetric *metric,
                        Kernel *kernel)
-        : NaviNoDropWorkerItem(worker)
+        : NaviNoDropWorkerItem(worker, graph->getParam()->runParams.collectPerf())
         , _graph(graph)
         , _metric(metric)
         , _kernel(kernel)
@@ -144,8 +73,10 @@ public:
 public:
     void doProcess() override {
         if (_kernel) {
+            const auto &param = _graph->getParam()->runParams;
             ComputeScope scope(_metric, GET_KERNEL_DELETE_KERNEL,
-                               _graph->getPartId(), _worker, _schedInfo);
+                               _graph->getPartId(), _worker, _schedInfo,
+                               param.collectMetric(), param.collectPerf());
             delete _kernel;
             _kernel = nullptr;
         }
@@ -156,14 +87,20 @@ private:
     Kernel *_kernel;
 };
 
-Node::Node(const NaviLoggerPtr &logger, Biz *biz,
-           KernelMetric *metric, LocalSubGraph *graph)
+Node::Node(const NodeDef &nodeDef,
+           const NaviLoggerPtr &logger,
+           Biz *biz,
+           LocalSubGraph *graph,
+           bool isResourceNode)
     : _logger(this, "node", logger)
-    , _scope(0)
+    , _def(&nodeDef)
+    , _name(_def->name())
+    , _kernelName(_def->kernel_name())
+    , _scope(_def->scope())
     , _biz(biz)
     , _graph(graph)
     , _port(nullptr)
-    , _metric(metric)
+    , _metric(std::make_shared<KernelMetric>(_graph->getGraphId(), _def->name(), _def->kernel_name()))
     , _inputReadyMap(nullptr)
     , _inputGroupReadyMap(nullptr)
     , _outputReadyMap(nullptr)
@@ -172,14 +109,12 @@ Node::Node(const NaviLoggerPtr &logger, Biz *biz,
     , _resourceInputGroupIndex(INVALID_INDEX)
     , _outputSnapshotVec(nullptr)
     , _outputDegree(0)
-    , _scheduleStat(SS_INIT)
-    , _def(nullptr)
     , _kernelCreator(nullptr)
     , _kernel(nullptr)
     , _kernelBaseAddr(nullptr)
     , _dependResourceMap(nullptr)
     , _creatorStats(nullptr)
-    , _forceStopNode(nullptr)
+    , _forceStopped(false)
     , _forkGraphDef(nullptr)
     , _forkGraph(nullptr)
 {
@@ -189,15 +124,17 @@ Node::Node(const NaviLoggerPtr &logger, Biz *biz,
     _skipInit = false;
     _stopAfterInit = false;
     _skipDeleteKernel = false;
-    _isResourceNode = false;
+    _isResourceNode = isResourceNode;
     _inlineConfigAndInit = false;
     _isInputBorder = false;
     _isOutputBorder = false;
     _kernelInited = false;
+    atomic_set(&_nodeSnapshot, 0);
+    _scheduleStat = SS_INIT;
     _frozen = false;
     _stopSchedule = false;
     _forceStop = false;
-    atomic_set(&_nodeSnapshot, 0);
+    _forceStopNode = nullptr;
 }
 
 Node::~Node() {
@@ -217,15 +154,15 @@ Node::~Node() {
     }
 }
 
-bool Node::init(const NodeDef &nodeDef) {
-    if (!initDef(nodeDef)) {
+bool Node::init() {
+    if (!initDef()) {
         return false;
     }
     NaviLoggerScope scope(_logger);
     _kernelCreator = _biz->getKernelCreator(getKernelName());
     if (!_kernelCreator) {
         auto ec = EC_CREATE_KERNEL;
-        _graph->setErrorCode(ec);
+        setErrorCode(ec);
         NAVI_LOG(ERROR, "kernel not supported, ec[%s]",
                  CommonUtil::getErrorString(ec));
         return false;
@@ -251,17 +188,12 @@ bool Node::init(const NodeDef &nodeDef) {
     return true;
 }
 
-bool Node::initDef(const NodeDef &nodeDef) {
-    _def = &nodeDef;
-    _name = _def->name();
-    _kernelName = _def->kernel_name();
-    _scope = _def->scope();
+bool Node::initDef() {
     if (_name.empty()) {
         NAVI_LOG(ERROR, "node name can't be empty, def: %s",
                  _def->DebugString().c_str());
         return false;
     }
-    _isResourceNode = (_kernelName == RESOURCE_CREATE_KERNEL);
     if (_isResourceNode) {
         _inlineConfigAndInit = true;
     }
@@ -979,8 +911,11 @@ const ResourceMap &Node::getResourceMap() const {
 }
 
 bool Node::createKernel(const ScheduleInfo &schedInfo) {
-    ComputeScope computeScope(_metric, GET_KERNEL_CREATE, _graph->getPartId(),
-                              _graph->getWorker(), schedInfo);
+    const auto &param = _graph->getParam()->runParams;
+    ComputeScope computeScope(_metric.get(), GET_KERNEL_CREATE,
+                              _graph->getPartId(), _graph->getWorker(),
+                              schedInfo, param.collectMetric(),
+                              param.collectPerf());
     NaviLoggerScope scope(getLogger());
     NAVI_LOG(SCHEDULE1, "create kernel begin");
     void *baseAddr = nullptr;
@@ -988,7 +923,8 @@ bool Node::createKernel(const ScheduleInfo &schedInfo) {
     if (!kernel) {
         NAVI_LOG(ERROR, "create kernel failed, ec[%s]",
                  CommonUtil::getErrorString(EC_CREATE_KERNEL));
-        _graph->setErrorCode(EC_CREATE_KERNEL);
+        computeScope.setErrorCode(EC_CREATE_KERNEL);
+        setErrorCode(EC_CREATE_KERNEL);
         return false;
     }
     _kernel = kernel;
@@ -998,12 +934,14 @@ bool Node::createKernel(const ScheduleInfo &schedInfo) {
     if (NT_SCOPE_TERMINATOR == nodeType) {
         if (!dynamic_cast<ScopeTerminatorKernel *>(kernel)) {
             NAVI_LOG(ERROR, "scope kernel must inherit ScopeTerminatorKernel");
-            _graph->setErrorCode(EC_CREATE_KERNEL);
+            computeScope.setErrorCode(EC_CREATE_KERNEL);
+            setErrorCode(EC_CREATE_KERNEL);
             return false;
         }
     }
     if (!initAttribute()) {
-        _graph->setErrorCode(EC_INVALID_ATTRIBUTE);
+        computeScope.setErrorCode(EC_INVALID_ATTRIBUTE);
+        setErrorCode(EC_INVALID_ATTRIBUTE);
         return false;
     }
     if (_creatorStats) {
@@ -1021,21 +959,23 @@ bool Node::initKernel(const ScheduleInfo &schedInfo) {
     }
     NAVI_LOG(SCHEDULE1, "init kernel begin");
     if (!isResourceCreateKernel() && !initResourceMap()) {
-        _graph->setErrorCode(EC_LACK_RESOURCE);
+        setErrorCode(EC_LACK_RESOURCE);
         return false;
     }
     if (!bindResource()) {
-        _graph->setErrorCode(EC_LACK_RESOURCE);
+        setErrorCode(EC_LACK_RESOURCE);
         return false;
     }
     if (!bindNamedData()) {
-        _graph->setErrorCode(EC_BIND_NAMED_DATA);
+        setErrorCode(EC_BIND_NAMED_DATA);
         return false;
     }
     ErrorCode ec = EC_NONE;
     {
-        ComputeScope scope(_metric, GET_KERNEL_INIT, _graph->getPartId(),
-                           _graph->getWorker(), schedInfo);
+        const auto &param = _graph->getParam()->runParams;
+        ComputeScope scope(_metric.get(), GET_KERNEL_INIT, _graph->getPartId(),
+                           _graph->getWorker(), schedInfo,
+                           param.collectMetric(), param.collectPerf());
         KernelInitContext ctx(this);
         try {
             ec = _kernel->init(ctx);
@@ -1043,6 +983,7 @@ bool Node::initKernel(const ScheduleInfo &schedInfo) {
             NAVI_KERNEL_LOG(ERROR, "kernel init failed, exception: [%s]", e.GetMessage().c_str());
             ec = EC_ABORT;
         }
+        scope.setErrorCode(ec);
         if (EC_NONE == ec) {
             if (_creatorStats) {
                 _creatorStats->updateInitLatency(scope.finish());
@@ -1051,7 +992,7 @@ bool Node::initKernel(const ScheduleInfo &schedInfo) {
     }
     if (EC_NONE != ec) {
         NAVI_LOG(ERROR, "kernel init failed");
-        _graph->setErrorCode(ec);
+        setErrorCode(ec);
         return false;
     }
     NAVI_LOG(SCHEDULE1, "init kernel success");
@@ -1120,6 +1061,8 @@ bool Node::getConfigContext(const std::string &dependName, KernelConfigContext &
     return true;
 }
 
+const std::string &Node::getBizName() const { return _biz->getName(); }
+
 bool Node::getBizPartInfo(const std::string &bizName, NaviPartId &partCount, std::vector<NaviPartId> &partIds) const {
     return _graph->getParam()->bizManager->getBizPartInfo(bizName, partCount, partIds);
 }
@@ -1156,7 +1099,7 @@ void Node::deleteKernel(bool inDestruct) {
         if (_kernel) {
             auto worker = _graph->getWorker();
             auto item =
-                new KernelDestructItem(worker, _graph, _metric, _kernel);
+                new KernelDestructItem(worker, _graph, _metric.get(), _kernel);
             _kernel = nullptr;
             worker->schedule(item);
         }
@@ -1408,9 +1351,13 @@ void Node::stopSchedule() {
     _stopSchedule = true;
 }
 
-void Node::forceStop(Node *node) {
+void Node::setForceStopFlag(Node *node) {
     _forceStopNode = node;
     _forceStop = true;
+}
+
+void Node::forceStop() {
+    doForceStop();
     schedule(this);
 }
 
@@ -1458,14 +1405,22 @@ bool Node::checkFinish(ErrorCode ec) {
     return finish;
 }
 
-void Node::propagateEof() const {
+void Node::propagateEof() {
     for (const auto &edgeOutputInfo : _inputs) {
         edgeOutputInfo.setEof(this);
     }
     for (auto inputGroup : _inputGroups) {
         inputGroup->setEof(this);
     }
+    doForceStop();
+}
+
+void Node::doForceStop() {
     if (_forceStop) {
+        bool expect = false;
+        if (!_forceStopped.compare_exchange_weak(expect, true)) {
+            return;
+        }
         for (auto edge : _outputs) {
             if (edge) {
                 edge->forceEof();
@@ -1550,7 +1505,7 @@ void Node::compute(const ScheduleInfo &schedInfo)
         NAVI_LOG(ERROR,
                  "compute error, error code [%s], compute id: %ld, abort kernel",
                  CommonUtil::getErrorString(ec), computeId);
-        _graph->notifyFinish(this, ec);
+        notifyFinish(ec);
         checkFinish(ec);
         return;
     }
@@ -1576,7 +1531,9 @@ void Node::compute(const ScheduleInfo &schedInfo)
     } else {
         auto nodeType = _def->type();
         if (NT_SCOPE_TERMINATOR == nodeType) {
-            _graph->terminateScope(this, getScope(), ec);
+            auto error =
+                _graph->getParam()->graphResult->makeError(_logger.logger, ec);
+            _graph->terminateScope(this, getScope(), error);
         }
     }
 }
@@ -1586,17 +1543,20 @@ ErrorCode Node::doCompute(const ScheduleInfo &schedInfo) {
     KernelComputeContext ctx(this);
     ErrorCode ec = EC_NONE;
     {
-        ComputeScope scope(_metric, GET_KERNEL_COMPUTE, _graph->getPartId(),
-                           _graph->getWorker(), schedInfo);
+        const auto &param = _graph->getParam()->runParams;
+        ComputeScope scope(_metric.get(), GET_KERNEL_COMPUTE,
+                           _graph->getPartId(), _graph->getWorker(), schedInfo,
+                           param.collectMetric(), param.collectPerf());
         try {
             ec = _kernel->compute(ctx);
         } catch (const autil::legacy::ExceptionBase &e) {
             NAVI_KERNEL_LOG(ERROR, "kernel compute failed, exception: [%s]", e.GetMessage().c_str());
             ec = EC_ABORT;
         }
-    }
-    if (ec == EC_NONE && !getAsyncInfo() && ctx.deadLock()) {
-        ec = EC_DEADLOCK;
+        if (ec == EC_NONE && !getAsyncInfo() && ctx.deadLock()) {
+            ec = EC_DEADLOCK;
+        }
+        scope.setErrorCode(ec);
     }
     resetIOSnapshot();
     return ec;
@@ -1633,7 +1593,8 @@ LocalSubGraph *Node::getGraph() const {
 
 void Node::destructData(DataPtr &&data) const {
     auto worker = _graph->getWorker();
-    auto item = new DataDestructItem(worker, std::move(data));
+    auto item = new DataDestructItem(
+        worker, _graph->getParam()->runParams.collectPerf(), std::move(data));
     worker->schedule(item);
 }
 
@@ -1655,7 +1616,14 @@ int64_t Node::getComputeId() const {
 }
 
 KernelMetric *Node::getMetric() const {
-    return _metric;
+    return _metric.get();
+}
+
+void Node::collectForkGraphMetric() const {
+    if (!_forkGraph) {
+        return;
+    }
+    _forkGraph->collectMetric();
 }
 
 ErrorCode Node::fork(GraphDef *graphDef, const ForkGraphParam &param) {
@@ -1683,42 +1651,25 @@ ErrorCode Node::fork(GraphDef *graphDef, const ForkGraphParam &param) {
     auto errorAsEof = param.errorAsEof;
     auto parentGraph = _graph->getGraph();
     auto graphParam = new GraphParam();
-    *graphParam = *_graph->getParam();
-    auto &runParams = graphParam->runParams;
-    runParams.clearNamedData();
-    runParams.setTimeoutMs(std::min(param.timeoutMs, getRemainTimeMs()));
-    for (const auto &overrideData : param.overrideDataVec) {
-        if (!runParams.overrideEdgeData(overrideData)) {
-            NAVI_LOG(ERROR,
-                     "override edge data failed, graphId [%d], partId [%d], outputNode [%s], outputPort [%s], data "
-                     "count [%lu]",
-                     overrideData.graphId,
-                     overrideData.partId,
-                     overrideData.outputNode.c_str(),
-                     overrideData.outputPort.c_str(),
-                     overrideData.datas.size());
-            return EC_OVERRIDE_EDGE_DATA;
-        }
-    }
-    for (const auto &namedData : param.namedDataVec) {
-        if (!runParams.addNamedData(namedData)) {
-            NAVI_LOG(
-                ERROR, "add named data failed, graphId [%d], name [%s]", namedData.graphId, namedData.name.c_str());
-            return EC_ADD_NAMED_DATA;
-        }
+    auto ec = graphParam->init(_graph->getGraphId(), _graph->getBizName(),
+                               _name, *_graph->getParam(), _logger.logger,
+                               param, getRemainTimeMs());
+    if (EC_NONE != ec) {
+        delete graphParam;
+        NAVI_LOG(ERROR, "init fork graph param failed");
+        return EC_ABORT;
     }
     _forkGraphDef = graphDef;
     _forkGraph = new Graph(graphParam, parentGraph);
-    _forkGraph->setErrorAsEof(errorAsEof);
     auto forkDomain = new GraphDomainFork(_forkGraph, _graph->getBiz(), this,
                                           _graph->getPartCount(),
                                           _graph->getPartId(), errorAsEof);
     GraphDomainPtr domain(forkDomain);
-    _forkGraph->setGraphDomain(PARENT_GRAPH_ID, domain);
+    _forkGraph->setForkInfo(PARENT_GRAPH_ID, domain, this, errorAsEof);
     _forkGraph->setSubResourceMap(param.subResourceMaps);
-    auto ec = _forkGraph->init(_forkGraphDef);
+    ec = _forkGraph->init(_forkGraphDef);
     if (EC_NONE != ec) {
-        _forkGraph->notifyFinish(ec, GFT_PARENT_FINISH);
+        _forkGraph->notifyFinishEc(ec);
         return ec;
     }
     if (!bindDomain(forkDomain)) {
@@ -1726,11 +1677,18 @@ ErrorCode Node::fork(GraphDef *graphDef, const ForkGraphParam &param) {
     }
     ec = _forkGraph->run();
     if (EC_NONE != ec) {
-        _forkGraph->notifyFinish(ec, GFT_PARENT_FINISH);
-        return ec;
+        if (!errorAsEof) {
+            _forkGraph->notifyFinishEc(ec);
+            return ec;
+        } else {
+            NAVI_LOG(DEBUG, "fork graph failed [%s], error as eof",
+                     CommonUtil::getErrorString(ec));
+            return EC_NONE;
+        }
+    } else {
+        NAVI_LOG(DEBUG, "fork graph success");
+        return EC_NONE;
     }
-    NAVI_LOG(DEBUG, "fork graph success");
-    return EC_NONE;
 }
 
 bool Node::checkForkGraph(const GraphDef *graphDef) const {
@@ -1768,7 +1726,7 @@ void Node::terminate(ErrorCode ec) {
         asyncInfo->terminate();
     }
     if (_forkGraph) {
-        _forkGraph->notifyFinish(ec, GFT_PARENT_FINISH);
+        _forkGraph->notifyFinish(nullptr, GFT_PARENT_FINISH);
     }
 }
 
@@ -1920,8 +1878,12 @@ size_t Node::getOutputGroupCount() const {
     return _outputGroups.size();
 }
 
-ErrorCode Node::getScopeErrorCode() const {
-    return _graph->getScopeErrorCode(getScope());
+NaviErrorPtr Node::getScopeError() const {
+    return _graph->getScopeError(getScope());
+}
+
+ErrorHandleStrategy Node::getScopeErrorHandleStrategy() const {
+    return _graph->getScopeErrorHandleStrategy(getScope());
 }
 
 int64_t Node::getRemainTimeMs() const {
@@ -1966,7 +1928,7 @@ bool Node::setOutput(PortIndex index, const DataPtr &data, bool eof) {
     if (_outputSnapshotVec->isReady(outputIndex)) {
         NAVI_LOG(ERROR, "output data override, group [%d] index [%d] edge[%p]",
                  index.group, index.index, edge);
-        _graph->notifyFinish(this, EC_DATA_OVERRIDE);
+        notifyFinish(EC_DATA_OVERRIDE);
         return false;
     }
     if (_outputSnapshotVec->isFinish(outputIndex)) {
@@ -1974,7 +1936,7 @@ bool Node::setOutput(PortIndex index, const DataPtr &data, bool eof) {
                  "output data after eof, group [%d] index [%d] edge "
                  "[%p], new data [%p], new eof [%d], %ld",
                  index.group, index.index, edge, data.get(), eof, getComputeId());
-        _graph->notifyFinish(this, EC_DATA_AFTER_EOF);
+        notifyFinish(EC_DATA_AFTER_EOF);
         return false;
     }
     _outputSnapshotVec->setReady(outputIndex, true);
@@ -2128,10 +2090,6 @@ size_t Node::getOutputCount() const {
     return sum;
 }
 
-void Node::appendResult(NaviResult &result) {
-    _graph->getParam()->worker->appendResult(result);
-}
-
 void Node::updateTraceLevel(const std::string &levelStr) {
     NAVI_LOG(SCHEDULE1, "update traceLevel[%s]", levelStr.c_str());
     _logger.logger->updateTraceLevel(levelStr);
@@ -2143,26 +2101,44 @@ bool Node::updateTimeoutMs(int64_t timeoutMs) {
     return _graph->getGraph()->updateTimeoutMs(timeoutMs);
 }
 
-void Node::fillTrace(std::vector<std::string> &traceVec) const {
+void Node::updateCollect(bool collectMetric, bool collectPerf) const {
+    auto &runParams = _graph->getParam()->runParams;
+    runParams.setCollectMetric(collectMetric);
+    runParams.setCollectPerf(collectPerf);
+}
+
+void Node::collectTrace(std::vector<std::string> &traceVec) const {
     TraceCollector collector;
-    const auto &userResult = _graph->getParam()->worker->getUserResult();
-    const auto &result = userResult->getNaviResult();
-    result->fillTrace(collector);
-
-    const auto &logger = _logger.logger;
-    logger->collectTrace(collector);
-
+    SymbolTableDef symbolTableDef;
+    _graph->getParam()->graphResult->collectTrace(collector, symbolTableDef);
     collector.format(traceVec);
 }
 
-LoggingEvent Node::firstErrorEvent() const {
-    const auto &userResult = _graph->getParam()->worker->getUserResult();
-    const auto &result = userResult->getNaviResult();
-    auto event = result->getErrorEvent();
-    if (!event.message.empty()) {
-        return event;
+std::shared_ptr<multi_call::GigStreamRpcInfoMap> Node::getRpcInfoMap() const {
+    return _graph->getParam()->graphResult->getRpcInfoMap();
+}
+
+void Node::setErrorCode(ErrorCode ec) {
+    _graph->getParam()->graphResult->setError(_logger.logger, ec);
+}
+
+void Node::notifyFinish(ErrorCode ec) {
+    auto error = _graph->getParam()->graphResult->makeError(_logger.logger, ec);
+    _graph->notifyFinish(this, error);
+}
+
+void Node::notifyFinish(const NaviErrorPtr &error) {
+    _graph->notifyFinish(this, error);
+}
+
+void Node::reportError(const NaviErrorPtr &error) {
+    _graph->setScopeError(getScope(), error);
+    auto forkNode = _graph->getGraph()->getForkNode();
+    if (forkNode) {
+        forkNode->reportError(error);
+    } else {
+        _graph->getParam()->graphResult->updateError(error);
     }
-    return _logger.logger->firstErrorEvent();
 }
 
 }

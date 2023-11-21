@@ -69,8 +69,6 @@ private:
     bool collectData(NaviPartId partId, NaviMessage &naviMessage);
     bool borderReceive(NaviBorderData &borderData);
     SubGraphBorder *getOutputBorder(const BorderId &borderId) const;
-    void receivePartTrace(NaviMessage *naviMessage);
-    void receivePartResult(NaviMessage *naviMessage);
 protected:
     mutable autil::ReadWriteLock _streamLock;
     multi_call::GigStreamBasePtr _stream;

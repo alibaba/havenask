@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_COMMON_SEGMENT_IN_MEMORY_SEGMENT_H
-#define __INDEXLIB_COMMON_SEGMENT_IN_MEMORY_SEGMENT_H
+#pragma once
 
 #include <memory>
 
@@ -157,5 +156,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_COMMON_SEGMENT_IN_MEMORY_SEGMENT_H

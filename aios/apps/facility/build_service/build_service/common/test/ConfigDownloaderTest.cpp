@@ -1,8 +1,15 @@
 #include "build_service/common/ConfigDownloader.h"
 
+#include <iosfwd>
+#include <string>
+
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/common/common_type.h"
 #include "fslib/fs/FileSystem.h"
+#include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

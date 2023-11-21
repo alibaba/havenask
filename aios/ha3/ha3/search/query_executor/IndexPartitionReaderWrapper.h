@@ -35,6 +35,7 @@
 #include "indexlib/indexlib.h"
 #include "indexlib/misc/common.h"
 #include "indexlib/partition/partition_define.h"
+#include "indexlib/table/normal_table/NormalTabletReader.h"
 
 namespace autil {
 namespace mem_pool {
@@ -70,6 +71,7 @@ class SummaryReader;
 class PrimaryKeyIndexReader;
 class AttributeReader;
 class InvertedIndexSearchTracer;
+class FieldMetaReader;
 } // namespace index
 
 } // namespace indexlib
@@ -100,6 +102,9 @@ struct LookupResult {
     indexlib::index::JoinDocidAttributeIterator *sub2MainIt;
     bool isSubPartition;
 };
+
+typedef std::shared_ptr<indexlib::index::FieldMetaReader> FieldMetaReaderPtr;
+typedef std::shared_ptr<std::map<std::string, FieldMetaReaderPtr>> FieldMetaReadersMapPtr;
 
 class PartitionInfoWrapper;
 
@@ -177,6 +182,7 @@ public:
     getAttributeReader(const std::string &field) const;
     const std::shared_ptr<indexlib::index::PrimaryKeyIndexReader> &getPrimaryKeyReader() const;
     std::shared_ptr<indexlib::index::DeletionMapReaderAdaptor> getDeletionMapReader() const;
+    const FieldMetaReadersMapPtr getFieldMetaReadersMap();
 
     virtual bool getSortedDocIdRanges(
         const std::vector<std::shared_ptr<indexlib::table::DimensionDescription>> &dimensions,
@@ -234,6 +240,8 @@ public:
         return _tracerCursor;
     }
     void clearObject();
+
+    const std::map<std::string, double> getFieldLengthMetaMap();
 
 private:
     const IndexPartitionReaderPtr &getReader() const;

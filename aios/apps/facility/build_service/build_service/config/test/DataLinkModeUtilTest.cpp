@@ -1,7 +1,13 @@
 #include "build_service/config/DataLinkModeUtil.h"
 
+#include <iosfwd>
+#include <map>
+#include <string>
+
+#include "build_service/common_define.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

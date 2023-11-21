@@ -1,9 +1,9 @@
 #include "indexlib/common/field_format/pack_attribute/PackValueAdapter.h"
 
 #include "indexlib/common/field_format/attribute/attribute_convertor_factory.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "unittest/unittest.h"
 
 using namespace std;

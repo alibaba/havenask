@@ -45,6 +45,10 @@ bool InitResourceGraphBuilder::build(GraphId buildinGraphId,
         _graphInfoMap[buildinGraphId] = { RS_SNAPSHOT, INVALID_NAVI_PART_ID };
     }
     _buildinGraphId = buildinGraphId;
+    if (!_isBuildin && !_resourceStageMap.empty()) {
+        addBizPartPublish();
+        addSaveToPublish(_buildinGraphId);
+    }
     for (const auto &stagePair : _resourceStageMap) {
         auto stage = stagePair.first;
         if (_isBuildin && RS_SNAPSHOT != stage) {
@@ -85,7 +89,7 @@ bool InitResourceGraphBuilder::addResourceToGraph(
             newGraphId = addBizSubGraph();
             break;
         case RS_BIZ_PART:
-            addBizPartSubGraph();
+            addBizPartSave();
             break;
         case RS_RUN_GRAPH_EXTERNAL:
         case RS_GRAPH:
@@ -241,6 +245,10 @@ GraphId InitResourceGraphBuilder::addBuildinSubGraph() {
                     buildinGraphId);
     _builder.node(RESOURCE_FLUSH_KERNEL)
         .kernel(RESOURCE_FLUSH_KERNEL);
+    if (!_isBuildin && !_resourceStageMap.empty()) {
+        addBizPartPublish();
+        addSaveToPublish(_buildinGraphId);
+    }
     return _buildinGraphId;
 }
 
@@ -263,12 +271,13 @@ GraphId InitResourceGraphBuilder::addBizSubGraph() {
     return _bizGraphId;
 }
 
-void InitResourceGraphBuilder::addBizPartSubGraph() {
-    if (!_partGraphIds.empty()) {
-        return;
-    }
-    for (auto partId : _partIds) {
-        auto partGraphId = _builder.newSubGraph(_bizName);
+void InitResourceGraphBuilder::addBizPartSave() {
+    for (const auto &pair : _partGraphIds) {
+        auto partId = pair.first;
+        auto partGraphId = pair.second;
+        if (_builder.hasNode(partGraphId, RESOURCE_SAVE_KERNEL)) {
+            continue;
+        }
         auto saveOut = _builder.subGraph(partGraphId)
                            .location(_bizName, _partCount, partId)
                            .node(RESOURCE_SAVE_KERNEL)
@@ -277,24 +286,47 @@ void InitResourceGraphBuilder::addBizPartSubGraph() {
         if (_isBuildin) {
             saveOut.asGraphOutput(_bizName + ":" + autil::StringUtil::toString(partId));
         } else {
-            auto publishNode = _builder.subGraph(partGraphId)
-                                   .location(_bizName, _partCount, partId)
-                                   .node(RESOURCE_PUBLISH_KERNEL)
-                                   .kernel(RESOURCE_PUBLISH_KERNEL);
-            publishNode.in(RESOURCE_PUBLISH_KERNEL_INPUT).autoNext().from(saveOut);
-            publishNode.out(RESOURCE_PUBLISH_KERNEL_OUTPUT)
-                .asGraphOutput(_bizName + ":" + autil::StringUtil::toString(partId));
+            _builder.subGraph(partGraphId)
+                .node(RESOURCE_PUBLISH_KERNEL)
+                .in(RESOURCE_PUBLISH_KERNEL_INPUT)
+                .autoNext()
+                .from(saveOut);
         }
+    }
+    if (_isBuildin) {
+        return;
+    }
+    addSaveToPublish(_bizGraphId);
+}
+
+void InitResourceGraphBuilder::addBizPartPublish() {
+    if (_isBuildin) {
+        return;
+    }
+    if (!_partGraphIds.empty()) {
+        return;
+    }
+    for (auto partId : _partIds) {
+        auto partGraphId = _builder.newSubGraph(_bizName);
         _partGraphIds[partId] = partGraphId;
         _graphInfoMap[partGraphId] = { RS_BIZ_PART, partId };
         NAVI_KERNEL_LOG(SCHEDULE2, "biz [%s] partId [%d] resource graphId: %d",
                         _bizName.c_str(), partId, partGraphId);
     }
-    if (_isBuildin) {
-        return;
+    for (const auto &pair : _partGraphIds) {
+        auto partId = pair.first;
+        auto partGraphId = pair.second;
+        if (_builder.hasNode(partGraphId, RESOURCE_PUBLISH_KERNEL)) {
+            continue;
+        }
+        auto publishNode = _builder.subGraph(partGraphId)
+                               .location(_bizName, _partCount, partId)
+                               .node(RESOURCE_PUBLISH_KERNEL)
+                               .kernel(RESOURCE_PUBLISH_KERNEL);
+        publishNode.out(RESOURCE_PUBLISH_KERNEL_OUTPUT)
+            .asGraphOutput(_bizName + ":" +
+                           autil::StringUtil::toString(partId));
     }
-    addSaveToPublish(_buildinGraphId);
-    addSaveToPublish(_bizGraphId);
 }
 
 GraphId InitResourceGraphBuilder::addRunGraphSubGraph(GraphId requireGraph) {
@@ -314,7 +346,7 @@ GraphId InitResourceGraphBuilder::addRunGraphSubGraph(GraphId requireGraph) {
     case RS_KERNEL:
     case RS_UNKNOWN:
     default:
-        addBizPartSubGraph();
+        addBizPartSave();
         if (graphInfo.partId != INVALID_NAVI_PART_ID) {
             return requireGraph;
         } else {

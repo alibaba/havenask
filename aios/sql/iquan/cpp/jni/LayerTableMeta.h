@@ -23,23 +23,40 @@
 #include <vector>
 
 #include "autil/Log.h"
-#include "iquan/common/catalog/LayerTableDef.h"
+#include "iquan/common/catalog/LayerTableModel.h"
 
 namespace iquan {
+class Layer;
 
 class LayerTableMeta {
 public:
-    LayerTableMeta(const LayerTableDef &layerTable);
+    LayerTableMeta() {}
     const std::unordered_map<std::string, std::unordered_set<std::string>> &getStrValueMap() {
-        return strValueMap;
+        return _strValueMap;
     };
     const std::unordered_map<std::string, std::vector<int64_t>> &getIntValueMap() {
-        return intValueMap;
+        return _intValueMap;
     };
+    bool init(const LayerTableModel &layerTable);
 
 private:
-    std::unordered_map<std::string, std::unordered_set<std::string>> strValueMap;
-    std::unordered_map<std::string, std::vector<int64_t>> intValueMap;
+    bool isInt64(autil::legacy::Any jsonAny, int64_t &value);
+    bool processStringType(const LayerTableDef &layerTable,
+                           const std::string &layerTableName,
+                           const std::string &fieldName);
+    bool processIntType(const LayerTableDef &layerTable,
+                        const std::string &layerTableName,
+                        const std::string &fieldName,
+                        const std::string &method);
+    std::string layerInfoTypeErrMsg(const std::string &layerTableName, const Layer &layer) const;
+    std::string layerInfoRangeErrMsg(const std::string &layerTableName, const Layer &layer) const;
+    std::string layerInfoFieldErrMsg(const std::string &layerTableName,
+                                     const Layer &layer,
+                                     const std::string &fieldName) const;
+
+private:
+    std::unordered_map<std::string, std::unordered_set<std::string>> _strValueMap;
+    std::unordered_map<std::string, std::vector<int64_t>> _intValueMap;
 
     AUTIL_LOG_DECLARE();
 };

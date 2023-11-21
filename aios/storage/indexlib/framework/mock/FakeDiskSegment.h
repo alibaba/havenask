@@ -40,7 +40,7 @@ public:
     void AddIndexer(const std::string& type, const std::string& indexName,
                     std::shared_ptr<index::IIndexer> indexer) override;
     void DeleteIndexer(const std::string& type, const std::string& indexName) override;
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
     size_t EvaluateCurrentMemUsed() override;
 
 public:

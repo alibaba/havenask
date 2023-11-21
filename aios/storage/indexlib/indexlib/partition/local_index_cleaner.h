@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_LOCAL_INDEX_CLEANER_H
-#define __INDEXLIB_LOCAL_INDEX_CLEANER_H
+#pragma once
 
 #include <memory>
 
@@ -50,7 +49,7 @@ private:
     void CleanFiles(const fslib::FileList& fileList, const std::set<index_base::Version>& keepVersions,
                     bool cleanAfterMaxKeepVersionFiles);
     void CleanPatchIndexSegmentFiles(const std::string& patchDirName, const std::set<segmentid_t>& keepSegmentIds,
-                                     segmentid_t maxCanCleanSegmentId, schemavid_t patchSchemaId);
+                                     segmentid_t maxCanCleanSegmentId, schemaid_t patchSchemaId);
     const index_base::Version& GetVersion(versionid_t versionId);
 
     bool CleanUnreferencedSegments(const index_base::Version& targetVersion, const std::set<std::string>& toKeepFiles);
@@ -75,5 +74,3 @@ private:
 
 DEFINE_SHARED_PTR(LocalIndexCleaner);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_LOCAL_INDEX_CLEANER_H

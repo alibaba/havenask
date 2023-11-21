@@ -17,6 +17,7 @@
 
 #include "indexlib/base/Constant.h"
 #include "indexlib/config/ConfigDefine.h"
+#include "indexlib/config/FileCompressConfig.h"
 #include "indexlib/config/IndexConfigDeserializeResource.h"
 #include "indexlib/index/common/Constant.h"
 #include "indexlib/index/primary_key/Constant.h"
@@ -96,12 +97,30 @@ Status PrimaryKeyIndexConfig::CheckEqual(const InvertedIndexConfig& other) const
     CHECK_CONFIG_EQUAL(_impl->pkDataBlockSize, other2._impl->pkDataBlockSize, "mPkDataBlockSIze not equal");
     return GetPKLoadStrategyParam().CheckEqual(other2.GetPKLoadStrategyParam());
 }
+
+// not call SingleFieldIndexConfig as for some check not suitable for pk
 void PrimaryKeyIndexConfig::Check() const
 {
-    SingleFieldIndexConfig::Check();
     if (!IsPrimaryKeyIndex()) {
         INDEXLIB_FATAL_ERROR(Schema, "wrong pk index type");
     }
+
+    if (IsIndexUpdatable()) {
+        INDEXLIB_FATAL_ERROR(Schema, "pk not support update");
+    }
+
+    if (GetIndexFormatVersionId() > GetMaxSupportedIndexFormatVersionId()) {
+        INDEXLIB_FATAL_ERROR(Schema, "pk format_verison_id [%d] over max supported value [%d]",
+                             GetIndexFormatVersionId(), GetMaxSupportedIndexFormatVersionId());
+    }
+
+    auto fileCompress = GetFileCompressConfig();
+    if (fileCompress && !fileCompress->GetCompressType().empty()) {
+        INDEXLIB_FATAL_ERROR(Schema, "pk not support file compress");
+    }
+
+    CheckWhetherIsVirtualField();
+
     if (_impl->pkHashType == pk_number_hash) {
         if (GetFieldConfig()->IsMultiValue() || !config::FieldConfig::IsIntegerType(GetFieldConfig()->GetFieldType())) {
             INDEXLIB_FATAL_ERROR(Schema, "enable number pk hash, but pk field type not number"
@@ -311,4 +330,5 @@ std::shared_ptr<index::AttributeConfig> PrimaryKeyIndexConfig::GetPKAttributeCon
     }
     return _impl->pkAttributeConfig;
 }
+
 } // namespace indexlibv2::index

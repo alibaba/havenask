@@ -52,7 +52,7 @@ int64_t WatermarkWaiter::transToKeyImpl(
     bool hasRt = indexLocator.IsValid() && !indexLocator.GetUserData().empty()
                  && _srcSignature == indexLocator.GetSrc();
     if (hasRt) {
-        return build_service::util::LocatorUtil::GetSwiftWatermark(indexLocator);
+        return build_service::util::LocatorUtil::getSwiftWatermark(indexLocator);
     }
     return 0;
 }

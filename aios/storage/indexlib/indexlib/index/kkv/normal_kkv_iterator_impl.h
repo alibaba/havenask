@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_NORMAL_KKV_ITERATOR_IMPL_H
-#define __INDEXLIB_NORMAL_KKV_ITERATOR_IMPL_H
+#pragma once
 
 #include <memory>
 
@@ -372,5 +371,3 @@ void NormalKKVIteratorImpl<SKeyType>::TEST_collectCodegenResult(CodegenCheckers&
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_NORMAL_KKV_ITERATOR_IMPL_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_FILERAWDOCUMENTREADER_H
-#define ISEARCH_BS_FILERAWDOCUMENTREADER_H
+#pragma once
 
 #include "autil/cipher/AESCipherCommon.h"
 #include "build_service/common_define.h"
@@ -64,5 +63,3 @@ private:
 };
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_FILERAWDOCUMENTREADER_H

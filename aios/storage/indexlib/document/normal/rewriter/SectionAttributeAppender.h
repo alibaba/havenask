@@ -61,8 +61,7 @@ public:
 
 public:
     bool Init(const std::shared_ptr<config::ITabletSchema>& schema);
-    std::pair<Status, bool>
-    AppendSectionAttribute(const std::shared_ptr<indexlib::document::IndexDocument>& indexDocument);
+    Status AppendSectionAttribute(const std::shared_ptr<indexlib::document::IndexDocument>& indexDocument);
     SectionAttributeAppender* Clone();
 
 private:

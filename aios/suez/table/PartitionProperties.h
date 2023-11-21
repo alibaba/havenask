@@ -79,6 +79,21 @@ public:
 
     const std::string getTableName() const { return _pid.getTableName(); }
 
+public:
+    static bool loadRealtimeInfo(const PartitionId &pid,
+                                 const std::string &remoteConfigPath,
+                                 const std::string &indexRoot,
+                                 build_service::workflow::RealtimeInfoWrapper *realtimeInfo);
+
+private:
+    static bool mergeConfig(const std::map<std::string, std::string> &srcMap,
+                            const std::string &key,
+                            std::map<std::string, std::string> &dstMap);
+    static bool loadRealtimeInfo(const PartitionId &pid,
+                                 const TableConfig &tableConfig,
+                                 const std::string &indexRoot,
+                                 build_service::workflow::RealtimeInfoWrapper *realtimeInfo);
+
 private:
     const PartitionId &_pid;
 
@@ -89,7 +104,7 @@ public:
     bool directWrite = false;
     bool asyncDirectWrite = false;
     RoleType roleType = RT_FOLLOWER;
-    IncVersion version = INVALID_VERSION;
+    IncVersion version = indexlib::INVALID_VERSIONID;
     indexlibv2::config::TabletOptions tabletOptions;
     indexlib::config::IndexPartitionOptions indexOptions; // TODO: rm
     std::string primaryIndexRoot;

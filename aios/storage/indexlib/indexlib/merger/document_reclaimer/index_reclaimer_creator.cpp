@@ -15,7 +15,18 @@
  */
 #include "indexlib/merger/document_reclaimer/index_reclaimer_creator.h"
 
+#include <cstddef>
+#include <memory>
+#include <string>
+
+#include "alog/Logger.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/config/schema_modify_operation.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index/common/Types.h"
+#include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
+#include "indexlib/index/normal/deletionmap/deletion_map_writer.h"
 #include "indexlib/merger/document_reclaimer/and_index_reclaimer.h"
 #include "indexlib/merger/document_reclaimer/index_field_reclaimer.h"
 

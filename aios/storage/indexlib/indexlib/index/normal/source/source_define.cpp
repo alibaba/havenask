@@ -27,7 +27,7 @@ SourceDefine::SourceDefine() {}
 
 SourceDefine::~SourceDefine() {}
 
-std::string SourceDefine::GetDataDir(groupid_t groupId)
+std::string SourceDefine::GetDataDir(sourcegroupid_t groupId)
 {
     return std::string(SOURCE_DATA_DIR_PREFIX) + "_" + autil::StringUtil::toString(groupId);
 }

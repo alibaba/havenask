@@ -1,115 +1,62 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import com.taobao.search.iquan.client.common.common.ConstantDefine;
-import com.taobao.search.iquan.core.api.exception.TableNotExistException;
-import com.taobao.search.iquan.core.common.Range;
-import com.taobao.search.iquan.client.common.json.table.JsonLayerTable;
-import com.taobao.search.iquan.client.common.model.IquanLayerTableModel;
-import com.taobao.search.iquan.core.api.SqlTranslator;
+import com.taobao.search.iquan.client.common.json.table.JsonLayerTableContent;
+import com.taobao.search.iquan.core.api.exception.DatabaseNotExistException;
 import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import com.taobao.search.iquan.core.api.exception.TableNotExistException;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
-import com.taobao.search.iquan.core.catalog.GlobalCatalogManager;
-import com.taobao.search.iquan.core.catalog.ObjectPath;
+import com.taobao.search.iquan.core.common.Range;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.apache.calcite.sql.SqlKind;
-import java.util.*;
 
+@Getter
+@Setter
+@SuperBuilder(toBuilder = true)
 public class LayerTable {
     private String layerTableName;
     private List<Layer> layers;
     private List<LayerFormat> layerFormats;
     private Map<String, Object> properties;
-    private Table fakeTable;
-    private IquanLayerTableModel layerTableModel;
-    private JsonLayerTable jsonLayerTable;
+    private IquanTable fakeIquanTable;
+    private JsonLayerTableContent jsonLayerTableContent;
     private List<Object> layerTableMeta;
-    private Integer schemaId;
-
-    public List<Layer> getLayers() {
-        return layers;
-    }
-
-    public LayerTable setLayers(List<Layer> layers) {
-        this.layers = layers;
-        return this;
-    }
-
-    public List<LayerFormat> getLayerFormats() {
-        return layerFormats;
-    }
-
-    public LayerTable setLayerFormats(List<LayerFormat> layerFormats) {
-        this.layerFormats = layerFormats;
-        return this;
-    }
-
-    public String getLayerTableName() {
-        return layerTableName;
-    }
-
-    public LayerTable setLayerTableName(String layerTableName) {
-        this.layerTableName = layerTableName;
-        return this;
-    }
-
-    public Table getFakeTable() {
-        return fakeTable;
-    }
-
-    public LayerTable setFakeTable(Table fakeTable) {
-        this.fakeTable = fakeTable;
-        return this;
-    }
-
-    public JsonLayerTable getJsonLayerTable() {
-        return jsonLayerTable;
-    }
-
-    public LayerTable setJsonLayerTable(JsonLayerTable jsonLayerTable) {
-        this.jsonLayerTable = jsonLayerTable;
-        return this;
-    }
-
     public Integer getSchemaId() {
-        if (schemaId != null) {
-            return schemaId;
+        if (properties == null) {
+            return 0;
         }
-        if (properties != null) {
-            Object id = properties.get("schema_standard");
-            if (id != null) {
-                schemaId = (Integer) id;
-                return schemaId;
-            }
-        }
-        schemaId = 0;
-        return schemaId;
+        return (Integer) properties.getOrDefault("schema_standard", 0);
     }
 
-    public boolean validateLayers(SqlTranslator sqlTranslator, List<AbstractField> fields) throws TableNotExistException {
-        GlobalCatalogManager manager = sqlTranslator.getCatalogManager();
-        List<Table> tables = new ArrayList<>();
-        for (Map.Entry<String, GlobalCatalog> entry : manager.getCatalogMap().entrySet()) {
-            GlobalCatalog catalog = entry.getValue();
-            for (Layer layer : layers) {
-                ObjectPath path = new ObjectPath(layer.getDbName(), layer.getTableName());
-                if (!catalog.tableExists(layer.getDbName(), layer.getTableName())) {
-                    return false;
-                }
-                tables.add(catalog.getTable(layer.getDbName(), layer.getTableName()).getTable());
+    public boolean validateLayers(GlobalCatalog catalog, List<AbstractField> fields)
+            throws TableNotExistException, DatabaseNotExistException {
+        List<IquanTable> iquanTables = new ArrayList<>();
+        for (Layer layer : layers) {
+            if (!catalog.tableExists(layer.getDbName(), layer.getTableName())) {
+                return false;
             }
-            Table iquanTable = tables.get(getSchemaId());
-            fields.clear();
-            fields.addAll(iquanTable.getFields());
-
-            for (LayerFormat format : layerFormats) {
-                FieldType fieldType = format.getLayerInfoValueType() == LayerInfoValueType.INT_DISCRETE ||
-                        format.getLayerInfoValueType() == LayerInfoValueType.INT_RANGE ?
-                        FieldType.FT_INT64 : FieldType.FT_STRING;
-                fields.add(new AtomicField(format.getFieldName(), fieldType, false));
-            }
-            return true;
+            iquanTables.add(catalog.getTable(layer.getDbName(), layer.getTableName()).getTable());
         }
-        return false;
+        IquanTable iquanTable = iquanTables.get(getSchemaId());
+        fields.clear();
+        fields.addAll(iquanTable.getFields());
+
+        for (LayerFormat format : layerFormats) {
+            FieldType fieldType = format.getLayerInfoValueType() == LayerInfoValueType.INT_DISCRETE ||
+                    format.getLayerInfoValueType() == LayerInfoValueType.INT_RANGE ?
+                    FieldType.FT_INT64 : FieldType.FT_STRING;
+            fields.add(new AtomicField(format.getFieldName(), fieldType, false));
+        }
+        return true;
     }
 
     private void genNormalizedLayerInfo() {
@@ -215,21 +162,5 @@ public class LayerTable {
             }
         }
         return integers.get(l);
-    }
-    public Map<String, Object> getProperties() {
-        return properties;
-    }
-
-    public LayerTable setProperties(Map<String, Object> properties) {
-        this.properties = properties;
-        return this;
-    }
-
-    public IquanLayerTableModel getLayerTableModel() {
-        return layerTableModel;
-    }
-
-    public void setLayerTableModel(IquanLayerTableModel layerTableModel) {
-        this.layerTableModel = layerTableModel;
     }
 }

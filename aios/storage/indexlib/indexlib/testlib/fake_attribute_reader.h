@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_ATTRIBUTE_READER_H
-#define __INDEXLIB_FAKE_ATTRIBUTE_READER_H
+#pragma once
 
 #include <memory>
 
@@ -118,5 +117,3 @@ void FakeAttributeReader<T>::setAttributeValues(const std::vector<T>& values)
     this->mSegmentDocCount.push_back(docCount);
 }
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKE_ATTRIBUTE_READER_H

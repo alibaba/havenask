@@ -1,8 +1,8 @@
 #include "indexlib/document/document_rewriter/test/document_rewriter_creator_unittest.h"
 
 #include "indexlib/config/test/schema_loader.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_rewriter/add_to_update_document_rewriter.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

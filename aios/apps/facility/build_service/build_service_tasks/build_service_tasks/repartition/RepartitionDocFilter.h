@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_REPARTITIONDOCFILTER_H
-#define ISEARCH_BS_REPARTITIONDOCFILTER_H
+#pragma once
 
-#include "autil/HashFuncFactory.h"
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/HashFunctionBase.h"
 #include "build_service/common_define.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/index/util/segment_directory_base.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/doc_filter.h"
 #include "indexlib/merger/multi_part_segment_directory.h"
+#include "indexlib/merger/segment_directory.h"
 #include "indexlib/partition/raw_document_field_extractor.h"
 
 namespace build_service { namespace task_base {
@@ -65,5 +71,3 @@ private:
 BS_TYPEDEF_PTR(RepartitionDocFilter);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_REPARTITIONDOCFILTER_H

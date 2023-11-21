@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 #pragma once
+#include <memory>
 #include <mutex>
+#include <stdint.h>
+#include <string>
+#include <utility>
 
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/RealtimeSchemaListKeeper.h"
 #include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/util/Log.h"
 #include "build_service/workflow/RealtimeBuilderDefine.h"
 #include "build_service/workflow/RealtimeBuilderImplV2.h"
 #include "build_service/workflow/RealtimeErrorDefine.h"
 #include "future_lite/NamedTaskScheduler.h"
-#include "future_lite/coro/Lazy.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/VersionMeta.h"
 
-namespace indexlibv2::framework {
-class ITablet;
-}
-
 namespace build_service::workflow {
-
-class RealtimeBuilderImplBase;
 
 class RealtimeBuilderV2
 {
@@ -70,12 +70,12 @@ protected:
     virtual bool downloadConfig(const std::string& indexRoot, KeyValueMap* kvMap) const;
     virtual RealtimeBuilderImplV2* createRealtimeBuilderImpl(const proto::PartitionId& partitionId,
                                                              const KeyValueMap& kvMap) const;
+    virtual void checkAndReconstruct(const proto::PartitionId& partitionId);
 
 private:
     bool getRealtimeInfo(const proto::PartitionId& partitionId, KeyValueMap* kvMap);
     bool getRealtimeInfoFromDataDescription(const std::string& dataTableName, config::ResourceReader& resourceReader,
                                             KeyValueMap* kvMap);
-    void checkAndReconstruct(const proto::PartitionId& partitionId);
 
 private:
     std::string _configPath;
@@ -85,6 +85,7 @@ private:
 
     mutable std::mutex _implLock;
     std::unique_ptr<RealtimeBuilderImplV2> _impl;
+    std::shared_ptr<config::RealtimeSchemaListKeeper> _schemaListKeeper;
 
 private:
     BS_LOG_DECLARE();

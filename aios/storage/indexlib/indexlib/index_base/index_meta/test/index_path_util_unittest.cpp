@@ -78,7 +78,7 @@ void IndexPathUtilTest::TestGetPatchMetaId()
 
 void IndexPathUtilTest::TestGetSchemaId()
 {
-    schemavid_t sid;
+    schemaid_t sid;
     ASSERT_TRUE(IndexPathUtil::GetSchemaId("schema.json", sid) && sid == DEFAULT_SCHEMAID);
     ASSERT_TRUE(IndexPathUtil::GetSchemaId("schema.json.0", sid) && sid == 0);
     ASSERT_TRUE(IndexPathUtil::GetSchemaId("schema.json.93", sid) && sid == 93);
@@ -91,7 +91,7 @@ void IndexPathUtilTest::TestGetSchemaId()
 
 void IndexPathUtilTest::TestGetPatchIndexId()
 {
-    schemavid_t sid;
+    schemaid_t sid;
     ASSERT_TRUE(IndexPathUtil::GetPatchIndexId("patch_index_0", sid) && sid == 0);
     ASSERT_TRUE(IndexPathUtil::GetPatchIndexId("patch_index_93", sid) && sid == 93);
 

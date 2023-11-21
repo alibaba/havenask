@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RESTARTINTERVALCONTROLLER_H
-#define ISEARCH_BS_RESTARTINTERVALCONTROLLER_H
+#pragma once
+
+#include <stdint.h>
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
@@ -48,5 +49,3 @@ private:
 BS_TYPEDEF_PTR(RestartIntervalController);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_RESTARTINTERVALCONTROLLER_H

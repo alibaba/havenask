@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_NORMAL_DOCUMENT_PARSER_H
-#define __INDEXLIB_NORMAL_DOCUMENT_PARSER_H
+#pragma once
 
 #include <memory>
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_parser.h"
-#include "indexlib/document/source_timestamp_parser.h"
 #include "indexlib/document/document_parser/normal_parser/single_document_parser.h"
 #include "indexlib/document/document_rewriter/document_rewriter.h"
+#include "indexlib/document/source_timestamp_parser.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/util/metrics/Monitor.h"
 
@@ -75,5 +74,3 @@ private:
 
 DEFINE_SHARED_PTR(NormalDocumentParser);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_NORMAL_DOCUMENT_PARSER_H

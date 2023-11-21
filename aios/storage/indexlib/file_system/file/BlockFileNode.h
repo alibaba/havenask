@@ -51,8 +51,8 @@ public:
     void* GetBaseAddress() const noexcept override;
     FSResult<size_t> Read(void* buffer, size_t length, size_t offset, ReadOption option) noexcept override;
 
-    future_lite::Future<size_t> ReadAsync(void* buffer, size_t length, size_t offset,
-                                          ReadOption option) noexcept(false) override;
+    future_lite::Future<FSResult<size_t>> ReadAsync(void* buffer, size_t length, size_t offset,
+                                                    ReadOption option) noexcept override;
     FL_LAZY(FSResult<size_t>)
     ReadAsyncCoro(void* buffer, size_t length, size_t offset, ReadOption option) noexcept override;
     future_lite::coro::Lazy<std::vector<FSResult<size_t>>> BatchReadOrdered(const BatchIO& batchIO,
@@ -63,10 +63,11 @@ public:
     FSResult<void> Close() noexcept override;
 
     FSResult<size_t> Prefetch(size_t length, size_t offset, ReadOption option) noexcept override;
-    future_lite::Future<size_t> PrefetchAsync(size_t length, size_t offset, ReadOption option) override;
+    future_lite::Future<FSResult<size_t>> PrefetchAsync(size_t length, size_t offset,
+                                                        ReadOption option) noexcept override;
     FL_LAZY(FSResult<size_t>) PrefetchAsyncCoro(size_t length, size_t offset, ReadOption option) noexcept override;
 
-    future_lite::Future<uint32_t> ReadUInt32Async(size_t offset, ReadOption option) noexcept(false) override;
+    future_lite::Future<FSResult<uint32_t>> ReadUInt32Async(size_t offset, ReadOption option) noexcept override;
     FL_LAZY(FSResult<uint32_t>) ReadUInt32AsyncCoro(size_t offset, ReadOption option) noexcept override;
 
     bool ReadOnly() const noexcept override { return true; }
@@ -84,8 +85,8 @@ private:
     ErrorCode DoOpen(const std::string& path, FSOpenType openType, int64_t fileLength) noexcept override;
     ErrorCode DoOpen(const PackageOpenMeta& packageOpenMeta, FSOpenType openType) noexcept override;
 
-    future_lite::Future<uint32_t> DoReadUInt32Async(size_t offset, size_t leftBytes, uint32_t currentValue,
-                                                    ReadOption option) noexcept(false);
+    future_lite::Future<FSResult<uint32_t>> DoReadUInt32Async(size_t offset, size_t leftBytes, uint32_t currentValue,
+                                                              ReadOption option) noexcept;
     FL_LAZY(FSResult<uint32_t>)
     DoReadUInt32AsyncCoro(size_t offset, size_t leftBytes, uint32_t currentValue, ReadOption option) noexcept;
 

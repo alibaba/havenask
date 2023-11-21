@@ -91,16 +91,20 @@ autil::Result<AdminTarget> TargetGenerator::genTarget() {
                 return autil::result::RuntimeError::make("not found cluster [%s]", binding.clustername().c_str());
             }
             auto &zoneTarget = target.zones[binding.clustername()];
+            TableGroup *tableGroup = nullptr;
+            if (!isOk(db->getTableGroup(binding.tablegroupname(), tableGroup))) {
+                return autil::result::RuntimeError::make("not found table group[%s]", binding.tablegroupname().c_str());
+            }
             std::vector<const Table *> tables;
             if (!isOk(db->getTableGroupTables(binding.tablegroupname(), tables))) {
                 return autil::result::RuntimeError::make("get table in tablegroup [%s] failed",
                                                          binding.tablegroupname().c_str());
             }
             const auto &builds = catalogController->getCurrentBuilds();
-            if (!zoneTarget.fillTableInfos(db->databaseConfig().store_root(), _templatePath, tables, builds)) {
+            if (!zoneTarget.fillTableInfos(
+                    db->databaseConfig().store_root(), _templatePath, tables, builds, tableGroup)) {
                 return autil::result::RuntimeError::make("fill table infos failed");
             }
-
             if (sqlMode) {
                 const auto &deploymentIter = clusterDeploymentMap.find(deployment.deploymentname());
                 if (deploymentIter == clusterDeploymentMap.end()) {

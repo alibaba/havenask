@@ -6,6 +6,7 @@ strict_cc_fast_test(
         'MemoryQuotaControllerTest.cpp', 'NoExceptionWrapperTest.cpp',
         'PathUtilTest.cpp', 'StatusTest.cpp'
     ],
+    copts=['-fno-access-control'],
     data=[],
     deps=[
         '//aios/autil:multi_value', '//aios/autil:thread',

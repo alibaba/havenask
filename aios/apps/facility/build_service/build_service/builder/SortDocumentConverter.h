@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SORTDOCUMENTCONVERTER_H
-#define ISEARCH_BS_SORTDOCUMENTCONVERTER_H
+#pragma once
+
+#include <memory>
+#include <stddef.h>
 
 #include "autil/DataBuffer.h"
+#include "autil/Span.h"
 #include "autil/mem_pool/Pool.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/document/index_document/normal_document/normal_document.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/document.h"
 #include "indexlib/document/kv_document/kv_document.h"
-#include "indexlib/index/kkv/kkv_define.h"
-#include "indexlib/index_base/index_meta/partition_meta.h"
 
 namespace build_service { namespace builder {
 
@@ -84,5 +85,3 @@ private:
 
 BS_TYPEDEF_PTR(SortDocumentConverter);
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_SORTDOCUMENTCONVERTER_H

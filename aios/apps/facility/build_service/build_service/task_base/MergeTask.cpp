@@ -15,33 +15,65 @@
  */
 #include "build_service/task_base/MergeTask.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
+#include <exception>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "beeper/beeper.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CounterSynchronizer.h"
 #include "build_service/common/CounterSynchronizerCreator.h"
+#include "build_service/config/AgentGroupConfig.h"
+#include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/proto/ProtoUtil.h"
+#include "build_service/task_base/JobConfig.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/ErrorCode.h"
-#include "indexlib/file_system/FenceDirectory.h"
-#include "indexlib/file_system/FileSystemOptions.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/index/util/reclaim_map.h"
 #include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/common_branch_hinter.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
 #include "indexlib/index_base/index_meta/parallel_build_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
-#include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/index_base/version_committer.h"
-#include "indexlib/merger/merger_branch_hinter.h"
-#include "indexlib/merger/multi_partition_merger.h"
+#include "indexlib/index_define.h"
+#include "indexlib/merger/merge_meta.h"
 #include "indexlib/merger/partition_merger_creator.h"
-#include "indexlib/merger/sorted_index_partition_merger.h"
+#include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/partition/index_partition.h"
+#include "indexlib/partition/partition_group_resource.h"
 #include "indexlib/partition/partition_validater.h"
 #include "indexlib/util/EpochIdUtil.h"
-#include "indexlib/util/counter/CounterMap.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace build_service::util;
@@ -386,10 +418,10 @@ bool MergeTask::doMerge(IndexPartitionMergerPtr& indexPartMerger, const pair<Mer
             mergeMeta->Store(mergeMetaVersionDir, fenceContext.get());
             _mergeStatus.isMergeFinished = true;
             versionid_t targetVersionId = mergeMeta->GetTargetVersion().GetVersionId();
-            if (targetVersionId == INVALID_VERSION) {
+            if (targetVersionId == indexlib::INVALID_VERSIONID) {
                 Version onDiskVersion;
                 VersionLoader::GetVersion(indexPartMerger->GetMergeIndexRootDirectory(), onDiskVersion,
-                                          INVALID_VERSION);
+                                          indexlib::INVALID_VERSIONID);
                 targetVersionId = onDiskVersion.GetVersionId();
             }
             _mergeStatus.targetVersionId = targetVersionId;
@@ -417,7 +449,7 @@ bool MergeTask::doMerge(IndexPartitionMergerPtr& indexPartMerger, const pair<Mer
                 return false;
             }
             string alignedVersionId = getValueFromKeyValueMap(_kvMap, ALIGNED_VERSION_ID, "-1");
-            int32_t versionId = INVALID_VERSION;
+            int32_t versionId = indexlib::INVALID_VERSIONID;
             if (!StringUtil::numberFromString(alignedVersionId, versionId)) {
                 BS_LOG(ERROR, "invalid aligned version id: %s", alignedVersionId.c_str());
                 return false;

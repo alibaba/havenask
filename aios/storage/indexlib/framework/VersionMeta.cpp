@@ -15,7 +15,12 @@
  */
 #include "indexlib/framework/VersionMeta.h"
 
-#include "autil/StringUtil.h"
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "indexlib/base/Progress.h"
+#include "indexlib/framework/Locator.h"
 #include "indexlib/framework/Version.h"
 
 namespace indexlibv2::framework {
@@ -32,10 +37,10 @@ VersionMeta::VersionMeta(const Version& version, int64_t docCount, int64_t index
     , _fenceName(version.GetFenceName())
     , _versionLine(version.GetVersionLine())
 {
-    for (const auto& indexTask : version.GetIndexTasks()) {
+    for (const auto& indexTask : version.GetIndexTaskQueue()->GetAllTasks()) {
         auto meta = *indexTask;
         // in case of params are too long
-        meta.params.clear();
+        meta.ClearParams();
         _indexTaskQueue.emplace_back(meta);
     }
     for (auto [segId, _] : version) {

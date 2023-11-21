@@ -27,8 +27,6 @@ BytesAlignedSliceArray::BytesAlignedSliceArray(const SimpleMemoryQuotaController
                                                uint32_t maxSliceNum)
     : _sliceArray(sliceLen, maxSliceNum, new MmapPool, true)
     , _maxSliceNum(maxSliceNum)
-    , _usedBytes(0)
-    , _curSliceIdx(-1)
     , _memController(memController)
 {
     _curCursor = _sliceArray.GetSliceLen() + 1;

@@ -66,9 +66,15 @@ std::unique_ptr<IDocumentBatch> KVDocumentParser::Parse(const std::string& docSt
     return {};
 }
 
+std::pair<Status, std::unique_ptr<IDocumentBatch>> KVDocumentParser::BatchParse(IMessageIterator* inputIterator) const
+{
+    assert(false);
+    return {Status::Unimplement(), nullptr};
+}
+
 std::pair<Status, std::unique_ptr<IDocumentBatch>> KVDocumentParser::Parse(ExtendDocument& extendDoc) const
 {
-    const auto& rawDoc = extendDoc.getRawDocument();
+    const auto& rawDoc = extendDoc.GetRawDocument();
     auto opType = rawDoc->getDocOperateType();
     if (opType == SKIP_DOC || opType == UNKNOWN_OP) {
         return {Status::OK(), nullptr};

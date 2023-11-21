@@ -18,6 +18,7 @@
 #include <memory>
 
 #include "autil/mem_pool/pool_allocator.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/framework/Locator.h"
 #include "indexlib/index/kkv/Constant.h"
 #include "indexlib/index/kkv/common/KKVDocs.h"

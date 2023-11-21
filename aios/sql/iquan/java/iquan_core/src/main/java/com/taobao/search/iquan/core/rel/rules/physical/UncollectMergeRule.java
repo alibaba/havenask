@@ -1,10 +1,13 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
-import com.taobao.search.iquan.core.rel.ops.physical.IquanUncollectOp;
 import com.taobao.search.iquan.core.rel.convention.IquanConvention;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUncollectOp;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelTraitSet;
@@ -20,9 +23,6 @@ import org.apache.calcite.sql.type.ArraySqlType;
 import org.apache.calcite.sql.type.BasicSqlType;
 import org.apache.calcite.sql.type.MultisetSqlType;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class UncollectMergeRule extends RelOptRule {
     public static UncollectMergeRule INSTANCE = new UncollectMergeRule(IquanRelBuilder.LOGICAL_BUILDER);

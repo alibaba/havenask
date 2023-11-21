@@ -47,6 +47,7 @@ extern const std::string WORKER_PATH_VERSION;
 
 // realtime
 extern const std::string BS_SERVER_ADDRESS;
+extern const std::string APP_NAME;
 extern const std::string REALTIME_MODE;
 extern const std::string REALTIME_SERVICE_MODE;
 extern const std::string REALTIME_JOB_MODE;
@@ -68,6 +69,10 @@ extern const std::string RAW_DOCUMENT_SCHEMA_NAME;
 extern const std::string SRC_BATCH_MODE;
 extern const std::string CIPHER_FILE_READER_PARAM;
 extern const std::string CIPHER_PARAMETER_ENABLE_BASE64;
+extern const std::string FILTER_READER;
+extern const std::string FILTER_FIELD_NAME;
+extern const std::string FILTER_TYPE;
+extern const std::string FILTER_VALUE;
 
 extern const std::string FILE_READ_SRC;
 extern const std::string INDEX_READ_SRC;
@@ -106,6 +111,7 @@ extern const std::string NEED_FIELD_FILTER;
 extern const std::string HA_RESERVED_SOURCE;
 extern const std::string USE_FIELD_SCHEMA;
 extern const std::string NEED_PRINT_DOC_TAG;
+extern const std::string KEEP_PARSER_ORDER;
 
 extern const std::string SWIFT_ZOOKEEPER_ROOT;
 extern const std::string SWIFT_TOPIC_NAME;
@@ -154,12 +160,14 @@ extern const std::string INDEX_VERSION;
 extern const std::string INDEX_CLUSTER;
 extern const std::string RESOURCE_INDEX_ROOT;
 extern const std::string RESOURCE_BACKUP_INDEX_ROOT;
+extern const std::string BS_RESOURCE_READER;
 
 // worker input & output
 extern const std::string INPUT_CONFIG;
 extern const std::string INPUT_DOC_TYPE;
 extern const std::string INPUT_DOC_RAW;
 extern const std::string INPUT_DOC_PROCESSED;
+extern const std::string INPUT_DOC_BATCHDOC;
 extern const std::string WORKER_HAS_OUTPUT;
 
 // processor
@@ -208,6 +216,8 @@ extern const std::string BUILD_MODE;
 extern const std::string BUILD_MODE_FULL;
 extern const std::string BUILD_MODE_INCREMENTAL;
 extern const std::string BUILD_MODE_DEFAULT;
+extern const std::string BUILD_STEP_FULL_STR;
+extern const std::string BUILD_STEP_INC_STR;
 extern const std::string PARTITION_COUNT;
 extern const std::string BUILD_PARTITION_FROM;
 extern const std::string BUILD_PARTITION_COUNT;

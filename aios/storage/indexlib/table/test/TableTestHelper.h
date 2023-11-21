@@ -1,13 +1,17 @@
 #pragma once
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/framework/ITablet.h"
+#include "indexlib/framework/ITabletFactory.h"
 #include "indexlib/framework/IndexRoot.h"
 #include "indexlib/framework/TabletResource.h"
 #include "indexlib/framework/index_task/Constant.h"
+#include "indexlib/framework/index_task/MergeTaskDefine.h"
 
 namespace future_lite {
 class NamedTaskScheduler;
@@ -34,6 +38,11 @@ enum MakeTabletOptionsFlag {
     TOF_FLUSH_REMOTE = 0x4,
     TOF_DISABLE_BACKGROUD_TASK = 0x8
 };
+
+MATCHER(IsOK, "") { return arg.IsOK(); }
+
+#define EXPECT_TABLET_OK(expression) EXPECT_THAT(expression, indexlibv2::table::IsOK())
+#define ASSERT_TABLET_OK(expression) ASSERT_THAT(expression, indexlibv2::table::IsOK())
 
 class TableTestHelper : private autil::NoCopyable
 {
@@ -103,9 +112,10 @@ public:
     Status Seal();
     Status TriggerDump();
     bool NeedCommit() const;
+    Status ExecuteTask(const std::string& taskType, const std::string& taskName);
     Status Import(std::vector<framework::Version> versions,
                   framework::ImportOptions importOptions = framework::ImportOptions());
-
+    Status TriggerBulkloadTask(framework::MergeTaskStatus& taskStatus);
     Status ImportExternalFiles(const std::string& bulkloadId, const std::vector<std::string>& externalFiles,
                                const std::shared_ptr<framework::ImportExternalFileOptions>& options,
                                indexlibv2::framework::Action action = indexlibv2::framework::Action::ADD,
@@ -127,7 +137,7 @@ public:
     Status AlterTable(std::shared_ptr<config::ITabletSchema> tabletSchema,
                       const std::vector<std::shared_ptr<framework::IndexTaskResource>>& extendResources = {},
                       bool autoCommit = true, StepInfo* step = NULL);
-
+    Status Bulkload();
     std::pair<Status, StepInfo>
     StepAlterTable(StepInfo step, std::shared_ptr<config::ITabletSchema> tabletSchema,
                    std::vector<std::shared_ptr<framework::IndexTaskResource>> extendResources = {});

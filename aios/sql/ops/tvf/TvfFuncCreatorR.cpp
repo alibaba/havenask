@@ -22,8 +22,7 @@
 
 #include "autil/legacy/legacy_jsonizable.h"
 #include "iquan/common/catalog/FunctionCommonDef.h"
-#include "iquan/common/catalog/TvfFunctionDef.h"
-#include "iquan/common/catalog/TvfFunctionModel.h"
+#include "iquan/common/catalog/FunctionModel.h"
 #include "navi/builder/ResourceDefBuilder.h"
 #include "navi/common.h"
 #include "navi/engine/ResourceConfigContext.h"
@@ -76,9 +75,9 @@ void TvfFuncCreatorR::addTvfFunction(const SqlTvfProfileInfo &sqlTvfProfileInfo)
     _sqlTvfProfileInfos[sqlTvfProfileInfo.tvfName] = sqlTvfProfileInfo;
 }
 
-bool TvfFuncCreatorR::regTvfModels(iquan::TvfModels &tvfModels) {
+bool TvfFuncCreatorR::regTvfModels(std::vector<iquan::FunctionModel> &tvfModels) {
     for (auto pair : _sqlTvfProfileInfos) {
-        iquan::TvfModel tvfModel;
+        iquan::FunctionModel tvfModel;
         if (!generateTvfModel(tvfModel, pair.second)) {
             SQL_LOG(ERROR, "generate tvf model [%s] failed", pair.first.c_str());
             return false;
@@ -91,12 +90,13 @@ bool TvfFuncCreatorR::regTvfModels(iquan::TvfModels &tvfModels) {
             SQL_LOG(ERROR, "tvf model [%s] invalid", pair.first.c_str());
             return false;
         }
-        tvfModels.functions.push_back(tvfModel);
+        tvfModels.push_back(tvfModel);
     }
     return true;
 }
 
-bool TvfFuncCreatorR::generateTvfModel(iquan::TvfModel &tvfModel, const SqlTvfProfileInfo &info) {
+bool TvfFuncCreatorR::generateTvfModel(iquan::FunctionModel &tvfModel,
+                                       const SqlTvfProfileInfo &info) {
     try {
         FastFromJsonString(tvfModel, _tvfDef);
     } catch (...) {
@@ -107,17 +107,19 @@ bool TvfFuncCreatorR::generateTvfModel(iquan::TvfModel &tvfModel, const SqlTvfPr
     return true;
 }
 
-bool TvfFuncCreatorR::checkTvfModel(const iquan::TvfModel &tvfModel) {
-    if (tvfModel.functionContent.tvfs.size() != 1) {
-        SQL_LOG(ERROR, "tvf [%s] func prototypes not equal 1.", tvfModel.functionName.c_str());
+bool TvfFuncCreatorR::checkTvfModel(const iquan::FunctionModel &tvfModel) {
+    if (tvfModel.tvfFunctionDef.tvfs.size() != 1) {
+        SQL_LOG(ERROR,
+                "tvf %s func prototypes not equal 1.",
+                autil::legacy::FastToJsonString(tvfModel).c_str());
         return false;
     }
-    const auto &tvfDef = tvfModel.functionContent.tvfs[0];
+    const auto &tvfDef = tvfModel.tvfFunctionDef.tvfs[0];
     for (const auto &paramType : tvfDef.params.scalars) {
         if (paramType.type != "string") {
             SQL_LOG(ERROR,
-                    "tvf [%s] func prototypes only support string type. now is [%s]",
-                    tvfModel.functionName.c_str(),
+                    "tvf %s func prototypes only support string type. now is [%s]",
+                    autil::legacy::FastToJsonString(tvfModel).c_str(),
                     paramType.type.c_str());
             return false;
         }

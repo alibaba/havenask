@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_META_CREATOR_FACTORY_H
-#define __INDEXLIB_MERGE_META_CREATOR_FACTORY_H
+#pragma once
 
-#include <memory>
-
-#include "indexlib/common_define.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/merger/merge_meta_creator.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
-DECLARE_REFERENCE_CLASS(index, ReclaimMapCreator);
 DECLARE_REFERENCE_CLASS(merger, SplitSegmentStrategyFactory);
 
 namespace indexlib { namespace merger {
@@ -45,5 +41,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeMetaCreatorFactory);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_META_CREATOR_FACTORY_H

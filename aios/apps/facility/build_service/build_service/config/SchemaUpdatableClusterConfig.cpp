@@ -15,6 +15,11 @@
  */
 #include "build_service/config/SchemaUpdatableClusterConfig.h"
 
+#include <cstdint>
+#include <iosfwd>
+
+#include "alog/Logger.h"
+
 using namespace std;
 
 namespace build_service { namespace config {

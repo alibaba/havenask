@@ -1,17 +1,21 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 
-import java.util.*;
-
 public class HashValues {
     //from hint
     private final String assignedPartitionIds;
-    private String assignedHashValues;
     //from condition
     private final Map<String, String> hashValuesSepMap;
+    private String assignedHashValues;
     private Map<String, Set<String>> hashValuesMap;
 
     public HashValues(String assignedPartitionIds,
@@ -93,12 +97,12 @@ public class HashValues {
         return hashValuesSepMap;
     }
 
-    public void setHashValuesMap(Map<String, Set<String>> hashValuesMap) {
-        this.hashValuesMap = hashValuesMap;
-    }
-
     public Map<String, Set<String>> getHashValuesMap() {
         return hashValuesMap;
+    }
+
+    public void setHashValuesMap(Map<String, Set<String>> hashValuesMap) {
+        this.hashValuesMap = hashValuesMap;
     }
 
     public HashValues copy() {

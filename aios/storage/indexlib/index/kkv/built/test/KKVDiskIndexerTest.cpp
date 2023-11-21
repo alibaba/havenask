@@ -96,7 +96,7 @@ TEST_F(KKVDiskIndexerTest, TestSimpleProcess)
     PrepareSchema();
     _indexConfig->SetUseNumberHash(true);
 
-    KKVMemIndexer<int32_t> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true);
+    KKVMemIndexer<int32_t> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true, true);
     ASSERT_TRUE(memIndexer.Init(_indexConfig, nullptr).IsOK());
     string docStr = "cmd=add,pkey=1,skey=1,value=1,ts=100000000;"
                     "cmd=add,pkey=1,skey=2,value=2,ts=200000000;"

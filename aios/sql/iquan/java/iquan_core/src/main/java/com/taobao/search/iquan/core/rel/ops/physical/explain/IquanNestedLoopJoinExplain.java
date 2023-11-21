@@ -1,10 +1,10 @@
 package com.taobao.search.iquan.core.rel.ops.physical.explain;
 
+import java.util.Map;
+
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanNestedLoopJoinOp;
 import org.apache.calcite.sql.SqlExplainLevel;
-
-import java.util.Map;
 
 public class IquanNestedLoopJoinExplain extends IquanJoinExplain {
 

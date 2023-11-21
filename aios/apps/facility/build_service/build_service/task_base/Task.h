@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TASK_H
-#define ISEARCH_BS_TASK_H
+#pragma once
 
-#include "beeper/common/common_type.h"
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/config/TaskTarget.h"
 #include "build_service/io/InputCreator.h"
 #include "build_service/io/OutputCreator.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
 #include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/util/Log.h"
@@ -98,5 +103,3 @@ private:
 BS_TYPEDEF_PTR(Task);
 ////////////////////////////////////////////////
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_TASK_H

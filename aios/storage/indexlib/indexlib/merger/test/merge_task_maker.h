@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGE_TASK_MAKER_H
-#define __INDEXLIB_MERGE_TASK_MAKER_H
+#pragma once
 
 #include <memory>
 
@@ -23,5 +22,3 @@ public:
 
 DEFINE_SHARED_PTR(MergeTaskMaker);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_TASK_MAKER_H

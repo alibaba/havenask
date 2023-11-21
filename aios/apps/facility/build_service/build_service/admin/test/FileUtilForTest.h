@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_FILEUTILFORTEST_H
-#define ISEARCH_BS_FILEUTILFORTEST_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
@@ -42,5 +41,3 @@ private:
 BS_TYPEDEF_PTR(FileUtilForTest);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_FILEUTILFORTEST_H

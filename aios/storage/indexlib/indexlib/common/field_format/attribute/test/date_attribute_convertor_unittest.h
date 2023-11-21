@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DATEATTRIBUTECONVERTORTEST_H
-#define __INDEXLIB_DATEATTRIBUTECONVERTORTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/attribute/date_attribute_convertor.h"
 #include "indexlib/common_define.h"
@@ -28,5 +27,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(DateAttributeConvertorTest, TestCaseForSimple);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_DATEATTRIBUTECONVERTORTEST_H

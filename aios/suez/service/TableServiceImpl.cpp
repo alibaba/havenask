@@ -34,9 +34,9 @@
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/TabletInfos.h"
 #include "indexlib/index/kv/KVIndexReader.h"
-#include "indexlib/legacy/tools/partition_querier/executors/IndexTableExecutor.h"
-#include "indexlib/legacy/tools/partition_querier/executors/KkvTableExecutor.h"
-#include "indexlib/legacy/tools/partition_querier/executors/KvTableExecutor.h"
+#include "indexlib/indexlib/tools/partition_querier/executors/IndexTableExecutor.h"
+#include "indexlib/indexlib/tools/partition_querier/executors/KkvTableExecutor.h"
+#include "indexlib/indexlib/tools/partition_querier/executors/KvTableExecutor.h"
 #include "indexlib/table/BuiltinDefine.h"
 #include "indexlib/util/ProtoJsonizer.h"
 #include "kmonitor/client/MetricsReporter.h"
@@ -327,7 +327,8 @@ void TableServiceImpl::queryTable(google::protobuf::RpcController *controller,
         SchemaUtil::getPbSchema(schema, "", resultSchema);
         *(tableQueryResult.mutable_resultschema()) = resultSchema;
     }
-    if (tableQueryResult.docids().empty() && tableQueryResult.docvalueset().empty()) {
+    if (tableQueryResult.docids().empty() && tableQueryResult.docvalueset().empty() &&
+        !tableQueryResult.has_metaresult()) {
         ERROR_THEN_RETURN(
             done, TBS_ERROR_NO_RECORD, "no record found.", kQueryTable, tableName, _metricsReporter.get());
     }
@@ -524,7 +525,7 @@ void TableServiceImpl::writeTable(google::protobuf::RpcController *controller,
             singleWriteDone->run(std::move(result), docIndexList);
         };
 
-        useTableWriter.first->write(request->format(), useTableWriter.second, currentWriteDone);
+        useTableWriter.first->write(request->format(), useTableWriter.second, currentWriteDone, nullptr);
     }
 }
 
@@ -833,6 +834,19 @@ PartitionQuery TableServiceImpl::convertRequestToPartitionQuery(const TableQuery
     for (int i = 0; i < request->summarys_size(); ++i) {
         *partitionQuery.add_summarys() = request->summarys(i);
     }
+    for (int i = 0; i < request->sources_size(); ++i) {
+        *partitionQuery.add_sources() = request->sources(i);
+    }
+    if (request->has_fieldmetaquery()) {
+        auto originRequest = request->fieldmetaquery();
+        partitionQuery.mutable_fieldmetaquery()->set_fieldmetatype(originRequest.fieldmetatype());
+        partitionQuery.mutable_fieldmetaquery()->set_indexname(originRequest.indexname());
+    }
+    if (request->has_fieldtokencountquery()) {
+        partitionQuery.mutable_fieldtokencountquery()->set_indexname(request->fieldtokencountquery().indexname());
+        partitionQuery.mutable_fieldtokencountquery()->set_docid(request->fieldtokencountquery().docid());
+    }
+
     return partitionQuery;
 }
 
@@ -865,6 +879,19 @@ void TableServiceImpl::convertPartitionResponseToResponse(const TableQueryReques
             targetValue->set_fieldname(srcValue.fieldname());
             targetValue->set_value(srcValue.value());
         }
+
+        for (int k = 0; k < row.sourcevalues_size(); ++k) {
+            const auto &srcValue = row.sourcevalues(k);
+            auto targetValue = docValue.add_sourcevalues();
+            targetValue->set_fieldname(srcValue.fieldname());
+            targetValue->set_value(srcValue.value());
+        }
+
+        if (row.has_fieldtokencountres()) {
+            auto targetValue = docValue.mutable_fieldtokencountres();
+            targetValue->set_fieldtokencount(row.fieldtokencountres().fieldtokencount());
+            targetValue->set_indexname(row.fieldtokencountres().indexname());
+        }
     }
 
     if (partitionResponse.has_termmeta()) {
@@ -882,6 +909,12 @@ void TableServiceImpl::convertPartitionResponseToResponse(const TableQueryReques
 
     for (int i = 0; i < partitionResponse.matchvalues_size(); ++i) {
         tableQueryResult->add_matchvalues(partitionResponse.matchvalues(i));
+    }
+
+    if (partitionResponse.has_metaresult()) {
+        tableQueryResult->mutable_metaresult()->set_indexname((partitionResponse.metaresult().indexname()));
+        tableQueryResult->mutable_metaresult()->set_fieldmetatype((partitionResponse.metaresult().fieldmetatype()));
+        tableQueryResult->mutable_metaresult()->set_metainfo((partitionResponse.metaresult().metainfo()));
     }
 }
 

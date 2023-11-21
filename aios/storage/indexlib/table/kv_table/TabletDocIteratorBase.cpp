@@ -42,7 +42,8 @@ const std::string TabletDocIteratorBase::READER_TIMESTAMP = "reader_timestamp";
 Status TabletDocIteratorBase::Init(const shared_ptr<framework::TabletData>& tabletData,
                                    pair<uint32_t /*0-99*/, uint32_t /*0-99*/> rangeInRatio,
                                    const std::shared_ptr<indexlibv2::framework::MetricsManager>&,
-                                   const std::vector<std::string>& requiredFields, const map<string, string>& params)
+                                   const std::optional<std::vector<std::string>>& requiredFields,
+                                   const map<string, string>& params)
 {
     if (!tabletData) {
         AUTIL_LOG(ERROR, "tablet data is nullptr");
@@ -54,7 +55,11 @@ Status TabletDocIteratorBase::Init(const shared_ptr<framework::TabletData>& tabl
         assert(!HasNext());
         return Status::OK();
     }
-    _fieldNames = requiredFields;
+
+    _readAllField = requiredFields == std::nullopt;
+    if (!_readAllField) {
+        _fieldNames = requiredFields.value();
+    }
     Status status = DoInit(tabletData, params);
     RETURN_IF_STATUS_ERROR(status, "init tablet doc iterator failed, table version[%s]",
                            tabletData->GetOnDiskVersion().ToString().c_str());
@@ -65,7 +70,7 @@ Status TabletDocIteratorBase::Init(const shared_ptr<framework::TabletData>& tabl
     return InitIterators(tabletData, params);
 }
 
-Status TabletDocIteratorBase::Next(RawDocument* rawDocument, string* checkpoint, IDocument::DocInfo* docInfo)
+Status TabletDocIteratorBase::Next(RawDocument* rawDocument, string* checkpoint, framework::Locator::DocInfo* docInfo)
 {
     assert(HasNext());
     if (_pool.getUsedBytes() >= MAX_RELEASE_POOL_MEMORY_THRESHOLD) {
@@ -236,7 +241,7 @@ Status TabletDocIteratorBase::SelectTargetShards(size_t& shardCount, pair<uint32
 Status TabletDocIteratorBase::ReadValue(const index::IShardRecordIterator::ShardRecord* shardRecord,
                                         size_t recordShardId, RawDocument* doc)
 {
-    if (!_fieldNames.empty()) {
+    if (_readAllField || !_fieldNames.empty()) {
         for (auto kv : shardRecord->otherFields) {
             doc->setField(kv.first, kv.second);
         }
@@ -261,7 +266,7 @@ Status TabletDocIteratorBase::ReadValue(const index::IShardRecordIterator::Shard
 
 bool TabletDocIteratorBase::NotInFields(const string& fieldName) const
 {
-    return find(_fieldNames.begin(), _fieldNames.end(), fieldName) == _fieldNames.end();
+    return !_readAllField && find(_fieldNames.begin(), _fieldNames.end(), fieldName) == _fieldNames.end();
 }
 
 void TabletDocIteratorBase::SetCheckPoint(const string& shardCheckpoint, std::string* checkpoint)

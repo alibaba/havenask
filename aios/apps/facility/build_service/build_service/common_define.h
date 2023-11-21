@@ -15,17 +15,14 @@
  */
 #pragma once
 
-#include <cassert>
 #include <map>
-#include <memory>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <unistd.h>
-#include <vector>
+#include <utility>
 
-#include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
-#include "autil/TimeUtility.h"
-#include "beeper/beeper.h"
 
 #define BS_TYPEDEF_PTR(x) typedef std::shared_ptr<x> x##Ptr;
 #define BS_MEMORY_BARRIER() __asm__ __volatile__("" ::: "memory")

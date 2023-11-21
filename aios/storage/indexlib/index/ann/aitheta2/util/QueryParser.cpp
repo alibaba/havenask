@@ -16,13 +16,15 @@
 #include "indexlib/index/ann/aitheta2/util/QueryParser.h"
 
 #include "autil/URLUtil.h"
-
+#include "indexlib/index/ann/aitheta2/util/EmbeddingUtil.h"
 using namespace std;
 using namespace autil;
 using namespace indexlib::util;
+using namespace indexlib::index;
 namespace indexlibv2::index::ann {
 
-Status QueryParser::Parse(const AithetaIndexConfig& indexConf, const std::string& term, AithetaQueries& query)
+Status QueryParser::Parse(const AithetaIndexConfig& indexConf, const std::shared_ptr<TokenHasher>& tokenHasher,
+                          const std::string& term, AithetaQueries& query)
 {
     AithetaQueryWrapper wrapper;
     if (AithetaQueryWrapper::IsAithetaQuery(term)) {
@@ -34,14 +36,19 @@ Status QueryParser::Parse(const AithetaIndexConfig& indexConf, const std::string
         }
     } else {
         auto str = URLUtil::decode(term);
-        RETURN_IF_STATUS_ERROR(ParseFromRawString(indexConf, str, wrapper), "deserialize[%s] failed", term.c_str());
+        RETURN_IF_STATUS_ERROR(ParseFromRawString(indexConf, tokenHasher, str, wrapper), "deserialize[%s] failed",
+                               term.c_str());
     }
     query.Swap(&wrapper.GetAithetaQueries());
+    if (indexConf.distanceType == HAMMING) {
+        RETURN_STATUS_DIRECTLY_IF_ERROR(ConvertToBinaryEmbedding(indexConf.dimension, query));
+    }
     return Status::OK();
 }
 
 // query format: category_id0#embedding0;category_id1#embedding1&n=100&sf=0.1
-Status QueryParser::ParseFromRawString(const AithetaIndexConfig& indexConf, const std::string& rawTerm,
+Status QueryParser::ParseFromRawString(const AithetaIndexConfig& indexConf,
+                                       const std::shared_ptr<TokenHasher>& tokenHasher, const std::string& rawTerm,
                                        AithetaQueryWrapper& wrapper)
 {
     string mutableStr = rawTerm;
@@ -55,7 +62,7 @@ Status QueryParser::ParseFromRawString(const AithetaIndexConfig& indexConf, cons
     uint32_t topk = 100u;
     RETURN_IF_STATUS_ERROR(ParseValue(mutableStr, kTopkKey, topk), "parse topk failed");
     std::map<index_id_t, std::vector<float>> embeddingMap;
-    RETURN_IF_STATUS_ERROR(ParseEmbedding(indexConf, mutableStr, embeddingMap), "parse embedding failed");
+    RETURN_IF_STATUS_ERROR(ParseEmbedding(indexConf, tokenHasher, mutableStr, embeddingMap), "parse embedding failed");
     for (const auto& [indexId, embeddings] : embeddingMap) {
         size_t embeddingCnt = embeddings.size() / indexConf.dimension;
         auto embeddingsHead = embeddings.data();
@@ -65,8 +72,8 @@ Status QueryParser::ParseFromRawString(const AithetaIndexConfig& indexConf, cons
     return Status::OK();
 }
 
-Status QueryParser::ParseEmbedding(const AithetaIndexConfig& indexConf, const std::string& queryStr,
-                                   std::map<index_id_t, std::vector<float>>& embeddingMap)
+Status QueryParser::ParseEmbedding(const AithetaIndexConfig& indexConf, const std::shared_ptr<TokenHasher>& tokenHasher,
+                                   const std::string& queryStr, std::map<index_id_t, std::vector<float>>& embeddingMap)
 {
     auto tokens = StringUtil::split(queryStr, kQueryDelimiter);
     for (const auto& token : tokens) {
@@ -77,7 +84,17 @@ Status QueryParser::ParseEmbedding(const AithetaIndexConfig& indexConf, const st
             indexIds.push_back(kDefaultIndexId);
             StringUtil::fromString(subTokens[0], embedding, indexConf.embeddingDelimiter);
         } else if (subTokens.size() == 2) {
-            StringUtil::fromString(subTokens[0], indexIds, kIndexIdDelimiter);
+            if (!tokenHasher) {
+                StringUtil::fromString(subTokens[0], indexIds, kIndexIdDelimiter);
+            } else {
+                vector<string> cateStrVec;
+                StringUtil::fromString(subTokens[0], cateStrVec, kIndexIdDelimiter);
+                for (auto& cateStr : cateStrVec) {
+                    uint64_t hashKey;
+                    tokenHasher->CalcHashKey(cateStr, hashKey);
+                    indexIds.push_back(hashKey);
+                }
+            }
             StringUtil::fromString(subTokens[1], embedding, indexConf.embeddingDelimiter);
         }
         if (embedding.size() != indexConf.dimension) {
@@ -87,6 +104,30 @@ Status QueryParser::ParseEmbedding(const AithetaIndexConfig& indexConf, const st
             auto& embeddings = embeddingMap[indexId];
             embeddings.insert(embeddings.end(), embedding.begin(), embedding.end());
         });
+    }
+    return Status::OK();
+}
+
+Status QueryParser::ConvertToBinaryEmbedding(int32_t dimension, AithetaQueries& queries)
+{
+    int32_t size = queries.aithetaqueries_size();
+    for (int32_t idx = 0; idx < size; ++idx) {
+        auto query = queries.mutable_aithetaqueries(idx);
+        RETURN_STATUS_DIRECTLY_IF_ERROR(ConvertToBinaryEmbedding(dimension, *query));
+    }
+    return Status::OK();
+}
+
+Status QueryParser::ConvertToBinaryEmbedding(int32_t dimension, AithetaQuery& query)
+{
+    vector<int32_t> binaryEmb;
+    for (size_t qidx = 0; qidx < query.embeddingcount(); ++qidx) {
+        const float* floatEmb = query.embeddings().data() + qidx * dimension;
+        RETURN_IF_STATUS_ERROR(EmbeddingUtil::ConvertFloatToBinary(floatEmb, dimension, binaryEmb),
+                               "convert fp32 embedding to binary32 failed");
+        for (int32_t bval : binaryEmb) {
+            query.mutable_binaryembeddings()->Add(bval);
+        }
     }
     return Status::OK();
 }

@@ -1,16 +1,18 @@
 load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 strict_cc_fast_test(
-    name='OptimizeMergeStrategyTest',
-    srcs=['OptimizeMergeStrategyTest.cpp'],
+    name='NormalTabletOptimizeMergeStrategyTest',
+    srcs=['NormalTabletOptimizeMergeStrategyTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/table/index_task/merger/test:MergeTestHelper',
-        '//aios/storage/indexlib/table/normal_table/index_task/merger:OptimizeMergeStrategy',
+        '//aios/storage/indexlib/table/normal_table/index_task/merger:NormalTabletOptimizeMergeStrategy',
         '//aios/unittest_framework'
     ]
 )
 strict_cc_fast_test(
     name='PriorityQueueMergeStrategyTest',
     srcs=['PriorityQueueMergeStrategyTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/table/index_task/merger/test:MergeTestHelper',
         '//aios/storage/indexlib/table/normal_table/index_task/merger:PriorityQueueMergeStrategy',

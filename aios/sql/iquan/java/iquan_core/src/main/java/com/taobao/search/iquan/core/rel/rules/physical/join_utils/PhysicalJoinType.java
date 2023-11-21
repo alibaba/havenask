@@ -11,10 +11,6 @@ public enum PhysicalJoinType {
         this.value = value;
     }
 
-    public String getValue() {
-        return value;
-    }
-
     public static PhysicalJoinType from(String value) {
         value = value.toLowerCase();
         if (value.equals(HASH_JOIN.getValue())) {
@@ -23,6 +19,10 @@ public enum PhysicalJoinType {
             return LOOKUP_JOIN;
         }
         return INVALID_JOIN;
+    }
+
+    public String getValue() {
+        return value;
     }
 
     public boolean isValid() {

@@ -15,8 +15,14 @@
  */
 #pragma once
 
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/VersionCoord.h"
 
 namespace indexlibv2::framework {

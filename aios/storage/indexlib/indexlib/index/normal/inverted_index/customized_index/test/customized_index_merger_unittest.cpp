@@ -111,4 +111,5 @@ void CustomizedIndexMergerTest::TestParallelReduceMeta()
     meta.Load(GET_PARTITION_DIRECTORY());
     ASSERT_EQ(10, meta.parallelCount);
 }
+
 }} // namespace indexlib::index

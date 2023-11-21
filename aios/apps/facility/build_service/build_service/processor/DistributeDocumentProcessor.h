@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __DISTRIBUTE_DOCUMENT_PROCESSOR_H
-#define __DISTRIBUTE_DOCUMENT_PROCESSOR_H
+#pragma once
 
+#include <map>
+#include <string>
+#include <vector>
+
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
 
 namespace build_service { namespace processor {
 
@@ -61,5 +66,3 @@ private:
 };
 
 }} // namespace build_service::processor
-
-#endif

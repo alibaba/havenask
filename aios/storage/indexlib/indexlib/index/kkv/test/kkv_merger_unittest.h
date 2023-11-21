@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KKVMERGERTEST_H
-#define __INDEXLIB_KKVMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/kkv_merger_typed.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(KKVMergerTest, TestEstimateMemoryUse);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KKVMERGERTEST_H

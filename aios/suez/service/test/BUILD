@@ -67,7 +67,7 @@ cc_test(
         '//aios/storage/indexlib/indexlib:indexlib_testlib',
         '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
         '//aios/suez/service:builtin_service',
-        '//aios/table/table/test:table_testlib', '//aios/unittest_framework'
+        '//aios/table/test:table_testlib', '//aios/unittest_framework'
     ]
 )
 cc_test(
@@ -79,7 +79,7 @@ cc_test(
         '//aios/storage/indexlib/indexlib:indexlib_testlib',
         '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
         '//aios/suez/service:builtin_service',
-        '//aios/table/table/test:table_testlib', '//aios/unittest_framework'
+        '//aios/table/test:table_testlib', '//aios/unittest_framework'
     ]
 )
 cc_test(
@@ -103,7 +103,7 @@ cc_test(
         '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper',
         '//aios/suez/common/test:table_meta_util',
         '//aios/suez/service:builtin_service',
-        '//aios/table/table/test:table_testlib', '//aios/unittest_framework'
+        '//aios/table/test:table_testlib', '//aios/unittest_framework'
     ]
 )
 cc_test(

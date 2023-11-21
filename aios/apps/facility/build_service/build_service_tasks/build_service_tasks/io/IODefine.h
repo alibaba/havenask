@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BUILD_SERVICE_TASKS_IO_DEFINE_H
-#define ISEARCH_BUILD_SERVICE_TASKS_IO_DEFINE_H
+#pragma once
 
 #include <string>
 
@@ -23,5 +22,3 @@ namespace build_service_tasks {
 static const std::string MULTI_FILE = "MULTI_FILE";
 
 }
-
-#endif

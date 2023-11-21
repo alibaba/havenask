@@ -15,7 +15,8 @@
  */
 #include "indexlib/merger/merge_strategy/align_version_merge_strategy.h"
 
-#include "indexlib/config/index_partition_schema.h"
+#include <iosfwd>
+
 #include "indexlib/config/merge_strategy_parameter.h"
 #include "indexlib/framework/LevelInfo.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"

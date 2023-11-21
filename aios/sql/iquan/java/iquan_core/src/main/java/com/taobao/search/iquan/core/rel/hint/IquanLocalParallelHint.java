@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel.hint;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
 import com.taobao.search.iquan.core.common.ConstantDefine;
@@ -7,19 +11,11 @@ import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.hint.HintPredicate;
-import org.apache.calcite.rel.hint.HintPredicates;
 import org.apache.calcite.rel.hint.RelHint;
-import com.google.common.collect.ImmutableList;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 public class IquanLocalParallelHint implements IquanHint {
-    private static List<HintPredicate> precedingPredicates = IquanScanAttrHint.precedingPredicates;
-
     static final IquanLocalParallelHint INSTANCE = new IquanLocalParallelHint(ConstantDefine.LOCAL_PARALLEL_HINT);
-
+    private static List<HintPredicate> precedingPredicates = IquanScanAttrHint.precedingPredicates;
     private final String name;
 
     public IquanLocalParallelHint(String name) {

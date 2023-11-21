@@ -15,6 +15,9 @@
  */
 #include "indexlib/framework/VersionValidator.h"
 
+#include <assert.h>
+
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/framework/ITabletFactory.h"

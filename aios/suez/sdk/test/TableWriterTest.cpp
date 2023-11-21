@@ -7,6 +7,7 @@
 #include "build_service/reader/RawDocumentBuilder.h"
 #include "build_service/reader/SwiftFieldFilterRawDocumentParser.h"
 #include "build_service/util/SwiftClientCreator.h"
+#include "future_lite/executors/SimpleExecutor.h"
 #include "indexlib/document/document_factory_wrapper.h"
 #include "indexlib/document/raw_document/raw_document_define.h"
 #include "indexlib/document/raw_document_parser.h"
@@ -24,7 +25,7 @@ using namespace testing;
 
 namespace suez {
 
-class TableWriterTest : public TESTBASE {
+class TableWriterTest : public TESTBASE_BASE, public ::testing::TestWithParam<std::string> {
 public:
     void setUp() override {
         _configRoot = GET_TEST_DATA_PATH() + "table_test/table_writer/config/0";
@@ -35,9 +36,15 @@ public:
 
         _format = build_service::reader::RAW_DOCUMENT_HA3_DOCUMENT_FORMAT;
         _tableWriter = std::make_unique<TableWriter>();
-    }
 
+        std::string executorType = GetParam();
+        if (executorType == "simple") {
+            _executor.reset(new future_lite::executors::SimpleExecutor(4));
+        }
+    }
     void tearDown() override { _pid.Clear(); }
+    void SetUp() override { TESTBASE_BASE::SetUp(); }
+    void TearDown() override { TESTBASE_BASE::TearDown(); }
 
 protected:
     std::string makeHa3FormatDoc(const std::map<std::string, std::string> &fields) const {
@@ -79,16 +86,19 @@ protected:
     std::shared_ptr<kmonitor::MetricsReporter> _metricsReporter;
     std::string _format;
     std::unique_ptr<TableWriter> _tableWriter;
+    std::unique_ptr<future_lite::Executor> _executor;
 };
 
-TEST_F(TableWriterTest, testInitSimple) {
+INSTANTIATE_TEST_CASE_P(TestWithExecutor, TableWriterTest, testing::Values("", "simple"));
+
+TEST_P(TableWriterTest, testInitSimple) {
     WALConfig walConfig;
     ASSERT_TRUE(_tableWriter->init(_pid, _configRoot, _metricsReporter, walConfig, _swiftClientCreator));
     ASSERT_TRUE(_tableWriter->_documentFactoryWrapper);
     ASSERT_TRUE(_tableWriter->_wal);
 }
 
-TEST_F(TableWriterTest, testInitWithWalFail) {
+TEST_P(TableWriterTest, testInitWithWalFail) {
     WALConfig walConfig;
     walConfig.strategy = "realtime_swift";
     ASSERT_TRUE(_tableWriter->init(_pid, _configRoot, _metricsReporter, walConfig, _swiftClientCreator));
@@ -96,7 +106,7 @@ TEST_F(TableWriterTest, testInitWithWalFail) {
     ASSERT_FALSE(_tableWriter->_wal);
 }
 
-TEST_F(TableWriterTest, testParseWalDocsFail) {
+TEST_P(TableWriterTest, testParseWalDocsFail) {
     ASSERT_TRUE(initTableWriter());
 
     WalDocVector docs = {{1, "xxx"}};
@@ -104,7 +114,7 @@ TEST_F(TableWriterTest, testParseWalDocsFail) {
     ASSERT_FALSE(_tableWriter->parseWalDocs(_format, docs).is_ok());
 }
 
-TEST_F(TableWriterTest, testParseWalDocs) {
+TEST_P(TableWriterTest, testParseWalDocs) {
     ASSERT_TRUE(initTableWriter());
 
     {
@@ -126,7 +136,7 @@ TEST_F(TableWriterTest, testParseWalDocs) {
     // TODO: check doc content
 }
 
-TEST_F(TableWriterTest, testStop) {
+TEST_P(TableWriterTest, testStop) {
     ASSERT_TRUE(initTableWriter());
     ASSERT_TRUE(_tableWriter->_enableWrite);
     ASSERT_TRUE(_tableWriter->_wal);
@@ -135,7 +145,7 @@ TEST_F(TableWriterTest, testStop) {
     ASSERT_FALSE(_tableWriter->_wal);
 }
 
-TEST_F(TableWriterTest, testStop2) {
+TEST_P(TableWriterTest, testStop2) {
     ASSERT_TRUE(initTableWriter());
     auto wal = std::make_unique<NiceMockWALStrategy>();
     auto mockWal = wal.get();
@@ -148,7 +158,7 @@ TEST_F(TableWriterTest, testStop2) {
     ASSERT_FALSE(_tableWriter->_wal);
 }
 
-TEST_F(TableWriterTest, testSetEnableWrite) {
+TEST_P(TableWriterTest, testSetEnableWrite) {
     ASSERT_TRUE(initTableWriter());
     auto wal = std::make_unique<NiceMockWALStrategy>();
     auto mockWal = wal.get();
@@ -183,7 +193,7 @@ ACTION_P2(CallLogDone, result, message, future) {
     *future = std::move(std::async(std::launch::async, arg1, std::move(ret)));
 }
 
-TEST_F(TableWriterTest, testWriteFailed) {
+TEST_P(TableWriterTest, testWriteFailed) {
     ASSERT_TRUE(initTableWriter());
 
     // disable write
@@ -193,7 +203,7 @@ TEST_F(TableWriterTest, testWriteFailed) {
         ASSERT_FALSE(result.is_ok());
         callDone = true;
     };
-    _tableWriter->write(_format, {}, std::move(done1));
+    _tableWriter->write(_format, {}, std::move(done1), _executor.get());
     ASSERT_TRUE(callDone);
 
     // doc invalid
@@ -204,7 +214,7 @@ TEST_F(TableWriterTest, testWriteFailed) {
         callDone = true;
     };
     WalDocVector docs = {{1, "xx"}};
-    _tableWriter->write("xx", docs, std::move(done2));
+    _tableWriter->write("xx", docs, std::move(done2), _executor.get());
     ASSERT_TRUE(callDone);
 
     // log failed
@@ -221,12 +231,12 @@ TEST_F(TableWriterTest, testWriteFailed) {
     EXPECT_CALL(*mockWal, log(_, _)).WillOnce(CallLogDone(std::vector<int64_t>{}, "topic not exist", &logDone));
     docs = {{1, makeHa3FormatDoc({{"f1", "v11"}, {"f2", "v21"}})},
             {2, makeHa3FormatDoc({{"f1", "v12"}, {"f2", "v22"}})}};
-    _tableWriter->write(_format, docs, std::move(done3));
+    _tableWriter->write(_format, docs, std::move(done3), _executor.get());
     logDone.get();
     ASSERT_TRUE(callDone);
 }
 
-TEST_F(TableWriterTest, testWriteEmpty) {
+TEST_P(TableWriterTest, testWriteEmpty) {
     ASSERT_TRUE(initTableWriter());
     auto wal = std::make_unique<NiceMockWALStrategy>();
     auto mockWal = wal.get();
@@ -238,11 +248,11 @@ TEST_F(TableWriterTest, testWriteEmpty) {
         callDone = true;
     };
     EXPECT_CALL(*mockWal, log(_, _)).Times(0);
-    _tableWriter->write(_format, {}, std::move(done));
+    _tableWriter->write(_format, {}, std::move(done), _executor.get());
     ASSERT_TRUE(callDone);
 }
 
-TEST_F(TableWriterTest, testWriteLog) {
+TEST_P(TableWriterTest, testWriteLog) {
     ASSERT_TRUE(initTableWriter());
     auto wal = std::make_unique<NiceMockWALStrategy>();
     auto mockWal = wal.get();
@@ -266,13 +276,13 @@ TEST_F(TableWriterTest, testWriteLog) {
     EXPECT_CALL(*mockWal, log(_, _)).WillOnce(CallLogDone(std::vector<int64_t>{1, 2}, "", &logDone));
     WalDocVector docs = {{1, makeHa3FormatDoc({{"f1", "v11"}, {"f2", "v21"}})},
                          {2, makeHa3FormatDoc({{"f1", "v12"}, {"f2", "v22"}})}};
-    _tableWriter->write(_format, docs, std::move(done1));
+    _tableWriter->write(_format, docs, std::move(done1), _executor.get());
     logDone.get();
     ASSERT_TRUE(callDone);
     ASSERT_EQ(2, _tableWriter->getLatestLogOffset());
 }
 
-TEST_F(TableWriterTest, testWriteAsync) {
+TEST_P(TableWriterTest, testWriteAsync) {
     ASSERT_TRUE(initTableWriter());
     auto wal = std::make_unique<NiceMockWALStrategy>();
     auto mockWal = wal.get();
@@ -303,13 +313,13 @@ TEST_F(TableWriterTest, testWriteAsync) {
     EXPECT_CALL(*mockWal, log(_, _)).WillOnce(CallLogDone(std::vector<int64_t>{1, 2}, "", &logDone));
     WalDocVector docs = {{1, makeHa3FormatDoc({{"f1", "v11"}, {"f2", "v21"}})},
                          {2, makeHa3FormatDoc({{"f1", "v12"}, {"f2", "v22"}})}};
-    _tableWriter->write(_format, docs, std::move(done1));
+    _tableWriter->write(_format, docs, std::move(done1), _executor.get());
     logDone.get();
     ASSERT_TRUE(callDone);
     ASSERT_EQ(2, _tableWriter->getLatestLogOffset());
 }
 
-TEST_F(TableWriterTest, testAlterTableDoc) {
+TEST_P(TableWriterTest, testAlterTableDoc) {
     ASSERT_TRUE(initTableWriter());
     auto wal = std::make_unique<NiceMockWALStrategy>();
     auto mockWal = wal.get();

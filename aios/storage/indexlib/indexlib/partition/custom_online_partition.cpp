@@ -280,7 +280,7 @@ IndexPartition::OpenStatus CustomOnlinePartition::DoOpen(const string& primaryDi
                static_cast<int>(onDiskVersion.GetVersionId()));
         return IndexPartition::OS_FAIL;
     }
-    if (unlikely(onDiskVersion.GetVersionId() == INVALID_VERSION)) {
+    if (unlikely(onDiskVersion.GetVersionId() == INVALID_VERSIONID)) {
         const std::string& root = secondaryDir;
         THROW_IF_FS_ERROR(mFileSystem->MountFile(root, SCHEMA_FILE_NAME, SCHEMA_FILE_NAME, FSMT_READ_ONLY, -1, false),
                           "mount schema file failed");
@@ -332,8 +332,8 @@ IndexPartition::OpenStatus CustomOnlinePartition::DoOpen(const string& primaryDi
         }
     }
     PartitionDataPtr newPartitionData =
-        CreateCustomPartitionData(onDiskVersion, index_base::Version(INVALID_VERSION), versionDpDesc, mDumpSegmentQueue,
-                                  GetReclaimTimestamp(onDiskVersion), false);
+        CreateCustomPartitionData(onDiskVersion, index_base::Version(INVALID_VERSIONID), versionDpDesc,
+                                  mDumpSegmentQueue, GetReclaimTimestamp(onDiskVersion), false);
     mPartitionDataHolder.Reset(newPartitionData);
     // only recover once when open
     mOptions.GetOnlineConfig().enableRecoverIndex = false;
@@ -349,7 +349,7 @@ IndexPartition::OpenStatus CustomOnlinePartition::DoOpen(const string& primaryDi
     InitResourceCalculator(mPartitionDataHolder.Get(), mWriter);
     PartitionDataPtr clonedPartitionData(mPartitionDataHolder.Get()->Clone());
     auto reader =
-        InitReaderWithMemoryLimit(clonedPartitionData, mWriter, index_base::Version(INVALID_VERSION), onDiskVersion);
+        InitReaderWithMemoryLimit(clonedPartitionData, mWriter, index_base::Version(INVALID_VERSIONID), onDiskVersion);
 
     if (reader) {
         auto tableReader = reader->GetTableReader();
@@ -719,7 +719,7 @@ CustomOnlinePartitionReaderPtr CustomOnlinePartition::CreateDiffVersionReader(
     }
     DumpSegmentQueuePtr emptyQueue;
     CustomOnlinePartitionWriterPtr emptyWriter;
-    Version invalidVersion(INVALID_VERSION);
+    Version invalidVersion(INVALID_VERSIONID);
     auto diffPartitionData = CreateCustomPartitionData(diffVersion, invalidVersion, nullptr, emptyQueue, -1, true);
     return InitReaderWithMemoryLimit(diffPartitionData, emptyWriter, invalidVersion, diffVersion);
 }

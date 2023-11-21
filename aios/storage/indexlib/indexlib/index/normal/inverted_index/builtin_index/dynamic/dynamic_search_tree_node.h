@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DYNAMIC_SEARCH_TREE_NODE_H
-#define __INDEXLIB_DYNAMIC_SEARCH_TREE_NODE_H
+#pragma once
 
 #include <memory>
 
@@ -179,5 +178,3 @@ inline const Node* InternalNode::Child(slotid_t idx) const noexcept
 }
 
 }}} // namespace indexlib::index::dynamic_search_tree_v1
-
-#endif // __INDEXLIB_DYNAMIC_SEARCH_TREE_NODE_H

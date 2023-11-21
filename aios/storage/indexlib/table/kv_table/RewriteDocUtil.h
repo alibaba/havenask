@@ -24,13 +24,12 @@ namespace indexlibv2::table {
 class RewriteDocUtil
 {
 public:
-    static Status RewriteMergeValue(const autil::StringView &currentValue,
-                                    const autil::StringView &newValue,
-                                    std::shared_ptr<indexlibv2::index::PackAttributeFormatter> &formatter,
-                                    indexlib::util::MemBufferPtr &memBuffer,
-                                    document::KVDocument* doc);
-    static void RewriteValue(std::shared_ptr<indexlibv2::index::AttributeConvertor> &attrConvertor,
-                             autil::StringView &value);
+    static Status RewriteMergeValue(const autil::StringView& currentValue, const autil::StringView& newValue,
+                                    std::shared_ptr<indexlibv2::index::PackAttributeFormatter>& formatter,
+                                    indexlib::util::MemBufferPtr& memBuffer, document::KVDocument* doc);
+    static void RewriteValue(std::shared_ptr<indexlibv2::index::AttributeConvertor>& attrConvertor,
+                             autil::StringView& value);
+
 private:
     AUTIL_LOG_DECLARE();
 };

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "autil/Log.h"
-#include "iquan/common/catalog/TvfFunctionModel.h"
+#include "iquan/common/catalog/FunctionModel.h"
 #include "matchdoc/MatchDoc.h"
 #include "matchdoc/MatchDocAllocator.h"
 #include "matchdoc/ValueType.h"
@@ -48,9 +48,7 @@ TablePtr TopKMarkTvfFuncTest::prepareInputTable(vector<int32_t> value) {
     MatchDocAllocatorPtr allocator(new matchdoc::MatchDocAllocator(_poolPtr));
     vector<MatchDoc> docs = allocator->batchAllocate(value);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", value);
-    TablePtr table;
-    table.reset(new Table(docs, allocator));
-    return table;
+    return Table::fromMatchDocs(docs, allocator);
 }
 
 TEST_F(TopKMarkTvfFuncTest, testInit) {
@@ -122,7 +120,7 @@ TEST_F(TopKMarkTvfFuncTest, testdoComputeCreateComparatorFail) {
     vector<MatchDoc> docs = allocator->batchAllocate(3);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {3, 2, 1});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {3, 3, 2});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"value1", "2"};
     context.queryPool = _poolPtr.get();
@@ -136,7 +134,7 @@ TEST_F(TopKMarkTvfFuncTest, testdoComputeDefaultSort) {
     vector<MatchDoc> docs = allocator->batchAllocate(5);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {5, 3, 2, 1, 4});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {6, 7, 8, 10, 9});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"value", "2"};
     context.queryPool = _poolPtr.get();
@@ -159,7 +157,7 @@ TEST_F(TopKMarkTvfFuncTest, testdoComputeDefaultSortTopKMark) {
     vector<MatchDoc> docs = allocator->batchAllocate(5);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {5, 3, 2, 1, 4});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {7, 6, 8, 10, 9});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"value", "4"};
     context.queryPool = _poolPtr.get();
@@ -182,7 +180,7 @@ TEST_F(TopKMarkTvfFuncTest, testComputeDefaultSortDesc) {
     vector<MatchDoc> docs = allocator->batchAllocate(5);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {5, 3, 2, 1, 4});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {6, 7, 8, 10, 9});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"-value", "2"};
     context.queryPool = _poolPtr.get();
@@ -205,7 +203,7 @@ TEST_F(TopKMarkTvfFuncTest, testComputeInputEof) {
     vector<MatchDoc> docs = allocator->batchAllocate(5);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {5, 3, 2, 1, 4});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {6, 7, 8, 10, 9});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"value", "2"};
     context.queryPool = _poolPtr.get();
@@ -231,7 +229,7 @@ TEST_F(TopKMarkTvfFuncTest, testComputeTopKMark_0) {
     vector<MatchDoc> docs = allocator->batchAllocate(5);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {5, 3, 2, 1, 4});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {6, 7, 8, 10, 9});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"value", "0"};
     context.queryPool = _poolPtr.get();
@@ -254,7 +252,7 @@ TEST_F(TopKMarkTvfFuncTest, testComputeLessThanTopKMark) {
     vector<MatchDoc> docs = allocator->batchAllocate(3);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {3, 2, 1});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {3, 2, 1});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"-value", "4"};
     context.queryPool = _poolPtr.get();
@@ -277,7 +275,7 @@ TEST_F(TopKMarkTvfFuncTest, testComputeLessThanTopKMark_max) {
     vector<MatchDoc> docs = allocator->batchAllocate(3);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {3, 2, 1});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {3, 2, 1});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"-value", "-1"};
     context.queryPool = _poolPtr.get();
@@ -310,9 +308,9 @@ TEST_F(TopKMarkTvfFuncTest, testComputeEmptyInput) {
 TEST_F(TopKMarkTvfFuncTest, testRegTvfModels) {
     navi::NaviLoggerProvider provider("DEBUG");
     TopKMarkTvfFuncCreator creator;
-    iquan::TvfModels tvfModels;
+    std::vector<iquan::FunctionModel> tvfModels;
     ASSERT_TRUE(creator.regTvfModels(tvfModels));
-    ASSERT_EQ(1, tvfModels.functions.size());
+    ASSERT_EQ(1, tvfModels.size());
 }
 
 } // namespace sql

@@ -40,10 +40,10 @@ public:
     void Init(const std::string &docIdStr, const std::string &fieldStr);
 
 public:
-    virtual bool DecodeDocBuffer(docid_t startDocId,
-                                 docid_t *docBuffer,
-                                 docid_t &firstDocId,
-                                 docid_t &lastDocId,
+    virtual bool DecodeDocBuffer(docid64_t startDocId,
+                                 docid32_t *docBuffer,
+                                 docid64_t &firstDocId,
+                                 docid64_t &lastDocId,
                                  ttf_t &currentTTF) override;
 
     virtual bool DecodeCurrentTFBuffer(tf_t *tfBuffer) override;

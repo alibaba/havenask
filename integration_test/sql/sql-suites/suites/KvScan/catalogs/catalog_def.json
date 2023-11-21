@@ -1,0 +1,2616 @@
+{
+  "catalogs": [
+    {
+      "catalog_name": "default", 
+      "databases": [
+        {
+          "database_name": "system", 
+          "functions": [
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "double"
+                        }
+                      }, 
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "int32"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "double"
+                        }
+                      }, 
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "double"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "double"
+                        }
+                      }, 
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_collect", 
+              "function_type": "UDAF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "acc_types": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "int32"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "int64"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "float"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_avg", 
+              "function_type": "UDAF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_matchindex", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_query", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_contain", 
+              "function_type": "UDF", 
+              "function_version": 200, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_notcontain", 
+              "function_type": "UDF", 
+              "function_version": 200, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "float"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_range", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "int32"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "int64"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_multivalue", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "timestamp"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "timestamp"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_timestamp", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "time"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "time"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_time", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "date"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "date"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_date", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "variable_args": true
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_concat", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [], 
+                    "returns": [
+                      {
+                        "type": "int32"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_rand", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 0
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "_split", 
+              "function_type": "UDTF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "acc_types": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "int64"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "int32"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "int64"
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "int64"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "int32"
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "int32"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "MAXLABEL", 
+              "function_type": "UDAF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "ARBITRARY", 
+              "function_type": "UDAF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int8"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "int8"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int8"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int16"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "int16"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int16"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "int32"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "int64"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "double"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "double"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "float"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "float"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "float"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "GATHER", 
+              "function_type": "UDAF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int8"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int8"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int8"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int16"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int16"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int16"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "double"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "double"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "double"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "float"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "float"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "float"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "acc_types": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "MULTIGATHER", 
+              "function_type": "UDAF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "int32"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "int64"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "MULTICAST", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "MATCHINDEX", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "QUERY", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "ha_in", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "contain", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "string"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "notcontain", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "float"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "range", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "boolean"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "sp_query_match", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "int64"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "int64"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "hashcombine", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "float"
+                      }, 
+                      {
+                        "type": "string"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "float"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "rangevalue", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "double"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "normalizescore", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "int32"
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "int64"
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "matchscore", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }, 
+            {
+              "function_content": {
+                "properties": {}, 
+                "prototypes": [
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int32"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }, 
+                  {
+                    "params": [
+                      {
+                        "type": "array", 
+                        "value_type": {
+                          "type": "int64"
+                        }
+                      }, 
+                      {
+                        "type": "string"
+                      }, 
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "returns": [
+                      {
+                        "type": "double"
+                      }
+                    ], 
+                    "variable_args": false
+                  }
+                ]
+              }, 
+              "function_content_version": "json_default_0.1", 
+              "function_name": "matchscore2", 
+              "function_type": "UDF", 
+              "function_version": 300, 
+              "is_deterministic": 1
+            }
+          ], 
+          "layer_tables": [], 
+          "tables": []
+        }, 
+        {
+          "database_name": "kv2", 
+          "functions": [], 
+          "layer_tables": [
+            {
+              "content": {
+                "layer_format": [], 
+                "layers": [
+                  {
+                    "database_name": "kv2", 
+                    "layer_info": {}, 
+                    "table_name": "kv2"
+                  }
+                ], 
+                "properties": {}
+              }, 
+              "layer_table_name": "kv2_summary_"
+            }
+          ], 
+          "tables": [
+            {
+              "table_content": {
+                "distribution": {
+                  "hash_fields": [
+                    "cat_id"
+                  ], 
+                  "hash_function": "HASH", 
+                  "hash_params": {}, 
+                  "partition_cnt": 1
+                }, 
+                "fields": [
+                  {
+                    "field_name": "cat_id", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "INTEGER"
+                    }, 
+                    "index_name": "cat_id", 
+                    "index_type": "PRIMARY_KEY", 
+                    "is_attribute": true
+                  }, 
+                  {
+                    "field_name": "company_id", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "INTEGER"
+                    }, 
+                    "is_attribute": true
+                  }, 
+                  {
+                    "field_name": "category_name", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "STRING"
+                    }, 
+                    "is_attribute": true
+                  }, 
+                  {
+                    "field_name": "category_description", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "STRING"
+                    }, 
+                    "is_attribute": true
+                  }, 
+                  {
+                    "field_name": "auction_count", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "INTEGER"
+                    }, 
+                    "is_attribute": true
+                  }
+                ], 
+                "indexes": {}, 
+                "properties": {}, 
+                "sort_desc": [], 
+                "sub_tables": [], 
+                "summary_fields": [], 
+                "table_name": "kv2", 
+                "table_type": "kv"
+              }, 
+              "table_content_type": ""
+            }, 
+            {
+              "table_content": {
+                "distribution": {
+                  "hash_fields": [
+                    "company_id"
+                  ], 
+                  "hash_function": "HASH", 
+                  "hash_params": {}, 
+                  "partition_cnt": 1
+                }, 
+                "fields": [
+                  {
+                    "field_name": "company_id", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "INTEGER"
+                    }, 
+                    "index_name": "company_id", 
+                    "index_type": "primary_key", 
+                    "is_attribute": false
+                  }, 
+                  {
+                    "field_name": "company_name", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "STRING"
+                    }, 
+                    "index_name": "company_name", 
+                    "index_type": "secondary_key", 
+                    "is_attribute": true
+                  }, 
+                  {
+                    "field_name": "country", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "STRING"
+                    }, 
+                    "is_attribute": true
+                  }
+                ], 
+                "indexes": {}, 
+                "properties": {}, 
+                "sort_desc": [], 
+                "sub_tables": [], 
+                "summary_fields": [], 
+                "table_name": "kkv1", 
+                "table_type": "kkv"
+              }, 
+              "table_content_type": ""
+            }
+          ]
+        }, 
+        {
+          "database_name": "kkv1", 
+          "functions": [], 
+          "layer_tables": [
+            {
+              "content": {
+                "layer_format": [], 
+                "layers": [
+                  {
+                    "database_name": "kv2", 
+                    "layer_info": {}, 
+                    "table_name": "kv2"
+                  }
+                ], 
+                "properties": {}
+              }, 
+              "layer_table_name": "kv2_summary_"
+            }
+          ], 
+          "tables": [
+            {
+              "table_content": {
+                "distribution": {
+                  "hash_fields": [
+                    "company_id"
+                  ], 
+                  "hash_function": "HASH", 
+                  "hash_params": {}, 
+                  "partition_cnt": 1
+                }, 
+                "fields": [
+                  {
+                    "field_name": "company_id", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "INTEGER"
+                    }, 
+                    "index_name": "company_id", 
+                    "index_type": "primary_key", 
+                    "is_attribute": false
+                  }, 
+                  {
+                    "field_name": "company_name", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "STRING"
+                    }, 
+                    "index_name": "company_name", 
+                    "index_type": "secondary_key", 
+                    "is_attribute": true
+                  }, 
+                  {
+                    "field_name": "country", 
+                    "field_type": {
+                      "extend_infos": {}, 
+                      "type": "STRING"
+                    }, 
+                    "is_attribute": true
+                  }
+                ], 
+                "indexes": {}, 
+                "properties": {}, 
+                "sort_desc": [], 
+                "sub_tables": [], 
+                "summary_fields": [], 
+                "table_name": "kkv1", 
+                "table_type": "kkv"
+              }, 
+              "table_content_type": ""
+            }
+          ]
+        }
+      ], 
+      "locations": [
+        {
+          "equivalent_hash_fields": [], 
+          "join_info": [], 
+          "node_name": "kv2", 
+          "node_type": "searcher", 
+          "partition_cnt": 1, 
+          "tables": [
+            {
+              "database_name": "kv2", 
+              "table_name": "kv2_summary_"
+            }, 
+            {
+              "database_name": "kv2", 
+              "table_name": "kv2"
+            }, 
+            {
+              "database_name": "kv2", 
+              "table_name": "kkv1"
+            }
+          ]
+        }, 
+        {
+          "equivalent_hash_fields": [], 
+          "join_info": [], 
+          "node_name": "kkv1", 
+          "node_type": "searcher", 
+          "partition_cnt": 1, 
+          "tables": [
+            {
+              "database_name": "kkv1", 
+              "table_name": "kv2_summary_"
+            }, 
+            {
+              "database_name": "kkv1", 
+              "table_name": "kkv1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

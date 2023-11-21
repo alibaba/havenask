@@ -1,0 +1,1668 @@
+{
+    "fields": [
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "title",
+            "field_type": "TEXT"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "vidname",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "cat_id_path",
+            "field_type": "UINT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "spuid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "sspuid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "epid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "haspid",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "user",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "categoryp",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "auction_type",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "oneyuan",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "promote",
+            "field_type": "UINT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "commend",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "ratesum",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "nick",
+            "field_type": "UINT64"
+        },
+        {
+            "field_name": "DUP_nick",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "counts",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "shipping",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "isnewest",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "auto_post",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "auction_flag",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "options_bits",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "has_bid",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "isprepay",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "uchar",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "psbit",
+            "field_type": "UINT8",
+            "multi_value": true
+        },
+        {
+            "field_name": "pidvid",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "DUP_pidvid",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "spugroupid",
+            "field_type": "UINT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "user_id",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "user_type",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "pid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "support_cod",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "support_xcard",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "baobei_type",
+            "field_type": "INT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "lptime",
+            "field_type": "INT8",
+            "multi_value": true
+        },
+        {
+            "field_name": "lp_start",
+            "field_type": "UINT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "istk",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "hprop",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "auction_tag",
+            "field_type": "UINT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "disp_flag",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "properties",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "etao_tag",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "auction_ext",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "assure",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "lp_rate",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "tk_rate",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "seller_goodrat",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "etaotype",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "biz30day",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "category",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "seller_rank_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "seller_rank_score2",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "seller_rank_score3",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "starts",
+            "field_type": "UINT32"
+        },
+        {
+            "field_name": "static_trans_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "static_trans_score2",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "static_trans_score3",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "static_trans_score5",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "nid",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "fast_post_fee",
+            "field_type": "FLOAT"
+        },
+        {
+            "field_name": "reserve_price",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "sku_maxprice",
+            "field_type": "DOUBLE"
+        },
+        {
+            "field_name": "tk_trans_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tk_total_commi",
+            "field_type": "FLOAT"
+        },
+        {
+            "field_name": "tk_total_sales",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "unit_price",
+            "field_type": "FLOAT"
+        },
+        {
+            "field_name": "ss_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "provcity",
+            "field_type": "UINT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "ends",
+            "field_type": "INT64"
+        },
+        {
+            "field_name": "ends_1",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "ends_2",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "catmap",
+            "field_type": "UINT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "mlr_features",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "real_post_fee",
+            "field_type": "UINT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_time_wap",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_rate_wap",
+            "field_type": "UINT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_group_wap",
+            "field_type": "UINT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_group",
+            "field_type": "UINT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_cat",
+            "field_type": "UINT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_time",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_rate",
+            "field_type": "UINT16",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_extend",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_final_price",
+            "field_type": "DOUBLE",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_rate_single",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "old_starts",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "domain_credit",
+            "field_type": "UINT32"
+        },
+        {
+            "field_name": "cid",
+            "field_type": "UINT64"
+        },
+        {
+            "field_name": "level_one_cat",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "realtime_cvr_score1",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "realtime_cvr_score2",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "uvsum",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "uvsum_suc",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "grade_avg",
+            "field_type": "FLOAT"
+        },
+        {
+            "field_name": "dsr_score",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "custfeature",
+            "field_type": "INT8"
+        },
+        {
+            "field_name": "main_rate",
+            "field_type": "UINT16"
+        },
+        {
+            "field_name": "alg_feedback_features",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "q_doc_enhance",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "m_haixuan_tag",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "pict_url",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "promoted_type",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "options",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "quantity",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "promoted_service",
+            "field_type": "UINT8"
+        },
+        {
+            "field_name": "user_tag2",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "vertical_market",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "spuprice",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "seller_loc",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "unit",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "comment_count",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "people_num",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "post_fee",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "credit_rate",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "pidvid_detail",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "alg_pscore",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "list_alg_features",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "tag_price",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "consign_date",
+            "field_type": "INT16"
+        },
+        {
+            "field_name": "alg_pscore2",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "alg_pscore3",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "alg_pscore4",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "alg_pscore5",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "alg_pscore6",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "alg_pscore7",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "algfield",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "tk_rate_etao",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "tk_total_pubnum",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "small_image",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "auction_image",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "new_dsr",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "similar_num",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "dna_id",
+            "field_type": "INT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "DUP_dna_id",
+            "field_type": "STRING",
+            "multi_value": true
+        },
+        {
+            "field_name": "his_price",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "tk_group_ids",
+            "field_type": "UINT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "tmall_service_ids",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "tk_group_rates",
+            "field_type": "STRING"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "dna_name",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "cluster_id",
+            "field_type": "UINT32",
+            "multi_value": true
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "cluster_name",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "mf_item_feature",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "realtime_keyword",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "item_feature2",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "auction_pop_personalized",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "zk_type",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "special_tag",
+            "field_type": "UINT64",
+            "multi_value": true
+        },
+        {
+            "field_name": "style_element",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "is_sns_guide",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "tk_sns_commission",
+            "field_type": "FLOAT"
+        },
+        {
+            "field_name": "tk_sns_p4p_price",
+            "field_type": "FLOAT"
+        },
+        {
+            "field_name": "wl_trans_tag",
+            "field_type": "INT8"
+        },
+        {
+            "analyzer": "multi_level_analyzer",
+            "field_name": "tag_space_name",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "dna_score",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "ss_auction_tag",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "auction_quality",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "min_escape_info",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "mainbts_rand_buy",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "mainbts_good_buy",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "crowd_favorite_scores",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "crowd_favorite_tags",
+            "field_type": "INT32",
+            "multi_value": true
+        },
+        {
+            "field_name": "item_feed_pic_flag_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "feed_score_c2c",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "selection_score",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "npx_tag",
+            "field_type": "INT32"
+        },
+        {
+            "field_name": "new_field",
+            "field_type": "INT32"
+        }        
+    ],
+    "indexes": {
+        "attribute": [
+            {
+                "field_name": "assure"
+            },
+            {
+                "field_name": "isprepay"
+            },
+            {
+                "field_name": "lp_rate"
+            },
+            {
+                "field_name": "commend"
+            },
+            {
+                "field_name": "isnewest"
+            },
+            {
+                "field_name": "ratesum"
+            },
+            {
+                "field_name": "user_type"
+            },
+            {
+                "field_name": "tk_rate"
+            },
+            {
+                "field_name": "seller_goodrat"
+            },
+            {
+                "field_name": "etaotype"
+            },
+            {
+                "field_name": "shipping"
+            },
+            {
+                "field_name": "biz30day"
+            },
+            {
+                "field_name": "category"
+            },
+            {
+                "field_name": "seller_rank_score"
+            },
+            {
+                "field_name": "seller_rank_score2"
+            },
+            {
+                "field_name": "seller_rank_score3"
+            },
+            {
+                "field_name": "spuid"
+            },
+            {
+                "field_name": "sspuid"
+            },
+            {
+                "field_name": "epid"
+            },
+            {
+                "field_name": "starts"
+            },
+            {
+                "field_name": "static_trans_score"
+            },
+            {
+                "field_name": "static_trans_score2"
+            },
+            {
+                "field_name": "static_trans_score3"
+            },
+            {
+                "field_name": "static_trans_score5"
+            },
+            {
+                "field_name": "user_id"
+            },
+            {
+                "field_name": "nid"
+            },
+            {
+                "field_name": "pid"
+            },
+            {
+                "field_name": "fast_post_fee"
+            },
+            {
+                "field_name": "reserve_price"
+            },
+            {
+                "field_name": "sku_maxprice"
+            },
+            {
+                "field_name": "tk_trans_score"
+            },
+            {
+                "field_name": "tk_total_commi"
+            },
+            {
+                "field_name": "tk_total_sales"
+            },
+            {
+                "field_name": "unit_price"
+            },
+            {
+                "field_name": "ss_score"
+            },
+            {
+                "field_name": "promoted_service"
+            },
+            {
+                "field_name": "nick"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "provcity"
+            },
+            {
+                "field_name": "ends_1"
+            },
+            {
+                "field_name": "ends"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "spugroupid"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "cat_id_path"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "catmap"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "pidvid"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "mlr_features"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "real_post_fee"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "zk_time_wap"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "zk_rate_wap"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "zk_group_wap"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "zk_time"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "zk_rate"
+            },
+            {
+                "field_name": "zk_rate_single"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "zk_group"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "zk_cat"
+            },
+            {
+                "field_name": "zk_extend"
+            },
+            {
+                "field_name": "old_starts"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "auction_tag"
+            },
+            {
+                "field_name": "domain_credit"
+            },
+            {
+                "field_name": "cid"
+            },
+            {
+                "field_name": "level_one_cat"
+            },
+            {
+                "field_name": "uvsum"
+            },
+            {
+                "field_name": "uvsum_suc"
+            },
+            {
+                "field_name": "grade_avg"
+            },
+            {
+                "field_name": "dsr_score"
+            },
+            {
+                "field_name": "custfeature"
+            },
+            {
+                "field_name": "main_rate"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "alg_feedback_features"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "q_doc_enhance"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "alg_pscore"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "list_alg_features"
+            },
+            {
+                "field_name": "consign_date"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "alg_pscore2"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "alg_pscore3"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "alg_pscore4"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "alg_pscore5"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "alg_pscore6"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "alg_pscore7"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "algfield"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "zk_final_price"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "dna_id"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "mf_item_feature"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "realtime_keyword"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "item_feature2"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "special_tag"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "auction_pop_personalized"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "style_element"
+            },
+            {
+                "field_name": "tmall_service_ids"
+            },
+            {
+                "field_name": "realtime_cvr_score1"
+            },
+            {
+                "field_name": "realtime_cvr_score2"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "m_haixuan_tag"
+            },
+            {
+                "field_name": "tk_sns_p4p_price"
+            },
+            {
+                "field_name": "tk_sns_commission"
+            },
+            {
+                "field_name": "wl_trans_tag"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "dna_score"
+            },
+            {
+                "field_name": "auction_quality"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "min_escape_info"
+            },
+            {
+                "field_name": "mainbts_rand_buy"
+            },
+            {
+                "field_name": "mainbts_good_buy"
+            },
+            {
+                "field_name": "npx_tag"
+            },
+            {
+                "compress_type": "uniq",
+                "field_name": "crowd_favorite_scores"
+            },
+            {
+                "field_name": "feed_score_c2c"
+            },
+            {
+                "field_name": "selection_score"
+            },
+            {
+                "field_name": "new_field"
+            }            
+        ],
+        "inverted_index": [
+            {
+                "first_occ_flag": 0,
+                "has_truncate": true,
+                "high_frequency_dictionary": "phrase_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": [
+                    {
+                        "boost": 1000,
+                        "field_name": "title"
+                    },
+                    {
+                        "boost": 1000,
+                        "field_name": "vidname"
+                    }
+                ],
+                "index_name": "phrase",
+                "index_type": "EXPACK",
+                "position_list_flag": 0,
+                "term_frequency_flag": 0
+            },
+            {
+                "has_truncate": true,
+                "high_frequency_dictionary": "cat_id_path_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "cat_id_path",
+                "index_name": "cat_id_path",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "spuid_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "spuid",
+                "index_name": "spuid",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "spuid_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "sspuid",
+                "index_name": "sspuid",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "epid_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "epid",
+                "index_name": "epid",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "haspid_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "haspid",
+                "index_name": "haspid",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "user",
+                "index_name": "user",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "categoryp_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "categoryp",
+                "index_name": "categoryp",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "auction_type_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "auction_type",
+                "index_name": "auction_type",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "oneyuan_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "oneyuan",
+                "index_name": "oneyuan",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "promote_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "promote",
+                "index_name": "promote",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "commend_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "commend",
+                "index_name": "commend",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "ratesum",
+                "index_name": "ratesum",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "DUP_nick",
+                "index_name": "nick",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "counts_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "counts",
+                "index_name": "counts",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "shipping_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "shipping",
+                "index_name": "shipping",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "isnewest_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "isnewest",
+                "index_name": "isnewest",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "auto_post_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "auto_post",
+                "index_name": "auto_post",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "auction_flag_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "auction_flag",
+                "index_name": "auction_flag",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "options_bits_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "options_bits",
+                "index_name": "options_bits",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "has_bid_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "has_bid",
+                "index_name": "has_bid",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "isprepay_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "isprepay",
+                "index_name": "isprepay",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "uchar",
+                "index_name": "uchar",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "psbit_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "psbit",
+                "index_name": "psbit",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "pidvid_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "DUP_pidvid",
+                "index_name": "pidvid",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "spugroupid",
+                "index_name": "spugroupid",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "user_id",
+                "index_name": "user_id",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "user_type_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "user_type",
+                "index_name": "user_type",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "pid_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "pid",
+                "index_name": "pid",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "support_cod_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "support_cod",
+                "index_name": "support_cod",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "support_xcard_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "support_xcard",
+                "index_name": "support_xcard",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "baobei_type_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "baobei_type",
+                "index_name": "baobei_type",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "lptime",
+                "index_name": "lptime",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "lp_start_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "lp_start",
+                "index_name": "lp_start",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "istk_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "istk",
+                "index_name": "istk",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "hprop_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "hprop",
+                "index_name": "hprop",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "auction_tag_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "auction_tag",
+                "index_name": "auction_tag",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "disp_flag_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "disp_flag",
+                "index_name": "disp_flag",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "properties",
+                "index_name": "properties",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "high_frequency_dictionary": "etao_tag_dict",
+                "high_frequency_term_posting_type": "both",
+                "index_fields": "etao_tag",
+                "index_name": "etao_tag",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "auction_ext",
+                "index_name": "auction_ext",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "consign_date",
+                "index_name": "consign_date",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "DUP_dna_id",
+                "index_name": "dna_id",
+                "index_type": "STRING",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "tk_group_ids",
+                "index_name": "tk_group_ids",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "tmall_service_ids",
+                "index_name": "tmall_service_ids",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "cluster_id",
+                "index_name": "cluster_id",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "special_tag",
+                "index_name": "special_tag",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "is_sns_guide",
+                "index_name": "is_sns_guide",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "wl_trans_tag",
+                "index_name": "wl_trans_tag",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "tag_space_name",
+                "index_name": "changjing",
+                "index_type": "TEXT",
+                "position_list_flag": 0,
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "ss_auction_tag",
+                "index_name": "ss_auction_tag",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "crowd_favorite_tags",
+                "index_name": "crowd_favorite_tags",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "item_feed_pic_flag_c2c",
+                "index_name": "item_feed_pic_flag_c2c",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            },
+            {
+                "index_fields": "m_haixuan_tag",
+                "index_name": "m_haixuan_tag",
+                "index_type": "NUMBER",
+                "term_frequency_flag": 0
+            }
+        ],
+        "primarykey": [
+            {
+                "has_primary_key_attribute": false,
+                "index_fields": "nid",
+                "index_name": "nid",
+                "index_type": "PRIMARYKEY64",
+                "term_frequency_flag": 0
+            }
+        ],
+        "summary": [
+            {
+                "summary_fields": [
+                    "nid"
+                ]
+            }
+        ]
+    },
+    "settings": {
+        "dictionaries": [
+            {
+                "content": "0",
+                "dictionary_name": "lp_start_dict"
+            },
+            {
+                "content": "0",
+                "dictionary_name": "support_cod_dict"
+            },
+            {
+                "content": "0",
+                "dictionary_name": "spuid_dict"
+            },
+            {
+                "content": "9223372036854775807",
+                "dictionary_name": "pid_dict"
+            },
+            {
+                "content": "0",
+                "dictionary_name": "has_bid_dict"
+            },
+            {
+                "content": "0",
+                "dictionary_name": "auction_flag_dict"
+            },
+            {
+                "content": "y",
+                "dictionary_name": "counts_dict"
+            },
+            {
+                "content": "1073741824;268435456;4194304;512;256",
+                "dictionary_name": "promote_dict"
+            },
+            {
+                "content": "n",
+                "dictionary_name": "oneyuan_dict"
+            },
+            {
+                "content": "9223372036854775807",
+                "dictionary_name": "epid_dict"
+            },
+            {
+                "content": "1478;3974;4166",
+                "dictionary_name": "auction_tag_dict"
+            },
+            {
+                "content": "b",
+                "dictionary_name": "auction_type_dict"
+            },
+            {
+                "content": "0",
+                "dictionary_name": "auto_post_dict"
+            },
+            {
+                "content": "1",
+                "dictionary_name": "baobei_type_dict"
+            },
+            {
+                "content": "16;33;50018264",
+                "dictionary_name": "categoryp_dict"
+            },
+            {
+                "content": "16;33;50087329;50094064;50094067;50102996",
+                "dictionary_name": "cat_id_path_dict"
+            },
+            {
+                "content": "0;2",
+                "dictionary_name": "commend_dict"
+            },
+            {
+                "content": "1;16;32;4;64",
+                "dictionary_name": "disp_flag_dict"
+            },
+            {
+                "content": "2",
+                "dictionary_name": "etao_tag_dict"
+            },
+            {
+                "content": "2",
+                "dictionary_name": "haspid_dict"
+            },
+            {
+                "content": "0",
+                "dictionary_name": "hprop_dict"
+            },
+            {
+                "content": "2",
+                "dictionary_name": "isnewest_dict"
+            },
+            {
+                "content": "0;1",
+                "dictionary_name": "isprepay_dict"
+            },
+            {
+                "content": "5",
+                "dictionary_name": "istk_dict"
+            },
+            {
+                "content": "34359738368",
+                "dictionary_name": "options_bits_dict"
+            },
+            {
+                "content": "（;2012;专;中;书;代;价;休;休闲;修;修身;值;元;充;充值;全;冬;动;包邮;单;卡;原;品;国;型;士;外;外套;大;头;套;女;子;季;小;尚;常规;快;手;新;新款;时;时尚;机;棉;款;正;正品;正版;毛;版;特;特价;男;皮;秋;秋冬;秋季;红;纯;美;自;自动;色;花;衣;衫;袖;装;身;通;邮;长;长袖;闲;韩;韩版;领;高;黑;黑色;1;2;3;2013;t;原装;夏;夏季;春;水;电;白;短;短袖;裙;裤;鞋",
+                "dictionary_name": "phrase_dict"
+            },
+            {
+                "content": "1627207:28341;1627207:3232481;1627207:3232483;1627207:3232484",
+                "dictionary_name": "pidvid_dict"
+            },
+            {
+                "content": "2;4",
+                "dictionary_name": "psbit_dict"
+            },
+            {
+                "content": "2",
+                "dictionary_name": "shipping_dict"
+            },
+            {
+                "content": "1",
+                "dictionary_name": "support_xcard_dict"
+            },
+            {
+                "content": "0;1",
+                "dictionary_name": "user_type_dict"
+            }
+        ],
+        "truncate_profiles": [
+            {
+                "sort_descriptions": "-static_trans_score;+nid",
+                "truncate_profile_name": "desc_static_trans_score"
+            },
+            {
+                "sort_descriptions": "-tk_trans_score;+nid",
+                "truncate_profile_name": "desc_tk_trans_score"
+            },
+            {
+                "sort_descriptions": "-biz30day;+nid",
+                "truncate_profile_name": "desc_biz30day"
+            },
+            {
+                "sort_descriptions": "-tk_total_sales;+nid",
+                "truncate_profile_name": "desc_tk_total_sales"
+            },
+            {
+                "sort_descriptions": "-uvsum;+nid",
+                "truncate_profile_name": "desc_uvsum"
+            },
+            {
+                "sort_descriptions": "-uvsum_suc;+nid",
+                "truncate_profile_name": "desc_uvsum_suc"
+            },
+            {
+                "sort_descriptions": "+ends_1;+nid",
+                "truncate_profile_name": "asc_ends"
+            }
+        ]
+    },
+    "versionid": 2,    
+    "table_name": "mainse_searcher"
+}

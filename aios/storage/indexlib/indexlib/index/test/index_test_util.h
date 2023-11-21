@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEX_TEST_UTIL_H
-#define __INDEXLIB_INDEX_TEST_UTIL_H
+#pragma once
 
 #include <memory>
 
@@ -115,10 +114,10 @@ public:
                                                  docid_t baseDocId, AnswerMap& answerMap,
                                                  const IndexFormatOption& indexFormatOption);
 
-    static index_base::PartitionDataPtr CreatePartitionData(const file_system::IFileSystemPtr& fileSystem,
+    static index_base::PartitionDataPtr CreatePartitionData(const std::shared_ptr<file_system::IFileSystem>& fileSystem,
                                                             uint32_t segCount, segmentid_t baseSegId = 0);
 
-    static index_base::PartitionDataPtr CreatePartitionData(const file_system::IFileSystemPtr& fileSystem,
+    static index_base::PartitionDataPtr CreatePartitionData(const std::shared_ptr<file_system::IFileSystem>& fileSystem,
                                                             index_base::Version version);
 
     static index_base::SegmentData CreateSegmentData(const file_system::DirectoryPtr& directory,
@@ -135,5 +134,3 @@ public:
 
 ////////////////////////////////////////////////////////
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEX_TEST_UTIL_H

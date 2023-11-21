@@ -15,15 +15,21 @@
  */
 #pragma once
 
-#include "build_service/admin/CheckpointSynchronizer.h"
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "build_service/admin/ClusterCheckpointSynchronizer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace common {
 
 class IndexCheckpointAccessor;
+
 BS_TYPEDEF_PTR(IndexCheckpointAccessor);
 }} // namespace build_service::common
 

@@ -8,7 +8,7 @@ cc_library(
     hdrs=glob(['*.h', 'index_meta/*.h', 'patch/*.h', 'segment/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index_base',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         ':branch', '//aios/storage/indexlib/config:TabletOptions',
         '//aios/storage/indexlib/file_system',
@@ -46,7 +46,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index_base',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/indexlib:indexlib_h',

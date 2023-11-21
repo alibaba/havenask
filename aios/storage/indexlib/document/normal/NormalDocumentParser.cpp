@@ -100,6 +100,7 @@ Status NormalDocumentParser::InitFromDocumentParam(const std::shared_ptr<Documen
                          "debug/uselessUpdateQps_chain_" + _schema->GetTableName(), kmonitor::QPS, "count");
     IE_INIT_METRIC_GROUP(resource.metricProvider, IndexUselessUpdateQps,
                          "debug/indexUselessUpdateQps_chain_" + _schema->GetTableName(), kmonitor::QPS, "count");
+    IE_INIT_METRIC_GROUP(resource.metricProvider, ParseFailedQps, "debug/parseFailedQps", kmonitor::QPS, "count");
 
     if (_enableModifyFieldStat) {
         IE_INIT_METRIC_GROUP(resource.metricProvider, ModifyFieldQps, "debug/modifyField/qps", kmonitor::QPS, "count");
@@ -143,10 +144,12 @@ std::pair<Status, std::unique_ptr<IDocumentBatch>> NormalDocumentParser::Parse(E
     }
     std::shared_ptr<NormalDocument> indexDoc = _mainParser->Parse(normalExtendDoc);
     if (!indexDoc) {
+        IE_INCREASE_QPS(ParseFailedQps);
+        AUTIL_INTERVAL_LOG2(30, ERROR, "parse normal extend doc failed");
         return {Status::OK(), nullptr};
     }
 
-    const auto& rawDoc = normalExtendDoc->getRawDocument();
+    const auto& rawDoc = normalExtendDoc->GetRawDocument();
     assert(rawDoc);
     int64_t timestamp = rawDoc->getDocTimestamp();
     DocOperateType opType = rawDoc->getDocOperateType();
@@ -197,28 +200,16 @@ std::pair<Status, std::unique_ptr<IDocumentBatch>> NormalDocumentParser::Parse(E
         IE_REPORT_METRIC_WITH_TAGS(DocParserQps, &tag, 1.0);
     }
 
-    bool hasTermStatistics = false; // empty
-    if (indexDoc->GetIndexDocument() != nullptr && !indexDoc->GetIndexDocument()->GetTermOriginValueMap().empty()) {
-        hasTermStatistics = true;
-    }
-
-    // attention: make binary_version=11 document not used for modify operation and docTrace and null and source and
-    // index update and statistics term, atomicly serialize to version6, to make online compitable remove this code when
-    // binary version 6 is useless
-
-    if (!(rawDoc->NeedTrace()) && !_supportNull && !indexDoc->GetSourceDocument() && !indexDoc->HasIndexUpdate() &&
-        !hasTermStatistics && indexDoc->GetSerializedVersion() == DOCUMENT_BINARY_VERSION) {
-        auto status = indexDoc->SetSerializedVersion(6);
-        RETURN2_IF_STATUS_ERROR(status, nullptr, "normal document set serialized version [6] failed");
-    }
+    auto status = indexDoc->SetSerializedVersion(DOCUMENT_BINARY_VERSION);
+    RETURN2_IF_STATUS_ERROR(status, nullptr, "normal document set serialized version [6] failed");
     return {Status::OK(), std::move(docBatch)};
 }
 
-std::pair<Status, std::unique_ptr<IDocumentBatch>>
-NormalDocumentParser::Parse(const autil::StringView& serializedData) const
+std::pair<Status, std::shared_ptr<NormalDocument>>
+NormalDocumentParser::ParseSingleDocument(const autil::StringView& serializedData) const
 {
-    autil::DataBuffer newDataBuffer(const_cast<char*>(serializedData.data()), serializedData.length());
     std::shared_ptr<NormalDocument> document;
+    autil::DataBuffer newDataBuffer(const_cast<char*>(serializedData.data()), serializedData.length());
     try {
         bool hasObj = false;
         newDataBuffer.read(hasObj);
@@ -236,8 +227,18 @@ NormalDocumentParser::Parse(const autil::StringView& serializedData) const
     } catch (...) {
         RETURN2_IF_STATUS_ERROR(Status::Corruption(), nullptr, "normal document deserialize failed, unknown exception");
     }
+    return {Status::OK(), document};
+}
+
+std::pair<Status, std::unique_ptr<IDocumentBatch>>
+NormalDocumentParser::Parse(const autil::StringView& serializedData) const
+{
+    auto [status, normalDoc] = ParseSingleDocument(serializedData);
+    if (!status.IsOK()) {
+        return {status, nullptr};
+    }
     auto docBatch = std::make_unique<DocumentBatch>();
-    docBatch->AddDocument(document);
+    docBatch->AddDocument(normalDoc);
     return {Status::OK(), std::move(docBatch)};
 }
 
@@ -248,7 +249,7 @@ NormalDocumentParser::ParseRawDoc(const std::shared_ptr<RawDocument>& rawDoc) co
         RETURN2_IF_STATUS_ERROR(Status::InternalError(), nullptr, "tokenize document convertor is empty");
     }
     auto extendDoc = std::make_shared<NormalExtendDocument>();
-    extendDoc->setRawDocument(rawDoc);
+    extendDoc->SetRawDocument(rawDoc);
     std::map<fieldid_t, std::string> fieldAnalyzerNameMap;
     auto status = _tokenizeDocConvertor->Convert(rawDoc.get(), fieldAnalyzerNameMap, extendDoc->getTokenizeDocument(),
                                                  extendDoc->getLastTokenizeDocument());
@@ -257,6 +258,23 @@ NormalDocumentParser::ParseRawDoc(const std::shared_ptr<RawDocument>& rawDoc) co
         return std::make_pair(status, nullptr);
     }
     return Parse(*extendDoc);
+}
+
+std::pair<Status, std::unique_ptr<IDocumentBatch>>
+NormalDocumentParser::BatchParse(IMessageIterator* inputIterator) const
+{
+    auto docBatch = std::make_unique<DocumentBatch>();
+    assert(inputIterator != nullptr);
+    while (inputIterator->HasNext()) {
+        auto [msgView, ingestTime] = inputIterator->Next();
+        auto statusWithDocument = ParseSingleDocument(msgView);
+        if (!statusWithDocument.first.IsOK()) {
+            AUTIL_LOG(ERROR, "parse single document failed, error[%s]", statusWithDocument.first.ToString().c_str());
+            continue;
+        }
+        docBatch->AddDocument(statusWithDocument.second);
+    }
+    return {Status::OK(), std::move(docBatch)};
 }
 
 bool NormalDocumentParser::IsEmptyUpdate(const std::shared_ptr<NormalDocument>& document) const

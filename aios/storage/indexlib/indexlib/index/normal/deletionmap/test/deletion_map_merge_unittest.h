@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DELETIONMAPMERGETEST_H
-#define __INDEXLIB_DELETIONMAPMERGETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_merger.h"
@@ -41,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE(DeletionMapMergeTest, TestCaseForMergeAll);
 INDEXLIB_UNIT_TEST_CASE(DeletionMapMergeTest, TestCaseForMergePartial);
 INDEXLIB_UNIT_TEST_CASE(DeletionMapMergeTest, TestCaseForMergeWithMultiVersion);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DELETIONMAPMERGETEST_H

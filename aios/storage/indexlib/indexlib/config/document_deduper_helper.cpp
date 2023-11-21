@@ -31,7 +31,7 @@ bool DocumentDeduperHelper::DelayDedupDocument(const IndexPartitionOptions& opti
         pkConfig->GetInvertedIndexType() == it_kkv) {
         return false;
     }
-    PrimaryKeyIndexConfigPtr pkIndexConfig = DYNAMIC_POINTER_CAST(PrimaryKeyIndexConfig, pkConfig);
+    PrimaryKeyIndexConfigPtr pkIndexConfig = std::dynamic_pointer_cast<PrimaryKeyIndexConfig>(pkConfig);
     assert(pkIndexConfig);
     if (pkIndexConfig->GetPrimaryKeyIndexType() == pk_hash_table) {
         return false;

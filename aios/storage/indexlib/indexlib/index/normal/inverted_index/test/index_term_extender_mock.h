@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEX_TERM_EXTENDER_MOCK_H
-#define __INDEXLIB_INDEX_TERM_EXTENDER_MOCK_H
+#pragma once
 
 #include <memory>
 
@@ -26,5 +25,3 @@ private:
 
 DEFINE_SHARED_PTR(IndexTermExtenderMock);
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_INDEX_TERM_EXTENDER_MOCK_H

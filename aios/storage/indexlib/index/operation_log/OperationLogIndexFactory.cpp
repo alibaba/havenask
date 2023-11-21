@@ -16,8 +16,10 @@
 #include "indexlib/index/operation_log/OperationLogIndexFactory.h"
 
 #include "indexlib/framework/MetricsManager.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IIndexMerger.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/operation_log/Common.h"
 #include "indexlib/index/operation_log/CompressOperationLogMemIndexer.h"
 #include "indexlib/index/operation_log/OperationLogConfig.h"
@@ -29,11 +31,11 @@
 namespace indexlib::index {
 namespace {
 using indexlibv2::config::IIndexConfig;
+using indexlibv2::index::DiskIndexerParameter;
 using indexlibv2::index::IDiskIndexer;
 using indexlibv2::index::IIndexMerger;
 using indexlibv2::index::IIndexReader;
 using indexlibv2::index::IMemIndexer;
-using indexlibv2::index::IndexerParameter;
 } // namespace
 
 AUTIL_LOG_SETUP(indexlib.index, OperationLogIndexFactory);
@@ -44,14 +46,14 @@ OperationLogIndexFactory::~OperationLogIndexFactory() {}
 
 std::shared_ptr<IDiskIndexer>
 OperationLogIndexFactory::CreateDiskIndexer(const std::shared_ptr<IIndexConfig>& indexConfig,
-                                            const IndexerParameter& indexerParam) const
+                                            const DiskIndexerParameter& indexerParam) const
 {
     return std::make_shared<OperationLogDiskIndexer>(indexerParam.segmentId);
 }
 
 std::shared_ptr<IMemIndexer>
 OperationLogIndexFactory::CreateMemIndexer(const std::shared_ptr<IIndexConfig>& indexConfig,
-                                           const IndexerParameter& indexerParam) const
+                                           const indexlibv2::index::MemIndexerParameter& indexerParam) const
 {
     segmentid_t segmentid = indexerParam.segmentId;
     std::string identifier = "__operation_log_metrics_identifier_" + std::to_string(segmentid);
@@ -80,7 +82,7 @@ OperationLogIndexFactory::CreateMemIndexer(const std::shared_ptr<IIndexConfig>& 
 
 std::unique_ptr<IIndexReader>
 OperationLogIndexFactory::CreateIndexReader(const std::shared_ptr<IIndexConfig>& indexConfig,
-                                            const IndexerParameter& indexerParam) const
+                                            const indexlibv2::index::IndexReaderParameter&) const
 {
     return std::make_unique<OperationLogIndexReader>();
 }

@@ -36,8 +36,8 @@ public:
     indexlib::index::TermMeta* GetTermMeta() const override { return _termMeta; }
     matchvalue_t GetMatchValue() const override { return _curMatchValue; }
     indexlib::MatchValueType GetMatchValueType() const override { return indexlib::MatchValueType::mv_float; }
-    docid_t SeekDoc(docid_t docId) override;
-    indexlib::index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    docid64_t SeekDoc(docid64_t docId) override;
+    indexlib::index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
     bool HasPosition() const override { return false; }
     void Unpack(indexlib::index::TermMatchData& termMatchData) override { termMatchData.SetMatched(true); }
     indexlib::index::PostingIteratorType GetType() const override { return indexlib::index::pi_customized; }
@@ -46,13 +46,13 @@ public:
     autil::mem_pool::Pool* GetSessionPool() const override { return _sessionPool; }
 
 private:
-    indexlib::docid_t* _docIds;
+    indexlib::docid64_t* _docIds;
     matchvalue_t* _matchValues;
     size_t _matchCount;
     autil::mem_pool::Pool* _sessionPool;
 
     int32_t _cursor;
-    indexlib::docid_t _curDocId;
+    indexlib::docid64_t _curDocId;
     matchvalue_t _curMatchValue;
     indexlib::index::TermMeta* _termMeta;
     AUTIL_LOG_DECLARE();

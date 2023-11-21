@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 #pragma once
+#include <assert.h>
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
 
-#include "autil/mem_pool/Pool.h"
+#include "autil/mem_pool/PoolBase.h"
 #include "indexlib/util/NumericUtil.h"
 
 namespace indexlib { namespace util {
@@ -89,12 +92,12 @@ protected:
     void RefreshSetCountByScanning() const;
 
 public:
-    static const uint32_t BYTE_SLOT_NUM = 8;
-    static const uint32_t SLOT_SIZE = BYTE_SLOT_NUM * sizeof(uint32_t);
-    static const uint32_t SLOT_SIZE_BIT_NUM = 5;
-    static const uint32_t SLOT_SIZE_BIT_MASK = 0x1F;
+    static constexpr uint32_t BYTE_SLOT_NUM = 8;
+    static constexpr uint32_t SLOT_SIZE = BYTE_SLOT_NUM * sizeof(uint32_t);
+    static constexpr uint32_t SLOT_SIZE_BIT_NUM = 5;
+    static constexpr uint32_t SLOT_SIZE_BIT_MASK = 0x1F;
+    static constexpr uint32_t INVALID_INDEX = 0xFFFFFFFF;
     static const uint32_t BITMAPOPMASK[SLOT_SIZE];
-    static const uint32_t INVALID_INDEX = 0xFFFFFFFF;
 
     static int32_t GetSlotCount(int32_t docCount) { return (docCount + SLOT_SIZE - 1) / SLOT_SIZE; }
 

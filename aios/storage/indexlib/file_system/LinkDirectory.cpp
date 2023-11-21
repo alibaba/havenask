@@ -17,6 +17,7 @@
 
 #include <assert.h>
 
+#include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/WriterOption.h"

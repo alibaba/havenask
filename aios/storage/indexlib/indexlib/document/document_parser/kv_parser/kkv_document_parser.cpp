@@ -69,7 +69,7 @@ bool KkvDocumentParser::SetPrimaryKeyField(const IndexlibExtendDocumentPtr& docu
         return true;
     }
 
-    const RawDocumentPtr& rawDoc = document->getRawDocument();
+    const RawDocumentPtr& rawDoc = document->GetRawDocument();
 
     string pkValue = rawDoc->getField(pkFieldName);
     if (mDenyEmptyPrimaryKey && pkValue.empty()) {

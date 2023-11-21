@@ -15,6 +15,11 @@
  */
 #include "build_service/admin/SlowNodeDetectStrategy.h"
 
+#include <unordered_set>
+#include <utility>
+
+#include "autil/legacy/legacy_jsonizable.h"
+
 namespace build_service { namespace admin {
 
 BS_LOG_SETUP(admin, SlowNodeDetectStrategy);

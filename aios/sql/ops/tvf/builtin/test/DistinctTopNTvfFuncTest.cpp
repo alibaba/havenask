@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "iquan/common/catalog/TvfFunctionModel.h"
+#include "iquan/common/catalog/FunctionModel.h"
 #include "matchdoc/MatchDoc.h"
 #include "matchdoc/MatchDocAllocator.h"
 #include "matchdoc/VectorDocStorage.h"
@@ -67,7 +67,7 @@ TablePtr DistinctTopNTvfFuncTest::fakeTable1() {
         allocator, docs, "group", {1, 1, 1, 1, 1, 1, 1, 2, 2});
     _matchDocUtil.extendMatchDocAllocator<float>(
         allocator, docs, "score", {1.1, 0.9, 0.7, 0.5, 1.3, 0.3, 0.2, 1.2, 0.4});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     return input;
 }
 
@@ -236,7 +236,7 @@ TEST_F(DistinctTopNTvfFuncTest, testdoComputeCreateComparatorFail) {
     vector<MatchDoc> docs = allocator->batchAllocate(3);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {3, 2, 1});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {3, 3, 2});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"id", "value1", "2", "1", "2", "1"};
     context.queryPool = _poolPtr.get();
@@ -251,7 +251,7 @@ TEST_F(DistinctTopNTvfFuncTest, testdoComputeGroupKeyFailed) {
     vector<MatchDoc> docs = allocator->batchAllocate(2);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", {3, 2});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "value", {3, 2});
-    TablePtr input(new Table(docs, allocator));
+    TablePtr input = Table::fromMatchDocs(docs, allocator);
     TvfFuncInitContext context;
     context.params = {"id1", "value", "1", "1", "1", "1"};
     context.queryPool = _poolPtr.get();
@@ -264,17 +264,17 @@ TEST_F(DistinctTopNTvfFuncTest, testdoComputeGroupKeyFailed) {
 TEST_F(DistinctTopNTvfFuncTest, testRegTvfModels) {
     {
         DistinctTopNTvfFuncCreator creator;
-        iquan::TvfModels tvfModels;
+        std::vector<iquan::FunctionModel> tvfModels;
         ASSERT_TRUE(creator.regTvfModels(tvfModels));
-        ASSERT_EQ(1, tvfModels.functions.size());
-        EXPECT_EQ("distinctTopNTvf", tvfModels.functions[0].functionName);
+        ASSERT_EQ(1, tvfModels.size());
+        EXPECT_EQ("distinctTopNTvf", tvfModels[0].functionName);
     }
     {
         PartialDistinctTopNTvfFuncCreator creator;
-        iquan::TvfModels tvfModels;
+        std::vector<iquan::FunctionModel> tvfModels;
         ASSERT_TRUE(creator.regTvfModels(tvfModels));
-        ASSERT_EQ(1, tvfModels.functions.size());
-        EXPECT_EQ("partialDistinctTopNTvf", tvfModels.functions[0].functionName);
+        ASSERT_EQ(1, tvfModels.size());
+        EXPECT_EQ("partialDistinctTopNTvf", tvfModels[0].functionName);
     }
 }
 

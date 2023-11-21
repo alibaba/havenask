@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_DEFINE_H
-#define __INDEXLIB_MERGE_DEFINE_H
+#pragma once
 
 #include <memory>
 
@@ -24,5 +23,3 @@
 namespace indexlib { namespace merger { namespace define {
 static constexpr int64_t INDEX_MERGE_META_BINARY_VERSION = 3;
 }}} // namespace indexlib::merger::define
-
-#endif //__INDEXLIB_MERGE_DEFINE_H

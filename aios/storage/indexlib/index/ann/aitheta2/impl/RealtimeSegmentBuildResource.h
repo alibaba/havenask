@@ -39,6 +39,7 @@ public:
 public:
     std::shared_ptr<RealtimeIndexBuildResource> GetRealtimeIndexBuildResource(index_id_t indexId);
     std::vector<std::shared_ptr<RealtimeIndexBuildResource>> GetAllRealtimeIndexBuildResources();
+    void Release();
 
 private:
     AithetaIndexConfig _aithetaIndexConfig;

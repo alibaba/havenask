@@ -127,7 +127,6 @@ void AsyncKVLookupCallbackCtxV1::asyncGet(KVLookupOption option) {
             kvReader->BatchGetAsync(_pksForSearch, _rawResults, indexlib::tsc_default, _readOptions)
                 .via(_executor));
         processBoolVec(result);
-        _pool.reset();
     } else {
         assert(_executor && "executor is nullptr");
         NAVI_LOG(DEBUG, "async pipe ready, use async with reader v1");
@@ -144,7 +143,6 @@ void AsyncKVLookupCallbackCtxV1::onSessionCallback(future_lite::Try<BoolVector> 
     assert(!boolVecTry.hasError());
     auto &boolVec = boolVecTry.value();
     processBoolVec(boolVec);
-    _pool.reset();
     (void)_asyncPipe->setData(nullptr);
 }
 
@@ -191,11 +189,6 @@ bool AsyncKVLookupCallbackCtxV1::tryReportMetrics(
     opMetricsReporter.report<AsyncKVLookupMetricsV1>(nullptr, &metricsCollector);
     NAVI_LOG(TRACE3, "current lookup time[%ld]", metricsCollector.lookupTime);
     return true;
-}
-
-size_t AsyncKVLookupCallbackCtxV1::getDegradeDocsSize() const {
-    assert(!isInFlightNoLock());
-    return getFailedCount();
 }
 
 int64_t AsyncKVLookupCallbackCtxV1::getSeekTime() const {

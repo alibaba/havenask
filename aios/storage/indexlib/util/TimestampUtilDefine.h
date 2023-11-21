@@ -15,7 +15,8 @@
  */
 #pragma once
 
-#include <memory>
+#include <endian.h>
+#include <stdint.h>
 
 namespace indexlib { namespace util {
 

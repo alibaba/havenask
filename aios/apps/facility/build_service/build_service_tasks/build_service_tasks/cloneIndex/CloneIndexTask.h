@@ -13,28 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CLONEINDEXTASK_H
-#define ISEARCH_BS_CLONEINDEXTASK_H
+#pragma once
 
+#include <arpc/CommonMacros.h>
+#include <cstdint>
+#include <map>
 #include <memory>
-#include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
-#include "aios/network/arpc/arpc/ANetRPCChannel.h"
-#include "autil/StringUtil.h"
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common_define.h"
-#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ControlConfig.h"
-#include "build_service/config/TaskConfig.h"
 #include "build_service/config/TaskTarget.h"
 #include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/task_base/Task.h"
 #include "build_service/util/Log.h"
 #include "build_service_tasks/channel/BsAdminChannel.h"
 #include "build_service_tasks/channel/MadroxChannel.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/util/counter/CounterMap.h"
 
 namespace build_service { namespace task_base {
 
@@ -156,5 +162,3 @@ private:
 BS_TYPEDEF_PTR(CloneIndexTask);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_CLONEINDEXTASK_H

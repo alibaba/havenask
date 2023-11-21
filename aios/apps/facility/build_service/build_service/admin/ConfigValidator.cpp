@@ -15,30 +15,56 @@
  */
 #include "build_service/admin/ConfigValidator.h"
 
+#include <assert.h>
 #include <cstring>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <stdint.h>
+#include <utility>
+#include <vector>
 
-#include "autil/StringUtil.h"
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/Span.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/AppPlanMaker.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common_define.h"
 #include "build_service/config/BuilderClusterConfig.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ControlConfig.h"
 #include "build_service/config/DocProcessorChainConfig.h"
+#include "build_service/config/GraphConfig.h"
 #include "build_service/config/HashMode.h"
 #include "build_service/config/IndexPartitionOptionsWrapper.h"
 #include "build_service/config/OfflineIndexConfigMap.h"
 #include "build_service/config/ProcessorConfig.h"
 #include "build_service/config/ProcessorRuleConfig.h"
+#include "build_service/config/ResourceReaderManager.h"
 #include "build_service/config/SwiftTopicConfig.h"
 #include "build_service/proto/DataDescriptions.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RangeUtil.h"
-#include "fslib/util/FileUtil.h"
+#include "indexlib/config/CompressTypeOption.h"
+#include "indexlib/config/FieldConfig.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/SortDescription.h"
 #include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_schema.h"
 #include "indexlib/config/schema_differ.h"
-#include "indexlib/framework/TabletSchemaLoader.h"
+#include "indexlib/config/updateable_schema_standards.h"
 #include "indexlib/index/attribute/Common.h"
+#include "indexlib/index/attribute/config/AttributeConfig.h"
+#include "indexlib/index/common/Types.h"
 #include "indexlib/table/BuiltinDefine.h"
-#include "indexlib/util/PathUtil.h"
 #include "swift/client/RangeUtil.h"
 
 using namespace std;
@@ -54,7 +80,7 @@ namespace build_service { namespace admin {
 
 BS_LOG_SETUP(admin, ConfigValidator);
 
-ConfigValidator::ConfigValidator(const proto::BuildId& buildId)
+ConfigValidator::ConfigValidator(const proto::BuildId& buildId) : _buildId(buildId)
 {
     setBeeperCollector(GENERATION_ERROR_COLLECTOR_NAME);
     initBeeperTag(buildId);
@@ -181,12 +207,16 @@ bool ConfigValidator::validate(const string& configPath, bool firstTime)
     }
 
     vector<string> dataTables;
-    if (!resourceReader->getAllDataTables(dataTables)) {
-        string errorMsg = "read data table config[" + configPath + "] failed!";
-        REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
-        return false;
+    if (_buildId.has_datatable()) {
+        dataTables.push_back(_buildId.datatable());
+    } else {
+        if (!resourceReader->getAllDataTables(dataTables)) {
+            string errorMsg = "read data table config[" + configPath + "] failed!";
+            REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
+            return false;
+        }
     }
-
+    vector<string> allTableNames;
     for (size_t i = 0; i < dataTables.size(); ++i) {
         bool buildV2Mode = globalBuildV2Mode;
         if (!buildV2Mode) {
@@ -224,24 +254,27 @@ bool ConfigValidator::validate(const string& configPath, bool firstTime)
             REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
             return false;
         }
-        for (size_t i = 0; i < clusterNames.size(); i++) {
-            if (!validateSchema(resourceReader, clusterNames[i], buildV2Mode)) {
-                string errorMsg = "validate schema for cluster [" + clusterNames[i] + "] failed";
+
+        for (const auto& clusterName : clusterNames) {
+            if (!validateSchema(resourceReader, clusterName, buildV2Mode)) {
+                string errorMsg = "validate schema for cluster [" + clusterName + "] failed";
                 REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
                 return false;
             }
             if (buildV2Mode) {
                 BuilderClusterConfig clusterConfig;
-                if (!clusterConfig.init(clusterNames[i], *resourceReader)) {
+                if (!clusterConfig.init(clusterName, *resourceReader)) {
                     REPORT_ERROR(SERVICE_ERROR_CONFIG, string("get cluster config failed"));
                     return false;
                 }
-                if (clusterConfig.enableFastSlowQueue) {
-                    REPORT_ERROR(SERVICE_ERROR_CONFIG, string("buildV2 mode not support fast slow mode now"));
-                    return false;
-                }
             }
-            string clusterConfig = ResourceReader::getClusterConfRelativePath(clusterNames[i]);
+            string tableName;
+            if (!resourceReader->getClusterConfigWithJsonPath(clusterName, "cluster_config.table_name", tableName)) {
+                REPORT_ERROR(SERVICE_ERROR_CONFIG, string("get tableName in cluster config failed"));
+                return false;
+            }
+            allTableNames.push_back(tableName);
+            string clusterConfig = ResourceReader::getClusterConfRelativePath(clusterName);
             BuildRuleConfig buildRuleConfig;
             if (!getValidateConfig<BuildRuleConfig>(*(resourceReader.get()), clusterConfig.c_str(),
                                                     "cluster_config.builder_rule_config", buildRuleConfig)) {
@@ -256,10 +289,10 @@ bool ConfigValidator::validate(const string& configPath, bool firstTime)
                 return false;
             }
 
-            if (!validateBuilderClusterConfig(configPath, clusterNames[i])) {
+            if (!validateBuilderClusterConfig(configPath, clusterName)) {
                 return false;
             }
-            if (!validateOfflineIndexPartitionOptions(configPath, clusterNames[i])) {
+            if (!validateOfflineIndexPartitionOptions(configPath, clusterName)) {
                 return false;
             }
             if (!validateSwiftMemoryPreferMode(swiftConfig, buildRuleConfig, buildV2Mode)) {
@@ -274,7 +307,7 @@ bool ConfigValidator::validate(const string& configPath, bool firstTime)
         return false;
     }
     if (firstTime) {
-        vector<string> patchShemas = resourceReader->getAllSchemaPatchFileNames();
+        vector<string> patchShemas = resourceReader->getSchemaPatchFileNames(allTableNames);
         if (!patchShemas.empty()) {
             string errorMsg = "first time start build should not take schema patch file in" + configPath;
             REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
@@ -431,21 +464,46 @@ ConfigValidator::SchemaUpdateStatus ConfigValidator::checkUpdateSchema(const Res
         BS_LOG(WARN, "allow update schema without check");
         return NO_UPDATE_SCHEMA;
     }
-
-    IndexPartitionSchemaPtr originalSchema = originalResourceReader->getSchema(clusterName);
-    IndexPartitionSchemaPtr updateSchema = newResourceReader->getSchema(clusterName);
-    if (!originalSchema) {
+    auto originalTabletSchema = originalResourceReader->getTabletSchema(clusterName);
+    auto updateTabletSchema = newResourceReader->getTabletSchema(clusterName);
+    if (!originalTabletSchema) {
         string errorMsg = "cluster [" + clusterName + "] get origianl schema failed, config path [" +
                           originalResourceReader->getConfigPath() + "]";
         REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
         return UPDATE_ILLEGAL;
     }
-
-    if (!updateSchema) {
+    if (!updateTabletSchema) {
         string errorMsg = "cluster [" + clusterName + "] get upadte schema failed, config path [" +
                           newResourceReader->getConfigPath() + "]";
         REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
         return UPDATE_ILLEGAL;
+    }
+
+    IndexPartitionSchemaPtr originalSchema = originalTabletSchema->GetLegacySchema();
+    IndexPartitionSchemaPtr updateSchema = updateTabletSchema->GetLegacySchema();
+    if (!originalSchema || !updateSchema) {
+        if (originalTabletSchema->GetSchemaId() == updateTabletSchema->GetSchemaId()) {
+            std::string originalSchemaStr;
+            std::string updateSchemaStr;
+            originalTabletSchema->Serialize(true, &originalSchemaStr);
+            updateTabletSchema->Serialize(true, &updateSchemaStr);
+            if (originalSchemaStr != updateSchemaStr) {
+                string errorMsg = "cluster [" + clusterName +
+                                  "] schema changed while schema versionid not change, config path [" +
+                                  newResourceReader->getConfigPath() + "]";
+                REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
+                return UPDATE_ILLEGAL;
+            }
+            return NO_UPDATE_SCHEMA;
+        }
+        auto status = indexlibv2::config::TabletSchema::CheckUpdateSchema(originalTabletSchema, updateTabletSchema);
+        if (!status.IsOK()) {
+            string errorMsg = "cluster [" + clusterName + "] get check upadte schema failed, config path [" +
+                              newResourceReader->getConfigPath() + "]";
+            REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
+            return UPDATE_ILLEGAL;
+        }
+        return UPDATE_SCHEMA;
     }
 
     UpdateableSchemaStandardsPtr standards(new UpdateableSchemaStandards());
@@ -527,43 +585,52 @@ bool ConfigValidator::validateAppPlanMaker(const string& configPath)
         REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
         return false;
     }
-    vector<string> clusterNames;
-    if (!resourceReader->getAllClusters(clusterNames)) {
-        string errorMsg = "read config failed!";
-        REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
-        return false;
-    }
-    if (clusterNames.size() == 0) {
-        string errorMsg = "no cluster specified";
-        REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
-        return false;
-    }
-    map<string, vector<string>> mergeNames;
-    for (size_t i = 0; i < clusterNames.size(); i++) {
-        string clusterConfig = resourceReader->getClusterConfRelativePath(clusterNames[i]);
-        OfflineIndexConfigMap configMap;
-        if (!resourceReader->getConfigWithJsonPath(clusterConfig, "offline_index_config", configMap)) {
-            string errorMsg = "read offline_index_config from " + clusterConfig + " failed";
+    vector<string> dataTables;
+    if (_buildId.has_datatable()) {
+        dataTables.push_back(_buildId.datatable());
+    } else {
+        if (!resourceReader->getAllDataTables(dataTables)) {
+            string errorMsg = "get all data tables failed";
             REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
             return false;
         }
+    }
 
-        OfflineIndexConfigMap::ConstIterator it = configMap.begin();
-        for (; it != configMap.end(); ++it) {
-            if (it->first != "") {
-                const string& mergeName = it->first;
-                mergeNames[clusterNames[i]].push_back(mergeName);
+    vector<string> allClusterNames;
+    map<string, vector<string>> mergeNames;
+    for (size_t i = 0; i < dataTables.size(); ++i) {
+        vector<string> clusterNames;
+        if (!resourceReader->getAllClusters(dataTables[i], clusterNames)) {
+            string errorMsg = "read config failed!";
+            REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
+            return false;
+        }
+        if (clusterNames.size() == 0) {
+            string errorMsg = "no cluster specified";
+            REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
+            return false;
+        }
+        allClusterNames.insert(allClusterNames.end(), clusterNames.begin(), clusterNames.end());
+        for (const auto& clusterName : clusterNames) {
+            string clusterConfig = resourceReader->getClusterConfRelativePath(clusterName);
+            OfflineIndexConfigMap configMap;
+            if (!resourceReader->getConfigWithJsonPath(clusterConfig, "offline_index_config", configMap)) {
+                string errorMsg = "read offline_index_config from " + clusterConfig + " failed";
+                REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
+                return false;
+            }
+
+            OfflineIndexConfigMap::ConstIterator it = configMap.begin();
+            for (; it != configMap.end(); ++it) {
+                if (it->first != "") {
+                    const string& mergeName = it->first;
+                    mergeNames[clusterName].push_back(mergeName);
+                }
             }
         }
     }
 
-    vector<string> dataTables;
-    if (!resourceReader->getAllDataTables(dataTables)) {
-        string errorMsg = "get all data tables failed";
-        REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
-        return false;
-    }
-    if (!appPlanMaker.validate(clusterNames, mergeNames, dataTables)) {
+    if (!appPlanMaker.validate(allClusterNames, mergeNames, dataTables)) {
         string errorMsg = "validate hippo config failed";
         REPORT_ERROR(SERVICE_ERROR_CONFIG, errorMsg);
         return false;
@@ -627,18 +694,6 @@ bool ConfigValidator::validateSwiftConfig(const SwiftConfig& swiftConfig, const 
             ss << "set diff swift cluster config [" << buildServiceConfig.getSwiftRoot(true) << "] and ["
                << buildServiceConfig.getSwiftRoot(false) << "], should set both full and inc swift topic";
             REPORT_ERROR(SERVICE_ERROR_CONFIG, ss.str());
-            return false;
-        }
-    }
-    if (buildV2Mode) {
-        auto swiftWriterConfig = swiftConfig.getSwiftWriterConfig(config::INC_SWIFT_BROKER_TOPIC_CONFIG);
-        if (swiftWriterConfig.find("mergeMessage=true") != std::string::npos) {
-            REPORT_ERROR(SERVICE_ERROR_CONFIG, string("buildv2 not support swift merge message"));
-            return false;
-        }
-        swiftWriterConfig = swiftConfig.getSwiftWriterConfig(config::FULL_SWIFT_BROKER_TOPIC_CONFIG);
-        if (swiftWriterConfig.find("mergeMessage=true") != std::string::npos) {
-            REPORT_ERROR(SERVICE_ERROR_CONFIG, string("buildv2 not support swift merge message"));
             return false;
         }
     }

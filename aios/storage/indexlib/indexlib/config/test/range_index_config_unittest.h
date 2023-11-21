@@ -1,11 +1,9 @@
-#ifndef __INDEXLIB_RANGEINDEXCONFIGTEST_H
-#define __INDEXLIB_RANGEINDEXCONFIGTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/range_index_config.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -27,11 +25,9 @@ private:
     IndexPartitionSchemaPtr mSchema;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(RangeIndexConfigTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(RangeIndexConfigTest, TestConfigError);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_RANGEINDEXCONFIGTEST_H

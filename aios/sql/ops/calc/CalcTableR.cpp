@@ -36,6 +36,7 @@
 #include "sql/ops/condition/AliasConditionVisitor.h"
 #include "sql/ops/condition/ConditionParser.h"
 #include "sql/ops/condition/ExprUtil.h"
+#include "sql/ops/util/KernelUtil.h"
 #include "suez/turing/expression/cava/common/CavaPluginManager.h"
 #include "suez/turing/expression/cava/common/SuezCavaAllocator.h"
 #include "suez/turing/expression/common.h"
@@ -60,7 +61,7 @@ class ResourceInitContext;
 } // namespace navi
 
 namespace table {
-class ColumnDataBase;
+class BaseColumnData;
 template <typename T>
 class ColumnData;
 } // namespace table
@@ -80,6 +81,8 @@ using namespace suez::turing;
 namespace sql {
 
 const string CalcTableR::DEFAULT_NULL_NUMBER_VALUE = "0";
+
+static constexpr size_t TRACE_ROW_COUNT = 10;
 
 CalcTableR::CalcTableR()
     : _filterFlag(true)
@@ -104,7 +107,9 @@ bool CalcTableR::config(navi::ResourceConfigContext &ctx) {
 }
 
 navi::ErrorCode CalcTableR::init(navi::ResourceInitContext &ctx) {
-    string pathName = "sql.user.ops." + _opName;
+    string opName = _opName;
+    KernelUtil::stripKernelNamePrefix(opName);
+    string pathName = "sql.user.ops." + std::move(opName);
     _opMetricReporter = _queryMetricReporterR->getReporter()->getSubReporter(pathName, {}).get();
     _initPool = _graphMemoryPoolR->getPool();
     if (!ExprUtil::parseOutputExprs(
@@ -114,7 +119,7 @@ navi::ErrorCode CalcTableR::init(navi::ResourceInitContext &ctx) {
                 _calcInitParamR->outputExprsJson.c_str());
         return navi::EC_ABORT;
     }
-    SQL_LOG(TRACE1, "expr alias map[%s]", autil::StringUtil::toString(_exprsAliasMap).c_str());
+    SQL_LOG(TRACE3, "expr alias map[%s]", autil::StringUtil::toString(_exprsAliasMap).c_str());
     ConditionParser parser(_initPool.get());
     if (!parser.parseCondition(_calcInitParamR->conditionJson, _condition)) {
         SQL_LOG(ERROR, "parse condition [%s] failed", _calcInitParamR->conditionJson.c_str());
@@ -130,7 +135,7 @@ navi::ErrorCode CalcTableR::init(navi::ResourceInitContext &ctx) {
         _needDestructJson = true;
     }
     SQL_LOG(
-        TRACE3,
+        DEBUG,
         "outputFields[%s] outputFieldsType[%s] conditionJson[%s] outputExprsJson[%s] tracer[%p]",
         autil::StringUtil::toString(_calcInitParamR->outputFields).c_str(),
         autil::StringUtil::toString(_calcInitParamR->outputFieldsType).c_str(),
@@ -160,18 +165,27 @@ void CalcTableR::prepareWithMatchInfo(FunctionProvider &provider) {
 bool CalcTableR::calcTable(table::TablePtr &table) {
     bool doFilter = _condition && _filterFlag && _aliasConditionVisitor;
     if (doFilter) {
+        SQL_LOG(TRACE3,
+                "before filter: %s",
+                table::TableUtil::toString(table, TRACE_ROW_COUNT).c_str());
         if (!filterTable(table)) {
             SQL_LOG(ERROR, "filter table failed.");
             return false;
         }
+        SQL_LOG(
+            TRACE3, "after filter: %s", table::TableUtil::toString(table, TRACE_ROW_COUNT).c_str());
     }
     if (_calcInitParamR->outputFields.empty() || !needCopyTable(table)) {
         return true;
     }
+    SQL_LOG(
+        TRACE3, "before project: %s", table::TableUtil::toString(table, TRACE_ROW_COUNT).c_str());
     if (!projectTable(table)) {
         SQL_LOG(ERROR, "project table failed.");
         return false;
     }
+    SQL_LOG(
+        TRACE3, "after project: %s", table::TableUtil::toString(table, TRACE_ROW_COUNT).c_str());
     return true;
 }
 
@@ -193,12 +207,13 @@ bool CalcTableR::filterTable(const table::TablePtr &table,
     AliasConditionVisitor aliasVisitor;
     _condition->accept(&aliasVisitor);
     const auto &aliasMap = aliasVisitor.getAliasMap();
-    addAliasMap(table->getMatchDocAllocator(), aliasMap);
+    auto allocator = table::Table::toMatchDocs(*table);
+    addAliasMap(allocator.get(), aliasMap);
 
     // ATTENTION:
     // filter should not create extra multi value for input table, so temp pool is enough
     auto tempPool = _graphMemoryPoolR->getPool();
-    FunctionProvider functionProvider(table->getMatchDocAllocator(),
+    FunctionProvider functionProvider(allocator.get(),
                                       tempPool.get(),
                                       _suezCavaAllocatorR->getAllocator().get(),
                                       _traceAdapterR->getTracer().get(),
@@ -207,7 +222,7 @@ bool CalcTableR::filterTable(const table::TablePtr &table,
                                       _opMetricReporter);
     prepareWithMatchInfo(functionProvider);
     MatchDocsExpressionCreator exprCreator(tempPool.get(),
-                                           table->getMatchDocAllocator(),
+                                           allocator.get(),
                                            _functionInterfaceCreatorR->getCreator().get(),
                                            _cavaPluginManagerR->getManager().get(),
                                            &functionProvider,
@@ -277,9 +292,6 @@ void CalcTableR::addAliasMap(matchdoc::MatchDocAllocator *allocator,
 }
 
 bool CalcTableR::needCopyTable(const table::TablePtr &table) {
-    if (table->getMatchDocAllocator()->hasSubDocAllocator()) {
-        return true;
-    }
     if (!_exprsMap.empty()) {
         return true;
     }
@@ -287,7 +299,7 @@ bool CalcTableR::needCopyTable(const table::TablePtr &table) {
         return true;
     }
     for (size_t i = 0; i < _calcInitParamR->outputFields.size(); ++i) {
-        if (_calcInitParamR->outputFields[i] != table->getColumnName(i)) {
+        if (_calcInitParamR->outputFields[i] != table->getColumn(i)->getName()) {
             return true;
         }
     }
@@ -302,9 +314,12 @@ bool CalcTableR::doProjectReuseTable(table::TablePtr &table,
         SQL_LOG(WARN, "declare output table field failed.");
         return false;
     }
-    table->endGroup();
     auto optimizeReCalcExpression = exprCreator->createOptimizeReCalcExpression();
-    if (!calcTableExpr(table, table, exprVec, optimizeReCalcExpression)) {
+    if (!calcTableExpr(exprCreator->getAllocator(),
+                       table->getRows(),
+                       table,
+                       exprVec,
+                       optimizeReCalcExpression)) {
         SQL_LOG(WARN, "fill output table expression failed.");
         return false;
     }
@@ -328,16 +343,19 @@ bool CalcTableR::doProjectTable(table::TablePtr &table,
     auto optimizeReCalcExpression = exprCreator->createOptimizeReCalcExpression();
     size_t rowCount = table->getRowCount();
     output->batchAllocateRow(rowCount);
-    if (!calcTableExpr(table, output, exprVec, optimizeReCalcExpression)) {
+    if (!calcTableExpr(exprCreator->getAllocator(),
+                       table->getRows(),
+                       output,
+                       exprVec,
+                       optimizeReCalcExpression)) {
         SQL_LOG(WARN, "fill output table expression failed.");
         return false;
     }
 
-    if (!calcTableCloumn(output, columnDataTupleVec)) {
+    if (!calcTableColumn(output, columnDataTupleVec)) {
         SQL_LOG(WARN, "project output table failed.");
         return false;
     }
-    output->mergeDependentPools(table);
     table = output;
     return true;
 }
@@ -346,13 +364,14 @@ bool CalcTableR::projectTable(table::TablePtr &table) {
     if (!needCopyTable(table)) {
         return true;
     }
-    addAliasMap(table->getMatchDocAllocator(), _exprsAliasMap);
+    auto allocator = table::Table::toMatchDocs(*table);
+    addAliasMap(allocator.get(), _exprsAliasMap);
     auto functionInterfaceCreator = _functionInterfaceCreatorR->getCreator().get();
     auto cavaPluginManager = _cavaPluginManagerR->getManager().get();
     auto cavaAllocator = _suezCavaAllocatorR->getAllocator().get();
     auto tracer = _traceAdapterR->getTracer().get();
-    FunctionProvider functionProvider(table->getMatchDocAllocator(),
-                                      table->getDataPool(),
+    FunctionProvider functionProvider(allocator.get(),
+                                      table->getPool(),
                                       cavaAllocator,
                                       tracer,
                                       nullptr,
@@ -362,7 +381,7 @@ bool CalcTableR::projectTable(table::TablePtr &table) {
 
     auto tempPool = _graphMemoryPoolR->getPool();
     MatchDocsExpressionCreator exprCreator(tempPool.get(),
-                                           table->getMatchDocAllocator(),
+                                           allocator.get(),
                                            functionInterfaceCreator,
                                            cavaPluginManager,
                                            &functionProvider,
@@ -375,7 +394,7 @@ bool CalcTableR::declareTable(const table::TablePtr &inputTable,
                               MatchDocsExpressionCreator *exprCreator,
                               vector<ExprColumnType> &exprVec,
                               vector<ColumnDataTuple> &columnDataTupleVec) {
-    SQL_LOG(TRACE2, "step1: declare table");
+    SQL_LOG(TRACE3, "step1: declare table");
     for (size_t i = 0; i < _calcInitParamR->outputFields.size(); i++) {
         const string &newName = _calcInitParamR->outputFields[i];
         auto iter = _exprsMap.find(newName);
@@ -435,7 +454,7 @@ CalcTableR::createAttributeExpression(const std::string &outputType,
         }
         attriExpr = ExprUtil::createConstExpression(pool, constValue, constValue, resultType);
         if (attriExpr) {
-            SQL_LOG(DEBUG, "create const expression for null value, result type [%d]", resultType);
+            SQL_LOG(TRACE3, "create const expression for null value, result type [%d]", resultType);
             exprCreator->addNeedDeleteExpr(attriExpr);
         }
         return attriExpr;
@@ -456,7 +475,7 @@ CalcTableR::createAttributeExpression(const std::string &outputType,
             if (resultType != vt_unknown) {
                 attriExpr = ExprUtil::createConstExpression(pool, atomicExpr, resultType);
                 if (attriExpr) {
-                    SQL_LOG(TRACE1,
+                    SQL_LOG(TRACE3,
                             "create const expression [%s], result type [%d]",
                             exprStr.c_str(),
                             resultType);
@@ -492,15 +511,15 @@ bool CalcTableR::declareExprColumn(const std::string &name,
         bool hasError = false;
         std::string errorInfo;
         attriExpr = ExprUtil::CreateCaseExpression(
-            exprCreator, outputType, *_simpleDoc, hasError, errorInfo, outputTable->getDataPool());
+            exprCreator, outputType, *_simpleDoc, hasError, errorInfo, outputTable->getPool());
         if (hasError || attriExpr == nullptr) {
             SQL_LOG(WARN, "create case expression failed [%s]", errorInfo.c_str());
             return false;
         }
     } else {
         const std::string &exprStr = exprEntity.exprStr;
-        attriExpr = createAttributeExpression(
-            outputType, exprStr, exprCreator, outputTable->getDataPool());
+        attriExpr
+            = createAttributeExpression(outputType, exprStr, exprCreator, outputTable->getPool());
         if (attriExpr == nullptr) {
             SQL_LOG(WARN, "create attribute expr failed, expr string [%s]", exprStr.c_str());
             return false;
@@ -510,8 +529,8 @@ bool CalcTableR::declareExprColumn(const std::string &name,
     bool isMulti = attriExpr->isMultiValue();
     auto func = [&](auto a) {
         typedef typename decltype(a)::value_type T;
-        ColumnDataBase *newColumnData
-            = table::TableUtil::declareAndGetColumnData<T>(outputTable, name, false, true);
+        BaseColumnData *newColumnData
+            = table::TableUtil::declareAndGetColumnData<T>(outputTable, name, true);
         if (newColumnData == nullptr) {
             SQL_LOG(ERROR, "can not declare column [%s]", name.c_str());
             return false;
@@ -526,51 +545,50 @@ bool CalcTableR::declareExprColumn(const std::string &name,
     return true;
 }
 
-bool CalcTableR::calcTableExpr(const table::TablePtr &inputTable,
+bool CalcTableR::calcTableExpr(matchdoc::MatchDocAllocator *allocator,
+                               const std::vector<table::Row> &rows,
                                table::TablePtr &outputTable,
                                std::vector<ExprColumnType> &exprVec,
                                AttributeExpression *optimizeReCalcExpression) {
-    SQL_LOG(TRACE2, "step2.1: project table fill optimize recalc expression value");
+    SQL_LOG(TRACE3, "step2.1: project table fill optimize recalc expression value");
     if (optimizeReCalcExpression) {
-        SQL_LOG(TRACE2, "step2.1: start fill optimize recalc expression value");
+        SQL_LOG(TRACE3, "step2.1: start fill optimize recalc expression value");
         auto expr = dynamic_cast<OptimizeReCalcExpression *>(optimizeReCalcExpression);
         if (expr) {
             SQL_LOG(
-                TRACE2, "optimize recalc expression is [%s]", expr->getOriginalString().c_str());
-            auto rows = inputTable->getRows();
-            auto allocator = inputTable->getMatchDocAllocator();
+                TRACE3, "optimize recalc expression is [%s]", expr->getOriginalString().c_str());
             if (!expr->allocate(allocator)) {
                 SQL_LOG(ERROR, "optimize recalc expression allocate failed");
                 return false;
             }
             allocator->extend();
-            expr->batchAndSetEvaluate(rows.data(), inputTable->getRowCount());
+            expr->batchAndSetEvaluate((table::Row *)rows.data(), rows.size());
         }
-        SQL_LOG(TRACE2, "step2.1: end fill optimize recalc expression value");
+        SQL_LOG(TRACE3, "step2.1: end fill optimize recalc expression value");
     } else {
-        SQL_LOG(TRACE2, "step2.1: no optimize recalc expression value");
+        SQL_LOG(TRACE3, "step2.1: no optimize recalc expression value");
     }
-    SQL_LOG(TRACE2, "step2.2: project table fill expression value");
+    SQL_LOG(TRACE3, "step2.2: project table fill expression value");
 
     AttributeExpression *attriExpr = nullptr;
-    table::ColumnDataBase *originColumnDataBase = nullptr;
+    table::BaseColumnData *originColumnData = nullptr;
 
     auto func = [&](auto a) {
         typedef typename decltype(a)::value_type T;
         auto attriExprTyped = static_cast<AttributeExpressionTyped<T> *>(attriExpr);
-        auto newColumnData = static_cast<ColumnData<T> *>(originColumnDataBase);
+        auto newColumnData = static_cast<ColumnData<T> *>(originColumnData);
         if (attriExprTyped == nullptr || newColumnData == nullptr) {
             return false;
         }
         for (size_t i = 0; i < outputTable->getRowCount(); i++) {
-            newColumnData->set(i, attriExprTyped->evaluateAndReturn(inputTable->getRow(i)));
+            newColumnData->set(i, attriExprTyped->evaluateAndReturn(rows[i]));
         }
         return true;
     };
 
     for (size_t i = 0; i < exprVec.size(); ++i) {
         attriExpr = exprVec[i].first;
-        originColumnDataBase = exprVec[i].second;
+        originColumnData = exprVec[i].second;
         auto bt = attriExpr->getType();
         bool isMulti = attriExpr->isMultiValue();
         if (!table::ValueTypeSwitch::switchType(bt, isMulti, func, func)) {
@@ -593,9 +611,9 @@ bool CalcTableR::cloneColumnData(table::Column *originColumn,
     auto vt = schema->getType();
     auto func = [&](auto a) {
         typedef typename decltype(a)::value_type T;
-        ColumnDataBase *originColumnData = originColumn->getColumnData<T>();
-        ColumnDataBase *newColumnData
-            = table::TableUtil::declareAndGetColumnData<T>(table, name, false, true);
+        BaseColumnData *originColumnData = originColumn->getColumnData<T>();
+        BaseColumnData *newColumnData
+            = table::TableUtil::declareAndGetColumnData<T>(table, name, true);
         if (newColumnData == nullptr) {
             SQL_LOG(ERROR, "can not declare column [%s]", name.c_str());
             return false;
@@ -610,23 +628,23 @@ bool CalcTableR::cloneColumnData(table::Column *originColumn,
     return true;
 }
 
-bool CalcTableR::calcTableCloumn(table::TablePtr &outputTable,
+bool CalcTableR::calcTableColumn(table::TablePtr &outputTable,
                                  std::vector<ColumnDataTuple> &columnDataTupleVec) {
-    SQL_LOG(TRACE2, "step3: project table  fill colunm value");
-    table::ColumnDataBase *newColumnDataBase = nullptr;
-    table::ColumnDataBase *originColumnDataBase = nullptr;
+    SQL_LOG(TRACE3, "step3: project table  fill colunm value");
+    table::BaseColumnData *newColumnData = nullptr;
+    table::BaseColumnData *originColumnData = nullptr;
     matchdoc::ValueType vt;
     auto calcFunc = [&](auto a) {
         typedef typename decltype(a)::value_type T;
-        auto originColumnData = static_cast<ColumnData<T> *>(originColumnDataBase);
-        auto newColumnData = static_cast<ColumnData<T> *>(newColumnDataBase);
+        auto originColumnDataTyped = static_cast<ColumnData<T> *>(originColumnData);
+        auto newColumnDataTyped = static_cast<ColumnData<T> *>(newColumnData);
         for (size_t i = 0; i < outputTable->getRowCount(); i++) {
-            newColumnData->set(i, originColumnData->get(i));
+            newColumnDataTyped->set(i, originColumnDataTyped->get(i));
         }
         return true;
     };
     for (size_t i = 0; i < columnDataTupleVec.size(); ++i) {
-        std::tie(originColumnDataBase, newColumnDataBase, vt) = columnDataTupleVec[i];
+        std::tie(originColumnData, newColumnData, vt) = columnDataTupleVec[i];
         if (!ValueTypeSwitch::switchType(vt, calcFunc, calcFunc)) {
             SQL_LOG(ERROR, "evaluate column value failed");
             return false;

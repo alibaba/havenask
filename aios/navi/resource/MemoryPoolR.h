@@ -59,9 +59,9 @@ private:
     bool myHasInterceptorMalloc();
 
 private:
-    static constexpr size_t DEFAULT_POOL_CHUNK_SIZE = 2;         // 2MB
-    static constexpr size_t DEFAULT_POOL_RELEASE_THRESHOLD = 16; // 16MB
-    static constexpr size_t DEFAULT_POOL_RELEASE_RATE = 3ul;                   // rate = 3 / 13
+    static constexpr size_t DEFAULT_POOL_CHUNK_SIZE = 1;        // 1MB
+    static constexpr size_t DEFAULT_POOL_RELEASE_THRESHOLD = 2; // 2MB
+    static constexpr size_t DEFAULT_POOL_RELEASE_RATE = 3ul;    // rate = 3 / 13
     static constexpr size_t DEFAULT_POOL_CACHE_AUTOSCALE_KEEP_COUNT = 500ul;
 
 private:

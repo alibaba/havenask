@@ -1,9 +1,11 @@
-#ifndef ISEARCH_BS_MOKEBROKERTOPICKEEPER_H
-#define ISEARCH_BS_MOKEBROKERTOPICKEEPER_H
+#pragma once
+
+#include <string>
 
 #include "build_service/common/BrokerTopicKeeper.h"
-#include "build_service/common/test/MockSwiftAdminFacade.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 
 namespace build_service { namespace common {
 
@@ -24,5 +26,3 @@ private:
 BS_TYPEDEF_PTR(MockBrokerTopicKeeper);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_MOKEBROKERTOPICKEEPER_H

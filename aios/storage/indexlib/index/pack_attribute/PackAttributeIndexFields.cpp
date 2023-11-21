@@ -59,7 +59,6 @@ size_t PackAttributeIndexFields::EstimateMemory() const
     // all fields is created from pooled allocator
     return 0;
 }
-bool PackAttributeIndexFields::HasFormatError() const { return false; }
 
 void PackAttributeIndexFields::AddSingleField(const SingleField& field) { _fields.push_back(field); }
 

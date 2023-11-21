@@ -15,6 +15,8 @@
  */
 #include "indexlib/util/MathUtil.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace util {

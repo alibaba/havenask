@@ -15,11 +15,20 @@
  */
 #include "indexlib/framework/VersionCleaner.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <memory>
+#include <type_traits>
 
 #include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/ListOption.h"
+#include "indexlib/file_system/RemoveOption.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/SegmentFenceDirFinder.h"
 #include "indexlib/framework/Version.h"
@@ -49,7 +58,7 @@ Status VersionCleaner::Clean(const std::shared_ptr<indexlib::file_system::IDirec
     AUTIL_LOG(INFO, "Version cleaner init with reserved versions %s",
               autil::legacy::ToJsonString(VersionCoordsToStrs(reservedVersions), /*isCompact=*/true).c_str());
 
-    if (_options.keepVersionCount == 0) {
+    if (_options.keepVersionCount == 0 && !_options.ignoreKeepVersionCount) {
         AUTIL_LOG(WARN,
                   "Keep version count [%u] should not be less than 1. "
                   "use 1 by default.",
@@ -307,6 +316,9 @@ void VersionCleaner::FillReservedVersionsByMergedVersion()
     if (_allVersionsInRoot.size() <= _options.keepVersionCount) {
         return;
     }
+    if (_options.keepVersionCount == 0) {
+        return;
+    }
     const Version& minVersion = _allVersionsInRoot[_allVersionsInRoot.size() - _options.keepVersionCount].version;
     int64_t minVersionCommitTime = minVersion.GetCommitTime();
 
@@ -369,6 +381,12 @@ Status VersionCleaner::FillFencesToRemove()
             if (!res) {
                 AUTIL_LOG(ERROR, "decode fence [%s] failed", fenceName.c_str());
                 return Status::InternalError();
+            }
+            if (_options.ignoreKeepVersionCount) {
+                _fencesToRemove.push_back(fenceName);
+                AUTIL_LOG(INFO, "Force fill remove fence[%s], timestamp[%ld], range[%u_%u].", fenceName.c_str(),
+                          fenceMeta.timestamp, fenceMeta.range.first, fenceMeta.range.second);
+                continue;
             }
             // TODO(yonghao.fyh) : consider clean up after full build fence
             auto iter = _rangeToFenceMeta.find(fenceMeta.range);

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCK_PARITITON_READER_MODIFIER_H
-#define __INDEXLIB_MOCK_PARITITON_READER_MODIFIER_H
+#pragma once
 
 #include <memory>
 
@@ -23,5 +22,3 @@ public:
 
 DEFINE_SHARED_PTR(MockPartitionReaderModifier);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MOCK_PARITITON_READER_MODIFIER_H

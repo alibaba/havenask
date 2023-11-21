@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEX_KKV_READER_IMPL_BASE_H
-#define __INDEX_KKV_READER_IMPL_BASE_H
+#pragma once
 
 #include <memory>
 #include <unordered_set>
@@ -77,5 +76,3 @@ protected:
 
 DEFINE_SHARED_PTR(KKVReaderImplBase);
 }} // namespace indexlib::index
-
-#endif //__INDEX_KKV_READER_IMPL_BASE_H

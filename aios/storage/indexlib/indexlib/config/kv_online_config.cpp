@@ -20,7 +20,7 @@ using namespace autil::legacy;
 using namespace autil::legacy::json;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, KVOnlineConfig);
+AUTIL_LOG_SETUP(indexlib.config, KVOnlineConfig);
 
 KVOnlineConfig::KVOnlineConfig() {}
 

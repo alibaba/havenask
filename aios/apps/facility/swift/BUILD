@@ -105,6 +105,7 @@ filegroup(
     name='swift_misc',
     srcs=[
         'misc/apsara_log_conf.json', 'misc/ip_seg_map', 'misc/leak_suppression',
-        'misc/swift_alog.conf', 'misc/swift_client_alog.conf'
+        'misc/swift_alog.conf', 'misc/swift_client_alog.conf',
+        'misc/swift_log_sender.conf', 'misc/swift_log_sender_sls.conf'
     ]
 )

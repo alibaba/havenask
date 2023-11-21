@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_COMBINEDRAWDOCUMENTPARSER_H
-#define ISEARCH_BS_COMBINEDRAWDOCUMENTPARSER_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
@@ -30,6 +29,7 @@ public:
         : _parsers(parsers)
         , _lastParser(0)
         , _parserCount(parsers.size())
+        , _keepParserOrder(false)
     {
     }
     ~CombinedRawDocumentParser() {}
@@ -39,6 +39,7 @@ private:
     CombinedRawDocumentParser& operator=(const CombinedRawDocumentParser&);
 
 public:
+    bool init(const std::map<std::string, std::string>& kvMap) override;
     bool parse(const std::string& docString, indexlib::document::RawDocument& rawDoc) override;
     bool parseMultiMessage(const std::vector<indexlib::document::RawDocumentParser::Message>& msgs,
                            indexlib::document::RawDocument& rawDoc) override
@@ -51,6 +52,7 @@ private:
     std::vector<indexlib::document::RawDocumentParserPtr> _parsers;
     size_t _lastParser;
     size_t _parserCount;
+    bool _keepParserOrder;
 
 private:
     BS_LOG_DECLARE();
@@ -59,5 +61,3 @@ private:
 BS_TYPEDEF_PTR(CombinedRawDocumentParser);
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_COMBINEDRAWDOCUMENTPARSER_H

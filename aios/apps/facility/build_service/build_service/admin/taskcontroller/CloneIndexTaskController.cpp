@@ -15,10 +15,22 @@
  */
 #include "build_service/admin/taskcontroller/CloneIndexTaskController.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/controlflow/KeyValueParamParser.h"
 #include "build_service/admin/controlflow/ListParamParser.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/TaskTarget.h"
 
 using namespace std;
 using namespace autil::legacy;

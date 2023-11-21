@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARALLELOFFLINESEGMENTDIRECTORYTEST_H
-#define __INDEXLIB_PARALLELOFFLINESEGMENTDIRECTORYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/segment/parallel_offline_segment_directory.h"
@@ -41,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE(ParallelOfflineSegmentDirectoryTest, TestCreateNewSegmen
 INDEXLIB_UNIT_TEST_CASE(ParallelOfflineSegmentDirectoryTest, TestCheckValidBaseVersion);
 INDEXLIB_UNIT_TEST_CASE(ParallelOfflineSegmentDirectoryTest, TestGetNextSegmentId);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_PARALLELOFFLINESEGMENTDIRECTORYTEST_H

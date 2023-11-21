@@ -93,6 +93,7 @@ public:
     const GraphInfo *getGraphInfo(const std::string &name) const;
     bool isSinglePart() const;
     bool hasPartId(NaviPartId partId) const;
+    NaviPartId getPartCount() const;
     void getPartInfo(NaviPartId &partCount, std::vector<NaviPartId> &partIds) const;
     std::vector<NaviPartId> getPartIdsWithoutBizPart() const;
     const std::set<std::string> &getKernelSet() const;

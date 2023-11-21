@@ -15,7 +15,14 @@
  */
 #include "indexlib/merger/merge_meta_creator_factory.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <memory>
+
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/index/merger_util/reclaim_map/reclaim_map_creator.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/index_table_merge_meta_creator.h"
 #include "indexlib/merger/key_value_merge_meta_creator.h"
 

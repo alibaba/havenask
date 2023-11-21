@@ -15,8 +15,9 @@
  */
 #include "build_service/util/ParallelIdGenerator.h"
 
+#include <assert.h>
+
 #include "indexlib/base/Constant.h"
-#include "indexlib/framework/Segment.h"
 
 namespace build_service::util {
 AUTIL_LOG_SETUP(build_service.util, ParallelIdGenerator);

@@ -22,7 +22,6 @@
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/index/deletionmap/Common.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/util/Exception.h"
 
@@ -133,10 +132,10 @@ ShardBasedMergeStrategy::DoCreateMergePlan(const framework::IndexTaskContext* co
     return std::make_pair(Status::OK(), mergePlan);
 }
 
-void ShardBasedMergeStrategy::CollectSegmentDescriptions(
-    const std::shared_ptr<indexlibv2::framework::LevelInfo>& originalLevelInfo,
-    const std::map<segmentid_t, SegmentTopologyInfo>& topoInfos, const std::shared_ptr<MergePlan>& mergePlan,
-    framework::Version& targetVersion)
+void ShardBasedMergeStrategy::CollectSegmentDescriptions(const std::shared_ptr<framework::LevelInfo>& originalLevelInfo,
+                                                         const std::map<segmentid_t, SegmentTopologyInfo>& topoInfos,
+                                                         const std::shared_ptr<MergePlan>& mergePlan,
+                                                         framework::Version& targetVersion)
 {
     auto levelInfo = targetVersion.GetSegmentDescriptions()->GetLevelInfo();
     for (auto iter = topoInfos.begin(); iter != topoInfos.end(); iter++) {
@@ -170,7 +169,7 @@ void ShardBasedMergeStrategy::CollectSegmentDescriptions(
 }
 
 std::pair<Status, vector<vector<bool>>>
-ShardBasedMergeStrategy::GenerateMergeTag(const std::shared_ptr<indexlibv2::framework::LevelInfo>& levelInfo,
+ShardBasedMergeStrategy::GenerateMergeTag(const std::shared_ptr<framework::LevelInfo>& levelInfo,
                                           const std::shared_ptr<framework::TabletData>& tabletData)
 {
     size_t levelNum = levelInfo->GetLevelCount();
@@ -252,7 +251,7 @@ double ShardBasedMergeStrategy::CalculateSpaceAmplification(uint32_t percent, ui
     return spaceAmplification;
 }
 
-Status ShardBasedMergeStrategy::GetLevelSizeInfo(const std::shared_ptr<indexlibv2::framework::LevelInfo>& levelInfo,
+Status ShardBasedMergeStrategy::GetLevelSizeInfo(const std::shared_ptr<framework::LevelInfo>& levelInfo,
                                                  const std::shared_ptr<framework::TabletData>& tabletData,
                                                  vector<vector<size_t>>& segmentsSize, vector<size_t>& actualLevelSize)
 {

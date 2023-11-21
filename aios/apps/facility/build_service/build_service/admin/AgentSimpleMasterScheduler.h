@@ -15,14 +15,35 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <google/protobuf/service.h>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/Lock.h"
+#include "autil/LoopThread.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/admin/AgentRoleInfo.h"
 #include "build_service/admin/WorkerTable.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
-#include "build_service/util/Monitor.h"
+#include "hippo/DriverCommon.h"
+#include "hippo/LeaderSerializer.h"
+#include "hippo/MasterDriver.h"
+#include "kmonitor_adapter/Metric.h"
 #include "kmonitor_adapter/Monitor.h"
+#include "master_framework/AppPlan.h"
+#include "master_framework/RolePlan.h"
 #include "master_framework/SimpleMasterScheduler.h"
+#include "master_framework/common.h"
+#include "worker_framework/LeaderChecker.h"
 #include "worker_framework/ZkState.h"
 
 namespace build_service { namespace admin {
@@ -101,6 +122,7 @@ public:
     bool isInBlackList(const std::string& targetRole, const std::string& targetAgentRole) const;
     bool getAgentNodeInBlackListTimestamp(const std::string& agentRole, int64_t& timestamp) const;
     bool hasValidTargetRoles(const std::string& agentRole) const;
+    void getTotalResourceAmount(int64_t& totalCpuAmount, int64_t& totalMemAmount) const;
 
 private:
     void enableClearUselessAgentZkNodes();
@@ -120,6 +142,8 @@ private:
     void serializeBlackListData();
     void refreshInBlackListAgentInfo();
     void fillAgentIdentifier(const std::map<std::string, SlotInfos>& roleSlots);
+    void updateResourceStatistic(const std::map<std::string, SlotInfos>& roleSlots);
+    void syncSlotInfosUnsafe(std::map<std::string, SlotInfos>& roleSlots);
 
 private:
     static constexpr int32_t CLEAR_USELESS_ZK_NODE_INTERVAL = 1200; // 20 min
@@ -161,12 +185,16 @@ private:
     volatile int64_t _lastClearTimestamp;
     volatile int64_t _lastSyncSlotTimestamp;
     volatile bool _needSyncBlackList;
+    volatile int64_t _totalCpuAmount;
+    volatile int64_t _totalMemAmount;
 
     kmonitor_adapter::MetricPtr _setPlanLatency;
     kmonitor_adapter::MetricPtr _agentNodeCount;
     kmonitor_adapter::MetricPtr _blackListNodeCount;
     kmonitor_adapter::MetricPtr _useAgentRoleCount;
     kmonitor_adapter::MetricPtr _reclaimingAgentNodeCount;
+    kmonitor_adapter::MetricPtr _cpuAmountMetric;
+    kmonitor_adapter::MetricPtr _memAmountMetric;
 
 private:
     BS_LOG_DECLARE();

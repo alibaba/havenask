@@ -43,7 +43,7 @@ class IIndexMerger
 {
 public:
     struct SourceSegment {
-        docid_t baseDocid = 0;
+        docid64_t baseDocid = 0;
         std::shared_ptr<framework::Segment> segment;
     };
     struct SegmentMergeInfos {

@@ -81,7 +81,26 @@ private:
         addColumn(tableStructure, "text", proto::TableStructure::Column::TEXT, false, false, "simple_analyzer");
         addColumn(tableStructure, "texts", proto::TableStructure::Column::TEXT, true, false, "simple_analyzer");
         addColumn(tableStructure, "raw", proto::TableStructure::Column::RAW);
+        addColumn(tableStructure, "time", proto::TableStructure::Column::TIME);
+        addColumn(tableStructure, "timestamp", proto::TableStructure::Column::TIMESTAMP);
+        addColumn(tableStructure, "date", proto::TableStructure::Column::DATE);
+        addColumn(tableStructure, "location", proto::TableStructure::Column::LOCATION);
+        addColumn(tableStructure, "polygon", proto::TableStructure::Column::POLYGON);
+        addColumn(tableStructure, "line", proto::TableStructure::Column::LINE);
         addIndex(tableStructure, "number", proto::TableStructure::Index::NUMBER, {"int16"});
+        addIndex(tableStructure, "_SOURCE_", proto::TableStructure::Index::SOURCE, {}, {{"field_mode", "all_field"}});
+        addIndex(
+            tableStructure, "date", proto::TableStructure::Index::DATE, {"uint64"}, {{"build_granularity", "minute"}});
+        addIndex(tableStructure,
+                 "spatial1",
+                 proto::TableStructure::Index::SPATIAL,
+                 {"uint32"},
+                 {{"max_search_dist", "10000"}, {"max_dist_err", "100"}});
+        addIndex(tableStructure,
+                 "spatial2",
+                 proto::TableStructure::Index::SPATIAL,
+                 {"uint64"},
+                 {{"max_search_dist", "10000"}, {"max_dist_err", "100"}, {"distance_loss_accuracy", "0.03"}});
         addIndex(tableStructure,
                  "numbers",
                  proto::TableStructure::Index::NUMBER,

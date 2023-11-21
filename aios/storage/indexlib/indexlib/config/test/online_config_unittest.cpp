@@ -9,7 +9,7 @@
 using namespace std;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, OnlineConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, OnlineConfigTest);
 
 OnlineConfigTest::OnlineConfigTest() {}
 
@@ -345,9 +345,9 @@ void OnlineConfigTest::TestDisableFields()
     ASSERT_NO_THROW(onlineConfig.Check());
 
     const auto& disableFieldList = onlineConfig.GetDisableFieldsConfig();
-    EXPECT_THAT(disableFieldList.attributes, UnorderedElementsAre("attr1", "attr2"));
-    EXPECT_THAT(disableFieldList.packAttributes, UnorderedElementsAre("pack_attr_1"));
-    EXPECT_THAT(disableFieldList.indexes, UnorderedElementsAre("idx1", "idx2"));
+    EXPECT_THAT(disableFieldList.attributes, testing::UnorderedElementsAre("attr1", "attr2"));
+    EXPECT_THAT(disableFieldList.packAttributes, testing::UnorderedElementsAre("pack_attr_1"));
+    EXPECT_THAT(disableFieldList.indexes, testing::UnorderedElementsAre("idx1", "idx2"));
     ASSERT_EQ(DisableFieldsConfig::SDF_FIELD_ALL, disableFieldList.summarys);
     ASSERT_EQ(DisableFieldsConfig::CDF_FIELD_ALL, disableFieldList.sources);
 }
@@ -377,13 +377,13 @@ void OnlineConfigTest::TestDisableSourceGroup()
     ASSERT_NO_THROW(onlineConfig.Check());
 
     const auto& disableFieldList = onlineConfig.GetDisableFieldsConfig();
-    EXPECT_THAT(disableFieldList.attributes, UnorderedElementsAre("attr1", "attr2"));
-    EXPECT_THAT(disableFieldList.packAttributes, UnorderedElementsAre("pack_attr_1"));
-    EXPECT_THAT(disableFieldList.indexes, UnorderedElementsAre("idx1", "idx2"));
+    EXPECT_THAT(disableFieldList.attributes, testing::UnorderedElementsAre("attr1", "attr2"));
+    EXPECT_THAT(disableFieldList.packAttributes, testing::UnorderedElementsAre("pack_attr_1"));
+    EXPECT_THAT(disableFieldList.indexes, testing::UnorderedElementsAre("idx1", "idx2"));
     ASSERT_EQ(DisableFieldsConfig::SDF_FIELD_ALL, disableFieldList.summarys);
     ASSERT_EQ(DisableFieldsConfig::CDF_FIELD_GROUP, disableFieldList.sources);
 
-    vector<index::groupid_t> expectIds = {1, 2};
+    vector<index::sourcegroupid_t> expectIds = {1, 2};
     ASSERT_EQ(expectIds, disableFieldList.disabledSourceGroupIds);
 
     const auto& loadConfigs = onlineConfig.loadConfigList.GetLoadConfigs();
@@ -421,9 +421,9 @@ void OnlineConfigTest::TestDisableFieldsWithRewrite()
     ASSERT_NO_THROW(onlineConfig.Check());
 
     const auto& disableFieldList = onlineConfig.GetDisableFieldsConfig();
-    EXPECT_THAT(disableFieldList.attributes, UnorderedElementsAre("attr1", "attr2"));
-    EXPECT_THAT(disableFieldList.packAttributes, UnorderedElementsAre("pack_attr_1"));
-    EXPECT_THAT(disableFieldList.indexes, UnorderedElementsAre("idx1", "idx2"));
+    EXPECT_THAT(disableFieldList.attributes, testing::UnorderedElementsAre("attr1", "attr2"));
+    EXPECT_THAT(disableFieldList.packAttributes, testing::UnorderedElementsAre("pack_attr_1"));
+    EXPECT_THAT(disableFieldList.indexes, testing::UnorderedElementsAre("idx1", "idx2"));
 
     const auto& loadConfigs = onlineConfig.loadConfigList.GetLoadConfigs();
     ASSERT_EQ(2, loadConfigs.size());

@@ -4,30 +4,34 @@
 package com.taobao.search.iquan.client.common.pb;
 
 public interface AnyValueListOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:iquan.pb.AnyValueList)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:iquan.pb.AnyValueList)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>repeated .iquan.pb.AnyValue value = 1;</code>
-   */
-  java.util.List<com.taobao.search.iquan.client.common.pb.AnyValue> 
-      getValueList();
-  /**
-   * <code>repeated .iquan.pb.AnyValue value = 1;</code>
-   */
-  com.taobao.search.iquan.client.common.pb.AnyValue getValue(int index);
-  /**
-   * <code>repeated .iquan.pb.AnyValue value = 1;</code>
-   */
-  int getValueCount();
-  /**
-   * <code>repeated .iquan.pb.AnyValue value = 1;</code>
-   */
-  java.util.List<? extends com.taobao.search.iquan.client.common.pb.AnyValueOrBuilder> 
-      getValueOrBuilderList();
-  /**
-   * <code>repeated .iquan.pb.AnyValue value = 1;</code>
-   */
-  com.taobao.search.iquan.client.common.pb.AnyValueOrBuilder getValueOrBuilder(
-      int index);
+    /**
+     * <code>repeated .iquan.pb.AnyValue value = 1;</code>
+     */
+    java.util.List<com.taobao.search.iquan.client.common.pb.AnyValue>
+    getValueList();
+
+    /**
+     * <code>repeated .iquan.pb.AnyValue value = 1;</code>
+     */
+    com.taobao.search.iquan.client.common.pb.AnyValue getValue(int index);
+
+    /**
+     * <code>repeated .iquan.pb.AnyValue value = 1;</code>
+     */
+    int getValueCount();
+
+    /**
+     * <code>repeated .iquan.pb.AnyValue value = 1;</code>
+     */
+    java.util.List<? extends com.taobao.search.iquan.client.common.pb.AnyValueOrBuilder>
+    getValueOrBuilderList();
+
+    /**
+     * <code>repeated .iquan.pb.AnyValue value = 1;</code>
+     */
+    com.taobao.search.iquan.client.common.pb.AnyValueOrBuilder getValueOrBuilder(
+            int index);
 }

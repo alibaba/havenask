@@ -15,8 +15,10 @@
  */
 #include "build_service/common/ResourceKeeperGuard.h"
 
+#include <iosfwd>
+
+#include "autil/legacy/any.h"
 #include "autil/legacy/jsonizable.h"
-#include "build_service/common/ResourceKeeperCreator.h"
 
 using namespace std;
 using autil::legacy::Any;

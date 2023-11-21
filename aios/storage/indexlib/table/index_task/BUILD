@@ -58,7 +58,10 @@ strict_cc_library(
         '//aios/storage/indexlib/framework:ITabletMergeController',
         '//aios/storage/indexlib/framework:TabletFactoryCreator',
         '//aios/storage/indexlib/framework:VersionValidator',
+        '//aios/storage/indexlib/framework/index_task:CustomIndexTaskFactory',
+        '//aios/storage/indexlib/framework/index_task:CustomIndexTaskFactoryCreator',
         '//aios/storage/indexlib/framework/index_task:IndexTaskContextCreator',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResource',
         '//aios/storage/indexlib/framework/index_task:LocalExecuteEngine',
         '//aios/storage/indexlib/util:Clock'
     ]

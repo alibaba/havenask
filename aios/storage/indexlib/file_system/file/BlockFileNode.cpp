@@ -110,18 +110,15 @@ FSResult<size_t> BlockFileNode::Read(void* buffer, size_t length, size_t offset,
     return _accessor.Read(buffer, length, offset, option);
 }
 
-future_lite::Future<size_t> BlockFileNode::ReadAsync(void* buffer, size_t length, size_t offset,
-                                                     ReadOption option) noexcept(false)
+future_lite::Future<FSResult<size_t>> BlockFileNode::ReadAsync(void* buffer, size_t length, size_t offset,
+                                                               ReadOption option) noexcept
 {
     if ((offset + length) > _accessor.GetFileLength()) {
-        try {
-            INDEXLIB_FATAL_ERROR(OutOfRange,
-                                 "read file [%s] out of range, offset: [%lu], "
-                                 "read length: [%lu], file length: [%lu]",
-                                 DebugString().c_str(), offset, length, _accessor.GetFileLength());
-        } catch (...) {
-            return future_lite::makeReadyFuture<size_t>(std::current_exception());
-        }
+        AUTIL_LOG(ERROR,
+                  "read file [%s] out of range, offset: [%lu], "
+                  "read length: [%lu], file length: [%lu]",
+                  DebugString().c_str(), offset, length, _accessor.GetFileLength());
+        return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_ERROR, 0});
     }
 
     return _accessor.ReadAsync(buffer, length, offset, option);
@@ -176,12 +173,16 @@ FSResult<size_t> BlockFileNode::Prefetch(size_t length, size_t offset, ReadOptio
     return _accessor.Prefetch(length, offset, option);
 }
 
-future_lite::Future<uint32_t> BlockFileNode::DoReadUInt32Async(size_t offset, size_t leftBytes, uint32_t currentValue,
-                                                               ReadOption option) noexcept(false)
+future_lite::Future<FSResult<uint32_t>>
+BlockFileNode::DoReadUInt32Async(size_t offset, size_t leftBytes, uint32_t currentValue, ReadOption option) noexcept
 {
     assert(leftBytes <= sizeof(uint32_t));
     return _accessor.GetBlockAsync(offset, option)
-        .thenValue([this, offset, leftBytes, currentValue, option](BlockHandle handle) mutable {
+        .thenValue([this, offset, leftBytes, currentValue,
+                    option](FSResult<BlockHandle>&& ret) mutable -> future_lite::Future<FSResult<uint32_t>> {
+            RETURN_RESULT_IF_FS_ERROR(ret.Code(), future_lite::makeReadyFuture<FSResult<uint32_t>>({ret.Code(), 0u}),
+                                      "GetBlockAsync failed");
+            const auto& handle = ret.Value();
             auto data = handle.GetData();
             size_t blockSize = handle.GetDataSize();
             size_t inBlockOffset = offset - handle.GetOffset();
@@ -192,7 +193,7 @@ future_lite::Future<uint32_t> BlockFileNode::DoReadUInt32Async(size_t offset, si
             if (copySize != leftBytes) {
                 return DoReadUInt32Async(offset + copySize, leftBytes - copySize, currentValue, option);
             }
-            return future_lite::makeReadyFuture<uint32_t>(currentValue);
+            return future_lite::makeReadyFuture<FSResult<uint32_t>>({FSEC_OK, currentValue});
         });
 }
 
@@ -214,13 +215,13 @@ BlockFileNode::DoReadUInt32AsyncCoro(size_t offset, size_t leftBytes, uint32_t c
     FL_CORETURN FSResult<uint32_t> {FSEC_OK, currentValue};
 }
 
-future_lite::Future<size_t> BlockFileNode::PrefetchAsync(size_t length, size_t offset,
-                                                         ReadOption option) noexcept(false)
+future_lite::Future<FSResult<size_t>> BlockFileNode::PrefetchAsync(size_t length, size_t offset,
+                                                                   ReadOption option) noexcept
 {
     size_t fileLength = _accessor.GetFileLength();
     if (offset + length > fileLength) {
         if (unlikely(offset >= fileLength)) {
-            return future_lite::makeReadyFuture<size_t>(0);
+            return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, 0ul});
         }
         length = fileLength - offset;
     }
@@ -239,17 +240,14 @@ FL_LAZY(FSResult<size_t>) BlockFileNode::PrefetchAsyncCoro(size_t length, size_t
     FL_CORETURN FL_COAWAIT _accessor.PrefetchAsyncCoro(length, offset, option);
 }
 
-future_lite::Future<uint32_t> BlockFileNode::ReadUInt32Async(size_t offset, ReadOption option) noexcept(false)
+future_lite::Future<FSResult<uint32_t>> BlockFileNode::ReadUInt32Async(size_t offset, ReadOption option) noexcept
 {
     if (unlikely((offset + sizeof(uint32_t)) > _accessor.GetFileLength())) {
-        try {
-            INDEXLIB_FATAL_ERROR(OutOfRange,
-                                 "read file [%s] out of range, offset: [%lu], "
-                                 "read length: 4, file length: [%lu]",
-                                 DebugString().c_str(), offset, _accessor.GetFileLength());
-        } catch (...) {
-            return future_lite::makeReadyFuture<uint32_t>(std::current_exception());
-        }
+        AUTIL_LOG(ERROR,
+                  "read file [%s] out of range, offset: [%lu], "
+                  "read length: 4, file length: [%lu]",
+                  DebugString().c_str(), offset, _accessor.GetFileLength());
+        return future_lite::makeReadyFuture<FSResult<uint32_t>>({FSEC_ERROR, 0});
     }
     return DoReadUInt32Async(offset, sizeof(uint32_t), 0, option);
 }

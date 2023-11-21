@@ -15,6 +15,15 @@
  */
 #include "build_service/analyzer/PrefixTokenizer.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/LongHashValue.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 

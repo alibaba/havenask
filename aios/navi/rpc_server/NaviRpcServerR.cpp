@@ -42,6 +42,11 @@ NaviRpcServerR::~NaviRpcServerR() {
 void NaviRpcServerR::stop() {
     _registryMap.clear();
     for (auto &registry : _flushedRegistry) {
+        // todo HttpArpc support refcounted alias
+        // auto httpArpcServer = _gigRpcServer->getHttpArpcServer();
+        // if (httpArpcServer) {
+        //     httpArpcServer->removeAlias(registry->getHttpAliasMap());
+        // }
         _gigRpcServer->unRegisterArpcService(registry);
         CommonUtil::waitUseCount(registry, 1);
     }
@@ -168,7 +173,7 @@ bool NaviRpcServerR::flushOneRegistry(const ArpcServiceRegistryPtr &registry) {
         return false;
     }
     if (httpArpcServer) {
-        auto httpAliasMap = getHttpAliasMap(registry, arpcParam);
+        const auto &httpAliasMap = registry->getHttpAliasMap();
         httpArpcServer->addAlias(httpAliasMap);
         if (arpcParam.protoJsonizer) {
             if (!httpArpcServer->setProtoJsonizer(registry.get(), methodName, arpcParam.protoJsonizer)) {
@@ -184,19 +189,6 @@ bool NaviRpcServerR::flushOneRegistry(const ArpcServiceRegistryPtr &registry) {
     NAVI_KERNEL_LOG(
         INFO, "flush rpc registry success, service [%s] method [%s]", serviceName.c_str(), methodName.c_str());
     return true;
-}
-
-std::map<std::string, std::string> NaviRpcServerR::getHttpAliasMap(
-        const std::shared_ptr<google::protobuf::Service> &service,
-        const RegistryArpcParam &arpcParam)
-{
-    std::string httpPath =
-        "/" + service->GetDescriptor()->name() + "/" + arpcParam.method;
-    std::map<std::string, std::string> aliasMap;
-    for (const auto &alias : arpcParam.httpAliasVec) {
-        aliasMap[alias] = httpPath;
-    }
-    return aliasMap;
 }
 
 REGISTER_RESOURCE(NaviRpcServerR);

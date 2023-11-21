@@ -40,7 +40,7 @@ void SectionDataMaker::BuildOneSegmentSectionData(const shared_ptr<config::ITabl
 
     Pool pool(indexlib::index::SectionAttributeFormatter::DATA_SLICE_LEN * 16);
 
-    indexlib::index::SectionAttributeMemIndexer memIndexer(IndexerParameter {});
+    indexlib::index::SectionAttributeMemIndexer memIndexer(MemIndexerParameter {});
     auto extractorFactory = std::make_unique<plain::DocumentInfoExtractorFactory>();
     auto status = memIndexer.Init(indexConfig, extractorFactory.get());
     assert(status.IsOK());

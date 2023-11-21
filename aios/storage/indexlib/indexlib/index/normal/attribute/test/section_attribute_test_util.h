@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SECTION_ATTRIBUTE_TEST_UTIL_H
-#define __INDEXLIB_SECTION_ATTRIBUTE_TEST_UTIL_H
+#pragma once
 
 #include <memory>
 
@@ -39,5 +38,3 @@ private:
 
 DEFINE_SHARED_PTR(SectionAttributeTestUtil);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SECTION_ATTRIBUTE_TEST_UTIL_H

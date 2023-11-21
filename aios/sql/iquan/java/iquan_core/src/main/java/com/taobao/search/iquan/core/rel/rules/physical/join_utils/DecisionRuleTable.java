@@ -1,5 +1,12 @@
 package com.taobao.search.iquan.core.rel.rules.physical.join_utils;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.google.common.io.CharStreams;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
@@ -7,13 +14,6 @@ import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DecisionRuleTable {
     private static final Logger logger = LoggerFactory.getLogger(DecisionRuleTable.class);

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DATEINDEXSEGMENTREADERTEST_H
-#define __INDEXLIB_DATEINDEXSEGMENTREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/inverted_index/builtin_index/date/date_index_segment_reader.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(DateIndexSegmentReaderTest, TestNormalizeTimestamp);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DATEINDEXSEGMENTREADERTEST_H

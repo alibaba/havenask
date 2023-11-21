@@ -15,6 +15,7 @@ strict_cc_library(
 strict_cc_fast_test(
     name='KKVIndexConfigTest',
     srcs=['KKVIndexConfigTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/kkv/config:KKVIndexConfig',
         '//aios/unittest_framework'

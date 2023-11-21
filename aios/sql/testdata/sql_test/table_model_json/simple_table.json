@@ -1,15 +1,13 @@
 {
     "tables": [
         {
-            "catalog_name": "default",
-            "database_name": "default",
-            "table_version": 2,
-            "table_name": "simple",
-            "table_type": "json_default",
-            "table_content_version": "0.1",
+            "table_content_type": "",
             "table_content": {
                 "table_name": "simple",
                 "table_type": "normal",
+                "sort_desc": [],
+                "sub_tables": [],
+                "summary_fields": [],
                 "fields": [
                     {
                         "field_name": "i1",
@@ -31,8 +29,6 @@
                     ],
                     "hash_function": "HASH64"
                 },
-                "join_info": [
-                ],
                 "properties": {}
             }
         }

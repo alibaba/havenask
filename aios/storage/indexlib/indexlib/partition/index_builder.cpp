@@ -481,7 +481,7 @@ void IndexBuilder::EndIndex(int64_t versionTimestamp)
         auto branchFileSystem = mIndexPartition->GetBranchFileSystem();
         ClosePartition();
         Version latestVersion = GetLatestOnDiskVersion();
-        if (latestVersion.GetVersionId() == INVALID_VERSION) {
+        if (latestVersion.GetVersionId() == INVALID_VERSIONID) {
             CreateEmptyVersion(rootDir, versionTimestamp);
         } else {
             AlignVersionTimestamp(rootDir, latestVersion, versionTimestamp);
@@ -526,7 +526,7 @@ versionid_t IndexBuilder::Merge(const IndexPartitionOptions& options, bool optim
 
     Version latestVersion = GetLatestOnDiskVersion();
 
-    if (latestVersion.GetVersionId() == INVALID_VERSION) {
+    if (latestVersion.GetVersionId() == INVALID_VERSIONID) {
         CreateEmptyVersion(rootDir, INVALID_TIMESTAMP);
     }
 
@@ -538,7 +538,7 @@ versionid_t IndexBuilder::GetVersion()
 {
     ScopedLock lock(*mDataLock);
     Version latestVersion;
-    VersionLoader::GetVersion(mIndexPartition->GetRootDirectory(), latestVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(mIndexPartition->GetRootDirectory(), latestVersion, INVALID_VERSIONID);
     return latestVersion.GetVersionId();
 }
 
@@ -621,7 +621,7 @@ Version IndexBuilder::GetLatestOnDiskVersion()
 {
     ScopedLock lock(*mDataLock);
     Version latestVersion;
-    VersionLoader::GetVersion(mIndexPartition->GetRootDirectory(), latestVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(mIndexPartition->GetRootDirectory(), latestVersion, INVALID_VERSIONID);
     return latestVersion;
 }
 
@@ -680,7 +680,7 @@ string IndexBuilder::GetLocatorInLatestVersion() const
 {
     auto rootDirectory = mIndexPartition->GetRootDirectory();
     Version latestVersion;
-    VersionLoader::GetVersion(rootDirectory, latestVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDirectory, latestVersion, INVALID_VERSIONID);
 
     segmentid_t latestSegId = INVALID_SEGMENTID;
     if (latestVersion.GetSegmentCount() == 0) {

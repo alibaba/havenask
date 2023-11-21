@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVDOCTIMESTAMPDECIDERTEST_H
-#define __INDEXLIB_KVDOCTIMESTAMPDECIDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/build_config.h"
@@ -30,5 +29,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(KvDocTimestampDeciderTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KVDOCTIMESTAMPDECIDERTEST_H

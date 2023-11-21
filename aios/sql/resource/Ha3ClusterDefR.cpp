@@ -78,7 +78,6 @@ bool Ha3ClusterDefR::getTableDefConfig(const std::string &tableName,
 
 bool Ha3ClusterDefR::fillTableDef(const std::string &zoneName,
                                   const std::string &tableName,
-                                  int32_t tablePartCount,
                                   iquan::TableDef &tableDef,
                                   TableSortDescMap &tableSortDescMap) const {
     suez::TableDefConfig tableConfig;
@@ -87,7 +86,6 @@ bool Ha3ClusterDefR::fillTableDef(const std::string &zoneName,
         return false;
     }
     addDistributeInfo(tableConfig, tableDef);
-    addLocationInfo(tableConfig, zoneName, tablePartCount, tableDef);
     addSortDesc(tableConfig, tableName, tableDef);
     tableSortDescMap[tableName] = tableConfig.sortDescriptions.sortDescs;
     return true;
@@ -112,14 +110,6 @@ void Ha3ClusterDefR::addDistributeInfo(const suez::TableDefConfig &tableConfig,
             tableDef.distribution.hashParams[KINGSO_HASH_PARTITION_CNT] = pairStr[1];
         }
     }
-}
-
-void Ha3ClusterDefR::addLocationInfo(const suez::TableDefConfig &tableConfig,
-                                     const std::string &tableGroupName,
-                                     int32_t tablePartCount,
-                                     iquan::TableDef &tableDef) {
-    tableDef.location.partitionCnt = tablePartCount;
-    tableDef.location.tableGroupName = tableGroupName;
 }
 
 void Ha3ClusterDefR::addSortDesc(const suez::TableDefConfig &tableConfig,

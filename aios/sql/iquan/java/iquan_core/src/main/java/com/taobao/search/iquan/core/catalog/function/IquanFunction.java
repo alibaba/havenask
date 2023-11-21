@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.core.catalog.function;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.schema.Function;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import com.taobao.search.iquan.core.utils.IquanTypeFactory;
 import org.apache.calcite.sql.SqlFunction;
-
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public abstract class IquanFunction {
     protected IquanTypeFactory typeFactory;
