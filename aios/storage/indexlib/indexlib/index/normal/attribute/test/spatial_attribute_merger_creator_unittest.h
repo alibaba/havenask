@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SPATIALATTRIBUTEMERGERCREATORTEST_H
-#define __INDEXLIB_SPATIALATTRIBUTEMERGERCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -26,5 +25,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(SpatialAttributeMergerCreatorTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SPATIALATTRIBUTEMERGERCREATORTEST_H

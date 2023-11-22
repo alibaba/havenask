@@ -3,7 +3,7 @@
 #include "indexlib/config/index_config_creator.h"
 #include "indexlib/config/schema_configurator.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/index_define.h"
+//#include "indexlib/index_define.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;
@@ -14,7 +14,7 @@ using namespace indexlib::file_system;
 using namespace indexlib::index;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, SchemaLoader);
+AUTIL_LOG_SETUP(indexlib.config, SchemaLoader);
 
 SchemaLoader::SchemaLoader() {}
 

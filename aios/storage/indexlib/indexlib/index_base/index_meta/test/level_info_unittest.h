@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_LEVELINFOTEST_H
-#define __INDEXLIB_LEVELINFOTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/framework/LevelInfo.h"
@@ -31,5 +30,3 @@ INDEXLIB_UNIT_TEST_CASE(LevelInfoTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(LevelInfoTest, TestRemoveSegment);
 INDEXLIB_UNIT_TEST_CASE(LevelInfoTest, TestGetSegmentIds);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_LEVELINFOTEST_H

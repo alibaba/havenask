@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKEINDEXPARTITIONTEST_H
-#define __INDEXLIB_FAKEINDEXPARTITIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(FakeIndexPartitionTest, TestSimpleProcess);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKEINDEXPARTITIONTEST_H

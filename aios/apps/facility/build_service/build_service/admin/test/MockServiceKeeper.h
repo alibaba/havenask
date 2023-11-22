@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKSERVICEKEEPER_H
-#define ISEARCH_BS_MOCKSERVICEKEEPER_H
+#pragma once
 
 #include "build_service/admin/ServiceKeeper.h"
 #include "build_service/admin/test/MockAppPlanMaker.h"
@@ -78,5 +77,3 @@ typedef ::testing::StrictMock<MockServiceKeeper> StrictMockServiceKeeper;
 typedef ::testing::NiceMock<MockServiceKeeper> NiceMockServiceKeeper;
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_MOCKSERVICEKEEPER_H

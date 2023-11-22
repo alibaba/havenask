@@ -8,7 +8,11 @@ import org.apache.calcite.rel.core.Calc;
 import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.logical.LogicalCalc;
 import org.apache.calcite.rel.rules.ProjectCalcMergeRule;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexOver;
+import org.apache.calcite.rex.RexProgram;
+import org.apache.calcite.rex.RexProgramBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
 import org.apache.calcite.util.Pair;
 import org.immutables.value.Value;
@@ -29,7 +33,8 @@ public class IquanProjectCalcMergeRule extends ProjectCalcMergeRule {
         return !IquanRuleUtils.isRenameProject(project);
     }
 
-    @Override public void onMatch(RelOptRuleCall call) {
+    @Override
+    public void onMatch(RelOptRuleCall call) {
         final Project project = call.rel(0);
         final Calc calc = call.rel(1);
 
@@ -82,7 +87,8 @@ public class IquanProjectCalcMergeRule extends ProjectCalcMergeRule {
     public interface Config extends RelRule.Config {
         IquanProjectCalcMergeRule.Config DEFAULT = ImmutableIquanProjectCalcMergeRule.Config.builder().build();
 
-        @Override default IquanProjectCalcMergeRule toRule() {
+        @Override
+        default IquanProjectCalcMergeRule toRule() {
             return new IquanProjectCalcMergeRule(this);
         }
     }

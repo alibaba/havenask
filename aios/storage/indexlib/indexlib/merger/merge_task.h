@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_TASK_H
-#define __INDEXLIB_MERGE_TASK_H
+#pragma once
 
-#include <memory>
+#include <algorithm>
+#include <stddef.h>
 #include <vector>
 
-#include "indexlib/common_define.h"
-#include "indexlib/index_base/index_meta/version.h"
-#include "indexlib/indexlib.h"
 #include "indexlib/merger/merge_plan.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -50,5 +49,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeTask);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_PLAN_H

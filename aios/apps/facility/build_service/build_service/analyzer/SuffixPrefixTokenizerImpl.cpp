@@ -15,6 +15,10 @@
  */
 #include "build_service/analyzer/SuffixPrefixTokenizerImpl.h"
 
+#include <cstddef>
+#include <string>
+
+#include "alog/Logger.h"
 #include "autil/codec/UTF8Util.h"
 
 using namespace std;

@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SORTEDBUILDER_H
-#define ISEARCH_BS_SORTEDBUILDER_H
+#pragma once
 
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
+#include "alog/Logger.h"
 #include "autil/Lock.h"
 #include "autil/Thread.h"
 #include "build_service/builder/AsyncBuilder.h"
@@ -23,12 +28,16 @@
 #include "build_service/builder/SortDocumentContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/BuilderConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
-#include "indexlib/util/memory_control/QuotaControl.h"
+#include "fslib/fs/FileLock.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/partition/index_builder.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace util {
-class MetricProvider;
-class Metric;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util
@@ -136,5 +145,3 @@ inline bool SortedBuilder::buildOneDoc(const indexlib::document::DocumentPtr& do
 }
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_SORTEDBUILDER_H

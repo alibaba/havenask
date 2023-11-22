@@ -15,10 +15,16 @@
  */
 #include "indexlib/framework/VersionCommitter.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <ostream>
+
 #include "indexlib/base/Constant.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/util/PathUtil.h"
 

@@ -43,7 +43,10 @@ public:
         }
         return std::make_pair(Status::NotFound(), nullptr);
     }
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override { return 0; }
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override
+    {
+        return {Status::OK(), 0};
+    }
     size_t EvaluateCurrentMemUsed() override { return 0; }
 
 private:
@@ -105,7 +108,7 @@ TEST_F(KVMergerTest, TestMergeWithValueAdapter)
     auto kvIndexConfig =
         std::dynamic_pointer_cast<indexlibv2::config::KVIndexConfig>(tabletSchema->GetIndexConfig("kv", "key"));
 
-    VarLenKVMemIndexer indexer(1024 * 1024);
+    VarLenKVMemIndexer indexer(true, 1024 * 1024);
     ASSERT_TRUE(indexer.Init(kvIndexConfig, nullptr).IsOK());
     std::string docStr = "cmd=add,key=1,value1=10,value2=11,ts=101000000;"
                          "cmd=add,key=2,value1=20,value2=22,ts=102000000;";

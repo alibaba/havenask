@@ -15,7 +15,14 @@
  */
 #include "indexlib/table/table_plugin_loader.h"
 
+#include <iosfwd>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "indexlib/config/customized_table_config.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/module_info.h"
 #include "indexlib/plugin/plugin_manager.h"
 
 using namespace std;

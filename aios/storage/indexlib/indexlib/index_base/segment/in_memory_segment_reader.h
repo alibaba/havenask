@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_IN_MEMORY_SEGMENT_READER_H
-#define __INDEXLIB_IN_MEMORY_SEGMENT_READER_H
+#pragma once
 
 #include <memory>
 
@@ -83,5 +82,3 @@ private:
 
 DEFINE_SHARED_PTR(InMemorySegmentReader);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_IN_MEMORY_SEGMENT_READER_H

@@ -16,6 +16,8 @@
 #pragma once
 
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/framework/LevelInfo.h"

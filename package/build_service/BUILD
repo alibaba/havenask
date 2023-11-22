@@ -1,3 +1,4 @@
+load('//bazel:fuse_debug_bundle.bzl', 'fuse_debug_bundle_files')
 load('//bazel:bundle.bzl', 'bundle_files')
 bundle_files(
     name='shared_library64_package',
@@ -97,4 +98,7 @@ bundle_files(
     ],
     prefix='usr/local/lib64',
     visibility=['//visibility:public']
+)
+fuse_debug_bundle_files(
+    name='bs_package_fused', deps=[':bs_admin_package', ':bs_worker_package']
 )

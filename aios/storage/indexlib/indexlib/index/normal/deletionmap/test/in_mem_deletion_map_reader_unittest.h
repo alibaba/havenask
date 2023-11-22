@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMDELETIONMAPREADERTEST_H
-#define __INDEXLIB_INMEMDELETIONMAPREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/deletionmap/in_mem_deletion_map_reader.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(InMemDeletionMapReaderTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INMEMDELETIONMAPREADERTEST_H

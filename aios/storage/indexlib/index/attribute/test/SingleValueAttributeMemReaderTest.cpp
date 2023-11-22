@@ -54,7 +54,7 @@ TEST_F(SingleValueAttributeMemReaderTest, TestCaseForRead)
     for (size_t docId = 0; docId < answer.size(); ++docId) {
         uint32_t value;
         bool isNull = false;
-        ASSERT_EQ(sizeof(uint32_t), reader.TEST_GetDataLength((docId)));
+        ASSERT_EQ(sizeof(uint32_t), reader.GetDataLength((docId)));
         reader.Read((uint64_t)docId, value, isNull, nullptr);
         ASSERT_EQ(answer[docId], value);
     }

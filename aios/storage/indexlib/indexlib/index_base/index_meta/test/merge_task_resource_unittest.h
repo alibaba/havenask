@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGETASKRESOURCETEST_H
-#define __INDEXLIB_MERGETASKRESOURCETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/merge_task_resource.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(MergeTaskResourceTest, TestSimpleProcess);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_MERGETASKRESOURCETEST_H

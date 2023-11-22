@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#include <memory>
+#include <utility>
+
 #include "autil/Log.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/framework/Version.h"

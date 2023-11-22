@@ -1,8 +1,8 @@
 #include "indexlib/index/normal/attribute/test/attribute_patch_merge_intetest.h"
 
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/normal/attribute/accessor/single_value_attribute_reader.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

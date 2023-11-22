@@ -82,4 +82,23 @@ Result<bool> RangeScanIteratorWithoutFilter::batchSeek(size_t batchSize,
     return _rangeIdx >= _layerMeta->size();
 }
 
+uint32_t RangeScanIteratorWithoutFilter::getTotalSeekedCount() const {
+    uint32_t docCount = 0;
+    for (size_t cursor = 0; cursor < _rangeIdx; ++cursor) {
+        docCount += (*_layerMeta)[cursor].end - (*_layerMeta)[cursor].begin;
+    }
+    if (_rangeIdx < _layerMeta->size()) { // accumulate for last cursor
+        docCount += _curId - (*_layerMeta)[_rangeIdx].begin;
+    }
+    return docCount;
+}
+
+uint32_t RangeScanIteratorWithoutFilter::getTotalWholeDocCount() const {
+    uint32_t docCount = 0;
+    for (size_t cursor = 0; cursor < _layerMeta->size(); ++cursor) {
+        docCount += (*_layerMeta)[cursor].end - (*_layerMeta)[cursor].begin;
+    }
+    return docCount;
+}
+
 } // namespace sql

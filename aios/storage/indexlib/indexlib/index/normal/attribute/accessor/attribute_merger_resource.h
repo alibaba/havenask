@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_MERGER_RESOURCE_H
-#define __INDEXLIB_ATTRIBUTE_MERGER_RESOURCE_H
+#pragma once
 
 #include <memory>
 
@@ -27,5 +26,3 @@ namespace indexlib { namespace index {
 struct AttributeMergerResource : public MergerResource {
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_MERGER_RESOURCE_H

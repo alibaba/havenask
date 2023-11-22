@@ -38,6 +38,18 @@ SearchCache::SearchCache(size_t cacheSize, const MemoryQuotaControllerPtr& memor
     Init(memoryQuotaController, taskScheduler, metricProvider);
 }
 
+SearchCache::SearchCache(size_t cacheSize, const MemoryQuotaControllerPtr& memoryQuotaController,
+                         const TaskSchedulerPtr& taskScheduler, MetricProviderPtr metricProvider, int numShardBits,
+                         float highPriorityRatio, float lowPriorityRatio)
+    : _cache(autil::NewLRUCache(cacheSize, numShardBits, true, highPriorityRatio, lowPriorityRatio,
+                                autil::CacheAllocatorPtr()))
+    , _cacheSize(cacheSize)
+    , _reportMetricsTaskId(TaskScheduler::INVALID_TASK_ID)
+{
+    assert(_cache);
+    Init(memoryQuotaController, taskScheduler, metricProvider);
+}
+
 SearchCache::~SearchCache()
 {
     if (_memoryQuotaController) {

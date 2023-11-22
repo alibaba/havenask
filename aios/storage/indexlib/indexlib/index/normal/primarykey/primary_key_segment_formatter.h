@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIMARY_KEY_SEGMENT_FORMATTER_H
-#define __INDEXLIB_PRIMARY_KEY_SEGMENT_FORMATTER_H
+#pragma once
 
 #include <memory>
 
@@ -81,5 +80,3 @@ PrimaryKeySegmentFormatter<Key>::FindAsync(char* data, size_t count, Key key, fu
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARY_KEY_SEGMENT_FORMATTER_H

@@ -1,17 +1,50 @@
 package com.taobao.search.iquan.core.rel.visitor.relshuttle;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.ExecCorrelateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.ExecLookupJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCorrelateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanHashJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanIdentityOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanLeftMultiJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMatchOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMergeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMultiJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanNestedLoopJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSinkOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUncollectOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUnionOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanValuesOp;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.logical.*;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.calcite.rel.logical.LogicalAggregate;
+import org.apache.calcite.rel.logical.LogicalCalc;
+import org.apache.calcite.rel.logical.LogicalCorrelate;
+import org.apache.calcite.rel.logical.LogicalExchange;
+import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.calcite.rel.logical.LogicalMatch;
+import org.apache.calcite.rel.logical.LogicalProject;
+import org.apache.calcite.rel.logical.LogicalSort;
+import org.apache.calcite.rel.logical.LogicalTableFunctionScan;
+import org.apache.calcite.rel.logical.LogicalTableScan;
+import org.apache.calcite.rel.logical.LogicalUnion;
+import org.apache.calcite.rel.logical.LogicalValues;
 
 public class RelShuttleUtils {
     public static RelTraitSet copyRelTraitSet(RelNode rel) {
@@ -317,9 +350,9 @@ public class RelShuttleUtils {
         newRel.setLocation(rel.getLocation());
         return newRel;
     }
-    
+
     public static IquanMultiJoinOp copy(RelOptCluster cluster, IquanMultiJoinOp rel,
-                                             RelNode left, RelNode right) {
+                                        RelNode left, RelNode right) {
         IquanMultiJoinOp newRel = new IquanMultiJoinOp(
                 cluster,
                 copyRelTraitSet(rel),
@@ -360,9 +393,9 @@ public class RelShuttleUtils {
         newRel.setLocation(rel.getLocation());
         return newRel;
     }
-    
+
     public static IquanLeftMultiJoinOp copy(RelOptCluster cluster, IquanLeftMultiJoinOp rel, RelNode input) {
-        IquanTableScanBase buildOp = (IquanTableScanBase)rel.getRightOp();
+        IquanTableScanBase buildOp = (IquanTableScanBase) rel.getRightOp();
         IquanTableScanBase newBuildOp = copy(cluster, buildOp);
 
         RelNode joinOp = rel.getJoinOp();
@@ -528,5 +561,18 @@ public class RelShuttleUtils {
 
     public static LogicalExchange copy(LogicalExchange rel, RelNode input) {
         return LogicalExchange.create(input, rel.getDistribution());
+    }
+
+    public static IquanIdentityOp copy(RelOptCluster cluster, IquanIdentityOp rel, RelNode input) {
+        IquanIdentityOp newRel = new IquanIdentityOp(cluster,
+                copyRelTraitSet(rel),
+                input,
+                rel.getNodeName()
+        );
+        newRel.setParallelNum(rel.getParallelNum());
+        newRel.setParallelIndex(rel.getParallelIndex());
+        newRel.setOutputDistribution(rel.getOutputDistribution());
+        newRel.setLocation(rel.getLocation());
+        return newRel;
     }
 }

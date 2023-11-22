@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MATCHINFOPOSTINGITERATORTEST_H
-#define __INDEXLIB_MATCHINFOPOSTINGITERATORTEST_H
+#pragma once
 
 #include <tuple>
 
@@ -70,5 +69,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(MatchInfoPostingIteratorTest, TestSeekOneSegment);
 INDEXLIB_UNIT_TEST_CASE(MatchInfoPostingIteratorTest, TestSeekMultiSegments);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_MATCHINFOPOSTINGITERATORTEST_H

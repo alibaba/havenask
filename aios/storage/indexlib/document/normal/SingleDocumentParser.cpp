@@ -20,15 +20,21 @@
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/MutableJson.h"
 #include "indexlib/document/normal/ExtendDocFieldsConvertor.h"
+#include "indexlib/document/normal/SourceDocument.h"
 #include "indexlib/document/normal/SummaryFormatter.h"
 #include "indexlib/document/normal/rewriter/PackAttributeAppender.h"
 #include "indexlib/document/normal/rewriter/SectionAttributeAppender.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/common/Constant.h"
+#include "indexlib/index/field_meta/Common.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/primary_key/Common.h"
+#include "indexlib/index/source/Common.h"
+#include "indexlib/index/source/config/SourceGroupConfig.h"
+#include "indexlib/index/source/config/SourceIndexConfig.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
+#include "indexlib/table/normal_table/Common.h"
 #include "indexlib/util/DocTracer.h"
 #include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
@@ -51,6 +57,16 @@ bool SingleDocumentParser::Init(const shared_ptr<ITabletSchema>& schema,
                                 shared_ptr<AccumulativeCounter>& attrConvertErrorCounter)
 {
     _schema = schema;
+    _fieldConfigs = _schema->GetFieldConfigs();
+    auto runtimeSettings = schema->GetRuntimeSettings();
+
+    auto [st, summaryReuseSourceFields] =
+        runtimeSettings.GetValue<std::vector<std::string>>(table::NORMAL_TABLE_SUMMARY_REUSE_SOURCE_FIELDS);
+    if (!st.IsOK() && !st.IsNotFound()) {
+        AUTIL_LOG(ERROR, "get summary reuse source runtime setting failed");
+        return false;
+    }
+    _summaryReuseSourceFields = summaryReuseSourceFields;
 
     const auto& pkConfig = _schema->GetPrimaryKeyIndexConfig();
     const auto& invertedConfigs = _schema->GetIndexConfigs(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR);
@@ -67,7 +83,7 @@ bool SingleDocumentParser::Init(const shared_ptr<ITabletSchema>& schema,
         _primaryKeyFieldId = fields[0]->GetFieldId();
     }
     _nullFieldAppender.reset(new NullFieldAppender);
-    if (!_nullFieldAppender->Init(_schema->GetFieldConfigs())) {
+    if (!_nullFieldAppender->Init(_fieldConfigs)) {
         _nullFieldAppender.reset();
     }
 
@@ -80,7 +96,10 @@ bool SingleDocumentParser::Init(const shared_ptr<ITabletSchema>& schema,
         return false;
     }
     _fieldConvertPtr.reset(convertor.release());
-    _fieldConvertPtr->init();
+    bool fieldConvertInitRet = _fieldConvertPtr->init();
+    if (!fieldConvertInitRet) {
+        return fieldConvertInitRet;
+    }
     shared_ptr<SectionAttributeAppender> appender(new SectionAttributeAppender);
     if (appender->Init(_schema)) {
         // do not use it directly, it is not thread-safe.
@@ -107,6 +126,7 @@ bool SingleDocumentParser::Init(const shared_ptr<ITabletSchema>& schema,
     // attribute + sub attribute in pack attribute
     insertFieldIds(_schema->GetIndexFieldConfigs(indexlib::index::GENERAL_VALUE_INDEX_TYPE_STR), _attributeFieldIds);
     insertFieldIds(_schema->GetIndexFieldConfigs(indexlibv2::index::SUMMARY_INDEX_TYPE_STR), _summaryFieldIds);
+    insertFieldIds(_schema->GetIndexFieldConfigs(indexlib::index::FIELD_META_INDEX_TYPE_STR), _fieldMetaFieldIds);
 
     auto [status1, orderPreservingField] =
         _schema->GetRuntimeSettings().GetValue<std::string>("order_preserving_field");
@@ -147,11 +167,35 @@ bool SingleDocumentParser::prepareIndexConfigMap()
         _fieldIdToAttrConfigs[fieldId] = attrConfig;
     }
 
-    const auto& config =
-        _schema->GetIndexConfig(indexlibv2::index::SUMMARY_INDEX_TYPE_STR, indexlibv2::index::SUMMARY_INDEX_NAME);
-    if (config) {
+    if (auto config = _schema->GetIndexConfig(index::SUMMARY_INDEX_TYPE_STR, index::SUMMARY_INDEX_NAME)) {
         _summaryIndexConfig = std::dynamic_pointer_cast<config::SummaryIndexConfig>(config);
         assert(_summaryIndexConfig);
+    }
+
+    auto getDeterministicFields = [this](auto groupConfig) -> std::vector<std::string> {
+        switch (groupConfig->GetFieldMode()) {
+        case indexlib::config::SourceGroupConfig::ALL_FIELD: {
+            std::vector<std::string> fields;
+            for (const auto& fieldConfig : _fieldConfigs) {
+                fields.push_back(fieldConfig->GetFieldName());
+            }
+            return fields;
+        }
+        case indexlib::config::SourceGroupConfig::SPECIFIED_FIELD: {
+            return groupConfig->GetSpecifiedFields();
+        }
+        case indexlib::config::SourceGroupConfig::USER_DEFINE:
+        default:
+            return {};
+        }
+    };
+    _sourceDeterministicFieldsInGroups.clear();
+    if (auto sourceIndexConfig = std::dynamic_pointer_cast<indexlibv2::config::SourceIndexConfig>(
+            _schema->GetIndexConfig(index::SOURCE_INDEX_TYPE_STR, index::SOURCE_INDEX_NAME))) {
+        _sourceIndexConfig = sourceIndexConfig;
+        for (auto groupConfig : _sourceIndexConfig->GetGroupConfigs()) {
+            _sourceDeterministicFieldsInGroups.push_back(getDeterministicFields(groupConfig));
+        }
     }
     return true;
 }
@@ -162,7 +206,7 @@ shared_ptr<NormalDocument> SingleDocumentParser::Parse(NormalExtendDocument* doc
         AUTIL_LOG(ERROR, "document is null");
         return nullptr;
     }
-    const shared_ptr<RawDocument>& rawDoc = document->getRawDocument();
+    const shared_ptr<RawDocument>& rawDoc = document->GetRawDocument();
     if (!rawDoc) {
         AUTIL_LOG(ERROR, "empty raw document!");
         return nullptr;
@@ -182,9 +226,7 @@ shared_ptr<NormalDocument> SingleDocumentParser::Parse(NormalExtendDocument* doc
     }
 
     DocOperateType op = rawDoc->getDocOperateType();
-    const auto& fieldConfigs = _schema->GetFieldConfigs();
-
-    for (const auto& fieldConfig : fieldConfigs) {
+    for (const auto& fieldConfig : _fieldConfigs) {
         if ((op == DELETE_DOC || op == DELETE_SUB_DOC) && fieldConfig->GetFieldName() != _orderPreservingField) {
             continue;
         }
@@ -207,10 +249,14 @@ shared_ptr<NormalDocument> SingleDocumentParser::Parse(NormalExtendDocument* doc
             } else {
                 _fieldConvertPtr->convertAttributeField(document, fieldConfig);
             }
-        } else if (IsSummaryIndexField(fieldId)) {
-            if (rawDoc->getDocOperateType() != UPDATE_FIELD) {
-                _fieldConvertPtr->convertSummaryField(document, fieldConfig);
-            }
+        }
+        if (_summaryIndexConfig && _summaryIndexConfig->NeedStoreSummary(fieldId) &&
+            rawDoc->getDocOperateType() != UPDATE_FIELD) {
+            _fieldConvertPtr->convertSummaryField(document, fieldConfig);
+        }
+
+        if (IsFieldMetaIndexField(fieldId)) {
+            _fieldConvertPtr->convertFieldMetaField(document, fieldConfig);
         }
     }
 
@@ -218,6 +264,24 @@ shared_ptr<NormalDocument> SingleDocumentParser::Parse(NormalExtendDocument* doc
     const shared_ptr<AttributeDocument>& attrDoc = classifiedDocument->getAttributeDoc();
     if (attrDoc && attrDoc->HasFormatError() && _attributeConvertErrorCounter) {
         _attributeConvertErrorCounter->Increase(1);
+    }
+
+    if (_sourceIndexConfig && op != DELETE_DOC && op != DELETE_SUB_DOC) {
+        auto originalSnapshot = classifiedDocument->getOriginalSnapshot();
+        if (!originalSnapshot) {
+            AUTIL_LOG(ERROR, "source index need original raw documnent, but not found");
+            return nullptr;
+        }
+        std::vector<std::vector<std::string>> fieldsInGroups = _sourceDeterministicFieldsInGroups;
+        for (auto sourceGroupConfig : _sourceIndexConfig->GetGroupConfigs()) {
+            if (sourceGroupConfig->GetFieldMode() == indexlib::config::SourceGroupConfig::USER_DEFINE) {
+                if (auto fieldsStr = rawDoc->GetTag("udf_source_fields"); !fieldsStr.empty()) {
+                    auto& udfFields = fieldsInGroups[sourceGroupConfig->GetGroupId()];
+                    autil::StringUtil::fromString(fieldsStr, udfFields, ";");
+                }
+            }
+        }
+        classifiedDocument->createSourceDocument(fieldsInGroups, originalSnapshot.get());
     }
 
     if (_summaryIndexConfig && _summaryIndexConfig->NeedStoreSummary() && op != DELETE_DOC && op != DELETE_SUB_DOC) {
@@ -230,7 +294,11 @@ shared_ptr<NormalDocument> SingleDocumentParser::Parse(NormalExtendDocument* doc
     }
     if (_sectionAttrAppender && rawDoc->getDocOperateType() == ADD_DOC) {
         shared_ptr<SectionAttributeAppender> appender(_sectionAttrAppender->Clone());
-        appender->AppendSectionAttribute(classifiedDocument->getIndexDocument());
+        auto status = appender->AppendSectionAttribute(classifiedDocument->getIndexDocument());
+        if (!status.IsOK()) {
+            AUTIL_LOG(ERROR, "append section attribute failed");
+            return nullptr;
+        }
     }
     if (_packAttrAppender && rawDoc->getDocOperateType() == ADD_DOC) {
         if (!_packAttrAppender->AppendPackAttribute(classifiedDocument->getAttributeDoc(),
@@ -240,7 +308,7 @@ shared_ptr<NormalDocument> SingleDocumentParser::Parse(NormalExtendDocument* doc
     }
 
     if (!Validate(document)) {
-        return shared_ptr<NormalDocument>();
+        return nullptr;
     }
     return CreateDocument(document);
 }
@@ -256,7 +324,7 @@ void SingleDocumentParser::SetPrimaryKeyField(NormalExtendDocument* document)
         return;
     }
 
-    const shared_ptr<RawDocument>& rawDoc = document->getRawDocument();
+    const shared_ptr<RawDocument>& rawDoc = document->GetRawDocument();
     const shared_ptr<ClassifiedDocument>& classifiedDoc = document->getClassifiedDocument();
     string pkValue = rawDoc->getField(pkFieldName);
     document->setIdentifier(pkValue);
@@ -279,12 +347,14 @@ shared_ptr<NormalDocument> SingleDocumentParser::CreateDocument(const NormalExte
 {
     const shared_ptr<ClassifiedDocument>& classifiedDoc = document->getClassifiedDocument();
     shared_ptr<NormalDocument> indexDoc(new NormalDocument(classifiedDoc->getPoolPtr()));
+    indexDoc->SetSchemaId(_schema->GetSchemaId());
     indexDoc->SetIndexDocument(classifiedDoc->getIndexDocument());
     indexDoc->SetSummaryDocument(classifiedDoc->getSerSummaryDoc());
     indexDoc->SetAttributeDocument(classifiedDoc->getAttributeDoc());
-    // TODO: support source
-    // indexDoc->SetSourceDocument(
-    //     classifiedDoc->getSerializedSourceDocument(_schema->GetSourceSchema(), indexDoc->GetPool()));
+    indexDoc->SetFieldMetaDocument(classifiedDoc->getFieldMetaDoc());
+    auto sourceConfig = std::dynamic_pointer_cast<config::SourceIndexConfig>(
+        _schema->GetIndexConfig(index::SOURCE_INDEX_TYPE_STR, index::SOURCE_INDEX_NAME));
+    indexDoc->SetSourceDocument(classifiedDoc->getSerializedSourceDocument(sourceConfig, indexDoc->GetPool()));
 
     classifiedDoc->clear();
 
@@ -295,7 +365,7 @@ shared_ptr<NormalDocument> SingleDocumentParser::CreateDocument(const NormalExte
 
 bool SingleDocumentParser::Validate(const NormalExtendDocument* document)
 {
-    const shared_ptr<RawDocument>& rawDocumentPtr = document->getRawDocument();
+    const shared_ptr<RawDocument>& rawDocumentPtr = document->GetRawDocument();
     if (rawDocumentPtr == NULL) {
         AUTIL_LOG(WARN, "raw document is NULL");
         return false;
@@ -311,6 +381,16 @@ bool SingleDocumentParser::Validate(const NormalExtendDocument* document)
         AUTIL_INTERVAL_LOG2(60, WARN, "primary key is empty");
         IE_RAW_DOC_TRACE(rawDocumentPtr, "parse error: primary key is empty");
         return false;
+    }
+
+    if (auto sourceDocument = classifiedDocument->getSourceDocument()) {
+        for (const auto& field : _summaryReuseSourceFields) {
+            if (sourceDocument->GetField(field) !=
+                rawDocumentPtr->getField(autil::StringView(field.data(), field.length()))) {
+                AUTIL_INTERVAL_LOG2(300, WARN, "source field[%s] is not consistent", field.c_str());
+                return false;
+            }
+        }
     }
 
     if (opType == ADD_DOC) {

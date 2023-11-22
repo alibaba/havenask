@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RPCWORKERHEARTBEAT_H
-#define ISEARCH_BS_RPCWORKERHEARTBEAT_H
+#pragma once
 
+#include <google/protobuf/service.h>
+#include <google/protobuf/stubs/callback.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+
+#include "aios/autil/autil/Lock.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/util/Log.h"
 #include "build_service/worker/WorkerHeartbeat.h"
 #include "worker_framework/WorkerBase.h"
@@ -69,5 +77,3 @@ private:
 BS_TYPEDEF_PTR(RpcWorkerHeartbeat);
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_RPCWORKERHEARTBEAT_H

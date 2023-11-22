@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SECTION_ATTRIBUTE_READER_IMPL_H
-#define __INDEXLIB_SECTION_ATTRIBUTE_READER_IMPL_H
+#pragma once
 
 #include <memory>
 
@@ -41,8 +40,7 @@ public:
     virtual ~LegacySectionAttributeReaderImpl();
 
 public:
-    void Open(const config::PackageIndexConfigPtr& indexConfig,
-                      const index_base::PartitionDataPtr& partitionData);
+    void Open(const config::PackageIndexConfigPtr& indexConfig, const index_base::PartitionDataPtr& partitionData);
 
     // virtual for test
     SectionAttributeReader* Clone() const override;
@@ -103,5 +101,3 @@ inline int32_t LegacySectionAttributeReaderImpl::Read(docid_t docId, uint8_t* bu
     return ret ? 0 : -1;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SECTION_ATTRIBUTE_READER_IMPL_H

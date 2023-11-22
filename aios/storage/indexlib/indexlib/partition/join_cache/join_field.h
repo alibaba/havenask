@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_JOINFIELD_H
-#define __INDEXLIB_JOINFIELD_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -58,5 +57,3 @@ typedef std::map<std::string, JoinField> JoinFieldMap;
 // ReverseJoinRelationMap[auxTableName][mainTableName] --> JoinField
 typedef std::map<std::string, JoinFieldMap> ReverseJoinRelationMap;
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_JOINFIELD_H

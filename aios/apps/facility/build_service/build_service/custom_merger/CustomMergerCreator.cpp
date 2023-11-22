@@ -15,10 +15,17 @@
  */
 #include "build_service/custom_merger/CustomMergerCreator.h"
 
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "build_service/config/ProcessorInfo.h"
 #include "build_service/custom_merger/BuildinCustomMergerFactory.h"
+#include "build_service/custom_merger/CustomMergerFactory.h"
 #include "build_service/plugin/Module.h"
+#include "build_service/plugin/ModuleFactory.h"
+#include "build_service/plugin/ModuleInfo.h"
 #include "build_service/plugin/PlugInManager.h"
-#include "build_service/util/Monitor.h"
 
 using namespace std;
 using namespace build_service::plugin;

@@ -1,9 +1,9 @@
 #include "kv_key_extractor_unittest.h"
 
 #include "autil/ConstString.h"
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/common/KeyHasherWrapper.h"
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

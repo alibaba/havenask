@@ -1,5 +1,13 @@
 package com.taobao.search.iquan.client.common.pb;
 
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
@@ -9,10 +17,6 @@ import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 public class IquanPbConverter {
     private static final Logger logger = LoggerFactory.getLogger(IquanPbConverter.class);
@@ -75,7 +79,7 @@ public class IquanPbConverter {
             builder.setMapValue(parseAnyValueMap(map));
             return builder.build();
         } else if (value instanceof Set) {
-            List<Object> list = new ArrayList<>((Set)value);
+            List<Object> list = new ArrayList<>((Set) value);
             builder.setListValue(parseAnyValueList(list));
             return builder.build();
         }

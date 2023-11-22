@@ -19,22 +19,24 @@
 #include "navi/util/CommonUtil.h"
 #include "aios/network/gig/multi_call/interface/QuerySession.h"
 #include "autil/CompressionUtil.h"
+#include "navi/distribute/NaviServerStream.h"
 
 namespace navi {
 
-NaviStreamSession::NaviStreamSession(const NaviLoggerPtr &loggerPtr,
-                                     TaskQueue *taskQueue,
+NaviStreamSession::NaviStreamSession(TaskQueue *taskQueue,
                                      BizManager *bizManager,
                                      NaviMessage *request,
                                      const ArenaPtr &arena,
                                      const multi_call::GigStreamBasePtr &stream)
-    : NaviWorkerBase(loggerPtr, taskQueue, bizManager)
+    : NaviWorkerBase(taskQueue, bizManager)
     , _arena(arena)
     , _request(request)
     , _stream(stream)
     , _graphDef(nullptr)
-    , _graph(nullptr)
-{
+    , _graph(nullptr) {
+    auto *serverStream = dynamic_cast<NaviServerStream *>(stream.get());
+    assert(serverStream && "stream type cast failed");
+    _metricsCollector.sessionBeginTime = serverStream->getCreateTime();
 }
 
 NaviStreamSession::~NaviStreamSession() {
@@ -62,7 +64,7 @@ bool NaviStreamSession::decompressGraph() {
     } else if (CT_LZ4 == compressType) {
         std::string decompressedResult;
         if (!autil::CompressionUtil::decompress(graphStr, autil::CompressType::LZ4, decompressedResult, nullptr)) {
-            NAVI_LOG(ERROR, "decompresss sub graph def failed");
+            NAVI_LOG(ERROR, "decompress sub graph def failed");
             return false;
         }
         if (!subGraphDef->ParseFromString(decompressedResult)) {
@@ -170,12 +172,11 @@ void NaviStreamSession::initDomainMap(
         const multi_call::GigStreamBasePtr &stream,
         Graph *graph)
 {
-    auto domainServer = new GraphDomainServer(graph);
+    auto domainServer = std::make_shared<GraphDomainServer>(graph);
     domainServer->setStream(stream);
-    GraphDomainPtr domain(domainServer);
     for (const auto &pair : mirrorInfoMap) {
         const auto &graphId = pair.first;
-        graph->setGraphDomain(graphId, domain);
+        graph->setGraphDomain(graphId, domainServer);
     }
 }
 
@@ -183,12 +184,12 @@ void NaviStreamSession::run() {
     NAVI_LOG(SCHEDULE1, "start");
     auto ec = _graph->init(_graphDef);
     if (EC_NONE != ec) {
-        _graph->notifyFinish(ec);
+        _graph->notifyFinishEc(ec);
         return;
     }
     ec = _graph->run();
     if (EC_NONE != ec) {
-        _graph->notifyFinish(ec);
+        _graph->notifyFinishEc(ec);
         return;
     }
 }
@@ -199,7 +200,7 @@ void NaviStreamSession::drop() {
     if (_graph->isTimeout()) {
         ec = EC_TIMEOUT;
     }
-    _graph->notifyFinish(ec);
+    _graph->notifyFinishEc(ec);
 }
 
 bool NaviStreamSession::isTimeout() const {
@@ -215,7 +216,9 @@ bool NaviStreamSession::isTimeout() const {
                  beginTime / FACTOR_MS_TO_US,
                  curTime / FACTOR_MS_TO_US);
         NAVI_LOG(SCHEDULE1, "timeout bt: %s",
-                 _logger.logger->firstErrorBackTrace().c_str());
+                 _logger.logger->firstErrorEvent()
+                     ? _logger.logger->firstErrorEvent()->bt.c_str()
+                     : "");
         return true;
     }
     return false;

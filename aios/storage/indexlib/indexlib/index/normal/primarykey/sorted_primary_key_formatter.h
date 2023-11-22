@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SORTED_PRIMARY_KEY_FORMATTER_H
-#define __INDEXLIB_SORTED_PRIMARY_KEY_FORMATTER_H
+#pragma once
 
 #include <memory>
 
@@ -192,5 +191,3 @@ size_t SortedPrimaryKeyFormatter<Key>::EstimateDirectLoadSize(const PrimaryKeyLo
 
 IE_LOG_SETUP_TEMPLATE(index, SortedPrimaryKeyFormatter);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SORTED_PRIMARY_KEY_FORMATTER_H

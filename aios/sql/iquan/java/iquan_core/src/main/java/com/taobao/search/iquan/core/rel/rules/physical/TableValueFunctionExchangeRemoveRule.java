@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TableValueFunctionExchangeRemoveRule extends RelOptRule {
-    private static final Logger logger = LoggerFactory.getLogger(TableValueFunctionExchangeRemoveRule.class);
     public static final TableValueFunctionExchangeRemoveRule INSTANCE =
             new TableValueFunctionExchangeRemoveRule(RelFactories.LOGICAL_BUILDER);
+    private static final Logger logger = LoggerFactory.getLogger(TableValueFunctionExchangeRemoveRule.class);
 
     private TableValueFunctionExchangeRemoveRule(RelBuilderFactory relBuilderFactory) {
         super(operand(

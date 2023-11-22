@@ -15,7 +15,7 @@ strict_cc_fast_test(
     name='pack_index_test',
     srcs=['PackIndexReaderTest.cpp', 'PackPostingMergerTest.cpp'],
     copts=(['-fno-access-control'] + if_clang(['-std=c++20'])),
-    shard_count=20,
+    shard_count=5,
     deps=[
         ':PackTestHelper',
         '//aios/storage/indexlib/framework:tablet_schema_loader',

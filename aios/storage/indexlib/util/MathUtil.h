@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memory>
+#include <stddef.h>
 
 #include "autil/Log.h"
 

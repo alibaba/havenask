@@ -23,6 +23,7 @@ strict_cc_fast_test(
         'CuckooHashTableMultiThreadTest.cpp',
         'DenseHashTableMultiThreadTest.cpp'
     ],
+    copts=['-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     shard_count=2,
     deps=[

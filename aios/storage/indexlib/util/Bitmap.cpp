@@ -15,6 +15,8 @@
  */
 #include "indexlib/util/Bitmap.h"
 
+#include <string.h>
+
 #include "indexlib/util/PoolUtil.h"
 
 namespace indexlib { namespace util {

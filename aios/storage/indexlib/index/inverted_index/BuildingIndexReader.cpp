@@ -17,7 +17,8 @@
 
 namespace indexlib::index {
 
-void BuildingIndexReader::AddSegmentReader(docid_t baseDocId, const std::shared_ptr<IndexSegmentReader>& inMemSegReader)
+void BuildingIndexReader::AddSegmentReader(docid64_t baseDocId,
+                                           const std::shared_ptr<IndexSegmentReader>& inMemSegReader)
 {
     if (inMemSegReader) {
         _innerSegReaders.push_back(std::make_pair(baseDocId, inMemSegReader));
@@ -64,12 +65,12 @@ void BuildingIndexReader::Update(docid_t docId, const index::DictKeyInfo& key, b
     }
 }
 
-std::pair<docid_t, IndexSegmentReader*> BuildingIndexReader::GetSegmentReader(docid_t docId)
+std::pair<docid64_t, IndexSegmentReader*> BuildingIndexReader::GetSegmentReader(docid64_t docId)
 {
     IndexSegmentReader* segReader = nullptr;
-    docid_t baseDocId = INVALID_DOCID;
+    docid64_t baseDocId = INVALID_DOCID;
     for (const auto& segPair : _innerSegReaders) {
-        docid_t curBaseDocId = segPair.first;
+        docid64_t curBaseDocId = segPair.first;
         if (docId < curBaseDocId) {
             return {baseDocId, segReader};
         }

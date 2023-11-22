@@ -103,7 +103,8 @@ cc_library(
     strip_include_prefix='build_service',
     deps=[
         ':bs_basic', ':bs_task_target', ':proto_cc_proto',
-        '//aios/autil:range_util', '//aios/network/http_arpc'
+        '//aios/autil:base64', '//aios/autil:range_util',
+        '//aios/network/http_arpc'
     ],
     alwayslink=True
 )
@@ -282,14 +283,6 @@ cc_test(
     deps=[':bs_io', ':bs_testbase']
 )
 cc_library(
-    name='bs_plugin_config',
-    hdrs=['build_service/plugin/ModuleInfo.h'],
-    include_prefix='build_service',
-    strip_include_prefix='build_service',
-    visibility=['//visibility:public'],
-    deps=['//aios/storage/indexlib/indexlib:indexlib_plugin_config']
-)
-cc_library(
     name='bs_config',
     srcs=glob(['build_service/config/*.cpp'],
               exclude=[
@@ -297,19 +290,20 @@ cc_library(
                   'build_service/config/HashMode.cpp',
                   'build_service/config/CLIOptionNames.cpp'
               ]),
-    hdrs=glob(['build_service/config/*.h'],
+    hdrs=glob(['build_service/config/*.h', 'build_service/plugin/ModuleInfo.h'],
               exclude=['build_service/config/TaskTarget.h']),
     include_prefix='build_service',
     strip_include_prefix='build_service',
     visibility=['//visibility:public'],
     deps=[
-        ':bs_hashmode', ':bs_plugin_config', ':bs_proto', ':bs_task_target',
-        ':bs_util', '//aios/filesystem/fslib:fslib-framework',
+        ':bs_hashmode', ':bs_proto', ':bs_task_target', ':bs_util',
+        '//aios/filesystem/fslib:fslib-framework',
         '//aios/storage/indexlib/config:options',
         '//aios/storage/indexlib/config:schema',
         '//aios/storage/indexlib/framework:tablet_factory',
         '//aios/storage/indexlib/framework:tablet_schema_loader',
-        '//aios/storage/indexlib/indexlib/config'
+        '//aios/storage/indexlib/indexlib/config',
+        '//aios/storage/indexlib/legacy/config:module_info'
     ],
     alwayslink=True
 )
@@ -324,7 +318,10 @@ cc_library(
 )
 cc_test(
     name='bs_config_test',
-    srcs=glob(['build_service/config/test/*.cpp']),
+    srcs=glob(['build_service/config/test/*.cpp'],
+              exclude=[
+                  'build_service/config/test/FakeRealtimeSchemaListKeeper.cpp'
+              ]),
     copts=['-fno-access-control'],
     data=glob(['testdata/**']),
     deps=[
@@ -358,7 +355,7 @@ cc_library(
         '//aios/plugins/havenask_plugins/bs_reader_plugins:__subpackages__'
     ],
     deps=[
-        ':bs_config', ':bs_proto',
+        ':bs_config', ':bs_proto', '//aios/autil:resource_container',
         '//aios/storage/indexlib/framework/index_task:task_execute',
         '//aios/storage/indexlib/indexlib',
         '//aios/storage/indexlib/table/normal_table/index_task:document_reclaim',
@@ -468,7 +465,7 @@ cc_library(
 cc_test(
     name='bs_document_test',
     srcs=glob(['build_service/document/test/*.cpp']),
-    copts=[],
+    copts=['-fno-access-control'],
     data=glob(['testdata/**']),
     deps=[':bs_document', ':bs_document_test_helper', ':bs_testbase']
 )
@@ -533,11 +530,20 @@ cc_library(
     deps=[':bs_testbase', ':bs_worker']
 )
 cc_library(
+    name='bs_config_test_helper',
+    srcs=glob(['build_service/config/test/Fake*.cpp']),
+    hdrs=glob(['build_service/config/test/Fake*.h']),
+    include_prefix='build_service',
+    strip_include_prefix='build_service',
+    deps=[':bs_common_test_helper']
+)
+cc_library(
     name='bs_admin_test_helper',
     srcs=glob([
         'build_service/admin/test/Mock*.cpp',
         'build_service/admin/test/Fake*.cpp',
         'build_service/admin/test/GenerationTaskStateMachine.cpp',
+        'build_service/admin/test/BuilderV2Node.cpp',
         'build_service/admin/test/SoReplaceGenerationTask.cpp'
     ]),
     hdrs=(
@@ -547,6 +553,7 @@ cc_library(
         ]) + [
             'build_service/admin/test/FileUtilForTest.h',
             'build_service/admin/test/GenerationTaskStateMachine.h',
+            'build_service/admin/test/BuilderV2Node.h',
             'build_service/admin/test/SoReplaceGenerationTask.h',
             'build_service/admin/test/FakeZkState.cpp'
         ]
@@ -554,8 +561,8 @@ cc_library(
     include_prefix='build_service',
     strip_include_prefix='build_service',
     deps=[
-        ':bs_admin', ':bs_common_test_helper', ':bs_proto_test_helper',
-        ':bs_testbase', ':bs_worker'
+        ':bs_admin', ':bs_common_test_helper', ':bs_config_test_helper',
+        ':bs_proto_test_helper', ':bs_testbase', ':bs_worker'
     ]
 )
 cc_library(
@@ -591,6 +598,34 @@ cc_library(
         '//aios/storage/indexlib/table/index_task:merge_task'
     ] + ['//aios/future_lite/future_lite/executors:simple_async_io_executor']),
     alwayslink=True
+)
+cc_library(
+    name='bs_builder_test_helper',
+    srcs=[
+        'build_service/builder/test/FakeThread.cpp',
+        'build_service/builder/test/IndexBuilderCreator.cpp'
+    ],
+    hdrs=glob(['build_service/builder/test/*.h']),
+    copts=[],
+    include_prefix='build_service',
+    strip_include_prefix='build_service',
+    deps=[':bs_builder', ':bs_testbase']
+)
+cc_test(
+    name='bs_builder_test',
+    srcs=glob(['build_service/builder/test/*Test.cpp'],
+              exclude=['build_service/builder/test/BuilderRangeTest.cpp']),
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    shard_count=5,
+    deps=[
+        ':bs_builder', ':bs_builder_test_helper', ':bs_document_test_helper',
+        ':bs_testbase',
+        '//aios/storage/indexlib/document/test:KVDocumentBatchMaker',
+        '//aios/storage/indexlib/framework/mock:tablet',
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/storage/indexlib/indexlib/test:document'
+    ]
 )
 cc_library(
     name='bs_workflow',
@@ -675,9 +710,9 @@ cc_library(
     strip_include_prefix='build_service',
     visibility=['//visibility:public'],
     deps=[
-        ':bs_basic', ':bs_common', ':bs_config', ':bs_merge', ':bs_task_base',
-        ':bs_util', '//aios/autil:env_util', '//aios/future_lite',
-        '//aios/storage/indexlib/config:options',
+        ':bs_basic', ':bs_common', ':bs_config', ':bs_general_task',
+        ':bs_merge', ':bs_task_base', ':bs_util', '//aios/autil:env_util',
+        '//aios/future_lite', '//aios/storage/indexlib/config:options',
         '//aios/storage/indexlib/config:schema',
         '//aios/storage/indexlib/framework:tablet',
         '//aios/storage/indexlib/framework:version_cleaner',
@@ -712,6 +747,14 @@ cc_library(
     strip_include_prefix='build_service',
     visibility=['//visibility:public'],
     deps=[':bs_processor']
+)
+cc_library(
+    name='mock_raw_document_rewriter',
+    hdrs=['build_service/workflow/test/MockRawDocumentRewriter.h'],
+    include_prefix='build_service',
+    strip_include_prefix='build_service',
+    visibility=['//visibility:public'],
+    deps=[':bs_workflow']
 )
 cc_library(
     name='mock_builder_v2',
@@ -763,6 +806,7 @@ cc_library(
 cc_binary(
     name='bs_admin_worker',
     srcs=glob(['build_service/admin/AdminWorker.cpp']),
+    tags=['fuse-keep-symbol', 'manual', 'no-remote-exec'],
     visibility=['//visibility:public'],
     deps=[
         ':bs_admin', '//aios/worker_framework:worker_base_main', '@gperftools'
@@ -771,6 +815,7 @@ cc_binary(
 cc_binary(
     name='build_service_worker',
     srcs=['@com_google_protobuf//:protobuf'],
+    tags=['fuse-keep-symbol', 'manual', 'no-remote-exec'],
     visibility=['//visibility:public'],
     deps=[
         ':bs_worker', '//aios/network/gig:multi_call',

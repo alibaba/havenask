@@ -97,12 +97,17 @@ message TableStructureConfig {
         int64 default_ttl = 3;
     }
 
+    message TableMetaOption {
+        bool enable_all_text_field_meta = 1; 
+    }
+
     ShardInfo shard_info = 1;
     TableType.Code table_type = 2;
     string comment = 3;
     TtlOption ttl_option = 4;
     SortOption sort_option = 5;
     BuildType.Code build_type = 6;
+    TableMetaOption table_meta_option = 7;
 }
 
 // unique_index: table_name & database_name & catalog_name & version
@@ -124,6 +129,12 @@ message TableStructure {
             STRING = 11;
             TEXT = 12;
             RAW = 13;
+            TIME = 14;
+            TIMESTAMP = 15;
+            DATE = 16;
+            LOCATION = 17;
+            POLYGON = 18;
+            LINE = 19;
         }
         string name = 1;
         DataType type = 2;
@@ -156,6 +167,7 @@ message TableStructure {
             ORC = 14;
             ATTRIBUTE = 15;
             ANN = 16;
+            SOURCE = 17;
         }
         message IndexConfig {
             enum CompressType {
@@ -391,16 +403,15 @@ message Database {
 
 message LoadStrategyConfig {
     enum LoadMode {
-        MEMORY = 0;
-        LOCAL_DISK = 1; //deploy
-        REMOTE = 2;
+        NONE= 0;
+        ALL_MMAP_LOCK = 1;
+        // TODO: 补充常用load模式
+        USER_DEFINED = 63;
     }
-    
     int64 version = 1;
     EntityStatus status = 2;
-    LoadMode key_load_mode = 3;
-    LoadMode value_load_mode = 4;
-    // TODO(chekong.ygm): need impl
+    LoadMode load_mode = 3;
+    string online_index_config = 4;
 }
 
 // unique_index: table_group_name & catalog_name & table_name & database_name & version
@@ -519,4 +530,3 @@ message CatalogStateEntity {
     repeated Catalog catalogs = 1;
     repeated Build builds = 2;
 }
-

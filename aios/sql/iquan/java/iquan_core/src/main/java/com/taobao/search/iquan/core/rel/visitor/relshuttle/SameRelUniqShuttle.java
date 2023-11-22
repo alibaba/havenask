@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.core.rel.visitor.relshuttle;
 
-import org.apache.calcite.plan.RelDigest;
-import org.apache.calcite.rel.RelHomogeneousShuttle;
-import org.apache.calcite.rel.RelNode;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.calcite.plan.RelDigest;
+import org.apache.calcite.rel.RelHomogeneousShuttle;
+import org.apache.calcite.rel.RelNode;
 
 public class SameRelUniqShuttle extends RelHomogeneousShuttle {
 

@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.sql2rel;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.taobao.search.iquan.core.rel.hint.IquanHintCategory;
 import com.taobao.search.iquan.core.rel.hint.IquanHintOptUtils;
 import com.taobao.search.iquan.core.rel.ops.logical.CTEConsumer;
@@ -19,11 +24,6 @@ import org.apache.calcite.sql.validate.SqlValidator;
 import org.apache.calcite.sql2rel.SqlRexConvertletTable;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class IquanSqlToRelConverter extends SqlToRelConverter {
 
     private final Map<SqlIdentifier, CTEProducer> cteNodes = new HashMap<>();
@@ -34,8 +34,7 @@ public class IquanSqlToRelConverter extends SqlToRelConverter {
             Prepare.CatalogReader catalogReader,
             RelOptCluster cluster,
             SqlRexConvertletTable convertletTable,
-            Config config)
-    {
+            Config config) {
         super(viewExpander, validator, catalogReader, cluster, convertletTable, config);
     }
 
@@ -60,16 +59,14 @@ public class IquanSqlToRelConverter extends SqlToRelConverter {
     @Override
     protected void convertFrom(
             Blackboard bb,
-            SqlNode from)
-    {
+            SqlNode from) {
         if (from instanceof SqlWithItem) {
             SqlWithItem itemNode = (SqlWithItem) from;
             CTEProducer producer = cteNodes.get(itemNode.name);
             assert producer != null : String.format("cannot find cte [%s]", itemNode.name.toString());
             CTEConsumer consumer = new CTEConsumer(cluster, producer.getTraitSet(), producer);
             bb.setRoot(consumer, true);
-        }
-        else {
+        } else {
             super.convertFrom(bb, from);
         }
     }

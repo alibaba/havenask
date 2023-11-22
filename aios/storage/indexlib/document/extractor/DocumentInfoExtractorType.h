@@ -26,7 +26,9 @@ enum class DocumentInfoExtractorType {
     PACK_ATTRIBUTE_FIELD,
     INVERTED_INDEX_DOC,
     SUMMARY_DOC,
+    SOURCE_DOC,
     SERIES_DOC,
+    FIELD_META_FIELD,
     UNKNOWN,
 };
 
@@ -45,8 +47,12 @@ inline std::string DocumentInfoExtractorTypeToStr(DocumentInfoExtractorType docI
         return "INVERTED_INDEX_DOC";
     case DocumentInfoExtractorType::SUMMARY_DOC:
         return "SUMMARY_DOC";
+    case DocumentInfoExtractorType::SOURCE_DOC:
+        return "SOURCE_DOC";
     case DocumentInfoExtractorType::SERIES_DOC:
         return "SERIES_DOC";
+    case DocumentInfoExtractorType::FIELD_META_FIELD:
+        return "FIELD_META_FIELD";
     case DocumentInfoExtractorType::UNKNOWN:
     default:
         return "UNKNOWN";

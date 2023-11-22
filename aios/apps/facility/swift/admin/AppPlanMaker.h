@@ -72,6 +72,9 @@ protected:
 private:
     void generateGroupRolePairs(std::vector<GroupRolePair> &roles) const;
     void generateRoleName();
+    void setGroupNetPriority(const std::map<std::string, uint32_t> &groupNetPriorityMap,
+                             const std::string &groupName,
+                             RolePlan &rolePlan) const;
 
 private:
     typedef std::map<std::string, autil::legacy::json::JsonMap> RolePlanMap;
@@ -82,6 +85,7 @@ private:
     static const std::string SWIFT_LOADER_NAME;
     static const std::string SWIFT_BROKER_DEFAULT_RESOURCE_GROUP_NAME;
     static const std::string SWIFT_BROKER_ROLE_NAME_PREFIX;
+    static const std::string SWIFT_NET_PRIORITY_PREFIX;
 
 protected:
     std::string _configPath;

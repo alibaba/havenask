@@ -1,5 +1,14 @@
 package com.taobao.search.iquan.core.rel.rules.logical.calcite;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelShuttleImpl;
@@ -10,13 +19,21 @@ import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rel.logical.LogicalProject;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexCorrelVariable;
+import org.apache.calcite.rex.RexFieldAccess;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.rex.RexSubQuery;
+import org.apache.calcite.rex.RexUtil;
+import org.apache.calcite.rex.RexVisitor;
+import org.apache.calcite.rex.RexVisitorImpl;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.util.Util;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class DeCorrelateUtils {
     public static RexNode adjustInputRefs(
@@ -38,67 +55,6 @@ public class DeCorrelateUtils {
                         }
                     }
                 });
-    }
-
-    public static class DecorrelateRexShuttle extends RexShuttle {
-        private final RelDataType leftRowType;
-        private final RelDataType rightRowType;
-        private final Set<CorrelationId> variableSet;
-
-        DecorrelateRexShuttle(
-                RelDataType leftRowType, RelDataType rightRowType, Set<CorrelationId> variableSet) {
-            this.leftRowType = leftRowType;
-            this.rightRowType = rightRowType;
-            this.variableSet = variableSet;
-        }
-
-        @Override
-        public RexNode visitFieldAccess(RexFieldAccess fieldAccess) {
-            final RexNode ref = fieldAccess.getReferenceExpr();
-            if (ref instanceof RexCorrelVariable) {
-                final RexCorrelVariable var = (RexCorrelVariable) ref;
-                assert variableSet.contains(var.id);
-                final RelDataTypeField field = fieldAccess.getField();
-                return new RexInputRef(field.getIndex(), field.getType());
-            } else {
-                return super.visitFieldAccess(fieldAccess);
-            }
-        }
-
-        @Override
-        public RexNode visitInputRef(RexInputRef inputRef) {
-            assert inputRef.getIndex() < rightRowType.getFieldCount();
-            int newIndex = inputRef.getIndex() + leftRowType.getFieldCount();
-            return new RexInputRef(newIndex, inputRef.getType());
-        }
-    }
-
-    public static class DeCorrelateBaseVisitor extends RelShuttleImpl {
-        final RexVisitor<Void> visitor;
-
-        public DeCorrelateBaseVisitor(RexVisitor<Void> visitor) {
-            this.visitor = visitor;
-        }
-
-        @Override
-        public RelNode visit(LogicalFilter filter) {
-            filter.getCondition().accept(visitor);
-            return super.visit(filter);
-        }
-
-        @Override
-        public RelNode visit(LogicalProject project) {
-            for (RexNode rex : project.getProjects()) {
-                rex.accept(visitor);
-            }
-            return super.visit(project);
-        }
-
-        @Override
-        public RelNode visit(LogicalJoin join) {
-            join.getCondition().accept(visitor);
-            return super.visit(join);
-        }
     }
 
     public static void analyzeCorConditions(
@@ -140,7 +96,8 @@ public class DeCorrelateUtils {
                         final List<Boolean> result = subQuery.getOperands()
                                 .stream()
                                 .map(v -> v.accept(this))
-                                .collect(Collectors.toList());;
+                                .collect(Collectors.toList());
+                        ;
                         // we do not support nested correlation variables in SubQuery, such as:
                         // select * from t1 where exists(select * from t2 where t1.a = t2.c and t1.b
                         // in (select t3.d from t3)
@@ -287,6 +244,67 @@ public class DeCorrelateUtils {
             return false;
         } catch (Util.FoundOne one) {
             return true;
+        }
+    }
+
+    public static class DecorrelateRexShuttle extends RexShuttle {
+        private final RelDataType leftRowType;
+        private final RelDataType rightRowType;
+        private final Set<CorrelationId> variableSet;
+
+        DecorrelateRexShuttle(
+                RelDataType leftRowType, RelDataType rightRowType, Set<CorrelationId> variableSet) {
+            this.leftRowType = leftRowType;
+            this.rightRowType = rightRowType;
+            this.variableSet = variableSet;
+        }
+
+        @Override
+        public RexNode visitFieldAccess(RexFieldAccess fieldAccess) {
+            final RexNode ref = fieldAccess.getReferenceExpr();
+            if (ref instanceof RexCorrelVariable) {
+                final RexCorrelVariable var = (RexCorrelVariable) ref;
+                assert variableSet.contains(var.id);
+                final RelDataTypeField field = fieldAccess.getField();
+                return new RexInputRef(field.getIndex(), field.getType());
+            } else {
+                return super.visitFieldAccess(fieldAccess);
+            }
+        }
+
+        @Override
+        public RexNode visitInputRef(RexInputRef inputRef) {
+            assert inputRef.getIndex() < rightRowType.getFieldCount();
+            int newIndex = inputRef.getIndex() + leftRowType.getFieldCount();
+            return new RexInputRef(newIndex, inputRef.getType());
+        }
+    }
+
+    public static class DeCorrelateBaseVisitor extends RelShuttleImpl {
+        final RexVisitor<Void> visitor;
+
+        public DeCorrelateBaseVisitor(RexVisitor<Void> visitor) {
+            this.visitor = visitor;
+        }
+
+        @Override
+        public RelNode visit(LogicalFilter filter) {
+            filter.getCondition().accept(visitor);
+            return super.visit(filter);
+        }
+
+        @Override
+        public RelNode visit(LogicalProject project) {
+            for (RexNode rex : project.getProjects()) {
+                rex.accept(visitor);
+            }
+            return super.visit(project);
+        }
+
+        @Override
+        public RelNode visit(LogicalJoin join) {
+            join.getCondition().accept(visitor);
+            return super.visit(join);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, MultiSlicePackAttributeDiskIndexer);
 
 MultiSlicePackAttributeDiskIndexer::MultiSlicePackAttributeDiskIndexer(
-    std::shared_ptr<AttributeMetrics> attributeMetrics, const IndexerParameter& indexerParameter,
+    std::shared_ptr<AttributeMetrics> attributeMetrics, const DiskIndexerParameter& indexerParameter,
     AttributeDiskIndexerCreator* creator)
     : MultiSliceAttributeDiskIndexer(attributeMetrics, indexerParameter, creator)
 {

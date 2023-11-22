@@ -40,10 +40,10 @@ class ResourceInitContext;
 } // namespace navi
 
 namespace iquan {
-class CatalogInfo;
 class FieldDef;
 class Iquan;
 class TableDef;
+struct LocationSign;
 } // namespace iquan
 
 namespace sql {
@@ -65,54 +65,22 @@ public:
     iquan::Iquan *getSqlClient() {
         return _sqlClient.get();
     }
-    const iquan::JniConfig &getJniConfig() {
-        return _jniConfig;
-    }
-    const iquan::WarmupConfig &getWarmupConfig() {
-        return _warmupConfig;
-    }
 
 private:
-    bool loadLogicTables(iquan::TableModels &tableModels) const;
+    bool loadLogicTables(iquan::CatalogDefs &catalogDefs,
+                         const iquan::LocationSign &locationSign) const;
+    bool loadLayerTables(iquan::CatalogDefs &catalogDefs,
+                         const iquan::LocationSign &locationSign) const;
 
 private:
-    bool updateCatalogInfo();
-    bool getGigTableModels(iquan::TableModels &tableModels) const;
-    bool fillLogicTables(iquan::TableModels &tableModels);
-    bool fillExternalTableModels(iquan::TableModels &tableModels);
+    bool getGigCatalogDef(iquan::CatalogDefs &catalogDefs) const;
+    bool fillExternalTableModels(iquan::CatalogDefs &catalogDefs,
+                                 const iquan::LocationSign &locationSign);
+    bool updateCatalogDef();
 
 public:
     // TODO public and static func only reuse for initSqlClient
-    static void fillSummaryTables(iquan::TableModels &tableModels,
-                                  const std::vector<std::string> &summaryTables);
-
-    static bool fillKhronosTable(iquan::TableModels &tableModels);
     static bool getIquanConfigFromFile(const std::string &filePath, std::string &configStr);
-
-private:
-    static void
-    dupKhronosCatalogInfo(const iquan::CatalogInfo &catalogInfo,
-                          std::unordered_map<std::string, iquan::CatalogInfo> &catalogInfos);
-    static void
-    addAliasTableName(iquan::TableModels &tableModels,
-                      const std::map<std::string, std::vector<std::string>> &tableNameAlias);
-    static bool isKhronosTable(const iquan::TableDef &td);
-    static bool fillKhronosMetaTable(const iquan::TableModel &tm, iquan::TableModels &tableModels);
-    static void fillKhronosBuiltinFields(iquan::TableModel &tableModel);
-    static bool fillKhronosLogicTableV2(const iquan::TableModel &tm,
-                                        iquan::TableModels &tableModels);
-    static bool fillKhronosLogicTableV3(const iquan::TableModel &tm,
-                                        iquan::TableModels &tableModels);
-    static bool doFillKhronosMetaTable(const std::string &tableName,
-                                       const std::string &dbName,
-                                       const std::string &catalogName,
-                                       const iquan::TableModel &tm,
-                                       iquan::TableModels &tableModels);
-    static bool fillKhronosDataFields(const std::string &khronosType,
-                                      const std::string &valueSuffix,
-                                      const std::string &fieldsStr,
-                                      const std::vector<iquan::FieldDef> fields,
-                                      iquan::TableDef &tableDef);
 
 public:
     static const std::string RESOURCE_ID;
@@ -123,20 +91,16 @@ private:
 private:
     RESOURCE_DEPEND_ON(navi::GigMetaR, _gigMetaR);
     RESOURCE_DEPEND_ON_FALSE(UdfModelR, _udfModelR);
-    RESOURCE_DEPEND_ON(SqlConfigResource, _sqlConfigResource);
     RESOURCE_DEPEND_ON(ExternalTableConfigR, _externalTableConfigR);
     std::string _configPath;
     std::string _dbName;
     iquan::JniConfig _jniConfig;
     iquan::ClientConfig _clientConfig;
     iquan::WarmupConfig _warmupConfig;
-    iquan::TableModels _logicTables;
-    iquan::TableModels _configTables;
-    iquan::LayerTableModels _layerTables;
-    std::vector<std::string> _summaryTables;
-    std::map<std::string, std::vector<std::string>> _tableNameAlias;
+    bool _disableSqlWarmup;
+    std::map<std::string, std::vector<iquan::TableModel>> _logicTables;
+    std::map<std::string, std::vector<iquan::LayerTableModel>> _layerTables;
     std::shared_ptr<iquan::Iquan> _sqlClient;
-    bool _innerDocIdOptimizeEnable = false;
 };
 
 NAVI_TYPEDEF_PTR(IquanR);

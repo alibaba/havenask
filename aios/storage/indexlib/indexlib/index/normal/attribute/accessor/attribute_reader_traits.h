@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_READER_TRAITS_H
-#define __INDEXLIB_ATTRIBUTE_READER_TRAITS_H
+#pragma once
 
 #include <memory>
 
@@ -59,5 +58,3 @@ DECLARE_READER_TRAITS_FOR_MULTI_VALUE(autil::uint128_t)
 
 #undef DECLARE_READER_TRAITS_FOR_MULTI_VALUE
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_READER_TRAITS_H

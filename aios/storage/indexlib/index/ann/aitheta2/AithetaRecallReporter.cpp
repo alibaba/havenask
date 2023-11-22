@@ -99,7 +99,7 @@ void AithetaRecallReporter::DoReport(const AithetaQueries& annQuery, bool onlySe
             ++hitCount;
         }
     }
-    
+
     auto knomTags = GetKmonTags(annQuery);
     float recall = hitCount * 1.0f / lrDocSet.size();
     if (onlySearchRt) {
@@ -166,7 +166,7 @@ std::shared_ptr<kmonitor::MetricsTags> AithetaRecallReporter::GetKmonTags(const 
         _metricReporter->getTags();
     }
     std::stringstream ss;
-    for(const auto& entry : aithetaQueries.querytags()) {
+    for (const auto& entry : aithetaQueries.querytags()) {
         ss << entry.first << "|" << entry.second << ";";
     }
     string key = ss.str();

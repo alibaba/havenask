@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_RANGE_FIELD_ENCODER_H
-#define __INDEXLIB_RANGE_FIELD_ENCODER_H
+#pragma once
 
 #include <ctime>
 #include <memory>
@@ -186,5 +185,3 @@ inline bool RangeFieldEncoder::IsRangeIndexField(fieldid_t fieldId)
     return mFieldVec[fieldId] != UNKOWN;
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_RANGE_FIELD_ENCODER_H

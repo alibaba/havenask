@@ -1,14 +1,36 @@
+#include "build_service/config/ResourceReader.h"
+
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <stdlib.h>
+#include <string>
+#include <tuple>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/common_define.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/DocReclaimSource.h"
 #include "build_service/config/ResourceReaderManager.h"
 #include "build_service/config/SwiftConfig.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/config/MergeConfig.h"
 #include "indexlib/config/OfflineConfig.h"
-#include "indexlib/config/field_schema.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;
@@ -207,8 +229,8 @@ TEST_F(ResourceReaderTest, testGetTabletSchemaBySchemaTableName)
     ASSERT_TRUE(schema);
     // 165 + 3
     // 165: user specified fields
-    // 3:  virtual field, messageid, hash id and timestamp, added by NormalSchemaResolver
-    ASSERT_EQ(168, schema->GetFieldCount());
+    // 2:  virtual field, hash id and timestamp, added by NormalSchemaResolver
+    ASSERT_EQ(167, schema->GetFieldCount());
 
     // will read schema from cache
     ASSERT_TRUE(fslib::util::FileUtil::remove(configDirCopy + "/schemas/test_schema.json"));
@@ -332,6 +354,26 @@ TEST_F(ResourceReaderTest, getTabletSchemaWithOverwriteSchemaName)
         resourceReader->getTabletSchema("mainse_summary_extra");
     ASSERT_TRUE(schema2);
     ASSERT_EQ("mainse_summary_extra", schema2->GetTableName());
+}
+
+TEST_F(ResourceReaderTest, testGetSchemaPatchFileNames)
+{
+    string configDir = GET_TEST_DATA_PATH() + "admin_test/config_with_schema_patch/";
+    ResourceReaderPtr resourceReader = ResourceReaderManager::getResourceReader(configDir);
+
+    auto patchFiles = resourceReader->getSchemaPatchFileNames({"mainse_searcher"});
+    set<string> expected = {"schemas/mainse_searcher_schema_patch.json"};
+    ASSERT_EQ(expected, set<string>(patchFiles.begin(), patchFiles.end()));
+
+    patchFiles = resourceReader->getSchemaPatchFileNames({"mainse_searcher", "mainse_searcher2"});
+    expected = {"schemas/mainse_searcher_schema_patch.json", "schemas/mainse_searcher2_schema_patch.json"};
+    ASSERT_EQ(expected, set<string>(patchFiles.begin(), patchFiles.end()));
+
+    patchFiles = resourceReader->getSchemaPatchFileNames({"mainse_searcher_non_exist"});
+    ASSERT_TRUE(patchFiles.empty());
+
+    patchFiles = resourceReader->getSchemaPatchFileNames({});
+    ASSERT_TRUE(patchFiles.empty());
 }
 
 void ResourceReaderTest::CheckClusterConfigWithInherit(const indexlibv2::config::OfflineConfig& offlineConfig)

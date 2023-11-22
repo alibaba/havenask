@@ -218,7 +218,6 @@ bool DelayDpKernel::mergeInputData(navi::GroupDatas &datas) {
                 SQL_LOG(WARN, "merge input table[%ld] failed", i);
                 continue;
             }
-            inputInfo.table->mergeDependentPools(inputTable);
         }
     }
     return true;
@@ -304,7 +303,7 @@ void DelayDpKernel::addOverrideDatas(int partId, std::vector<navi::OverrideData>
         if (info.partRows.empty()) {
             table = info.table;
         } else {
-            table.reset(new Table(info.partRows[partId], info.table->getMatchDocAllocatorPtr()));
+            table = Table::fromMatchDocs(info.partRows[partId], Table::toMatchDocs(*info.table));
         }
         overrideDatas.emplace_back();
         auto &overrideData = overrideDatas.back();
@@ -314,11 +313,28 @@ void DelayDpKernel::addOverrideDatas(int partId, std::vector<navi::OverrideData>
         overrideData.outputPort = PLACEHOLDER_OUTPUT_PORT;
         DataPtr data(new TableData(table));
         overrideData.datas = {data};
-        SQL_LOG(DEBUG,
+        SQL_LOG(TRACE2,
                 "override data, partId:%d, row count:%ld",
                 overrideData.partId,
                 table->getRowCount());
-        SQL_LOG(TRACE3, "table:\n%s", TableUtil::toString(table, 10).c_str());
+        SQL_LOG(TRACE2, "delay add table:\n%s", TableUtil::toString(table, 10).c_str());
+    }
+}
+
+void DelayDpKernel::addSqlQueryConfigData(ForkGraphParam &param) const {
+    SQL_LOG(TRACE3,
+            "add named data[%s] config[%s]",
+            SQL_QUERY_CONFIG_NAME.c_str(),
+            _queryConfigData->getConfig().ShortDebugString().c_str());
+    NamedData namedData;
+    namedData.name = SQL_QUERY_CONFIG_NAME;
+    namedData.data = std::make_shared<SqlQueryConfigData>(_queryConfigData->getConfig());
+    for (size_t i = 0, subCount = _graphDef->sub_graphs_size(); i < subCount; ++i) {
+        auto graphId = _graphDef->sub_graphs(i).graph_id();
+        if (graphId >= 0) {
+            namedData.graphId = graphId;
+            param.namedDataVec.emplace_back(namedData);
+        }
     }
 }
 
@@ -341,7 +357,8 @@ navi::ErrorCode DelayDpKernel::forkGraph(navi::KernelComputeContext &runContext)
             .toForkNodeOutput(DEFAULT_OUTPUT_PORT, i)
             .require(true);
     }
-    SQL_LOG(DEBUG, "delay dp graph def:\n%s", _graphDef->ShortDebugString().c_str());
+    SQL_LOG(TRACE1, "delay dp graph def:\n%s", _graphDef->ShortDebugString().c_str());
+    addSqlQueryConfigData(param);
     const auto &collector = _sqlSearchInfoCollectorR->getCollector();
     DelayDpInfo info;
     info.set_kernelname(getKernelName());
@@ -355,6 +372,7 @@ navi::ErrorCode DelayDpKernel::forkGraph(navi::KernelComputeContext &runContext)
     collector->setSqlRunForkGraphBeginTime(TimeUtility::currentTime());
     _sqlSearchInfoCollectorR->getCollector()->setSqlRunForkGraphBeginTime(
         TimeUtility::currentTime());
+
     return runContext.fork(_graphDef.release(), param);
 }
 

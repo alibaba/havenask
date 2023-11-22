@@ -9,5 +9,9 @@ cc_library(
         '//aios/filesystem/fslib/fslib/util',
         '//aios/kmonitor:kmonitor_client_cpp',
         '//aios/kmonitor:kmonitor_cpp_adapter'
+    ],
+    visibility=[
+        '//aios/filesystem/fslib:__subpackages__',
+        '//aios/network/gig:__subpackages__'
     ]
 )

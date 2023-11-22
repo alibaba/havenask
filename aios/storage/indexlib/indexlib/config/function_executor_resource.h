@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_FUNCTION_EXECUTOR_RESOURCE_H
-#define __INDEXLIB_FUNCTION_EXECUTOR_RESOURCE_H
+#pragma once
 
 #include <memory>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/module_info.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -52,7 +50,5 @@ public:
     std::vector<FunctionExecutorParam> functionParams;
 };
 
-DEFINE_SHARED_PTR(FunctionExecutorResource);
+typedef std::shared_ptr<FunctionExecutorResource> FunctionExecutorResourcePtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_FUNCTION_EXECUTOR_RESOURCE_H

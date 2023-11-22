@@ -1,7 +1,7 @@
-#ifndef ISEARCH_BS_MOCKGENERATIONTASK_H
-#define ISEARCH_BS_MOCKGENERATIONTASK_H
+#pragma once
 
 #include "build_service/admin/GenerationTask.h"
+#include "build_service/admin/test/FakeMultiClusterRealtimeSchemaListKeeper.h"
 #include "build_service/test/test.h"
 #include "build_service/test/unittest.h"
 #include "build_service/util/Log.h"
@@ -21,6 +21,10 @@ public:
     //     : GenerationTask(other) {}
 public:
     void doPrepareGeneration(WorkerTable&) { _step = GENERATION_STARTED; }
+    std::shared_ptr<config::MultiClusterRealtimeSchemaListKeeper> getSchemaListKeeper() const override
+    {
+        return std::make_shared<FakeMultiClusterRealtimeSchemaListKeeper>();
+    }
 
 protected:
     MOCK_METHOD1(prepareGeneration, void(WorkerTable&));
@@ -30,5 +34,3 @@ typedef ::testing::StrictMock<MockGenerationTask> StrictMockGenerationTask;
 typedef ::testing::NiceMock<MockGenerationTask> NiceMockGenerationTask;
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_MOCKGENERATIONTASK_H

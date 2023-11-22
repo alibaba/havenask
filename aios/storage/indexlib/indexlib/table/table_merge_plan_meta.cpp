@@ -15,6 +15,13 @@
  */
 #include "indexlib/table/table_merge_plan_meta.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <string>
+
+#include "autil/StringUtil.h"
+#include "indexlib/base/Constant.h"
+
 using namespace std;
 
 namespace indexlib { namespace table {

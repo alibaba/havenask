@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CHANNELBASE_H
-#define ISEARCH_BS_CHANNELBASE_H
+#pragma once
 
+#include <arpc/CommonMacros.h>
+#include <cstdint>
 #include <memory>
 #include <string>
 
-#include "aios/network/arpc/arpc/ANetRPCChannel.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/util/Log.h"
 #include "indexlib/misc/common.h"
@@ -76,5 +76,3 @@ private:
 };
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_MADROXCHANNEL_H

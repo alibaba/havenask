@@ -28,8 +28,12 @@ DIAGNOSTIC_POP
 namespace indexlibv2::index::ann {
 
 typedef aitheta2::IndexBuilder::Pointer AiThetaBuilderPtr;
+typedef aitheta2::IndexReducer::Pointer AiThetaReducerPtr;
+typedef aitheta2::IndexBuilder::Stats AiThetaBuilderStats;
 typedef aitheta2::IndexSearcher::Pointer AiThetaSearcherPtr;
+typedef aitheta2::IndexSearcher::Stats AiThetaSearcherStats;
 typedef aitheta2::IndexStreamer::Pointer AiThetaStreamerPtr;
+typedef aitheta2::IndexStreamer::Stats AiThetaStreamerStats;
 typedef aitheta2::IndexFactory AiThetaFactory;
 typedef aitheta2::IndexStorage::Pointer AiThetaStoragePtr;
 typedef aitheta2::IndexContext AiThetaContext;
@@ -41,7 +45,8 @@ typedef aitheta2::IndexMeta::FeatureTypes FeatureType;
 typedef aitheta2::IndexMeta::MajorOrders MajorOrder;
 typedef aitheta2::IndexError IndexError;
 
-typedef std::shared_ptr<float> embedding_t;
+typedef std::shared_ptr<char> embedding_t;
+
 typedef int64_t index_id_t;
 typedef int64_t key_t;
 typedef int64_t primary_key_t;

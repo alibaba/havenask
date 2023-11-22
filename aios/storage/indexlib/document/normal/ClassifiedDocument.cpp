@@ -17,9 +17,12 @@
 
 #include "indexlib/document/RawDocument.h"
 #include "indexlib/document/normal/AttributeDocument.h"
+#include "indexlib/document/normal/FieldMetaDocument.h"
 #include "indexlib/document/normal/IndexDocument.h"
+#include "indexlib/document/normal/SerializedSourceDocument.h"
 #include "indexlib/document/normal/SerializedSummaryDocument.h"
 #include "indexlib/document/normal/SourceDocument.h"
+#include "indexlib/document/normal/SourceFormatter.h"
 #include "indexlib/document/normal/SummaryDocument.h"
 #include "indexlib/document/normal/SummaryFormatter.h"
 #include "indexlib/index/inverted_index/config/PayloadConfig.h"
@@ -42,8 +45,6 @@ ClassifiedDocument::ClassifiedDocument()
     _indexDocument.reset(new IndexDocument(_pool.get()));
     _summaryDocument.reset(new SummaryDocument());
     _attributeDocument.reset(new AttributeDocument());
-    _maxSectionLen = MAX_SECTION_LENGTH;
-    _maxSectionPerField = MAX_SECTION_PER_FIELD;
 }
 
 ClassifiedDocument::~ClassifiedDocument()
@@ -51,6 +52,7 @@ ClassifiedDocument::~ClassifiedDocument()
     _indexDocument.reset();
     _summaryDocument.reset();
     _attributeDocument.reset();
+    _fieldMetaDocument.reset();
     _pool.reset();
 }
 
@@ -68,28 +70,10 @@ Section* ClassifiedDocument::createSection(IndexTokenizeField* field, uint32_t t
     }
 
     indexSection->SetWeight(sectionWeight);
-    if (field->GetSectionCount() >= _maxSectionPerField) {
+    if (field->GetSectionCount() >= MAX_SECTION_PER_FIELD) {
         return nullptr;
     }
     return indexSection;
-}
-
-void ClassifiedDocument::setMaxSectionLen(section_len_t maxSectionLen)
-{
-    if (maxSectionLen < MAX_SECTION_LENGTH && maxSectionLen > 1) {
-        _maxSectionLen = maxSectionLen;
-    } else {
-        _maxSectionLen = MAX_SECTION_LENGTH;
-    }
-}
-
-void ClassifiedDocument::setMaxSectionPerField(uint32_t maxSectionPerField)
-{
-    if (maxSectionPerField < MAX_SECTION_PER_FIELD && maxSectionPerField > 0) {
-        _maxSectionPerField = maxSectionPerField;
-    } else {
-        _maxSectionPerField = MAX_SECTION_PER_FIELD;
-    }
 }
 
 // Status ClassifiedDocument::serializeSummaryDocument(const std::shared_ptr<config::SummaryIndexConfig>& summaryConfig)
@@ -116,6 +100,14 @@ void ClassifiedDocument::setAttributeFieldNoCopy(fieldid_t id, const StringView&
 {
     if (_attributeDocument) {
         _attributeDocument->SetField(id, value);
+    }
+}
+
+void ClassifiedDocument::createFieldMetaDocument() { _fieldMetaDocument.reset(new FieldMetaDocument()); }
+void ClassifiedDocument::setFieldMetaFieldNoCopy(fieldid_t id, const autil::StringView& value, bool isNull)
+{
+    if (_fieldMetaDocument) {
+        _fieldMetaDocument->SetField(id, value, isNull);
     }
 }
 
@@ -234,30 +226,38 @@ void ClassifiedDocument::clear()
     _indexDocument.reset();
     _summaryDocument.reset();
     _attributeDocument.reset();
+    _fieldMetaDocument.reset();
     _serSummaryDoc.reset();
     _srcDocument.reset();
     _pool.reset();
 }
 
-void ClassifiedDocument::setSourceDocument(const std::shared_ptr<indexlib::document::SourceDocument>& sourceDocument)
+std::shared_ptr<indexlibv2::document::RawDocument::Snapshot> ClassifiedDocument::getOriginalSnapshot() const
 {
-    _srcDocument = sourceDocument;
+    return _originalSnapshot;
+}
+
+void ClassifiedDocument::setOriginalSnapshot(
+    const std::shared_ptr<indexlibv2::document::RawDocument::Snapshot>& snapshot)
+{
+    _originalSnapshot = snapshot;
 }
 
 void ClassifiedDocument::createSourceDocument(const std::vector<std::vector<std::string>>& fieldGroups,
-                                              const std::shared_ptr<RawDocument>& rawDoc)
+                                              const RawDocument::Snapshot* snapshot)
 {
     _srcDocument.reset(new indexlib::document::SourceDocument(_pool.get()));
     for (size_t i = 0; i < fieldGroups.size(); i++) {
         for (auto& field : fieldGroups[i]) {
             autil::StringView fn(field);
-            if (!rawDoc->exist(fn)) {
+            auto iter = snapshot->find(fn);
+            if (iter == snapshot->end()) {
                 _srcDocument->AppendNonExistField(i, field);
                 continue;
+            } else {
+                autil::StringView value = iter->second;
+                _srcDocument->Append(i, field, value, false);
             }
-            const autil::StringView& value = rawDoc->getField(fn);
-            // no need to copy value from rawDoc
-            _srcDocument->Append(i, field, value, false);
         }
     }
 }
@@ -280,6 +280,23 @@ void ClassifiedDocument::sourceDocumentAppendAccessaryFields(const std::vector<s
         const autil::StringView& value = rawDoc->getField(fn);
         _srcDocument->AppendAccessaryField(field, value, false);
     }
+}
+
+std::shared_ptr<SerializedSourceDocument>
+ClassifiedDocument::getSerializedSourceDocument(const std::shared_ptr<config::SourceIndexConfig>& sourceIndexConfig,
+                                                autil::mem_pool::Pool* pool) const
+{
+    if (!_srcDocument || !pool) {
+        return std::shared_ptr<SerializedSourceDocument>();
+    }
+    SourceFormatter formatter;
+    formatter.Init(sourceIndexConfig);
+    std::shared_ptr<SerializedSourceDocument> ret(new SerializedSourceDocument());
+    if (!formatter.SerializeSourceDocument(_srcDocument, pool, ret).IsOK()) {
+        AUTIL_LOG(INFO, "SerializeSourceDocument failed");
+        return std::shared_ptr<SerializedSourceDocument>();
+    }
+    return ret;
 }
 
 }} // namespace indexlibv2::document

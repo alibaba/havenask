@@ -121,7 +121,7 @@ OrderedHa3ScanIterator::~OrderedHa3ScanIterator() {
 bool OrderedHa3ScanIterator::init() {
     for (const auto &refName : _refNames) {
         auto attrExpr = _attributeExpressionCreator->createAttributeExpression(refName);
-        SQL_LOG(TRACE2, "create sort attr expr [%s]", refName.c_str());
+        SQL_LOG(DEBUG, "create sort attr expr [%s]", refName.c_str());
         if (attrExpr == nullptr) {
             SQL_LOG(ERROR, "create attr expr [%s] failed", refName.c_str());
             return false;
@@ -138,7 +138,7 @@ bool OrderedHa3ScanIterator::init() {
     return true;
 }
 
-uint32_t OrderedHa3ScanIterator::getTotalScanCount() {
+uint32_t OrderedHa3ScanIterator::getTotalScanCount() const {
     uint32_t totalScanCount = 0;
     for (const auto &singleLayerSearcher : _orderedSingleLayerSearcher) {
         totalScanCount += singleLayerSearcher->getSeekTimes();
@@ -147,6 +147,28 @@ uint32_t OrderedHa3ScanIterator::getTotalScanCount() {
         totalScanCount += singleLayerSearcher->getSeekTimes();
     }
     return totalScanCount;
+}
+
+uint32_t OrderedHa3ScanIterator::getTotalSeekedCount() const {
+    uint32_t docCount = 0;
+    for (const auto &singleLayerSearcher : _orderedSingleLayerSearcher) {
+        docCount += singleLayerSearcher->getSeekedCount();
+    }
+    for (const auto &singleLayerSearcher : _unorderedSingleLayerSearcher) {
+        docCount += singleLayerSearcher->getSeekedCount();
+    }
+    return docCount;
+}
+
+uint32_t OrderedHa3ScanIterator::getTotalWholeDocCount() const {
+    uint32_t docCount = 0;
+    for (const auto &singleLayerSearcher : _orderedSingleLayerSearcher) {
+        docCount += singleLayerSearcher->getWholeDocCount();
+    }
+    for (const auto &singleLayerSearcher : _unorderedSingleLayerSearcher) {
+        docCount += singleLayerSearcher->getWholeDocCount();
+    }
+    return docCount;
 }
 
 Result<bool> OrderedHa3ScanIterator::batchSeek(size_t batchSize, vector<MatchDoc> &matchDocs) {

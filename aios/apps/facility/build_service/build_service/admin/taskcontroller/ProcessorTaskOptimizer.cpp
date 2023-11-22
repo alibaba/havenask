@@ -15,8 +15,22 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorTaskOptimizer.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 #include "build_service/admin/taskcontroller/ProcessorTaskWrapper.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/misc/common.h"
+
 using namespace std;
 using namespace build_service::util;
 using namespace autil;

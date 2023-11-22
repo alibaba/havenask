@@ -55,9 +55,9 @@ public:
         FieldType GetAttributeType() const override { return TypeInfo<T>::GetFieldType(); }
 
         std::unique_ptr<AttributeReader> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                const IndexerParameter& indexerParam) const override
+                                                const IndexReaderParameter& indexReaderParam) const override
         {
-            return std::make_unique<SingleValueAttributeReader<T>>(GetSortPattern(indexConfig, indexerParam));
+            return std::make_unique<SingleValueAttributeReader<T>>(GetSortPattern(indexConfig, indexReaderParam));
         }
     };
 

@@ -24,15 +24,15 @@ namespace indexlibv2::index::ann {
 class Metric
 {
 public:
-    Metric(indexlib::util::MetricPtr metric, std::shared_ptr<kmonitor::MetricsTags> tags) : _metric(metric), _kmonTags(tags)
+    Metric(indexlib::util::MetricPtr metric, std::shared_ptr<kmonitor::MetricsTags> tags)
+        : _metric(metric)
+        , _kmonTags(tags)
     {
     }
 
 public:
     void Report(double value) { _metric->Report(_kmonTags, value); }
-    void Report(const std::shared_ptr<kmonitor::MetricsTags> tags, double value) {
-        _metric->Report(tags, value);
-    }
+    void Report(const std::shared_ptr<kmonitor::MetricsTags> tags, double value) { _metric->Report(tags, value); }
 
 private:
     indexlib::util::MetricPtr _metric;
@@ -45,7 +45,8 @@ class MetricReporter
 public:
     MetricReporter(const indexlib::util::MetricProviderPtr& metricProvider, const std::string& indexName,
                    segmentid_t segmentId = INVALID_SEGMENTID, bool isRtSegment = false)
-        : _metricProvider(metricProvider), _tags(std::make_shared<kmonitor::MetricsTags>())
+        : _metricProvider(metricProvider)
+        , _tags(std::make_shared<kmonitor::MetricsTags>())
     {
         _tags->AddTag("index", indexName);
         _tags->AddTag("index_type", "aitheta2");

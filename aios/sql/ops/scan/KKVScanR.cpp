@@ -121,7 +121,7 @@ navi::ErrorCode KKVScanR::init(navi::ResourceInitContext &ctx) {
 }
 
 bool KKVScanR::doBatchScan(TablePtr &table, bool &eof) {
-    _scanInitParamR->incTotalScanCount(_rawPks.size());
+    _scanCount += _rawPks.size();
 
     autil::ScopedTime2 seekTimer;
     std::vector<matchdoc::MatchDoc> matchDocs;
@@ -141,12 +141,11 @@ bool KKVScanR::doBatchScan(TablePtr &table, bool &eof) {
         SQL_LOG(ERROR, "calc table failed");
         return false;
     }
-    _seekCount += table->getRowCount();
     _scanInitParamR->incEvaluateTime(evaluteTimer.done_us());
 
     outputTimer = {};
-    if (_limit < _seekCount) {
-        table->clearBackRows(min(_seekCount - _limit, (uint32_t)table->getRowCount()));
+    if (size_t rowCount = table->getRowCount(); _limit < rowCount) {
+        table->clearBackRows(rowCount - _limit);
     }
     _scanInitParamR->incOutputTime(outputTimer.done_us());
 

@@ -47,6 +47,7 @@ static const char *translateGraphDomainHoldReason(GraphDomainHoldReason reason) 
 GraphDomain::GraphDomain(Graph *graph, GraphDomainType type)
     : _graph(graph)
     , _param(_graph->getGraphParam())
+    , _graphResult(_param->graphResult)
     , _type(type)
     , _subGraphDef(nullptr)
     , _graphId(INVALID_GRAPH_ID)
@@ -55,7 +56,7 @@ GraphDomain::GraphDomain(Graph *graph, GraphDomainType type)
     , _acquireCount(0)
 {
     _logger.object = this;
-    _logger.logger = _param->logger;
+    _logger.logger = std::make_shared<NaviLogger>(*_param->logger);
     _logger.addPrefix("domain %s", getGraphDomainType(type));
     acquire(GDHR_INIT);
 }
@@ -217,6 +218,15 @@ bool GraphDomain::finished() const {
 }
 
 void GraphDomain::notifyFinish(ErrorCode ec, bool notifyGraph) {
+    NaviErrorPtr error;
+    if (notifyGraph) {
+        error = _graphResult->makeError(_logger.logger, ec);
+    }
+    notifyFinish(error, notifyGraph);
+}
+
+void GraphDomain::notifyFinish(const NaviErrorPtr &error, bool notifyGraph) {
+    auto ec = error ? error->ec : EC_NONE;
     NAVI_LOG(SCHEDULE2, "try terminate, ec: %s, notifyGraph: %d, finished [%d]",
              CommonUtil::getErrorString(ec), notifyGraph, finished());
 
@@ -224,16 +234,18 @@ void GraphDomain::notifyFinish(ErrorCode ec, bool notifyGraph) {
     if (!_terminated.compare_exchange_weak(expect, true)) {
         return;
     }
-
     NAVI_LOG(SCHEDULE1, "terminate, ec: %s, notifyGraph: %d",
              CommonUtil::getErrorString(ec), notifyGraph);
+    if (notifyGraph && error) {
+        _param->graphResult->updateError(error);
+    }
     doFinish(ec);
-    finishGraph(ec, notifyGraph);
+    finishGraph(error, notifyGraph);
 }
 
-void GraphDomain::finishGraph(ErrorCode ec, bool notifyGraph) {
+void GraphDomain::finishGraph(const NaviErrorPtr &error, bool notifyGraph) {
     if (notifyGraph) {
-        _graph->notifyFinish(ec);
+        _graph->notifyFinish(error);
     }
     auto worker = release(GDHR_INIT);
     if (worker) {
@@ -274,7 +286,6 @@ NaviWorkerBase *GraphDomain::release(GraphDomainHoldReason reason) {
         _acquireCount--;
         if (0 == _acquireCount) {
             worker = _param->worker;
-            _graph = nullptr;
             _param = nullptr;
             NAVI_LOG(SCHEDULE2, "released");
         } else {

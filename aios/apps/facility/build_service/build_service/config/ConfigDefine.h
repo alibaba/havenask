@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <stdint.h>
 #include <string>
 
 namespace build_service { namespace config {
@@ -60,6 +61,7 @@ extern const std::string BS_TASK_RUN_SCRIPT;
 extern const std::string BS_SNAPSHOT_VERSION;
 extern const std::string BS_DROP_BUILDING_INDEX;
 extern const std::string BS_BUILDER_TASK_V2;
+extern const std::string BS_TASK_RESET_VERSION;
 
 extern const std::string BS_ENDBUILD_VERSION;
 extern const std::string BS_ENDBUILD_PARTITION_COUNT;

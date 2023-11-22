@@ -15,6 +15,16 @@
  */
 #include "SimpleHttpServer.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <exception>
+#include <iostream>
+#include <stdexcept>
+#include <stdio.h>
+#include <utility>
+
+#include "autil/result/Result.h"
+#include "build_service/web_toolkit/third_party/nlohmann/json.hpp"
 #include "fslib/util/FileUtil.h"
 
 namespace build_service::web_toolkit {

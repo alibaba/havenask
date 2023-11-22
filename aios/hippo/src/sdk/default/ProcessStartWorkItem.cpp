@@ -40,6 +40,38 @@ ProcessStartWorkItem::ProcessStartWorkItem()
 ProcessStartWorkItem::~ProcessStartWorkItem() {
 }
 
+bool ProcessStartWorkItem::checkProcessExist(bool &exist) const {
+    vector<int32_t> pids;
+    return checkProcessExist(exist, pids);
+}
+
+bool ProcessStartWorkItem::checkProcessExist(bool &exist, vector<int32_t> &pids) const {
+    exist = false;
+    if (!cmdExecutor) {
+        HIPPO_LOG(ERROR, "cmdExecutor is null", applicationId.c_str());
+        return false;
+    }
+    string container = getContainerName(slotId, applicationId);
+    if (processContext.processes_size() == 0) {
+        return true;
+    }
+    bool allExist = true;
+    for (int i = 0; i < processContext.processes_size(); ++i) {
+        const auto& processInfo = processContext.processes(i);
+        string workDir = getProcessWorkDir(processInfo);
+        int32_t pid = -1;
+        if (cmdExecutor->checkProcessExist(slotId.slaveAddress, container,
+                        processInfo.cmd(), workDir, pid))
+        {
+            pids.push_back(pid);
+        } else {
+            allExist = false;
+        }
+    }
+    exist = allExist;
+    return true;
+}
+
 void ProcessStartWorkItem::process() {
     if (!cmdExecutor) {
         HIPPO_LOG(ERROR, "cmdExecutor is null", applicationId.c_str());
@@ -55,6 +87,38 @@ void ProcessStartWorkItem::process() {
     string container = getContainerName(slotId, applicationId);
     string parameter = getContainerParameter();
     string msg;
+
+    // stop process and container if exist before start
+    bool allExist = false;
+    vector<int32_t> pids;
+    if (!checkProcessExist(allExist, pids)) {
+        HIPPO_LOG(ERROR, "check process exist failed.");
+    }
+    if (pids.size() > 0) {
+        bool restart = true;
+        if (restart) {
+            for (auto pid : pids) {
+                cmdExecutor->stopProcess(slotId.slaveAddress, container, pid);
+            }
+            int32_t count = 20;
+            while(count--) {
+                if (!checkProcessExist(allExist, pids)) {
+                    HIPPO_LOG(ERROR, "check process exist for kill failed.");
+                }
+                if (pids.size() > 0) {
+                    usleep(1000000);
+                } else {
+                    break;
+                }
+            }
+            cmdExecutor->stopContainer(slotId.slaveAddress, container);
+        } else {
+            HIPPO_LOG(WARN, "process exist, skip start process.");
+            callback(slotId, launchSignature, ERROR_NONE, "");
+            return;
+        }
+    }
+    // stop start container and process
     if (!cmdExecutor->startContainer(slotId.slaveAddress, container,
                                  parameter, image, msg))
     {

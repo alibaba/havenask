@@ -1,14 +1,14 @@
 #include "indexlib/config/test/schema_differ_unittest.h"
 
 #include "indexlib/config/index_partition_schema_maker.h"
-#include "indexlib/test/modify_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
+#include "indexlib/config/test/modify_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, SchemaDifferTest);
+AUTIL_LOG_SETUP(indexlib.config, SchemaDifferTest);
 
 SchemaDifferTest::SchemaDifferTest() {}
 

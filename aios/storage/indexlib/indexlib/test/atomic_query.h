@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATOMIC_QUERY_H
-#define __INDEXLIB_ATOMIC_QUERY_H
+#pragma once
 
 #include <memory>
 
@@ -42,5 +41,3 @@ private:
 
 DEFINE_SHARED_PTR(AtomicQuery);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_ATOMIC_QUERY_H

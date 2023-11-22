@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <string>
 
+#include "autil/Lock.h"
 #include "autil/Log.h"
 
 namespace cm_basic {
@@ -37,6 +38,7 @@ class SubRespMsgProcess
 {
 protected:
     typedef std::map<std::string, int64_t> MapClusterName2Version; // 集群名(表名) 到 集群版本
+
 public:
     SubRespMsgProcess(bool disableTopo = false) : _topoClusterManager(NULL), _cmCentral(NULL), _disableTopo(disableTopo)
     {
@@ -48,18 +50,17 @@ public:
     {
     }
     virtual ~SubRespMsgProcess() {}
-    //
+
+public:
+    // 更新所有集群的信息
+    virtual int32_t updateAllClusterInfo(cm_basic::SubRespMsg* resp_msg);
+
     void setTopoClusterManager(TopoClusterManager* topo_cluster_manager);
     TopoClusterManager* getTopoClusterManager() { return _topoClusterManager; }
+
     void setCMCentral(cm_basic::CMCentralSub* cm_central);
     cm_basic::CMCentralSub* getCMCentral() { return _cmCentral; }
 
-    MapClusterName2Version& getMapClusterName2Version() { return _mapClusterName2Version; }
-    // 获取集群版本号
-    int64_t getClusterVersion(const char* cluster_name);
-    // 更新所有集群的信息
-    virtual int32_t updateAllClusterInfo(cm_basic::SubRespMsg* resp_msg);
-    //
     void printTopo(const char* topo_cluster_name);
 
 protected:
@@ -67,6 +68,10 @@ protected:
     int32_t updateClusterStatus(cm_basic::ClusterUpdateInfo* msg);
     // 更新集群的结构信息
     int32_t updateTopoCluster(cm_basic::ClusterUpdateInfo* msg);
+
+    // clusterMapToVersion ops with lock
+    int64_t getClusterVersion(const std::string& cluster_name);
+    void setClusterVersion(const std::string& cluster_name, int64_t version);
 
 private:
     // 删除集群
@@ -77,8 +82,13 @@ private:
     int32_t reinitCluster(cm_basic::ClusterUpdateInfo* msg);
     bool isClusterEmpty(cm_basic::CMCluster* cm_cluster);
 
+public:
+    // only for test
+    MapClusterName2Version& getMapClusterName2Version() { return _mapClusterName2Version; }
+
 protected:
     MapClusterName2Version _mapClusterName2Version;
+    mutable autil::ReadWriteLock _rwlock;
 
 private:
     TopoClusterManager* _topoClusterManager;

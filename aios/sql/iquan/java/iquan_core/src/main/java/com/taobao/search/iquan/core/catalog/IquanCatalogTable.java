@@ -1,10 +1,13 @@
 package com.taobao.search.iquan.core.catalog;
 
-import com.taobao.search.iquan.client.common.model.IquanTableModel;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.api.exception.CatalogException;
 import com.taobao.search.iquan.core.api.schema.AbstractField;
 import com.taobao.search.iquan.core.api.schema.AtomicField;
-import com.taobao.search.iquan.core.api.schema.Table;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.utils.IquanTypeFactory;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.rel.RelNode;
@@ -14,6 +17,7 @@ import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.schema.ColumnStrategy;
+import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.TranslatableTable;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.sql.SqlFunction;
@@ -23,26 +27,22 @@ import org.apache.calcite.util.DateString;
 import org.apache.calcite.util.TimeString;
 import org.apache.calcite.util.TimestampString;
 
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-
 public class IquanCatalogTable extends AbstractTable implements InitializerExpressionFactory, TranslatableTable {
-    protected final Table table;
+    protected final IquanTable iquanTable;
     protected final String catalogName;
     protected final String dbName;
     protected String tableName;
     protected RelDataType rowType;
 
-    public IquanCatalogTable(String catalogName, String dbName, String tableName, Table table) {
+    public IquanCatalogTable(String catalogName, String dbName, String tableName, IquanTable iquanTable) {
         this.catalogName = catalogName;
         this.dbName = dbName;
-        this.table = table;
+        this.iquanTable = iquanTable;
         this.tableName = tableName;
     }
 
     public IquanCatalogTable copyWithName(String newTableName) {
-        return new IquanCatalogTable(catalogName, dbName, newTableName, table);
+        return new IquanCatalogTable(catalogName, dbName, newTableName, iquanTable);
     }
 
     protected void setTableName(String newTableName) {
@@ -55,11 +55,11 @@ public class IquanCatalogTable extends AbstractTable implements InitializerExpre
             return rowType;
         }
         IquanTypeFactory factory = IquanTypeFactory.DEFAULT;
-        List<RelDataType> relTypes = table.getFields()
+        List<RelDataType> relTypes = iquanTable.getFields()
                 .stream()
                 .map(factory::createRelType)
                 .collect(Collectors.toList());
-        List<String> fieldNames = table.getFields()
+        List<String> fieldNames = iquanTable.getFields()
                 .stream()
                 .map(AbstractField::getFieldName)
                 .collect(Collectors.toList());
@@ -87,7 +87,7 @@ public class IquanCatalogTable extends AbstractTable implements InitializerExpre
     public RexNode newColumnDefaultValue(RelOptTable table, int iColumn, InitializerContext context) {
         RelDataType colType = table.getRowType().getFieldList().get(iColumn).getType();
         RexBuilder rexBuilder = context.getRexBuilder();
-        AbstractField abstractField = this.table.getFields().get(iColumn);
+        AbstractField abstractField = this.iquanTable.getFields().get(iColumn);
         if (!(abstractField instanceof AtomicField)) {
             return rexBuilder.makeNullLiteral(colType);
         }
@@ -123,23 +123,18 @@ public class IquanCatalogTable extends AbstractTable implements InitializerExpre
     public String getTableName() {
         return tableName;
     }
-
-    public Table getTable() {
-        return table;
+    public IquanTable getTable() {
+        return iquanTable;
     }
 
-    public String getDetailInfo() {
-        if (table == null) {
+    public String getDetailInfo(boolean debug) {
+        if (iquanTable == null) {
             return "{}";
         }
-        IquanTableModel model = table.getTableModel();
-        if (model == null) {
-            return "{}";
-        }
-        return model.getDetailInfo();
+        return debug? iquanTable.getDebugDigest() : iquanTable.getDigest();
     }
 
-    public static IquanCatalogTable unwrap(org.apache.calcite.schema.Table table) {
+    public static IquanCatalogTable unwrap(Table table) {
         if (table instanceof IquanCatalogTable) {
             return (IquanCatalogTable) table;
         }

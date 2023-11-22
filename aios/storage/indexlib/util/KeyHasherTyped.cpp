@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 #include "indexlib/util/KeyHasherTyped.h"
+
+#include "autil/MurmurHash.h"
+
 namespace indexlib { namespace util {
 
 AUTIL_LOG_SETUP(indexlib.util, LayerTextHasher);

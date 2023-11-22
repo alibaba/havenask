@@ -125,7 +125,7 @@ bool TopKMarkTvfFunc::compute(const TablePtr &input, bool eof, TablePtr &output)
                 }
             }
         }
-        SQL_LOG(DEBUG, "topK mark output table [%s] ", TableUtil::toString(output, 5).c_str());
+        SQL_LOG(TRACE2, "topK mark output table [%s] ", TableUtil::toString(output, 10).c_str());
     }
     return true;
 }

@@ -1,9 +1,9 @@
 #include "indexlib/index/kv/test/offline_segment_iterator_unittest.h"
 
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/kv/hash_table_fix_creator.h"
 #include "indexlib/index/kv/hash_table_var_creator.h"
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::config;

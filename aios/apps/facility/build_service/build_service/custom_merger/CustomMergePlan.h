@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CUSTOMMERGEPLAN_H
-#define ISEARCH_BS_CUSTOMMERGEPLAN_H
+#pragma once
 
+#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
+
+#include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common_define.h"
 #include "build_service/custom_merger/CustomMergerTaskItem.h"
 #include "build_service/util/Log.h"
@@ -65,5 +71,3 @@ private:
 BS_TYPEDEF_PTR(CustomMergePlan);
 
 }} // namespace build_service::custom_merger
-
-#endif // ISEARCH_BS_CUSTOMMERGEPLAN_H

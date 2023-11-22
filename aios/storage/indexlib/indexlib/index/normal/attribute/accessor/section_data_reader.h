@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SECTION_DATA_READER_H
-#define __INDEXLIB_SECTION_DATA_READER_H
+#pragma once
 
 #include <memory>
 
@@ -72,5 +71,3 @@ inline AttrType SectionDataReader::GetType() const { return AT_STRING; }
 
 inline bool SectionDataReader::IsMultiValue() const { return false; }
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_SECTION_DATA_READER_H

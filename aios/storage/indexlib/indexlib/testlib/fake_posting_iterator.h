@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_POSTING_ITERATOR_H
-#define __INDEXLIB_FAKE_POSTING_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -41,8 +40,8 @@ public:
     index::TermMeta* GetTruncateTermMeta() const override { return _truncateTermMeta; }
     void setTermMeta(index::TermMeta* termMeta) { *_termMeta = *termMeta; }
 
-    docid_t SeekDoc(docid_t id) override;
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override
+    docid64_t SeekDoc(docid64_t id) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override
     {
         result = SeekDoc(docId);
         return index::ErrorCode::OK;
@@ -86,5 +85,3 @@ private:
 
 DEFINE_SHARED_PTR(FakePostingIterator);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKE_POSTING_ITERATOR_H

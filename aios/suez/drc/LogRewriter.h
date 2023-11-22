@@ -16,7 +16,9 @@
 #pragma once
 
 #include "suez/drc/LogRecord.h"
-
+namespace indexlibv2::framework {
+class ITablet;
+}
 namespace suez {
 
 enum RewriteCode {
@@ -31,6 +33,7 @@ public:
     virtual ~LogRewriter() = default;
 
 public:
+    virtual bool init(indexlibv2::framework::ITablet *index) = 0;
     virtual RewriteCode rewrite(LogRecord &log) = 0;
     // TODO: hack for indexlib reopen
     virtual bool createSnapshot() = 0;

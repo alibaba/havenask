@@ -1,7 +1,15 @@
 #include "build_service/common/SwiftLinkFreshnessReporter.h"
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+#include <unistd.h>
+
+#include "autil/TimeUtility.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
 #include "swift/protocol/SwiftMessage.pb.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

@@ -56,7 +56,7 @@ uint32_t RangeTermQueryExecutor::getSeekDocCount() {
 }
 
 indexlib::index::ErrorCode RangeTermQueryExecutor::doSeek(docid_t id, docid_t &result) {
-    docid_t tempDocId = INVALID_DOCID;
+    indexlib::docid64_t tempDocId = INVALID_DOCID;
     auto ec = _rangeIter->InnerSeekDoc(id, tempDocId);
     IE_RETURN_CODE_IF_ERROR(ec);
     if (tempDocId == INVALID_DOCID) {

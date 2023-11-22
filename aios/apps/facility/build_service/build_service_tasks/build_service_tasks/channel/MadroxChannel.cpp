@@ -15,6 +15,12 @@
  */
 #include "build_service_tasks/channel/MadroxChannel.h"
 
+#include <arpc/ANetRPCController.h>
+#include <google/protobuf/service.h>
+#include <memory>
+#include <stddef.h>
+
+#include "alog/Logger.h"
 #include "build_service/util/Log.h"
 #include "build_service_tasks/channel/Master.pb.h"
 

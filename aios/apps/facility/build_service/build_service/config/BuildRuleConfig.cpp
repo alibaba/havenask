@@ -15,6 +15,11 @@
  */
 #include "build_service/config/BuildRuleConfig.h"
 
+#include <cstdint>
+#include <iosfwd>
+
+#include "alog/Logger.h"
+
 using namespace std;
 namespace build_service { namespace config {
 BS_LOG_SETUP(config, BuildRuleConfig);

@@ -8,7 +8,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_range_unittest',
     srcs=glob(['*unittest.cpp']),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     deps=[
         ':indexlib_range_test_helper',
         '//aios/storage/indexlib/indexlib:indexlib_testbase',

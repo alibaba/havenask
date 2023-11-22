@@ -52,13 +52,6 @@ public:
     ~IndexLocator() {}
 
 public:
-    indexlibv2::framework::Locator ToLocator() const
-    {
-        indexlibv2::framework::Locator locator(getSrc(), {getOffset(), 0});
-        locator.SetUserData(getUserData());
-        locator.SetProgress(getProgress());
-        return locator;
-    }
     friend bool operator==(const IndexLocator& lft, const IndexLocator& rht)
     {
         return lft._offset == rht._offset and lft._src == rht._src and lft._userData == rht._userData;
@@ -77,7 +70,7 @@ public:
     const std::string& getUserData() const { return _userData; }
     void setUserData(const std::string& userData) { _userData = userData; }
 
-    void setProgress(const std::vector<indexlibv2::base::Progress>& progress)
+    void setProgress(const indexlibv2::base::ProgressVector& progress)
     {
         if (progress.empty()) {
             return;
@@ -88,7 +81,7 @@ public:
             _offset = std::min(_offset, singleProgress.offset.first);
         }
     }
-    const std::vector<indexlibv2::base::Progress>& getProgress() const { return _progress; }
+    const indexlibv2::base::ProgressVector& getProgress() const { return _progress; }
     // WARNING: only use this to serialize/deserialize
     std::string toString() const;
 
@@ -120,7 +113,7 @@ private:
     // In case the data source does not provide int64_t type offset, use _userData to keep track of the real offset and
     // _offset can be set to an arbitrary monotonic increasing number, e.g.  a counter.
     std::string _userData;
-    std::vector<indexlibv2::base::Progress> _progress;
+    indexlibv2::base::ProgressVector _progress;
 };
 
 class SrcSignature

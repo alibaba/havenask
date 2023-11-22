@@ -1,9 +1,9 @@
 package com.taobao.search.iquan.core.api.schema;
 
-import com.taobao.search.iquan.core.common.ConstantDefine;
-
 import java.util.Map;
 import java.util.TreeMap;
+
+import com.taobao.search.iquan.core.common.ConstantDefine;
 
 public class FieldMeta {
     public String fieldName = "";

@@ -15,7 +15,7 @@ cc_library(
     hdrs=glob(['util/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=([
         '//aios/kmonitor:kmonitor_cpp_adapter',
         '//aios/storage/indexlib/file_system',
@@ -36,7 +36,7 @@ cc_library(
     hdrs=glob(['calculator/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':index', ':kkv', ':kv', ':util']
 )
 cc_library(
@@ -46,7 +46,7 @@ cc_library(
     hdrs=glob(['data_structure/*.h'], exclude=['data_structure/*merger*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':util', '//aios/storage/indexlib/index/common:fs_writer_param_decider',
         '//aios/storage/indexlib/util/metrics:progress_metrics'
@@ -58,7 +58,7 @@ cc_library(
     hdrs=glob(['*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib/index/normal/deletionmap',
         '//aios/storage/indexlib/indexlib/index_base'
@@ -70,7 +70,7 @@ cc_library(
     hdrs=glob(['normal/trie/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         '//aios/storage/indexlib/index/inverted_index:IndexSegmentReader',
         '//aios/storage/indexlib/indexlib/index/normal/primarykey'
@@ -108,7 +108,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib:indexlib_misc',
         '//aios/storage/indexlib/indexlib/config',
@@ -122,7 +122,7 @@ cc_library(
     hdrs=glob(['normal/summary/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':accessor', '//aios/autil:bloom_filter',
         '//aios/storage/indexlib/index/primary_key:reader',
@@ -136,7 +136,7 @@ cc_library(
     hdrs=glob(['normal/source/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':accessor']
 )
 cc_library(
@@ -145,7 +145,7 @@ cc_library(
     hdrs=glob(['segment_metrics_updater/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':index', ':util', '//aios/autil:const_string_util']
 )
 cc_library(
@@ -154,7 +154,7 @@ cc_library(
     hdrs=['normal/inverted_index/index_metrics.h'],
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/indexlib/index/normal/util']
 )
 cc_library(
@@ -194,12 +194,14 @@ cc_library(
     ]),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         ':accessor', ':data_structure', ':patch_mergers', ':source', ':summary',
-        ':trie', ':util', '//aios/autil:const_string_util',
-        '//aios/autil:allocator', '//aios/kmonitor:kmonitor_cpp_adapter',
+        ':trie', ':util', '//aios/autil:allocator',
+        '//aios/autil:const_string_util',
+        '//aios/kmonitor:kmonitor_cpp_adapter',
         '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/ann/aitheta2/util/parallel_merge:ParallelReduceMeta',
         '//aios/storage/indexlib/index/attribute:indexer',
         '//aios/storage/indexlib/index/common/field_format/date:DateQueryParser',
         '//aios/storage/indexlib/index/inverted_index:BuildingIndexReader',
@@ -217,14 +219,15 @@ cc_library(
         '//aios/storage/indexlib/index/inverted_index:SeekAndFilterIterator',
         '//aios/storage/indexlib/index/inverted_index:SegmentPostings',
         '//aios/storage/indexlib/index/inverted_index:SegmentTermInfo',
-        '//aios/storage/indexlib/index/inverted_index/builtin_index/date:TimeRangeInfo',
-        '//aios/storage/indexlib/index/inverted_index/builtin_index/range:RangeInfo',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:BitmapIndexWriter',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:BitmapPostingDumper',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:BitmapPostingIterator',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:BitmapPostingWriter',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:InMemBitmapIndexSegmentReader',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:OnDiskBitmapIndexIterator',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/date:TimeRangeInfo',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/range:RangeInfo',
+        '//aios/storage/indexlib/index/inverted_index/builtin_index/spatial:SpatialPostingIterator',
         '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSlice',
         '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSliceReader',
         '//aios/storage/indexlib/index/inverted_index/format:BufferedSegmentIndexDecoder',
@@ -262,10 +265,8 @@ cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:TermMeta',
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaDumper',
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaLoader',
-        '//aios/storage/indexlib/index/inverted_index/builtin_index/spatial:SpatialPostingIterator',
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:DictionaryCreator',
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:InMemDictionaryReader',
-        '//aios/storage/indexlib/index/ann/aitheta2/util/parallel_merge:ParallelReduceMeta',
         '//aios/storage/indexlib/index/primary_key:reader',
         '//aios/storage/indexlib/indexlib:indexlib_h',
         '//aios/storage/indexlib/indexlib:indexlib_misc',
@@ -287,7 +288,7 @@ cc_library(
     hdrs=['kv/kv_metrics_collector.h'],
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=['//aios/storage/indexlib/indexlib/util:util_all']
 )
 cc_library(
@@ -296,7 +297,7 @@ cc_library(
     hdrs=['kv/kv_define.h', 'kv/multi_region_special_value.h'],
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':kv_metrics', ':util',
         '//aios/storage/indexlib/indexlib:indexlib_misc',
@@ -311,7 +312,7 @@ cc_library(
     hdrs=['kv/kv_index_options.h', 'kv/kv_read_options.h', 'kv/kv_reader.h'],
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=([
         ':kv_metrics', ':kv_util',
         '//aios/storage/indexlib/index/common:AttributeValueTypeTraits',
@@ -337,7 +338,7 @@ cc_library(
               ]),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=([
         ':kv_metrics', ':kv_reader_interface', ':util',
         '//aios/kmonitor:kmonitor_cpp_adapter',
@@ -362,7 +363,10 @@ cc_library(
     hdrs=glob(['kkv/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index',
-    visibility=['//visibility:public'],
+    visibility=[
+        '//aios/storage/indexlib/indexlib:indexlibV1',
+        '@com_taobao_turing_plugins//turing_plugins:__subpackages__'
+    ],
     deps=([
         ':kv', '//aios/kmonitor:kmonitor_cpp_adapter',
         '//aios/storage/indexlib/file_system',
@@ -381,7 +385,7 @@ cc_library(
     name='index-all',
     copts=['-Werror'],
     linkstatic=True,
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':index', ':kkv', ':kv'],
     alwayslink=True
 )

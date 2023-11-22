@@ -36,11 +36,11 @@ public:
 
 public:
     std::shared_ptr<IMemIndexer> CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                  const IndexerParameter& indexerParam) const override;
+                                                  const MemIndexerParameter& indexerParam) const override;
     std::shared_ptr<IDiskIndexer> CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override;
+                                                    const DiskIndexerParameter& indexerParam) const override;
     std::unique_ptr<IIndexReader> CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override;
+                                                    const IndexReaderParameter& indexReaderParam) const override;
     std::unique_ptr<IIndexMerger>
     CreateIndexMerger(const std::shared_ptr<config::IIndexConfig>& indexConfig) const override;
     std::string GetIndexPath() const override;
@@ -50,11 +50,11 @@ public:
 private:
     std::shared_ptr<IMemIndexer>
     CreateFixedLenKVMemIndexer(const std::shared_ptr<indexlibv2::config::KVIndexConfig>& indexConfig,
-                               const IndexerParameter& indexerParam) const;
+                               const MemIndexerParameter& indexerParam) const;
     std::shared_ptr<IMemIndexer>
     CreateVarLenKVMemIndexer(const std::shared_ptr<indexlibv2::config::KVIndexConfig>& indexConfig,
-                             const IndexerParameter& indexerParam) const;
-    int64_t GetMaxBuildMemoryUse(const IndexerParameter& indexerParam) const;
+                             const MemIndexerParameter& indexerParam) const;
+    int64_t GetMaxBuildMemoryUse(const MemIndexerParameter& indexerParam) const;
 
 public:
     void TEST_SetMemoryFactor(uint32_t memoryFactor) { _memoryFactor = memoryFactor; }

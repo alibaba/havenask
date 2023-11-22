@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SWIFTCONFIG_H
-#define ISEARCH_BS_SWIFTCONFIG_H
+#pragma once
+
+#include <map>
+#include <stdint.h>
+#include <string>
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
 #include "build_service/config/SwiftTopicConfig.h"
-#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace config {
@@ -73,5 +75,3 @@ private:
 BS_TYPEDEF_PTR(SwiftConfig);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_SWIFTCONFIG_H

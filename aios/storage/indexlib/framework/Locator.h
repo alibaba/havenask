@@ -15,13 +15,18 @@
  */
 #pragma once
 
+#include <algorithm>
+#include <assert.h>
+#include <ext/alloc_traits.h>
 #include <inttypes.h>
-#include <limits>
+#include <memory>
+#include <stddef.h>
 #include <string>
-#include <string_view>
+#include <utility>
+#include <vector>
 
-#include "autil/ConstString.h"
 #include "autil/Lock.h"
+#include "autil/Span.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/Progress.h"
 
@@ -42,6 +47,28 @@ public:
         LCR_FULLY_FASTER //完全比这个locator快(包括相等的场景，即这个locator拥有和他比较的locator的所有数据)
     };
 
+    struct DocInfo {
+        DocInfo() {}
+        DocInfo(uint16_t hashId, int64_t timestamp, uint32_t concurrentIdx, uint8_t sourceIdx)
+            : timestamp(timestamp)
+            , concurrentIdx(concurrentIdx)
+            , hashId(hashId)
+            , sourceIdx(sourceIdx)
+        {
+        }
+        // 表示doc的在数据源中的位置，与concurrent idx组成两级精确位置
+        int64_t timestamp = indexlib::INVALID_TIMESTAMP;
+        // 表示timestamp相同时的msg下标, timestamp相同时, concurrentIdx可能递增
+        uint32_t concurrentIdx = 0;
+        // 表示doc在数据源中的hash值，用于确定doc属于数据源的哪个范围
+        uint16_t hashId = 0;
+        // 同时读多个数据源时, 表示document来自于哪一个数据
+        uint8_t sourceIdx = 0;
+
+        base::Progress::Offset GetProgressOffset() const { return {timestamp, concurrentIdx}; }
+        std::string DebugString() const;
+    };
+
 public:
     bool operator==(const Locator& other) const
     {
@@ -53,15 +80,15 @@ public:
     }
     bool operator!=(const Locator& other) const { return !(*this == other); }
 
-    Locator() : _src(0), _minOffset(base::Progress::INVALID_OFFSET) {}
+    Locator() : _src(0), _minOffset(base::Progress::INVALID_OFFSET), _multiProgress({{}}) {}
     // TODO(tianxiao) remove structor
     Locator(uint64_t src, int64_t minOffset) : _src(src), _minOffset({minOffset, 0})
     {
-        _progress.emplace_back(base::Progress(_minOffset));
+        SetMultiProgress({{base::Progress(_minOffset)}});
     }
     Locator(uint64_t src, const base::Progress::Offset minOffset) : _src(src), _minOffset(minOffset)
     {
-        _progress.emplace_back(base::Progress(_minOffset));
+        SetMultiProgress({{base::Progress(_minOffset)}});
     }
 
     Locator(const Locator& other)
@@ -71,7 +98,7 @@ public:
         }
         this->_src = other._src;
         this->_minOffset = other._minOffset;
-        this->_progress = other._progress;
+        this->_multiProgress = other._multiProgress;
         this->_userData = other._userData;
         this->_isLegacyLocator = other._isLegacyLocator;
     }
@@ -82,7 +109,7 @@ public:
         }
         this->_src = other._src;
         this->_minOffset = other._minOffset;
-        this->_progress = other._progress;
+        this->_multiProgress = other._multiProgress;
         this->_userData = other._userData;
         this->_isLegacyLocator = other._isLegacyLocator;
         return *this;
@@ -97,50 +124,44 @@ public:
     uint64_t GetSrc() const { return _src; }
 
     bool IsSameSrc(const Locator& otherLocator, bool ignoreLegacyDiffSrc) const;
-    // void SetOffset(int64_t offset)
-    // {
-    //     _minOffset = {offset, 0};
-    //     _progress.clear();
-    //     _progress.emplace_back(base::Progress(_minOffset));
-    // }
-    void SetOffset(const base::Progress::Offset& offset)
-    {
-        _minOffset = offset;
-        _progress.clear();
-        _progress.emplace_back(base::Progress(offset));
-    }
+    void SetOffset(const base::Progress::Offset& offset) { SetMultiProgress({{base::Progress(offset)}}); }
     base::Progress::Offset GetOffset() const { return _minOffset; }
     base::Progress::Offset GetMaxOffset() const
     {
         base::Progress::Offset ret = base::Progress::INVALID_OFFSET;
-        for (const auto& progress : _progress) {
-            ret = std::max(ret, progress.offset);
+        for (const auto& progressVec : _multiProgress) {
+            for (const auto& progress : progressVec) {
+                ret = std::max(ret, progress.offset);
+            }
         }
         return ret;
     }
 
-    void SetProgress(const std::vector<base::Progress>& progress)
+    void SetMultiProgress(const base::MultiProgress& multiProgress)
     {
-        if (progress.empty()) {
+        if (multiProgress.empty() || multiProgress[0].empty()) {
             return;
         }
-        _progress = progress;
-        _minOffset = _progress[0].offset;
-        for (size_t i = 1; i < progress.size(); ++i) {
-            if (progress[i].offset < _minOffset) {
-                _minOffset = progress[i].offset;
+        _minOffset = multiProgress[0][0].offset;
+        for (const auto& progressVec : multiProgress) {
+            if (progressVec.empty()) {
+                _minOffset = base::Progress::INVALID_OFFSET;
+                return;
+            }
+            for (const auto& progress : progressVec) {
+                _minOffset = std::min(_minOffset, progress.offset);
             }
         }
+        _multiProgress = multiProgress;
     }
-    const std::vector<base::Progress>& GetProgress() const { return _progress; }
-
+    const base::MultiProgress& GetMultiProgress() const { return _multiProgress; }
     void SetUserData(std::string userData) { _userData = std::move(userData); }
     const std::string& GetUserData() const { return _userData; }
 
     size_t Size() const;
     std::string DebugString() const;
     bool IsValid() const;
-    Locator::LocatorCompareResult IsFasterThan(uint16_t hashId, const base::Progress::Offset& offset) const;
+    Locator::LocatorCompareResult IsFasterThan(const DocInfo& docInfo) const;
     Locator::LocatorCompareResult IsFasterThan(const Locator& locator, bool ignoreLegacyDiffSrc) const;
     std::pair<uint32_t, uint32_t> GetLocatorRange() const;
 
@@ -153,7 +174,7 @@ public:
 
 private:
     struct CompareStruct {
-        CompareStruct(const std::vector<base::Progress>* progress) : progressPtr(progress)
+        CompareStruct(const base::ProgressVector* progress) : progressPtr(progress)
         {
             if (progress->size() > 0) {
                 from = (*progress)[0].from;
@@ -178,7 +199,7 @@ private:
                 from = (*progressPtr)[cursor].from;
             }
         }
-        const std::vector<base::Progress>* progressPtr;
+        const base::ProgressVector* progressPtr;
         size_t cursor = 0;
         uint32_t from = 0;
     };
@@ -197,8 +218,10 @@ private:
         return sizeof(int64_t) + len;
     }
     std::pair<bool, base::Progress> GetLeftProgress(CompareStruct& currentProgress, CompareStruct& updateProgress);
-    void MergeProgress(std::vector<base::Progress>& mergeProgress);
+    void MergeProgress(base::ProgressVector& mergeProgress);
+    bool UpdateProgressVec(size_t i, const base::ProgressVector& progressVec);
     bool IsFullyFasterThan(const Locator& other) const;
+    bool IsFullyFasterThan(const base::ProgressVector& progressVec, const base::ProgressVector& otherProgressVec) const;
     bool DeserializeProgressV0(const char*& data, const char* end);
 
 private:
@@ -207,7 +230,7 @@ private:
     bool Deserialize(const char* str, size_t size);
     uint64_t _src = 0;
     base::Progress::Offset _minOffset;
-    std::vector<base::Progress> _progress;
+    base::MultiProgress _multiProgress;
     std::string _userData;
     bool _isLegacyLocator = false;
 };

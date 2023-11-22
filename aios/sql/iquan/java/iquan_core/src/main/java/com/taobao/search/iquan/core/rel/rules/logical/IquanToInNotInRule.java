@@ -1,5 +1,12 @@
 package com.taobao.search.iquan.core.rel.rules.logical;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptUtil;
@@ -15,15 +22,13 @@ import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 public class IquanToInNotInRule extends RelOptRule {
     public static final IquanToInNotInRule INSTANCE =
             new IquanToInNotInRule(RelFactories.LOGICAL_BUILDER);
 
     private static final int THRESHOLD = 2;
     private static final int FRACTIONAL_THRESHOLD = 2;
+
     private IquanToInNotInRule(RelBuilderFactory relBuilderFactory) {
         super(operand(
                 LogicalFilter.class,
@@ -70,7 +75,7 @@ public class IquanToInNotInRule extends RelOptRule {
                     if (right instanceof RexLiteral) {
                         List<RexCall> updatedList = combineMap.getOrDefault(left.toString(), new ArrayList<>());
                         updatedList.add(call);
-                        combineMap.put(left.toString(),updatedList);
+                        combineMap.put(left.toString(), updatedList);
                     } else if (left instanceof RexLiteral) {
                         List<RexCall> updatedList = combineMap.getOrDefault(left.toString(), new ArrayList<>());
                         updatedList.add(call.clone(call.type, Arrays.asList(right, left)));
@@ -80,7 +85,7 @@ public class IquanToInNotInRule extends RelOptRule {
                     }
                 } else if (op == composedOp) {
                     List<RexNode> newRex = decomposedBy(node, composedOp);
-                    for (int i = 0 ; i < newRex.size(); ++i) {
+                    for (int i = 0; i < newRex.size(); ++i) {
                         RexNode node1 = convertToNotInOrIn(relBuilder, newRex.get(i), toOperator);
                         if (node1 != null) {
                             beenConverted = true;
@@ -100,7 +105,7 @@ public class IquanToInNotInRule extends RelOptRule {
                 newOperands.add(rexNodes.get(0).getOperands().get(0));
                 newOperands.addAll(rexNodes.stream().map(v -> v.getOperands().get(1)).collect(Collectors.toList()));
                 SqlOperator op = toOperator.equals(SqlKind.IN) ? SqlStdOperatorTable.IN : SqlStdOperatorTable.NOT_IN;
-                RexNode newCall =  relBuilder.getRexBuilder().makeCall(op, newOperands);
+                RexNode newCall = relBuilder.getRexBuilder().makeCall(op, newOperands);
                 rexBuffer.add(newCall);
                 beenConverted = true;
             } else {

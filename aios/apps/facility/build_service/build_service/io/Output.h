@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_OUTPUT_H
-#define ISEARCH_BS_OUTPUT_H
+#pragma once
 
 #include "autil/legacy/any.h"
 #include "build_service/common_define.h"
@@ -57,5 +56,3 @@ private:
 BS_TYPEDEF_PTR(Output);
 
 }} // namespace build_service::io
-
-#endif // ISEARCH_BS_OUTPUT_H

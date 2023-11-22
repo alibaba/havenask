@@ -15,10 +15,20 @@
  */
 #include "build_service/common/RemoteVersionCommitter.h"
 
+#include <arpc/ANetRPCController.h>
+#include <google/protobuf/service.h>
+#include <ostream>
+#include <stddef.h>
+
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/BuildServiceConfig.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/ResourceReader.h"
 #include "indexlib/framework/VersionMeta.h"
+#include "indexlib/indexlib.h"
 
 namespace {
 
@@ -57,15 +67,13 @@ Status RemoteVersionCommitter::Init(const RemoteVersionCommitter::InitParam& par
         return Status::Corruption();
     }
 
-    // _appName = buildServiceConfig.getApplicationId();
-    // TODO(xiaohao.yxh) hope to get app name from buildServiceConfig
-
     TABLET_LOG(INFO,
-               "init RemoteVersionCommitter success, generation [%d], table [%s], dataTable [%s], range[%d, %d], "
+               "init RemoteVersionCommitter success, generation [%d], appName [%s], table [%s], dataTable [%s], "
+               "range[%d, %d], "
                "configPath[%s], log identifier [%s]",
-               _initParam.generationId, _initParam.clusterName.c_str(), _initParam.dataTable.c_str(),
-               (int32_t)_initParam.rangeFrom, (int32_t)_initParam.rangeTo, _initParam.configPath.c_str(),
-               _identifier.c_str());
+               _initParam.generationId, _initParam.appName.c_str(), _initParam.clusterName.c_str(),
+               _initParam.dataTable.c_str(), (int32_t)_initParam.rangeFrom, (int32_t)_initParam.rangeTo,
+               _initParam.configPath.c_str(), _identifier.c_str());
     return Status::OK();
 }
 
@@ -175,8 +183,8 @@ void RemoteVersionCommitter::FillBuildId(proto::BuildId* buildId) const
         buildId->set_datatable(_initParam.dataTable);
     }
     buildId->set_generationid(_initParam.generationId);
-    if (!_appName.empty()) {
-        buildId->set_appname(_appName);
+    if (!_initParam.appName.empty()) {
+        buildId->set_appname(_initParam.appName);
     }
 }
 

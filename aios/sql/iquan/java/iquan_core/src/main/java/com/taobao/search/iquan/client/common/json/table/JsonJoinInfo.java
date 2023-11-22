@@ -1,38 +1,21 @@
 package com.taobao.search.iquan.client.common.json.table;
 
-import com.taobao.search.iquan.client.common.common.ConstantDefine;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.client.common.json.catalog.JsonTableIdentity;
+import lombok.Getter;
+import lombok.ToString;
 
+@Getter
+@ToString
 public class JsonJoinInfo {
-    @JsonProperty("table_name")
-    private String tableName = ConstantDefine.EMPTY;
+    @JsonProperty(value = "main_table", required = true)
+    private JsonTableIdentity mainTableIdentity;
+    @JsonProperty(value = "aux_table", required = true)
+    private JsonTableIdentity auxTableIdentity;
+    @JsonProperty(value = "join_field", required = true)
+    private String joinField;
 
-    @JsonProperty("join_field")
-    private String joinField = ConstantDefine.EMPTY;
-
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    public String getJoinField() {
-        return joinField;
-    }
-
-    public void setJoinField(String joinField) {
-        this.joinField = joinField;
-    }
-
-    public JsonJoinInfo() {
-    }
-
-    @JsonIgnore
-    public boolean isValid() {
-        return (tableName != null && joinField != null);
+    public String getMainAuxTableName() {
+        return "_main_aux_internal#" + mainTableIdentity.getTableName() + "#" + auxTableIdentity.getTableName();
     }
 }

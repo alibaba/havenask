@@ -25,10 +25,15 @@ namespace multi_call {
 
 class TopoInfoBuilder;
 
+struct BizTopoClientInfo {
+    BizTopoSignature sig;
+    bool allProviderStopped = false;
+};
+
 struct SignatureMap {
     uint64_t clientId;
     int64_t serverSignature;
-    std::map<SignatureTy, BizTopoSignature> topoSignatureMap;
+    std::map<SignatureTy, BizTopoClientInfo> topoSignatureMap;
 };
 
 MULTI_CALL_TYPEDEF_PTR(SignatureMap);
@@ -44,7 +49,9 @@ public:
 public:
     bool init(const ServerBizTopoInfo &info, const std::shared_ptr<BizStat> &bizStat);
     void updateVolatileInfo(const BizVolatileInfo &info);
+    void start();
     void stop();
+    bool isStopped() const;
     void fillBizTopoDiff(const BizTopoSignature &clientSideSignature, BizTopoDef *topoDef) const;
     void fillBizTopo(BizTopoDef *topoDef) const;
     void fillPropagationStat(BizTopoDef *topoDef) const;

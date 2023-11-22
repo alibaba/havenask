@@ -15,8 +15,20 @@
  */
 #include "build_service_tasks/repartition/RepartitionDocFilterCreator.h"
 
+#include <iosfwd>
+#include <memory>
+#include <string>
+
+#include "alog/Logger.h"
+#include "autil/HashFuncFactory.h"
+#include "autil/Span.h"
 #include "build_service/config/HashMode.h"
 #include "build_service_tasks/repartition/RepartitionDocFilter.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/region_schema.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/partition/raw_document_field_extractor.h"
 
 using namespace std;
 using namespace autil;

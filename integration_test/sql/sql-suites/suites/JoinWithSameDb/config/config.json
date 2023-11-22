@@ -16,5 +16,6 @@
             "data_path" : "data/company.dat"
         }
     ],
-    "config_path" : "config/config_multi_table"
+    "config_path" : "config/config_multi_table",
+    "tablet_mode" : "false"
 }

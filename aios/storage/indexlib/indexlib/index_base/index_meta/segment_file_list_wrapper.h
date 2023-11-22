@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_FILE_LIST_WRAPPER_H
-#define __INDEXLIB_SEGMENT_FILE_LIST_WRAPPER_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -62,5 +61,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentFileListWrapper);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SEGMENT_FILE_LIST_WRAPPER_H

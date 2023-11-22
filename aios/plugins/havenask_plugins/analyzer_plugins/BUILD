@@ -6,10 +6,11 @@ load(
 load('//bazel:bundle.bzl', 'bundle_files')
 bundle_files(
     name='jieba_analyzer_plugin_package',
-    prefix='usr/local/lib64',
     srcs=[':jieba_analyzer'],
-    deps=[':jieba_dict_package'],
-    visibility=['//visibility:public']
+    prefix='usr/local/lib64',
+    tags=['manual'],
+    visibility=['//visibility:public'],
+    deps=[':jieba_dict_package']
 )
 bundle_files(
     name='jieba_dict_package',
@@ -33,11 +34,11 @@ cc_library(
     name='analyzer',
     srcs=glob(['*.cpp']),
     hdrs=glob(['*.h']),
+    visibility=['//visibility:public'],
     deps=[
         '//aios/apps/facility/build_service:bs_analyzer',
-        '//aios/filesystem/fslib:fslib-framework', '@cppjieba//:cppjieba',
+        '//aios/filesystem/fslib:fslib-framework', '@cppjieba',
         '@cppjieba//:limonp'
     ],
-    alwayslink=True,
-    visibility=['//visibility:public']
+    alwayslink=True
 )

@@ -2,9 +2,9 @@
 
 #include "autil/StringUtil.h"
 #include "indexlib/common/field_format/pack_attribute/pack_attribute_formatter.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/kkv/sort_collect_info_processor.h"
 #include "indexlib/index/kkv/truncate_collect_info_processor.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

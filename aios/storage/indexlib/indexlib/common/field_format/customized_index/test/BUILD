@@ -8,6 +8,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_customized_index_field_encoder_unittest',
     srcs=glob(['*unittest.cpp']),
+    copts=['-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     deps=[
         ':indexlib_customized_index_field_encoder_test_helper',

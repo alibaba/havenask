@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.core.catalog.function;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.api.schema.UdxfFunction;
 import com.taobao.search.iquan.core.api.schema.UdxfSignature;
 import com.taobao.search.iquan.core.catalog.function.internal.AggregateFunction;
 import com.taobao.search.iquan.core.utils.IquanTypeFactory;
 import org.apache.calcite.sql.SqlFunction;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class IquanAggregateFunction extends IquanFunction {
     public IquanAggregateFunction(IquanTypeFactory typeFactory, UdxfFunction function) {

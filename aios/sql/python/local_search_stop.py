@@ -12,6 +12,7 @@ import commands
 import time
 import local_search_starter
 
+
 class LocalSearchStopCmd(local_search_starter.LocalSearchStartCmd):
     '''
 local_search_stop.py
@@ -22,11 +23,12 @@ options:
 examples:
     ./local_search_stop.py -c config_dir
     '''
+
     def __init__(self):
         self.parser = OptionParser(usage=self.__doc__)
 
     def usage(self):
-        print self.__doc__ % {'prog' : sys.argv[0]}
+        print self.__doc__ % {'prog': sys.argv[0]}
 
     def addOptions(self):
         self.parser.add_option('-c', '--config', action='store', dest='configPath', default="")
@@ -44,9 +46,9 @@ examples:
         if self.configPath == "":
             self.configPath = os.getcwd()
 
-    def run(self, timeout = 30):
-        raw_timeout = timeout
-        cmd = "ps xfww  | grep ha_sql    | grep '%s'| grep -v grep | awk {'print $1'}" % self.configPath
+    def killRole(self, role):
+        cmd = "ps xfww  | grep ha_sql | grep \"roleType=%s\"  | grep '%s'| grep -v grep | awk {'print $1'}" % (
+            role, self.configPath)
         print cmd
         (ret, result) = commands.getstatusoutput(cmd)
         if ret != 0 or result.strip() == '':
@@ -56,6 +58,12 @@ examples:
             if pid != "":
                 print "kill %s" % str(pid)
                 os.system("kill %s" % str(pid))
+
+    def run(self, timeout=90):
+        self.killRole("searcher")
+        time.sleep(2)
+        self.killRole("qrs")
+        raw_timeout = timeout
         while timeout > 0:
             time.sleep(0.1)
             timeout -= 0.1
@@ -69,7 +77,7 @@ examples:
         for line in result.splitlines():
             pid = line.strip().split(' ')[0]
             status = line.strip().split(' ')[1]
-            if pid != "" and not 'd' in status.lower():
+            if pid != "" and 'd' not in status.lower():
                 (ret, result) = commands.getstatusoutput("pwdx {}".format(pid))
                 ret == 0 and force_killed_workdirs.append(result.strip())
                 work_dir = result.split()[-1]
@@ -82,8 +90,8 @@ examples:
         return "", "process exit timeout {}s, force kill, dirs: {}".format(raw_timeout, force_killed_workdirs), 1
 
     def _getPid(self, port):
-        p = subprocess.Popen(['netstat','-plant'],stdout=subprocess.PIPE)
-        out,err = p.communicate()
+        p = subprocess.Popen(['netstat', '-plant'], stdout=subprocess.PIPE)
+        out, err = p.communicate()
         pids = []
         port = str(port)
         for line in out.splitlines():
@@ -95,6 +103,7 @@ examples:
                             pid = p.split("/")[0]
                             return int(pid)
         return -1
+
 
 if __name__ == '__main__':
     cmd = LocalSearchStopCmd()

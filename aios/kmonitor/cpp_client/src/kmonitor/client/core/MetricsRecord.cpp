@@ -61,4 +61,25 @@ void MetricsRecord::AddValue(const MetricsInfoPtr &info, const std::string &valu
     values_.push_back(item);
 }
 
+MetricsRecords::MetricsRecords(MetricsRecords &&other) noexcept {
+    records_ = std::move(other.records_);
+    other.records_.clear();
+}
+
+MetricsRecords &MetricsRecords::operator=(MetricsRecords &&other) noexcept {
+    if (this != &other) {
+        clear();
+        records_ = std::move(other.records_);
+        other.records_.clear();
+    }
+    return *this;
+}
+
+void MetricsRecords::clear() {
+    for (size_t i = 0; i < records_.size(); ++i) {
+        delete records_[i];
+    }
+    records_.clear();
+}
+
 END_KMONITOR_NAMESPACE(kmonitor);

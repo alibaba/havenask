@@ -13,47 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_FLOWFACTORY_H
-#define ISEARCH_BS_FLOWFACTORY_H
+#pragma once
+
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/builder/Builder.h"
 #include "build_service/builder/BuilderV2.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeper.h"
+#include "build_service/common/SourceEnd2EndLatencyReporter.h"
+#include "build_service/common/SwiftParam.h"
 #include "build_service/common/SwiftResourceKeeper.h"
 #include "build_service/common_define.h"
-#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/config/SwiftConfig.h"
 #include "build_service/processor/Processor.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/reader/RawDocumentReader.h"
 #include "build_service/reader/RawDocumentReaderCreator.h"
-#include "build_service/util/Log.h"
 #include "build_service/workflow/BuildFlowMode.h"
 #include "build_service/workflow/Consumer.h"
-#include "build_service/workflow/MultiSwiftProcessedDocProducer.h"
 #include "build_service/workflow/ProcessedDocHandler.h"
 #include "build_service/workflow/Producer.h"
-#include "build_service/workflow/RawDocBuilderConsumer.h"
-#include "build_service/workflow/SingleSwiftProcessedDocProducer.h"
+#include "build_service/workflow/SrcDataNode.h"
+#include "build_service/workflow/SwiftDocumentBatchProducer.h"
 #include "build_service/workflow/SwiftProcessedDocConsumer.h"
 #include "build_service/workflow/SwiftProcessedDocProducer.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/partition/index_partition.h"
 #include "indexlib/util/TaskScheduler.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace util {
-class MetricProvider;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 }} // namespace indexlib::util
 
 namespace indexlibv2::framework {
 class ITablet;
 }
-namespace indexlibv2::config {
-class ITabletSchema;
-}
 
 namespace build_service { namespace common {
-class CounterSynchronizer;
 BS_TYPEDEF_PTR(CounterSynchronizer);
 }} // namespace build_service::common
 
@@ -68,7 +74,8 @@ public:
         TP_PROCESSOR = 2,
         TP_BUILDER = 3,
         TP_MESSAGE_QUEUE = 4,
-        TP_BUILDERV2 = 5
+        TP_BUILDERV2 = 5,
+        TP_DOC_BATCH = 6,
     };
     typedef ProducerType ConsumerType;
     struct RoleInitParam {
@@ -105,6 +112,10 @@ public:
     virtual ProcessedDocProducer* createProcessedDocProducer(const RoleInitParam& initParamconst,
                                                              const ProducerType& type);
     virtual ProcessedDocConsumer* createProcessedDocConsumer(const RoleInitParam& initParam, const ConsumerType& type);
+
+    virtual DocumentBatchProducer* createBatchDocProducer(const RoleInitParam& initParam);
+    virtual DocumentBatchConsumer* createBatchDocConsumer(const RoleInitParam& initParam);
+
     virtual bool initCounterMap(RoleInitParam& initParam, BuildFlowMode mode);
 
 public:
@@ -151,6 +162,9 @@ private:
                                                                     const common::SwiftResourceKeeperPtr& swiftKeeper,
                                                                     const config::SwiftConfig& swiftConfig);
 
+    SwiftDocumentBatchProducer* doCreateSwiftDocumentBatchProducer(const common::SwiftParam& swiftParam,
+                                                                   const RoleInitParam& param);
+
     virtual ProcessedDocProducer* createSwiftProcessedDocProducer(const RoleInitParam& initParam);
     virtual ProcessedDocConsumer* createSwiftProcessedDocConsumer(const RoleInitParam& initParam);
 
@@ -185,5 +199,3 @@ private:
 BS_TYPEDEF_PTR(FlowFactory);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_FLOWFACTORY_H

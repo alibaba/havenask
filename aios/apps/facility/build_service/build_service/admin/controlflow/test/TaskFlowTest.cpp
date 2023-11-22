@@ -1,10 +1,19 @@
 #include "build_service/admin/controlflow/TaskFlow.h"
 
-#include "build_service/admin/controlflow/LuaLoggerWrapper.h"
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "build_service/admin/controlflow/TaskBase.h"
 #include "build_service/admin/controlflow/TaskFactory.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/WorkerNode.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

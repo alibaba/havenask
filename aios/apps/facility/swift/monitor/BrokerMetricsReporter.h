@@ -88,6 +88,7 @@ struct PartitionMetricsCollector {
     int64_t cacheMetaBlockCount = -1;
     int64_t cacheDataBlockCount = -1;
     int64_t lastReadMsgTimeStamp = -1;
+    int64_t usedDfsSize = -1;
 };
 
 struct LongPollingMetricsCollector {
@@ -151,6 +152,7 @@ private:
     kmonitor::MutableMetric *cacheFileCount = nullptr;
     kmonitor::MutableMetric *cacheMetaBlockCount = nullptr;
     kmonitor::MutableMetric *cacheDataBlockCount = nullptr;
+    kmonitor::MutableMetric *partitionUsedDfsSize = nullptr;
 };
 
 struct WorkerMetricsCollector {
@@ -600,6 +602,22 @@ private:
     kmonitor::MutableMetric *accessQps = nullptr;
 };
 
+struct FileManagerMetricsCollector {
+    int64_t getPathMetaCount = -1;
+    int64_t getPathMetaLatency = -1;
+};
+
+class FileManagerMetrics : public kmonitor::MetricsGroup {
+public:
+    FileManagerMetrics(){};
+    bool init(kmonitor::MetricsGroupManager *manager) override;
+    void report(const kmonitor::MetricsTags *tags, FileManagerMetricsCollector *collector);
+
+private:
+    kmonitor::MutableMetric *getPathMetaCount = nullptr;
+    kmonitor::MutableMetric *getPathMetaLatency = nullptr;
+};
+
 class BrokerMetricsReporter {
 public:
     BrokerMetricsReporter(int reportThreadNum = 0);
@@ -620,6 +638,7 @@ public:
     void reportAccessInfoMetricsBackupThread(const AccessInfoCollectorPtr &collector);
     void reportAccessInfoMetrics(AccessInfoCollector &collector);
     void reportLongPollingMetrics(const kmonitor::MetricsTagsPtr &tags, LongPollingMetricsCollector &collector);
+    void reportFileManagerMetrics(const kmonitor::MetricsTagsPtr &tags, FileManagerMetricsCollector &collector);
 
     void incGetMinMessageIdByTimeQps(kmonitor::MetricsTags *tags);
     void reportGetMinMessageIdByTimeLatency(double latency, kmonitor::MetricsTags *tags);
@@ -629,6 +648,8 @@ public:
     void reportRecycleWriteCacheByForceSize(int64_t recycleSize, kmonitor::MetricsTags *tags);
     void incRecycleQps(kmonitor::MetricsTags *tags);
     void reportLongPollingQps(const kmonitor::MetricsTagsPtr &tags);
+    void reportDeleteObsoleteFileQps(uint32_t deletedFileCount, const kmonitor::MetricsTags *tags);
+    void reportInitFileManagerLatency(int64_t latency, const kmonitor::MetricsTags *tags);
 
     /////// worker metrics
     void reportBrokerSysMetrics(BrokerSysMetricsCollector &collector);

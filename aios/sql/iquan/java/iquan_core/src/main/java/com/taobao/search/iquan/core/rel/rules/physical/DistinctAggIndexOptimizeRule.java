@@ -1,7 +1,6 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -14,8 +13,6 @@ import com.taobao.search.iquan.core.catalog.IquanCatalogTable;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
-import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
-import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
 import org.apache.calcite.plan.RelOptRule;
@@ -24,16 +21,7 @@ import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.prepare.RelOptTableImpl;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.AggregateCall;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rex.RexCall;
-import org.apache.calcite.rex.RexInputRef;
-import org.apache.calcite.rex.RexLiteral;
-import org.apache.calcite.rex.RexLocalRef;
-import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.rex.RexProgram;
 import org.apache.calcite.sql.SqlKind;
-import org.apache.calcite.sql.SqlOperator;
-import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.tools.RelBuilderFactory;
 
 public class DistinctAggIndexOptimizeRule extends RelOptRule {
@@ -41,13 +29,13 @@ public class DistinctAggIndexOptimizeRule extends RelOptRule {
 
     private DistinctAggIndexOptimizeRule(RelBuilderFactory relBuilderFactory) {
         super(operand(
-            IquanAggregateOp.class,
-            operand(
-                    IquanAggregateOp.class,
-                    operand(
-                        IquanTableScanBase.class,
-                        none()
-                    )
+                IquanAggregateOp.class,
+                operand(
+                        IquanAggregateOp.class,
+                        operand(
+                                IquanTableScanBase.class,
+                                none()
+                        )
                 )
         ), relBuilderFactory, null);
     }
@@ -73,7 +61,7 @@ public class DistinctAggIndexOptimizeRule extends RelOptRule {
             return;
         }
 
-        IquanTableScanOp scan = (IquanTableScanOp)scanBase;
+        IquanTableScanOp scan = (IquanTableScanOp) scanBase;
         RelOptTable relOptTable = scan.getTable();
         if (!(relOptTable instanceof RelOptTableImpl)) {
             return;
@@ -128,7 +116,7 @@ public class DistinctAggIndexOptimizeRule extends RelOptRule {
             if (index.match(equalConditions) && index.getValueFileds().contains(groupByValues.get(0))) {
                 IquanTableScanBase newScan = (IquanTableScanBase) scan.copy(aggregateOp.getRowType());
                 newScan.setAggArgs(index.getIndexName(), index.getIndexFields(), index.getAggregationKeys(equalConditions),
-                    type.lowerName, groupByValues.get(0), Boolean.TRUE, new ArrayList<>(), new ArrayList<>());
+                        type.lowerName, groupByValues.get(0), Boolean.TRUE, new ArrayList<>(), new ArrayList<>());
 
                 if (catalogTable.getTable().getDistribution().getPartitionCnt() == 1) {
                     call.transformTo(newScan);

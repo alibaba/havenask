@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONDISKORDEREDPRIMARYKEYITERATORTEST_H
-#define __INDEXLIB_ONDISKORDEREDPRIMARYKEYITERATORTEST_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
@@ -84,5 +83,3 @@ void OnDiskOrderedPrimaryKeyIteratorTest::CheckIterator(OnDiskOrderedPrimaryKeyI
     ASSERT_EQ(cursor, expectResults.size());
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ONDISKORDEREDPRIMARYKEYITERATORTEST_H

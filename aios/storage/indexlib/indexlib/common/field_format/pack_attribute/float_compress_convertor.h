@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_FLOAT_COMPRESS_CONVERTOR_H
-#define __INDEXLIB_FLOAT_COMPRESS_CONVERTOR_H
+#pragma once
 
 #include <memory>
 
@@ -210,5 +209,3 @@ inline FieldType FloatCompressConvertor::GetActualFieldType(const config::Compre
     return ft_float;
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_FLOAT_COMPRESS_CONVERTOR_H

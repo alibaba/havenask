@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIMARYKEYPAIRSEGMENTITERATORTEST_H
-#define __INDEXLIB_PRIMARYKEYPAIRSEGMENTITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/primarykey/primary_key_pair_segment_iterator.h"
@@ -78,5 +77,3 @@ void PrimaryKeyPairSegmentIteratorTest::CheckIterator(const PrimaryKeyPairSegmen
 
 INDEXLIB_UNIT_TEST_CASE(PrimaryKeyPairSegmentIteratorTest, TestSortedPKPairIterator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARYKEYPAIRSEGMENTITERATORTEST_H

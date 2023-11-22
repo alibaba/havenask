@@ -22,7 +22,7 @@ public:
         return const_cast<indexlib::index::TermMeta*>(&_termMeta);
     }
 
-    docid_t SeekDoc(docid_t docId) override
+    docid64_t SeekDoc(docid64_t docId) override
     {
         while (_cur < _docIds.size() && _docIds[_cur] < docId) {
             ++_cur;
@@ -30,7 +30,7 @@ public:
         return _cur < _docIds.size() ? _docIds[_cur] : INVALID_DOCID;
     }
 
-    indexlib::index::ErrorCode SeekDocWithErrorCode(docid_t, docid_t&) override
+    indexlib::index::ErrorCode SeekDocWithErrorCode(docid64_t, docid64_t&) override
     {
         return indexlib::index::ErrorCode::UnImplement;
     }

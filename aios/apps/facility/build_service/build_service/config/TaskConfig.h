@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TASKCONFIG_H
-#define ISEARCH_BS_TASKCONFIG_H
+#pragma once
 
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+
+#include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common_define.h"
 #include "build_service/config/TaskControllerConfig.h"
 #include "build_service/config/TaskInputConfig.h"
@@ -25,6 +32,7 @@
 
 namespace build_service { namespace config {
 class ResourceReader;
+
 typedef std::shared_ptr<ResourceReader> ResourceReaderPtr;
 
 class TaskConfig : public autil::legacy::Jsonizable
@@ -93,5 +101,3 @@ private:
 BS_TYPEDEF_PTR(TaskConfig);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_TASKCONFIG_H

@@ -4,7 +4,7 @@
 
 #include "indexlib/common/field_format/attribute/attribute_convertor.h"
 #include "indexlib/config/merge_io_config.h"
-#include "indexlib/test/schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

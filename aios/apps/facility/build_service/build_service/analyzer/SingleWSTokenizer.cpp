@@ -15,6 +15,11 @@
  */
 #include "build_service/analyzer/SingleWSTokenizer.h"
 
+#include <cstddef>
+#include <string>
+
+#include "autil/CommonMacros.h"
+
 using namespace std;
 
 namespace build_service { namespace analyzer {

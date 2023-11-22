@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_FORMAT_OPTION_H
-#define __INDEXLIB_INDEX_FORMAT_OPTION_H
+#pragma once
 
 #include "indexlib/index/inverted_index/format/IndexFormatOption.h"
 
@@ -47,5 +46,3 @@ private:
 };
 
 } // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEX_FORMAT_OPTION_H

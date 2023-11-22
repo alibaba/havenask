@@ -15,10 +15,21 @@
  */
 #include "build_service/processor/TokenizeDocumentProcessor.h"
 
-#include "autil/StringUtil.h"
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <stddef.h>
+
+#include "alog/Logger.h"
 #include "build_service/analyzer/AnalyzerFactory.h"
-#include "build_service/analyzer/SimpleTokenizer.h"
-#include "indexlib/analyzer/Analyzer.h"
+#include "build_service/analyzer/Token.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/document/ExtendDocument.h"
+#include "indexlib/document/extend_document/tokenize_document.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
+#include "indexlib/document/normal/tokenize/AnalyzerToken.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace indexlib::document;
 using namespace indexlib::config;
@@ -77,7 +88,7 @@ bool TokenizeDocumentProcessor::process(const ExtendDocumentPtr& document)
     // to convert doc from ADD to UPDATE.
     const TokenizeDocumentPtr& lastTokenizeDocument = document->getLastTokenizeDocument();
 
-    auto rawDoc = document->getExtendDoc()->getRawDocument();
+    auto rawDoc = document->getExtendDoc()->GetRawDocument();
     auto status =
         _impl->Convert(rawDoc.get(), document->getFieldAnalyzerNameMap(), tokenizeDocument, lastTokenizeDocument);
     return status.IsOK();

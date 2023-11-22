@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KKV_SEARCH_COROUTINE_H
-#define __INDEXLIB_KKV_SEARCH_COROUTINE_H
+#pragma once
 
 #include <memory>
 
@@ -563,5 +562,3 @@ inline FL_LAZY(
 
 #undef RECORD_KKV_SEARCH_LATENCY
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KKV_SEARCH_COROUTINE_H

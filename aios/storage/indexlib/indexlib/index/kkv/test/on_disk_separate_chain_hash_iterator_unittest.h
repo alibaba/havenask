@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONDISKSEPARATECHAINHASHITERATORTEST_H
-#define __INDEXLIB_ONDISKSEPARATECHAINHASHITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -36,5 +35,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(OnDiskSeparateChainHashIteratorTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ONDISKSEPARATECHAINHASHITERATORTEST_H

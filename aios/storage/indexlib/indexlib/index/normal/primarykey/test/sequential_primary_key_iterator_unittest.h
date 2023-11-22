@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEQUENTIALPRIMARYKEYITERATORTEST_H
-#define __INDEXLIB_SEQUENTIALPRIMARYKEYITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/primarykey/primary_key_pair.h"
@@ -85,5 +84,3 @@ void SequentialPrimaryKeyIteratorTest::CheckIterator(SequentialPrimaryKeyIterato
     ASSERT_EQ(cursor, expectResults.size());
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SEQUENTIALPRIMARYKEYITERATORTEST_H

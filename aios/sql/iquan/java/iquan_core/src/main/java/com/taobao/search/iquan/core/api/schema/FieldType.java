@@ -24,32 +24,19 @@ public enum FieldType {
     FT_COLUMN_LIST(Constant.COLUMN_LIST, false),
     FT_INVALID(Constant.INVALID, false);
 
-    public interface Constant {
-        String BOOLEAN = "boolean";
-        String INT8 = "int8";
-        String INT16 = "int16";
-        String INT32 = "int32";
-        String INTEGER = "integer";
-        String INT64 = "int64";
-        String LONG = "long";
-        String UINT8 = "uint8";
-        String UINT16 = "uint16";
-        String UINT32 = "uint32";
-        String UINT64 = "uint64";
-        String FLOAT = "float";
-        String DOUBLE = "double";
-        String STRING = "string";
-        String TEXT = "text";
-        String DATE = "date";
-        String TIME = "time";
-        String TIMESTAMP = "timestamp";
-        String ANY = "any";
-        String ROW = "row";
-        String ARRAY = "array";
-        String MULTISET = "multiset";
-        String MAP = "map";
-        String COLUMN_LIST = "column_list";
-        String INVALID = "invalid";
+    private final String name;
+    private final boolean isAtomicType;
+    private Object defaultValue;
+
+    FieldType(String name, boolean isAtomicType, Object defaultValue) {
+        this.name = name;
+        this.isAtomicType = isAtomicType;
+        this.defaultValue = defaultValue;
+    }
+
+    FieldType(String name, boolean isAtomicType) {
+        this.name = name;
+        this.isAtomicType = isAtomicType;
     }
 
     public static FieldType from(String name) {
@@ -105,17 +92,6 @@ public enum FieldType {
         }
     }
 
-    FieldType(String name, boolean isAtomicType, Object defaultValue) {
-        this.name = name;
-        this.isAtomicType = isAtomicType;
-        this.defaultValue = defaultValue;
-    }
-
-    FieldType(String name, boolean isAtomicType) {
-        this.name = name;
-        this.isAtomicType = isAtomicType;
-    }
-
     @Override
     public String toString() {
         return getName();
@@ -156,8 +132,31 @@ public enum FieldType {
     public boolean isColumnListType() {
         return this == FieldType.FT_COLUMN_LIST;
     }
-
-    private final String name;
-    private final boolean isAtomicType;
-    private Object defaultValue;
+    public interface Constant {
+        String BOOLEAN = "boolean";
+        String INT8 = "int8";
+        String INT16 = "int16";
+        String INT32 = "int32";
+        String INTEGER = "integer";
+        String INT64 = "int64";
+        String LONG = "long";
+        String UINT8 = "uint8";
+        String UINT16 = "uint16";
+        String UINT32 = "uint32";
+        String UINT64 = "uint64";
+        String FLOAT = "float";
+        String DOUBLE = "double";
+        String STRING = "string";
+        String TEXT = "text";
+        String DATE = "date";
+        String TIME = "time";
+        String TIMESTAMP = "timestamp";
+        String ANY = "any";
+        String ROW = "row";
+        String ARRAY = "array";
+        String MULTISET = "multiset";
+        String MAP = "map";
+        String COLUMN_LIST = "column_list";
+        String INVALID = "invalid";
+    }
 }

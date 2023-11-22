@@ -15,23 +15,58 @@
  */
 #include "build_service/workflow/SingleSwiftProcessedDocProducer.h"
 
-#include "autil/DataBuffer.h"
+#include <algorithm>
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <limits>
+#include <ostream>
+#include <stddef.h>
+
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/Locator.h"
 #include "build_service/common/PkTracer.h"
+#include "build_service/common/SwiftLinkFreshnessReporter.h"
+#include "build_service/document/DocumentDefine.h"
+#include "build_service/document/ProcessedDocument.h"
 #include "build_service/util/LocatorUtil.h"
 #include "build_service/util/Monitor.h"
 #include "build_service/workflow/ReportFreshnessMetricTaskItem.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/configurator_define.h"
+#include "indexlib/config/customized_config.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/document/DocumentBatch.h"
+#include "indexlib/document/document_init_param.h"
+#include "indexlib/document/document_rewriter/document_rewriter.h"
 #include "indexlib/document/document_rewriter/document_rewriter_creator.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 #include "indexlib/document/kv_document/kv_document.h"
+#include "indexlib/document/kv_document/kv_index_document.h"
+#include "indexlib/document/locator.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
 #include "indexlib/document/source_timestamp_parser.h"
 #include "indexlib/framework/Locator.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
 #include "indexlib/misc/doc_tracer.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/TaskItem.h"
 #include "indexlib/util/counter/StateCounter.h"
+#include "kmonitor/client/MetricType.h"
+#include "swift/client/SwiftPartitionStatus.h"
+#include "swift/client/SwiftReader.h"
+#include "swift/protocol/Common.pb.h"
+#include "swift/protocol/ErrCode.pb.h"
 #include "swift/protocol/SwiftMessage.pb.h"
 
 using namespace std;
@@ -138,12 +173,12 @@ bool SingleSwiftProcessedDocProducer::init(indexlib::util::MetricProviderPtr met
         BEEPER_REPORT(WORKER_ERROR_COLLECTOR_NAME, errorMsg);
         return false;
     }
-    BS_LOG(INFO, "use source signature [%lu]", _sourceSignature);
     if (_swiftParam.disableSwiftMaskFilter && _swiftParam.maskFilterPairs.size() == 1) {
         BS_LOG(INFO, "use disableSwiftMaskFilter = true, maskFilterPair {[%u, %u]}",
                _swiftParam.maskFilterPairs[0].first, _swiftParam.maskFilterPairs[0].second);
     }
     _sourceSignature = sourceSignature;
+    BS_LOG(INFO, "use source signature [%lu]", _sourceSignature);
     _startTimestamp = startTimestamp;
     if (_startTimestamp > 0) {
         swift::protocol::ErrorCode ec = _swiftParam.reader->seekByTimestamp(_startTimestamp);
@@ -401,7 +436,7 @@ bool SingleSwiftProcessedDocProducer::seek(const common::Locator& locator) { ret
 // return [success, curLocator]
 std::pair<bool, common::Locator> SingleSwiftProcessedDocProducer::seekAndGetLocator(const common::Locator& locator)
 {
-    auto progress = locator.GetProgress();
+    auto progress = locator.GetMultiProgress();
     assert(!progress.empty());
     BS_INTERVAL_LOG2(120, INFO, "[%s] seek locator [%s], start timestamp[%ld]", _buildIdStr.c_str(),
                      locator.DebugString().c_str(), _startTimestamp);
@@ -413,17 +448,17 @@ std::pair<bool, common::Locator> SingleSwiftProcessedDocProducer::seekAndGetLoca
         BS_LOG(WARN, "[%s] will ignore seek locator [%s], src not match sourceSignature [%ld]", _buildIdStr.c_str(),
                locator.DebugString().c_str(), _sourceSignature);
         common::Locator resultLocator = locator;
-        std::vector<indexlibv2::base::Progress> progress;
-        progress.push_back(indexlibv2::base::Progress(_swiftParam.from, _swiftParam.to, {_startTimestamp, 0}));
-        resultLocator.SetProgress(progress);
+        resultLocator.SetMultiProgress(
+            {{indexlibv2::base::Progress(_swiftParam.from, _swiftParam.to, {_startTimestamp, 0})}});
         return {true, resultLocator};
     }
     int64_t timestamp = locator.GetOffset().first;
     BS_INTERVAL_LOG2(120, INFO, "[%s] seek swift timestamp [%ld]", _buildIdStr.c_str(), timestamp);
     string msg = "SingleSwiftProcessedDocProducer seek to [" + StringUtil::toString(timestamp) + "]";
     BEEPER_REPORT(WORKER_STATUS_COLLECTOR_NAME, msg);
-    swift::protocol::ReaderProgress swiftProgress = util::LocatorUtil::convertLocatorProgress(
-        locator.GetProgress(), _swiftParam.topicName, _swiftParam.maskFilterPairs, _swiftParam.disableSwiftMaskFilter);
+    swift::protocol::ReaderProgress swiftProgress =
+        util::LocatorUtil::convertLocatorProgress(locator.GetMultiProgress()[0], _swiftParam.topicName,
+                                                  _swiftParam.maskFilterPairs, _swiftParam.disableSwiftMaskFilter);
     return {_swiftParam.reader->seekByProgress(swiftProgress, forceSeek) == swift::protocol::ERROR_NONE, locator};
 }
 
@@ -544,7 +579,7 @@ void SingleSwiftProcessedDocProducer::reportSourceE2ELatencyMetrics(indexlib::do
 ProcessedDocumentVec*
 SingleSwiftProcessedDocProducer::createProcessedDocument(const string& docStr, int64_t docTimestamp,
                                                          int64_t locatorTimestamp, uint16_t hashId,
-                                                         const std::vector<indexlibv2::base::Progress>& progress)
+                                                         const indexlibv2::base::ProgressVector& progress)
 {
     DocumentPtr document = transDocStrToDocument(docStr);
     if (_linkReporter) {
@@ -554,7 +589,7 @@ SingleSwiftProcessedDocProducer::createProcessedDocument(const string& docStr, i
     _lastDocTs = document->GetTimestamp();
     _lastIngestionTs = document->GetIngestionTimestamp();
     document->SetTimestamp(docTimestamp);
-    document->SetDocInfo({hashId, docTimestamp, 0});
+    document->SetDocInfo({hashId, docTimestamp, 0, 0});
 
     bool hasReport = false;
     NormalDocumentPtr normDoc = DYNAMIC_POINTER_CAST(NormalDocument, document);
@@ -593,7 +628,7 @@ SingleSwiftProcessedDocProducer::createProcessedDocument(const string& docStr, i
     unique_ptr<ProcessedDocumentVec> processedDocumentVec(new ProcessedDocumentVec);
     ProcessedDocumentPtr processedDoc(new ProcessedDocument);
     auto locator = common::Locator(_sourceSignature, locatorTimestamp);
-    locator.SetProgress(progress);
+    locator.SetMultiProgress({progress});
     processedDoc->setLocator(locator);
     auto documentBatch = std::make_shared<indexlibv2::document::DocumentBatch>();
     documentBatch->AddDocument(document);
@@ -615,13 +650,13 @@ SingleSwiftProcessedDocProducer::createProcessedDocument(const string& docStr, i
 }
 
 ProcessedDocumentVec*
-SingleSwiftProcessedDocProducer::createSkipProcessedDocument(const std::vector<indexlibv2::base::Progress>& progress)
+SingleSwiftProcessedDocProducer::createSkipProcessedDocument(const indexlibv2::base::ProgressVector& progress)
 {
     unique_ptr<ProcessedDocumentVec> processedDocumentVec(new ProcessedDocumentVec);
     ProcessedDocumentPtr processedDoc(new ProcessedDocument);
     common::Locator locator;
     locator.SetSrc(_sourceSignature);
-    locator.SetProgress(progress);
+    locator.SetMultiProgress({progress});
     processedDoc->setLocator(locator);
     processedDoc->setNeedSkip(true);
     processedDocumentVec->push_back(processedDoc);

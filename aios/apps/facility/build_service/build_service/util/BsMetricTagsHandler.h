@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BSMETRICTAGSHANDLER_H
-#define ISEARCH_BS_BSMETRICTAGSHANDLER_H
+#pragma once
 
-#include "build_service/common_define.h"
+#include <memory>
+#include <string>
+
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/util/Log.h"
 #include "fslib/util/MetricTagsHandler.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace build_service { namespace util {
 
@@ -61,5 +63,3 @@ private:
 typedef std::shared_ptr<BsMetricTagsHandler> BsMetricTagsHandlerPtr;
 
 }} // namespace build_service::util
-
-#endif // ISEARCH_BS_BSMETRICTAGSHANDLER_H

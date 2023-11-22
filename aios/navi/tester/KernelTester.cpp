@@ -82,6 +82,17 @@ bool KernelTester::runGraph(GraphDef *graphDef) {
         std::dynamic_pointer_cast<Resource>(_testerResource));
     resourceMap.addResource(*_info.resources);
     RunGraphParams params;
+
+    for (size_t i = 0, subCount = graphDef->sub_graphs_size(); i < subCount; ++i) {
+        auto graphId = graphDef->sub_graphs(i).graph_id();
+        if (graphId >= 0) {
+            for (auto namedData : _info.namedDataVec) {
+                namedData.graphId = graphId;
+                params.addNamedData(std::move(namedData));
+            }
+        }
+    }
+
     _result = _navi->runLocalGraph(graphDef, params, resourceMap);
     auto ec = getErrorCode();
     if (EC_NONE != ec) {
@@ -179,7 +190,11 @@ ErrorCode KernelTester::getErrorCode() const {
     if (!_result) {
         return EC_INIT_GRAPH;
     }
-    return _result->getNaviResult()->ec;
+    auto naviError = _result->getGraphResult()->getError();
+    if (!naviError) {
+        return EC_NONE;
+    }
+    return naviError->ec;
 }
 
 bool KernelTester::hasError() const {
@@ -187,11 +202,22 @@ bool KernelTester::hasError() const {
 }
 
 std::string KernelTester::getErrorMessage() const {
-    return getErrorEvent().message;
+    auto event = getErrorEvent();
+    if (!event) {
+        return std::string();
+    }
+    return event->message;
 }
 
-LoggingEvent KernelTester::getErrorEvent() const {
-    return _logger.logger->firstErrorEvent();
+LoggingEventPtr KernelTester::getErrorEvent() const {
+    if (!_result) {
+        return nullptr;
+    }
+    auto naviError = _result->getGraphResult()->getError();
+    if (!naviError) {
+        return nullptr;
+    }
+    return naviError->errorEvent;
 }
 
 // inner method
@@ -239,8 +265,9 @@ std::ostream &operator<<(std::ostream &os, const KernelTester &tester) {
     os << "ec: " << CommonUtil::getErrorString(tester.getErrorCode())
        << std::endl
        << "msg: ";
-    if (tester.hasError()) {
-        os << layout.format(tester.getErrorEvent());
+    auto errorEvent = tester.getErrorEvent();
+    if (tester.hasError() && errorEvent) {
+        os << layout.format(*errorEvent);
     }
     return os;
 }

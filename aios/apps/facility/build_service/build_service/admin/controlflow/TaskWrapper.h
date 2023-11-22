@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONTROL_FLOW_TASK_WRAPPER_H
-#define ISEARCH_BS_CONTROL_FLOW_TASK_WRAPPER_H
+#pragma once
 
-#include <memory>
-
-#include "build_service/admin/controlflow/Eluna.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+
+BS_DECLARE_REFERENCE_CLASS(admin, TaskBase);
+#include <stdint.h>
+
+extern "C" {
+#include "lua.h"
+}
+
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common_define.h"
 
 BS_DECLARE_REFERENCE_CLASS(admin, TaskBase);
 
@@ -70,5 +75,3 @@ private:
 BS_TYPEDEF_PTR(TaskWrapper);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CONTROL_FLOW_TASK_WRAPPER_H

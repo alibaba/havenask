@@ -15,11 +15,21 @@
  */
 #include "build_service/admin/AdminTaskBase.h"
 
+#include <iosfwd>
+#include <stdarg.h>
+#include <stdio.h>
+
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 #include "beeper/beeper.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "beeper/common/common_type.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/proto/ProtoComparator.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/util/FileUtil.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 using namespace build_service::config;

@@ -1,6 +1,13 @@
 #include "build_service/config/AgentGroupConfig.h"
 
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

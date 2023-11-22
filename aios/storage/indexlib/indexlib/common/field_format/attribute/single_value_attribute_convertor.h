@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_CONVERTOR_H
-#define __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_CONVERTOR_H
+#pragma once
 
 #include <memory>
 
@@ -112,5 +111,3 @@ inline std::string SingleValueAttributeConvertor<T>::EncodeNullValue()
     return std::string("");
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_SINGLE_VALUE_ATTRIBUTE_CONVERTOR_H

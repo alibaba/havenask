@@ -38,10 +38,9 @@ private:
 
 void DistributeGraphTest::setUp()
 {
-    _naviPythonHome.reset(new autil::EnvGuard(
-                    "NAVI_PYTHON_HOME",
-                    TEST_ROOT_PATH() + "config_loader/python:/usr/lib64/python3.6/"));
-    _loader = GET_PRIVATE_TEST_DATA_PATH() + "test_config_loader.py";
+    _naviPythonHome.reset(
+        new autil::EnvGuard("NAVI_PYTHON_HOME", NAVI_TEST_PYTHON_HOME));
+    _loader = NAVI_TEST_DATA_PATH + "test_config_loader.py";
     _graphDef.reset(new GraphDef());
 }
 
@@ -51,8 +50,8 @@ void DistributeGraphTest::tearDown() {
 void DistributeGraphTest::buildCluster(NaviTestCluster &cluster)
 {
     ResourceMapPtr rootResourceMap(new ResourceMap());
-    std::string configPath = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/";
-    std::string biz1Config = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/biz1.py";
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
 
     ASSERT_TRUE(cluster.addServer("host_0", _loader, configPath, rootResourceMap));
     ASSERT_TRUE(cluster.addServer("host_1", _loader, configPath, rootResourceMap));
@@ -128,10 +127,7 @@ TEST_F(DistributeGraphTest, testSimple)
 
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
 }
 
 // biz_a(sourceKernel) -> biz_qrs(identityTestKernel)
@@ -177,10 +173,7 @@ TEST_F(DistributeGraphTest, testBizA2BizQ)
 
     auto naviResult = userResult->getNaviResult();
 
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
-
-    naviResult->show();
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
 }
 
 TEST_F(DistributeGraphTest, testNamedData)
@@ -229,10 +222,8 @@ TEST_F(DistributeGraphTest, testNamedData)
     // biz_a * qrs
     // 2 * 1 = 2
     auto naviResult = userResult->getNaviResult();
-    EXPECT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)));
-    EXPECT_EQ("", naviResult->errorEvent.message);
+    EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
     EXPECT_EQ(40, dataVec.size());
-    naviResult->show();
 }
 
 } // namespace navi

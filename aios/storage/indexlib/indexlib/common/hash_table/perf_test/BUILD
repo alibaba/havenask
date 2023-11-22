@@ -12,7 +12,7 @@ cc_fast_test(
         'dense_hash_table_multi_thread_unittest.cpp',
         'cuckoo_hash_table_multi_thread_unittest.cpp'
     ]),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     shard_count=2,
     deps=[

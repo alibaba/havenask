@@ -21,6 +21,7 @@
 
 namespace indexlib::index {
 constexpr uint32_t ATTRIBUTE_DEFAULT_DEFRAG_SLICE_PERCENT = 50;
+constexpr size_t ATTRIBUTE_DEFAULT_SLICE_LEN = 64 * 1024 * 1024;
 constexpr uint32_t ATTRIBUTE_U32OFFSET_THRESHOLD_MAX = 0xFFFFFFFFL;
 
 inline const std::string ATTRIBUTE_DATA_FILE_NAME = "data";
@@ -49,6 +50,7 @@ using indexlib::index::ATTRIBUTE_DATA_EXTEND_SLICE_FILE_NAME;
 using indexlib::index::ATTRIBUTE_DATA_FILE_NAME;
 using indexlib::index::ATTRIBUTE_DATA_INFO_FILE_NAME;
 using indexlib::index::ATTRIBUTE_DEFAULT_DEFRAG_SLICE_PERCENT;
+using indexlib::index::ATTRIBUTE_DEFAULT_SLICE_LEN;
 using indexlib::index::ATTRIBUTE_DEFRAG_SLICE_PERCENT;
 using indexlib::index::ATTRIBUTE_EQUAL_COMPRESS_UPDATE_EXTEND_SUFFIX;
 using indexlib::index::ATTRIBUTE_OFFSET_EXTEND_SUFFIX;

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONMEMCONTROLPERFTEST_H
-#define __INDEXLIB_PARTITIONMEMCONTROLPERFTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/online_partition.h"
@@ -38,5 +37,3 @@ private:
 
 // INDEXLIB_UNIT_TEST_CASE(PartitionMemControlPerfTest, TestSimpleProcess); // temporary case
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITIONMEMCONTROLPERFTEST_H

@@ -15,15 +15,26 @@
  */
 #include "build_service/admin/ZKCheckpointSynchronizer.h"
 
+#include <assert.h>
+#include <exception>
+#include <functional>
 #include <memory>
+#include <type_traits>
+#include <unistd.h>
+#include <utility>
 
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/CheckpointSynchronizer.h"
 #include "build_service/admin/ClusterCheckpointSynchronizer.h"
 #include "build_service/admin/ZKClusterCheckpointSynchronizer.h"
 #include "build_service/common/Checkpoint.h"
-#include "build_service/util/IndexPathConstructor.h"
 #include "fslib/util/FileUtil.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/base/Constant.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "zookeeper/zookeeper.h"
 
 namespace build_service { namespace admin {
 BS_LOG_SETUP(admin, ZKCheckpointSynchronizer);
@@ -203,7 +214,8 @@ bool ZKCheckpointSynchronizer::updateVersionMeta(const std::string& path)
     }
     const auto& versionMeta = versionMetaWrapper.getVersionMeta();
     if (versionMeta.GetVersionId() == indexlibv2::INVALID_VERSIONID) {
-        CS_LOG(ERROR, "update version meta failed, path[%s], check version id is INVALID_VERSIONID", path.c_str());
+        CS_LOG(ERROR, "update version meta failed, path[%s], check version id is indexlib::INVALID_VERSIONID",
+               path.c_str());
         return false;
     }
     std::string errorMsg;

@@ -22,9 +22,17 @@ namespace navi {
 
 TraceAppender::TraceAppender(const std::string &levelStr)
     : Appender(levelStr, nullptr)
-    , _logManager(nullptr)
 {
-    auto patternLayout = new PatternLayout();
+    auto patternLayout = std::make_shared<PatternLayout>();
+    patternLayout->setLogPattern(DEFAULT_LOG_PATTERN);
+    setLayout(patternLayout);
+}
+
+TraceAppender::TraceAppender(const TraceAppender &other)
+    : Appender(other)
+    , _btFilter(other._btFilter)
+{
+    auto patternLayout = std::make_shared<PatternLayout>();
     patternLayout->setLogPattern(DEFAULT_LOG_PATTERN);
     setLayout(patternLayout);
 }
@@ -36,14 +44,16 @@ void TraceAppender::addBtFilter(const LogBtFilterParam &param) {
     _btFilter.addParam(param);
 }
 
-void TraceAppender::setLogManager(const NaviLogManager *logManager) {
-    _logManager = logManager;
+void TraceAppender::setLogManager(NaviLogManager *logManager) {
+    _manager = logManager;
 }
 
 int TraceAppender::append(LoggingEvent& event) {
     auto traceEvent = event;
     if (unlikely(_btFilter.pass(traceEvent))) {
-        traceEvent.bt = _logManager->getCurrentBtString();
+        if (_manager) {
+            traceEvent.bt = _manager->getCurrentBtString();
+        }
     }
     autil::ScopedLock lock(_lock);
     _traceCollector.append(std::move(traceEvent));

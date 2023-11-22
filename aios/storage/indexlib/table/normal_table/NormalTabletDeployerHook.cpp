@@ -120,20 +120,6 @@ private:
     std::vector<int32_t> disabledSourceGroupIds;
 };
 
-static std::pair<Status, std::unique_ptr<file_system::LoadConfig>>
-DisableFields(const indexlibv2::config::TabletOptions& tabletOptions)
-{
-    DisableFieldsConfig disableFieldsConfig;
-    if (auto status = tabletOptions.GetFromRawJson("online_index_config.disable_fields", &disableFieldsConfig);
-        !status.IsOK()) {
-        return {status, nullptr};
-    }
-    if (!disableFieldsConfig.needDisable()) {
-        return {Status::OK(), nullptr};
-    }
-    return {Status::OK(), disableFieldsConfig.CreateLoadConfig()};
-}
-
 void NormalTabletDeployerHook::RewriteLoadConfigList(const std::string& rootPath,
                                                      const indexlibv2::config::TabletOptions& tabletOptions,
                                                      versionid_t versionId, const std::string& localPath,
@@ -143,11 +129,15 @@ void NormalTabletDeployerHook::RewriteLoadConfigList(const std::string& rootPath
     assert(loadConfigList);
     assert(!tabletOptions.IsLegacy());
 
-    if (auto [status, loadConfig] = DisableFields(tabletOptions); status.IsOK() && loadConfig) {
-        loadConfigList->PushFront(*loadConfig);
-    } else if (!status.IsOKOrNotFound()) {
-        AUTIL_LOG(ERROR, "parse online_index_config.disable_fields failed, status[%s]", status.ToString().c_str());
+    DisableFieldsConfig disableFieldsConfig;
+    if (auto status = tabletOptions.GetFromRawJson("%index_config%.disable_fields", &disableFieldsConfig);
+        !status.IsOKOrNotFound()) {
+        AUTIL_LOG(ERROR, "parse %%index_config%%.disable_fields failed, status[%s]", status.ToString().c_str());
     }
+    if (!disableFieldsConfig.needDisable()) {
+        return;
+    }
+    loadConfigList->PushFront(*disableFieldsConfig.CreateLoadConfig());
 }
 
 REGISTER_TABLET_DEPLOYER_HOOK(normal, NormalTabletDeployerHook);

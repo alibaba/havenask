@@ -109,14 +109,4 @@ void KVIndexFields::SerializeSingleField(autil::DataBuffer& dataBuffer, const Si
 DocOperateType KVIndexFields::GetDocOperateType() const { return _opType; }
 void KVIndexFields::SetDocOperateType(DocOperateType type) { _opType = type; }
 
-bool KVIndexFields::HasFormatError() const
-{
-    for (const auto& [indexNameHash, field] : _fields) {
-        if (field.hasFormatError) {
-            return true;
-        }
-    }
-    return false;
-}
-
 } // namespace indexlibv2::index

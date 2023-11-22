@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TIMESTAMPATTRIBUTEREADERTEST_H
-#define __INDEXLIB_TIMESTAMPATTRIBUTEREADERTEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "fslib/fs/File.h"
@@ -45,5 +44,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(TimestampAttributeReaderTest, TestRead);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TIMESTAMPATTRIBUTEREADERTEST_H

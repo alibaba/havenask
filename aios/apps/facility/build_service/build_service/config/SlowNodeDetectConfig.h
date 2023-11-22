@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SLOWNODEDETECTCONFIG_H
-#define ISEARCH_BS_SLOWNODEDETECTCONFIG_H
+#pragma once
 
+#include <map>
+#include <stdint.h>
 #include <string>
+#include <vector>
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace config {
 
@@ -71,6 +72,7 @@ public:
     std::map<std::string, std::vector<std::string>> excludeKeywords;
     std::string locatorCheckCondition;
     int64_t locatorCheckGap;
+    uint64_t locatorDetectMinServiceRatio;
 
     static const int64_t DEFAULT_SLOW_TIME_THRESHOLD;
     static const int64_t DEFAULT_NOT_WORK_TIME_THRESHOLD;
@@ -91,10 +93,9 @@ public:
     static const std::string DEFAULT_SLOW_NODE_HANDLE_STRATEGY;
     static const std::string DEFAULT_SLOW_NODE_DETECT_STRATEGY;
     static const uint64_t DEFAULT_NETWORK_SPEED_THRESHOLD;
+    static const uint64_t DEFAULT_LOCATOR_DETECT_MIN_SERVICE_RATIO;
 };
 
 BS_TYPEDEF_PTR(SlowNodeDetectConfig);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_SLOWNODEDETECTCONFIG_H

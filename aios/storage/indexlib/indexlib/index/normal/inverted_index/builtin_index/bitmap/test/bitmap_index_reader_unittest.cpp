@@ -1,9 +1,9 @@
 #include "indexlib/index/normal/inverted_index/builtin_index/bitmap/test/bitmap_index_reader_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/normal/inverted_index/builtin_index/bitmap/bitmap_index_reader.h"
 #include "indexlib/index/test/index_test_util.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/version_maker.h"
 #include "indexlib/util/PathUtil.h"
 

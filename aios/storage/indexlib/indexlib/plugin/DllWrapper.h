@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PLUGIN_DLLWRAPPER_H
-#define __INDEXLIB_PLUGIN_DLLWRAPPER_H
+#pragma once
 
-#include <dlfcn.h>
-#include <memory>
 #include <string>
 
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace plugin {
 class DllWrapper
@@ -49,5 +46,3 @@ private:
 
 DEFINE_SHARED_PTR(DllWrapper);
 }} // namespace indexlib::plugin
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONREADERSNAPSHOTTEST_H
-#define __INDEXLIB_PARTITIONREADERSNAPSHOTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/partition_reader_snapshot.h"
@@ -33,5 +32,3 @@ INDEXLIB_UNIT_TEST_CASE(PartitionReaderSnapshotTest, TestCreateAuxTableFromMulti
 INDEXLIB_UNIT_TEST_CASE(PartitionReaderSnapshotTest, TestQueryAuxTableByHashKVTable);
 INDEXLIB_UNIT_TEST_CASE(PartitionReaderSnapshotTest, TestQueryAuxTableByHashIndexTable);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITIONREADERSNAPSHOTTEST_H

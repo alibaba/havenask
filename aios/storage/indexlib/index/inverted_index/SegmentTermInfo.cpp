@@ -34,7 +34,7 @@ SegmentTermInfo::SegmentTermInfo()
 {
 }
 
-SegmentTermInfo::SegmentTermInfo(InvertedIndexType indexType, segmentid_t id, docid_t baseId,
+SegmentTermInfo::SegmentTermInfo(InvertedIndexType indexType, segmentid_t id, docid64_t baseId,
                                  const std::shared_ptr<IndexIterator>& indexIterator,
                                  const std::shared_ptr<SingleFieldIndexSegmentPatchIterator>& fieldPatchIterator,
                                  TermIndexMode mode)

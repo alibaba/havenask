@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TRIE_INDEX_READER_H
-#define __INDEXLIB_TRIE_INDEX_READER_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -82,12 +81,12 @@ public:
     }
 
 public:
-    docid_t Lookup(const std::string& pkStr) const override { return Lookup(pkStr, nullptr); }
-    docid_t Lookup(const std::string& pkStr, future_lite::Executor* executor) const override
+    docid64_t Lookup(const std::string& pkStr) const override { return Lookup(pkStr, nullptr); }
+    docid64_t Lookup(const std::string& pkStr, future_lite::Executor* executor) const override
     {
         return Lookup(autil::StringView(pkStr.data(), pkStr.size()));
     }
-    docid_t Lookup(const autil::StringView& pkStr) const override;
+    docid64_t Lookup(const autil::StringView& pkStr) const override;
 
     // TODO: not support building segment search now
     // MatchBeginning
@@ -135,20 +134,20 @@ private:
         assert(false);
         return nullptr;
     }
-    docid_t LookupWithPKHash(const autil::uint128_t& pkHash, future_lite::Executor* executor) const override
+    docid64_t LookupWithPKHash(const autil::uint128_t& pkHash, future_lite::Executor* executor) const override
     {
         assert(false);
         return INVALID_DOCID;
     }
     virtual bool LookupWithPKHash(const autil::uint128_t& pkHash, segmentid_t specifySegment,
-                                  docid_t* docid) const override
+                                  docid64_t* docid) const override
     {
         assert(false);
         return INVALID_DOCID;
     }
 
-    docid_t LookupWithDocRange(const autil::uint128_t& pkHash, std::pair<docid_t, docid_t> docRange,
-                               future_lite::Executor* executor) const override
+    docid64_t LookupWithDocRange(const autil::uint128_t& pkHash, std::pair<docid_t, docid_t> docRange,
+                                 future_lite::Executor* executor) const override
     {
         assert(false);
         return INVALID_DOCID;
@@ -262,5 +261,3 @@ inline void TrieIndexReader::AddSegmentResults(docid_t baseDocid, const KVPairVe
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TRIE_INDEX_READER_H

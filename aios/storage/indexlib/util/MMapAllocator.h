@@ -15,12 +15,11 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <cstring>
+#include <errno.h>
 #include <memory>
-#include <sys/fcntl.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "autil/CommonMacros.h"

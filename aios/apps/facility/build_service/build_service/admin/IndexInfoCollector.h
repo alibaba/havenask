@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_INDEXINFOCOLLECTOR_H
-#define ISEARCH_BS_INDEXINFOCOLLECTOR_H
+#pragma once
 
+#include <map>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/Lock.h"
 #include "autil/LoopThread.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/admin/GenerationKeeper.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/util/Log.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor_adapter/Metric.h"
 #include "kmonitor_adapter/Monitor.h"
 #include "worker_framework/ZkState.h"
 
@@ -113,5 +118,3 @@ private:
 BS_TYPEDEF_PTR(IndexInfoCollector);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_INDEXINFOCOLLECTOR_H

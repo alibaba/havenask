@@ -21,7 +21,7 @@ using namespace std;
 using namespace autil::legacy;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, OfflineConfig);
+AUTIL_LOG_SETUP(indexlib.config, OfflineConfig);
 
 OfflineConfig::OfflineConfig() { mImpl.reset(new OfflineConfigImpl); }
 

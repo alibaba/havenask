@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PLUGIN_PLUGINMANAGER_H
-#define __INDEXLIB_PLUGIN_PLUGINMANAGER_H
+#pragma once
 
-#include <memory>
+#include <map>
+#include <string>
+#include <utility>
 
 #include "autil/Lock.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/module_info.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 
-DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
 DECLARE_REFERENCE_CLASS(util, CounterMap);
+
 namespace indexlib { namespace plugin {
 
 class Module;
@@ -97,5 +98,3 @@ private:
 DEFINE_SHARED_PTR(PluginManager);
 
 }} // namespace indexlib::plugin
-
-#endif //__INDEXLIB_PLUGIN_PLUGINMANAGER_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_JOIN_DOCID_ATTRIBUTE_ITERATOR_H
-#define __INDEXLIB_JOIN_DOCID_ATTRIBUTE_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -73,5 +72,3 @@ inline bool JoinDocidAttributeIterator::Seek(docid_t docId, docid_t& value)
     return true;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_JOIN_DOCID_ATTRIBUTE_ITERATOR_H

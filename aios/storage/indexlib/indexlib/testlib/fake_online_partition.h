@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_ONLINE_PARTITION_H
-#define __INDEXLIB_FAKE_ONLINE_PARTITION_H
+#pragma once
 
 #include <memory>
 
@@ -42,7 +41,7 @@ public:
         return partition::IndexPartitionPtr(new FakeOnlinePartition(schema, reader));
     }
     OpenStatus Open(const std::string& dir, const config::IndexPartitionSchemaPtr& schema,
-                    const config::IndexPartitionOptions& options, versionid_t version = INVALID_VERSION) override
+                    const config::IndexPartitionOptions& options, versionid_t version = INVALID_VERSIONID) override
     {
         static util::MemoryQuotaControllerPtr memoryQuotaController(new util::MemoryQuotaController(10000000));
         mMemQuotaController = memoryQuotaController;
@@ -50,7 +49,7 @@ public:
         mMemController.reset(new util::BlockMemoryQuotaController(mPartitionMemController, "file_system"));
         return OS_OK;
     }
-    OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSION) override { return OS_OK; }
+    OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSIONID) override { return OS_OK; }
     void ReOpenNewSegment() override {}
     void AddVirtualAttributes(const config::AttributeConfigVector& mainVirtualAttrConfigs,
                               const config::AttributeConfigVector& subVirtualAttrConfigs) override
@@ -103,5 +102,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeOnlinePartition);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_MOCK_INDEX_PARTITION_H

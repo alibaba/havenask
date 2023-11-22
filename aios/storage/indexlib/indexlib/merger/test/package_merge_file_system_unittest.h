@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PACKAGEMERGEFILESYSTEMTEST_H
-#define __INDEXLIB_PACKAGEMERGEFILESYSTEMTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/package_merge_file_system.h"
@@ -50,5 +49,3 @@ INDEXLIB_UNIT_TEST_CASE(PackageMergeFileSystemTest, TestRecoverTimeExpired);
 INDEXLIB_UNIT_TEST_CASE(PackageMergeFileSystemTest, TestMultiThread);
 INDEXLIB_UNIT_TEST_CASE(PackageMergeFileSystemTest, TestOneThreadMultipleSegment);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PACKAGEMERGEFILESYSTEMTEST_H

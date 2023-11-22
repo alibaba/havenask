@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KKVPERFTEST_H
-#define __INDEXLIB_KKVPERFTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/test/online_partition_perf_test.h"
@@ -34,5 +33,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(KKVPerfTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_KKVPERFTEST_H

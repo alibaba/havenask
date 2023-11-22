@@ -60,7 +60,7 @@ bool DateInMemSegmentReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid
     return true;
 }
 
-bool DateInMemSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId,
+bool DateInMemSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId,
                                                SegmentPosting& segPosting, autil::mem_pool::Pool* sessionPool,
                                                indexlib::index::InvertedIndexSearchTracer* tracer) const
 {

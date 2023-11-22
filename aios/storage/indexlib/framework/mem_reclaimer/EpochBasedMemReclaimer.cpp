@@ -21,7 +21,8 @@ AUTIL_LOG_SETUP(indexlib.framework, EpochBasedMemReclaimer);
 static constexpr size_t DEFAULT_RECLAIM_FREQUENCY = 10;
 
 EpochBasedMemReclaimer::EpochBasedMemReclaimer(const std::shared_ptr<MemReclaimerMetrics>& memReclaimerMetrics)
-    : _globalEpoch(0)
+    : _globalRetireId(0)
+    , _globalEpoch(0)
     , _reclaimFreq(DEFAULT_RECLAIM_FREQUENCY)
     , _tryReclaimCounter(0)
     , _memReclaimerMetrics(memReclaimerMetrics)
@@ -51,24 +52,38 @@ void EpochBasedMemReclaimer::Clear()
     _retireList.clear();
 }
 
-void EpochBasedMemReclaimer::Retire(void* addr, std::function<void(void*)> deAllocator)
+int64_t EpochBasedMemReclaimer::Retire(void* addr, std::function<void(void*)> deAllocator)
 {
-    std::lock_guard<std::mutex> guard(_retireMutex);
-    _retireList.push_back({addr, _globalEpoch, deAllocator});
+    std::lock_guard<std::mutex> guard(_epochMutex);
+    _retireList.push_back({_globalRetireId, addr, _globalEpoch, deAllocator});
+    _globalRetireId++;
     if (_memReclaimerMetrics) {
         _memReclaimerMetrics->IncreasetotalReclaimEntriesValue(1);
+    }
+    return _globalRetireId - 1;
+}
+
+void EpochBasedMemReclaimer::DropRetireItem(int64_t retireItemId)
+{
+    std::lock_guard<std::mutex> guard(_reclaimMutex);
+    std::lock_guard<std::mutex> guard1(_epochMutex);
+    for (size_t i = 0; i < _retireList.size(); i++) {
+        if (_retireList.at(i).retireId == retireItemId) {
+            _retireList.erase(_retireList.begin() + i);
+            return;
+        }
     }
 }
 
 void EpochBasedMemReclaimer::TryReclaim()
 {
     if (_reclaimFreq == 0) {
-        return DoReclaim();
+        return Reclaim();
     }
 
     _tryReclaimCounter = (_tryReclaimCounter + 1) % _reclaimFreq;
     if (_tryReclaimCounter == 0) {
-        return DoReclaim();
+        return Reclaim();
     }
     IncreaseEpoch();
 }
@@ -95,10 +110,19 @@ void EpochBasedMemReclaimer::IncreaseEpoch()
     _epochItemList.emplace_back(_globalEpoch.load(), 0);
 }
 
-void EpochBasedMemReclaimer::DoReclaim()
+void EpochBasedMemReclaimer::GetMaxMinEpochId(int64_t& maxEpochId, int64_t& minEpochId)
 {
-    int64_t maxReclaimEpoch = 0;
+    std::lock_guard<std::mutex> guard(_epochMutex);
+    maxEpochId = _globalEpoch;
+    minEpochId = _globalEpoch;
+    if (!_epochItemList.empty()) {
+        minEpochId = _epochItemList.front().epoch;
+    }
+}
 
+void EpochBasedMemReclaimer::Reclaim()
+{
+    int64_t maxReclaimEpoch = -1;
     {
         std::lock_guard<std::mutex> guard(_epochMutex);
         while (!_epochItemList.empty()) {
@@ -115,8 +139,9 @@ void EpochBasedMemReclaimer::DoReclaim()
     }
     // free memory
     std::deque<RetireItem> freeItemList;
+    std::lock_guard<std::mutex> guard(_reclaimMutex);
     {
-        std::lock_guard<std::mutex> guard(_retireMutex);
+        std::lock_guard<std::mutex> guard(_epochMutex);
         if (maxReclaimEpoch > 0) {
             while (!_retireList.empty()) {
                 auto item = _retireList.front();

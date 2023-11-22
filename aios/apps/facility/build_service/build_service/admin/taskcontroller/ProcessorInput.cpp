@@ -15,8 +15,18 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorInput.h"
 
+#include <map>
+#include <sstream>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/taskcontroller/ProcessorParamParser.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/TaskInputConfig.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/util/DataSourceHelper.h"
 
 using autil::StringUtil;

@@ -4,7 +4,7 @@ cc_library(
     hdrs=glob(['*h']),
     copts=['-Werror'],
     include_prefix='indexlib/index_base/segment/test',
-    visibility=['//aios/storage/indexlib:__subpackages__']
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
 )
 cc_fast_test(
     name='indexlib_segment_unittest',

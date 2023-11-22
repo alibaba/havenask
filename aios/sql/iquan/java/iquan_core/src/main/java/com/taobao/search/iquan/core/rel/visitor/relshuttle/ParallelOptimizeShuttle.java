@@ -1,24 +1,58 @@
 package com.taobao.search.iquan.core.rel.visitor.relshuttle;
 
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.hint.IquanHintCategory;
 import com.taobao.search.iquan.core.rel.hint.IquanHintOptUtils;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.ExecCorrelateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.ExecLookupJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCorrelateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanHashJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanIdentityOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanLeftMultiJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMatchOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMergeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanMultiJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanNestedLoopJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSinkOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUncollectOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUnionOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanValuesOp;
+import com.taobao.search.iquan.core.rel.ops.physical.Scope;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.TableFunctionScan;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.hint.RelHint;
-import org.apache.calcite.rel.logical.*;
+import org.apache.calcite.rel.logical.LogicalAggregate;
+import org.apache.calcite.rel.logical.LogicalCalc;
+import org.apache.calcite.rel.logical.LogicalCorrelate;
+import org.apache.calcite.rel.logical.LogicalExchange;
+import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rel.logical.LogicalIntersect;
+import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.calcite.rel.logical.LogicalMatch;
+import org.apache.calcite.rel.logical.LogicalMinus;
+import org.apache.calcite.rel.logical.LogicalProject;
+import org.apache.calcite.rel.logical.LogicalSort;
+import org.apache.calcite.rel.logical.LogicalTableModify;
+import org.apache.calcite.rel.logical.LogicalUnion;
+import org.apache.calcite.rel.logical.LogicalValues;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ParallelOptimizeShuttle extends IquanRelShuttle {
     private static final Logger logger = LoggerFactory.getLogger(ParallelOptimizeShuttle.class);
@@ -502,9 +536,31 @@ public class ParallelOptimizeShuttle extends IquanRelShuttle {
 
     @Override
     public RelNode visit(IquanIdentityOp rel) {
-        visitChild(rel.getInput());
-        relIdMap.put(rel, rel);
-        return rel;
+        RelNode child = rel.getInput();
+        RelNode newChild = visitChild(child);
+        if (newChild == child) {
+            relIdMap.put(rel, rel);
+            return rel;
+        }
+
+        // support parallel
+        RelNode next;
+        if (newChild instanceof IquanMergeOp) {
+            List<RelNode> inputs = newChild.getInputs();
+            int parallelNum = inputs.size();
+            List<RelNode> newInputs = new ArrayList<>(parallelNum);
+            for (int i = 0; i < parallelNum; ++i) {
+                IquanIdentityOp newRel = RelShuttleUtils.copy(rel.getCluster(), rel, inputs.get(i));
+                newRel.setParallelNum(parallelNum);
+                newRel.setParallelIndex(i);
+                newInputs.add(newRel);
+            }
+            next = new IquanMergeOp(rel.getCluster(), RelShuttleUtils.copyRelTraitSet(rel), newInputs, true, false);
+        } else {
+            next = RelShuttleUtils.copy(rel.getCluster(), rel, newChild);
+        }
+        relIdMap.put(rel, next);
+        return next;
     }
 
     @Override

@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
@@ -8,9 +13,9 @@ import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
-import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexShuttleUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
@@ -20,8 +25,6 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexProgram;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
-
-import java.util.*;
 
 public class ExecCorrelateOp extends SingleRel implements IquanRelNode {
     private final RelDataType outputRowType;
@@ -71,15 +74,15 @@ public class ExecCorrelateOp extends SingleRel implements IquanRelNode {
         return uncollectOps;
     }
 
+    public RexProgram getRexProgram() {
+        return rexProgram;
+    }
+
     public void setRexProgram(RexProgram rexProgram) {
         if (rexProgram != null) {
             throw new SqlQueryException(IquanErrorCode.IQUAN_EC_SQL_CORRELATE_EMPTY_REXPROGRAM, "");
         }
         this.rexProgram = rexProgram;
-    }
-
-    public RexProgram getRexProgram() {
-        return rexProgram;
     }
 
     @Override
@@ -182,7 +185,7 @@ public class ExecCorrelateOp extends SingleRel implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         IquanRelNode input = RelDistributionUtil.checkIquanRelType(inputs.get(0));
         return simpleRelDerive(input);
     }

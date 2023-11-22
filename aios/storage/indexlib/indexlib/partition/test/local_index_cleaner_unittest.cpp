@@ -40,7 +40,7 @@ public:
     }
     versionid_t GetLatestReaderVersion() const override
     {
-        versionid_t lastestVersionId = INVALID_VERSION;
+        versionid_t lastestVersionId = INVALID_VERSIONID;
         for (const Version& version : mVersions) {
             lastestVersionId = max(lastestVersionId, version.GetVersionId());
         }

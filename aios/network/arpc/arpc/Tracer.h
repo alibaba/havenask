@@ -60,6 +60,7 @@ public:
     inline void EndPostRequest();
     inline void BeginHandleResponse();
     inline void EndCallMethod(ErrorCode errCode);
+    inline void SetClientRequestSize(size_t size);
     inline void setClientRPCStats(const std::shared_ptr<ClientRPCStats> &clientStats) { _clientStats = clientStats; }
     const std::shared_ptr<ClientRPCStats> &getClientRPCStats() const { return _clientStats; }
 
@@ -73,6 +74,7 @@ public:
     inline void BeginPostResponse();
     inline void EndEncodeResponse();
     inline void EndHandleRequest(ErrorCode errCode);
+    inline void SetServerResponseSize(size_t size);
     inline void setServerRPCStats(const std::shared_ptr<ServerRPCStats> &serverStats) { _serverStats = serverStats; }
     const std::shared_ptr<ServerRPCStats> &getServerRPCStats() const { return _serverStats; }
 
@@ -124,6 +126,12 @@ inline void Tracer::BeginCallMethod() {
 inline void Tracer::EndEncodeRequest() {
     if (_clientStats != nullptr) {
         _clientStats->markRequestPackDone();
+    }
+}
+
+inline void Tracer::SetClientRequestSize(size_t size) {
+    if (_clientStats != nullptr) {
+        _clientStats->markRequestIovSize("CPU", "CPU", size);
     }
 }
 
@@ -204,6 +212,12 @@ inline void Tracer::EndHandleRequest(ErrorCode errCode) {
             _serverStats->markResponseSendDone();
         }
         _serverStats->markRequestDone(errCode);
+    }
+}
+
+inline void Tracer::SetServerResponseSize(size_t size) {
+    if (_serverStats != nullptr) {
+        _serverStats->markResponseIovSize("CPU", "CPU", size);
     }
 }
 

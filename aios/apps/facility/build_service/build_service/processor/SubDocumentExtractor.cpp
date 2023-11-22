@@ -15,8 +15,21 @@
  */
 #include "build_service/processor/SubDocumentExtractor.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <ostream>
+
+#include "alog/Logger.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "build_service/document/DocumentDefine.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/field_config.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/indexlib.h"
 
 using namespace build_service::document;
 

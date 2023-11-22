@@ -15,14 +15,42 @@
  */
 #include "indexlib/merger/document_reclaimer/and_index_reclaimer.h"
 
-#include "beeper/beeper.h"
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/common/common_type.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_config.h"
 #include "indexlib/config/index_schema.h"
+#include "indexlib/config/schema_modify_operation.h"
+#include "indexlib/index/common/ErrorCode.h"
+#include "indexlib/index/common/Term.h"
+#include "indexlib/index/common/Types.h"
 #include "indexlib/index/inverted_index/AndPostingExecutor.h"
+#include "indexlib/index/inverted_index/Constant.h"
+#include "indexlib/index/inverted_index/InvertedIndexReader.h"
+#include "indexlib/index/inverted_index/PostingExecutor.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
 #include "indexlib/index/inverted_index/TermPostingExecutor.h"
+#include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
+#include "indexlib/index/normal/attribute/accessor/attribute_reader.h"
+#include "indexlib/index/normal/framework/legacy_index_reader_interface.h"
 #include "indexlib/index/normal/inverted_index/accessor/index_reader_factory.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/document_reclaimer/document_deleter.h"
 #include "indexlib/merger/document_reclaimer/index_reclaimer_param.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "kmonitor/client/MetricLevel.h"
+#include "kmonitor/client/MetricType.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 using namespace beeper;

@@ -28,10 +28,10 @@ class MetricsReporter;
 namespace indexlibv2::config {
 class IIndexConfig;
 }
-namespace indexlibv2::index {
-struct IndexerParameter;
-}
 
+namespace indexlibv2::framework {
+class MetricsManager;
+}
 namespace indexlib::index {
 class InvertedIndexMetrics : public indexlibv2::framework::IMetrics
 {
@@ -76,7 +76,7 @@ public:
 
     static std::shared_ptr<InvertedIndexMetrics>
     Create(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-           const indexlibv2::index::IndexerParameter& indexerParam);
+           indexlibv2::framework::MetricsManager* metricsManager);
 
 private:
     std::mutex _mtx;

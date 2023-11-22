@@ -32,7 +32,7 @@
 namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, PostingWriterImpl);
 
-using DocIdWithTMDIndex = std::pair<docid_t, int32_t>;
+using DocIdWithTMDIndex = std::pair<docid32_t, int32_t>;
 
 void PostingWriterImpl::AddPosition(pos_t pos, pospayload_t posPayload, int32_t fieldIdxInPack)
 {
@@ -98,7 +98,7 @@ uint32_t PostingWriterImpl::GetDumpLength() const
 size_t PostingWriterImpl::GetEstimateDumpTempMemSize() const
 {
     size_t _sortDumpMemSize =
-        GetDF() * (NeedTermMatchData() ? (sizeof(DocIdWithTMDIndex) + sizeof(TermMatchData)) : sizeof(docid_t));
+        GetDF() * (NeedTermMatchData() ? (sizeof(DocIdWithTMDIndex) + sizeof(TermMatchData)) : sizeof(docid32_t));
     return _estimateDumpTempMemSize * _compressRatio + _sortDumpMemSize;
 }
 
@@ -167,7 +167,7 @@ bool PostingWriterImpl::GetDictInlinePostingValue(uint64_t& inlinePostingValue, 
             !_docListEncoder->IsDocIdContinuous() || !_writerResource->postingFormatOption.IsOnlyDocId()) {
             return false;
         }
-        docid_t lastDocid = _docListEncoder->GetLastDocId();
+        docid32_t lastDocid = _docListEncoder->GetLastDocId();
         df_t df = _docListEncoder->GetDF();
         if (!DictInlineEncoder::EncodeContinuousDocId(lastDocid - df + 1, df, /*enableDictInlineLongDF*/ false,
                                                       inlinePostingValueWithOrder)) {
@@ -189,7 +189,7 @@ bool PostingWriterImpl::GetDictInlinePostingValue(uint64_t& inlinePostingValue, 
     return false;
 }
 
-void PostingWriterImpl::UseDocListEncoder(tf_t tf, fieldmap_t fieldMap, docid_t docId, docpayload_t docPayload)
+void PostingWriterImpl::UseDocListEncoder(tf_t tf, fieldmap_t fieldMap, docid32_t docId, docpayload_t docPayload)
 {
     assert(_docListEncoder == NULL);
     DocListEncoder* docListEncoder = IE_POOL_NEW_CLASS(
@@ -207,7 +207,7 @@ void PostingWriterImpl::UseDocListEncoder(tf_t tf, fieldmap_t fieldMap, docid_t 
     _docListType = DLT_DOC_LIST_ENCODER;
 }
 
-void PostingWriterImpl::ReorderPostingWriterAddDoc(docid_t docId, TermMatchData* termMatchData,
+void PostingWriterImpl::ReorderPostingWriterAddDoc(docid32_t docId, TermMatchData* termMatchData,
                                                    PostingWriterImpl* writer, bool isLastDoc) const
 {
     assert(termMatchData);
@@ -231,17 +231,17 @@ void PostingWriterImpl::ReorderPostingWriterAddDoc(docid_t docId, TermMatchData*
 }
 
 void PostingWriterImpl::BuildReorderPostingWriterByBitmap(autil::mem_pool::Pool* pool, PostingIterator* postingIter,
-                                                          const std::vector<docid_t>* newOrder,
+                                                          const std::vector<docid32_t>* newOrder,
                                                           PostingWriterImpl* writer) const
 {
     assert(!NeedTermMatchData());
     util::ExpandableBitmap newDocs(newOrder->size(), false, pool);
     writer->SetTermPayload(GetTermPayload());
 
-    docid_t maxDocId = 0;
-    for (docid_t docId = postingIter->SeekDoc(INVALID_DOCID); docId != INVALID_DOCID;
+    docid32_t maxDocId = 0;
+    for (docid32_t docId = postingIter->SeekDoc(INVALID_DOCID); docId != INVALID_DOCID;
          docId = postingIter->SeekDoc(docId)) {
-        docid_t newDocId = newOrder->at(docId);
+        docid32_t newDocId = newOrder->at(docId);
         newDocs.Set(newDocId);
         maxDocId = std::max(maxDocId, newDocId);
     }
@@ -255,7 +255,7 @@ void PostingWriterImpl::BuildReorderPostingWriterByBitmap(autil::mem_pool::Pool*
 }
 
 void PostingWriterImpl::BuildReorderPostingWriterBySort(autil::mem_pool::Pool* pool, PostingIterator* postingIter,
-                                                        const std::vector<docid_t>* newOrder,
+                                                        const std::vector<docid32_t>* newOrder,
                                                         PostingWriterImpl* writer) const
 {
     if (!NeedTermMatchData()) {
@@ -269,7 +269,7 @@ void PostingWriterImpl::BuildReorderPostingWriterBySort(autil::mem_pool::Pool* p
     docInfos.reserve(GetDF());
     termMatchDatas.resize(GetDF());
 
-    for (docid_t docId = postingIter->SeekDoc(INVALID_DOCID); docId != INVALID_DOCID;
+    for (docid32_t docId = postingIter->SeekDoc(INVALID_DOCID); docId != INVALID_DOCID;
          docId = postingIter->SeekDoc(docId)) {
         size_t tmdIndex = docInfos.size();
         postingIter->Unpack(termMatchDatas[tmdIndex]);
@@ -287,13 +287,13 @@ void PostingWriterImpl::BuildReorderPostingWriterBySort(autil::mem_pool::Pool* p
 
 void PostingWriterImpl::BuildReorderPostingWriterBySortDocIdOnly(autil::mem_pool::Pool* pool,
                                                                  PostingIterator* postingIter,
-                                                                 const std::vector<docid_t>* newOrder,
+                                                                 const std::vector<docid32_t>* newOrder,
                                                                  PostingWriterImpl* writer) const
 {
-    autil::mem_pool::pool_allocator<docid_t> allocator(pool);
-    std::vector<docid_t, decltype(allocator)> docIds(allocator);
+    autil::mem_pool::pool_allocator<docid32_t> allocator(pool);
+    std::vector<docid32_t, decltype(allocator)> docIds(allocator);
     docIds.reserve(GetDF());
-    for (docid_t docId = postingIter->SeekDoc(INVALID_DOCID); docId != INVALID_DOCID;
+    for (docid32_t docId = postingIter->SeekDoc(INVALID_DOCID); docId != INVALID_DOCID;
          docId = postingIter->SeekDoc(docId)) {
         docIds.push_back(newOrder->at(docId));
     }
@@ -320,7 +320,7 @@ bool PostingWriterImpl::NeedTermMatchData() const
            !_writerResource->postingFormatOption.IsOnlyTermPayLoad();
 }
 
-bool PostingWriterImpl::CreateReorderPostingWriter(autil::mem_pool::Pool* pool, const std::vector<docid_t>* newOrder,
+bool PostingWriterImpl::CreateReorderPostingWriter(autil::mem_pool::Pool* pool, const std::vector<docid32_t>* newOrder,
                                                    PostingWriter* output) const
 {
     // TODO (yiping.typ) : support tf bitmap

@@ -2,10 +2,10 @@
 #include "autil/legacy/json.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/merger/multi_partition_merger.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 #include "indexlib/util/Timer.h"
 

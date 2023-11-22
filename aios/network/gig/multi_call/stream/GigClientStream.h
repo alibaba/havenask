@@ -73,7 +73,12 @@ public:
     bool getForceStop() const {
         return _forceStop;
     }
-
+    void setAllowLack(bool allowLack) {
+        _allowLack = allowLack;
+    }
+    bool getAllowLack() const {
+        return _allowLack;
+    }
 private:
     GigClientStreamImpl *getImpl();
 
@@ -86,6 +91,7 @@ private:
     uint64_t _timeout;
     bool _hasError  : 1;
     bool _forceStop : 1;
+    bool _allowLack : 1;
     std::set<PartIdTy> _partIds;
 };
 

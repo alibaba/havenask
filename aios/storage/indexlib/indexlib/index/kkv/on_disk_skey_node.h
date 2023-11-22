@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ON_DISK_SKEY_NODE_H
-#define __INDEXLIB_ON_DISK_SKEY_NODE_H
+#pragma once
 
 #include <memory>
 
@@ -110,5 +109,3 @@ public:
     inline bool operator==(const NormalOnDiskSKeyNode& rhs) const { return offset == rhs.offset && skey == rhs.skey; }
 } __attribute__((packed));
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ON_DISK_SKEY_NODE_H

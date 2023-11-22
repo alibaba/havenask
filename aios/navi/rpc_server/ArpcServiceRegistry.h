@@ -39,6 +39,9 @@ public:
     const std::string &getServiceName() const {
         return _service->GetDescriptor()->full_name();
     }
+    const std::map<std::string, std::string> &getHttpAliasMap() const {
+        return _httpAliasMap;
+    }
 private:
     const google::protobuf::ServiceDescriptor* GetDescriptor() override;
     void CallMethod(const google::protobuf::MethodDescriptor *method,
@@ -51,6 +54,7 @@ private:
     const google::protobuf::Message &GetResponsePrototype(
         const google::protobuf::MethodDescriptor *method) const override;
 private:
+    void initHttpAliasMap();
     void runGraph(google::protobuf::RpcController *controller,
                   const google::protobuf::Message *request,
                   google::protobuf::Message *response,
@@ -60,6 +64,7 @@ private:
     std::shared_ptr<google::protobuf::Service> _service;
     ArpcRegistryParam _param;
     std::vector<GraphId> _graphIds;
+    std::map<std::string, std::string> _httpAliasMap;
 };
 
 NAVI_TYPEDEF_PTR(ArpcServiceRegistry);

@@ -62,7 +62,7 @@ TEST_F(KernelUtilTest, testGetTable) {
     vector<MatchDoc> docs = matchDocUtil.createMatchDocs(allocator, 2);
     ASSERT_NO_FATAL_FAILURE(
         matchDocUtil.extendMatchDocAllocator<uint32_t>(allocator, docs, "id", {1, 2}));
-    table::TablePtr table(new table::Table(docs, allocator));
+    table::TablePtr table = table::Table::fromMatchDocs(docs, allocator);
     auto data = std::dynamic_pointer_cast<navi::Data>(TableDataPtr(new TableData(table)));
     auto tableGet = KernelUtil::getTable(data, nullptr);
     ASSERT_EQ(table, tableGet);
@@ -75,7 +75,7 @@ TEST_F(KernelUtilTest, testGetTableCopy) {
     vector<MatchDoc> docs = matchDocUtil.createMatchDocs(allocator, 2);
     ASSERT_NO_FATAL_FAILURE(
         matchDocUtil.extendMatchDocAllocator<uint32_t>(allocator, docs, "id", {1, 2}));
-    table::TablePtr table(new table::Table(docs, allocator));
+    table::TablePtr table = table::Table::fromMatchDocs(docs, allocator);
     auto data = std::dynamic_pointer_cast<navi::Data>(TableDataPtr(new TableData(table)));
     navi::MemoryPoolR memPoolR;
     auto graphMemPoolR = std::make_shared<navi::GraphMemoryPoolR>();
@@ -83,6 +83,19 @@ TEST_F(KernelUtilTest, testGetTableCopy) {
     auto tableGet = KernelUtil::getTable(data, graphMemPoolR.get(), true);
     ASSERT_NE(table, tableGet);
     ASSERT_EQ(TableUtil::toString(tableGet), TableUtil::toString(table));
+}
+
+TEST_F(KernelUtilTest, testStripKernelNamePrefix) {
+    {
+        std::string kernelName = "sql.ScanKernel";
+        KernelUtil::stripKernelNamePrefix(kernelName);
+        ASSERT_EQ("ScanKernel", kernelName);
+    }
+    {
+        std::string kernelName = "ss.ScanKernel";
+        KernelUtil::stripKernelNamePrefix(kernelName);
+        ASSERT_EQ("ss.ScanKernel", kernelName);
+    }
 }
 
 } // namespace sql

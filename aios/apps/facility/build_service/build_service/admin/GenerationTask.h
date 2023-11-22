@@ -13,26 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_GENERATIONTASK_H
-#define ISEARCH_BS_GENERATIONTASK_H
+#pragma once
 
 #include <memory>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/ClusterCheckpointSynchronizerCreator.h"
 #include "build_service/admin/ConfigValidator.h"
+#include "build_service/admin/CounterCollector.h"
 #include "build_service/admin/GenerationTaskBase.h"
 #include "build_service/admin/LegacyCheckpointListSyncronizer.h"
-#include "build_service/admin/SlowNodeMetricReporter.h"
-#include "build_service/admin/taskcontroller/ProcessorTaskWrapper.h"
+#include "build_service/admin/WorkerTable.h"
+#include "build_service/admin/controlflow/TaskFactory.h"
+#include "build_service/admin/controlflow/TaskFlow.h"
+#include "build_service/admin/taskcontroller/ProcessorTask.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/DataDescriptions.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/WorkerNode.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/framework/VersionCoord.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace admin {
 
 class BrokerTopicKeeper;
+
 BS_TYPEDEF_PTR(BrokerTopicKeeper);
 
-class ProcessorTask;
 class CheckpointSynchronizer;
 
 class GenerationTask : public GenerationTaskBase
@@ -74,19 +93,29 @@ public:
     bool CleanTaskSignature() const;
     bool ValidateAndWriteTaskSignature(const std::string& generationZkRoot, bool validateExistingIndex,
                                        std::string* errorMsg) const override;
+
     bool importBuild(const std::string& configPath, const std::string& generationDir,
-                     const std::string& dataDescriptionKvs, indexlib::versionid_t importedVersionId,
+                     const std::string& dataDescriptionKvs,
+                     const GenerationTaskBase::ImportedVersionIdMap& importedVersionIdMap,
                      proto::StartBuildResponse* response) override;
 
 public:
     // For test
     bool TEST_prepareFakeIndex() const;
+    void TEST_setForceBuildWithTabletV2Mode() { _forceUseTabletV2Build = true; }
 
 private:
     bool publishAndSaveCheckpoint(const config::ResourceReaderPtr& resourceReader, const std::string& cluster,
                                   indexlibv2::versionid_t versionId);
 
     std::string getOpsInfos(const indexlib::config::IndexPartitionSchemaPtr& newSchema, const std::string& clusterName);
+    bool checkReAddIndex(const std::string& clusterName,
+                         const std::shared_ptr<indexlibv2::config::TabletSchema>& newTabletSchema,
+                         const ::google::protobuf::RepeatedPtrField<proto::IndexInfo>& indexInfos);
+    std::string getEffectiveIndexInfo(const std::string& clusterName,
+                                      const std::shared_ptr<indexlibv2::config::TabletSchema>& latestSchema,
+                                      const ::google::protobuf::RepeatedPtrField<proto::IndexInfo>& indexInfos) const;
+
     bool isTaskInStoppingFlow(const std::vector<std::string>& stopFlows, const std::string& taskId);
 
     ConfigValidator::SchemaUpdateStatus checkUpdateSchema(const config::ResourceReaderPtr& resourceReader,
@@ -102,6 +131,9 @@ private:
     bool doGetBulkloadInfo(const std::string& clusterName, const std::string& bulkloadId,
                            const ::google::protobuf::RepeatedPtrField<proto::Range>& rangeVec, std::string* resultStr,
                            std::string* errorMsg) const override;
+    bool doBulkload(const std::string& clusterName, const std::string& bulkloadId,
+                    const ::google::protobuf::RepeatedPtrField<proto::ExternalFiles>& externalFiles,
+                    const std::string& options, const std::string& action, std::string* errorMsg) override;
     bool doRollBack(const std::string& clusterName, const std::string& generationZkRoot, versionid_t versionId,
                     int64_t startTimestamp, std::string& errorMsg) override;
     bool doRollBackCheckpoint(const std::string& clusterName, const std::string& generationZkRoot,
@@ -127,6 +159,7 @@ private:
                        std::string* resultStr) const override;
 
     bool cleanVersions(const std::string& clusterName, versionid_t version) override;
+
     bool doCreateVersion(const std::string& clusterName, const std::string& mergeConfigName) override;
     bool doStartTask(int64_t taskId, const std::string& taskName, const std::string& taskConfigPath,
                      const std::string& clusterName, const std::string& taskParam,
@@ -137,6 +170,7 @@ private:
 
     bool doDeleteIndex() const override;
     bool doDeleteTmpBuilderIndex() const override;
+
     void fillIndexInfoSummarys(proto::GenerationInfo* generationInfo) const;
     void fillIndexInfoSummary(proto::IndexInfoSummary* indexInfoSummary,
                               const ::google::protobuf::RepeatedPtrField<proto::IndexInfo>& indexInfos) const;
@@ -165,7 +199,7 @@ private:
     bool doUpdateSchema(bool hasOperations, const std::vector<std::string>& chgSchemaClusters,
                         const KeyValueMap& schemaIdMap, const KeyValueMap& opsIdMap);
 
-    bool doUpdateConfig(const std::vector<std::string>& chgSchemaClusters, const std::string& configPath);
+    bool innerUpdateConfig(const std::string& configPath);
 
 protected:
     void fillFlows(std::vector<std::string>& flowIds, bool onlyActiveFlow, std::vector<TaskFlowPtr>& flows) const;
@@ -225,6 +259,7 @@ protected:
                                        ClusterCheckpointSynchronizerCreator::Type* type);
 
     bool getIncBuildParallelNum(const std::string& clusterName, uint32_t* incBuildParallelNum) const;
+    bool removeIndexTaskMeta(const std::string& cluster, const std::vector<proto::Range>& ranges);
 
 protected:
     void runTasks(WorkerTable& workerTable) override;
@@ -247,8 +282,10 @@ protected:
     bool _batchMode;
     bool _isImportedTask;
     bool _commitVersionCalled;
-    indexlib::versionid_t _importedVersionId = indexlibv2::INVALID_VERSIONID;
+    GenerationTaskBase::ImportedVersionIdMap _importedVersionIdMap;
     static const int64_t INNER_CHECK_PERIOD_INTERVAL = 60; // 1 min
+    bool _forceUseTabletV2Build = false;
+    bool _isV2Build = false;
 
 private:
     bool isV2Build(const config::ResourceReaderPtr& resourceReader, bool& hasError);
@@ -261,5 +298,3 @@ private:
 BS_TYPEDEF_PTR(GenerationTask);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_GENERATIONTASK_H

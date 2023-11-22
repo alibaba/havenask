@@ -1,7 +1,12 @@
 #include "build_service/proto/JsonizableProtobuf.h"
 
+#include <iosfwd>
+
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
+
 using namespace std;
 using namespace testing;
 

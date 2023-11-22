@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_POSTING_ITERATOR_MOCKER_H
-#define __INDEXLIB_POSTING_ITERATOR_MOCKER_H
+#pragma once
 
 #include <memory>
 
@@ -17,12 +16,12 @@ public:
     ~PostingIteratorMocker();
 
 public:
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override
     {
         result = SeekDoc(docId);
         return index::ErrorCode::OK;
     }
-    docid_t SeekDoc(docid_t docId) override;
+    docid64_t SeekDoc(docid64_t docId) override;
     TermMeta* GetTermMeta() const override { return NULL; }
     bool HasPosition() const override { return false; }
     void Unpack(TermMatchData& termMatchData) override {}
@@ -43,5 +42,3 @@ private:
 
 DEFINE_SHARED_PTR(PostingIteratorMocker);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_POSTING_ITERATOR_MOCKER_H

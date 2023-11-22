@@ -44,7 +44,7 @@ public:
     static const char *getActivateStrategy(ActivateStrategy as);
     static uint64_t random64();
     static std::string formatInstanceId(InstanceId instance);
-    static std::string formatSessionId(SessionId id, InstanceId thisInstance);
+    static std::string formatSessionId(SessionId id);
     static std::string getConfigAbsPath(const std::string &path,
             const std::string &file);
     static std::string getMirrorBizName(GraphId graphId);

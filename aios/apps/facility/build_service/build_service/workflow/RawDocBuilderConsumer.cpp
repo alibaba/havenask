@@ -15,7 +15,20 @@
  */
 #include "build_service/workflow/RawDocBuilderConsumer.h"
 
-#include "build_service/document/ProcessedDocument.h"
+#include <iosfwd>
+#include <memory>
+#include <string>
+
+#include "autil/CommonMacros.h"
+#include "build_service/document/DocumentDefine.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/document.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/indexlib.h"
+
 using namespace std;
 using namespace build_service::document;
 using namespace indexlib::document;

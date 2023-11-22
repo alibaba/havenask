@@ -28,8 +28,8 @@ namespace indexlibv2::table {
 
 AUTIL_LOG_SETUP(indexlib.table, KVTabletReader);
 
-Status KVTabletReader::Open(const std::shared_ptr<framework::TabletData>& tabletData,
-                            const framework::ReadResource& readResource)
+Status KVTabletReader::DoOpen(const std::shared_ptr<framework::TabletData>& tabletData,
+                              const framework::ReadResource& readResource)
 {
     auto indexConfigs = _schema->GetIndexConfigs();
     // TODO(xinfei.sxf) indexConfig is possible not kv

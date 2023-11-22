@@ -954,7 +954,7 @@ def perf_test(group_name,
 
 def rtp_perf_test(group_name, suite_name, data=[], tags=[]):
     deps = [
-        "//turing_local_debug:serverlib",
+        "//aios/tools/turing_local_debug:serverlib",
     ]
     return perf_test(group_name, suite_name,
                      online_package="//package/rtp/online:install",
@@ -969,7 +969,7 @@ def rtp_perf_test(group_name, suite_name, data=[], tags=[]):
 
 def be_perf_test(group_name, suite_name, data=[], tags=[]):
     deps = [
-        "//turing_local_debug:serverlib",
+        "//aios/tools/turing_local_debug:serverlib",
     ]
     return perf_test(group_name, suite_name,
                      online_package="//package/be/test:install",

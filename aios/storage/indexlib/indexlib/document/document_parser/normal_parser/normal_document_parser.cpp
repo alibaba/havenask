@@ -85,7 +85,7 @@ DocumentPtr NormalDocumentParser::Parse(const IndexlibExtendDocumentPtr& documen
         return DocumentPtr();
     }
 
-    const RawDocumentPtr& rawDoc = document->getRawDocument();
+    const RawDocumentPtr& rawDoc = document->GetRawDocument();
     assert(rawDoc);
     int64_t timestamp = rawDoc->getDocTimestamp();
     DocOperateType opType = rawDoc->getDocOperateType();
@@ -149,7 +149,7 @@ DocumentPtr NormalDocumentParser::Parse(const IndexlibExtendDocumentPtr& documen
     // attention: make binary_version=10 document not used for modify operation and docTrace and null and source and
     // index update, atomicly serialize to version6, to make online compitable remove this code when binary version
     // 6 is useless
-    if (!mSchema->HasModifyOperations() && !(document->getRawDocument()->NeedTrace()) && !mSupportNull &&
+    if (!mSchema->HasModifyOperations() && !(document->GetRawDocument()->NeedTrace()) && !mSupportNull &&
         !indexDoc->GetSourceDocument() && !indexDoc->HasIndexUpdate() &&
         indexDoc->GetSerializedVersion() == LEGACY_DOCUMENT_BINARY_VERSION) {
         indexDoc->SetSerializedVersion(6);

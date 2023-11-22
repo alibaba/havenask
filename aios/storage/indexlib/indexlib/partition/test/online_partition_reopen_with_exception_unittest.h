@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONLINEPARTITIONREOPENWITHEXCEPTIONTEST_H
-#define __INDEXLIB_ONLINEPARTITIONREOPENWITHEXCEPTIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/test/online_partition_reopen_unittest.h"
@@ -35,5 +34,3 @@ INDEXLIB_UNIT_TEST_CASE(OnlinePartitionReopenWithExceptionTest, TestForceReopenW
 INDEXLIB_UNIT_TEST_CASE(OnlinePartitionReopenWithExceptionTest, TestAsyncDumpReopenFail);
 INDEXLIB_UNIT_TEST_CASE(OnlinePartitionReopenWithExceptionTest, TestForceOpenWithException);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINEPARTITIONREOPENWITHEXCEPTIONTEST_H

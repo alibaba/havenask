@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DUMP_STRATEGY_H
-#define __INDEXLIB_DUMP_STRATEGY_H
+#pragma once
 
 #include <memory>
 
@@ -80,7 +79,7 @@ public:
     const file_system::DirectoryPtr GetRootDirectory() const { return mRootDirectory; }
     void Reload(int64_t ts, const document::Locator& locator)
     {
-        index_base::VersionLoader::GetVersion(mRootDirectory, mDumppingVersion, INVALID_VERSION);
+        index_base::VersionLoader::GetVersion(mRootDirectory, mDumppingVersion, INVALID_VERSIONID);
         mDumppingVersion.SetTimestamp(ts);
         mDumppingVersion.SetLocator(locator);
     }
@@ -112,5 +111,3 @@ private:
 
 DEFINE_SHARED_PTR(DumpStrategy);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_DUMP_STRATEGY_H

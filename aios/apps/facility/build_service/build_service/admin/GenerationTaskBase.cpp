@@ -15,11 +15,18 @@
  */
 #include "build_service/admin/GenerationTaskBase.h"
 
+#include <cstdint>
+#include <iostream>
 #include <memory>
 
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/TimeUtility.h"
 #include "autil/ZlibCompressor.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/BatchBrokerTopicAccessor.h"
 #include "build_service/admin/CheckpointSynchronizer.h"
 #include "build_service/admin/ConfigValidator.h"
@@ -31,15 +38,25 @@
 #include "build_service/admin/ZKCheckpointSynchronizer.h"
 #include "build_service/admin/controlflow/LocalLuaScriptReader.h"
 #include "build_service/admin/controlflow/TaskBase.h"
-#include "build_service/admin/taskcontroller/BuildServiceTask.h"
+#include "build_service/admin/controlflow/TaskFlow.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/admin/taskcontroller/BuildServiceTaskFactory.h"
+#include "build_service/admin/taskcontroller/TaskOptimizer.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/BrokerTopicAccessor.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/common/IndexTaskRequestQueue.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/config/ConfigDefine.h"
-#include "build_service/proto/ProtoComparator.h"
+#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/WorkerNode.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "fslib/util/FileUtil.h"
-#include "hippo/DriverCommon.h"
+#include "indexlib/misc/common.h"
 
 using namespace std;
 using namespace autil;
@@ -148,6 +165,25 @@ void GenerationTaskBase::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("call_graph_history", _callGraphHistory, _callGraphHistory);
 }
 
+std::shared_ptr<config::MultiClusterRealtimeSchemaListKeeper> GenerationTaskBase::getSchemaListKeeper() const
+{
+    if (_schemaListKeeper) {
+        return _schemaListKeeper;
+    }
+    std::vector<std::string> clusterNames;
+    auto resourceReader = GetLatestResourceReader();
+    if (!getAllClusterNames(*resourceReader, clusterNames)) {
+        return nullptr;
+    }
+    _schemaListKeeper.reset(new config::MultiClusterRealtimeSchemaListKeeper);
+    _schemaListKeeper->init(_indexRoot, clusterNames, _buildId.generationid());
+    if (!_schemaListKeeper->updateSchemaCache()) {
+        _schemaListKeeper.reset();
+        return nullptr;
+    }
+    return _schemaListKeeper;
+}
+
 GenerationTaskBase* GenerationTaskBase::recover(const BuildId& buildId, const string& jsonStr,
                                                 cm_basic::ZkWrapper* zkWrapper)
 {
@@ -236,6 +272,16 @@ bool GenerationTaskBase::loadFromConfig(const string& configPath, const string& 
     _step = GENERATION_STARTING;
     _startTimeStamp = TimeUtility::currentTimeInSeconds();
     _generationDir = generationDir;
+    auto schemaListKeeper = getSchemaListKeeper();
+    if (!schemaListKeeper) {
+        BS_LOG(ERROR, "get schema list keeper failed");
+        return false;
+    }
+    if (!schemaListKeeper->updateConfig(GetLatestResourceReader())) {
+        BS_LOG(ERROR, "schema list keeper update config [%s] failed", configPath.c_str());
+        return false;
+    }
+
     return true;
 }
 
@@ -325,6 +371,13 @@ bool GenerationTaskBase::getBulkloadInfo(const string& clusterName, const std::s
     return doGetBulkloadInfo(clusterName, bulkloadId, ranges, resultStr, errorMsg);
 }
 
+bool GenerationTaskBase::bulkload(const std::string& clusterName, const std::string& bulkloadId,
+                                  const ::google::protobuf::RepeatedPtrField<proto::ExternalFiles>& externalFiles,
+                                  const std::string& options, const std::string& action, std::string* errorMsg)
+{
+    return doBulkload(clusterName, bulkloadId, externalFiles, options, action, errorMsg);
+}
+
 bool GenerationTaskBase::rollBack(const string& clusterName, const string& generationZkRoot, versionid_t versionId,
                                   int64_t startTimestamp, string& errorMsg)
 {
@@ -383,6 +436,15 @@ bool GenerationTaskBase::updateConfig(const string& configPath)
     }
 
     setConfigPath(configPath);
+    auto schemaListKeeper = getSchemaListKeeper();
+    if (!schemaListKeeper) {
+        BS_LOG(ERROR, "get schema list keeper failed");
+        return false;
+    }
+    if (!schemaListKeeper->updateConfig(GetLatestResourceReader())) {
+        BS_LOG(ERROR, "schema list keeper update config [%s] failed", configPath.c_str());
+        return false;
+    }
     return true;
 }
 
@@ -506,7 +568,7 @@ bool GenerationTaskBase::getAllClusterNames(ResourceReader& resourceReader, vect
     return true;
 }
 
-bool GenerationTaskBase::doWriteRealtimeInfoToIndex(const string& clusterName, const string& realtimeInfoContent)
+bool GenerationTaskBase::doWriteRealtimeInfoToIndex(const string& clusterName, json::JsonMap realtimeInfoJsonMap)
 {
     if (_realTimeInfoState.find(clusterName) != _realTimeInfoState.end()) {
         return true;
@@ -532,6 +594,18 @@ bool GenerationTaskBase::doWriteRealtimeInfoToIndex(const string& clusterName, c
         return false;
     }
 
+    auto resouceReader = GetLatestResourceReader();
+    bool enableFastSlowQueue = false;
+    if (!resouceReader->getClusterConfigWithJsonPath(clusterName, "cluster_config.enable_fast_slow_queue",
+                                                     enableFastSlowQueue)) {
+        BS_LOG(ERROR, "parse cluster_config.enable_fast_slow_queue for [%s] failed", clusterName.c_str());
+        return false;
+    }
+    if (enableFastSlowQueue) {
+        realtimeInfoJsonMap[ENABLE_FAST_SLOW_QUEUE] = std::string("true");
+    }
+
+    const string& realtimeInfoContent = ToJsonString(realtimeInfoJsonMap);
     if (!fslib::util::FileUtil::writeFile(realtimeInfoFile, realtimeInfoContent)) {
         BS_LOG(WARN, "write realtime info file [%s] failed.", realtimeInfoFile.c_str());
         return false;
@@ -591,6 +665,8 @@ void GenerationTaskBase::init()
     _resourceManager->addResource(checkpointSynchronizer);
     auto zkCheckpointSynchronizer = std::make_shared<ZKCheckpointSynchronizer>(_buildId);
     _resourceManager->addResource(zkCheckpointSynchronizer);
+    auto requestQueue = std::make_shared<common::IndexTaskRequestQueue>();
+    _resourceManager->addResource(requestQueue);
     common::BrokerTopicAccessorPtr brokerTopicAccessor;
     bool disableBatchTopic = EnvUtil::getEnv(BS_ENV_DISABLE_BATCH_BROKER_TOPIC, false);
     if (disableBatchTopic) {

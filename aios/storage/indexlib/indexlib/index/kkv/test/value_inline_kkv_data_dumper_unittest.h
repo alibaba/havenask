@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_VALUEINLINEKKVDATADUMPERTEST_H
-#define __INDEXLIB_VALUEINLINEKKVDATADUMPERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/value_inline_kkv_data_dumper.h"
@@ -32,5 +31,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(ValueInlineKKVDataDumperTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VALUEINLINEKKVDATADUMPERTEST_H

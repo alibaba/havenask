@@ -15,6 +15,7 @@
  */
 #include "indexlib/config/SortParam.h"
 
+#include "autil/legacy/exception.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

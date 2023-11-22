@@ -16,10 +16,11 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "autil/Lock.h"
-#include "autil/Log.h"
 #include "indexlib/util/Singleton.h"
 
 namespace indexlibv2::framework {

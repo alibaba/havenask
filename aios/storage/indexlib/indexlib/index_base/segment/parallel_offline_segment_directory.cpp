@@ -62,8 +62,8 @@ void ParallelOfflineSegmentDirectory::DoInit(const file_system::DirectoryPtr& di
         // only recover instance path segments
         // string instanceRootPath = directory->GetOutputPath();
         Version instanceVersion;
-        VersionLoader::GetVersion(directory, instanceVersion, INVALID_VERSION);
-        if (instanceVersion.GetVersionId() != INVALID_VERSION) {
+        VersionLoader::GetVersion(directory, instanceVersion, INVALID_VERSIONID);
+        if (instanceVersion.GetVersionId() != INVALID_VERSIONID) {
             if (instanceVersion.GetVersionId() < mParallelBuildInfo.GetBaseVersion()) {
                 INDEXLIB_FATAL_ERROR(InconsistentState,
                                      "instance version id [%d] should not be less than base version [%d]",
@@ -109,7 +109,7 @@ Version ParallelOfflineSegmentDirectory::GetLatestVersion(const DirectoryPtr& di
     ParallelBuildInfo parallelBuildInfo;
     parallelBuildInfo.Load(directory);
 
-    if (parallelBuildInfo.GetBaseVersion() == INVALID_VERSION) {
+    if (parallelBuildInfo.GetBaseVersion() == INVALID_VERSIONID) {
         return emptyVersion;
     }
 

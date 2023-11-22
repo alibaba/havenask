@@ -15,10 +15,13 @@
  */
 #pragma once
 
+#include <memory>
+
 #include "autil/Log.h"
 #include "indexlib/util/TaskItem.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 #include "indexlib/util/metrics/Monitor.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace indexlib::util {
 class BlockCache;

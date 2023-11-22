@@ -45,6 +45,10 @@ public:
         return true;
     }
     bool Read(docid_t docId, std::string* value, autil::mem_pool::Pool* pool) override { return false; }
+    bool ReadBinaryValue(docid_t docId, autil::StringView* value, autil::mem_pool::Pool* pool) override
+    {
+        return false;
+    }
     uint32_t TEST_GetDataLength(docid_t, autil::mem_pool::Pool*) const override { return sizeof(int32_t); }
 
 private:

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEX_DEMO_IN_MEM_SEGMENT_RETRIEVER_H
-#define __INDEXLIB_INDEX_DEMO_IN_MEM_SEGMENT_RETRIEVER_H
+#pragma once
 
 #include <memory>
 
@@ -38,5 +37,3 @@ private:
 
 DEFINE_SHARED_PTR(DemoInMemSegmentRetriever);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEX_DEMO_IN_MEM_SEGMENT_RETRIEVER_H

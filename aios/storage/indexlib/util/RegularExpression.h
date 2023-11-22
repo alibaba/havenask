@@ -15,12 +15,14 @@
  */
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <regex.h>
-#include <sys/types.h>
+#include <string>
+#include <vector>
 
-#include "autil/ConstString.h"
 #include "autil/Log.h"
+#include "autil/Span.h"
 
 namespace indexlib { namespace util {
 
@@ -42,8 +44,8 @@ public:
 
 private:
     regex_t _regex;
-    mutable int _latestErrorCode;
-    volatile bool _initialized;
+    mutable std::atomic_int _latestErrorCode;
+    std::atomic_bool _initialized;
 
 private:
     AUTIL_LOG_DECLARE();

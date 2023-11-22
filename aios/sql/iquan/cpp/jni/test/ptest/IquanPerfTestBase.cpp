@@ -35,12 +35,18 @@ Status IquanPerfTestBase::loadCatalogData(const std::string &rootPath, CatalogDa
                           "start to load database %s.%s",
                           catalogInfo.catalogName.c_str(),
                           databaseInfo.databaseName.c_str());
-
-                for (const auto &table : databaseInfo.tables) {
-                    catalogData.ha3TableNameList.push_back(table);
-                }
                 for (const auto &function : databaseInfo.functions) {
-                    catalogData.functionNameList.push_back(function);
+                    std::string functionFile = rootPath + function;
+                    std::string functionJsonStr;
+                    IQUAN_ENSURE_FUNC(Utils::readFile(functionFile, functionJsonStr));
+                    FunctionModel functionModel;
+                    IQUAN_ENSURE_FUNC(Utils::fromJson(functionModel, functionJsonStr));
+                    if (!catalogData.catalogDefs.catalog(catalogInfo.catalogName)
+                             .database(databaseInfo.databaseName)
+                             .addFunction(functionModel)) {
+                        return Status(IQUAN_FAIL,
+                                      "add function [" + functionModel.functionName + "] failed");
+                    }
                 }
             }
         }
@@ -48,12 +54,8 @@ Status IquanPerfTestBase::loadCatalogData(const std::string &rootPath, CatalogDa
     return Status::OK();
 }
 
-Status IquanPerfTestBase::registerCatalogData(const std::string &rootPath,
-                                              const CatalogData &catalogData,
-                                              IquanPtr &pIquan) {
-    // IQUAN_ENSURE_FUNC(TestUtils::registerHa3Table(pIquan, rootPath, catalogData.ha3TableNameList,
-    // catalogData.defaultCatalogPath, autil::TimeUtility::currentTime()));
-    IQUAN_ENSURE_FUNC(TestUtils::registerFunction(pIquan, rootPath, catalogData.functionNameList));
+Status IquanPerfTestBase::registerCatalogData(const CatalogDefs &catalogDefs, IquanPtr &pIquan) {
+    IQUAN_ENSURE_FUNC(TestUtils::registerCatalogs(catalogDefs, pIquan));
     return Status::OK();
 }
 

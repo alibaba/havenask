@@ -1,9 +1,9 @@
 #include "indexlib/partition/test/online_offline_join_intetest.h"
 
 #include "autil/EnvUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/merger/partition_merger_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/test/build_test_util.h"
 
 using namespace std;
@@ -71,26 +71,26 @@ void OnlineOfflineJoinTest::TestOfflineEndIndexWithStopTs()
         ASSERT_TRUE(psm.Init(mSchema, options, mRootDir));
         ASSERT_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocs, "", ""));
         Version version;
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)5, version.GetTimestamp());
         EXPECT_EQ((int64_t)1, version.GetVersionId());
         string incDocs1 = "cmd=add,pk=2,string1=hello,long1=1,ts=7;"
                           "cmd=add,pk=3,string1=hello,long1=2,ts=10;"
                           "##stopTs=25;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs1, "index1:hello", "long1=0;long1=1;long1=2"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)25, version.GetTimestamp());
         EXPECT_EQ((int64_t)3, version.GetVersionId());
 
         string incDocs2 = "##stopTs=35;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs2, "index1:hello", "long1=0;long1=1;long1=2"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)35, version.GetTimestamp());
         EXPECT_EQ((int64_t)5, version.GetVersionId());
 
         string incDocs3 = "##stopTs=45;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC, incDocs3, "index1:hello", "long1=0;long1=1;long1=2"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)45, version.GetTimestamp());
         EXPECT_EQ((int64_t)7, version.GetVersionId());
     }
@@ -103,7 +103,7 @@ void OnlineOfflineJoinTest::TestOfflineEndIndexWithStopTs()
         ASSERT_TRUE(psm.Init(mSchema, options, mRootDir));
         ASSERT_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocs, "", ""));
         Version version;
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)5, version.GetTimestamp());
         EXPECT_EQ((int64_t)1, version.GetVersionId());
 
@@ -111,19 +111,19 @@ void OnlineOfflineJoinTest::TestOfflineEndIndexWithStopTs()
                           "cmd=add,pk=3,string1=hello,long1=2,ts=1000;"
                           "##stopTs=25;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs1, "index1:hello", "long1=0;long1=1;long1=2"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)25, version.GetTimestamp());
         EXPECT_EQ((int64_t)3, version.GetVersionId());
 
         string incDocs2 = "##stopTs=35;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs2, "index1:hello", "long1=0;long1=1;long1=2"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)35, version.GetTimestamp());
         EXPECT_EQ((int64_t)5, version.GetVersionId());
 
         string incDocs3 = "##stopTs=45;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC, incDocs3, "index1:hello", "long1=0;long1=1;long1=2"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)45, version.GetTimestamp());
         EXPECT_EQ((int64_t)7, version.GetVersionId());
     }
@@ -136,7 +136,7 @@ void OnlineOfflineJoinTest::TestOfflineEndIndexWithStopTs()
         ASSERT_TRUE(psm.Init(mSchema, options, mRootDir));
         ASSERT_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocs, "", ""));
         Version version;
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)200, version.GetTimestamp());
         EXPECT_EQ((int64_t)0, version.GetVersionId());
 
@@ -144,14 +144,14 @@ void OnlineOfflineJoinTest::TestOfflineEndIndexWithStopTs()
                           "cmd=add,pk=3,string1=hello,long1=2,ts=1000;"
                           "##stopTs=1200;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs1, "index1:hello", "long1=0;long1=1;long1=2"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)1200, version.GetTimestamp());
         EXPECT_EQ((int64_t)2, version.GetVersionId());
 
         string incDocs2 = "cmd=add,pk=4,string1=hello,long1=3,ts=1250;"
                           "##stopTs=1250;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDocs2, "index1:hello", "long1=0;long1=1;long1=2;long1=3"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)1250, version.GetTimestamp());
         EXPECT_EQ((int64_t)3, version.GetVersionId());
         string incDocs3 = "cmd=add,pk=4,string1=hello,long1=3,ts=1250;"
@@ -159,11 +159,11 @@ void OnlineOfflineJoinTest::TestOfflineEndIndexWithStopTs()
                           "##stopTs=1350;";
         ASSERT_TRUE(
             psm.Transfer(BUILD_INC_NO_MERGE, incDocs3, "index1:hello", "long1=0;long1=1;long1=2;long1=3;long1=4"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)1350, version.GetTimestamp());
         string incDocs4 = "##stopTs=1350;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC, incDocs4, "index1:hello", "long1=0;long1=1;long1=2;long1=3;long1=4"));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)1350, version.GetTimestamp());
     }
     {
@@ -174,13 +174,13 @@ void OnlineOfflineJoinTest::TestOfflineEndIndexWithStopTs()
         ASSERT_TRUE(psm.Init(mSchema, options, mRootDir));
         ASSERT_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocs, "", ""));
         Version version;
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)200, version.GetTimestamp());
         EXPECT_EQ((int64_t)1, version.GetVersionId());
 
         string incDocs1 = "##stopTs=1200;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC, incDocs1, "index1:hello", ""));
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)1200, version.GetTimestamp());
         Version::SetDefaultVersionFormatNumForTest(Version::INVALID_VERSION_FORMAT_NUM);
         EnvUtil::unsetEnv("VERSION_FORMAT_NUM");
@@ -205,7 +205,7 @@ void OnlineOfflineJoinTest::TestMultiPartitionOfflineEndIndexWithStopTs()
         multiPartMerger->Merge(true);
         auto mergedPartDir = GET_CHECK_DIRECTORY()->GetDirectory("mergePart", false);
         Version version;
-        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSION);
+        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)expectTs, version.GetTimestamp());
         EXPECT_EQ((int64_t)expectFormatVersion, version.GetFormatVersion());
     };
@@ -227,7 +227,7 @@ void OnlineOfflineJoinTest::TestMultiPartitionOfflineEndIndexWithStopTs()
                                  "long1=0;long1=1;long1=2;long1=3;long1=4;long1=5;long1=6"));
         auto mergedPartDir = GET_CHECK_DIRECTORY()->GetDirectory("mergePart", false);
         Version version;
-        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSION);
+        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)19, version.GetTimestamp());
         EXPECT_EQ(2u, version.GetFormatVersion());
     }
@@ -248,7 +248,7 @@ void OnlineOfflineJoinTest::TestMultiPartitionOfflineEndIndexWithStopTs()
         auto mergedPartDir = GET_CHECK_DIRECTORY()->GetDirectory("mergePart", false);
 
         Version version;
-        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSION);
+        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)19, version.GetTimestamp());
         EXPECT_EQ(2u, version.GetFormatVersion());
     }
@@ -266,7 +266,7 @@ void OnlineOfflineJoinTest::TestMultiPartitionOfflineEndIndexWithStopTs()
         ASSERT_TRUE(psm.Transfer(BUILD_INC, incDocStr, "index1:hello", "long1=6"));
         auto mergedPartDir = GET_CHECK_DIRECTORY()->GetDirectory("mergePart", false);
         Version version;
-        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSION);
+        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)19, version.GetTimestamp());
         EXPECT_EQ(2u, version.GetFormatVersion());
     }
@@ -301,7 +301,7 @@ void OnlineOfflineJoinTest::TestCompatibleWithOldVersion()
     auto mergedPartDir = GET_CHECK_DIRECTORY()->GetDirectory("mergePart", false);
     ASSERT_NE(mergedPartDir, nullptr);
     Version version;
-    VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSION);
+    VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSIONID);
     EXPECT_EQ((int64_t)15, version.GetTimestamp());
     EXPECT_EQ((int64_t)1u, version.GetFormatVersion());
 }
@@ -338,7 +338,7 @@ void OnlineOfflineJoinTest::TestCompatibleWithOldVersion()
         auto mergedPartDir = GET_CHECK_DIRECTORY()->GetDirectory("mergePart", false);
         ASSERT_NE(mergedPartDir, nullptr);
         Version version;
-        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSION);
+        VersionLoader::GetVersion(mergedPartDir, version, INVALID_VERSIONID);
         EXPECT_EQ((int64_t)15, version.GetTimestamp());
         EXPECT_EQ((int64_t)2u, version.GetFormatVersion());
     }
@@ -355,7 +355,7 @@ void OnlineOfflineJoinTest::TestCompatibleWithOldVersion()
         string incDoc = "cmd=add,pk=2,string1=hello,long1=1,ts=3;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDoc, "", ""));
         Version version;
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ(1u, version.GetFormatVersion());
         EXPECT_EQ(3, version.GetTimestamp());
         Version::SetDefaultVersionFormatNumForTest(Version::INVALID_VERSION_FORMAT_NUM);
@@ -366,7 +366,7 @@ void OnlineOfflineJoinTest::TestCompatibleWithOldVersion()
         string incDoc2 = "##stopTs=100;";
         ASSERT_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDoc2, "index1:hello", "long1=0;long1=1"));
         Version version;
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         EXPECT_EQ(2u, version.GetFormatVersion());
         EXPECT_EQ(100, version.GetTimestamp());
     }

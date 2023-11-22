@@ -15,9 +15,20 @@
  */
 #include "build_service/proto/SwiftRootUpgrader.h"
 
+#include <cstdint>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace autil;

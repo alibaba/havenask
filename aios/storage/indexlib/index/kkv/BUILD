@@ -4,32 +4,21 @@ strict_cc_library(
     name='factory',
     srcs=[],
     hdrs=[],
-    visibility=[
-        '//aios/storage/indexlib/index/kkv:__subpackages__',
-        '//aios/storage/indexlib/legacy/tools:__subpackages__',
-        '//aios/storage/indexlib/table/kkv_table:__subpackages__',
-        '//aios/storage/indexlib/tools:__subpackages__'
-    ],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[':KKVIndexFactory']
 )
 strict_cc_library(
     name='reader',
     srcs=[],
     hdrs=[],
-    visibility=[
-        '//aios/storage/indexlib/index/kkv:__subpackages__',
-        '//aios/storage/indexlib/table/kkv_table:__subpackages__'
-    ],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/index/kkv/search:kkv_index_reader']
 )
 strict_cc_library(
     name='merger',
     srcs=[],
     hdrs=[],
-    visibility=[
-        '//aios/storage/indexlib/index/kkv:__subpackages__',
-        '//aios/storage/indexlib/table/kkv_table:__subpackages__'
-    ],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/index/kkv/merge:kkv_index_merger']
 )
 strict_cc_library(
@@ -44,10 +33,10 @@ strict_cc_library(
     deps=[
         ':KKVShardRecordIterator', '//aios/autil:log',
         '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:IIndexFactory',
         '//aios/storage/indexlib/index:IIndexMerger',
         '//aios/storage/indexlib/index:IIndexReader',
-        '//aios/storage/indexlib/index:IndexerParameter',
         '//aios/storage/indexlib/index/kkv/building:kkv_mem_indexer',
         '//aios/storage/indexlib/index/kkv/built:kkv_disk_indexer',
         '//aios/storage/indexlib/index/kkv/common:KKVSegmentStatistics',

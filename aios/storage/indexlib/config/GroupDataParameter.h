@@ -15,10 +15,15 @@
  */
 #pragma once
 
+#include <memory>
+#include <stddef.h>
+#include <string>
+
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/config/CompressTypeOption.h"
+
 namespace indexlibv2::config {
 class FileCompressConfigV2;
 }

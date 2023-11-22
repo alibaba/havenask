@@ -1,20 +1,23 @@
 package com.taobao.search.iquan.client.common.json.table;
 
-import com.taobao.search.iquan.client.common.json.common.JsonIndex;
-import com.taobao.search.iquan.core.api.schema.IndexType;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.client.common.json.common.JsonIndex;
+import com.taobao.search.iquan.core.api.schema.IndexType;
 
 public class JsonConstraint {
     @JsonProperty(value = "multi_unique")
     private List<List<String>> multiUniqueKey = new ArrayList<>();
 
     @JsonProperty(value = "multi_indexes")
-    private List<JsonIndex> multiIndexes= new ArrayList<>();
+    private List<JsonIndex> multiIndexes = new ArrayList<>();
 
+
+    public JsonConstraint() {
+    }
 
     public JsonIndex getMultiPrimaryKeyIndex() {
         for (JsonIndex jsonIndex : multiIndexes) {
@@ -42,12 +45,9 @@ public class JsonConstraint {
         this.multiIndexes = multiIndexes;
     }
 
-    public JsonConstraint() {
-    }
-
     @JsonIgnore
     public boolean isValid() {
-        for (JsonIndex jsonIndex:multiIndexes) {
+        for (JsonIndex jsonIndex : multiIndexes) {
             if (!jsonIndex.isValid()) {
                 return false;
             }

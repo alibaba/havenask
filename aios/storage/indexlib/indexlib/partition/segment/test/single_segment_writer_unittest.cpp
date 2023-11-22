@@ -4,6 +4,7 @@
 #include "indexlib/config/field_config.h"
 #include "indexlib/config/module_info.h"
 #include "indexlib/config/primary_key_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_segment_reader.h"
@@ -22,7 +23,6 @@
 #include "indexlib/plugin/plugin_manager.h"
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace fslib;

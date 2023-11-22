@@ -143,7 +143,7 @@ DeployStatus SuezIndexPartition::doDeployIndex(const TargetPartitionMeta &target
     const auto &targetTabletOptions = targetTableConfig.getTabletOptions();
 
     auto dpStatus = _indexDeployer->deploy(pathDetail,
-                                           distDeploy ? INVALID_VERSION : _partitionMeta->getIncVersion(),
+                                           distDeploy ? indexlib::INVALID_VERSIONID : _partitionMeta->getIncVersion(),
                                            target.getIncVersion(),
                                            baseTabletOptions,
                                            targetTabletOptions);
@@ -164,7 +164,7 @@ bool SuezIndexPartition::cleanUnreferencedDeployIndexFiles(const IndexDeployer::
     if (indexlibAdapter) {
         // in version rollback scenerio, target.incVersion may be smaller than loadedVersion
         auto whiteListBaseVersion = std::min(_partitionMeta->getIncVersion(), targetVersion);
-        if (whiteListBaseVersion == INVALID_VERSION) {
+        if (whiteListBaseVersion == indexlib::INVALID_VERSIONID) {
             SUEZ_PREFIX_LOG(INFO,
                             "skip clean index files, currentVersion[%d], targetVersion[%d]",
                             _partitionMeta->getIncVersion(),
@@ -202,11 +202,12 @@ void SuezIndexPartition::cancelLoad() {
 }
 
 StatusAndError<TableStatus> SuezIndexPartition::load(const TargetPartitionMeta &target, bool force) {
-    if (target.getIncVersion() != INVALID_VERSION) {
+    if (target.getIncVersion() != indexlib::INVALID_VERSIONID) {
         assert(DS_DEPLOYDONE == _partitionMeta->getDeployStatus(target.getIncVersion()));
     }
 
-    if (target.getIncVersion() != INVALID_VERSION && target.getIncVersion() == _partitionMeta->getIncVersion()) {
+    if (target.getIncVersion() != indexlib::INVALID_VERSIONID &&
+        target.getIncVersion() == _partitionMeta->getIncVersion()) {
         SUEZ_PREFIX_LOG(WARN, "load twice for the version %d", target.getIncVersion());
         // maybe return immediately
     }
@@ -468,6 +469,7 @@ TableBuilder *SuezIndexPartition::createTableBuilder(IIndexlibAdapter *indexlibA
     RealtimeBuilderResource rtResource(_metricsReporter,
                                        _globalIndexResource->GetTaskScheduler(),
                                        _swiftClientCreator,
+                                       properties.rawIndexRoot,
                                        _globalBuilderThreadResource,
                                        properties.realtimeInfo);
     return indexlibAdapter->createBuilder(pid, rtResource, properties);

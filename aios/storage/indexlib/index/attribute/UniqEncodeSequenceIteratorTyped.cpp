@@ -46,11 +46,12 @@ private:
         co_return ret;
     }
 
-    future_lite::Future<size_t> ReadAsync(void* buffer, size_t length, size_t offset,
-                                          indexlib::file_system::ReadOption option) override
+    future_lite::Future<indexlib::file_system::FSResult<size_t>>
+    ReadAsync(void* buffer, size_t length, size_t offset, indexlib::file_system::ReadOption option) override
     {
         assert(false);
-        return 0;
+        using namespace indexlib::file_system;
+        return future_lite::makeReadyFuture(FSResult<size_t> {FSEC_ERROR, 0});
     }
     std::shared_ptr<indexlib::file_system::FileStream> CreateSessionStream(autil::mem_pool::Pool* pool) const override
     {

@@ -50,7 +50,7 @@ void VersionCommitter::CleanVersions(IndexSummary& indexSummary, const file_syst
                                      const std::set<versionid_t>& reservedVersionSet)
 {
     std::set<segmentid_t> needKeepSegment;
-    std::set<schemavid_t> needKeepSchemaId;
+    std::set<schemaid_t> needKeepSchemaId;
     segmentid_t maxSegInVersion = ConstructNeedKeepSegment(rootDir, fileList, reservedVersionSet, keepVersionCount,
                                                            needKeepSegment, needKeepSchemaId);
 
@@ -69,7 +69,7 @@ segmentid_t VersionCommitter::ConstructNeedKeepSegment(const file_system::Direct
                                                        const std::set<versionid_t>& reservedVersionSet,
                                                        uint32_t keepVersionCount,
                                                        std::set<segmentid_t>& needKeepSegment,
-                                                       std::set<schemavid_t>& needKeepSchemaId)
+                                                       std::set<schemaid_t>& needKeepSchemaId)
 {
     // Determine which segments need to keep
     for (size_t i = 0; i < keepVersionCount; ++i) {
@@ -215,18 +215,18 @@ bool VersionCommitter::CleanVersionAndBefore(const file_system::DirectoryPtr& ro
 }
 
 void VersionCommitter::CleanUselessSchemaFiles(const file_system::DirectoryPtr& rootDir,
-                                               const std::set<schemavid_t>& needKeepSchemaId)
+                                               const std::set<schemaid_t>& needKeepSchemaId)
 {
     if (needKeepSchemaId.empty()) {
         IE_LOG(WARN, "no valid schema id to keep!");
         return;
     }
 
-    schemavid_t maxSchemaId = *(needKeepSchemaId.rbegin());
+    schemaid_t maxSchemaId = *(needKeepSchemaId.rbegin());
     fslib::FileList schemaList;
     SchemaAdapter::ListSchemaFile(rootDir, schemaList);
     for (const auto& schemaFile : schemaList) {
-        schemavid_t schemaId = DEFAULT_SCHEMAID;
+        schemaid_t schemaId = DEFAULT_SCHEMAID;
         Version::ExtractSchemaIdBySchemaFile(schemaFile, schemaId);
         if (schemaId < maxSchemaId && needKeepSchemaId.find(schemaId) == needKeepSchemaId.end()) {
             if (!rootDir->IsExist(schemaFile)) {

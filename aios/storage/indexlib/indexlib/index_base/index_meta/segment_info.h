@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_INFOS_H
-#define __INDEXLIB_SEGMENT_INFOS_H
+#pragma once
 
 #include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/index_base/index_meta/segment_temperature_meta.h"
@@ -77,4 +76,3 @@ inline std::ostream& operator<<(std::ostream& os, const SegmentInfo& segInfo)
 }
 } // namespace index_base
 } // namespace indexlib
-#endif //__INDEXLIB_SEGMENT_INFOS_H

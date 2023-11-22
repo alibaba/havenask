@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_IN_DOC_POSITION_ITERATOR_H
-#define __INDEXLIB_FAKE_IN_DOC_POSITION_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -40,5 +39,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeInDocPositionIterator);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKE_IN_DOC_POSITION_ITERATOR_H

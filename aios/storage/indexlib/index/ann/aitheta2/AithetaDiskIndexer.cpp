@@ -29,7 +29,7 @@ using namespace indexlib;
 namespace indexlibv2::index::ann {
 AUTIL_LOG_SETUP(indexlib.index, AithetaDiskIndexer);
 
-AithetaDiskIndexer::AithetaDiskIndexer(const IndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
+AithetaDiskIndexer::AithetaDiskIndexer(const DiskIndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
 
 Status AithetaDiskIndexer::Open(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                                 const std::shared_ptr<indexlib::file_system::IDirectory>& indexDirectory)
@@ -53,7 +53,7 @@ Status AithetaDiskIndexer::Open(const std::shared_ptr<config::IIndexConfig>& ind
         return Status::OK();
     }
 
-    _normalSegment = std::make_shared<NormalSegment>(aithetaIndexDir, _aithetaIndexConfig, _indexerParam.isOnline);
+    _normalSegment = std::make_shared<NormalSegment>(aithetaIndexDir, _aithetaIndexConfig, true);
     if (!_normalSegment->Open()) {
         return Status::InternalError("normal segment open failed.");
     }
@@ -62,7 +62,8 @@ Status AithetaDiskIndexer::Open(const std::shared_ptr<config::IIndexConfig>& ind
 }
 
 std::pair<Status, std::shared_ptr<NormalSegmentSearcher>>
-AithetaDiskIndexer::CreateSearcher(docid_t segmentBaseDocId, const std::shared_ptr<AithetaFilterCreatorBase>& creator)
+AithetaDiskIndexer::CreateSearcher(const AithetaIndexConfig& segmentSearchConfig, docid_t segmentBaseDocId,
+                                   const std::shared_ptr<AithetaFilterCreatorBase>& creator)
 {
     if (nullptr == _normalSegment) {
         AUTIL_LOG(WARN, "normal segment is nullptr");
@@ -75,7 +76,7 @@ AithetaDiskIndexer::CreateSearcher(docid_t segmentBaseDocId, const std::shared_p
             std::make_shared<indexlib::util::MetricProvider>(_indexerParam.metricsManager->GetMetricsReporter());
         metricReporter = std::make_shared<MetricReporter>(provider, _indexName);
     }
-    NormalSegmentSearcherPtr searcher = std::make_shared<NormalSegmentSearcher>(_aithetaIndexConfig, metricReporter);
+    auto searcher = std::make_shared<NormalSegmentSearcher>(segmentSearchConfig, metricReporter);
     if (!searcher->Init(_normalSegment, segmentBaseDocId, creator)) {
         AUTIL_LOG(ERROR, "init normal segment searcher failed.");
         return {Status::InternalError("init normal segment searcher failed."), nullptr};

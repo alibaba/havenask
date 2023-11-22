@@ -1,15 +1,34 @@
 package com.taobao.search.iquan.core.rel.visitor.sqlshuttle;
 
-import org.apache.calcite.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.calcite.sql.SqlCall;
+import org.apache.calcite.sql.SqlDataTypeSpec;
+import org.apache.calcite.sql.SqlDynamicParam;
+import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlIntervalQualifier;
+import org.apache.calcite.sql.SqlLiteral;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlNodeList;
 import org.apache.calcite.sql.util.SqlShuttle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SqlDeepCopyShuttle extends SqlShuttle {
     private static final Logger logger = LoggerFactory.getLogger(SqlDeepCopyShuttle.class);
+
+    public static List<SqlNode> go(List<SqlNode> roots) {
+        SqlDeepCopyShuttle sqlShuttle = new SqlDeepCopyShuttle();
+        List<SqlNode> newRoots = new ArrayList<>();
+
+        for (int i = 0; i < roots.size(); ++i) {
+            newRoots.add(
+                    roots.get(i).accept(sqlShuttle)
+            );
+        }
+        return newRoots;
+    }
 
     @Override
     public SqlNode visit(SqlLiteral literal) {
@@ -57,17 +76,5 @@ public class SqlDeepCopyShuttle extends SqlShuttle {
             }
         }
         return copy;
-    }
-
-    public static List<SqlNode> go(List<SqlNode> roots) {
-        SqlDeepCopyShuttle sqlShuttle = new SqlDeepCopyShuttle();
-        List<SqlNode> newRoots = new ArrayList<>();
-
-        for (int i = 0; i < roots.size(); ++i) {
-            newRoots.add(
-                    roots.get(i).accept(sqlShuttle)
-            );
-        }
-        return newRoots;
     }
 }

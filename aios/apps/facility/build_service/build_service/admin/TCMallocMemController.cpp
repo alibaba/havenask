@@ -15,11 +15,14 @@
  */
 #include "build_service/admin/TCMallocMemController.h"
 
-#include <gperftools/heap-profiler.h>
+#include <functional>
 #include <gperftools/malloc_extension.h>
+#include <iostream>
 #include <malloc.h>
+#include <string>
 #include <time.h>
 
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"

@@ -15,7 +15,9 @@
  */
 #pragma once
 
+#include <memory>
 #include <set>
+#include <stdint.h>
 #include <string>
 #include <vector>
 

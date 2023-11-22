@@ -30,22 +30,22 @@ cc_library(
             'future_lite/experimental/coroutine.h', 'future_lite/coro/*.h'
         ]) + [':future_lite_coro_config_h']
     ),
-    deps=[
-        '//aios/alog:alog', '//aios/autil:thread', '//aios/autil:mem_pool_base',
-        '//aios/autil:string_type', '@rt_libs//:librt',
-        '@com_google_absl//absl/base', '@com_google_absl//absl/synchronization'
-    ],
-    visibility=['//visibility:public'],
     include_prefix='future_lite',
-    strip_include_prefix='future_lite'
+    strip_include_prefix='future_lite',
+    visibility=['//visibility:public'],
+    deps=[
+        '//aios/alog', '//aios/autil:mem_pool_base', '//aios/autil:string_type',
+        '//aios/autil:thread', '@com_google_absl//absl/base',
+        '@com_google_absl//absl/synchronization', '@rt_libs//:librt'
+    ]
 )
 cc_library(
     name='future_lite',
+    visibility=['//visibility:public'],
     deps=[
         ':future_lite_base',
         '//aios/future_lite/future_lite/executors:simple_executor'
-    ],
-    visibility=['//visibility:public']
+    ]
 )
 gen_conf_lib(
     name='test_h',

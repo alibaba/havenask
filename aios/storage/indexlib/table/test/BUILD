@@ -17,6 +17,7 @@ strict_cc_library(
         '//aios/storage/indexlib/framework:Tablet',
         '//aios/storage/indexlib/framework:TabletDeployer',
         '//aios/storage/indexlib/framework/test:tablet_test_helper',
-        '//aios/storage/indexlib/table/index_task:LocalTabletMergeController'
+        '//aios/storage/indexlib/table/index_task:LocalTabletMergeController',
+        '@com_google_googletest//:gtest'
     ]
 )

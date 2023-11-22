@@ -17,7 +17,7 @@
 #include "indexlib/framework/index_task/IndexTaskResource.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/framework/index_task/test/FakeResource.h"
-#include "indexlib/framework/index_task/testlib/TrivialTask.h"
+#include "indexlib/framework/index_task/testlib/FakeTask.h"
 #include "indexlib/util/PathUtil.h"
 #include "unittest/unittest.h"
 
@@ -148,8 +148,8 @@ TEST_F(LocalExecuteEngineTest, testTopoStages)
     auto testRoot = GET_TEMP_DATA_PATH();
     auto fs = indexlib::file_system::FileSystemCreator::Create("test", testRoot).GetOrThrow();
     auto resourceDir = indexlib::file_system::Directory::Get(fs);
-    testlib::TrivialSharedState st;
-    auto opCreator = std::make_unique<testlib::TrivialOperationCreator>(&st);
+    testlib::FakeSharedState st;
+    auto opCreator = std::make_unique<testlib::FakeOperationCreator>(&st);
     future_lite::executors::SimpleExecutor executor(2);
     LocalExecuteEngine engine(&executor, std::move(opCreator));
     IndexOperationDescription op0(/*id*/ 0, /*type*/ "");
@@ -181,8 +181,8 @@ TEST_F(LocalExecuteEngineTest, testCyclic)
     auto testRoot = GET_TEMP_DATA_PATH();
     auto fs = indexlib::file_system::FileSystemCreator::Create("test", testRoot).GetOrThrow();
     auto resourceDir = indexlib::file_system::Directory::Get(fs);
-    testlib::TrivialSharedState st;
-    auto opCreator = std::make_unique<testlib::TrivialOperationCreator>(&st);
+    testlib::FakeSharedState st;
+    auto opCreator = std::make_unique<testlib::FakeOperationCreator>(&st);
     future_lite::executors::SimpleExecutor executor(2);
     LocalExecuteEngine engine(&executor, std::move(opCreator));
     IndexOperationDescription op0(/*id*/ 0, /*type*/ "");
@@ -208,8 +208,8 @@ TEST_F(LocalExecuteEngineTest, testWholeCyclic)
     auto testRoot = GET_TEMP_DATA_PATH();
     auto fs = indexlib::file_system::FileSystemCreator::Create("test", testRoot).GetOrThrow();
     auto resourceDir = indexlib::file_system::Directory::Get(fs);
-    testlib::TrivialSharedState st;
-    auto opCreator = std::make_unique<testlib::TrivialOperationCreator>(&st);
+    testlib::FakeSharedState st;
+    auto opCreator = std::make_unique<testlib::FakeOperationCreator>(&st);
     future_lite::executors::SimpleExecutor executor(2);
     LocalExecuteEngine engine(&executor, std::move(opCreator));
     IndexOperationDescription op0(/*id*/ 0, /*type*/ "");
@@ -229,8 +229,8 @@ TEST_F(LocalExecuteEngineTest, testEmptyTaskPlan)
     auto testRoot = GET_TEMP_DATA_PATH();
     auto fs = indexlib::file_system::FileSystemCreator::Create("test", testRoot).GetOrThrow();
     auto resourceDir = indexlib::file_system::Directory::Get(fs);
-    testlib::TrivialSharedState st;
-    auto opCreator = std::make_unique<testlib::TrivialOperationCreator>(&st);
+    testlib::FakeSharedState st;
+    auto opCreator = std::make_unique<testlib::FakeOperationCreator>(&st);
     future_lite::executors::SimpleExecutor executor(2);
     LocalExecuteEngine engine(&executor, std::move(opCreator));
     IndexTaskPlan plan("", "");
@@ -245,8 +245,8 @@ TEST_F(LocalExecuteEngineTest, testWrongDepend)
     auto testRoot = GET_TEMP_DATA_PATH();
     auto fs = indexlib::file_system::FileSystemCreator::Create("test", testRoot).GetOrThrow();
     auto resourceDir = indexlib::file_system::Directory::Get(fs);
-    testlib::TrivialSharedState st;
-    auto opCreator = std::make_unique<testlib::TrivialOperationCreator>(&st);
+    testlib::FakeSharedState st;
+    auto opCreator = std::make_unique<testlib::FakeOperationCreator>(&st);
     future_lite::executors::SimpleExecutor executor(2);
     LocalExecuteEngine engine(&executor, std::move(opCreator));
     IndexOperationDescription op0(/*id*/ 0, /*type*/ "");
@@ -268,8 +268,8 @@ TEST_F(LocalExecuteEngineTest, testSelfDepend)
     auto testRoot = GET_TEMP_DATA_PATH();
     auto fs = indexlib::file_system::FileSystemCreator::Create("test", testRoot).GetOrThrow();
     auto resourceDir = indexlib::file_system::Directory::Get(fs);
-    testlib::TrivialSharedState st;
-    auto opCreator = std::make_unique<testlib::TrivialOperationCreator>(&st);
+    testlib::FakeSharedState st;
+    auto opCreator = std::make_unique<testlib::FakeOperationCreator>(&st);
     future_lite::executors::SimpleExecutor executor(2);
     LocalExecuteEngine engine(&executor, std::move(opCreator));
     IndexOperationDescription op0(/*id*/ 0, /*type*/ "");
@@ -292,8 +292,8 @@ TEST_F(LocalExecuteEngineTest, testDisconnectedTask)
     auto testRoot = GET_TEMP_DATA_PATH();
     auto fs = indexlib::file_system::FileSystemCreator::Create("test", testRoot).GetOrThrow();
     auto resourceDir = indexlib::file_system::Directory::Get(fs);
-    testlib::TrivialSharedState st;
-    auto opCreator = std::make_unique<testlib::TrivialOperationCreator>(&st);
+    testlib::FakeSharedState st;
+    auto opCreator = std::make_unique<testlib::FakeOperationCreator>(&st);
     future_lite::executors::SimpleExecutor executor(2);
     LocalExecuteEngine engine(&executor, std::move(opCreator));
     IndexOperationDescription op0(/*id*/ 0, /*type*/ "");
@@ -325,8 +325,8 @@ TEST_F(LocalExecuteEngineTest, testScheduleTask)
     auto testRoot = GET_TEMP_DATA_PATH();
     auto fs = indexlib::file_system::FileSystemCreator::Create("test", testRoot).GetOrThrow();
     auto resourceDir = indexlib::file_system::Directory::Get(fs);
-    testlib::TrivialSharedState st;
-    auto opCreator = std::make_unique<testlib::TrivialOperationCreator>(&st);
+    testlib::FakeSharedState st;
+    auto opCreator = std::make_unique<testlib::FakeOperationCreator>(&st);
     future_lite::executors::SimpleExecutor executor(2);
     IndexTaskContext context;
     context.TEST_SetFenceRoot(resourceDir);

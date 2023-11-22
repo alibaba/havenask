@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONREADERCLEANERTEST_H
-#define __INDEXLIB_PARTITIONREADERCLEANERTEST_H
+#pragma once
 
 #include "autil/Lock.h"
 #include "indexlib/common_define.h"
@@ -46,5 +45,3 @@ INDEXLIB_UNIT_TEST_CASE(PartitionReaderCleanerTest, TestCleanCache);
 INDEXLIB_UNIT_TEST_CASE(PartitionReaderCleanerTest, TestCleanMultipleUnusedReader);
 INDEXLIB_UNIT_TEST_CASE(PartitionReaderCleanerTest, TestEndlessLoop);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITIONREADERCLEANERTEST_H

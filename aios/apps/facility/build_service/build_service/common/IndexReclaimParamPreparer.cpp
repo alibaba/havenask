@@ -15,16 +15,37 @@
  */
 #include "build_service/common/IndexReclaimParamPreparer.h"
 
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <memory>
+#include <unistd.h>
+#include <utility>
+#include <vector>
+
 #include "autil/HashFuncFactory.h"
+#include "autil/HashFunctionBase.h"
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common/IndexReclaimConfigMaker.h"
+#include "build_service/util/Monitor.h"
 #include "build_service/util/SwiftClientCreator.h"
 #include "indexlib/config/IndexTaskConfig.h"
-#include "indexlib/config/OfflineConfig.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/RemoveOption.h"
+#include "indexlib/file_system/WriterOption.h"
+#include "indexlib/framework/index_task/BasicDefs.h"
 #include "indexlib/table/normal_table/index_task/PrepareIndexReclaimParamOperation.h"
+#include "kmonitor/client/MetricType.h"
+#include "swift/client/SwiftClient.h"
+#include "swift/protocol/ErrCode.pb.h"
+#include "swift/protocol/SwiftMessage.pb.h"
+
 using namespace std;
 
 namespace build_service { namespace common {

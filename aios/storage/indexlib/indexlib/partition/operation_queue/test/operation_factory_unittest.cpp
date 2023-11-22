@@ -1,6 +1,7 @@
 #include "indexlib/partition/operation_queue/test/operation_factory_unittest.h"
 
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/schema_rewriter.h"
 #include "indexlib/partition/operation_queue/operation_base.h"
 #include "indexlib/partition/operation_queue/remove_operation.h"
@@ -10,7 +11,6 @@
 #include "indexlib/partition/operation_queue/update_field_operation.h"
 #include "indexlib/partition/operation_queue/update_field_operation_creator.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_LIFECYCLELOADTEST_H
-#define __INDEXLIB_LIFECYCLELOADTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/framework/SegmentMetrics.h"
@@ -43,5 +42,3 @@ private:
 INDEXLIB_INSTANTIATE_TEST_CASE_ONE_P(LifecycleLoadTestMode, LifecycleLoadTest, testing::Values(false, true));
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(LifecycleLoadTestMode, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_LIFECYCLELOADTEST_H

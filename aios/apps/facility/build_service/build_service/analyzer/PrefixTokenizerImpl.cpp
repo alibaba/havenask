@@ -15,6 +15,9 @@
  */
 #include "build_service/analyzer/PrefixTokenizerImpl.h"
 
+#include <cstddef>
+#include <string>
+
 #include "autil/codec/UTF8Util.h"
 
 using namespace std;

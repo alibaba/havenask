@@ -1,12 +1,12 @@
 package com.taobao.search.iquan.core.rel.visitor.relshuttle;
 
-import org.apache.calcite.rel.RelHomogeneousShuttle;
-import org.apache.calcite.rel.RelNode;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.calcite.rel.RelHomogeneousShuttle;
+import org.apache.calcite.rel.RelNode;
 
 public class SameRelExpandShuttle extends RelHomogeneousShuttle {
     private Set<RelNode> visitedNode = new HashSet<>();

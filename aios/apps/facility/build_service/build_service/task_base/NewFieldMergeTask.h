@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_NEWFIELDMERGETASK_H
-#define ISEARCH_BS_NEWFIELDMERGETASK_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/config/OfflineMergeConfig.h"
-#include "build_service/custom_merger/CustomMergeMeta.h"
+#include "build_service/custom_merger/CustomMerger.h"
 #include "build_service/custom_merger/CustomMergerCreator.h"
+#include "build_service/custom_merger/MergeResourceProvider.h"
 #include "build_service/task_base/TaskBase.h"
 #include "build_service/util/Log.h"
 #include "indexlib/index_base/index_meta/parallel_build_info.h"
+#include "indexlib/partition/remote_access/partition_resource_provider.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace build_service { namespace task_base {
 
@@ -73,5 +78,3 @@ private:
 BS_TYPEDEF_PTR(NewFieldMergeTask);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_NEWFIELDMERGETASK_H

@@ -15,13 +15,37 @@
  */
 #include "indexlib/merger/merge_meta_work_item.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "autil/TimeUtility.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/FileCompressSchema.h"
+#include "indexlib/config/attribute_schema.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/merge_io_config.h"
+#include "indexlib/config/truncate_option_config.h"
+#include "indexlib/document/locator.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/common/Constant.h"
+#include "indexlib/index/merger_util/reclaim_map/reclaim_map_creator.h"
 #include "indexlib/index/merger_util/reclaim_map/sub_reclaim_map_creator.h"
 #include "indexlib/index/merger_util/truncate/bucket_map_creator.h"
 #include "indexlib/index/merger_util/truncate/truncate_attribute_reader_creator.h"
 #include "indexlib/index/merger_util/truncate/truncate_index_writer_creator.h"
+#include "indexlib/index/normal/attribute/accessor/offline_attribute_segment_reader_container.h"
+#include "indexlib/index/segment_metrics_updater/segment_metrics_updater.h"
 #include "indexlib/index_base/index_meta/progress_synchronizer.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/merger/merge_meta.h"
+#include "indexlib/merger/merge_plan_resource.h"
 #include "indexlib/merger/split_strategy/split_segment_strategy.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace indexlib::merger;

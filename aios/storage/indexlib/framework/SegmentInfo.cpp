@@ -15,11 +15,19 @@
  */
 #include "indexlib/framework/SegmentInfo.h"
 
+#include <cstdint>
+#include <exception>
+
 #include "autil/NetUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/base/Constant.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/JsonUtil.h"
+#include "indexlib/file_system/ReaderOption.h"
+#include "indexlib/file_system/WriterOption.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/Timer.h"
 
 namespace indexlibv2::framework {
@@ -60,7 +68,8 @@ void SegmentInfo::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         if (!locatorString.empty()) {
             Locator curLocator;
             if (!curLocator.Deserialize(locatorString)) {
-                AUTIL_LOG(ERROR, "deserialize locator string [%s] failed", locatorString.c_str());
+                INDEXLIB_THROW(indexlib::util::RuntimeException, "deserialize locator string [%s] failed",
+                               locatorString.c_str());
             } else {
                 locatorGuard.Set(curLocator);
             }
@@ -74,6 +83,16 @@ Status SegmentInfo::Load(const std::shared_ptr<indexlib::file_system::IDirectory
     std::string content;
     // auto readerOption = indexlib::file_system::ReaderOption::PutIntoCache(FSOT_MEM);
     auto st = directory->Load(SEGMENT_INFO_FILE_NAME, readerOption, content);
+    if (!st.OK()) {
+        return st.Status();
+    }
+    return indexlib::file_system::JsonUtil::FromString(content, this).Status();
+}
+
+Status SegmentInfo::Load(const std::string& filePath) noexcept
+{
+    std::string content;
+    auto st = indexlib::file_system::FslibWrapper::AtomicLoad(filePath, content);
     if (!st.OK()) {
         return st.Status();
     }

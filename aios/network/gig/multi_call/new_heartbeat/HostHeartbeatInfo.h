@@ -29,16 +29,29 @@ class HeartbeatClientStream;
 class HostHeartbeatStats
 {
 public:
+    void updateLastHeartbeatSendTime();
     void updateLastResponseTime();
     void updateLastHeartbeatTime(bool isSuccess);
-
+    bool isHeartbeatTimeout();
+    bool checkSubscribeTimeout(int64_t currentTime);
+    bool skip(int64_t currentTime);
+    void incTotalCount();
+private:
+    bool skipByCount();
 public:
     std::string addr;
     std::shared_ptr<HeartbeatClientManagerNotifier> notifier;
     bool success = false;
     bool topoReady = false;
+    bool subscribeTimeout = false;
+    bool lastCheckSuccess = false;
+    bool ignoreNextSkip = false;
+    int64_t firstHeartbeatTime = 0;
+    int64_t lastHeartbeatSendTime = 0;
     int64_t lastHeartbeatTime = 0;
     int64_t lastResponseTime = 0;
+    int64_t skipCount = 0;
+    int64_t totalCount = 0;
 
 private:
     AUTIL_LOG_DECLARE();
@@ -67,12 +80,11 @@ public:
     bool isTopoReady() const;
 
 private:
+    void checkHeartbeatTimeout();
     bool createStream();
     std::shared_ptr<HeartbeatClientStream> newClientStream() const;
     std::shared_ptr<HeartbeatClientStream> getStream() const;
     void setStream(const std::shared_ptr<HeartbeatClientStream> &stream);
-    bool skip(int64_t currentTime);
-    bool skipByCount();
 
 private:
     std::shared_ptr<SearchServiceSnapshot> _heartbeatSnapshot;
@@ -80,8 +92,6 @@ private:
     HeartbeatSpec _spec;
     mutable autil::ReadWriteLock _streamLock;
     std::shared_ptr<HeartbeatClientStream> _stream;
-    int64_t _skipCount;
-    int64_t _totalCount;
     HostHeartbeatStatsPtr _stats;
 
 private:

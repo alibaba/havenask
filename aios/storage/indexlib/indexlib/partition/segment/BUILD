@@ -82,7 +82,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/partition/segment',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/autil:net', '//aios/storage/indexlib/framework:SegmentMeta',
         '//aios/storage/indexlib/indexlib/common',

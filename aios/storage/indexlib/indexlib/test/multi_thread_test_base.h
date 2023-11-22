@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTI_THREAD_TEST_BASE_H
-#define __INDEXLIB_MULTI_THREAD_TEST_BASE_H
+#pragma once
 
 #include <memory>
 
@@ -85,5 +84,3 @@ inline void MultiThreadTestBase::DoMultiThreadTest(size_t readThreadNum, int64_t
     }
 }
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_MULTI_THREAD_TEST_BASE_H

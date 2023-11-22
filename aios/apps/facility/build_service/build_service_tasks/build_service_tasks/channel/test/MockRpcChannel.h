@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKRPCCHANNEL_H
-#define ISEARCH_BS_MOCKRPCCHANNEL_H
+#pragma once
 
 #include "build_service/util/Log.h"
 #include "build_service_tasks/channel/BsAdminChannel.h"
@@ -33,5 +32,3 @@ public:
 };
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_MOCKRPCCHANNEL_H

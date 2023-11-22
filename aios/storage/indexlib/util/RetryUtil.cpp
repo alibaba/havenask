@@ -15,9 +15,11 @@
  */
 #include "indexlib/util/RetryUtil.h"
 
+#include <cassert>
+#include <chrono>
+#include <cmath>
 #include <functional>
 #include <thread>
-#include <unistd.h>
 
 namespace indexlib::util {
 AUTIL_LOG_SETUP(indexlib.util, RetryUtil);

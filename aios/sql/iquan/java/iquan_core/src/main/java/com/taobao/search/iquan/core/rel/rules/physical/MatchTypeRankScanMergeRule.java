@@ -1,8 +1,14 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexMatchTypeShuttle;
 import com.taobao.search.iquan.core.utils.IquanMiscUtils;
 import com.taobao.search.iquan.core.utils.RelDistributionUtil;
@@ -10,9 +16,6 @@ import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MatchTypeRankScanMergeRule extends RelOptRule {
     public static final MatchTypeRankScanMergeRule INSTANCE = new MatchTypeRankScanMergeRule(IquanRelBuilder.LOGICAL_BUILDER);

@@ -18,29 +18,32 @@
 
 package com.taobao.search.iquan.core.rel.rules.logical.calcite;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.google.common.base.Preconditions;
-import com.taobao.search.iquan.core.rel.IquanRelBuilder;
-import org.apache.calcite.rex.RexCall;
-import org.apache.calcite.sql.SqlKind;
-import com.google.common.collect.Lists;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptRuleOperand;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.*;
+import org.apache.calcite.rel.core.Filter;
+import org.apache.calcite.rel.core.Join;
+import org.apache.calcite.rel.core.JoinRelType;
+import org.apache.calcite.rel.core.RelFactories;
 import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexUtil;
+import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * This rules is copied from Calcite's {@link org.apache.calcite.rel.rules.FilterJoinRule}.
@@ -54,8 +57,10 @@ import java.util.List;
  * within a join node into the join node and/or its children nodes.
  */
 public abstract class IquanFilterJoinRule extends RelOptRule {
-    /** Predicate that always returns true. With this predicate, every filter
-     * will be pushed into the ON clause. */
+    /**
+     * Predicate that always returns true. With this predicate, every filter
+     * will be pushed into the ON clause.
+     */
     public static final Predicate TRUE_PREDICATE =
             new Predicate() {
                 public boolean apply(Join join, JoinRelType joinType, RexNode exp) {
@@ -74,28 +79,38 @@ public abstract class IquanFilterJoinRule extends RelOptRule {
         return call.getOperator().getKind() == SqlKind.EQUALS;
     };
 
-    /** Rule that pushes predicates from a Filter into the Join below them. */
+    /**
+     * Rule that pushes predicates from a Filter into the Join below them.
+     */
     public static final IquanFilterJoinRule FILTER_ON_JOIN =
             new IquanFilterIntoJoinRule(false, IquanRelBuilder.LOGICAL_BUILDER,
                     IS_EQUAL_FILTER);
 
-    /** Dumber version of {@link #FILTER_ON_JOIN}. Not intended for production
+    /**
+     * Dumber version of {@link #FILTER_ON_JOIN}. Not intended for production
      * use, but keeps some tests working for which {@code FILTER_ON_JOIN} is too
-     * smart. */
+     * smart.
+     */
     public static final IquanFilterJoinRule DUMB_FILTER_ON_JOIN =
             new IquanFilterIntoJoinRule(false, IquanRelBuilder.LOGICAL_BUILDER,
                     TRUE_PREDICATE);
 
-    /** Rule that pushes predicates in a Join into the inputs to the join. */
+    /**
+     * Rule that pushes predicates in a Join into the inputs to the join.
+     */
     public static final IquanFilterJoinRule JOIN =
             new IquanJoinConditionPushRule(IquanRelBuilder.LOGICAL_BUILDER, TRUE_PREDICATE);
 
-    /** Whether to try to strengthen join-type. */
+    /**
+     * Whether to try to strengthen join-type.
+     */
     private final boolean smart;
 
-    /** Predicate that returns whether a filter is valid in the ON clause of a
+    /**
+     * Predicate that returns whether a filter is valid in the ON clause of a
      * join for this particular kind of join. If not, Calcite will push it back to
-     * above the join. */
+     * above the join.
+     */
     private final Predicate predicate;
 
     //~ Constructors -----------------------------------------------------------
@@ -249,10 +264,10 @@ public abstract class IquanFilterJoinRule extends RelOptRule {
         // if nothing actually got pushed and there is nothing leftover,
         // then this rule is a no-op
         if ((!filterPushed
-                        && joinType == join.getJoinType())
+                && joinType == join.getJoinType())
                 || (deterministicJoinFilters.isEmpty()
-                        && leftFilters.isEmpty()
-                        && rightFilters.isEmpty())) {
+                && leftFilters.isEmpty()
+                && rightFilters.isEmpty())) {
             return;
         }
 
@@ -268,7 +283,7 @@ public abstract class IquanFilterJoinRule extends RelOptRule {
         // create the new join node referencing the new children and
         // containing its new join filters (if there are any)
         final ImmutableList<RelDataType> fieldTypes =
-                        ImmutableList.<RelDataType>builder()
+                ImmutableList.<RelDataType>builder()
                         .addAll(RelOptUtil.getFieldTypeList(leftRel.getRowType()))
                         .addAll(RelOptUtil.getFieldTypeList(rightRel.getRowType())).build();
         final List<RexNode> leftJoinFilters = ImmutableList.<RexNode>builder()
@@ -334,13 +349,13 @@ public abstract class IquanFilterJoinRule extends RelOptRule {
      * conditions.
      *
      * @param aboveFilters Filter above Join
-     * @param joinFilters Filters in join condition
-     * @param join Join
-     * @param joinType JoinRelType could be different from type in Join due to
-     * outer join simplification.
+     * @param joinFilters  Filters in join condition
+     * @param join         Join
+     * @param joinType     JoinRelType could be different from type in Join due to
+     *                     outer join simplification.
      */
     protected void validateJoinFilters(List<RexNode> aboveFilters,
-            List<RexNode> joinFilters, Join join, JoinRelType joinType) {
+                                       List<RexNode> joinFilters, Join join, JoinRelType joinType) {
         final Iterator<RexNode> filterIter = joinFilters.iterator();
         while (filterIter.hasNext()) {
             RexNode exp = filterIter.next();
@@ -358,7 +373,18 @@ public abstract class IquanFilterJoinRule extends RelOptRule {
         return join instanceof LogicalJoin || !join.getJoinType().projectsRight();
     }
 
-    /** Rule that pushes parts of the join condition to its inputs. */
+    /**
+     * Predicate that returns whether a filter is valid in the ON clause of a
+     * join for this particular kind of join. If not, Calcite will push it back to
+     * above the join.
+     */
+    public interface Predicate {
+        boolean apply(Join join, JoinRelType joinType, RexNode exp);
+    }
+
+    /**
+     * Rule that pushes parts of the join condition to its inputs.
+     */
     public static class IquanJoinConditionPushRule extends IquanFilterJoinRule {
         public IquanJoinConditionPushRule(RelBuilderFactory relBuilderFactory,
                                           Predicate predicate) {
@@ -379,14 +405,17 @@ public abstract class IquanFilterJoinRule extends RelOptRule {
             return matches(join);
         }
 
-        @Override public void onMatch(RelOptRuleCall call) {
+        @Override
+        public void onMatch(RelOptRuleCall call) {
             Join join = call.rel(0);
             perform(call, null, join);
         }
     }
 
-    /** Rule that tries to push filter expressions into a join
-     * condition and into the inputs of the join. */
+    /**
+     * Rule that tries to push filter expressions into a join
+     * condition and into the inputs of the join.
+     */
     public static class IquanFilterIntoJoinRule extends IquanFilterJoinRule {
         public IquanFilterIntoJoinRule(boolean smart,
                                        RelBuilderFactory relBuilderFactory, Predicate predicate) {
@@ -411,18 +440,12 @@ public abstract class IquanFilterJoinRule extends RelOptRule {
             return matches(join);
         }
 
-        @Override public void onMatch(RelOptRuleCall call) {
+        @Override
+        public void onMatch(RelOptRuleCall call) {
             Filter filter = call.rel(0);
             Join join = call.rel(1);
             perform(call, filter, join);
         }
-    }
-
-    /** Predicate that returns whether a filter is valid in the ON clause of a
-     * join for this particular kind of join. If not, Calcite will push it back to
-     * above the join. */
-    public interface Predicate {
-        boolean apply(Join join, JoinRelType joinType, RexNode exp);
     }
 }
 

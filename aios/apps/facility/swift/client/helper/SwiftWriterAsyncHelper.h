@@ -17,6 +17,7 @@
 
 #include <functional>
 #include <limits>
+#include <list>
 #include <memory>
 #include <queue>
 #include <stddef.h>
@@ -50,32 +51,31 @@ struct SwiftWriteCallbackParam {
 struct SwiftWriteCallbackItem {
 public:
     typedef std::function<void(autil::result::Result<SwiftWriteCallbackParam>)> WriteCallbackFunc;
+    struct Payload {
+        WriteCallbackFunc callback;
+        common::MessageInfo *msgInfos = nullptr; // only for log
+        size_t count = 0;
+        int64_t timeoutInUs = 0;
+    };
+
+public:
+    SwiftWriteCallbackItem();
 
 public:
     bool onDone(SwiftWriteCallbackParam param);
-
     bool onTimeout(const std::string &src);
 
 public:
-    WriteCallbackFunc callback;
+    std::shared_ptr<Payload> payload;
     int64_t expireTimeInUs = 0;
     int64_t checkpointId = 0;
-    common::MessageInfo *msgInfos = nullptr; // only for log
-    size_t count = 0;
-    int64_t timeoutInUs = 0;
 };
 
 SWIFT_TYPEDEF_PTR(SwiftWriteCallbackItem);
 
-struct SwiftWriteCallbackItemPtrCmpCheckpointId {
-    bool operator()(const SwiftWriteCallbackItemPtr &lhs, const SwiftWriteCallbackItemPtr &rhs) {
-        return lhs->checkpointId > rhs->checkpointId;
-    }
-};
-
-struct SwiftWriteCallbackItemPtrCmpExpireTime {
-    bool operator()(const SwiftWriteCallbackItemPtr &lhs, const SwiftWriteCallbackItemPtr &rhs) {
-        return lhs->expireTimeInUs > rhs->expireTimeInUs;
+struct SwiftWriteCallbackItemCmpExpireTime {
+    bool operator()(const SwiftWriteCallbackItem &lhs, const SwiftWriteCallbackItem &rhs) {
+        return lhs.expireTimeInUs > rhs.expireTimeInUs;
     }
 };
 
@@ -89,17 +89,21 @@ private:
     SwiftWriterAsyncHelper &operator=(const SwiftWriterAsyncHelper &);
 
 public:
-    bool init(std::unique_ptr<swift::client::SwiftWriter> writer, const std::string &desc = "");
+    bool init(std::unique_ptr<swift::client::SwiftWriter> writer, const std::string &desc);
 
 public:
     virtual void write(common::MessageInfo *msgInfos,
                        size_t count,
                        SwiftWriteCallbackItem::WriteCallbackFunc callback,
-                       int64_t timeout = std::numeric_limits<int64_t>::max());
+                       int64_t timeout);
 
     size_t getPendingItemCount() const;
     void waitEmpty();
     std::string getTopicName() const;
+
+protected:
+    virtual void pushToTimeoutQueue(const SwiftWriteCallbackItem &item);
+    virtual void getExpiredItemsFromTimeoutQueue(std::list<SwiftWriteCallbackItem> &result, int64_t now);
 
 private:
     void stop();
@@ -112,7 +116,7 @@ private:
     virtual int64_t getCkptIdLimit() const;                                    // virtual for test
     virtual void stealRange(std::vector<int64_t> &timestamps, int64_t ckptId); // virtual for test
 
-private:
+protected:
     bool _stopped = false;
     CheckpointBuffer _ckptBuffer;
     autil::Notifier _checkLoopNotifier;
@@ -120,16 +124,13 @@ private:
     mutable autil::ThreadMutex _lock;
     int64_t _checkpointIdAllocator = 0;
     size_t _pendingItemCount = 0;
-    std::priority_queue<SwiftWriteCallbackItemPtr,
-                        std::vector<SwiftWriteCallbackItemPtr>,
-                        SwiftWriteCallbackItemPtrCmpCheckpointId>
-        _checkpointIdQueue;
-    std::priority_queue<SwiftWriteCallbackItemPtr,
-                        std::vector<SwiftWriteCallbackItemPtr>,
-                        SwiftWriteCallbackItemPtrCmpExpireTime>
-        _timeoutQueue;
+    std::deque<SwiftWriteCallbackItem> _checkpointIdQueue;
+    std::
+        priority_queue<SwiftWriteCallbackItem, std::vector<SwiftWriteCallbackItem>, SwiftWriteCallbackItemCmpExpireTime>
+            _timeoutQueue;
     std::unique_ptr<swift::client::SwiftWriter> _writer;
     std::string _desc;
+    size_t _timeoutItemCountOnStop = 0;
 
 private:
     AUTIL_LOG_DECLARE();

@@ -35,8 +35,8 @@ FSResult<size_t> NormalFileStream::Read(void* buffer, size_t length, size_t offs
     return _fileReader->Read(buffer, length, offset, option);
 }
 
-future_lite::Future<size_t> NormalFileStream::ReadAsync(void* buffer, size_t length, size_t offset,
-                                                        file_system::ReadOption option)
+future_lite::Future<FSResult<size_t>> NormalFileStream::ReadAsync(void* buffer, size_t length, size_t offset,
+                                                                  file_system::ReadOption option)
 {
     return _fileReader->ReadAsync(buffer, length, offset, option);
 }

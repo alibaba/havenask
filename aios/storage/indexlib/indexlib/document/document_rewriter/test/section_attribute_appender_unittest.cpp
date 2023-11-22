@@ -4,9 +4,9 @@
 #include "indexlib/common/field_format/attribute/string_attribute_convertor.h"
 #include "indexlib/common/field_format/attribute/var_num_attribute_formatter.h"
 #include "indexlib/common/field_format/section_attribute/section_attribute_formatter.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/index_document.h"
 #include "indexlib/document/index_document/normal_document/index_tokenize_field.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

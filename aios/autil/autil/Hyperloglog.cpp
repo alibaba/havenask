@@ -41,16 +41,16 @@ void HllCtx::serialize(autil::DataBuffer &dataBuffer) const {
     dataBuffer.write(_encoding);
     EncodeAndWriteUint32(_eleNum, dataBuffer);
 
-    if (HLL_SPARSE == _encoding) {
-        dataBuffer.writeBytes((char *)_regiArr, HLL_REGI_MAX_BYTES);
+    if (Hyperloglog::HLL_SPARSE == _encoding) {
+        dataBuffer.writeBytes((char *)_regiArr, Hyperloglog::HLL_REGI_MAX_BYTES);
         return;
     }
-    if (_eleNum < HLL_SERIAL_SPARSE_MIN) {
+    if (_eleNum < Hyperloglog::HLL_SERIAL_SPARSE_MIN) {
         uint8_t val = _registers[0];
         int num = 1;
         int sum = 0;
 
-        for (int i = 1; i < HLL_REGISTERS; i++) {
+        for (int i = 1; i < Hyperloglog::HLL_REGISTERS; i++) {
             uint8_t cur = _registers[i];
             if (val == cur) {
                 num++;
@@ -66,9 +66,9 @@ void HllCtx::serialize(autil::DataBuffer &dataBuffer) const {
         sum += num;
         dataBuffer.write(val);
         EncodeAndWriteUint32(num, dataBuffer);
-        dataBuffer.write((uint8_t)(1 << HLL_BITS));
+        dataBuffer.write((uint8_t)(1 << Hyperloglog::HLL_BITS));
     } else {
-        dataBuffer.writeBytes((char *)_registers, HLL_REGISTERS);
+        dataBuffer.writeBytes((char *)_registers, Hyperloglog::HLL_REGISTERS);
     }
     return;
 }
@@ -79,34 +79,34 @@ void HllCtx::deserialize(autil::DataBuffer &dataBuffer, autil::mem_pool::Pool *p
     }
     dataBuffer.read(_encoding);
     _eleNum = ReadAndDecodeUnit32(dataBuffer);
-    if (HLL_SPARSE == _encoding) {
-        _regiArr = (HllRegi *)pool->allocate(HLL_REGI_MAX_BYTES);
-        dataBuffer.readBytes(_regiArr, HLL_REGI_MAX_BYTES);
+    if (Hyperloglog::HLL_SPARSE == _encoding) {
+        _regiArr = (HllRegi *)pool->allocate(Hyperloglog::HLL_REGI_MAX_BYTES);
+        dataBuffer.readBytes(_regiArr, Hyperloglog::HLL_REGI_MAX_BYTES);
         return;
     }
     // 稠密编码方式
-    _registers = (uint8_t *)pool->allocate(HLL_REGISTERS);
+    _registers = (uint8_t *)pool->allocate(Hyperloglog::HLL_REGISTERS);
     if (_registers == NULL)
         return;
 
-    if (_eleNum < HLL_SERIAL_SPARSE_MIN) {
+    if (_eleNum < Hyperloglog::HLL_SERIAL_SPARSE_MIN) {
         uint8_t val = 0;  // 实际的值
         uint32_t num = 0; // 重复的次数
         int writeIdx = 0;
         dataBuffer.read(val);
 
-        while (val != (1 << HLL_BITS)) // 一直循环到哨兵
+        while (val != (1 << Hyperloglog::HLL_BITS)) // 一直循环到哨兵
         {
             num = ReadAndDecodeUnit32(dataBuffer);
             for (uint32_t i = 0; i < num; i++) {
-                if (writeIdx < HLL_REGISTERS)
+                if (writeIdx < Hyperloglog::HLL_REGISTERS)
                     _registers[writeIdx] = val;
                 writeIdx++;
             }
             dataBuffer.read(val);
         }
     } else {
-        dataBuffer.readBytes(_registers, HLL_REGISTERS);
+        dataBuffer.readBytes(_registers, Hyperloglog::HLL_REGISTERS);
     }
 }
 
@@ -411,7 +411,13 @@ HllCtx *Hyperloglog::hllCtxCreate(unsigned char encoding, autil::mem_pool::Pool 
     if (pool == NULL)
         return NULL;
 
-    HllCtx *thiz = (HllCtx *)pool->allocate(sizeof(HllCtx));
+    void *address = nullptr;
+    if (HLL_SPARSE == encoding) {
+        address = pool->allocate(sizeof(HllCtx) + HLL_REGI_MAX * sizeof(HllRegi));
+    } else {
+        address = pool->allocate(sizeof(HllCtx) + HLL_REGISTERS * sizeof(uint8_t));
+    }
+    HllCtx *thiz = (HllCtx *)(address);
 
     thiz->_eleNum = 0;
     thiz->_encoding = encoding;
@@ -419,14 +425,14 @@ HllCtx *Hyperloglog::hllCtxCreate(unsigned char encoding, autil::mem_pool::Pool 
     thiz->_regiArr = NULL;
 
     if (HLL_SPARSE == encoding) {
-        thiz->_regiArr = (HllRegi *)pool->allocate(HLL_REGI_MAX * sizeof(HllRegi));
+        thiz->_regiArr = (HllRegi *)(reinterpret_cast<char *>(address) + sizeof(HllCtx));
         if (NULL == thiz->_regiArr)
             goto failed;
         memset(thiz->_regiArr, 0, HLL_REGI_MAX * sizeof(HllRegi));
     }
 
     if (HLL_DENSE == encoding) {
-        thiz->_registers = (uint8_t *)pool->allocate(HLL_REGISTERS * sizeof(uint8_t));
+        thiz->_registers = (uint8_t *)(reinterpret_cast<char *>(address) + sizeof(HllCtx));
         if (NULL == thiz->_registers)
             goto failed;
         memset(thiz->_registers, 0, HLL_REGISTERS);

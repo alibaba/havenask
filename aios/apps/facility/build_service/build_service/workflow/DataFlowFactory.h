@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DATAFLOWFACTORY_H
-#define ISEARCH_BS_DATAFLOWFACTORY_H
+#pragma once
 
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/config/CLIOptionNames.h"
-#include "build_service/util/Log.h"
 #include "build_service/workflow/BuildFlowMode.h"
+#include "build_service/workflow/Consumer.h"
 #include "build_service/workflow/FlowFactory.h"
+#include "build_service/workflow/Producer.h"
 #include "build_service/workflow/Workflow.h"
 
 namespace build_service { namespace workflow {
@@ -28,11 +33,13 @@ namespace build_service { namespace workflow {
 class DataFlowFactory
 {
 public:
-    enum DocType { RAW_DOC = 0, PROCESSED_DOC = 1 };
+    enum DocType { RAW_DOC = 0, PROCESSED_DOC = 1, BATCH_DOC = 2 };
     static std::vector<std::unique_ptr<Workflow>> createDataFlow(const FlowFactory::RoleInitParam& param,
                                                                  BuildFlowMode mode, FlowFactory* factory);
 
 private:
+    static std::string DocTypeToString(DocType docType);
+
     static ProducerBase* createProducer(DocType docType, FlowFactory* factory, const FlowFactory::RoleInitParam& param,
                                         FlowFactory::ProducerType);
     static ConsumerBase* createConsumer(DocType docType, FlowFactory* factory, const FlowFactory::RoleInitParam& param,
@@ -47,5 +54,3 @@ private:
 BS_TYPEDEF_PTR(DataFlowFactory);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_DATAFLOWFACTORY_H

@@ -72,7 +72,7 @@ bool KvRawDocumentParser::parseSingleMessage(const Message& msg, document::KVDoc
         return false;
     }
     auto extendDoc = std::make_shared<IndexlibExtendDocument>();
-    extendDoc->setRawDocument(rawDocPtr);
+    extendDoc->SetRawDocument(rawDocPtr);
     regionid_t regionId = DEFAULT_REGIONID;
     if (!mRegionFieldName.empty()) {
         std::string regionField = rawDocPtr->getField(mRegionFieldName);
@@ -127,7 +127,7 @@ bool KvRawDocumentParser::parseMultiMessage(const std::vector<Message>& msgs, do
         }
         hasValidDoc = true;
         multiDoc.setDocTimestamp(msg.timestamp);
-        multiDoc.SetDocInfo({msg.hashId, msg.timestamp, 0});
+        multiDoc.SetDocInfo({msg.hashId, msg.timestamp, 0, 0});
     }
     multiDoc.SetDocOperateType(ADD_DOC);
 

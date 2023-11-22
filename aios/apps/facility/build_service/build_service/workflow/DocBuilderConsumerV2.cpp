@@ -15,11 +15,19 @@
  */
 #include "build_service/workflow/DocBuilderConsumerV2.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "build_service/document/ProcessedDocument.h"
-#include "indexlib/document/DocumentBatch.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/document/DocumentIterator.h"
-#include "indexlib/document/document.h"
-#include "indexlib/framework/Locator.h"
+#include "indexlib/document/IDocument.h"
+#include "indexlib/document/IDocumentBatch.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace workflow {
 
@@ -83,10 +91,6 @@ FlowError DocBuilderConsumerV2::consume(const document::ProcessedDocumentVecPtr&
 bool DocBuilderConsumerV2::getLocator(common::Locator& locator) const
 {
     locator = _builder->getLastLocator();
-    // locator.setSrc(lastLocator.GetSrc());
-    // locator.setOffset(lastLocator.GetOffset());
-    // locator.setProgress(lastLocator.GetProgress());
-    // locator.setUserData(lastLocator.GetUserData());
     BS_LOG(INFO, "builder locator [%s]", locator.DebugString().c_str());
     return true;
 }

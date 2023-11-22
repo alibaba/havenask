@@ -15,6 +15,8 @@
  */
 #include "indexlib/table/table_resource.h"
 
+#include <cstddef>
+
 using namespace std;
 
 namespace indexlib { namespace table {

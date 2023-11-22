@@ -12,7 +12,7 @@ cc_library(
     hdrs=glob(['*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index/test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/file_system/test:test-util',
         '//aios/storage/indexlib/indexlib:indexlib_merger',
@@ -37,7 +37,7 @@ cc_fast_test(
         'temperature_segment_metrics_updater_unittest.cpp',
         'filter_matcher_unittest.cpp'
     ]),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=(['//aios/storage/indexlib:testdata'] + glob(['testdata/**'])),
     deps=[
         ':indexlib_index_test_helper',

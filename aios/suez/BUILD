@@ -33,7 +33,7 @@ cc_binary(
         '//package/dolphin/online:__pkg__', '//package/ha3:__pkg__',
         '//package/havenask:__pkg__', '//package/rtp/online:__pkg__',
         '//package/sql:__pkg__', '//package/suez:__pkg__',
-        '//package/torch_turing:__pkg__'
+        '//package/torch_turing:__pkg__', '//package/vector_service:__pkg__'
     ],
     deps=[
         '//aios/suez/admin:suez_admin',
@@ -44,10 +44,14 @@ cc_library(
     name='suez_worker',
     visibility=[
         '//aios/ha3:__pkg__', '//aios/sql:__subpackages__',
-        '//aios/igraph:__pkg__', '//abfs_turing:__pkg__', '//be_turing:__pkg__',
-        '//d2_framework:__pkg__', '//rtp_turing:__pkg__',
-        '//torch_turing:__pkg__', '//aios/apps/engine/dolphin:__pkg__',
-        '//aios/havenask_app_interface:__pkg__', '//aios/suez:__subpackages__',
+        '//aios/igraph:__pkg__', '//aios/apps/engine/abfs_turing:__pkg__',
+        '//aios/apps/engine/be_turing:__pkg__',
+        '//aios/apps/engine/d2_framework:__pkg__',
+        '//aios/apps/engine/rtp_turing:__pkg__', '//torch_turing:__pkg__',
+        '//aios/apps/engine/dolphin:__pkg__',
+        '//aios/havenask_app_interface:__pkg__',
+        '//aios/apps/engine/vector_service:__subpackages__',
+        '//aios/suez:__subpackages__',
         '//integration_test/storage_local:__subpackages__',
         '//integration_test/suez:__subpackages__',
         '//aios/ha3/ha3/turing/common/test:__subpackages__'

@@ -1,9 +1,11 @@
-#ifndef ISEARCH_BS_FAKESWIFTCLIENTCREATOR_H
-#define ISEARCH_BS_FAKESWIFTCLIENTCREATOR_H
+#pragma once
+
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/SwiftClientCreator.h"
+#include "swift/client/SwiftClient.h"
 
 namespace build_service { namespace util {
 
@@ -35,5 +37,3 @@ private:
 BS_TYPEDEF_PTR(FakeSwiftClientCreator);
 
 }} // namespace build_service::util
-
-#endif // ISEARCH_BS_FAKESWIFTCLIENTCREATOR_H

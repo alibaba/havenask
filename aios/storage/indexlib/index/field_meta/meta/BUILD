@@ -1,0 +1,51 @@
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+package(default_visibility=['//aios/storage/indexlib/index:__subpackages__'])
+strict_cc_library(
+    name='MetaFactory',
+    deps=[
+        ':DataStatisticsMeta', ':FieldTokenCountMeta', ':HistogramMeta',
+        ':IFieldMeta', ':MinMaxFieldMeta',
+        '//aios/storage/indexlib/config:FieldConfig'
+    ]
+)
+strict_cc_library(
+    name='IFieldMeta',
+    srcs=[],
+    deps=[
+        '//aios/autil:json', '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index:BuildingIndexMemoryUseUpdater',
+        '//aios/storage/indexlib/index/common/field_format/field_meta:field_meta_convertor'
+    ]
+)
+strict_cc_library(
+    name='MinMaxFieldMeta',
+    srcs=[],
+    deps=[
+        ':IFieldMeta',
+        '//aios/storage/indexlib/index/field_meta/config:FieldMetaConfig'
+    ]
+)
+strict_cc_library(
+    name='FieldTokenCountMeta',
+    srcs=['FieldTokenCountMeta.cpp'],
+    deps=[
+        ':IFieldMeta',
+        '//aios/storage/indexlib/index/field_meta/config:FieldMetaConfig'
+    ]
+)
+strict_cc_library(
+    name='DataStatisticsMeta',
+    srcs=['DataStatisticsMeta.cpp'],
+    deps=[
+        ':IFieldMeta',
+        '//aios/storage/indexlib/index/field_meta/config:FieldMetaConfig'
+    ]
+)
+strict_cc_library(
+    name='HistogramMeta',
+    srcs=['HistogramMeta.cpp'],
+    deps=[
+        ':IFieldMeta',
+        '//aios/storage/indexlib/index/field_meta/config:FieldMetaConfig'
+    ]
+)

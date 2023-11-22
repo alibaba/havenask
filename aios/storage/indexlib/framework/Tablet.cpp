@@ -15,58 +15,89 @@
  */
 #include "indexlib/framework/Tablet.h"
 
-#include "autil/ConstString.h"
+#include <algorithm>
+#include <assert.h>
+#include <chrono>
+#include <exception>
+#include <limits>
+#include <ostream>
+#include <stddef.h>
+#include <type_traits>
+
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
+#include "autil/Scope.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "autil/UnitUtil.h"
+#include "autil/WorkItemQueue.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "future_lite/TaskScheduler.h"
+#include "future_lite/Try.h"
 #include "future_lite/coro/Lazy.h"
+#include "future_lite/coro/LazyHelper.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/base/MemoryQuotaController.h"
 #include "indexlib/base/MemoryQuotaSynchronizer.h"
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/config/BackgroundTaskConfig.h"
 #include "indexlib/config/BuildConfig.h"
+#include "indexlib/config/FieldConfig.h"
 #include "indexlib/config/IIndexConfig.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/config/OnlineConfig.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
-#include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/IDocumentParser.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
-#include "indexlib/file_system/FileInfo.h"
 #include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/FileSystemMetricsReporter.h"
+#include "indexlib/file_system/FileSystemOptions.h"
+#include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/LifecycleConfig.h"
+#include "indexlib/file_system/LifecycleTable.h"
 #include "indexlib/file_system/MountOption.h"
+#include "indexlib/file_system/ReaderOption.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/file_system/load_config/LoadConfigList.h"
 #include "indexlib/framework/BuildResource.h"
+#include "indexlib/framework/DefaultMemoryControlStrategy.h"
 #include "indexlib/framework/DeployIndexUtil.h"
 #include "indexlib/framework/DiskSegment.h"
 #include "indexlib/framework/Fence.h"
+#include "indexlib/framework/IMemoryControlStrategy.h"
+#include "indexlib/framework/IMetrics.h"
 #include "indexlib/framework/ITabletImporter.h"
+#include "indexlib/framework/ITabletLoader.h"
 #include "indexlib/framework/IndexRecoverStrategy.h"
-#include "indexlib/framework/MemSegment.h"
 #include "indexlib/framework/MemSegmentCreator.h"
 #include "indexlib/framework/MetricsManager.h"
 #include "indexlib/framework/ResourceMap.h"
 #include "indexlib/framework/Segment.h"
+#include "indexlib/framework/SegmentDumper.h"
 #include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/framework/SegmentMeta.h"
-#include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/framework/TabletCommitter.h"
-#include "indexlib/framework/TabletDataInfo.h"
 #include "indexlib/framework/TabletDataSchemaGroup.h"
 #include "indexlib/framework/TabletDumper.h"
 #include "indexlib/framework/TabletFactoryCreator.h"
+#include "indexlib/framework/TabletId.h"
 #include "indexlib/framework/TabletInfos.h"
-#include "indexlib/framework/TabletLoader.h"
 #include "indexlib/framework/TabletReader.h"
 #include "indexlib/framework/TabletReaderContainer.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
 #include "indexlib/framework/TabletSchemaManager.h"
 #include "indexlib/framework/TaskType.h"
 #include "indexlib/framework/VersionDeployDescription.h"
+#include "indexlib/framework/VersionLine.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/framework/VersionMetaCreator.h"
 #include "indexlib/framework/cleaner/DropIndexCleaner.h"
@@ -77,11 +108,13 @@
 #include "indexlib/framework/mem_reclaimer/EpochBasedMemReclaimer.h"
 #include "indexlib/framework/mem_reclaimer/MemReclaimerMetrics.h"
 #include "indexlib/util/Exception.h"
-#include "indexlib/util/KeyHasherTyped.h"
+#include "indexlib/util/KeyValueMap.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/cache/SearchCachePartitionWrapper.h"
 #include "indexlib/util/memory_control/BuildResourceMetrics.h"
 #include "indexlib/util/memory_control/MemoryReserver.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlibv2::framework {
 
@@ -356,7 +389,7 @@ Status Tablet::Build(const std::shared_ptr<document::IDocumentBatch>& batch)
         Status st = ReopenNewSegment(GetTabletSchema());
         if (!st.IsOK()) {
             CloseWriterUnsafe();
-            TABLET_LOG(ERROR, "reopen new segment failed");
+            TABLET_LOG(ERROR, "reopen new segment failed, error: %s", st.ToString().c_str());
             return st;
         }
     }
@@ -437,7 +470,8 @@ std::pair<Status, VersionMeta> Tablet::Commit(const CommitOptions& commitOptions
     }
     if (commitOptions.NeedReopenInCommit()) {
         TABLET_LOG(INFO, "reopen in commit, versionid[%d]", commitedVersionMeta.GetVersionId());
-        auto status = DoReopenUnsafe(ReopenOptions(_openOptions), commitedVersionMeta.GetVersionId());
+        auto status = DoReopenUnsafe(ReopenOptions(_openOptions), VersionCoord {commitedVersionMeta.GetVersionId(),
+                                                                                commitedVersionMeta.GetFenceName()});
         if (!status.IsOK()) {
             TABLET_LOG(ERROR, "reopen commited version failed");
             return {status, VersionMeta()};
@@ -1039,10 +1073,17 @@ Status Tablet::DoReopenUnsafe(const ReopenOptions& reopenOptions, const VersionC
     } else {
         TABLET_LOG(ERROR, "do reopen failed, tablet open writer and reader failed");
     }
-    if (!GetMemSegmentLocator().IsValid() && _tabletInfos->GetLoadedPublishVersion().IsSealed()) {
-        _sealedSourceLocator = _tabletInfos->GetLoadedPublishVersion().GetLocator();
-        if (_sealedSourceLocator) {
-            _tabletCommitter->SetSealed(true);
+    if (!GetMemSegmentLocator().IsValid()) {
+        if (_tabletInfos->GetLoadedPublishVersion().IsSealed()) {
+            _sealedSourceLocator = _tabletInfos->GetLoadedPublishVersion().GetLocator();
+            if (_sealedSourceLocator) {
+                _tabletCommitter->SetSealed(true);
+            }
+        } else {
+            if (_sealedSourceLocator) {
+                _sealedSourceLocator.reset();
+                _tabletCommitter->SetSealed(false);
+            }
         }
     }
     _tabletCommitter->SetLastPublicVersion(version);
@@ -1180,7 +1221,7 @@ Status Tablet::PrepareResource()
     if (_buildMemoryQuotaSynchronizer == nullptr) {
         auto buildMemoryQuotaController = std::make_shared<MemoryQuotaController>(
             _tabletInfos->GetTabletName() + "_build", _tabletOptions->GetBuildMemoryQuota());
-        _buildMemoryQuotaSynchronizer = std::make_unique<MemoryQuotaSynchronizer>(buildMemoryQuotaController);
+        _buildMemoryQuotaSynchronizer = std::make_shared<MemoryQuotaSynchronizer>(buildMemoryQuotaController);
     }
     auto reporter = _fence.GetFileSystem()->GetFileSystemMetricsReporter();
     if (reporter != nullptr) {
@@ -1212,7 +1253,11 @@ Status Tablet::PrepareResource()
         }));
     assert(_tabletMetrics);
     _tabletInfos->SetTabletMetrics(_tabletMetrics);
-    // factory->getIndexMetricsMap();
+    _memControlStrategy = _tabletFactory->CreateMemoryControlStrategy(_buildMemoryQuotaSynchronizer);
+    if (_memControlStrategy == nullptr) {
+        _memControlStrategy.reset(new DefaultMemoryControlStrategy(_tabletOptions, _buildMemoryQuotaSynchronizer));
+    }
+
     TABLET_LOG(INFO, "end prepare resource");
     return Status::OK();
 }
@@ -1337,7 +1382,7 @@ Status Tablet::RecoverIndexInfo(const std::string& indexRoot, const std::string&
 Status Tablet::FlushUnsafe()
 {
     [[maybe_unused]] bool r = SealSegmentUnsafe();
-    auto status = _tabletDumper->Dump();
+    auto status = _tabletDumper->Dump(_tabletOptions->GetBuildConfig().GetDumpThreadCount());
     return status;
 }
 
@@ -1372,7 +1417,7 @@ Status Tablet::Seal()
         TABLET_LOG(ERROR, "dump failed: %s", status.ToString().c_str());
         return status;
     }
-    status = _tabletDumper->Seal();
+    status = _tabletDumper->Seal(_tabletOptions->GetBuildConfig().GetDumpThreadCount());
     if (!status.IsOK()) {
         TABLET_LOG(ERROR, "seal failed: %s", status.ToString().c_str());
         return status;
@@ -1450,7 +1495,8 @@ Status Tablet::CleanUnreferencedDeployFiles(const std::set<std::string>& toKeepF
 }
 
 Status Tablet::CheckAlterTableCompatible(const std::shared_ptr<TabletData>& tabletData,
-                                         const config::ITabletSchema& oldSchema, const config::ITabletSchema& newSchema)
+                                         const std::shared_ptr<config::ITabletSchema>& oldSchema,
+                                         const std::shared_ptr<config::ITabletSchema>& newSchema)
 {
     // check ignore new schema
     // env ignore_alter_table_schema_ids = 1;2;3
@@ -1458,7 +1504,7 @@ Status Tablet::CheckAlterTableCompatible(const std::shared_ptr<TabletData>& tabl
     if (autil::EnvUtil::getEnvWithoutDefault("ignore_alter_table_schema_ids", ignoreAlterSchemaIdStr)) {
         std::vector<schemaid_t> ignoreSchemaIds;
         autil::StringUtil::fromString(ignoreAlterSchemaIdStr, ignoreSchemaIds, ";");
-        auto schemaId = newSchema.GetSchemaId();
+        auto schemaId = newSchema->GetSchemaId();
         for (auto ignoreSchema : ignoreSchemaIds) {
             if (schemaId == ignoreSchema) {
                 TABLET_LOG(ERROR, "alter table with ignore schema id [%d], all ignore schemas [%s]", schemaId,
@@ -1468,10 +1514,10 @@ Status Tablet::CheckAlterTableCompatible(const std::shared_ptr<TabletData>& tabl
         }
     }
     // check duplicate index
-    for (auto indexConfig : newSchema.GetIndexConfigs()) {
+    for (auto indexConfig : newSchema->GetIndexConfigs()) {
         auto indexType = indexConfig->GetIndexType();
         auto indexName = indexConfig->GetIndexName();
-        if (!oldSchema.GetIndexConfig(indexType, indexName)) {
+        if (!oldSchema->GetIndexConfig(indexType, indexName)) {
             // indexConfig is add index config
             // check index config has in old segment
             auto slice = tabletData->CreateSlice();
@@ -1484,49 +1530,7 @@ Status Tablet::CheckAlterTableCompatible(const std::shared_ptr<TabletData>& tabl
             }
         }
     }
-
-    // check schema id
-    if (oldSchema.GetSchemaId() > newSchema.GetSchemaId()) {
-        TABLET_LOG(ERROR, "new schema [%d] id smaller than current schemaId [%d] alter table failed.",
-                   newSchema.GetSchemaId(), oldSchema.GetSchemaId());
-        return Status::InvalidArgs();
-    }
-
-    // check same field config not changed
-    const auto& fieldConfigs = newSchema.GetFieldConfigs();
-    for (auto fieldConfig : fieldConfigs) {
-        auto originFieldConfig = oldSchema.GetFieldConfig(fieldConfig->GetFieldName());
-        if (!originFieldConfig) {
-            continue;
-        }
-        auto fieldStr = ToJsonString(*fieldConfig);
-        auto originFieldStr = ToJsonString(*originFieldConfig);
-        if (fieldStr != originFieldStr) {
-            TABLET_LOG(ERROR, "origin field [%s] not same with target field[%s].", originFieldStr.c_str(),
-                       fieldStr.c_str());
-            return Status::InvalidArgs("field config changed");
-        }
-    }
-    // check same index config compatible
-    auto indexConfigs = newSchema.GetIndexConfigs();
-    auto toJsonString = [](const std::shared_ptr<config::IIndexConfig>& config) {
-        autil::legacy::Jsonizable::JsonWrapper json;
-        config->Serialize(json);
-        return ToJsonString(json.GetMap());
-    };
-    for (const auto& indexConfig : indexConfigs) {
-        const auto& originIndexConfig =
-            oldSchema.GetIndexConfig(indexConfig->GetIndexType(), indexConfig->GetIndexName());
-        if (!originIndexConfig) {
-            continue;
-        }
-        auto indexStr = toJsonString(indexConfig);
-        auto originIndexStr = toJsonString(originIndexConfig);
-        auto status = originIndexConfig->CheckCompatible(indexConfig.get());
-        RETURN_IF_STATUS_ERROR(status, "origin index [%s] not compatible with target index[%s].",
-                               originIndexStr.c_str(), indexStr.c_str());
-    }
-    return Status::OK();
+    return config::TabletSchema::CheckUpdateSchema(oldSchema, newSchema);
 }
 
 Status Tablet::AlterTable(const std::shared_ptr<config::ITabletSchema>& newSchema)
@@ -1549,7 +1553,7 @@ Status Tablet::AlterTable(const std::shared_ptr<config::ITabletSchema>& newSchem
 
     {
         std::lock_guard<std::mutex> guard(_dataMutex);
-        status = CheckAlterTableCompatible(_tabletData, *oldSchema, *newSchema);
+        status = CheckAlterTableCompatible(_tabletData, oldSchema, newSchema);
         if (!status.IsOK()) {
             TABLET_LOG(ERROR, "new schema [%u] not compatible with old schema [%u]: %s", newSchema->GetSchemaId(),
                        oldSchema->GetSchemaId(), status.ToString().c_str());
@@ -1617,6 +1621,13 @@ Status Tablet::RenewFenceLease(bool createIfNotExist)
     return status;
 }
 
+std::shared_ptr<framework::ResourceCleaner> Tablet::CreateResourceCleaner()
+{
+    return std::make_shared<ResourceCleaner>(_tabletReaderContainer.get(), GetRootDirectory(),
+                                             _tabletInfos->GetTabletName(), !_tabletOptions->IsLeader(), &_cleanerMutex,
+                                             _tabletOptions->GetBackgroundTaskConfig().GetCleanResourceIntervalMs());
+}
+
 bool Tablet::StartIntervalTask()
 {
     TABLET_LOG(INFO, "begin start interval task");
@@ -1627,10 +1638,6 @@ bool Tablet::StartIntervalTask()
     _taskScheduler->CleanTasks();
 
     const config::BackgroundTaskConfig& taskConfig = _tabletOptions->GetBackgroundTaskConfig();
-
-    auto cleanResourceTask = std::make_shared<ResourceCleaner>(
-        _tabletReaderContainer.get(), GetRootDirectory(), _tabletInfos->GetTabletName(), !_tabletOptions->IsLeader(),
-        &_cleanerMutex, taskConfig.GetCleanResourceIntervalMs());
 
     auto startTask = [this](auto taskType, auto func, auto interval) {
         auto taskString = TaskTypeToString(taskType);
@@ -1651,8 +1658,15 @@ bool Tablet::StartIntervalTask()
             taskConfig.GetRenewFenceLeaseIntervalMs())) {
         return false;
     }
+    auto cleanResourceTask = CreateResourceCleaner();
     if (!startTask(
-            TaskType::TT_CLEAN_RESOURCE, [cleanResourceTask]() { cleanResourceTask->Run(); },
+            TaskType::TT_CLEAN_RESOURCE,
+            [this, cleanResourceTask]() {
+                cleanResourceTask->Run();
+                if (_enableMemReclaimer) {
+                    MemoryReclaim();
+                }
+            },
             taskConfig.GetCleanResourceIntervalMs())) {
         return false;
     }
@@ -1666,7 +1680,9 @@ bool Tablet::StartIntervalTask()
         return false;
     }
     if (!startTask(
-            TaskType::TT_ASYNC_DUMP, [this]() { (void)_tabletDumper->Dump(); }, taskConfig.GetAsyncDumpIntervalMs())) {
+            TaskType::TT_ASYNC_DUMP,
+            [this]() { (void)_tabletDumper->Dump(_tabletOptions->GetBuildConfig().GetDumpThreadCount()); },
+            taskConfig.GetAsyncDumpIntervalMs())) {
         return false;
     }
     if (_versionMerger && _tabletOptions->AutoMerge()) {
@@ -1678,12 +1694,6 @@ bool Tablet::StartIntervalTask()
                         .start([versionMerger = _versionMerger](future_lite::Try<std::pair<Status, versionid_t>>&&) {});
                 },
                 taskConfig.GetMergeIntervalMs())) {
-            return false;
-        }
-    }
-    if (_enableMemReclaimer) {
-        if (!startTask(
-                TaskType::TT_MEMORY_RECLAIM, [this]() { MemoryReclaim(); }, taskConfig.GetMemReclaimIntervalMs())) {
             return false;
         }
     }
@@ -1717,7 +1727,7 @@ void Tablet::PrepareTabletMetrics(const std::shared_ptr<TabletWriter>& tabletWri
     auto tabletData = GetTabletData();
     _tabletMetrics->UpdateMetrics(_tabletReaderContainer, tabletData, tabletWriter,
                                   _tabletOptions->GetBuildMemoryQuota(), _fence.GetFileSystem());
-    _buildMemoryQuotaSynchronizer->SyncMemoryQuota(_tabletMetrics->GetRtIndexMemsize());
+    _memControlStrategy->SyncMemoryQuota(_tabletMetrics);
     MemoryStatus memoryStatus = CheckMemoryStatus();
     _tabletInfos->SetMemoryStatus(memoryStatus);
     _tabletMetrics->SetMemoryStatus(memoryStatus);
@@ -1733,48 +1743,14 @@ void Tablet::ReportMetrics(const std::shared_ptr<TabletWriter>& tabletWriter)
         tabletWriter->ReportMetrics();
     }
 }
+
 MemoryStatus Tablet::CheckMemoryStatus() const
 {
-    auto rtIndexMemsizeBytes = _tabletMetrics->GetRtIndexMemsize();
-    if (rtIndexMemsizeBytes >= _tabletOptions->GetBuildMemoryQuota()) {
-        // current tablet
-        TABLET_LOG(WARN, "reach build memory quota, current rt-index memsize[%s] build memory quota[%s]",
-                   autil::UnitUtil::GiBDebugString(rtIndexMemsizeBytes).c_str(),
-                   autil::UnitUtil::GiBDebugString(_tabletOptions->GetBuildMemoryQuota()).c_str());
-        return MemoryStatus::REACH_MAX_RT_INDEX_SIZE;
+    auto memStatus = _memControlStrategy->CheckRealtimeIndexMemoryQuota(_tabletMetrics);
+    if (memStatus != MemoryStatus::OK) {
+        return memStatus;
     }
-
-    if (_buildMemoryQuotaSynchronizer->GetFreeQuota() <= 0) {
-        // maybe multi-tablet shared the buildMemoryQuotaController
-        TABLET_LOG(WARN, "reach total build memory quota, current free quota[%s]",
-                   autil::UnitUtil::GiBDebugString(_buildMemoryQuotaSynchronizer->GetFreeQuota()).c_str());
-        return MemoryStatus::REACH_MAX_RT_INDEX_SIZE;
-    }
-
-    int64_t availableMemoryUse = _tabletMemoryQuotaController->GetFreeQuota();
-    uint64_t buildingSegmentDumpExpandMemsize = _tabletMetrics->GetBuildingSegmentDumpExpandMemsize();
-    uint64_t dumpingSegmentDumpExpandMemsize = _tabletDumper->GetMaxDumpingSegmentExpandMemsize();
-    uint64_t dumpExpandMemUse = std::max(buildingSegmentDumpExpandMemsize, dumpingSegmentDumpExpandMemsize);
-    if (availableMemoryUse <= (int64_t)dumpExpandMemUse) {
-        int64_t currentMemUse = _tabletMetrics->GetTabletMemoryUse();
-        TABLET_LOG(WARN, "reach memory use limit free mem [%s], current total memory is [%s], dumpExpandMemUse [%s]",
-                   autil::UnitUtil::GiBDebugString(availableMemoryUse).c_str(),
-                   autil::UnitUtil::GiBDebugString(currentMemUse).c_str(),
-                   autil::UnitUtil::GiBDebugString(dumpExpandMemUse).c_str());
-        return MemoryStatus::REACH_TOTAL_MEM_LIMIT;
-    }
-    TABLET_LOG(DEBUG,
-               "rtIndex memory size [%s], "
-               "available memory size [%s], "
-               "building segment dump expand memory size [%s], "
-               "dumping segment dump expand memory size [%s], "
-               "dump expand memory size [%s]",
-               autil::UnitUtil::GiBDebugString(rtIndexMemsizeBytes).c_str(),
-               autil::UnitUtil::GiBDebugString(availableMemoryUse).c_str(),
-               autil::UnitUtil::GiBDebugString(buildingSegmentDumpExpandMemsize).c_str(),
-               autil::UnitUtil::GiBDebugString(dumpingSegmentDumpExpandMemsize).c_str(),
-               autil::UnitUtil::GiBDebugString(dumpExpandMemUse).c_str());
-    return MemoryStatus::OK;
+    return _memControlStrategy->CheckTotalMemoryQuota(_tabletMetrics);
 }
 
 std::shared_ptr<TabletWriter> Tablet::GetTabletWriter() const
@@ -1818,8 +1794,7 @@ ReadResource Tablet::GenerateReadResource() const
 {
     ReadResource readResource;
     readResource.metricsManager = _metricsManager.get();
-    // todo: add memory reclaimer
-    readResource.indexMemoryReclaimer = _memReclaimer.get();
+    readResource.indexMemoryReclaimer = _memReclaimer;
     readResource.rootDirectory = GetRootDirectory();
     readResource.searchCache = _searchCache;
     return readResource;
@@ -1831,18 +1806,15 @@ std::pair<Status, versionid_t> Tablet::ExecuteTask(const Version& sourceVersion,
                                                    const std::string& taskName,
                                                    const std::map<std::string, std::string>& params)
 {
+    if (!_versionMerger) {
+        RETURN2_IF_STATUS_ERROR(Status::InvalidArgs(), INVALID_VERSIONID, "version merger is nullptr");
+    }
     return future_lite::coro::syncAwait(_versionMerger.get()->ExecuteTask(sourceVersion, taskType, taskName, params));
 }
 
-void Tablet::HandleIndexTask(const std::string& taskType, const std::string& taskName,
-                             const std::map<std::string, std::string>& params, Action action,
-                             const std::string& comment)
-{
-    _tabletCommitter->HandleIndexTask(taskType, taskName, params, action, comment);
-}
-
 Status Tablet::ImportExternalFiles(const std::string& bulkloadId, const std::vector<std::string>& externalFiles,
-                                   const std::shared_ptr<ImportExternalFileOptions>& options, Action action)
+                                   const std::shared_ptr<ImportExternalFileOptions>& options, Action action,
+                                   int64_t eventTimeInSecs)
 {
     std::lock_guard<std::mutex> lock(_dataMutex);
     Status status;
@@ -1866,43 +1838,30 @@ Status Tablet::ImportExternalFiles(const std::string& bulkloadId, const std::vec
             }
         }
     }
-
-    RETURN_IF_STATUS_ERROR(FlushUnsafe(), "flush before import external file failed, isLeader[%d]",
-                           _tabletOptions->IsLeader());
+    if (action == Action::ADD) {
+        // avoid duplicate bulkload call
+        const auto& currentOnDiskVersion = GetTabletData()->GetOnDiskVersion();
+        auto indexTask = currentOnDiskVersion.GetIndexTaskQueue()->Get(BULKLOAD_TASK_TYPE, bulkloadId);
+        if (indexTask != nullptr) {
+            return status;
+        }
+        if (_tabletCommitter->HasIndexTask(BULKLOAD_TASK_TYPE, bulkloadId)) {
+            return status;
+        }
+        RETURN_IF_STATUS_ERROR(FlushUnsafe(), "flush before import external file failed, isLeader[%d]",
+                               _tabletOptions->IsLeader());
+    }
     if (_tabletOptions->IsLeader()) {
+        IndexTaskMetaCreator creator;
         std::map<std::string, std::string> params;
+        std::string taskName = "bulkload";
         params[PARAM_BULKLOAD_ID] = bulkloadId;
         params[PARAM_EXTERNAL_FILES] = autil::legacy::ToJsonString(externalFiles);
-        const auto& currentOnDiskVersion = GetTabletData()->GetOnDiskVersion();
-        auto indexTask = currentOnDiskVersion.GetIndexTask(BULKLOAD_TASK_TYPE, bulkloadId);
-
-        if (action == Action::ABORT) {
-            HandleIndexTask(BULKLOAD_TASK_TYPE, bulkloadId, params, action, /*comment=*/"");
-        } else if (action == Action::SUSPEND) {
-            HandleIndexTask(BULKLOAD_TASK_TYPE, bulkloadId, params, action, /*comment=*/"");
-        } else if (action == Action::OVERWRITE) {
-            if (externalFiles.empty()) {
-                auto status = Status::InvalidArgs("external file list is empty.");
-                TABLET_LOG(ERROR, "overwrite index task failed, bulkload id is %s, status: %s", bulkloadId.c_str(),
-                           status.ToString().c_str());
-                return status;
-            }
-            if (options == nullptr) {
-                auto status = Status::InvalidArgs("invalid import external file options.");
-                TABLET_LOG(ERROR, "overwrite index task failed, bulkload id is %s, status: %s", bulkloadId.c_str(),
-                           status.ToString().c_str());
-                return status;
-            }
-            params[PARAM_IMPORT_EXTERNAL_FILE_OPTIONS] = autil::legacy::ToJsonString(options);
-            HandleIndexTask(BULKLOAD_TASK_TYPE, bulkloadId, params, action, /*comment=*/"");
-        } else if (action == Action::ADD) {
-            if (indexTask != nullptr) {
-                return status;
-            }
+        if (action == Action::ADD) {
             std::string comment;
             if (externalFiles.empty()) {
                 status = Status::InvalidArgs("external file list is empty.");
-            } else if (options == nullptr) {
+            } else if (options == nullptr || !options->IsValidMode()) {
                 status = Status::InvalidArgs("invalid import external file options.");
             }
             if (!status.IsOK()) {
@@ -1915,8 +1874,42 @@ Status Tablet::ImportExternalFiles(const std::string& bulkloadId, const std::vec
             }
             uint64_t newSegId = _idGenerator->GetNextSegmentId();
             params[PARAM_LAST_SEQUENCE_NUMBER] = autil::StringUtil::toString(newSegId << 24);
-            HandleIndexTask(BULKLOAD_TASK_TYPE, bulkloadId, params, action, comment);
+            auto meta = creator.TaskType(BULKLOAD_TASK_TYPE)
+                            .TaskTraceId(bulkloadId)
+                            .TaskName(taskName)
+                            .Params(params)
+                            .EventTimeInSecs(eventTimeInSecs)
+                            .Comment(comment)
+                            .Create();
+            _tabletCommitter->HandleIndexTask(meta, action);
             _idGenerator->CommitNextSegmentId();
+        } else if (action == Action::OVERWRITE) {
+            if (externalFiles.empty()) {
+                auto status = Status::InvalidArgs("external file list is empty.");
+                TABLET_LOG(ERROR, "overwrite index task failed, bulkload id is %s, status: %s", bulkloadId.c_str(),
+                           status.ToString().c_str());
+                return status;
+            }
+            if (options == nullptr || !options->IsValidMode()) {
+                auto status = Status::InvalidArgs("invalid import external file options.");
+                TABLET_LOG(ERROR, "overwrite index task failed, bulkload id is %s, status: %s", bulkloadId.c_str(),
+                           status.ToString().c_str());
+                return status;
+            }
+            params[PARAM_IMPORT_EXTERNAL_FILE_OPTIONS] = autil::legacy::ToJsonString(options);
+            auto meta = creator.TaskType(BULKLOAD_TASK_TYPE)
+                            .TaskTraceId(bulkloadId)
+                            .TaskName(taskName)
+                            .Params(params)
+                            .EventTimeInSecs(eventTimeInSecs)
+                            .Create();
+            _tabletCommitter->HandleIndexTask(meta, action);
+        } else if (action == Action::ABORT) {
+            auto meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId(bulkloadId).TaskName(taskName).Create();
+            _tabletCommitter->HandleIndexTask(meta, action);
+        } else if (action == Action::SUSPEND) {
+            auto meta = creator.TaskType(BULKLOAD_TASK_TYPE).TaskTraceId(bulkloadId).TaskName(taskName).Create();
+            _tabletCommitter->HandleIndexTask(meta, action);
         } else {
             status = Status::InvalidArgs("invalid action, usage action=%s|%s|%s|%s",
                                          ActionConvertUtil::ActionToStr(Action::ADD).c_str(),
@@ -1924,14 +1917,15 @@ Status Tablet::ImportExternalFiles(const std::string& bulkloadId, const std::vec
                                          ActionConvertUtil::ActionToStr(Action::OVERWRITE).c_str(),
                                          ActionConvertUtil::ActionToStr(Action::SUSPEND).c_str());
         }
-        if (!status.IsOK()) {
-            TABLET_LOG(ERROR, "import external file failed, status: %s, bulkload id %s, external files %s, options %s",
-                       status.ToString().c_str(), bulkloadId.c_str(),
-                       autil::legacy::ToJsonString(externalFiles, /*isCompact=*/true).c_str(),
-                       autil::legacy::ToJsonString(options, /*isCompact=*/true).c_str());
-            return status;
-        }
     }
+    if (!status.IsOK()) {
+        TABLET_LOG(ERROR, "import external file failed, status: %s, bulkload id %s, external files %s, options %s",
+                   status.ToString().c_str(), bulkloadId.c_str(),
+                   autil::legacy::ToJsonString(externalFiles, /*isCompact=*/true).c_str(),
+                   autil::legacy::ToJsonString(options, /*isCompact=*/true).c_str());
+        return status;
+    }
+
     TABLET_LOG(INFO, "import external file, isLeader[%d], bulkload id %s, external files %s, options %s",
                _tabletOptions->IsLeader(), bulkloadId.c_str(),
                autil::legacy::ToJsonString(externalFiles, /*isCompact=*/true).c_str(),

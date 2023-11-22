@@ -1,7 +1,17 @@
 #include "build_service/proto/DataDescriptions.h"
 
-#include "autil/legacy/jsonizable.h"
+#include <iostream>
+#include <map>
+#include <stddef.h>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/ParserConfig.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

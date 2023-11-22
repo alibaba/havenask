@@ -53,16 +53,22 @@ bool BsVersionSynchronizer::supportSyncFromPersist(const PartitionMeta &target) 
 }
 
 bool BsVersionSynchronizer::syncFromPersist(const PartitionId &pid,
-                                            const std::string &configPath,
+                                            const std::string &appName,
+                                            const std::string &dataTable,
+                                            const std::string &remoteConfigPath,
                                             TableVersion &version) {
+    std::string configPath = TablePathDefine::constructLocalConfigPath(pid.getTableName(), remoteConfigPath);
+    if (fslib::EC_TRUE != fslib::fs::FileSystem::isExist(configPath)) {
+        configPath = remoteConfigPath;
+    }
     autil::ScopedLock lock(_mutex);
-    auto committer = createCommitter(pid, configPath);
+    auto committer = createCommitter(pid, appName, dataTable, configPath);
     std::vector<indexlibv2::versionid_t> versions;
     if (!committer || !committer->GetCommittedVersions(1, versions).IsOK()) {
         AUTIL_LOG(ERROR, "get committed version  for pid [%s] failed", FastToJsonString(pid, true).c_str());
         return false;
     }
-    IncVersion versionId = INVALID_VERSION;
+    IncVersion versionId = indexlib::INVALID_VERSIONID;
     if (!versions.empty()) {
         assert(versions.size() == 1);
         versionId = versions[0];
@@ -72,10 +78,16 @@ bool BsVersionSynchronizer::syncFromPersist(const PartitionId &pid,
 }
 
 bool BsVersionSynchronizer::persistVersion(const PartitionId &pid,
-                                           const std::string &localConfigPath,
+                                           const std::string &appName,
+                                           const std::string &dataTable,
+                                           const std::string &remoteConfigPath,
                                            const TableVersion &version) {
+    std::string configPath = TablePathDefine::constructLocalConfigPath(pid.getTableName(), remoteConfigPath);
+    if (fslib::EC_TRUE != fslib::fs::FileSystem::isExist(configPath)) {
+        configPath = remoteConfigPath;
+    }
     autil::ScopedLock lock(_mutex);
-    auto committer = createCommitter(pid, localConfigPath);
+    auto committer = createCommitter(pid, appName, dataTable, configPath);
     if (!committer) {
         AUTIL_LOG(ERROR, "create version committer for pid [%s] failed", FastToJsonString(pid, true).c_str());
         return false;
@@ -94,9 +106,17 @@ bool BsVersionSynchronizer::persistVersion(const PartitionId &pid,
     return true;
 }
 
-bool BsVersionSynchronizer::getVersionList(const PartitionId &pid, std::vector<TableVersion> &versions) { return true; }
+bool BsVersionSynchronizer::getVersionList(const PartitionId &pid,
+                                           const std::string &appName,
+                                           const std::string &dataTable,
+                                           std::vector<TableVersion> &versions) {
+    return true;
+}
 
-bool BsVersionSynchronizer::updateVersionList(const PartitionId &pid, const std::vector<TableVersion> &versions) {
+bool BsVersionSynchronizer::updateVersionList(const PartitionId &pid,
+                                              const std::string &appName,
+                                              const std::string &dataTable,
+                                              const std::vector<TableVersion> &versions) {
     return true;
 }
 
@@ -105,25 +125,27 @@ std::shared_ptr<build_service::common::RemoteVersionCommitter> BsVersionSynchron
 }
 
 std::shared_ptr<build_service::common::RemoteVersionCommitter>
-BsVersionSynchronizer::createCommitter(const PartitionId &pid, const std::string &configPath) const {
-    std::string existConfigPath = TablePathDefine::constructLocalConfigPath(pid.getTableName(), configPath);
-    if (fslib::EC_TRUE != fslib::fs::FileSystem::isExist(configPath)) {
-        existConfigPath = configPath;
-    }
+BsVersionSynchronizer::createCommitter(const PartitionId &pid,
+                                       const std::string &appName,
+                                       const std::string &dataTable,
+                                       const std::string &configPath) const {
     auto committer = createCommitter();
     assert(committer);
-    build_service::config::ResourceReader resourceReader(configPath);
-    std::string dataTableName;
-    if (!resourceReader.getDataTableFromClusterName(pid.getTableName(), dataTableName)) {
-        AUTIL_LOG(ERROR,
-                  "get data table for cluster [%s] from local config path [%s] failed",
-                  pid.getTableName().c_str(),
-                  configPath.c_str());
-        return nullptr;
+    std::string dataTableName = dataTable;
+    if (dataTableName.empty()) {
+        build_service::config::ResourceReader resourceReader(configPath);
+        if (!resourceReader.getDataTableFromClusterName(pid.getTableName(), dataTableName)) {
+            AUTIL_LOG(ERROR,
+                      "get data table for cluster [%s] from local config path [%s] failed",
+                      pid.getTableName().c_str(),
+                      configPath.c_str());
+            return nullptr;
+        }
     }
     build_service::common::RemoteVersionCommitter::InitParam initParam;
     initParam.generationId = pid.getFullVersion();
     initParam.dataTable = dataTableName;
+    initParam.appName = appName;
     initParam.clusterName = pid.getTableName();
     initParam.rangeFrom = pid.from;
     initParam.rangeTo = pid.to;

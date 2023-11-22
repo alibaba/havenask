@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MATCHINFO_INDEX_POSTING_ITERATOR_H
-#define __INDEXLIB_MATCHINFO_INDEX_POSTING_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -42,8 +41,8 @@ public:
     TermMeta* GetTermMeta() const override;
     matchvalue_t GetMatchValue() const override { return mCurMatchValue; }
     MatchValueType GetMatchValueType() const override { return mType; }
-    docid_t SeekDoc(docid_t docId) override;
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    docid64_t SeekDoc(docid64_t docId) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
     bool HasPosition() const override;
     void Unpack(TermMatchData& termMatchData) override;
     PostingIteratorType GetType() const override { return pi_customized; }
@@ -94,18 +93,18 @@ inline bool MatchInfoPostingIterator::LocateSegment(docid_t docId, int32_t& segC
     return false;
 }
 
-inline docid_t MatchInfoPostingIterator::SeekDoc(docid_t docId)
+inline docid64_t MatchInfoPostingIterator::SeekDoc(docid64_t docId)
 {
-    docid_t ret = INVALID_DOCID;
+    docid64_t ret = INVALID_DOCID;
     auto ec = SeekDocWithErrorCode(docId, ret);
     assert(ec == index::ErrorCode::OK);
     (void)ec;
     return ret;
 }
 
-inline index::ErrorCode MatchInfoPostingIterator::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+inline index::ErrorCode MatchInfoPostingIterator::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
-    docId = std::max(mCurrentDocId + 1, docId);
+    docId = std::max((docid64_t)mCurrentDocId + 1, docId);
     if (unlikely(docId > mLastDocIdInCurSeg)) {
         if (!LocateSegment(docId, mSegCursor, mDocCursor, mType, mMatchValueCursor, mCurSegBaseDocId,
                            mLastDocIdInCurSeg)) {
@@ -124,5 +123,3 @@ inline index::ErrorCode MatchInfoPostingIterator::SeekDocWithErrorCode(docid_t d
     return index::ErrorCode::OK;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_CUSTOMIZED_INDEX_POSTING_ITERATOR_H

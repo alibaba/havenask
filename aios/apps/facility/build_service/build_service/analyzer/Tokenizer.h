@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TOKENIZER_H
-#define ISEARCH_BS_TOKENIZER_H
+#pragma once
 
 #include "build_service/analyzer/Token.h"
 #include "build_service/config/ResourceReader.h"
@@ -39,5 +38,3 @@ private:
 typedef plugin::PooledObject<Tokenizer, indexlibv2::analyzer::ITokenizer> PooledTokenizer;
 
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_TOKENIZER_H

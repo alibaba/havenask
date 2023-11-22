@@ -15,10 +15,21 @@
  */
 #include "indexlib/merger/merge_partition_data_creator.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+
+#include "indexlib/config/FileCompressSchema.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/framework/SegmentMetrics.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/index_base/segment/segment_directory_creator.h"
 #include "indexlib/plugin/plugin_manager.h"
-#include "indexlib/util/counter/CounterMap.h"
-#include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace indexlib::config;

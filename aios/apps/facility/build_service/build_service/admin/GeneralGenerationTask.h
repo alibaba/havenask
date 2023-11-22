@@ -15,9 +15,25 @@
  */
 #pragma once
 
+#include <assert.h>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/admin/CounterCollector.h"
 #include "build_service/admin/GenerationTaskBase.h"
+#include "build_service/admin/WorkerTable.h"
+#include "build_service/admin/controlflow/TaskFlowManager.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/DataDescriptions.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace admin {
 
@@ -65,7 +81,8 @@ public:
     }
 
     bool importBuild(const std::string& configPath, const std::string& generationDir,
-                     const std::string& dataDescriptionKvs, indexlib::versionid_t importedVersionId,
+                     const std::string& dataDescriptionKvs,
+                     const GenerationTaskBase::ImportedVersionIdMap& importedVersionIdMap,
                      proto::StartBuildResponse* response) override
     {
         return false;
@@ -81,6 +98,7 @@ public:
     }
 
     bool updateConfig(const std::string& configPath) override;
+    proto::BuildStep getBuildStep() const override { return proto::BUILD_STEP_IDLE; }
 
 private:
     bool isAllFlowFinished();
@@ -104,6 +122,13 @@ private:
     bool doGetBulkloadInfo(const std::string& clusterName, const std::string& bulkloadId,
                            const ::google::protobuf::RepeatedPtrField<proto::Range>& ranges, std::string* resultStr,
                            std::string* errorMsg) const override
+    {
+        assert(false);
+        return false;
+    }
+    bool doBulkload(const std::string& clusterName, const std::string& bulkloadId,
+                    const ::google::protobuf::RepeatedPtrField<proto::ExternalFiles>& externalFiles,
+                    const std::string& options, const std::string& action, std::string* errorMsg) override
     {
         assert(false);
         return false;

@@ -15,6 +15,9 @@
  */
 #include "build_service/workflow/SourceOpConverter.h"
 
+#include <assert.h>
+#include <iosfwd>
+
 using namespace std;
 
 namespace build_service { namespace workflow {

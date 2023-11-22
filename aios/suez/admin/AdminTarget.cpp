@@ -22,6 +22,7 @@
 #include "build_service/config/BuildServiceConfig.h"
 #include "catalog/entity/Partition.h"
 #include "catalog/entity/Table.h"
+#include "catalog/entity/TableGroup.h"
 #include "catalog/tools/BSConfigMaker.h"
 #include "catalog/tools/TableSchemaConfig.h"
 #include "suez/admin/BizConfigMaker.h"
@@ -102,7 +103,8 @@ bool GenerationInfo::fill(const std::string &rootPath,
                           const std::string &templatePath,
                           const catalog::Table *table,
                           const catalog::Partition *part,
-                          const std::map<catalog::PartitionId, catalog::proto::Build> &builds) {
+                          const std::map<catalog::PartitionId, std::map<uint32_t, proto::Build>> &builds,
+                          const catalog::LoadStrategy *loadStrategy) {
     auto tableStructure = part->getTableStructure();
     if (tableStructure == nullptr) {
         AUTIL_LOG(ERROR, "get table structure failed");
@@ -115,7 +117,13 @@ bool GenerationInfo::fill(const std::string &rootPath,
         if (iter == builds.end()) {
             return true;
         }
-        const auto &build = iter->second;
+        if (iter->second.size() == 0) {
+            return true;
+        }
+        proto::Build build;
+        if (!getLatestReadyBuild(iter->second, build)) {
+            return true; // not ready build
+        }
         const auto &current = build.current();
         if (current.shards_size() == 0) {
             return true;
@@ -129,7 +137,11 @@ bool GenerationInfo::fill(const std::string &rootPath,
         }
 
         indexRoot = current.index_root();
-        configPath = current.config_path();
+        auto s = catalog::BSConfigMaker::mergeOnlineConfig(current.config_path(), loadStrategy, &configPath);
+        if (!isOk(s)) {
+            AUTIL_LOG(ERROR, "merge online config with load strategy for table[%s] failed", table->tableName().c_str())
+            return false;
+        }
         generationId = build.build_id().generation_id();
         mode = 1;
         if (!genPartitions(part->shardCount())) {
@@ -146,12 +158,21 @@ bool GenerationInfo::fill(const std::string &rootPath,
         break;
     }
     case proto::BuildType::DIRECT: {
-        auto s = catalog::BSConfigMaker::Make(*part, templatePath, rootPath, &configPath);
+        std::string bsConfigPath;
+        auto s = catalog::BSConfigMaker::Make(*part, templatePath, rootPath, &bsConfigPath);
         if (!isOk(s)) {
             AUTIL_LOG(ERROR, "make config failed, error msg: %s", s.message().c_str());
             return false;
         }
-
+        s = catalog::BSConfigMaker::mergeOnlineConfig(bsConfigPath, loadStrategy, &configPath);
+        if (!isOk(s)) {
+            AUTIL_LOG(ERROR,
+                      "merge online config with load strategy for table[%s] failed, "
+                      "error msg: %s",
+                      table->tableName().c_str(),
+                      s.message().c_str());
+            return false;
+        }
         indexRoot = PathDefine::getIndexRoot(rootPath, table->tableName());
         mode = 1;
         if (!genPartitions(part->shardCount())) {
@@ -170,6 +191,19 @@ bool GenerationInfo::fill(const std::string &rootPath,
     }
 
     return true;
+}
+
+bool GenerationInfo::getLatestReadyBuild(const std::map<uint32_t, proto::Build> &partBuild, proto::Build &latestBuild) {
+    for (auto it = partBuild.rbegin(); it != partBuild.rend(); ++it) {
+        const auto &current = it->second.current();
+        for (const auto &shard : current.shards()) {
+            if (shard.index_version_timestamp() > 0) { // build finish
+                latestBuild = it->second;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool GenerationInfo::uploadSchema(const std::string &indexRoot, const catalog::Table *table) {
@@ -320,6 +354,7 @@ bool ZoneTarget::fillBizInfo(const ClusterDeployment &deployment,
         meta.setRemoteConfigPath(s1.get());
         auto ret = bizMetas.emplace("default", std::move(meta));
         assert(ret.second && "biz meta should only have `default` biz");
+        (void)ret;
         lastSignature = signature;
         lastBizConfigPath = s1.get();
         return true;
@@ -328,6 +363,7 @@ bool ZoneTarget::fillBizInfo(const ClusterDeployment &deployment,
     meta.setRemoteConfigPath(lastBizConfigPath);
     auto ret = bizMetas.emplace("default", std::move(meta));
     assert(ret.second && "biz meta should only have `default` biz");
+    (void)ret;
     return true;
 }
 
@@ -347,9 +383,14 @@ bool ZoneTarget::fillServiceInfo(const std::string &serviceInfoStr) {
 bool ZoneTarget::fillTableInfos(const std::string &rootPath,
                                 const std::string &templatePath,
                                 const std::vector<const Table *> &tables,
-                                const std::map<catalog::PartitionId, catalog::proto::Build> &builds) {
+                                const std::map<catalog::PartitionId, std::map<uint32_t, proto::Build>> &builds,
+                                const TableGroup *tableGroup) {
     for (auto table : tables) {
         TableInfo tableInfo;
+        LoadStrategy *loadStrategy = nullptr;
+        if (!isOk(tableGroup->getLoadStrategy(table->tableName(), loadStrategy))) {
+            loadStrategy = nullptr; // use default load strategy
+        }
         for (const auto &partName : table->listPartition()) {
             Partition *part = nullptr;
             if (!isOk(table->getPartition(partName, part))) {
@@ -357,7 +398,7 @@ bool ZoneTarget::fillTableInfos(const std::string &rootPath,
                 return false;
             }
             GenerationInfo generationInfo;
-            if (!generationInfo.fill(rootPath, templatePath, table, part, builds)) {
+            if (!generationInfo.fill(rootPath, templatePath, table, part, builds, loadStrategy)) {
                 AUTIL_LOG(ERROR, "fill generation info failed, part name [%s]", partName.c_str());
                 return false;
             }

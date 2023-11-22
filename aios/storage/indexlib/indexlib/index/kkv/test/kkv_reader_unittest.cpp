@@ -2,6 +2,8 @@
 #include "indexlib/index/kkv/test/kkv_reader_unittest.h"
 
 #include "future_lite/executors/SimpleExecutor.h"
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
 #include "indexlib/index/kkv/codegen_kkv_reader.h"
 #include "indexlib/index/kkv/multi_region_kkv_reader.h"
@@ -10,8 +12,6 @@
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/fake_partition_data_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

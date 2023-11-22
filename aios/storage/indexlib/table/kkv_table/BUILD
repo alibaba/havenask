@@ -19,6 +19,7 @@ strict_cc_library(
         '//aios/storage/indexlib/config:TabletSchema',
         '//aios/storage/indexlib/document:DocumentBatch',
         '//aios/storage/indexlib/document/kkv:KKVDocumentFactory',
+        '//aios/storage/indexlib/framework:EnvironmentVariablesProvider',
         '//aios/storage/indexlib/framework:ITabletFactory',
         '//aios/storage/indexlib/framework:TabletLoader',
         '//aios/storage/indexlib/framework:TabletReader',
@@ -120,7 +121,7 @@ strict_cc_library(
 )
 strict_cc_library(
     name='KKVSchemaResolver',
-    implementation_deps=['//aios/storage/indexlib/indexlib/config'],
+    implementation_deps=['//aios/storage/indexlib/legacy/config:schema'],
     deps=[
         '//aios/storage/indexlib/config:SchemaResolver',
         '//aios/storage/indexlib/config:UnresolvedSchema',

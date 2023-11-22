@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/kv/multi_region_kv_reader.h"
 
+#include "indexlib/codegen/code_factory.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/index/kv/kv_reader_impl.h"
 

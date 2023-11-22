@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SKEY_SEARCH_CONTEXT_H
-#define __INDEXLIB_SKEY_SEARCH_CONTEXT_H
+#pragma once
 
 #include <memory>
 
@@ -102,5 +101,3 @@ inline void SKeySearchContext<SKeyType>::Init(const std::vector<uint64_t, Alloc>
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SKEY_SEARCH_CONTEXT_H

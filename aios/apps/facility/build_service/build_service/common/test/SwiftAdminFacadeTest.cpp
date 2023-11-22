@@ -1,11 +1,33 @@
-#include "autil/StringUtil.h"
+#include "build_service/common/SwiftAdminFacade.h"
+
+#include <cstdint>
+#include <functional>
+#include <iosfwd>
+#include <memory>
+#include <stdlib.h>
+#include <string>
+#include <tr1/type_traits>
+#include <utility>
+#include <vector>
+
+#include "autil/Span.h"
 #include "build_service/common/test/MockSwiftAdminFacade.h"
-#include "build_service/config/CLIOptionNames.h"
+#include "build_service/common_define.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
-#include "build_service/proto/ProtoUtil.h"
+#include "build_service/config/SwiftTopicConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "swift/client/SwiftClientConfig.h"
+#include "swift/protocol/AdminRequestResponse.pb.h"
+#include "swift/protocol/Common.pb.h"
 #include "swift/protocol/ErrCode.pb.h"
 #include "swift/testlib/MockSwiftAdminAdapter.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace std::tr1;
@@ -75,13 +97,13 @@ TEST_F(SwiftAdminFacadeTest, testGetTopicName)
     SwiftAdminFacade facade2;
     ASSERT_TRUE(facade2.init(buildId, resourceReader2, "cluster1"));
     topicName = facade2.getTopicName(BS_TOPIC_INC, "");
-    EXPECT_EQ("user_name_service_name_1_processed_100_cluster1", topicName);
+    EXPECT_EQ("user_name_service_name_processed_100_cluster1", topicName);
 
     // test realtime topic name
     auto schema = resourceReader2->getSchema("cluster1");
     schema->SetSchemaVersionId(10);
     topicName = SwiftAdminFacade::getRealtimeTopicName("user_name_service_name", buildId, "cluster1", schema);
-    EXPECT_EQ("user_name_service_name_10_processed_100_cluster1", topicName);
+    EXPECT_EQ("user_name_service_name_processed_100_cluster1", topicName);
 }
 
 TEST_F(SwiftAdminFacadeTest, testCreateTopic)

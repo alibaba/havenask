@@ -17,10 +17,12 @@
 
 #include <autil/Log.h>
 
+#include "build_service/workflow/RealtimeBuilderDefine.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "suez/common/TablePathDefine.h"
+#include "suez/table/PartitionProperties.h"
 #include "suez/table/VersionSynchronizer.h"
 
 using namespace std;
@@ -32,11 +34,13 @@ AUTIL_DECLARE_AND_SETUP_LOGGER(suez, RollbackVersionSelector);
 namespace suez {
 
 RollbackVersionSelector::RollbackVersionSelector(VersionSynchronizer *versionSynchronizer,
+                                                 const std::string &remoteConfigPath,
                                                  const std::string &rawIndexRoot,
                                                  const PartitionId &pid)
     : _versionSynchronizer(versionSynchronizer)
     , _partitionRoot(TablePathDefine::constructIndexPath(rawIndexRoot, pid))
-    , _pid(pid) {}
+    , _pid(pid)
+    , _remoteConfigPath(remoteConfigPath) {}
 
 RollbackVersionSelector::~RollbackVersionSelector() {}
 
@@ -44,11 +48,11 @@ IncVersion RollbackVersionSelector::select(int64_t timestamp, IncVersion incVers
     auto [remoteStatus, isRemoteExist] = indexlib::file_system::FslibWrapper::IsExist(_partitionRoot).StatusWith();
     if (!remoteStatus.IsOK()) {
         AUTIL_LOG(ERROR, "check raw index root [%s] exist failed", _partitionRoot.c_str());
-        return INVALID_VERSIONID;
+        return indexlib::INVALID_VERSIONID;
     }
     if (!isRemoteExist) {
         AUTIL_LOG(ERROR, "remote partition root [%s] not exist", _partitionRoot.c_str());
-        return INVALID_VERSIONID;
+        return indexlib::INVALID_VERSIONID;
     }
     std::vector<TableVersion> versionSynced;
     std::vector<IncVersion> candidataVersions;
@@ -56,7 +60,7 @@ IncVersion RollbackVersionSelector::select(int64_t timestamp, IncVersion incVers
         // select by timestamp
         if (!loadSyncedVersion(_versionSynchronizer, versionSynced)) {
             AUTIL_LOG(ERROR, "load published version failed");
-            return INVALID_VERSIONID;
+            return indexlib::INVALID_VERSIONID;
         }
         for (const auto &tableVersion : versionSynced) {
             auto versionId = tableVersion.getVersionId();
@@ -75,7 +79,7 @@ IncVersion RollbackVersionSelector::select(int64_t timestamp, IncVersion incVers
         auto [status, exist] = indexlibv2::framework::VersionLoader::HasVersion(dir, versionId);
         if (!status.IsOK()) {
             AUTIL_LOG(ERROR, "check version exist from [%s] failed, retry later", _partitionRoot.c_str());
-            return INVALID_VERSIONID;
+            return indexlib::INVALID_VERSIONID;
         }
         if (!exist) {
             AUTIL_LOG(INFO, "version [%d] not exist in index root, ignore", versionId);
@@ -84,13 +88,19 @@ IncVersion RollbackVersionSelector::select(int64_t timestamp, IncVersion incVers
         return versionId;
     }
     AUTIL_LOG(ERROR, "select rollback version from [%s] failed", _partitionRoot.c_str());
-    return INVALID_VERSIONID;
+    return indexlib::INVALID_VERSIONID;
 }
 
 bool RollbackVersionSelector::loadSyncedVersion(VersionSynchronizer *versionSynchronizer,
                                                 std::vector<TableVersion> &versionSynced) const {
 
-    return versionSynchronizer->getVersionList(_pid, versionSynced);
+    build_service::workflow::RealtimeInfoWrapper realtimeInfo;
+    if (!PartitionProperties::loadRealtimeInfo(_pid, _remoteConfigPath, _partitionRoot, &realtimeInfo)) {
+        AUTIL_LOG(ERROR, "load realtime info for %s failed", autil::legacy::FastToJsonString(_pid).c_str());
+        return false;
+    }
+    return versionSynchronizer->getVersionList(
+        _pid, realtimeInfo.getAppName(), realtimeInfo.getDataTable(), versionSynced);
 }
 
 } // namespace suez

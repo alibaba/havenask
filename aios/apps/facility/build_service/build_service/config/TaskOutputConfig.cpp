@@ -15,9 +15,9 @@
  */
 #include "build_service/config/TaskOutputConfig.h"
 
+#include <iosfwd>
+
+#include "autil/legacy/exception.h"
+
 using namespace std;
 using namespace autil::legacy;
-
-namespace build_service { namespace config {
-
-}}

@@ -1,5 +1,6 @@
 ## Note
 > old version:
+> [1.0.0](https://github.com/alibaba/havenask/tree/1.0.0),
 > [1.0.0-beta](https://github.com/alibaba/havenask/tree/1.0.0-beta),
 > [main-stable-0.4](https://github.com/alibaba/havenask/tree/main-stable-0.4)<br>
 > The new and old main branches have a significant difference, and if the sync code branch produces errors, please make them consistent with the current main branch.
@@ -28,18 +29,18 @@ Havenask delivers the following benefits:
 
 
 ## Documentation
-* Havenask Wiki: https://github.com/alibaba/havenask/wiki
+* Havenask Wiki: [https://havenask.net](https://havenask.net)
 
 ## Get Started
 
 * Havenask Docker images (image platform: amd64)
   * <strong>ha3_runtime</strong>: runtime image allows you to quickly start a search service without compiling.
-  * <strong>ha3_dev </strong>: development image includes all libraries necessary for compiling havenask. （[QuickStart](docs/havenask_docs/快速开始.md)）
+  * <strong>ha3_dev </strong>: development image includes all libraries necessary for compiling havenask. [QuickStart](https://havenask.net/#/doc/sql/guide/quickstart)
 * Requirements
   * Runtime: cpu > 2 cores, memory > 4G, disk > 20G
   * Dev: cpu > 2 cores, memory > 10G, disk > 50G
   * Install and Start Docker
-  * Check that you can ssh to the localhost without a passphrase, ref[passphraseless ssh](docs/havenask_docs/Hape单机模式.md)
+  * Check that you can ssh to the localhost without a passphrase, ref [Local Mode](https://havenask.net/#/doc/sql/petool/localmode)
 
 ## Start Havenask Service
 * Create the container
@@ -105,17 +106,17 @@ Havenask 的核心能力与优势，有以下几点：
 * <strong>支持向量检索</strong>：可通过与插件配合实现多模态搜索，满足更多场景的搜索服务搭建需求。
 
 ## 相关文档
-* Havenask Wiki: [https://github.com/alibaba/havenask/wiki](https://github.com/alibaba/havenask/wiki)
+* Havenask Wiki: [https://havenask.net](https://havenask.net)
 
 ## 开始使用
 * 镜像介绍（镜像平台: amd64）
    * ha3_runtime：可直接运行的镜像，无需编译代码，包含了问天引擎的可执行文件。
-   * ha3_dev：用于开发测试的镜像，里面包含了开发测试时需要的各种依赖库和头文件，如何编译问天引擎请参考[快速开始](docs/havenask_docs/快速开始.md)。
+   * ha3_dev：用于开发测试的镜像，里面包含了开发测试时需要的各种依赖库和头文件，如何编译问天引擎请参考[QuickStart](https://havenask.net/#/doc/sql/guide/quickstart)。
 * 环境要求
    * 运行镜像：确保机器内存大于4G，cpu大于2核，磁盘大小大于20G。
    * 开发镜像：确保机器内存大于10G，cpu大于2核，磁盘大小大于50G。
    * 使用前确保设备已经安装和启动Docker服务。
-   * 单机模式需要确保本机能免密ssh登录自己，详情参考[免密ssh](docs/havenask_docs/Hape单机模式.md)
+   * 单机模式需要确保本机能免密ssh登录自己，详情参考[单机模式](https://havenask.net/#/doc/sql/petool/localmode)
 
 ## 启动服务
 

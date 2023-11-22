@@ -4,9 +4,9 @@
 #include "indexlib/common/hash_table/dense_hash_table_traits.h"
 #include "indexlib/common/hash_table/special_value.h"
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/SegmentGroupMetrics.h"
 #include "indexlib/index/kv/kv_factory.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/memory_control/QuotaControl.h"
 
 using namespace std;

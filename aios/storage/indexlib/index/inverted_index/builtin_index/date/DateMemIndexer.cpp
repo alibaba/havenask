@@ -31,7 +31,7 @@ using indexlibv2::config::IIndexConfig;
 
 AUTIL_LOG_SETUP(indexlib.index, DateMemIndexer);
 
-DateMemIndexer::DateMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam,
+DateMemIndexer::DateMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam,
                                const std::shared_ptr<InvertedIndexMetrics>& metrics)
     : InvertedMemIndexer(indexerParam, metrics)
     , _timeRangeInfo(new TimeRangeInfo)

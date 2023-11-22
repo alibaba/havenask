@@ -207,6 +207,8 @@ IPacketHandler::HPRetCode HTTPRPCServerAdapter::handleRegularPacket(Connection *
                                                                 std::move(request));
     workItem->SetBeginTime(beginTime);
     workItem->SetAddr(string(addr));
+    workItem->SetAiosDebugType(httpPacket->getHeader("AIOS-DEBUG"));
+    workItem->SetRPCServicePtr(serviceMethodPair.first.first);
     if (!_server->PushItem(service, workItem)) {
         handleError(connection,
                     httpPacket,

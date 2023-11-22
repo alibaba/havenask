@@ -1,10 +1,15 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
-import com.taobao.search.iquan.core.rel.ops.physical.explain.IquanJoinExplain;
 import com.taobao.search.iquan.core.common.ConstantDefine;
+import com.taobao.search.iquan.core.rel.ops.physical.explain.IquanJoinExplain;
 import com.taobao.search.iquan.core.utils.IquanJoinUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptCluster;
@@ -22,8 +27,6 @@ import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.validate.SqlValidatorUtil;
-
-import java.util.*;
 
 public class IquanJoinOp extends Join implements IquanRelNode {
     protected final boolean semiJoinDone = false;

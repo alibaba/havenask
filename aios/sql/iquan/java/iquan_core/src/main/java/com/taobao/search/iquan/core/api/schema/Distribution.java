@@ -1,6 +1,16 @@
 package com.taobao.search.iquan.core.api.schema;
 
-import org.apache.calcite.plan.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import org.apache.calcite.plan.RelMultipleTrait;
+import org.apache.calcite.plan.RelOptPlanner;
+import org.apache.calcite.plan.RelTrait;
+import org.apache.calcite.plan.RelTraitDef;
 import org.apache.calcite.rel.RelDistribution;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.util.ImmutableIntList;
@@ -10,12 +20,20 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 public class Distribution implements RelDistribution {
+    public static final ImmutableIntList EMPTY = ImmutableIntList.of();
     private static final Logger logger = LoggerFactory.getLogger(Distribution.class);
-
+    public static final Distribution DEFAULT = new Builder(Type.ANY, EMPTY).build();
+    /**
+     * SINGLETON is all records appear in only one partition.
+     * BROADCAST is all records appear in each partition.
+     * RANGE is ROUTING_HASH but only has the first hash field.
+     * if location partitionCnt == 1, any distribution type is actual equal.
+     * so qrs、single node, we can use any of (SINGLETON、BROADCAST、RANGE、HASH、RANDOM), according to code implement.
+     */
+    public static final Distribution SINGLETON = new Builder(Type.SINGLETON, EMPTY).partitionCnt(1).build();
+    public static final Distribution BROADCAST = new Builder(Type.BROADCAST_DISTRIBUTED, EMPTY).build();
+    public static final Distribution RANGE = new Builder(Type.RANGE_DISTRIBUTED, EMPTY).build();
     private int partitionCnt = 0;
     //index maybe not equal pos, so need record pos
     private List<MutablePair<Integer, String>> posHashFields = new ArrayList<>();
@@ -28,28 +46,21 @@ public class Distribution implements RelDistribution {
     private List<List<String>> equalHashFields = new ArrayList<>();
     private Type type;
     private ImmutableIntList keys;
-
     Distribution() {
     }
-
     public Distribution(Type type, ImmutableIntList keys) {
         this.type = type;
         this.keys = keys;
     }
-
-    public static final ImmutableIntList EMPTY = ImmutableIntList.of();
-    public static final Distribution DEFAULT = new Builder(Type.ANY, EMPTY).build();
-    /**
-     * SINGLETON is all records appear in only one partition.
-     * BROADCAST is all records appear in each partition.
-     * RANGE is ROUTING_HASH but only has the first hash field.
-     * if location partitionCnt == 1, any distribution type is actual equal.
-     * so qrs、single node, we can use any of (SINGLETON、BROADCAST、RANGE、HASH、RANDOM), according to code implement.
-     * */
-    public static final Distribution SINGLETON = new Builder(Type.SINGLETON, EMPTY).partitionCnt(1).build();
-    public static final Distribution BROADCAST = new Builder(Type.BROADCAST_DISTRIBUTED, EMPTY).build();
-    public static final Distribution RANGE = new Builder(Type.RANGE_DISTRIBUTED, EMPTY).build();
     //public static final Distribution RANDOM = new Builder(Type.RANDOM_DISTRIBUTED, EMPTY).build();
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public static Builder newBuilder(Type type, ImmutableIntList keys) {
+        return new Builder(type, keys);
+    }
 
     //copy when need change distribution
     public Distribution copy() {
@@ -80,10 +91,6 @@ public class Distribution implements RelDistribution {
         this.partitionCnt = partitionCnt;
     }
 
-    public void setType(RelDistribution.Type type) {
-        this.type = type;
-    }
-
     private void copyPosHashFields(List<MutablePair<Integer, String>> posHashFields) {
         //only private use
         for (int i = 0; i < posHashFields.size(); i++) {
@@ -97,10 +104,10 @@ public class Distribution implements RelDistribution {
             return;
         }
         int i = 0;
-        while(i < equalHashFields.size() && i < this.equalHashFields.size()) {
+        while (i < equalHashFields.size() && i < this.equalHashFields.size()) {
             this.equalHashFields.get(i).addAll(equalHashFields.get(i++));
         }
-        while(i < equalHashFields.size()) {
+        while (i < equalHashFields.size()) {
             this.equalHashFields.add(new ArrayList<>(equalHashFields.get(i++)));
         }
     }
@@ -122,7 +129,7 @@ public class Distribution implements RelDistribution {
         if (hashFields == null) {
             return;
         }
-        for(int i = 0; i < hashFields.size(); i++) {
+        for (int i = 0; i < hashFields.size(); i++) {
             posHashFields.add(MutablePair.of(i, hashFields.get(i)));
         }
     }
@@ -197,17 +204,13 @@ public class Distribution implements RelDistribution {
 
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
-    public static Builder newBuilder(Type type, ImmutableIntList keys) {
-        return new Builder(type, keys);
-    }
-
     @Override
     public Type getType() {
         return type;
+    }
+
+    public void setType(RelDistribution.Type type) {
+        this.type = type;
     }
 
     @Override

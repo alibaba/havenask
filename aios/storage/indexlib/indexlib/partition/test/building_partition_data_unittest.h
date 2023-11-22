@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_BUILDINGPARTITIONDATATEST_H
-#define __INDEXLIB_BUILDINGPARTITIONDATATEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_define.h"
@@ -85,5 +84,3 @@ INDEXLIB_UNIT_TEST_CASE(BuildingPartitionDataTest, TestClone);
 INDEXLIB_UNIT_TEST_CASE(BuildingPartitionDataTest, TestSnapshot);
 INDEXLIB_UNIT_TEST_CASE(BuildingPartitionDataTest, TestCreateSegmentIterator);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_BUILDINGPARTITIONDATATEST_H

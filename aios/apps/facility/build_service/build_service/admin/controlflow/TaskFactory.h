@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONTROL_FLOW_TASK_FACTORY_H
-#define ISEARCH_BS_CONTROL_FLOW_TASK_FACTORY_H
+#pragma once
 
+#include <string>
+
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
 
 BS_DECLARE_REFERENCE_CLASS(admin, TaskBase);
 BS_DECLARE_REFERENCE_CLASS(admin, TaskResourceManager);
@@ -44,5 +45,3 @@ private:
 BS_TYPEDEF_PTR(TaskFactory);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CONTROL_FLOW_TASK_FACTORY_H

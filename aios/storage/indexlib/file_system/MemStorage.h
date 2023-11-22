@@ -27,20 +27,21 @@
 #include "indexlib/file_system/DiskStorage.h"
 #include "indexlib/file_system/EntryTable.h"
 #include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemDefine.h"
+#include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/ReaderOption.h"
 #include "indexlib/file_system/Storage.h"
+#include "indexlib/file_system/WriterOption.h"
+#include "indexlib/file_system/file/FileNode.h"
 #include "indexlib/file_system/file/FileNodeCache.h"
 #include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/file_system/flush/DumpScheduler.h"
 #include "indexlib/file_system/flush/FileFlushOperation.h"
 #include "indexlib/file_system/flush/FlushOperationQueue.h"
-
-namespace indexlib { namespace file_system {
-struct FileSystemOptions;
-struct WriterOption;
-}} // namespace indexlib::file_system
+#include "indexlib/file_system/fslib/FenceContext.h"
+#include "indexlib/util/memory_control/BlockMemoryQuotaController.h"
 
 namespace indexlib { namespace file_system {
 

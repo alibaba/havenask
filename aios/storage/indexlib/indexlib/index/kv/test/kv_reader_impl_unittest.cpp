@@ -2,8 +2,8 @@
 
 #include "future_lite/CoroInterface.h"
 #include "future_lite/executors/SimpleExecutor.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/test/fake_partition_data_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/slow_dump_segment_container.h"
 
 using namespace std;

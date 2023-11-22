@@ -53,10 +53,10 @@ public:
     size_t Size() const { return _segmentTermInfos.size(); }
 
 private:
-    Status AddOnDiskTermInfo(docid_t baseDocId, uint64_t docCount, segmentid_t segmentId,
+    Status AddOnDiskTermInfo(docid64_t baseDocId, uint64_t docCount, segmentid_t segmentId,
                              const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                              const std::shared_ptr<file_system::Directory>& segmentDir);
-    void AddQueueItem(size_t baseDocid, segmentid_t& segmentId, const std::shared_ptr<IndexIterator>& indexIt,
+    void AddQueueItem(docid64_t baseDocid, segmentid_t& segmentId, const std::shared_ptr<IndexIterator>& indexIt,
                       const std::shared_ptr<SingleFieldIndexSegmentPatchIterator>& patchIter,
                       SegmentTermInfo::TermIndexMode mode);
     // virtual for UT

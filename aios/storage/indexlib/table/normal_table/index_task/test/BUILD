@@ -1,5 +1,13 @@
 load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
+    name='FakeNormalTabletDocIterator',
+    visibility=['//aios/storage/indexlib/table/normal_table:__subpackages__'],
+    deps=[
+        '//aios/autil:NoCopyable',
+        '//aios/storage/indexlib/table/normal_table:NormalTabletDocIterator'
+    ]
+)
 strict_cc_fast_test(
     name='ReclaimMapTest',
     srcs=['ReclaimMapTest.cpp'],

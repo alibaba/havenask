@@ -15,15 +15,17 @@
  */
 #include "indexlib/config/MutableJson.h"
 
-#include <memory>
-#include <type_traits>
+#include <algorithm>
+#include <assert.h>
+#include <map>
 #include <vector>
 
 #include "MutableJson.h"
-#include "autil/CommonMacros.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "autil/StringView.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
 
 namespace indexlibv2::config {
 

@@ -4,6 +4,7 @@
 #include "indexlib/framework/LevelInfo.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
 #include "indexlib/index_define.h"
+#include "indexlib/merger/merge_strategy/merge_strategy_factory.h"
 #include "indexlib/merger/merge_task.h"
 #include "indexlib/merger/segment_directory.h"
 

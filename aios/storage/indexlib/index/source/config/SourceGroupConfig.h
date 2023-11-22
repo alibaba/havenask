@@ -38,8 +38,6 @@ public:
     static const std::string SOURCE_GROUP_CONFIG_FIELD_MODE;
     static const std::string SOURCE_GROUP_CONFIG_FIELDS;
     static const std::string SOURCE_GROUP_CONFIG_PARAMETER;
-    static const std::string SOURCE_GROUP_CONFIG_MODULE;
-    static const std::string SOURCE_GROUP_CONFIG_MODULE_PARAMS;
 
 public:
     SourceGroupConfig();
@@ -50,15 +48,14 @@ public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override;
     Status CheckEqual(const SourceGroupConfig& other) const;
     Status Check() const;
-    const std::string& GetModule() const;
     const std::vector<std::string>& GetSpecifiedFields() const;
     SourceFieldMode GetFieldMode() const;
-    index::groupid_t GetGroupId() const;
+    index::sourcegroupid_t GetGroupId() const;
     const GroupDataParameter& GetParameter() const;
 
     void SetFieldMode(SourceFieldMode mode);
     void SetSpecifiedFields(const std::vector<std::string>& fields);
-    void SetGroupId(index::groupid_t groupId);
+    void SetGroupId(index::sourcegroupid_t groupId);
     void SetParameter(const GroupDataParameter& parameter);
 
     bool IsDisabled() const;

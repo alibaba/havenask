@@ -33,8 +33,8 @@ ShortListSegmentDecoder::ShortListSegmentDecoder(file_system::ByteSliceReader* d
     _fieldMapEncoder = EncoderProvider::GetInstance()->GetFieldMapEncoder(param);
 }
 
-bool ShortListSegmentDecoder::DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId,
-                                              docid_t& lastDocId, ttf_t& currentTTF)
+bool ShortListSegmentDecoder::DecodeDocBuffer(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId,
+                                              docid32_t& lastDocId, ttf_t& currentTTF)
 {
     if (_decodeShortList) {
         // only decode once. for performance purpose
@@ -42,7 +42,7 @@ bool ShortListSegmentDecoder::DecodeDocBuffer(docid_t startDocId, docid_t* docBu
     }
     _decodeShortList = true;
     currentTTF = 0;
-    _docListReader->Seek(_docListBeginPos);
+    _docListReader->Seek(_docListBeginPos).GetOrThrow();
     auto [status, docNum] = _docEncoder->Decode((uint32_t*)docBuffer, MAX_DOC_PER_RECORD, *_docListReader);
     THROW_IF_STATUS_ERROR(status);
     lastDocId = 0;
@@ -58,8 +58,8 @@ bool ShortListSegmentDecoder::DecodeDocBuffer(docid_t startDocId, docid_t* docBu
     return true;
 }
 
-bool ShortListSegmentDecoder::DecodeDocBufferMayCopy(docid_t startDocId, docid_t*& docBuffer, docid_t& firstDocId,
-                                                     docid_t& lastDocId, ttf_t& currentTTF)
+bool ShortListSegmentDecoder::DecodeDocBufferMayCopy(docid32_t startDocId, docid32_t*& docBuffer, docid32_t& firstDocId,
+                                                     docid32_t& lastDocId, ttf_t& currentTTF)
 {
     if (_decodeShortList) {
         // only decode once. for performance purpose
@@ -67,7 +67,7 @@ bool ShortListSegmentDecoder::DecodeDocBufferMayCopy(docid_t startDocId, docid_t
     }
     _decodeShortList = true;
     currentTTF = 0;
-    _docListReader->Seek(_docListBeginPos);
+    _docListReader->Seek(_docListBeginPos).GetOrThrow();
     auto [status, docNum] = _docEncoder->DecodeMayCopy((uint32_t*&)docBuffer, MAX_DOC_PER_RECORD, *_docListReader);
     THROW_IF_STATUS_ERROR(status);
     lastDocId = docNum > 0 ? docBuffer[docNum - 1] : 0;

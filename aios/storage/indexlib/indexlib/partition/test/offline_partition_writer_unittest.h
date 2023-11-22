@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OFFLINEPARTITIONWRITERTEST_H
-#define __INDEXLIB_OFFLINEPARTITIONWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/partition_data.h"
@@ -97,5 +96,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OfflinePartitionWriterTest, TestDeleteDocumen
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OfflinePartitionWriterTest, TestKVTable);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OfflinePartitionWriterTest, TestFailOverWithTemperature);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OFFLINEPARTITIONWRITERTEST_H

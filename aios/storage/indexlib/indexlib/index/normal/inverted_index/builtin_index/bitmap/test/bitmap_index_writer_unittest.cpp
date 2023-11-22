@@ -3,12 +3,12 @@
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/single_field_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/inverted_index/builtin_index/bitmap/BitmapIndexWriter.h"
 #include "indexlib/index/normal/inverted_index/builtin_index/bitmap/bitmap_index_reader.h"
 #include "indexlib/index/normal/inverted_index/builtin_index/bitmap/test/bitmap_posting_maker.h"
 #include "indexlib/index/test/index_test_util.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 #include "indexlib/test/version_maker.h"
 #include "indexlib/util/PathUtil.h"

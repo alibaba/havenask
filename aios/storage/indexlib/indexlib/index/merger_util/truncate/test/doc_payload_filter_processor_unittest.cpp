@@ -19,7 +19,7 @@ public:
 
 public:
     TermMeta* GetTermMeta() const override { return NULL; };
-    docid_t SeekDoc(docid_t docId) override { return (docid_t)0; };
+    docid64_t SeekDoc(docid64_t docId) override { return 0; };
     bool HasPosition() const override { return true; };
     void Unpack(TermMatchData& termMatchData) override {};
     docpayload_t GetDocPayload() override
@@ -29,7 +29,7 @@ public:
     }
 
     void SetDocPayload(std::string payloads) { autil::StringUtil::fromString(payloads, mDocPayloads, ";"); }
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override
     {
         result = 0;
         return index::ErrorCode::OK;

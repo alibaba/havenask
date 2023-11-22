@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CLOSED_HASH_TABLE_FILE_ITERATOR_H
-#define __INDEXLIB_CLOSED_HASH_TABLE_FILE_ITERATOR_H
+#pragma once
 
 #include "indexlib/common/hash_table/closed_hash_table_traits.h"
 #include "indexlib/common/hash_table/hash_table_base.h"
@@ -210,5 +209,4 @@ public:
         return true;
     }
 };
-}}     // namespace indexlib::common
-#endif //__INDEXLIB_CLOSED_HASH_TABLE_FILE_ITERATOR_H
+}} // namespace indexlib::common

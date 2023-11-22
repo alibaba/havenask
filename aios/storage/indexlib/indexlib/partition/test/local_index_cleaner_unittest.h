@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_LOCALINDEXCLEANERTEST_H
-#define __INDEXLIB_LOCALINDEXCLEANERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/version.h"
@@ -95,5 +94,3 @@ INDEXLIB_UNIT_TEST_CASE(LocalIndexCleanerTest, TestFslibWrapperListDir);
 INDEXLIB_UNIT_TEST_CASE(LocalIndexCleanerTest, TestCleanWithKeepFiles);
 
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_LOCALINDEXCLEANERTEST_H

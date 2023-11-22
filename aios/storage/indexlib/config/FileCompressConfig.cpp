@@ -15,6 +15,11 @@
  */
 #include "indexlib/config/FileCompressConfig.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <map>
+#include <utility>
+
 #include "autil/StringUtil.h"
 #include "indexlib/config/ConfigDefine.h"
 #include "indexlib/config/FileCompressSchema.h"

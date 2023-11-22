@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_PLUGIN_LOADER_H
-#define __INDEXLIB_TABLE_PLUGIN_LOADER_H
+#pragma once
 
-#include <memory>
+#include <string>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
-DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
 DECLARE_REFERENCE_CLASS(plugin, PluginManager);
 
 namespace indexlib { namespace table {
@@ -43,5 +41,3 @@ private:
 
 DEFINE_SHARED_PTR(TablePluginLoader);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_PLUGIN_LOADER_H

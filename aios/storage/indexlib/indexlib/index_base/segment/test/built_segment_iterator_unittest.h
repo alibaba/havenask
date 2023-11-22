@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_BUILTSEGMENTITERATORTEST_H
-#define __INDEXLIB_BUILTSEGMENTITERATORTEST_H
+#pragma once
 
 #include <memory>
 
@@ -33,5 +32,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(BuiltSegmentIteratorTest, TestSimpleProcess);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_BUILTSEGMENTITERATORTEST_H

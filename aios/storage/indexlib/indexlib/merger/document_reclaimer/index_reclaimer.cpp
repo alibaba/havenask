@@ -15,6 +15,8 @@
  */
 #include "indexlib/merger/document_reclaimer/index_reclaimer.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace merger {

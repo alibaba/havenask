@@ -23,7 +23,7 @@ TEST_F(TruncateAttributeReaderTest, TestCreateReadContext)
     auto context = reader->CreateReadContextPtr(pool.get());
     ASSERT_EQ(context, nullptr);
 
-    indexlibv2::index::IndexerParameter indexerParam;
+    indexlibv2::index::DiskIndexerParameter indexerParam;
     indexerParam.docCount = 5;
     kmonitor::MetricsTags metricsTags;
     auto metricsReporter = std::make_shared<kmonitor::MetricsReporter>("", metricsTags, "");

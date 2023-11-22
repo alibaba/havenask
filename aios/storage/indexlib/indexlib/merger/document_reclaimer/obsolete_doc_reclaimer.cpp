@@ -15,13 +15,36 @@
  */
 #include "indexlib/merger/document_reclaimer/obsolete_doc_reclaimer.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <exception>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "beeper/beeper.h"
+#include "indexlib/config/attribute_schema.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/index/common/AttributeValueTypeTraits.h"
+#include "indexlib/index/common/numeric_compress/EquivalentCompressSessionReader.h"
+#include "indexlib/index/normal/attribute/accessor/attribute_data_iterator.h"
+#include "indexlib/index/normal/deletionmap/deletion_map_writer.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/partition_data.h"
+#include "indexlib/index_base/segment/segment_data.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/document_reclaimer/document_deleter.h"
 #include "indexlib/merger/segment_directory.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "kmonitor/client/MetricLevel.h"
+#include "kmonitor/client/MetricType.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 using namespace autil;

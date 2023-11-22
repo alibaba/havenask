@@ -9,7 +9,9 @@
 #include "indexlib/config/index_partition_schema_maker.h"
 #include "indexlib/config/index_schema.h"
 #include "indexlib/config/spatial_index_config.h"
+#include "indexlib/config/test/modify_schema_maker.h"
 #include "indexlib/config/test/schema_loader.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/builtin_parser_init_param.h"
 #include "indexlib/document/document_factory_wrapper.h"
 #include "indexlib/document/document_parser/kv_parser/kv_key_extractor.h"
@@ -21,8 +23,6 @@
 #include "indexlib/document/raw_document/raw_document_define.h"
 #include "indexlib/index/common/field_format/spatial/SpatialFieldEncoder.h"
 #include "indexlib/index/common/field_format/spatial/geo_hash/GeoHashUtil.h"
-#include "indexlib/test/modify_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/test.h"
 #include "indexlib/test/unittest.h"
 #include "indexlib/util/KeyHasherTyped.h"
@@ -92,8 +92,8 @@ void NormalDocumentParserTest::CaseSetUp()
 
     _extendDoc.reset(new IndexlibExtendDocument());
     RawDocumentPtr rawDoc(new DefaultRawDocument(_hashMapManager));
-    _extendDoc->setRawDocument(rawDoc);
-    _extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    _extendDoc->SetRawDocument(rawDoc);
+    _extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
     _classifiedDocument = _extendDoc->getClassifiedDocument();
 
     _tokenizeHelper.reset(new TokenizeHelper);
@@ -158,7 +158,7 @@ TEST_F(NormalDocumentParserTest, testConvertError)
     // clear
     {
         _extendDoc.reset(new IndexlibExtendDocument());
-        _extendDoc->setRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
+        _extendDoc->SetRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
         string fieldValue = "title:A b# c d e,nid:1,user_id:1";
         prepare(fieldValue);
         DocumentPtr doc = parser->Parse(_extendDoc);
@@ -169,7 +169,7 @@ TEST_F(NormalDocumentParserTest, testConvertError)
     // clear
     {
         _extendDoc.reset(new IndexlibExtendDocument());
-        _extendDoc->setRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
+        _extendDoc->SetRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
         string fieldValue = "title:A b# c d e,nid:c,user_id:1";
         prepare(fieldValue);
         DocumentPtr doc = parser->Parse(_extendDoc);
@@ -181,7 +181,7 @@ TEST_F(NormalDocumentParserTest, testConvertError)
     {
         // pk is invalid
         _extendDoc.reset(new IndexlibExtendDocument());
-        _extendDoc->setRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
+        _extendDoc->SetRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
         string fieldValue = "title:A b# c d e,user_id:c";
         prepare(fieldValue);
         DocumentPtr doc = parser->Parse(_extendDoc);
@@ -192,7 +192,7 @@ TEST_F(NormalDocumentParserTest, testConvertError)
 
 TEST_F(NormalDocumentParserTest, testShapeIndex)
 {
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     string lineStr = "0.1 30.1,30.1 30.1,30.1 0.1";
     string polygonStr = "0.1 30.1,30.1 30.1,30.1 0.1,0.1 0.1,0.1 30.1";
     rawDoc->setField("line", lineStr);
@@ -247,7 +247,7 @@ TEST_F(NormalDocumentParserTest, testShapeIndex)
 
 TEST_F(NormalDocumentParserTest, testSpatialIndex)
 {
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("location", "180.0 30.0140.1 31.1");
     rawDoc->setField("nid", "1");
     ASSERT_TRUE(_tokenizeHelper->process(_extendDoc));
@@ -292,7 +292,7 @@ TEST_F(NormalDocumentParserTest, testSpatialIndex)
 
 TEST_F(NormalDocumentParserTest, testCustomizedIndex)
 {
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("nid", "1");
     rawDoc->setField("tags", "13");
     rawDoc->setField("embedding", "0.3210.1230.999");
@@ -332,7 +332,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
     {
         tearDown();
         setUp();
-        _extendDoc->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+        _extendDoc->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
         prepare(fieldValue);
 
         DocumentFactoryWrapper wrapper(_schemaPtr);
@@ -348,7 +348,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
     {
         tearDown();
         setUp();
-        _extendDoc->getRawDocument()->setDocOperateType(DELETE_DOC);
+        _extendDoc->GetRawDocument()->setDocOperateType(DELETE_DOC);
         prepare(fieldValue);
 
         DocumentFactoryWrapper wrapper(_schemaPtr);
@@ -364,7 +364,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
     {
         tearDown();
         setUp();
-        _extendDoc->getRawDocument()->setDocOperateType(DELETE_SUB_DOC);
+        _extendDoc->GetRawDocument()->setDocOperateType(DELETE_SUB_DOC);
         prepare(fieldValue);
 
         DocumentFactoryWrapper wrapper(_schemaPtr);
@@ -381,7 +381,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
         tearDown();
         setUp();
         string newFieldValue = "nid:1,user_id:12345";
-        _extendDoc->getRawDocument()->setDocOperateType(DELETE_DOC);
+        _extendDoc->GetRawDocument()->setDocOperateType(DELETE_DOC);
         prepare(newFieldValue);
 
         DocumentFactoryWrapper wrapper(_schemaPtr);
@@ -401,7 +401,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
 
 TEST_F(NormalDocumentParserTest, testNonUpdateField)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    _extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
     string fieldValue = "content:A b# c d e,user_id:1234,nid:123,multi_string:111222333,auction_type:sale";
     prepare(fieldValue);
 
@@ -438,7 +438,7 @@ TEST_F(NormalDocumentParserTest, testNonUpdateField)
 
 TEST_F(NormalDocumentParserTest, testUpdateField)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+    _extendDoc->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
 
     string fieldValue = "content:A b# c d e,user_id:1234,nid:123,multi_string:111222333";
     prepare(fieldValue);
@@ -534,7 +534,7 @@ TEST_F(NormalDocumentParserTest, testSetFieldValue)
 
 void NormalDocumentParserTest::prepare(const std::string& fieldValue)
 {
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     vector<vector<string>> splitValue;
     StringUtil::fromString(fieldValue, splitValue, ":", ",");
     for (size_t i = 0; i < splitValue.size(); ++i) {
@@ -549,7 +549,7 @@ IndexlibExtendDocumentPtr NormalDocumentParserTest::makeExtendDoc(const IndexPar
 {
     IndexlibExtendDocumentPtr extDoc(new IndexlibExtendDocument);
     RawDocumentPtr rawDoc(new DefaultRawDocument(_hashMapManager));
-    extDoc->setRawDocument(rawDoc);
+    extDoc->SetRawDocument(rawDoc);
 
     vector<vector<string>> splitValue;
     StringUtil::fromString(docValues, splitValue, ":", ",");
@@ -659,7 +659,7 @@ TEST_F(NormalDocumentParserTest, testSetPrimaryKeyField)
                                           "",                   // attribute schema
                                           "");                  // Summary schema
 
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("pk", "1");
 
     DocumentFactoryWrapper wrapper(schema);
@@ -719,8 +719,8 @@ TEST_F(NormalDocumentParserTest, testValidateWithPkEmpty)
     // no raw doc
     ASSERT_FALSE(parser->Parse(extendDoc));
 
-    extendDoc->setRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
-    extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    extendDoc->SetRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
+    extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
     TokenizeHelper tokenizeHelper;
     tokenizeHelper.init(schema);
     ASSERT_TRUE(tokenizeHelper.process(extendDoc));
@@ -729,7 +729,7 @@ TEST_F(NormalDocumentParserTest, testValidateWithPkEmpty)
     ASSERT_FALSE(parser->Parse(extendDoc));
 
     // pk not empty
-    extendDoc->getRawDocument()->setField("f2", "notempty");
+    extendDoc->GetRawDocument()->setField("f2", "notempty");
     ASSERT_TRUE(parser->Parse(extendDoc));
 }
 
@@ -748,8 +748,8 @@ TEST_F(NormalDocumentParserTest, testValidateNoIndexField)
 
     IndexlibExtendDocumentPtr document(new IndexlibExtendDocument);
 
-    document->setRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
-    document->getRawDocument()->setDocOperateType(ADD_DOC);
+    document->SetRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
+    document->GetRawDocument()->setDocOperateType(ADD_DOC);
     TokenizeHelper tokenizeHelper;
     tokenizeHelper.init(schema);
     ASSERT_TRUE(tokenizeHelper.process(document));
@@ -759,9 +759,9 @@ TEST_F(NormalDocumentParserTest, testValidateNoIndexField)
 
     // no pk, with index field
     document.reset(new IndexlibExtendDocument);
-    document->setRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
-    document->getRawDocument()->setDocOperateType(ADD_DOC);
-    document->getRawDocument()->setField("f1", "123");
+    document->SetRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
+    document->GetRawDocument()->setDocOperateType(ADD_DOC);
+    document->GetRawDocument()->setField("f1", "123");
     ASSERT_TRUE(tokenizeHelper.process(document));
     EXPECT_TRUE(parser->Parse(document));
 }
@@ -782,15 +782,15 @@ TEST_F(NormalDocumentParserTest, testValidateNonAddDoc)
         ASSERT_TRUE(dynamic_cast<NormalDocumentParser*>(parser.get()));
 
         IndexlibExtendDocumentPtr document(new IndexlibExtendDocument);
-        document->setRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
+        document->SetRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
 
-        document->getRawDocument()->setDocOperateType(DELETE_DOC);
+        document->GetRawDocument()->setDocOperateType(DELETE_DOC);
         EXPECT_FALSE(parser->Parse(document));
 
-        document->getRawDocument()->setDocOperateType(DELETE_SUB_DOC);
+        document->GetRawDocument()->setDocOperateType(DELETE_SUB_DOC);
         EXPECT_FALSE(parser->Parse(document));
 
-        document->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+        document->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
         EXPECT_FALSE(parser->Parse(document));
     }
     {
@@ -799,10 +799,10 @@ TEST_F(NormalDocumentParserTest, testValidateNonAddDoc)
         indexSchemaStr = "index1:NUMBER:f1;pk:PRIMARYKEY64:f2";
         indexlib::config::IndexPartitionSchemaMaker::MakeSchema(schema, fieldNames, indexSchemaStr, attrSchemaStr, "");
         IndexlibExtendDocumentPtr document(new IndexlibExtendDocument);
-        document->setRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
+        document->SetRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
 
-        document->getRawDocument()->setField("f2", "1234");
-        document->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+        document->GetRawDocument()->setField("f2", "1234");
+        document->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
 
         TokenizeHelper tokenizeHelper;
         tokenizeHelper.init(schema);
@@ -815,9 +815,9 @@ TEST_F(NormalDocumentParserTest, testValidateNonAddDoc)
 
         // test error OP Type
         document.reset(new IndexlibExtendDocument);
-        document->setRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
-        document->getRawDocument()->setField("f2", "1234");
-        document->getRawDocument()->setDocOperateType(DocOperateType(123));
+        document->SetRawDocument(RawDocumentPtr(new DefaultRawDocument(_hashMapManager)));
+        document->GetRawDocument()->setField("f2", "1234");
+        document->GetRawDocument()->setDocOperateType(DocOperateType(123));
         ASSERT_TRUE(tokenizeHelper.process(document));
         EXPECT_FALSE(parser->Parse(document));
     }
@@ -1035,7 +1035,7 @@ TEST_F(NormalDocumentParserTest, testAddFieldLatencyTag)
 {
     string fieldValue = "title:A b# c d e,nid:1";
     prepare(fieldValue);
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("source_timestamp", "10000");
 
     DocumentFactoryWrapper wrapper(_schemaPtr);
@@ -1058,7 +1058,7 @@ IndexlibExtendDocumentPtr NormalDocumentParserTest::createExtendDoc(const string
         rawDoc->setField(kv[0], kv[1]);
     }
     rawDoc->setDocOperateType(ADD_DOC);
-    extendDoc->setRawDocument(rawDoc);
+    extendDoc->SetRawDocument(rawDoc);
     extendDoc->setRegionId(regionId);
     return extendDoc;
 }

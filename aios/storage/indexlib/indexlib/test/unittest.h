@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_UNITTEST_H
-#define __INDEXLIB_UNITTEST_H
+#pragma once
 
 // TODO: macros will dup with common/unittest.h
 
@@ -61,7 +60,10 @@ public:
     {
         return TESTBASE_BASE::GET_TEMP_DATA_PATH() + relativePath;
     }
-    std::string GET_NON_RAMDISK_PATH() const { return "/tmp/" + GET_TEMP_DATA_PATH(); }
+    std::string GET_NON_RAMDISK_PATH() const
+    {
+        return GET_TEMP_DATA_PATH();
+    }
 
 public:
     indexlib::file_system::DirectoryPtr GET_CHECK_DIRECTORY(bool isReadonly = true) const
@@ -350,5 +352,3 @@ private:
 
 #define GET_CASE_PARAM() GetParam()
 #define GET_PARAM_VALUE(idx) std::get<(idx)>(GET_CASE_PARAM())
-
-#endif //__INDEXLIB_UNITTEST_H

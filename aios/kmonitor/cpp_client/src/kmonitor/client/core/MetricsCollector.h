@@ -26,6 +26,7 @@ public:
     MetricsRecord *AddRecord(const std::string &name, const MetricsTagsPtr &tags, int64_t curTime);
 
     void Clear();
+    MetricsRecords StealRecords();
     const MetricsRecords &GetRecords() const;
 
 private:

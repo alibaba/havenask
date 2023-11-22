@@ -44,14 +44,14 @@ public:
 
 public:
     SegmentTermInfo();
-    SegmentTermInfo(InvertedIndexType indexType, segmentid_t id, docid_t baseId,
+    SegmentTermInfo(InvertedIndexType indexType, segmentid_t id, docid64_t baseId,
                     const std::shared_ptr<IndexIterator>& indexIterator,
                     const std::shared_ptr<SingleFieldIndexSegmentPatchIterator>& fieldPatchIterator,
                     TermIndexMode mode = TM_NORMAL);
 
     segmentid_t GetSegmentId() const { return _segId; }
     index::DictKeyInfo GetKey() const;
-    docid_t GetBaseDocId() const { return _baseDocId; }
+    docid64_t GetBaseDocId() const { return _baseDocId; }
     std::pair<PostingDecoder*, SingleTermIndexSegmentPatchIterator*> GetPosting() const;
     TermIndexMode GetTermIndexMode() const { return _termIndexMode; }
 
@@ -65,7 +65,7 @@ private:
 private:
     InvertedIndexType _indexType;
     segmentid_t _segId;
-    docid_t _baseDocId;
+    docid64_t _baseDocId;
 
     std::shared_ptr<IndexIterator> _indexIterator;
     index::DictKeyInfo _postingKey;

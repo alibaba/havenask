@@ -1,12 +1,23 @@
 #include "build_service/common/PeriodDocCounter.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <stdlib.h>
+#include <string>
 #include <unistd.h>
+#include <vector>
 
 #include "autil/StringUtil.h"
 #include "autil/ThreadPool.h"
+#include "autil/TimeUtility.h"
 #include "autil/WorkItem.h"
+#include "build_service/common_define.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "build_service/util/Log.h"
 #include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

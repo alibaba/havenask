@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONDISKSEGMENTSIZECALCULATORTEST_H
-#define __INDEXLIB_ONDISKSEGMENTSIZECALCULATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/Directory.h"
@@ -57,5 +56,3 @@ INDEXLIB_UNIT_TEST_CASE(OnDiskSegmentSizeCalculatorTest, TestGetKvSegmentSize);
 INDEXLIB_UNIT_TEST_CASE(OnDiskSegmentSizeCalculatorTest, TestGetKkvSegmentSize);
 INDEXLIB_UNIT_TEST_CASE(OnDiskSegmentSizeCalculatorTest, TestCustomizedTable);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ONDISKSEGMENTSIZECALCULATORTEST_H

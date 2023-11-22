@@ -1,9 +1,9 @@
 #include "multi_region_kkv_keys_extractor_unittest.h"
 
 #include "indexlib/common/multi_region_rehasher.h"
+#include "indexlib/config/test/region_schema_maker.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/region_schema_maker.h"
 #include "indexlib/util/KeyHasherTyped.h"
 
 using namespace std;

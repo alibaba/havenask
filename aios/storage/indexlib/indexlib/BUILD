@@ -1,10 +1,26 @@
 load('//bazel:defs.bzl', 'hdrs_pkg')
+package_group(
+    name='indexlibV1',
+    packages=[
+        '//aios/amalgam/...', '//aios/apps/...', '//aios/basic_ops/...',
+        '//aios/coco_ops/...', '//aios/expression/...', '//aios/ha3/...',
+        '//aios/hobbit_framework/...', '//aios/igraph/...',
+        '//aios/plugins/...', '//aios/sql/...',
+        '//aios/storage/indexlib/indexlib/...', '//aios/storage/kiwi/...',
+        '//aios/storage/remote_indexlib/...', '//aios/suez/...',
+        '//aios/suez_turing/...', '//aios/turbojet/...',
+        '//aios/turing_ops_util/...', '//package/...', '//turing_plugins/...'
+    ]
+)
 cc_library(
     name='indexlib_h',
     hdrs=['misc/common.h'],
     copts=['-Werror'],
     include_prefix='indexlib',
-    visibility=['//visibility:public'],
+    visibility=[
+        '//aios/storage/indexlib/indexlib:indexlibV1',
+        '@com_taobao_turing_plugins//turing_plugins:__subpackages__'
+    ],
     deps=[':index_define', ':indexlib_header', '//aios/autil:multi_value']
 )
 cc_library(
@@ -14,18 +30,7 @@ cc_library(
     include_prefix='indexlib',
     visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
-        '//aios/autil:multi_value',
-        '//aios/storage/indexlib/base:FieldTypeUtil',
-        '//aios/storage/indexlib/base:constants',
-        '//aios/storage/indexlib/index/attribute:constants',
-        '//aios/storage/indexlib/index/common:constants',
-        '//aios/storage/indexlib/index/inverted_index:constants',
-        '//aios/storage/indexlib/index/kkv:constants',
-        '//aios/storage/indexlib/index/kv:constants',
-        '//aios/storage/indexlib/index/operation_log:constants',
-        '//aios/storage/indexlib/index/primary_key:constants',
-        '//aios/storage/indexlib/index/source:constants',
-        '//aios/storage/indexlib/index/summary:constants'
+        '//aios/autil:multi_value', '//aios/storage/indexlib/legacy:indexlib'
     ]
 )
 cc_library(
@@ -37,11 +42,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib',
-    visibility=[
-        '//aios/apps/engine/dolphin:__subpackages__',
-        '//aios/khronos_table:__subpackages__',
-        '//aios/storage/indexlib/indexlib:__subpackages__'
-    ],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':indexlib_h', '//aios/filesystem/fslib:fslib-framework',
         '//aios/kmonitor:kmonitor_client_cpp',
@@ -55,7 +56,7 @@ cc_library(
     hdrs=['index_define.h'],
     copts=['-Werror'],
     include_prefix='indexlib',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/index/attribute:constants',
@@ -76,8 +77,8 @@ cc_library(
     include_prefix='indexlib',
     visibility=['//visibility:public'],
     deps=[
-        '//aios/storage/indexlib/indexlib/config', ':indexlib_h',
-        ':indexlib_misc'
+        ':indexlib_h', ':indexlib_misc',
+        '//aios/storage/indexlib/indexlib/config'
     ],
     alwayslink=True
 )
@@ -101,17 +102,7 @@ genrule(
     outs=['codegen/codegen_config.h'],
     cmd='\n    checksum=""\n    files="$(locations :indexlib_codegen_header_package) $(locations :codegen_package_tar)"\n    for f in $$files\n    do\n        checksum=$$checksum$$(md5sum $$f)\n    done\n    checksum=$$(md5sum <<< $$checksum | awk \'{print $$1}\')\n    sed s/version/$$checksum/ $(locations :codegen/codegen_config.h.in) > $(OUTS)\n    ',
     tags=['manual'],
-    visibility=['//aios/storage/indexlib:__subpackages__']
-)
-cc_library(
-    name='indexlib_plugin_config',
-    hdrs=[
-        'misc/common.h', '//aios/storage/indexlib/indexlib/config:module_info_h'
-    ],
-    copts=['-Werror'],
-    include_prefix='indexlib',
-    visibility=['//visibility:public'],
-    deps=[]
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
 )
 cc_library(
     name='indexlib_table',
@@ -119,7 +110,7 @@ cc_library(
     hdrs=glob(['table/*.h']),
     copts=['-Werror'],
     include_prefix='indexlib',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         ':indexlib_h', ':indexlib_misc',
         '//aios/storage/indexlib/indexlib/common',
@@ -141,7 +132,7 @@ cc_library(
     ]),
     copts=['-Werror'],
     include_prefix='indexlib',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         ':indexlib_h', ':indexlib_misc', ':indexlib_table',
         '//aios/storage/indexlib/index/inverted_index:AndPostingExecutor',
@@ -159,14 +150,14 @@ cc_library(
 cc_library(
     name='third_party_lib',
     copts=['-Werror'],
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=(['@boost//:regex'] + []),
     alwayslink=True
 )
 cc_library(
     name='indexlib',
     copts=['-Werror'],
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         ':third_party_lib',
         '//aios/storage/indexlib/indexlib/partition:indexlib_partition'
@@ -177,7 +168,10 @@ cc_library(
     name='indexlib_testlib',
     copts=['-Werror'],
     include_prefix='indexlib',
-    visibility=['//visibility:public'],
+    visibility=[
+        '//aios/storage/indexlib/indexlib:indexlibV1',
+        '@com_taobao_turing_plugins//turing_plugins:__subpackages__'
+    ],
     deps=[
         ':indexlib_merger', '//aios/storage/indexlib/indexlib/config',
         '//aios/storage/indexlib/indexlib/document',

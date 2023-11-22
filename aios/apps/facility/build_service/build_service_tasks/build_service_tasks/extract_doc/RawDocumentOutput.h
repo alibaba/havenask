@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BUILD_SERVICE_TASKS_RAW_DOCUMENAT_OUTPUT_H
-#define ISEARCH_BUILD_SERVICE_TASKS_RAW_DOCUMENAT_OUTPUT_H
+#pragma once
 
+#include <memory>
+#include <string>
 #include <unordered_map>
 
-#include "autil/HashFuncFactory.h"
+#include "autil/HashFunctionBase.h"
+#include "autil/legacy/any.h"
 #include "build_service/common_define.h"
 #include "build_service/config/TaskOutputConfig.h"
-#include "build_service/io/IODefine.h"
 #include "build_service/io/Output.h"
 #include "build_service/io/OutputCreator.h"
 #include "build_service/task_base/TaskFactory.h"
@@ -94,5 +95,3 @@ private:
 BS_TYPEDEF_PTR(RawDocumentOutputCreator);
 
 } // namespace build_service_tasks
-
-#endif

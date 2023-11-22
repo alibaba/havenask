@@ -15,7 +15,13 @@
  */
 #include "build_service/admin/ProhibitedIpsTable.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <utility>
+
+#include "autil/Span.h"
 #include "autil/TimeUtility.h"
+
 using namespace std;
 using namespace autil;
 namespace build_service { namespace admin {

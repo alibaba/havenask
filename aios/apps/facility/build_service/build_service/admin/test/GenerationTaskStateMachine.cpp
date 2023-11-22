@@ -1,8 +1,26 @@
 #include "build_service/admin/test/GenerationTaskStateMachine.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <unistd.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "build_service/admin/AppPlanMaker.h"
 #include "build_service/admin/CheckpointCreator.h"
-#include "build_service/admin/taskcontroller/MergeCrontabTask.h"
+#include "build_service/admin/ClusterCheckpointSynchronizerCreator.h"
+#include "build_service/admin/CounterCollector.h"
+#include "build_service/admin/JobTask.h"
+#include "build_service/admin/controlflow/TaskFactory.h"
+#include "build_service/admin/controlflow/TaskFlowManager.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/test/FakeGenerationTask.h"
 #include "build_service/admin/test/FakeJobTask.h"
 #include "build_service/common/BuilderCheckpointAccessor.h"
@@ -10,11 +28,19 @@
 #include "build_service/common/IndexCheckpointAccessor.h"
 #include "build_service/common/PathDefine.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ConfigReaderAccessor.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/proto/ProcessorTaskIdentifier.h"
+#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/TaskIdentifier.h"
 #include "build_service/proto/test/ProtoCreator.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/worker/WorkerStateHandler.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/misc/common.h"
 
 using namespace std;
 using namespace build_service::proto;
@@ -174,15 +200,19 @@ void GenerationTaskStateMachine::prepareFakeGenerationTask(const std::string& ta
         _generationTask = new FakeJobTask(indexRoot, buildId, _zkWrapper);
     } else {
         _generationTask = new FakeGenerationTask(indexRoot, buildId, _zkWrapper);
+        if (_useV2Build) {
+            _generationTask->TEST_setForceBuildWithTabletV2Mode();
+        }
     }
 }
 
 bool GenerationTaskStateMachine::init(const std::string& tableName, const std::string& configPath,
                                       const std::string& rootDir, DataDescriptions dataDescriptions,
-                                      proto::BuildStep buildStep)
+                                      proto::BuildStep buildStep, bool forceV2Build)
 {
     _tableName = tableName;
     _rootDir = rootDir;
+    _useV2Build = forceV2Build;
     prepareFakeGenerationTask(tableName, rootDir);
     assert(!_workerTable); // @init not reentrant
     _workerTable = new WorkerTable(_generationDir, _zkWrapper);
@@ -254,20 +284,86 @@ bool GenerationTaskStateMachine::waitCreateVersion(const string& clusterName, ve
 {
     makeDecision(2);
     for (int64_t i = 0; i < waitTimes; i++) {
-        proto::GenerationInfo generationInfo;
-        getGenerationInfo(&generationInfo);
-        auto indexInfos = generationInfo.indexinfos();
-        for (int64_t i = 0; i < indexInfos.size(); i++) {
-            if (clusterName == indexInfos.Get(i).clustername() &&
-                indexInfos.Get(i).indexversion() == (uint32_t)targetVersion) {
-                return true;
-            }
+        if (getPublishedVersion(clusterName) == targetVersion) {
+            return true;
         }
         finishBuilder(clusterName, _workerTable);
         finishMerger(clusterName, targetVersion, indexSize);
         makeDecision();
     }
     return false;
+}
+
+versionid_t GenerationTaskStateMachine::getPublishedVersion(const std::string& clusterName)
+{
+    proto::GenerationInfo generationInfo;
+    getGenerationInfo(&generationInfo);
+    auto indexInfos = generationInfo.indexinfos();
+    auto versionId = indexlib::INVALID_VERSIONID;
+    for (int64_t i = 0; i < indexInfos.size(); i++) {
+        if (clusterName == indexInfos.Get(i).clustername()) {
+            versionId = indexInfos.Get(i).indexversion();
+            break;
+        }
+    }
+    return versionId;
+}
+
+bool GenerationTaskStateMachine::waitCreateVersionV2(const std::string& clusterName, versionid_t& createdVersion,
+                                                     int64_t waitTimes)
+{
+    makeDecision(2);
+    auto preVersion = getPublishedVersion(clusterName);
+    for (int64_t i = 0; i < waitTimes; i++) {
+        finishBuilderV2(clusterName, _workerTable);
+        makeDecision();
+        createdVersion = getPublishedVersion(clusterName);
+        if (preVersion != createdVersion) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void GenerationTaskStateMachine::finishBuilderV2(const string& clusterName, WorkerTable* workerTable)
+{
+    auto builderV2Nodes = getBuilderV2Nodes(workerTable, clusterName);
+    for (auto& node : builderV2Nodes) {
+        node.setBuildFinish();
+    }
+}
+
+std::vector<BuilderV2Node> GenerationTaskStateMachine::getBuilderV2Nodes(std::string clusterName)
+{
+    return getBuilderV2Nodes(_workerTable, clusterName);
+}
+
+std::vector<BuilderV2Node> GenerationTaskStateMachine::getBuilderV2Nodes(WorkerTable* workerTable,
+                                                                         std::string clusterName)
+{
+    std::vector<BuilderV2Node> builderNodes;
+    WorkerNodes workerNodes = workerTable->getActiveNodes();
+    for (size_t i = 0; i < workerNodes.size(); i++) {
+        if (workerNodes[i]->getRoleType() != proto::RoleType::ROLE_TASK) {
+            continue;
+        }
+        if (workerNodes[i]->getPartitionId().clusternames(0) != clusterName) {
+            continue;
+        }
+        TaskIdentifier taskIdentifier;
+        if (!taskIdentifier.fromString(workerNodes[i]->getPartitionId().taskid())) {
+            continue;
+        }
+        std::string taskName;
+        taskIdentifier.getTaskName(taskName);
+        if (taskName != "builderV2") {
+            continue;
+        }
+        auto taskNode = std::dynamic_pointer_cast<proto::TaskNode>(workerNodes[i]);
+        BuilderV2Node node(taskNode);
+        builderNodes.push_back(node);
+    }
+    return builderNodes;
 }
 
 bool GenerationTaskStateMachine::createVersion(const string& clusterName, const string& mergeConfigName)
@@ -356,7 +452,16 @@ bool GenerationTaskStateMachine::switchBuild(bool createFullVersion, versionid_t
     getGenerationInfo(&generationInfo);
     auto clusterInfos = generationInfo.buildinfo().clusterinfos();
     for (int64_t i = 0; i < clusterInfos.size(); i++) {
-        waitCreateVersion(clusterInfos.Get(i).clustername(), fullVersion, 100, indexSize);
+        if (_useV2Build) {
+            versionid_t tmpVersion;
+            if (!waitCreateVersionV2(clusterInfos.Get(i).clustername(), tmpVersion)) {
+                return false;
+            }
+        } else {
+            if (!waitCreateVersion(clusterInfos.Get(i).clustername(), fullVersion, 100, indexSize)) {
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -495,7 +600,7 @@ bool GenerationTaskStateMachine::switchProcessorToInc()
         makeDecision();
         GenerationInfo generationInfo;
         getGenerationInfo(&generationInfo);
-        if (generationInfo.buildstep() == "incremental") {
+        if (generationInfo.buildstep() == config::BUILD_STEP_INC_STR) {
             return true;
         }
     }

@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MAINSUBDOCPROCESSORCHAIN_H
-#define ISEARCH_BS_MAINSUBDOCPROCESSORCHAIN_H
+#pragma once
+
+#include <vector>
 
 #include "build_service/common_define.h"
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessorChain.h"
-#include "build_service/processor/SingleDocProcessorChain.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace processor {
@@ -49,5 +50,3 @@ private:
 BS_TYPEDEF_PTR(MainSubDocProcessorChain);
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_MAINSUBDOCPROCESSORCHAIN_H

@@ -15,10 +15,19 @@
  */
 #include "build_service/local_job/LocalBrokerFactory.h"
 
+#include <cstddef>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/HashAlgorithm.h"
+#include "build_service/common_define.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/local_job/LocalProcessedDocConsumer.h"
 #include "build_service/local_job/LocalProcessedDocProducer.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/task_base/JobConfig.h"
 
 using namespace std;

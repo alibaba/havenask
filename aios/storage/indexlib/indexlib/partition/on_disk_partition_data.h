@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ON_DISK_PARTITION_DATA_H
-#define __INDEXLIB_ON_DISK_PARTITION_DATA_H
+#pragma once
 
 #include <memory>
 
@@ -84,13 +83,13 @@ public:
     // use SegmentDirectory as default segment directory
     static OnDiskPartitionDataPtr
     CreateOnDiskPartitionData(const std::shared_ptr<file_system::IFileSystem>& fileSystem,
-                              index_base::Version version = index_base::Version(INVALID_VERSION),
+                              index_base::Version version = index_base::Version(INVALID_VERSIONID),
                               const std::string& dir = "", bool hasSubSegment = false, bool needDeletionMap = false,
                               const plugin::PluginManagerPtr& pluginManager = plugin::PluginManagerPtr());
 
     static OnDiskPartitionDataPtr CreateOnDiskPartitionData(
         const std::shared_ptr<file_system::IFileSystem>& fileSystem, const config::IndexPartitionSchemaPtr& schema,
-        index_base::Version version = index_base::Version(INVALID_VERSION), const std::string& dir = "",
+        index_base::Version version = index_base::Version(INVALID_VERSIONID), const std::string& dir = "",
         bool needDeletionMap = false, const plugin::PluginManagerPtr& pluginManager = plugin::PluginManagerPtr());
 
     static OnDiskPartitionDataPtr
@@ -133,5 +132,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ON_DISK_PARTITION_DATA_H

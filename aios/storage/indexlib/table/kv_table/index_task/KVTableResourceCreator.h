@@ -15,7 +15,6 @@
  */
 #pragma once
 
-#include "autil/Log.h"
 #include "indexlib/framework/index_task/BasicDefs.h"
 #include "indexlib/framework/index_task/IIndexTaskResourceCreator.h"
 
@@ -24,15 +23,11 @@ namespace indexlibv2::table {
 class KVTableResourceCreator : public framework::IIndexTaskResourceCreator
 {
 public:
-    KVTableResourceCreator();
-    ~KVTableResourceCreator();
+    KVTableResourceCreator() = default;
+    ~KVTableResourceCreator() = default;
 
-public:
     std::unique_ptr<framework::IndexTaskResource> CreateResource(const std::string& name,
                                                                  const framework::IndexTaskResourceType& type) override;
-
-private:
-    AUTIL_LOG_DECLARE();
 };
 
 } // namespace indexlibv2::table

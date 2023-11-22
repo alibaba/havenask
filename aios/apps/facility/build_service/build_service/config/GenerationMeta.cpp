@@ -15,8 +15,14 @@
  */
 #include "build_service/config/GenerationMeta.h"
 
-#include "autil/legacy/jsonizable.h"
-#include "fslib/fslib.h"
+#include <iosfwd>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;

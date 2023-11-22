@@ -15,17 +15,42 @@
  */
 #include "build_service/worker/AgentServiceImpl.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <errno.h>
+#include <exception>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <iosfwd>
+#include <iterator>
+#include <memory>
+#include <signal.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include "autil/CRC32C.h"
+#include "autil/EnvUtil.h"
+#include "autil/Log.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/ConfigDownloader.h"
-#include "fslib/fs/File.h"
+#include "build_service/common/CpuSpeedEstimater.h"
+#include "build_service/common/NetworkTrafficEstimater.h"
+#include "build_service/proto/ProtoComparator.h"
+#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/RoleNameGenerator.h"
+#include "build_service/util/Monitor.h"
 #include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/util/PathUtil.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;
@@ -63,6 +88,7 @@ AgentServiceImpl::AgentServiceImpl(const std::map<std::string, std::string>& pro
     , _latestRestartTimestamp(-1)
     , _latestCleanDirTimestamp(-1)
 {
+    _agentRoleName = RoleNameGenerator::generateRoleName(pid);
     *_current.mutable_longaddress() = address;
 
     _targetRoleCntMetric = DECLARE_METRIC(_metricProvider, "targetRoleCount", kmonitor::STATUS, "count");
@@ -757,6 +783,9 @@ std::vector<std::string> AgentServiceImpl::setEnvForSubProcess(const std::string
         AUTIL_LOG(INFO, "set env [%s] = %s", env.first.c_str(), rValue.c_str());
         targetEnvMap[env.first] = rValue;
     }
+
+    AUTIL_LOG(INFO, "set env [BUILD_SERVICE_AGENT_ROLE_NAME] = %s", _agentRoleName.c_str());
+    targetEnvMap["BUILD_SERVICE_AGENT_ROLE_NAME"] = _agentRoleName;
     std::vector<std::string> envStrVec;
     for (auto& item : targetEnvMap) {
         envStrVec.push_back(item.first + "=" + item.second);

@@ -36,6 +36,7 @@ public:
     uint32_t mergeParallelNum;
     autil::legacy::json::JsonMap reclaimConfigs;
     autil::legacy::json::JsonMap mergeConfig;
+    autil::legacy::json::JsonMap pluginConfig;
 
 private:
     AUTIL_LOG_DECLARE();

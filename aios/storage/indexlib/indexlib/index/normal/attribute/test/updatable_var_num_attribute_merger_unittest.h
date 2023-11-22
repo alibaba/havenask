@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_UPDATABLEVARNUMATTRIBUTEMERGERTEST_H
-#define __INDEXLIB_UPDATABLEVARNUMATTRIBUTEMERGERTEST_H
+#pragma once
 
 #include <memory>
 
@@ -55,5 +54,4 @@ INDEXLIB_UNIT_TEST_CASE(UpdatableVarNumAttributeMergerTest, TestMergeWithPatch);
 INDEXLIB_UNIT_TEST_CASE(UpdatableVarNumAttributeMergerTest, TestMergeWithEmptyHeap);
 INDEXLIB_UNIT_TEST_CASE(UpdatableVarNumAttributeMergerTest, TestCreatePatchReaderWithNoPatches);
 INDEXLIB_UNIT_TEST_CASE(UpdatableVarNumAttributeMergerTest, TestMergePatchesLegacy);
-}}     // namespace indexlib::index
-#endif //__INDEXLIB_UPDATABLEVARNUMATTRIBUTEMERGERTEST_H
+}} // namespace indexlib::index

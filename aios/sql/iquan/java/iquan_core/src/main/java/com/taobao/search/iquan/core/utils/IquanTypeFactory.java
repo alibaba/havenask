@@ -1,23 +1,32 @@
 package com.taobao.search.iquan.core.utils;
 
-import com.taobao.search.iquan.core.api.schema.*;
-import com.taobao.search.iquan.core.common.ConstantDefine;
-import org.apache.calcite.rel.type.*;
-import org.apache.calcite.sql.type.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class IquanTypeFactory {
-    protected static final Logger logger = LoggerFactory.getLogger(IquanTypeFactory.class);
+import com.taobao.search.iquan.core.api.schema.AbstractField;
+import com.taobao.search.iquan.core.api.schema.ArrayField;
+import com.taobao.search.iquan.core.api.schema.FieldType;
+import com.taobao.search.iquan.core.api.schema.MapField;
+import com.taobao.search.iquan.core.api.schema.MultiSetField;
+import com.taobao.search.iquan.core.api.schema.RowField;
+import com.taobao.search.iquan.core.common.ConstantDefine;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
+import org.apache.calcite.rel.type.RelDataTypeField;
+import org.apache.calcite.rel.type.RelDataTypeFieldImpl;
+import org.apache.calcite.rel.type.RelDataTypeSystem;
+import org.apache.calcite.rel.type.StructKind;
+import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
+import org.apache.calcite.sql.type.SqlTypeName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+public class IquanTypeFactory {
+    public final static IquanTypeFactory DEFAULT = IquanTypeFactory.builder().build();
+    protected static final Logger logger = LoggerFactory.getLogger(IquanTypeFactory.class);
     protected boolean scalarTypeNullable = false;
     protected boolean compoundTypeNullable = false;
     protected RelDataTypeFactory relTypeFactory;
-
-    public final static IquanTypeFactory DEFAULT = IquanTypeFactory.builder().build();
 
     public IquanTypeFactory() {
         this.relTypeFactory = new SqlTypeFactoryImpl(RelDataTypeSystem.DEFAULT);
@@ -25,6 +34,43 @@ public class IquanTypeFactory {
 
     public IquanTypeFactory(RelDataTypeFactory relTypeFactory) {
         this.relTypeFactory = relTypeFactory;
+    }
+
+    public static FieldType createFieldType(SqlTypeName type) {
+        switch (type) {
+            case BOOLEAN:
+                return FieldType.FT_BOOLEAN;
+            case TINYINT:
+                return FieldType.FT_INT8;
+            case SMALLINT:
+                return FieldType.FT_INT16;
+            case INTEGER:
+                return FieldType.FT_INT32;
+            case BIGINT:
+                return FieldType.FT_INT64;
+            case FLOAT:
+                return FieldType.FT_FLOAT;
+            case DOUBLE:
+                return FieldType.FT_DOUBLE;
+            case VARCHAR:
+            case CHAR:
+                return FieldType.FT_STRING;
+            case DATE:
+                return FieldType.FT_DATE;
+            case TIME:
+                return FieldType.FT_TIME;
+            case TIMESTAMP:
+                return FieldType.FT_TIMESTAMP;
+            case COLUMN_LIST:
+                return FieldType.FT_COLUMN_LIST;
+            default:
+                logger.error("createFieldType fail: type {} is not support", type);
+                return FieldType.FT_INVALID;
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public boolean isScalarTypeNullable() {
@@ -43,12 +89,12 @@ public class IquanTypeFactory {
         this.compoundTypeNullable = compoundTypeNullable;
     }
 
-    public void setRelTypeFactory(RelDataTypeFactory relTypeFactory) {
-        this.relTypeFactory = relTypeFactory;
-    }
-
     public RelDataTypeFactory getRelTypeFactory() {
         return relTypeFactory;
+    }
+
+    public void setRelTypeFactory(RelDataTypeFactory relTypeFactory) {
+        this.relTypeFactory = relTypeFactory;
     }
 
     private RelDataType createRelTypeForAtomic(AbstractField field) {
@@ -269,43 +315,6 @@ public class IquanTypeFactory {
             relTypeFieldList.add(new RelDataTypeFieldImpl(name, index++, relType));
         }
         return relTypeFieldList;
-    }
-
-    public static FieldType createFieldType(SqlTypeName type) {
-        switch (type) {
-            case BOOLEAN:
-                return FieldType.FT_BOOLEAN;
-            case TINYINT:
-                return FieldType.FT_INT8;
-            case SMALLINT:
-                return FieldType.FT_INT16;
-            case INTEGER:
-                return FieldType.FT_INT32;
-            case BIGINT:
-                return FieldType.FT_INT64;
-            case FLOAT:
-                return FieldType.FT_FLOAT;
-            case DOUBLE:
-                return FieldType.FT_DOUBLE;
-            case VARCHAR:
-            case CHAR:
-                return FieldType.FT_STRING;
-            case DATE:
-                return FieldType.FT_DATE;
-            case TIME:
-                return FieldType.FT_TIME;
-            case TIMESTAMP:
-                return FieldType.FT_TIMESTAMP;
-            case COLUMN_LIST:
-                return FieldType.FT_COLUMN_LIST;
-            default:
-                logger.error("createFieldType fail: type {} is not support" , type);
-                return FieldType.FT_INVALID;
-        }
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     public static class Builder {

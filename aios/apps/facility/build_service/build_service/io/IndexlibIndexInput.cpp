@@ -15,7 +15,18 @@
  */
 #include "build_service/io/IndexlibIndexInput.h"
 
+#include <iosfwd>
+#include <map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/module_info.h"
+#include "indexlib/partition/remote_access/partition_iterator.h"
 #include "indexlib/partition/remote_access/partition_resource_provider_factory.h"
 
 using namespace std;

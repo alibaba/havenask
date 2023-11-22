@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SPLIT_SEGMENT_STRATEGY_FACTORY_H
-#define __INDEXLIB_SPLIT_SEGMENT_STRATEGY_FACTORY_H
+#pragma once
 
 #include <functional>
-#include <memory>
+#include <map>
+#include <string>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/plugin/ModuleFactory.h"
 #include "indexlib/util/KeyValueMap.h"
 #include "indexlib/util/metrics/MetricProvider.h"
@@ -73,5 +75,3 @@ private:
 
 DEFINE_SHARED_PTR(SplitSegmentStrategyFactory);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_SPLIT_SEGMENT_STRATEGY_FACTORY_H

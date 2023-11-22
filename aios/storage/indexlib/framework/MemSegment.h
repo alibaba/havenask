@@ -48,10 +48,14 @@ public:
     virtual ~MemSegment() = default;
 
 public:
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override { return 0; }
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override
+    {
+        return {Status::OK(), 0};
+    }
 
 public:
     virtual Status Open(const BuildResource& resource, indexlib::framework::SegmentMetrics* lastSegmentMetrics) = 0;
+    virtual void ValidateDocumentBatch(document::IDocumentBatch* batch) const = 0;
     virtual Status Build(document::IDocumentBatch* batch) = 0;
     virtual std::shared_ptr<indexlib::util::BuildResourceMetrics> GetBuildResourceMetrics() const = 0;
     virtual bool NeedDump() const = 0;

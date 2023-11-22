@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PREFIXTOKENIZER_H
-#define ISEARCH_BS_PREFIXTOKENIZER_H
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/analyzer/PrefixTokenizerImpl.h"
 #include "build_service/analyzer/Tokenizer.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/util/Log.h"
-
-namespace indexlibv2::analyzer {
-class ITokenizer;
-}
+#include "indexlib/analyzer/ITokenizer.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace analyzer {
 
@@ -67,5 +71,3 @@ private:
 BS_TYPEDEF_PTR(PrefixTokenizer);
 
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_PREFIXTOKENIZER_H

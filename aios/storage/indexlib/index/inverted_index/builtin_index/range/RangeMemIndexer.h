@@ -35,7 +35,7 @@ class IndexSegmentReader;
 class RangeMemIndexer : public InvertedMemIndexer
 {
 public:
-    explicit RangeMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam);
+    explicit RangeMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam);
     ~RangeMemIndexer();
 
     Status Init(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,

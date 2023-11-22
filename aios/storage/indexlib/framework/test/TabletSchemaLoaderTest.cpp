@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "indexlib/base/Constant.h"
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/IDirectory.h"

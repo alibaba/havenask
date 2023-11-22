@@ -1,3 +1,4 @@
+#pragma once
 /* mz_compat.h -- Backwards compatible interface for older versions
    Version 2.8.9, July 4, 2019
    part of the MiniZip project
@@ -10,9 +11,6 @@
    This program is distributed under the terms of the same license as zlib.
    See the accompanying LICENSE file for the full text of the license.
 */
-
-#ifndef MZ_COMPAT_H
-#define MZ_COMPAT_H
 
 #include "mz.h"
 
@@ -335,6 +333,4 @@ ZEXPORT void fill_memory_filefunc(zlib_filefunc_def* pzlib_filefunc_def);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

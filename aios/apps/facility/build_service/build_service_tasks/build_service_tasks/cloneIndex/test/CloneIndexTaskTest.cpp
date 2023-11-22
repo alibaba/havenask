@@ -1,12 +1,44 @@
+#include <algorithm>
+#include <arpc/proto/rpc_extensions.pb.h>
+#include <google/protobuf/stubs/status.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service_tasks/channel/test/FakeRpcServer.h"
 #include "build_service_tasks/channel/test/MockRpcChannel.h"
 #include "fslib/util/FileUtil.h"
 // Workaround for test private/protected member
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
+#include "build_service/config/BuildServiceConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/io/Input.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/task_base/Task.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "build_service_tasks/channel/BsAdminChannel.h"
+#include "build_service_tasks/channel/MadroxChannel.h"
+#include "build_service_tasks/channel/Master.pb.h"
 #include "build_service_tasks/cloneIndex/CloneIndexTask.h"
 #include "build_service_tasks/test/unittest.h"
 #include "google/protobuf/util/json_util.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
+#include "unittest/unittest.h"
 #include "worker_framework/LeaderInfo.h"
 
 using namespace std;

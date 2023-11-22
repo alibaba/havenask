@@ -44,6 +44,8 @@ public:
 
     void reserve(uint32_t fieldNum) { _fields.reserve(fieldNum); }
 
+    void clear();
+
 private:
     FieldVector _fields;
     std::shared_ptr<TokenNodeAllocator> _tokenNodeAllocatorPtr;

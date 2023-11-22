@@ -1,8 +1,15 @@
 #include "build_service/admin/test/MockGenerationKeeper.h"
 
+#include <assert.h>
+#include <iosfwd>
+
+#include "autil/LoopThread.h"
 #include "build_service/admin/test/FakeGenerationTask.h"
 #include "build_service/admin/test/GenerationTaskStateMachine.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/util/FileUtil.h"
 
 using namespace std;
 using namespace build_service::proto;

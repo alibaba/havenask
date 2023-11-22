@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.core.planner.functions;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 import org.apache.calcite.sql.type.SqlTypeName;
 
-import java.util.Collections;
-import java.util.List;
-
-public abstract class MaxAggFunction extends DeclarativeAggregateFunction{
+public abstract class MaxAggFunction extends DeclarativeAggregateFunction {
     private static final String max = "max";
 
     protected MaxAggFunction(SqlTypeFactoryImpl typeFactory) {

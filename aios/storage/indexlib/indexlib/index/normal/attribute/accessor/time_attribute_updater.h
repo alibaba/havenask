@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TIME_ATTRIBUTE_UPDATER_H
-#define __INDEXLIB_TIME_ATTRIBUTE_UPDATER_H
+#pragma once
 
 #include <memory>
 
@@ -52,5 +51,3 @@ DEFINE_SHARED_PTR(TimeAttributeUpdater);
 
 ///////////////////////////////////////////////////////
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TIME_ATTRIBUTE_UPDATER_H

@@ -33,7 +33,7 @@ VirtualAttributeIndexFactory::~VirtualAttributeIndexFactory() {}
 
 std::shared_ptr<index::IDiskIndexer>
 VirtualAttributeIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                const index::IndexerParameter& indexerParam) const
+                                                const index::DiskIndexerParameter& indexerParam) const
 {
     auto indexFactoryCreator = index::IndexFactoryCreator::GetInstance();
     auto virtualAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(indexConfig);
@@ -53,7 +53,7 @@ VirtualAttributeIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::II
 }
 std::shared_ptr<index::IMemIndexer>
 VirtualAttributeIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                               const index::IndexerParameter& indexerParam) const
+                                               const index::MemIndexerParameter& indexerParam) const
 {
     auto indexFactoryCreator = index::IndexFactoryCreator::GetInstance();
     auto virtualAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(indexConfig);
@@ -73,7 +73,7 @@ VirtualAttributeIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIn
 }
 std::unique_ptr<index::IIndexReader>
 VirtualAttributeIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                const index::IndexerParameter& indexerParam) const
+                                                const index::IndexReaderParameter&) const
 {
     auto virtualAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(indexConfig);
     assert(virtualAttrConfig);
@@ -81,12 +81,10 @@ VirtualAttributeIndexFactory::CreateIndexReader(const std::shared_ptr<config::II
         std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(virtualAttrConfig->GetAttributeConfig());
     assert(attrConfig);
     auto fieldType = attrConfig->GetFieldType();
-    if (fieldType == ft_uint16) {
-        return std::make_unique<VirtualAttributeIndexReader<uint16_t>>();
-    } else if (fieldType == ft_int64) {
+    if (fieldType == ft_int64) {
         return std::make_unique<VirtualAttributeIndexReader<int64_t>>();
-    } else if (fieldType == ft_uint32) {
-        return std::make_unique<VirtualAttributeIndexReader<uint32_t>>();
+    } else if (fieldType == ft_uint64) {
+        return std::make_unique<VirtualAttributeIndexReader<uint64_t>>();
     }
     AUTIL_LOG(ERROR, "not support field type [%d]", fieldType);
     assert(false);

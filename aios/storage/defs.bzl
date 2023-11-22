@@ -1,9 +1,16 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_binary")
 load("//bazel:defs.bzl", "cc_fast_test", "cc_slow_test")
 
 # mv to strict_cc_library, onefile_cc_library
 # -Wsign-compare, -Wstringop-overflow, -Wstringop-truncation
 common_copts = ["-Werror", "-Wunused-variable", "-Wsuggest-override", "-Wregister"]
+
+def strict_cc_binary(name, copts = [], **kwargs):
+    cc_binary(
+        name = name,
+        copts = common_copts + copts,
+        **kwargs
+    )
 
 # By default, srcs use [<name>.cpp], hdrs use [<name>.h], copts use common_copts,
 def strict_cc_library(name, srcs = None, hdrs = None, copts = [], export_name = None, export_visibility = None, **kwargs):

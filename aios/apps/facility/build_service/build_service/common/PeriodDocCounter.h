@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PERIOD_DOC_COUNTER_H
-#define ISEARCH_BS_PERIOD_DOC_COUNTER_H
+#pragma once
 
+#include <cstdint>
+#include <functional>
+#include <map>
+#include <stddef.h>
+#include <string>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/base/FieldType.h"
 #include "indexlib/util/Singleton.h"
 
 namespace build_service { namespace common {
@@ -174,5 +181,3 @@ typedef PeriodDocCounter<int64_t> Int64PeriodDocCounter;
 typedef PeriodDocCounter<uint64_t> UInt64PeriodDocCounter;
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_PKTRACER_H

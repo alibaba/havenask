@@ -46,7 +46,6 @@ TEST_F(CommonVersionImporterTest, testCheck)
         Version baseVersion(/*versionId=*/0, /*timestamp=*/100);
         baseVersion.AddSegment(0);
         Version version1(/*versionId=*/0, /*timestamp=*/50);
-        version1.SetSchemaId(1);
         version1.AddSegment(2);
         version1.AddSegment(4);
         Locator locator1(/*src=*/0, /*minOffset=*/50);
@@ -63,7 +62,6 @@ TEST_F(CommonVersionImporterTest, testCheck)
         baseVersion.AddSegment(0);
         baseVersion.SetLocator(baseLocator);
         Version version1(/*versionId=*/0, /*timestamp=*/50);
-        version1.SetSchemaId(1);
         version1.AddSegment(2);
         version1.AddSegment(4);
         Locator locator1(/*src=*/1, /*minOffset=*/50);

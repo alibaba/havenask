@@ -15,9 +15,14 @@
  */
 #include "build_service/proto/RoleNameGenerator.h"
 
+#include <assert.h>
+#include <cstddef>
 #include <math.h>
+#include <stdint.h>
 
 #include "autil/RangeUtil.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/TaskIdentifier.h"
 

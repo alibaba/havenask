@@ -60,7 +60,7 @@ PostingWriter* InMemNormalIndexSegmentReader::GetPostingWriter(const index::Dict
     return nullptr;
 }
 
-bool InMemNormalIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId,
+bool InMemNormalIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId,
                                                       SegmentPosting& segPosting, Pool* sessionPool,
                                                       InvertedIndexSearchTracer* tracer) const
 {

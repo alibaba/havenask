@@ -33,6 +33,7 @@
 namespace indexlibv2 { namespace table {
 
 // ReclaimMap记录一个SegmentMergePlan中doc旧docid和新docid的映射关系
+// TODO (远轫) 因二进制兼容问题，暂不支持64位docid
 class ReclaimMap : public index::DocMapper
 {
 public:
@@ -49,7 +50,7 @@ protected:
     public:
         Status ReclaimOneDoc(docid_t baseDocId, segmentid_t segId,
                              const std::shared_ptr<indexlibv2::index::DeletionMapDiskIndexer>& deletionmapDiskIndexer,
-                             docid_t localId);
+                             docid32_t localId);
         void FillReclaimMap(const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& srcSegments,
                             uint32_t& deletedDocCount, int64_t& totalDocCount, std::vector<docid_t>& oldDocIdToNewDocId,
                             std::vector<docid_t>& targetSegments);
@@ -81,34 +82,27 @@ public:
 public:
     Status Init(const SegmentMergePlan& segMergePlan, const std::shared_ptr<framework::TabletData>& tabletData,
                 const SegmentSplitHandler& segmentSplitHandler);
-    std::pair<segmentid_t, docid_t> Map(docid_t globalOldDoc) const override;
-    std::pair<segmentid_t, docid_t> ReverseMap(docid_t newDocId) const override;
+    std::pair<segmentid_t, docid32_t> Map(docid64_t globalOldDoc) const override;
+    std::pair<segmentid_t, docid32_t> ReverseMap(docid64_t newDocId) const override;
 
     // return docid in plan
-    docid_t GetNewId(docid_t oldId) const override
+    docid64_t GetNewId(docid64_t oldId) const override
     {
         assert(oldId < (docid_t)_oldDocIdToNewDocId.size());
         return _oldDocIdToNewDocId[oldId];
     }
 
     int32_t GetTargetSegmentCount() { return _targetSegmentIds.size(); }
-    int64_t GetTargetSegmentDocCount(int32_t idx) const override;
-    segmentid_t GetTargetSegmentId(int32_t targetSegmentIdx) const override
-    {
-        return _targetSegmentIds[targetSegmentIdx];
-    }
+    int64_t GetTargetSegmentDocCount(segmentid_t segmentId) const override;
 
     uint32_t GetDeletedDocCount() const { return _deletedDocCount; }
     uint32_t GetNewDocCount() const override { return _totalDocCount; }
-    void GetOldDocIdAndSegId(docid_t newDocId, docid_t& oldDocId, segmentid_t& oldSegId) const;
 
     Status Store(const std::shared_ptr<indexlib::file_system::Directory>& resourceDirectory) override;
 
     Status Load(const std::shared_ptr<indexlib::file_system::Directory>& resourceDirectory) override;
 
-    segmentid_t GetLocalId(docid_t newId) const override;
-
-    segmentid_t GetTargetSegmentIndex(docid_t newId) const override;
+    segmentid_t GetLocalId(docid64_t newId) const override;
 
 public:
     // for test
@@ -138,6 +132,8 @@ protected:
     Status Calculate(size_t targetSegmentCount, segmentid_t baseSegmentId,
                      const std::vector<std::pair<docid_t, std::shared_ptr<framework::Segment>>>& srcSegments,
                      const SegmentSplitHandler& segmentSplitHandler);
+    segmentid_t GetTargetSegmentId(int32_t targetSegmentIdx) const { return _targetSegmentIds[targetSegmentIdx]; }
+    segmentid_t GetTargetSegmentIndex(docid_t newId) const;
 
 protected:
     uint32_t _deletedDocCount = 0;

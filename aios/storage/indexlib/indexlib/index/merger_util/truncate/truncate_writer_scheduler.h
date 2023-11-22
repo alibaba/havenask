@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TRUNCATE_WRITER_SCHEDULER_H
-#define __INDEXLIB_TRUNCATE_WRITER_SCHEDULER_H
+#pragma once
 
 #include <memory>
 
@@ -40,5 +39,3 @@ private:
 
 DEFINE_SHARED_PTR(TruncateWriterScheduler);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_TRUNCATE_WRITER_SCHEDULER_H

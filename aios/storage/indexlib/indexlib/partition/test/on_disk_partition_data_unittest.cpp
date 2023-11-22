@@ -33,7 +33,7 @@ void OnDiskPartitionDataTest::TestSimpleProcess()
     Version onDiskVersion = VersionMaker::Make(GET_PARTITION_DIRECTORY(), 0, "0,1", "", "", 0, true);
 
     SegmentDirectoryPtr segDir(new SegmentDirectory);
-    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
     plugin::PluginManagerPtr pluginManager;
     OnDiskPartitionData partitionData(pluginManager);
     partitionData.Open(segDir, OnDiskPartitionData::DMO_SHARED_NEED);
@@ -65,7 +65,7 @@ void OnDiskPartitionDataTest::TestClone()
 {
     Version onDiskVersion = VersionMaker::Make(GET_PARTITION_DIRECTORY(), 0, "0", "", "", 0, true);
     SegmentDirectoryPtr segDir(new SegmentDirectory);
-    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
     OnDiskPartitionDataPtr partData(new OnDiskPartitionData(plugin::PluginManagerPtr()));
     partData->Open(segDir);
 
@@ -86,7 +86,7 @@ void OnDiskPartitionDataTest::TestGetPartitionMeta()
     meta.Store(GET_PARTITION_DIRECTORY());
 
     SegmentDirectoryPtr segDir(new SegmentDirectory);
-    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
     OnDiskPartitionDataPtr partData(new OnDiskPartitionData(plugin::PluginManagerPtr()));
     partData->Open(segDir);
 

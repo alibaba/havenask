@@ -27,7 +27,7 @@ class DynamicPostingIterator final : public PostingIterator
 {
 public:
     struct SegmentContext {
-        docid_t baseDocId = INVALID_DOCID;
+        docid64_t baseDocId = INVALID_DOCID;
         uint32_t docCount = 0;
         const DynamicSearchTree* tree = nullptr;
     };
@@ -38,8 +38,8 @@ public:
 
 public:
     TermMeta* GetTermMeta() const override;
-    docid_t SeekDoc(docid_t docId) override;
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    docid64_t SeekDoc(docid64_t docId) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
     bool HasPosition() const override { return false; }
     void Unpack(TermMatchData& termMatchData) override { assert(false); }
     void Reset() override;
@@ -48,7 +48,7 @@ public:
     autil::mem_pool::Pool* GetSessionPool() const override { return _sessionPool; }
 
 public:
-    bool SeekDocWithDelete(docid_t docId, KeyType* result);
+    bool SeekDocWithDelete(docid64_t docId, KeyType* result);
 
 private:
     autil::mem_pool::Pool* _sessionPool;
@@ -56,7 +56,7 @@ private:
     std::unique_ptr<DynamicSearchTree::Iterator> _currentIterator;
     std::vector<SegmentContext> _segmentContexts;
     TermMeta _termMeta;
-    docid_t _currentDocId;
+    docid64_t _currentDocId;
 
 private:
     AUTIL_LOG_DECLARE();

@@ -25,12 +25,62 @@
 #include <type_traits>
 
 #include "autil/CommonMacros.h"
+#include "autil/DataBuffer.h"
 #include "autil/HashAlgorithm.h"
 #include "autil/LongHashValue.h"
 #include "autil/MultiValueFormatter.h"
 #include "autil/Span.h"
 
 namespace autil {
+namespace __detail {
+struct SimpleFormat {
+    const char *_data = nullptr;
+    uint32_t _count = 0;
+    uint8_t _countLen = 0;
+
+    SimpleFormat() = default;
+    ~SimpleFormat() = default;
+
+    SimpleFormat(const SimpleFormat &other);
+    SimpleFormat &operator=(const SimpleFormat &other);
+
+    void init(const void *buffer);
+    void init(const void *buffer, uint32_t count);
+
+    uint32_t getCount() const { return _count; }
+    const char *getData() const { return _data; }
+    const char *getBaseAddress() const { return _data ? _data - _countLen : nullptr; }
+};
+
+struct MultiStringFormat {
+    const char *_data = nullptr;
+    uint32_t _count = 0;
+    uint8_t _countLen = 0;
+    uint8_t _offsetItemLen = 0;
+
+    MultiStringFormat() = default;
+    ~MultiStringFormat() = default;
+
+    MultiStringFormat(const MultiStringFormat &other);
+    MultiStringFormat &operator=(const MultiStringFormat &other);
+
+    void init(const void *buffer);
+    void init(const void *buffer, uint32_t count);
+    uint32_t getCount() const { return _count; }
+    const char *getData() const { return _data; }
+    const char *get(size_t idx) const {
+        assert(idx < _count);
+        const char *offsets = _data + 1;
+        uint32_t offset = MultiValueFormatter::getOffset(offsets, _offsetItemLen, idx);
+        const char *blobs = offsets + _offsetItemLen * _count;
+        return blobs + offset;
+    }
+    const char *getBaseAddress() const { return _data ? _data - _countLen : nullptr; }
+    uint32_t getDataSize() const;
+    void serialize(DataBuffer &dataBuffer) const;
+};
+} // namespace __detail
+
 template <typename T>
 struct IsMultiType;
 
@@ -38,13 +88,10 @@ const char MULTI_VALUE_DELIMITER = '\x1D';
 
 template <typename T>
 class MultiValueType {
-public:
-    typedef T type;
-
-public:
-    class Iterator {
+private:
+    class SimpleIterator {
     public:
-        Iterator(const char *data, const uint32_t size) : _data(data), _size(size), _idx(0) {}
+        SimpleIterator(const char *data, const uint32_t size) : _data(data), _size(size), _idx(0) {}
 
     public:
         size_t size() const { return _size; }
@@ -60,42 +107,76 @@ public:
         uint32_t _idx = 0;
     };
 
-public:
-    MultiValueType(const void *buffer = NULL) { init(buffer); }
+    class MultiStringIterator {
+    public:
+        MultiStringIterator(const __detail::MultiStringFormat &format, uint32_t size)
+            : _format(format), _size(size), _idx(0) {}
 
+    public:
+        size_t size() const { return _size; }
+        bool hasNext() const { return _idx < size(); }
+        MultiValueType<char> next() {
+            assert(_idx < size());
+            const char *addr = _format.get(_idx++);
+            return MultiValueType<char>(addr);
+        }
+
+    private:
+        const __detail::MultiStringFormat &_format;
+        const uint32_t _size = 0;
+        uint32_t _idx = 0;
+    };
+
+public:
+    template <typename U>
+    static constexpr bool IsMultiString = std::is_same<U, MultiValueType<char>>::value;
+    using Format =
+        typename std::conditional<IsMultiString<T>, __detail::MultiStringFormat, __detail::SimpleFormat>::type;
+    using Iterator = typename std::conditional<IsMultiString<T>, MultiStringIterator, SimpleIterator>::type;
+    typedef T type;
+
+public:
+    MultiValueType() = default;
+    MultiValueType(const void *buffer) { init(buffer); }
     MultiValueType(const void *data, uint32_t count) { init(data, count); }
 
-    MultiValueType(const MultiValueType &other) : _data(other._data), _count(other._count) {}
-
-    MultiValueType<T> &operator=(const MultiValueType<T> &other) {
-        if (this != &other) {
-            _data = other._data;
-            _count = other._count;
-        }
+    ~MultiValueType() = default;
+    MultiValueType(const MultiValueType &other) : _format(other._format) {}
+    MultiValueType &operator=(const MultiValueType &other) {
+        _format = other._format;
         return *this;
     }
 
-    ~MultiValueType() = default;
-
 public:
-    void init(const void *buffer) {
-        if (buffer != nullptr) {
-            _data = reinterpret_cast<const char *>(buffer);
-            setUndecoded();
+    void init(const void *buffer) { _format.init(buffer); }
+    void init(const void *buffer, uint32_t count) { _format.init(buffer, count); }
+
+    MultiValueType<T> clone(autil::mem_pool::PoolBase *pool) const {
+        uint32_t dataSize = this->getDataSize();
+        if (dataSize == 0) {
+            return MultiValueType<T>();
+        }
+        char *buf = (char *)pool->allocate(dataSize);
+        memcpy(buf, this->getData(), dataSize);
+        return MultiValueType<T>(buf, getCount());
+    }
+
+    Iterator createIterator() const {
+        if constexpr (!IsMultiString<T>) {
+            return Iterator(getData(), size());
         } else {
-            _data = nullptr;
-            _count = 0;
+            return Iterator(_format, size());
         }
     }
 
-    void init(const void *buffer, uint32_t count) {
-        _data = reinterpret_cast<const char *>(buffer);
-        _count = count;
+    inline T operator[](uint32_t idx) const __attribute__((always_inline)) {
+        if constexpr (!IsMultiString<T>) {
+            return data()[idx];
+        } else {
+            const char *addr = _format.get(idx);
+            return MultiValueType<char>((const void *)addr);
+        }
     }
-
-    Iterator createIterator() const { return Iterator(getData(), size()); }
-
-    inline T operator[](uint32_t idx) const __attribute__((always_inline)) { return data()[idx]; }
 
     inline uint32_t size() const __attribute__((always_inline)) {
         uint32_t count = getCount();
@@ -103,61 +184,103 @@ public:
     }
 
 public:
+    void serialize(DataBuffer &dataBuffer) const {
+        if constexpr (!IsMultiString<T>) {
+            uint32_t len = getDataSize() + getHeaderSize();
+            dataBuffer.write(len);
+            if (len > 0) {
+                char header[MultiValueFormatter::VALUE_COUNT_MAX_BYTES];
+                size_t countLen =
+                    MultiValueFormatter::encodeCount(getCount(), header, MultiValueFormatter::VALUE_COUNT_MAX_BYTES);
+                dataBuffer.writeBytes(header, countLen);
+                if (len > countLen) {
+                    const char *data = getData();
+                    assert(data != nullptr);
+                    dataBuffer.writeBytes(data, len - countLen);
+                }
+            }
+        } else {
+            _format.serialize(dataBuffer);
+        }
+    }
+
+    void deserialize(DataBuffer &dataBuffer, autil::mem_pool::Pool *pool) {
+        uint32_t len = 0;
+        dataBuffer.read(len);
+        void *buf = nullptr;
+        if (len > 0) {
+            if (pool != nullptr) {
+                buf = pool->allocate(len);
+                dataBuffer.readBytes(buf, len);
+            } else {
+                buf = (void *)dataBuffer.readNoCopy(len);
+            }
+        }
+        init(buf);
+    }
+
+public:
     // for named requirements: Container
     // not all member types and methods can be implemented, for multi-value type should be immutable
     using value_type = T;
 
-    template <typename T1 = T, typename = std::enable_if_t<!std::is_same_v<T1, autil::MultiValueType<char>>>>
+    template <typename T1 = T, typename = std::enable_if_t<!IsMultiString<T1>>>
     using const_reference = const T &;
 
-    template <typename T1 = T, typename = std::enable_if_t<!std::is_same_v<T1, autil::MultiValueType<char>>>>
+    template <typename T1 = T, typename = std::enable_if_t<!IsMultiString<T1>>>
     using const_iterator = const T *;
 
     using difference_type = ssize_t;
     using size_type = size_t;
 
-    template <typename T1 = T, typename = std::enable_if_t<!std::is_same_v<T1, autil::MultiValueType<char>>>>
+    template <typename T1 = T, typename = std::enable_if_t<!IsMultiString<T1>>>
     const T *begin() const {
         return data();
     }
-    template <typename T1 = T, typename = std::enable_if_t<!std::is_same_v<T1, autil::MultiValueType<char>>>>
+    template <typename T1 = T, typename = std::enable_if_t<!IsMultiString<T1>>>
     const T *end() const {
         return data() + size();
     }
-    template <typename T1 = T, typename = std::enable_if_t<!std::is_same_v<T1, autil::MultiValueType<char>>>>
+    template <typename T1 = T, typename = std::enable_if_t<!IsMultiString<T1>>>
     const T *cbegin() const {
         return data();
     }
-    template <typename T1 = T, typename = std::enable_if_t<!std::is_same_v<T1, autil::MultiValueType<char>>>>
+    template <typename T1 = T, typename = std::enable_if_t<!IsMultiString<T1>>>
     const T *cend() const {
         return data() + size();
     }
 
     bool empty() const { return size() == 0; }
 
-    bool isNull(uint32_t count) const { return count == MultiValueFormatter::VAR_NUM_NULL_FIELD_VALUE_COUNT; }
+    bool isNull(uint32_t count) const { return MultiValueFormatter::isNull(count); }
 
-    bool isNull() const { return getCount() == MultiValueFormatter::VAR_NUM_NULL_FIELD_VALUE_COUNT; }
+    bool isNull() const { return isNull(getCount()); }
 
-    const char *getData() const {
-        if (likely(isUndecoded())) {
-            size_t countLen = MultiValueFormatter::getEncodedCountFromFirstByte(*(const uint8_t *)_data);
-            return _data + countLen;
+    const char *getData() const { return _format.getData(); }
+
+    uint32_t getDataSize() const {
+        if constexpr (!IsMultiString<T>) {
+            return size() * sizeof(T);
+        } else {
+            return _format.getDataSize();
         }
-        return _data;
     }
 
-    uint32_t getDataSize() const { return size() * sizeof(T); }
-
-    inline const T *data() const __attribute__((always_inline)) { return reinterpret_cast<const T *>(getData()); }
+    inline const T *data() const __attribute__((always_inline)) {
+        if constexpr (!IsMultiString<T>) {
+            return reinterpret_cast<const T *>(getData());
+        } else {
+            return nullptr;
+        }
+    }
 
     // interface for indexlib, need remove
-    const char *getBaseAddress() const { return _data; }
+    const char *getBaseAddress() const { return _format.getBaseAddress(); }
 
-    uint32_t length() const { return getDataSize() + (isUndecoded() ? getHeaderSize() : 0); }
+    uint32_t length() const { return getDataSize() + (hasEncodedCount() ? getHeaderSize() : 0); }
 
-    bool isEmptyData() const { return _data == nullptr; }
-    bool hasEncodedCount() const { return isUndecoded(); }
+    bool isEmptyData() const { return _format._data == nullptr; }
+    bool hasEncodedCount() const { return _format._countLen > 0; }
     uint32_t getEncodedCountValue() const { return getCount(); }
 
 public:
@@ -238,57 +361,24 @@ public:
     bool operator!=(const std::string &fieldOfInput) const;
 
 private:
-    uint32_t getCount() const {
-        if (likely(isUndecoded())) {
-            size_t countLen = 0;
-            return MultiValueFormatter::decodeCount(_data, countLen);
-        }
-        return _count;
-    }
+    uint32_t getCount() const { return _format.getCount(); }
 
     // for fixed size MultiValue, length should not include header
     uint32_t getHeaderSize() const {
-        if (unlikely(_data == nullptr)) {
+        if (unlikely(_format._data == nullptr)) {
             return 0;
         }
         return MultiValueFormatter::getEncodedCountLength(getCount());
     }
 
-    void setUndecoded() { _count = MultiValueFormatter::UNDECODED_COUNT; }
-
-    inline bool isUndecoded() const __attribute__((always_inline)) {
-        return _count == MultiValueFormatter::UNDECODED_COUNT;
-    }
-
 private:
-    const char *_data = nullptr;
-    uint32_t _count = 0;
-    friend class DataBuffer;
-};
-
-class MultiStringDecoder {
-public:
-    MultiStringDecoder(const char *data, const uint32_t size) : _data(data), _size(size) {}
-
-public:
-    MultiValueType<char> get(uint32_t idx) const {
-        assert(idx < _size);
-        uint8_t offsetItemLen = *reinterpret_cast<const uint8_t *>(_data);
-        const char *offsetAddr = _data + sizeof(uint8_t);
-        uint32_t offset = MultiValueFormatter::getOffset(offsetAddr, offsetItemLen, idx);
-        const char *strDataAddr = offsetAddr + offsetItemLen * _size + offset;
-        return MultiValueType<char>(strDataAddr);
-    }
-
-private:
-    const char *_data;
-    const uint32_t _size;
+    Format _format;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////
 template <>
 inline bool MultiValueType<char>::operator==(const std::string &fieldOfInput) const {
-    if (_data == nullptr) {
+    if (_format._data == nullptr) {
         return false;
     }
     return std::string(data(), size()) == fieldOfInput;
@@ -297,46 +387,6 @@ inline bool MultiValueType<char>::operator==(const std::string &fieldOfInput) co
 template <>
 inline bool MultiValueType<char>::operator!=(const std::string &fieldOfInput) const {
     return !(*this == fieldOfInput);
-}
-
-template <>
-inline MultiValueType<char> MultiValueType<MultiValueType<char>>::Iterator::next() {
-    MultiStringDecoder decoder(this->_data, this->_size);
-    return decoder.get(this->_idx++);
-}
-
-template <>
-inline MultiValueType<char> MultiValueType<MultiValueType<char>>::operator[](uint32_t idx) const {
-    assert(_data != nullptr);
-    size_t recordNum = size();
-    assert(idx < recordNum);
-    MultiStringDecoder decoder(getData(), recordNum);
-    return decoder.get(idx);
-}
-
-template <>
-inline const MultiValueType<char> *MultiValueType<MultiValueType<char>>::data() const {
-    return nullptr;
-}
-
-template <>
-inline uint32_t MultiValueType<MultiValueType<char>>::getDataSize() const {
-    if (unlikely(_data == nullptr)) {
-        return 0;
-    }
-    uint32_t count = getCount();
-    const char *data = getData();
-    if (count == 0) {
-        return sizeof(uint8_t);
-    } else if (isNull(count)) {
-        return 0;
-    } else {
-        assert(hasEncodedCount());
-        MultiStringDecoder decoder(data, count);
-        MultiValueType<char> last = decoder.get(count - 1);
-        assert(last.hasEncodedCount());
-        return last.getBaseAddress() + last.length() - data;
-    }
 }
 
 #define MULTI_VALUE_TYPE_MACRO_HELPER(MY_MACRO)                                                                        \
@@ -395,10 +445,6 @@ enum {
 MULTI_VALUE_TYPE_MACRO_HELPER_2(MULTI_VALUE_TYPEDEF_1);
 #undef MULTI_VALUE_TYPEDEF_1
 
-#define MULTI_VALUE_TYPEDEF_2(type, suffix) typedef type FixedNum##suffix;
-MULTI_VALUE_TYPE_MACRO_HELPER_2(MULTI_VALUE_TYPEDEF_2);
-#undef MULTI_VALUE_TYPEDEF_2
-
 #define MULTI_VALUE_OSTREAM(type) std::ostream &operator<<(std::ostream &stream, type value);
 MULTI_VALUE_TYPE_MACRO_HELPER(MULTI_VALUE_OSTREAM);
 #undef MULTI_VALUE_OSTREAM
@@ -421,7 +467,6 @@ MULTI_VALUE_TYPE_MACRO_HELPER(IS_MULTI_TYPE);
 } // namespace autil
 
 namespace std {
-
 template <>
 struct hash<autil::MultiChar> {
     std::size_t operator()(const autil::MultiChar &key) const {
@@ -439,14 +484,11 @@ struct equal_to<autil::MultiChar> : public std::binary_function<autil::MultiChar
         return memcmp(left.data(), right.data(), leftLen) == 0;
     }
 };
-
 } // namespace std
 
 namespace autil {
-
 template <typename T>
 struct SpanAdapter<MultiValueType<T>, std::enable_if_t<!std::is_same_v<T, MultiChar>>> {
-
     [[gnu::always_inline]] inline static ConstSpan<T> from(const MultiValueType<T> &other) {
         return {other.data(), (std::size_t)other.size()};
     }

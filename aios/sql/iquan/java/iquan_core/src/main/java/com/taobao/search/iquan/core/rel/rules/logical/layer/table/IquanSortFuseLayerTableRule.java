@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.rules.logical.layer.table;
 
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LogicalFuseLayerTableScan;
@@ -12,11 +17,6 @@ import org.apache.calcite.rel.logical.LogicalSort;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class IquanSortFuseLayerTableRule extends RelOptRule {
     public static final IquanSortFuseLayerTableRule INSTANCE =
@@ -59,7 +59,7 @@ public class IquanSortFuseLayerTableRule extends RelOptRule {
         Long fetchValue = fetch != null ? fetch.getValueAs(BigDecimal.class).longValue() : 0;
         RexLiteral newFetch = (RexLiteral) rexBuilder.makeLiteral(offsetValue + fetchValue, fetch.getType(), true);
         List<RelNode> inputs = completeInputs.stream()
-                .map(v -> sort.copy(sort.getTraitSet(),v, sort.collation, null, newFetch))
+                .map(v -> sort.copy(sort.getTraitSet(), v, sort.collation, null, newFetch))
                 .collect(Collectors.toList());
 
         RelNode input = LayerTableUtils.unionChildren(fuseScan.getCluster(), fuseScan.getTraitSet(), inputs);

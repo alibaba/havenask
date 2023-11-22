@@ -15,9 +15,14 @@
  */
 #pragma once
 
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/Version.h"
 
 namespace indexlib::file_system {

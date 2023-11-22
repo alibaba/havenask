@@ -56,7 +56,7 @@ PostingWriter* InvertedLeafMemReader::GetPostingWriter(const index::DictKeyInfo&
     return nullptr;
 }
 
-bool InvertedLeafMemReader::GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId,
+bool InvertedLeafMemReader::GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId,
                                               SegmentPosting& segPosting, autil::mem_pool::Pool* sessionPool,
                                               indexlib::file_system::ReadOption option,
                                               InvertedIndexSearchTracer* tracer) const

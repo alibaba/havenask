@@ -15,22 +15,43 @@
  */
 #include "build_service/build_task/BuilderController.h"
 
+#include <exception>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/BuildServiceConfig.h"
+#include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "indexlib/base/PathUtil.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/JsonUtil.h"
 #include "indexlib/framework/ITablet.h"
+#include "indexlib/framework/ImportOptions.h"
 #include "indexlib/framework/VersionLoader.h"
+#include "indexlib/framework/index_task/Constant.h"
+#include "indexlib/framework/index_task/MergeTaskDefine.h"
 #include "indexlib/table/common/CommonVersionImporter.h"
+#include "indexlib/util/JsonUtil.h"
 
 namespace build_service::build_task {
 
 BS_LOG_SETUP(build_task, BuilderController);
 
+using Action = indexlibv2::framework::Action;
+using CommonVersionImporter = indexlibv2::table::CommonVersionImporter;
+using ImportExternalFileOptions = indexlibv2::framework::ImportExternalFileOptions;
+using Version = indexlibv2::framework::Version;
+using VersionLoader = indexlibv2::framework::VersionLoader;
+
 indexlib::Status BuilderController::loadVersion(const proto::VersionProgress& vp, bool isFullBuild,
-                                                indexlibv2::framework::Version& version) const
+                                                Version& version) const
 {
     config::BuildServiceConfig serviceConfig;
     if (!_initParam.resourceReader->getConfigWithJsonPath(config::BUILD_APP_FILE_NAME, "", serviceConfig)) {
@@ -43,7 +64,7 @@ indexlib::Status BuilderController::loadVersion(const proto::VersionProgress& vp
     const std::string fencePath = indexlibv2::PathUtil::JoinPath(indexPath, vp.fence);
 
     auto rootDir = indexlib::file_system::IDirectory::GetPhysicalDirectory(fencePath);
-    auto [status, v] = indexlibv2::framework::VersionLoader::GetVersion(rootDir, vp.versionId);
+    auto [status, v] = VersionLoader::GetVersion(rootDir, vp.versionId);
     if (!status.IsOK()) {
         BS_LOG(ERROR, "load version [%s][%d] failed", fencePath.c_str(), vp.versionId);
         return status;
@@ -54,28 +75,29 @@ indexlib::Status BuilderController::loadVersion(const proto::VersionProgress& vp
 
 bool BuilderController::handleTarget(const config::TaskTarget& target)
 {
+    indexlibv2::Status status;
     std::string content;
     if (!target.getTargetDescription(config::BS_BUILD_TASK_TARGET, content)) {
         BS_LOG(ERROR, "get build task target description failed");
         return false;
     }
-
-    auto [status, buildTaskInfo] =
+    proto::BuildTaskTargetInfo buildTaskInfo;
+    std::tie(status, buildTaskInfo) =
         indexlib::file_system::JsonUtil::FromString<proto::BuildTaskTargetInfo>(content).StatusWith();
     if (!status.IsOK()) {
         BS_LOG(ERROR, "parse build task target info failed.");
         return false;
     }
 
-    const bool isFullBuild = buildTaskInfo.buildStep == "full";
-    std::vector<indexlibv2::framework::Version> versions;
+    const bool isFullBuild = buildTaskInfo.buildStep == config::BUILD_STEP_FULL_STR;
+
+    std::vector<Version> versions;
     const std::vector<proto::VersionProgress>& progress = buildTaskInfo.slaveVersionProgress;
     if (progress.empty()) {
-        _isDone = buildTaskInfo.finished;
         return true;
     }
     for (const auto& vp : progress) {
-        indexlibv2::framework::Version version;
+        Version version;
         auto status = loadVersion(vp, isFullBuild, version);
         if (!status.IsOK()) {
             BS_LOG(ERROR, "load version [%s][%d] failed.", vp.fence.c_str(), vp.versionId);
@@ -85,8 +107,8 @@ bool BuilderController::handleTarget(const config::TaskTarget& target)
     }
 
     indexlibv2::framework::ImportOptions options;
-    options.SetImportStrategy(indexlibv2::table::CommonVersionImporter::KEEP_SEGMENT_OVERWRITE_LOCATOR);
-    options.SetImportType(indexlibv2::table::CommonVersionImporter::COMMON_TYPE);
+    options.SetImportStrategy(CommonVersionImporter::KEEP_SEGMENT_OVERWRITE_LOCATOR);
+    options.SetImportType(CommonVersionImporter::COMMON_TYPE);
     status = _tablet->Import(versions, options);
     if (!status.IsOK()) {
         _hasFatalError = true;
@@ -94,12 +116,7 @@ bool BuilderController::handleTarget(const config::TaskTarget& target)
         return false;
     }
 
-    _isDone = buildTaskInfo.finished;
     return true;
 }
-
-bool BuilderController::hasFatalError() const { return _hasFatalError; }
-
-bool BuilderController::isDone() const { return _isDone; }
 
 } // namespace build_service::build_task

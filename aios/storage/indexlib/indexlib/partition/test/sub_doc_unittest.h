@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SUBDOCTEST_H
-#define __INDEXLIB_SUBDOCTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/partition_meta.h"
@@ -182,5 +181,3 @@ INSTANTIATE_TEST_CASE_P(SubDocTestModeAndBuildMode, SubDocTest,
                                         std::tuple<bool, bool, int>(false, true, 0),
                                         std::tuple<bool, bool, int>(true, false, 0)));
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SUBDOCTEST_H

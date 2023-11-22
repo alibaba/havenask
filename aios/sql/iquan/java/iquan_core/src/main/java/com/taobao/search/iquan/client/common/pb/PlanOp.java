@@ -6,1438 +6,1567 @@ package com.taobao.search.iquan.client.common.pb;
 /**
  * Protobuf type {@code iquan.pb.PlanOp}
  */
-public  final class PlanOp extends
-    com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:iquan.pb.PlanOp)
-    PlanOpOrBuilder {
-private static final long serialVersionUID = 0L;
-  // Use PlanOp.newBuilder() to construct.
-  private PlanOp(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-    super(builder);
-  }
-  private PlanOp() {
-    opName_ = "";
-    reuseInputs_ = emptyIntList();
-    outputs_ = emptyIntList();
-  }
-
-  @java.lang.Override
-  @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
-      UnusedPrivateParameter unused) {
-    return new PlanOp();
-  }
-
-  @java.lang.Override
-  public final com.google.protobuf.UnknownFieldSet
-  getUnknownFields() {
-    return this.unknownFields;
-  }
-  private PlanOp(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    this();
-    if (extensionRegistry == null) {
-      throw new java.lang.NullPointerException();
-    }
-    int mutable_bitField0_ = 0;
-    com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-        com.google.protobuf.UnknownFieldSet.newBuilder();
-    try {
-      boolean done = false;
-      while (!done) {
-        int tag = input.readTag();
-        switch (tag) {
-          case 0:
-            done = true;
-            break;
-          case 8: {
-
-            id_ = input.readInt32();
-            break;
-          }
-          case 18: {
-            java.lang.String s = input.readStringRequireUtf8();
-
-            opName_ = s;
-            break;
-          }
-          case 26: {
-            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-              inputs_ = com.google.protobuf.MapField.newMapField(
-                  InputsDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000001;
-            }
-            com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
-            inputs__ = input.readMessage(
-                InputsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            inputs_.getMutableMap().put(
-                inputs__.getKey(), inputs__.getValue());
-            break;
-          }
-          case 32: {
-            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
-              outputs_ = newIntList();
-              mutable_bitField0_ |= 0x00000004;
-            }
-            outputs_.addInt(input.readInt32());
-            break;
-          }
-          case 34: {
-            int length = input.readRawVarint32();
-            int limit = input.pushLimit(length);
-            if (!((mutable_bitField0_ & 0x00000004) != 0) && input.getBytesUntilLimit() > 0) {
-              outputs_ = newIntList();
-              mutable_bitField0_ |= 0x00000004;
-            }
-            while (input.getBytesUntilLimit() > 0) {
-              outputs_.addInt(input.readInt32());
-            }
-            input.popLimit(limit);
-            break;
-          }
-          case 40: {
-            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
-              reuseInputs_ = newIntList();
-              mutable_bitField0_ |= 0x00000002;
-            }
-            reuseInputs_.addInt(input.readInt32());
-            break;
-          }
-          case 42: {
-            int length = input.readRawVarint32();
-            int limit = input.pushLimit(length);
-            if (!((mutable_bitField0_ & 0x00000002) != 0) && input.getBytesUntilLimit() > 0) {
-              reuseInputs_ = newIntList();
-              mutable_bitField0_ |= 0x00000002;
-            }
-            while (input.getBytesUntilLimit() > 0) {
-              reuseInputs_.addInt(input.readInt32());
-            }
-            input.popLimit(limit);
-            break;
-          }
-          case 50: {
-            if (!((mutable_bitField0_ & 0x00000008) != 0)) {
-              attrs_ = com.google.protobuf.MapField.newMapField(
-                  AttrsDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000008;
-            }
-            com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-            attrs__ = input.readMessage(
-                AttrsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            attrs_.getMutableMap().put(
-                attrs__.getKey(), attrs__.getValue());
-            break;
-          }
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
+public final class PlanOp extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:iquan.pb.PlanOp)
+        PlanOpOrBuilder {
+    public static final int ID_FIELD_NUMBER = 1;
+    public static final int OP_NAME_FIELD_NUMBER = 2;
+    public static final int INPUTS_FIELD_NUMBER = 3;
+    public static final int REUSE_INPUTS_FIELD_NUMBER = 5;
+    public static final int OUTPUTS_FIELD_NUMBER = 4;
+    public static final int ATTRS_FIELD_NUMBER = 6;
+    private static final long serialVersionUID = 0L;
+    // @@protoc_insertion_point(class_scope:iquan.pb.PlanOp)
+    private static final com.taobao.search.iquan.client.common.pb.PlanOp DEFAULT_INSTANCE;
+    private static final com.google.protobuf.Parser<PlanOp>
+            PARSER = new com.google.protobuf.AbstractParser<PlanOp>() {
+        @java.lang.Override
+        public PlanOp parsePartialFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return new PlanOp(input, extensionRegistry);
         }
-      }
-    } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-      throw e.setUnfinishedMessage(this);
-    } catch (java.io.IOException e) {
-      throw new com.google.protobuf.InvalidProtocolBufferException(
-          e).setUnfinishedMessage(this);
-    } finally {
-      if (((mutable_bitField0_ & 0x00000004) != 0)) {
-        outputs_.makeImmutable(); // C
-      }
-      if (((mutable_bitField0_ & 0x00000002) != 0)) {
-        reuseInputs_.makeImmutable(); // C
-      }
-      this.unknownFields = unknownFields.build();
-      makeExtensionsImmutable();
+    };
+
+    static {
+        DEFAULT_INSTANCE = new com.taobao.search.iquan.client.common.pb.PlanOp();
     }
-  }
-  public static final com.google.protobuf.Descriptors.Descriptor
-      getDescriptor() {
-    return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_descriptor;
-  }
 
-  @SuppressWarnings({"rawtypes"})
-  @java.lang.Override
-  protected com.google.protobuf.MapField internalGetMapField(
-      int number) {
-    switch (number) {
-      case 3:
-        return internalGetInputs();
-      case 6:
-        return internalGetAttrs();
-      default:
-        throw new RuntimeException(
-            "Invalid map field number: " + number);
+    private int id_;
+    private volatile java.lang.Object opName_;
+    private com.google.protobuf.MapField<
+            java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> inputs_;
+    private com.google.protobuf.Internal.IntList reuseInputs_;
+    private int reuseInputsMemoizedSerializedSize = -1;
+    private com.google.protobuf.Internal.IntList outputs_;
+    private int outputsMemoizedSerializedSize = -1;
+    private com.google.protobuf.MapField<
+            java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> attrs_;
+    private byte memoizedIsInitialized = -1;
+
+    // Use PlanOp.newBuilder() to construct.
+    private PlanOp(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
     }
-  }
-  @java.lang.Override
-  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internalGetFieldAccessorTable() {
-    return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_fieldAccessorTable
-        .ensureFieldAccessorsInitialized(
-            com.taobao.search.iquan.client.common.pb.PlanOp.class, com.taobao.search.iquan.client.common.pb.PlanOp.Builder.class);
-  }
 
-  public static final int ID_FIELD_NUMBER = 1;
-  private int id_;
-  /**
-   * <code>int32 id = 1;</code>
-   */
-  public int getId() {
-    return id_;
-  }
-
-  public static final int OP_NAME_FIELD_NUMBER = 2;
-  private volatile java.lang.Object opName_;
-  /**
-   * <code>string op_name = 2;</code>
-   */
-  public java.lang.String getOpName() {
-    java.lang.Object ref = opName_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      opName_ = s;
-      return s;
+    private PlanOp() {
+        opName_ = "";
+        reuseInputs_ = emptyIntList();
+        outputs_ = emptyIntList();
     }
-  }
-  /**
-   * <code>string op_name = 2;</code>
-   */
-  public com.google.protobuf.ByteString
-      getOpNameBytes() {
-    java.lang.Object ref = opName_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      opName_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
+
+    private PlanOp(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        this();
+        if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+        }
+        int mutable_bitField0_ = 0;
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+                com.google.protobuf.UnknownFieldSet.newBuilder();
+        try {
+            boolean done = false;
+            while (!done) {
+                int tag = input.readTag();
+                switch (tag) {
+                    case 0:
+                        done = true;
+                        break;
+                    case 8: {
+
+                        id_ = input.readInt32();
+                        break;
+                    }
+                    case 18: {
+                        java.lang.String s = input.readStringRequireUtf8();
+
+                        opName_ = s;
+                        break;
+                    }
+                    case 26: {
+                        if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+                            inputs_ = com.google.protobuf.MapField.newMapField(
+                                    InputsDefaultEntryHolder.defaultEntry);
+                            mutable_bitField0_ |= 0x00000001;
+                        }
+                        com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
+                                inputs__ = input.readMessage(
+                                InputsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                        inputs_.getMutableMap().put(
+                                inputs__.getKey(), inputs__.getValue());
+                        break;
+                    }
+                    case 32: {
+                        if (!((mutable_bitField0_ & 0x00000004) != 0)) {
+                            outputs_ = newIntList();
+                            mutable_bitField0_ |= 0x00000004;
+                        }
+                        outputs_.addInt(input.readInt32());
+                        break;
+                    }
+                    case 34: {
+                        int length = input.readRawVarint32();
+                        int limit = input.pushLimit(length);
+                        if (!((mutable_bitField0_ & 0x00000004) != 0) && input.getBytesUntilLimit() > 0) {
+                            outputs_ = newIntList();
+                            mutable_bitField0_ |= 0x00000004;
+                        }
+                        while (input.getBytesUntilLimit() > 0) {
+                            outputs_.addInt(input.readInt32());
+                        }
+                        input.popLimit(limit);
+                        break;
+                    }
+                    case 40: {
+                        if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+                            reuseInputs_ = newIntList();
+                            mutable_bitField0_ |= 0x00000002;
+                        }
+                        reuseInputs_.addInt(input.readInt32());
+                        break;
+                    }
+                    case 42: {
+                        int length = input.readRawVarint32();
+                        int limit = input.pushLimit(length);
+                        if (!((mutable_bitField0_ & 0x00000002) != 0) && input.getBytesUntilLimit() > 0) {
+                            reuseInputs_ = newIntList();
+                            mutable_bitField0_ |= 0x00000002;
+                        }
+                        while (input.getBytesUntilLimit() > 0) {
+                            reuseInputs_.addInt(input.readInt32());
+                        }
+                        input.popLimit(limit);
+                        break;
+                    }
+                    case 50: {
+                        if (!((mutable_bitField0_ & 0x00000008) != 0)) {
+                            attrs_ = com.google.protobuf.MapField.newMapField(
+                                    AttrsDefaultEntryHolder.defaultEntry);
+                            mutable_bitField0_ |= 0x00000008;
+                        }
+                        com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+                                attrs__ = input.readMessage(
+                                AttrsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                        attrs_.getMutableMap().put(
+                                attrs__.getKey(), attrs__.getValue());
+                        break;
+                    }
+                    default: {
+                        if (!parseUnknownField(
+                                input, unknownFields, extensionRegistry, tag)) {
+                            done = true;
+                        }
+                        break;
+                    }
+                }
+            }
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(this);
+        } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(
+                    e).setUnfinishedMessage(this);
+        } finally {
+            if (((mutable_bitField0_ & 0x00000004) != 0)) {
+                outputs_.makeImmutable(); // C
+            }
+            if (((mutable_bitField0_ & 0x00000002) != 0)) {
+                reuseInputs_.makeImmutable(); // C
+            }
+            this.unknownFields = unknownFields.build();
+            makeExtensionsImmutable();
+        }
     }
-  }
 
-  public static final int INPUTS_FIELD_NUMBER = 3;
-  private static final class InputsDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>newDefaultInstance(
-                com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_InputsEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                com.taobao.search.iquan.client.common.pb.IdList.getDefaultInstance());
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> inputs_;
-  private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
-  internalGetInputs() {
-    if (inputs_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          InputsDefaultEntryHolder.defaultEntry);
-    }
-    return inputs_;
-  }
-
-  public int getInputsCount() {
-    return internalGetInputs().getMap().size();
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-   */
-
-  public boolean containsInputs(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetInputs().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getInputsMap()} instead.
-   */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> getInputs() {
-    return getInputsMap();
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-   */
-
-  public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> getInputsMap() {
-    return internalGetInputs().getMap();
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-   */
-
-  public com.taobao.search.iquan.client.common.pb.IdList getInputsOrDefault(
-      java.lang.String key,
-      com.taobao.search.iquan.client.common.pb.IdList defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> map =
-        internalGetInputs().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-   */
-
-  public com.taobao.search.iquan.client.common.pb.IdList getInputsOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> map =
-        internalGetInputs().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
-  }
-
-  public static final int REUSE_INPUTS_FIELD_NUMBER = 5;
-  private com.google.protobuf.Internal.IntList reuseInputs_;
-  /**
-   * <code>repeated int32 reuse_inputs = 5;</code>
-   */
-  public java.util.List<java.lang.Integer>
-      getReuseInputsList() {
-    return reuseInputs_;
-  }
-  /**
-   * <code>repeated int32 reuse_inputs = 5;</code>
-   */
-  public int getReuseInputsCount() {
-    return reuseInputs_.size();
-  }
-  /**
-   * <code>repeated int32 reuse_inputs = 5;</code>
-   */
-  public int getReuseInputs(int index) {
-    return reuseInputs_.getInt(index);
-  }
-  private int reuseInputsMemoizedSerializedSize = -1;
-
-  public static final int OUTPUTS_FIELD_NUMBER = 4;
-  private com.google.protobuf.Internal.IntList outputs_;
-  /**
-   * <code>repeated int32 outputs = 4;</code>
-   */
-  public java.util.List<java.lang.Integer>
-      getOutputsList() {
-    return outputs_;
-  }
-  /**
-   * <code>repeated int32 outputs = 4;</code>
-   */
-  public int getOutputsCount() {
-    return outputs_.size();
-  }
-  /**
-   * <code>repeated int32 outputs = 4;</code>
-   */
-  public int getOutputs(int index) {
-    return outputs_.getInt(index);
-  }
-  private int outputsMemoizedSerializedSize = -1;
-
-  public static final int ATTRS_FIELD_NUMBER = 6;
-  private static final class AttrsDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>newDefaultInstance(
-                com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_AttrsEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                com.taobao.search.iquan.client.common.pb.AnyValue.getDefaultInstance());
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> attrs_;
-  private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-  internalGetAttrs() {
-    if (attrs_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          AttrsDefaultEntryHolder.defaultEntry);
-    }
-    return attrs_;
-  }
-
-  public int getAttrsCount() {
-    return internalGetAttrs().getMap().size();
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-   */
-
-  public boolean containsAttrs(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    return internalGetAttrs().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getAttrsMap()} instead.
-   */
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getAttrs() {
-    return getAttrsMap();
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-   */
-
-  public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getAttrsMap() {
-    return internalGetAttrs().getMap();
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-   */
-
-  public com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrDefault(
-      java.lang.String key,
-      com.taobao.search.iquan.client.common.pb.AnyValue defaultValue) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
-        internalGetAttrs().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-   */
-
-  public com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new java.lang.NullPointerException(); }
-    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
-        internalGetAttrs().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
-  }
-
-  private byte memoizedIsInitialized = -1;
-  @java.lang.Override
-  public final boolean isInitialized() {
-    byte isInitialized = memoizedIsInitialized;
-    if (isInitialized == 1) return true;
-    if (isInitialized == 0) return false;
-
-    memoizedIsInitialized = 1;
-    return true;
-  }
-
-  @java.lang.Override
-  public void writeTo(com.google.protobuf.CodedOutputStream output)
-                      throws java.io.IOException {
-    getSerializedSize();
-    if (id_ != 0) {
-      output.writeInt32(1, id_);
-    }
-    if (!getOpNameBytes().isEmpty()) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, opName_);
-    }
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetInputs(),
-        InputsDefaultEntryHolder.defaultEntry,
-        3);
-    if (getOutputsList().size() > 0) {
-      output.writeUInt32NoTag(34);
-      output.writeUInt32NoTag(outputsMemoizedSerializedSize);
-    }
-    for (int i = 0; i < outputs_.size(); i++) {
-      output.writeInt32NoTag(outputs_.getInt(i));
-    }
-    if (getReuseInputsList().size() > 0) {
-      output.writeUInt32NoTag(42);
-      output.writeUInt32NoTag(reuseInputsMemoizedSerializedSize);
-    }
-    for (int i = 0; i < reuseInputs_.size(); i++) {
-      output.writeInt32NoTag(reuseInputs_.getInt(i));
-    }
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetAttrs(),
-        AttrsDefaultEntryHolder.defaultEntry,
-        6);
-    unknownFields.writeTo(output);
-  }
-
-  @java.lang.Override
-  public int getSerializedSize() {
-    int size = memoizedSize;
-    if (size != -1) return size;
-
-    size = 0;
-    if (id_ != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(1, id_);
-    }
-    if (!getOpNameBytes().isEmpty()) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, opName_);
-    }
-    for (java.util.Map.Entry<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> entry
-         : internalGetInputs().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
-      inputs__ = InputsDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, inputs__);
-    }
-    {
-      int dataSize = 0;
-      for (int i = 0; i < outputs_.size(); i++) {
-        dataSize += com.google.protobuf.CodedOutputStream
-          .computeInt32SizeNoTag(outputs_.getInt(i));
-      }
-      size += dataSize;
-      if (!getOutputsList().isEmpty()) {
-        size += 1;
-        size += com.google.protobuf.CodedOutputStream
-            .computeInt32SizeNoTag(dataSize);
-      }
-      outputsMemoizedSerializedSize = dataSize;
-    }
-    {
-      int dataSize = 0;
-      for (int i = 0; i < reuseInputs_.size(); i++) {
-        dataSize += com.google.protobuf.CodedOutputStream
-          .computeInt32SizeNoTag(reuseInputs_.getInt(i));
-      }
-      size += dataSize;
-      if (!getReuseInputsList().isEmpty()) {
-        size += 1;
-        size += com.google.protobuf.CodedOutputStream
-            .computeInt32SizeNoTag(dataSize);
-      }
-      reuseInputsMemoizedSerializedSize = dataSize;
-    }
-    for (java.util.Map.Entry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> entry
-         : internalGetAttrs().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-      attrs__ = AttrsDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, attrs__);
-    }
-    size += unknownFields.getSerializedSize();
-    memoizedSize = size;
-    return size;
-  }
-
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
-    if (obj == this) {
-     return true;
-    }
-    if (!(obj instanceof com.taobao.search.iquan.client.common.pb.PlanOp)) {
-      return super.equals(obj);
-    }
-    com.taobao.search.iquan.client.common.pb.PlanOp other = (com.taobao.search.iquan.client.common.pb.PlanOp) obj;
-
-    if (getId()
-        != other.getId()) return false;
-    if (!getOpName()
-        .equals(other.getOpName())) return false;
-    if (!internalGetInputs().equals(
-        other.internalGetInputs())) return false;
-    if (!getReuseInputsList()
-        .equals(other.getReuseInputsList())) return false;
-    if (!getOutputsList()
-        .equals(other.getOutputsList())) return false;
-    if (!internalGetAttrs().equals(
-        other.internalGetAttrs())) return false;
-    if (!unknownFields.equals(other.unknownFields)) return false;
-    return true;
-  }
-
-  @java.lang.Override
-  public int hashCode() {
-    if (memoizedHashCode != 0) {
-      return memoizedHashCode;
-    }
-    int hash = 41;
-    hash = (19 * hash) + getDescriptor().hashCode();
-    hash = (37 * hash) + ID_FIELD_NUMBER;
-    hash = (53 * hash) + getId();
-    hash = (37 * hash) + OP_NAME_FIELD_NUMBER;
-    hash = (53 * hash) + getOpName().hashCode();
-    if (!internalGetInputs().getMap().isEmpty()) {
-      hash = (37 * hash) + INPUTS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetInputs().hashCode();
-    }
-    if (getReuseInputsCount() > 0) {
-      hash = (37 * hash) + REUSE_INPUTS_FIELD_NUMBER;
-      hash = (53 * hash) + getReuseInputsList().hashCode();
-    }
-    if (getOutputsCount() > 0) {
-      hash = (37 * hash) + OUTPUTS_FIELD_NUMBER;
-      hash = (53 * hash) + getOutputsList().hashCode();
-    }
-    if (!internalGetAttrs().getMap().isEmpty()) {
-      hash = (37 * hash) + ATTRS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetAttrs().hashCode();
-    }
-    hash = (29 * hash) + unknownFields.hashCode();
-    memoizedHashCode = hash;
-    return hash;
-  }
-
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
-      java.nio.ByteBuffer data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
-      java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
-      com.google.protobuf.ByteString data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
-      com.google.protobuf.ByteString data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(byte[] data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
-      byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseDelimitedFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseDelimitedWithIOException(PARSER, input);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseDelimitedFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
-      com.google.protobuf.CodedInputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input);
-  }
-  public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-
-  @java.lang.Override
-  public Builder newBuilderForType() { return newBuilder(); }
-  public static Builder newBuilder() {
-    return DEFAULT_INSTANCE.toBuilder();
-  }
-  public static Builder newBuilder(com.taobao.search.iquan.client.common.pb.PlanOp prototype) {
-    return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-  }
-  @java.lang.Override
-  public Builder toBuilder() {
-    return this == DEFAULT_INSTANCE
-        ? new Builder() : new Builder().mergeFrom(this);
-  }
-
-  @java.lang.Override
-  protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-    Builder builder = new Builder(parent);
-    return builder;
-  }
-  /**
-   * Protobuf type {@code iquan.pb.PlanOp}
-   */
-  public static final class Builder extends
-      com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:iquan.pb.PlanOp)
-      com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_descriptor;
+    getDescriptor() {
+        return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_descriptor;
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
+            java.nio.ByteBuffer data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
+            java.nio.ByteBuffer data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
+            com.google.protobuf.ByteString data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
+            com.google.protobuf.ByteString data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(byte[] data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
+            byte[] data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(java.io.InputStream input)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
+            java.io.InputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseDelimitedFrom(java.io.InputStream input)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseDelimitedFrom(
+            java.io.InputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
+            com.google.protobuf.CodedInputStream input)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp parseFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+    }
+
+    public static Builder newBuilder(com.taobao.search.iquan.client.common.pb.PlanOp prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.PlanOp getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+    }
+
+    public static com.google.protobuf.Parser<PlanOp> parser() {
+        return PARSER;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+            UnusedPrivateParameter unused) {
+        return new PlanOp();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+        return this.unknownFields;
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 3:
-          return internalGetInputs();
-        case 6:
-          return internalGetAttrs();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
+            int number) {
+        switch (number) {
+            case 3:
+                return internalGetInputs();
+            case 6:
+                return internalGetAttrs();
+            default:
+                throw new RuntimeException(
+                        "Invalid map field number: " + number);
+        }
     }
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMutableMapField(
-        int number) {
-      switch (number) {
-        case 3:
-          return internalGetMutableInputs();
-        case 6:
-          return internalGetMutableAttrs();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
+
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              com.taobao.search.iquan.client.common.pb.PlanOp.class, com.taobao.search.iquan.client.common.pb.PlanOp.Builder.class);
+    internalGetFieldAccessorTable() {
+        return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_fieldAccessorTable
+                .ensureFieldAccessorsInitialized(
+                        com.taobao.search.iquan.client.common.pb.PlanOp.class, com.taobao.search.iquan.client.common.pb.PlanOp.Builder.class);
     }
 
-    // Construct using com.taobao.search.iquan.client.common.pb.PlanOp.newBuilder()
-    private Builder() {
-      maybeForceBuilderInitialization();
-    }
-
-    private Builder(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      super(parent);
-      maybeForceBuilderInitialization();
-    }
-    private void maybeForceBuilderInitialization() {
-      if (com.google.protobuf.GeneratedMessageV3
-              .alwaysUseFieldBuilders) {
-      }
-    }
-    @java.lang.Override
-    public Builder clear() {
-      super.clear();
-      id_ = 0;
-
-      opName_ = "";
-
-      internalGetMutableInputs().clear();
-      reuseInputs_ = emptyIntList();
-      bitField0_ = (bitField0_ & ~0x00000002);
-      outputs_ = emptyIntList();
-      bitField0_ = (bitField0_ & ~0x00000004);
-      internalGetMutableAttrs().clear();
-      return this;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor
-        getDescriptorForType() {
-      return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_descriptor;
-    }
-
-    @java.lang.Override
-    public com.taobao.search.iquan.client.common.pb.PlanOp getDefaultInstanceForType() {
-      return com.taobao.search.iquan.client.common.pb.PlanOp.getDefaultInstance();
-    }
-
-    @java.lang.Override
-    public com.taobao.search.iquan.client.common.pb.PlanOp build() {
-      com.taobao.search.iquan.client.common.pb.PlanOp result = buildPartial();
-      if (!result.isInitialized()) {
-        throw newUninitializedMessageException(result);
-      }
-      return result;
-    }
-
-    @java.lang.Override
-    public com.taobao.search.iquan.client.common.pb.PlanOp buildPartial() {
-      com.taobao.search.iquan.client.common.pb.PlanOp result = new com.taobao.search.iquan.client.common.pb.PlanOp(this);
-      int from_bitField0_ = bitField0_;
-      result.id_ = id_;
-      result.opName_ = opName_;
-      result.inputs_ = internalGetInputs();
-      result.inputs_.makeImmutable();
-      if (((bitField0_ & 0x00000002) != 0)) {
-        reuseInputs_.makeImmutable();
-        bitField0_ = (bitField0_ & ~0x00000002);
-      }
-      result.reuseInputs_ = reuseInputs_;
-      if (((bitField0_ & 0x00000004) != 0)) {
-        outputs_.makeImmutable();
-        bitField0_ = (bitField0_ & ~0x00000004);
-      }
-      result.outputs_ = outputs_;
-      result.attrs_ = internalGetAttrs();
-      result.attrs_.makeImmutable();
-      onBuilt();
-      return result;
-    }
-
-    @java.lang.Override
-    public Builder clone() {
-      return super.clone();
-    }
-    @java.lang.Override
-    public Builder setField(
-        com.google.protobuf.Descriptors.FieldDescriptor field,
-        java.lang.Object value) {
-      return super.setField(field, value);
-    }
-    @java.lang.Override
-    public Builder clearField(
-        com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return super.clearField(field);
-    }
-    @java.lang.Override
-    public Builder clearOneof(
-        com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return super.clearOneof(oneof);
-    }
-    @java.lang.Override
-    public Builder setRepeatedField(
-        com.google.protobuf.Descriptors.FieldDescriptor field,
-        int index, java.lang.Object value) {
-      return super.setRepeatedField(field, index, value);
-    }
-    @java.lang.Override
-    public Builder addRepeatedField(
-        com.google.protobuf.Descriptors.FieldDescriptor field,
-        java.lang.Object value) {
-      return super.addRepeatedField(field, value);
-    }
-    @java.lang.Override
-    public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.taobao.search.iquan.client.common.pb.PlanOp) {
-        return mergeFrom((com.taobao.search.iquan.client.common.pb.PlanOp)other);
-      } else {
-        super.mergeFrom(other);
-        return this;
-      }
-    }
-
-    public Builder mergeFrom(com.taobao.search.iquan.client.common.pb.PlanOp other) {
-      if (other == com.taobao.search.iquan.client.common.pb.PlanOp.getDefaultInstance()) return this;
-      if (other.getId() != 0) {
-        setId(other.getId());
-      }
-      if (!other.getOpName().isEmpty()) {
-        opName_ = other.opName_;
-        onChanged();
-      }
-      internalGetMutableInputs().mergeFrom(
-          other.internalGetInputs());
-      if (!other.reuseInputs_.isEmpty()) {
-        if (reuseInputs_.isEmpty()) {
-          reuseInputs_ = other.reuseInputs_;
-          bitField0_ = (bitField0_ & ~0x00000002);
-        } else {
-          ensureReuseInputsIsMutable();
-          reuseInputs_.addAll(other.reuseInputs_);
-        }
-        onChanged();
-      }
-      if (!other.outputs_.isEmpty()) {
-        if (outputs_.isEmpty()) {
-          outputs_ = other.outputs_;
-          bitField0_ = (bitField0_ & ~0x00000004);
-        } else {
-          ensureOutputsIsMutable();
-          outputs_.addAll(other.outputs_);
-        }
-        onChanged();
-      }
-      internalGetMutableAttrs().mergeFrom(
-          other.internalGetAttrs());
-      this.mergeUnknownFields(other.unknownFields);
-      onChanged();
-      return this;
-    }
-
-    @java.lang.Override
-    public final boolean isInitialized() {
-      return true;
-    }
-
-    @java.lang.Override
-    public Builder mergeFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      com.taobao.search.iquan.client.common.pb.PlanOp parsedMessage = null;
-      try {
-        parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (com.taobao.search.iquan.client.common.pb.PlanOp) e.getUnfinishedMessage();
-        throw e.unwrapIOException();
-      } finally {
-        if (parsedMessage != null) {
-          mergeFrom(parsedMessage);
-        }
-      }
-      return this;
-    }
-    private int bitField0_;
-
-    private int id_ ;
     /**
      * <code>int32 id = 1;</code>
      */
     public int getId() {
-      return id_;
-    }
-    /**
-     * <code>int32 id = 1;</code>
-     */
-    public Builder setId(int value) {
-      
-      id_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>int32 id = 1;</code>
-     */
-    public Builder clearId() {
-      
-      id_ = 0;
-      onChanged();
-      return this;
+        return id_;
     }
 
-    private java.lang.Object opName_ = "";
     /**
      * <code>string op_name = 2;</code>
      */
     public java.lang.String getOpName() {
-      java.lang.Object ref = opName_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        opName_ = s;
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
+        java.lang.Object ref = opName_;
+        if (ref instanceof java.lang.String) {
+            return (java.lang.String) ref;
+        } else {
+            com.google.protobuf.ByteString bs =
+                    (com.google.protobuf.ByteString) ref;
+            java.lang.String s = bs.toStringUtf8();
+            opName_ = s;
+            return s;
+        }
     }
+
     /**
      * <code>string op_name = 2;</code>
      */
     public com.google.protobuf.ByteString
-        getOpNameBytes() {
-      java.lang.Object ref = opName_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        opName_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>string op_name = 2;</code>
-     */
-    public Builder setOpName(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  
-      opName_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string op_name = 2;</code>
-     */
-    public Builder clearOpName() {
-      
-      opName_ = getDefaultInstance().getOpName();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string op_name = 2;</code>
-     */
-    public Builder setOpNameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-      
-      opName_ = value;
-      onChanged();
-      return this;
+    getOpNameBytes() {
+        java.lang.Object ref = opName_;
+        if (ref instanceof java.lang.String) {
+            com.google.protobuf.ByteString b =
+                    com.google.protobuf.ByteString.copyFromUtf8(
+                            (java.lang.String) ref);
+            opName_ = b;
+            return b;
+        } else {
+            return (com.google.protobuf.ByteString) ref;
+        }
     }
 
-    private com.google.protobuf.MapField<
-        java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> inputs_;
     private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
     internalGetInputs() {
-      if (inputs_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            InputsDefaultEntryHolder.defaultEntry);
-      }
-      return inputs_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
-    internalGetMutableInputs() {
-      onChanged();;
-      if (inputs_ == null) {
-        inputs_ = com.google.protobuf.MapField.newMapField(
-            InputsDefaultEntryHolder.defaultEntry);
-      }
-      if (!inputs_.isMutable()) {
-        inputs_ = inputs_.copy();
-      }
-      return inputs_;
+        if (inputs_ == null) {
+            return com.google.protobuf.MapField.emptyMapField(
+                    InputsDefaultEntryHolder.defaultEntry);
+        }
+        return inputs_;
     }
 
     public int getInputsCount() {
-      return internalGetInputs().getMap().size();
+        return internalGetInputs().getMap().size();
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
      */
 
     public boolean containsInputs(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetInputs().getMap().containsKey(key);
+            java.lang.String key) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        return internalGetInputs().getMap().containsKey(key);
     }
+
     /**
      * Use {@link #getInputsMap()} instead.
      */
     @java.lang.Deprecated
     public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> getInputs() {
-      return getInputsMap();
+        return getInputsMap();
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
      */
 
     public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> getInputsMap() {
-      return internalGetInputs().getMap();
+        return internalGetInputs().getMap();
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
      */
 
     public com.taobao.search.iquan.client.common.pb.IdList getInputsOrDefault(
-        java.lang.String key,
-        com.taobao.search.iquan.client.common.pb.IdList defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> map =
-          internalGetInputs().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
+            java.lang.String key,
+            com.taobao.search.iquan.client.common.pb.IdList defaultValue) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> map =
+                internalGetInputs().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
      */
 
     public com.taobao.search.iquan.client.common.pb.IdList getInputsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> map =
-          internalGetInputs().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
+            java.lang.String key) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> map =
+                internalGetInputs().getMap();
+        if (!map.containsKey(key)) {
+            throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
     }
 
-    public Builder clearInputs() {
-      internalGetMutableInputs().getMutableMap()
-          .clear();
-      return this;
-    }
-    /**
-     * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-     */
-
-    public Builder removeInputs(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableInputs().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
-    getMutableInputs() {
-      return internalGetMutableInputs().getMutableMap();
-    }
-    /**
-     * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-     */
-    public Builder putInputs(
-        java.lang.String key,
-        com.taobao.search.iquan.client.common.pb.IdList value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableInputs().getMutableMap()
-          .put(key, value);
-      return this;
-    }
-    /**
-     * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
-     */
-
-    public Builder putAllInputs(
-        java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> values) {
-      internalGetMutableInputs().getMutableMap()
-          .putAll(values);
-      return this;
-    }
-
-    private com.google.protobuf.Internal.IntList reuseInputs_ = emptyIntList();
-    private void ensureReuseInputsIsMutable() {
-      if (!((bitField0_ & 0x00000002) != 0)) {
-        reuseInputs_ = mutableCopy(reuseInputs_);
-        bitField0_ |= 0x00000002;
-       }
-    }
     /**
      * <code>repeated int32 reuse_inputs = 5;</code>
      */
     public java.util.List<java.lang.Integer>
-        getReuseInputsList() {
-      return ((bitField0_ & 0x00000002) != 0) ?
-               java.util.Collections.unmodifiableList(reuseInputs_) : reuseInputs_;
+    getReuseInputsList() {
+        return reuseInputs_;
     }
+
     /**
      * <code>repeated int32 reuse_inputs = 5;</code>
      */
     public int getReuseInputsCount() {
-      return reuseInputs_.size();
+        return reuseInputs_.size();
     }
+
     /**
      * <code>repeated int32 reuse_inputs = 5;</code>
      */
     public int getReuseInputs(int index) {
-      return reuseInputs_.getInt(index);
-    }
-    /**
-     * <code>repeated int32 reuse_inputs = 5;</code>
-     */
-    public Builder setReuseInputs(
-        int index, int value) {
-      ensureReuseInputsIsMutable();
-      reuseInputs_.setInt(index, value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated int32 reuse_inputs = 5;</code>
-     */
-    public Builder addReuseInputs(int value) {
-      ensureReuseInputsIsMutable();
-      reuseInputs_.addInt(value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated int32 reuse_inputs = 5;</code>
-     */
-    public Builder addAllReuseInputs(
-        java.lang.Iterable<? extends java.lang.Integer> values) {
-      ensureReuseInputsIsMutable();
-      com.google.protobuf.AbstractMessageLite.Builder.addAll(
-          values, reuseInputs_);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated int32 reuse_inputs = 5;</code>
-     */
-    public Builder clearReuseInputs() {
-      reuseInputs_ = emptyIntList();
-      bitField0_ = (bitField0_ & ~0x00000002);
-      onChanged();
-      return this;
+        return reuseInputs_.getInt(index);
     }
 
-    private com.google.protobuf.Internal.IntList outputs_ = emptyIntList();
-    private void ensureOutputsIsMutable() {
-      if (!((bitField0_ & 0x00000004) != 0)) {
-        outputs_ = mutableCopy(outputs_);
-        bitField0_ |= 0x00000004;
-       }
-    }
     /**
      * <code>repeated int32 outputs = 4;</code>
      */
     public java.util.List<java.lang.Integer>
-        getOutputsList() {
-      return ((bitField0_ & 0x00000004) != 0) ?
-               java.util.Collections.unmodifiableList(outputs_) : outputs_;
+    getOutputsList() {
+        return outputs_;
     }
+
     /**
      * <code>repeated int32 outputs = 4;</code>
      */
     public int getOutputsCount() {
-      return outputs_.size();
+        return outputs_.size();
     }
+
     /**
      * <code>repeated int32 outputs = 4;</code>
      */
     public int getOutputs(int index) {
-      return outputs_.getInt(index);
-    }
-    /**
-     * <code>repeated int32 outputs = 4;</code>
-     */
-    public Builder setOutputs(
-        int index, int value) {
-      ensureOutputsIsMutable();
-      outputs_.setInt(index, value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated int32 outputs = 4;</code>
-     */
-    public Builder addOutputs(int value) {
-      ensureOutputsIsMutable();
-      outputs_.addInt(value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated int32 outputs = 4;</code>
-     */
-    public Builder addAllOutputs(
-        java.lang.Iterable<? extends java.lang.Integer> values) {
-      ensureOutputsIsMutable();
-      com.google.protobuf.AbstractMessageLite.Builder.addAll(
-          values, outputs_);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated int32 outputs = 4;</code>
-     */
-    public Builder clearOutputs() {
-      outputs_ = emptyIntList();
-      bitField0_ = (bitField0_ & ~0x00000004);
-      onChanged();
-      return this;
+        return outputs_.getInt(index);
     }
 
-    private com.google.protobuf.MapField<
-        java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> attrs_;
     private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
     internalGetAttrs() {
-      if (attrs_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            AttrsDefaultEntryHolder.defaultEntry);
-      }
-      return attrs_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-    internalGetMutableAttrs() {
-      onChanged();;
-      if (attrs_ == null) {
-        attrs_ = com.google.protobuf.MapField.newMapField(
-            AttrsDefaultEntryHolder.defaultEntry);
-      }
-      if (!attrs_.isMutable()) {
-        attrs_ = attrs_.copy();
-      }
-      return attrs_;
+        if (attrs_ == null) {
+            return com.google.protobuf.MapField.emptyMapField(
+                    AttrsDefaultEntryHolder.defaultEntry);
+        }
+        return attrs_;
     }
 
     public int getAttrsCount() {
-      return internalGetAttrs().getMap().size();
+        return internalGetAttrs().getMap().size();
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
      */
 
     public boolean containsAttrs(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      return internalGetAttrs().getMap().containsKey(key);
+            java.lang.String key) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        return internalGetAttrs().getMap().containsKey(key);
     }
+
     /**
      * Use {@link #getAttrsMap()} instead.
      */
     @java.lang.Deprecated
     public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getAttrs() {
-      return getAttrsMap();
+        return getAttrsMap();
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
      */
 
     public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getAttrsMap() {
-      return internalGetAttrs().getMap();
+        return internalGetAttrs().getMap();
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
      */
 
     public com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrDefault(
-        java.lang.String key,
-        com.taobao.search.iquan.client.common.pb.AnyValue defaultValue) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
-          internalGetAttrs().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
+            java.lang.String key,
+            com.taobao.search.iquan.client.common.pb.AnyValue defaultValue) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
+                internalGetAttrs().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
     }
+
     /**
      * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
      */
 
     public com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
-          internalGetAttrs().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public Builder clearAttrs() {
-      internalGetMutableAttrs().getMutableMap()
-          .clear();
-      return this;
-    }
-    /**
-     * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-     */
-
-    public Builder removeAttrs(
-        java.lang.String key) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableAttrs().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-    getMutableAttrs() {
-      return internalGetMutableAttrs().getMutableMap();
-    }
-    /**
-     * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-     */
-    public Builder putAttrs(
-        java.lang.String key,
-        com.taobao.search.iquan.client.common.pb.AnyValue value) {
-      if (key == null) { throw new java.lang.NullPointerException(); }
-      if (value == null) { throw new java.lang.NullPointerException(); }
-      internalGetMutableAttrs().getMutableMap()
-          .put(key, value);
-      return this;
-    }
-    /**
-     * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
-     */
-
-    public Builder putAllAttrs(
-        java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> values) {
-      internalGetMutableAttrs().getMutableMap()
-          .putAll(values);
-      return this;
-    }
-    @java.lang.Override
-    public final Builder setUnknownFields(
-        final com.google.protobuf.UnknownFieldSet unknownFields) {
-      return super.setUnknownFields(unknownFields);
+            java.lang.String key) {
+        if (key == null) {
+            throw new java.lang.NullPointerException();
+        }
+        java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
+                internalGetAttrs().getMap();
+        if (!map.containsKey(key)) {
+            throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
     }
 
     @java.lang.Override
-    public final Builder mergeUnknownFields(
-        final com.google.protobuf.UnknownFieldSet unknownFields) {
-      return super.mergeUnknownFields(unknownFields);
+    public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
     }
 
-
-    // @@protoc_insertion_point(builder_scope:iquan.pb.PlanOp)
-  }
-
-  // @@protoc_insertion_point(class_scope:iquan.pb.PlanOp)
-  private static final com.taobao.search.iquan.client.common.pb.PlanOp DEFAULT_INSTANCE;
-  static {
-    DEFAULT_INSTANCE = new com.taobao.search.iquan.client.common.pb.PlanOp();
-  }
-
-  public static com.taobao.search.iquan.client.common.pb.PlanOp getDefaultInstance() {
-    return DEFAULT_INSTANCE;
-  }
-
-  private static final com.google.protobuf.Parser<PlanOp>
-      PARSER = new com.google.protobuf.AbstractParser<PlanOp>() {
     @java.lang.Override
-    public PlanOp parsePartialFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return new PlanOp(input, extensionRegistry);
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+            throws java.io.IOException {
+        getSerializedSize();
+        if (id_ != 0) {
+            output.writeInt32(1, id_);
+        }
+        if (!getOpNameBytes().isEmpty()) {
+            com.google.protobuf.GeneratedMessageV3.writeString(output, 2, opName_);
+        }
+        com.google.protobuf.GeneratedMessageV3
+                .serializeStringMapTo(
+                        output,
+                        internalGetInputs(),
+                        InputsDefaultEntryHolder.defaultEntry,
+                        3);
+        if (getOutputsList().size() > 0) {
+            output.writeUInt32NoTag(34);
+            output.writeUInt32NoTag(outputsMemoizedSerializedSize);
+        }
+        for (int i = 0; i < outputs_.size(); i++) {
+            output.writeInt32NoTag(outputs_.getInt(i));
+        }
+        if (getReuseInputsList().size() > 0) {
+            output.writeUInt32NoTag(42);
+            output.writeUInt32NoTag(reuseInputsMemoizedSerializedSize);
+        }
+        for (int i = 0; i < reuseInputs_.size(); i++) {
+            output.writeInt32NoTag(reuseInputs_.getInt(i));
+        }
+        com.google.protobuf.GeneratedMessageV3
+                .serializeStringMapTo(
+                        output,
+                        internalGetAttrs(),
+                        AttrsDefaultEntryHolder.defaultEntry,
+                        6);
+        unknownFields.writeTo(output);
     }
-  };
 
-  public static com.google.protobuf.Parser<PlanOp> parser() {
-    return PARSER;
-  }
+    @java.lang.Override
+    public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
 
-  @java.lang.Override
-  public com.google.protobuf.Parser<PlanOp> getParserForType() {
-    return PARSER;
-  }
+        size = 0;
+        if (id_ != 0) {
+            size += com.google.protobuf.CodedOutputStream
+                    .computeInt32Size(1, id_);
+        }
+        if (!getOpNameBytes().isEmpty()) {
+            size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, opName_);
+        }
+        for (java.util.Map.Entry<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> entry
+                : internalGetInputs().getMap().entrySet()) {
+            com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
+                    inputs__ = InputsDefaultEntryHolder.defaultEntry.newBuilderForType()
+                    .setKey(entry.getKey())
+                    .setValue(entry.getValue())
+                    .build();
+            size += com.google.protobuf.CodedOutputStream
+                    .computeMessageSize(3, inputs__);
+        }
+        {
+            int dataSize = 0;
+            for (int i = 0; i < outputs_.size(); i++) {
+                dataSize += com.google.protobuf.CodedOutputStream
+                        .computeInt32SizeNoTag(outputs_.getInt(i));
+            }
+            size += dataSize;
+            if (!getOutputsList().isEmpty()) {
+                size += 1;
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt32SizeNoTag(dataSize);
+            }
+            outputsMemoizedSerializedSize = dataSize;
+        }
+        {
+            int dataSize = 0;
+            for (int i = 0; i < reuseInputs_.size(); i++) {
+                dataSize += com.google.protobuf.CodedOutputStream
+                        .computeInt32SizeNoTag(reuseInputs_.getInt(i));
+            }
+            size += dataSize;
+            if (!getReuseInputsList().isEmpty()) {
+                size += 1;
+                size += com.google.protobuf.CodedOutputStream
+                        .computeInt32SizeNoTag(dataSize);
+            }
+            reuseInputsMemoizedSerializedSize = dataSize;
+        }
+        for (java.util.Map.Entry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> entry
+                : internalGetAttrs().getMap().entrySet()) {
+            com.google.protobuf.MapEntry<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+                    attrs__ = AttrsDefaultEntryHolder.defaultEntry.newBuilderForType()
+                    .setKey(entry.getKey())
+                    .setValue(entry.getValue())
+                    .build();
+            size += com.google.protobuf.CodedOutputStream
+                    .computeMessageSize(6, attrs__);
+        }
+        size += unknownFields.getSerializedSize();
+        memoizedSize = size;
+        return size;
+    }
 
-  @java.lang.Override
-  public com.taobao.search.iquan.client.common.pb.PlanOp getDefaultInstanceForType() {
-    return DEFAULT_INSTANCE;
-  }
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof com.taobao.search.iquan.client.common.pb.PlanOp)) {
+            return super.equals(obj);
+        }
+        com.taobao.search.iquan.client.common.pb.PlanOp other = (com.taobao.search.iquan.client.common.pb.PlanOp) obj;
+
+        if (getId()
+                != other.getId()) return false;
+        if (!getOpName()
+                .equals(other.getOpName())) return false;
+        if (!internalGetInputs().equals(
+                other.internalGetInputs())) return false;
+        if (!getReuseInputsList()
+                .equals(other.getReuseInputsList())) return false;
+        if (!getOutputsList()
+                .equals(other.getOutputsList())) return false;
+        if (!internalGetAttrs().equals(
+                other.internalGetAttrs())) return false;
+        if (!unknownFields.equals(other.unknownFields)) return false;
+        return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+        if (memoizedHashCode != 0) {
+            return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        hash = (37 * hash) + ID_FIELD_NUMBER;
+        hash = (53 * hash) + getId();
+        hash = (37 * hash) + OP_NAME_FIELD_NUMBER;
+        hash = (53 * hash) + getOpName().hashCode();
+        if (!internalGetInputs().getMap().isEmpty()) {
+            hash = (37 * hash) + INPUTS_FIELD_NUMBER;
+            hash = (53 * hash) + internalGetInputs().hashCode();
+        }
+        if (getReuseInputsCount() > 0) {
+            hash = (37 * hash) + REUSE_INPUTS_FIELD_NUMBER;
+            hash = (53 * hash) + getReuseInputsList().hashCode();
+        }
+        if (getOutputsCount() > 0) {
+            hash = (37 * hash) + OUTPUTS_FIELD_NUMBER;
+            hash = (53 * hash) + getOutputsList().hashCode();
+        }
+        if (!internalGetAttrs().getMap().isEmpty()) {
+            hash = (37 * hash) + ATTRS_FIELD_NUMBER;
+            hash = (53 * hash) + internalGetAttrs().hashCode();
+        }
+        hash = (29 * hash) + unknownFields.hashCode();
+        memoizedHashCode = hash;
+        return hash;
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() {
+        return newBuilder();
+    }
+
+    @java.lang.Override
+    public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+                ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PlanOp> getParserForType() {
+        return PARSER;
+    }
+
+    @java.lang.Override
+    public com.taobao.search.iquan.client.common.pb.PlanOp getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+    }
+
+    private static final class InputsDefaultEntryHolder {
+        static final com.google.protobuf.MapEntry<
+                java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> defaultEntry =
+                com.google.protobuf.MapEntry
+                        .<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>newDefaultInstance(
+                                com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_InputsEntry_descriptor,
+                                com.google.protobuf.WireFormat.FieldType.STRING,
+                                "",
+                                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                                com.taobao.search.iquan.client.common.pb.IdList.getDefaultInstance());
+    }
+
+    private static final class AttrsDefaultEntryHolder {
+        static final com.google.protobuf.MapEntry<
+                java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> defaultEntry =
+                com.google.protobuf.MapEntry
+                        .<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>newDefaultInstance(
+                                com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_AttrsEntry_descriptor,
+                                com.google.protobuf.WireFormat.FieldType.STRING,
+                                "",
+                                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                                com.taobao.search.iquan.client.common.pb.AnyValue.getDefaultInstance());
+    }
+
+    /**
+     * Protobuf type {@code iquan.pb.PlanOp}
+     */
+    public static final class Builder extends
+            com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+            // @@protoc_insertion_point(builder_implements:iquan.pb.PlanOp)
+            com.taobao.search.iquan.client.common.pb.PlanOpOrBuilder {
+        private int bitField0_;
+        private int id_;
+        private java.lang.Object opName_ = "";
+        private com.google.protobuf.MapField<
+                java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> inputs_;
+        private com.google.protobuf.Internal.IntList reuseInputs_ = emptyIntList();
+        private com.google.protobuf.Internal.IntList outputs_ = emptyIntList();
+        private com.google.protobuf.MapField<
+                java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> attrs_;
+
+        // Construct using com.taobao.search.iquan.client.common.pb.PlanOp.newBuilder()
+        private Builder() {
+            maybeForceBuilderInitialization();
+        }
+
+        private Builder(
+                com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+            super(parent);
+            maybeForceBuilderInitialization();
+        }
+
+        public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+            return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_descriptor;
+        }
+
+        @SuppressWarnings({"rawtypes"})
+        protected com.google.protobuf.MapField internalGetMapField(
+                int number) {
+            switch (number) {
+                case 3:
+                    return internalGetInputs();
+                case 6:
+                    return internalGetAttrs();
+                default:
+                    throw new RuntimeException(
+                            "Invalid map field number: " + number);
+            }
+        }
+
+        @SuppressWarnings({"rawtypes"})
+        protected com.google.protobuf.MapField internalGetMutableMapField(
+                int number) {
+            switch (number) {
+                case 3:
+                    return internalGetMutableInputs();
+                case 6:
+                    return internalGetMutableAttrs();
+                default:
+                    throw new RuntimeException(
+                            "Invalid map field number: " + number);
+            }
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+            return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_fieldAccessorTable
+                    .ensureFieldAccessorsInitialized(
+                            com.taobao.search.iquan.client.common.pb.PlanOp.class, com.taobao.search.iquan.client.common.pb.PlanOp.Builder.class);
+        }
+
+        private void maybeForceBuilderInitialization() {
+            if (com.google.protobuf.GeneratedMessageV3
+                    .alwaysUseFieldBuilders) {
+            }
+        }
+
+        @java.lang.Override
+        public Builder clear() {
+            super.clear();
+            id_ = 0;
+
+            opName_ = "";
+
+            internalGetMutableInputs().clear();
+            reuseInputs_ = emptyIntList();
+            bitField0_ = (bitField0_ & ~0x00000002);
+            outputs_ = emptyIntList();
+            bitField0_ = (bitField0_ & ~0x00000004);
+            internalGetMutableAttrs().clear();
+            return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+        getDescriptorForType() {
+            return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_PlanOp_descriptor;
+        }
+
+        @java.lang.Override
+        public com.taobao.search.iquan.client.common.pb.PlanOp getDefaultInstanceForType() {
+            return com.taobao.search.iquan.client.common.pb.PlanOp.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public com.taobao.search.iquan.client.common.pb.PlanOp build() {
+            com.taobao.search.iquan.client.common.pb.PlanOp result = buildPartial();
+            if (!result.isInitialized()) {
+                throw newUninitializedMessageException(result);
+            }
+            return result;
+        }
+
+        @java.lang.Override
+        public com.taobao.search.iquan.client.common.pb.PlanOp buildPartial() {
+            com.taobao.search.iquan.client.common.pb.PlanOp result = new com.taobao.search.iquan.client.common.pb.PlanOp(this);
+            int from_bitField0_ = bitField0_;
+            result.id_ = id_;
+            result.opName_ = opName_;
+            result.inputs_ = internalGetInputs();
+            result.inputs_.makeImmutable();
+            if (((bitField0_ & 0x00000002) != 0)) {
+                reuseInputs_.makeImmutable();
+                bitField0_ = (bitField0_ & ~0x00000002);
+            }
+            result.reuseInputs_ = reuseInputs_;
+            if (((bitField0_ & 0x00000004) != 0)) {
+                outputs_.makeImmutable();
+                bitField0_ = (bitField0_ & ~0x00000004);
+            }
+            result.outputs_ = outputs_;
+            result.attrs_ = internalGetAttrs();
+            result.attrs_.makeImmutable();
+            onBuilt();
+            return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+            return super.clone();
+        }
+
+        @java.lang.Override
+        public Builder setField(
+                com.google.protobuf.Descriptors.FieldDescriptor field,
+                java.lang.Object value) {
+            return super.setField(field, value);
+        }
+
+        @java.lang.Override
+        public Builder clearField(
+                com.google.protobuf.Descriptors.FieldDescriptor field) {
+            return super.clearField(field);
+        }
+
+        @java.lang.Override
+        public Builder clearOneof(
+                com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+            return super.clearOneof(oneof);
+        }
+
+        @java.lang.Override
+        public Builder setRepeatedField(
+                com.google.protobuf.Descriptors.FieldDescriptor field,
+                int index, java.lang.Object value) {
+            return super.setRepeatedField(field, index, value);
+        }
+
+        @java.lang.Override
+        public Builder addRepeatedField(
+                com.google.protobuf.Descriptors.FieldDescriptor field,
+                java.lang.Object value) {
+            return super.addRepeatedField(field, value);
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+            if (other instanceof com.taobao.search.iquan.client.common.pb.PlanOp) {
+                return mergeFrom((com.taobao.search.iquan.client.common.pb.PlanOp) other);
+            } else {
+                super.mergeFrom(other);
+                return this;
+            }
+        }
+
+        public Builder mergeFrom(com.taobao.search.iquan.client.common.pb.PlanOp other) {
+            if (other == com.taobao.search.iquan.client.common.pb.PlanOp.getDefaultInstance()) return this;
+            if (other.getId() != 0) {
+                setId(other.getId());
+            }
+            if (!other.getOpName().isEmpty()) {
+                opName_ = other.opName_;
+                onChanged();
+            }
+            internalGetMutableInputs().mergeFrom(
+                    other.internalGetInputs());
+            if (!other.reuseInputs_.isEmpty()) {
+                if (reuseInputs_.isEmpty()) {
+                    reuseInputs_ = other.reuseInputs_;
+                    bitField0_ = (bitField0_ & ~0x00000002);
+                } else {
+                    ensureReuseInputsIsMutable();
+                    reuseInputs_.addAll(other.reuseInputs_);
+                }
+                onChanged();
+            }
+            if (!other.outputs_.isEmpty()) {
+                if (outputs_.isEmpty()) {
+                    outputs_ = other.outputs_;
+                    bitField0_ = (bitField0_ & ~0x00000004);
+                } else {
+                    ensureOutputsIsMutable();
+                    outputs_.addAll(other.outputs_);
+                }
+                onChanged();
+            }
+            internalGetMutableAttrs().mergeFrom(
+                    other.internalGetAttrs());
+            this.mergeUnknownFields(other.unknownFields);
+            onChanged();
+            return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+            return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            com.taobao.search.iquan.client.common.pb.PlanOp parsedMessage = null;
+            try {
+                parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                parsedMessage = (com.taobao.search.iquan.client.common.pb.PlanOp) e.getUnfinishedMessage();
+                throw e.unwrapIOException();
+            } finally {
+                if (parsedMessage != null) {
+                    mergeFrom(parsedMessage);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * <code>int32 id = 1;</code>
+         */
+        public int getId() {
+            return id_;
+        }
+
+        /**
+         * <code>int32 id = 1;</code>
+         */
+        public Builder setId(int value) {
+
+            id_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>int32 id = 1;</code>
+         */
+        public Builder clearId() {
+
+            id_ = 0;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>string op_name = 2;</code>
+         */
+        public java.lang.String getOpName() {
+            java.lang.Object ref = opName_;
+            if (!(ref instanceof java.lang.String)) {
+                com.google.protobuf.ByteString bs =
+                        (com.google.protobuf.ByteString) ref;
+                java.lang.String s = bs.toStringUtf8();
+                opName_ = s;
+                return s;
+            } else {
+                return (java.lang.String) ref;
+            }
+        }
+
+        /**
+         * <code>string op_name = 2;</code>
+         */
+        public Builder setOpName(
+                java.lang.String value) {
+            if (value == null) {
+                throw new NullPointerException();
+            }
+
+            opName_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>string op_name = 2;</code>
+         */
+        public com.google.protobuf.ByteString
+        getOpNameBytes() {
+            java.lang.Object ref = opName_;
+            if (ref instanceof String) {
+                com.google.protobuf.ByteString b =
+                        com.google.protobuf.ByteString.copyFromUtf8(
+                                (java.lang.String) ref);
+                opName_ = b;
+                return b;
+            } else {
+                return (com.google.protobuf.ByteString) ref;
+            }
+        }
+
+        /**
+         * <code>string op_name = 2;</code>
+         */
+        public Builder setOpNameBytes(
+                com.google.protobuf.ByteString value) {
+            if (value == null) {
+                throw new NullPointerException();
+            }
+            checkByteStringIsUtf8(value);
+
+            opName_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>string op_name = 2;</code>
+         */
+        public Builder clearOpName() {
+
+            opName_ = getDefaultInstance().getOpName();
+            onChanged();
+            return this;
+        }
+
+        private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
+        internalGetInputs() {
+            if (inputs_ == null) {
+                return com.google.protobuf.MapField.emptyMapField(
+                        InputsDefaultEntryHolder.defaultEntry);
+            }
+            return inputs_;
+        }
+
+        private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
+        internalGetMutableInputs() {
+            onChanged();
+            ;
+            if (inputs_ == null) {
+                inputs_ = com.google.protobuf.MapField.newMapField(
+                        InputsDefaultEntryHolder.defaultEntry);
+            }
+            if (!inputs_.isMutable()) {
+                inputs_ = inputs_.copy();
+            }
+            return inputs_;
+        }
+
+        public int getInputsCount() {
+            return internalGetInputs().getMap().size();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+         */
+
+        public boolean containsInputs(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            return internalGetInputs().getMap().containsKey(key);
+        }
+
+        /**
+         * Use {@link #getInputsMap()} instead.
+         */
+        @java.lang.Deprecated
+        public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> getInputs() {
+            return getInputsMap();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+         */
+
+        public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> getInputsMap() {
+            return internalGetInputs().getMap();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+         */
+
+        public com.taobao.search.iquan.client.common.pb.IdList getInputsOrDefault(
+                java.lang.String key,
+                com.taobao.search.iquan.client.common.pb.IdList defaultValue) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> map =
+                    internalGetInputs().getMap();
+            return map.containsKey(key) ? map.get(key) : defaultValue;
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+         */
+
+        public com.taobao.search.iquan.client.common.pb.IdList getInputsOrThrow(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> map =
+                    internalGetInputs().getMap();
+            if (!map.containsKey(key)) {
+                throw new java.lang.IllegalArgumentException();
+            }
+            return map.get(key);
+        }
+
+        public Builder clearInputs() {
+            internalGetMutableInputs().getMutableMap()
+                    .clear();
+            return this;
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+         */
+
+        public Builder removeInputs(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            internalGetMutableInputs().getMutableMap()
+                    .remove(key);
+            return this;
+        }
+
+        /**
+         * Use alternate mutation accessors instead.
+         */
+        @java.lang.Deprecated
+        public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList>
+        getMutableInputs() {
+            return internalGetMutableInputs().getMutableMap();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+         */
+        public Builder putInputs(
+                java.lang.String key,
+                com.taobao.search.iquan.client.common.pb.IdList value) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            if (value == null) {
+                throw new java.lang.NullPointerException();
+            }
+            internalGetMutableInputs().getMutableMap()
+                    .put(key, value);
+            return this;
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.IdList&gt; inputs = 3;</code>
+         */
+
+        public Builder putAllInputs(
+                java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.IdList> values) {
+            internalGetMutableInputs().getMutableMap()
+                    .putAll(values);
+            return this;
+        }
+
+        private void ensureReuseInputsIsMutable() {
+            if (!((bitField0_ & 0x00000002) != 0)) {
+                reuseInputs_ = mutableCopy(reuseInputs_);
+                bitField0_ |= 0x00000002;
+            }
+        }
+
+        /**
+         * <code>repeated int32 reuse_inputs = 5;</code>
+         */
+        public java.util.List<java.lang.Integer>
+        getReuseInputsList() {
+            return ((bitField0_ & 0x00000002) != 0) ?
+                    java.util.Collections.unmodifiableList(reuseInputs_) : reuseInputs_;
+        }
+
+        /**
+         * <code>repeated int32 reuse_inputs = 5;</code>
+         */
+        public int getReuseInputsCount() {
+            return reuseInputs_.size();
+        }
+
+        /**
+         * <code>repeated int32 reuse_inputs = 5;</code>
+         */
+        public int getReuseInputs(int index) {
+            return reuseInputs_.getInt(index);
+        }
+
+        /**
+         * <code>repeated int32 reuse_inputs = 5;</code>
+         */
+        public Builder setReuseInputs(
+                int index, int value) {
+            ensureReuseInputsIsMutable();
+            reuseInputs_.setInt(index, value);
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>repeated int32 reuse_inputs = 5;</code>
+         */
+        public Builder addReuseInputs(int value) {
+            ensureReuseInputsIsMutable();
+            reuseInputs_.addInt(value);
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>repeated int32 reuse_inputs = 5;</code>
+         */
+        public Builder addAllReuseInputs(
+                java.lang.Iterable<? extends java.lang.Integer> values) {
+            ensureReuseInputsIsMutable();
+            com.google.protobuf.AbstractMessageLite.Builder.addAll(
+                    values, reuseInputs_);
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>repeated int32 reuse_inputs = 5;</code>
+         */
+        public Builder clearReuseInputs() {
+            reuseInputs_ = emptyIntList();
+            bitField0_ = (bitField0_ & ~0x00000002);
+            onChanged();
+            return this;
+        }
+
+        private void ensureOutputsIsMutable() {
+            if (!((bitField0_ & 0x00000004) != 0)) {
+                outputs_ = mutableCopy(outputs_);
+                bitField0_ |= 0x00000004;
+            }
+        }
+
+        /**
+         * <code>repeated int32 outputs = 4;</code>
+         */
+        public java.util.List<java.lang.Integer>
+        getOutputsList() {
+            return ((bitField0_ & 0x00000004) != 0) ?
+                    java.util.Collections.unmodifiableList(outputs_) : outputs_;
+        }
+
+        /**
+         * <code>repeated int32 outputs = 4;</code>
+         */
+        public int getOutputsCount() {
+            return outputs_.size();
+        }
+
+        /**
+         * <code>repeated int32 outputs = 4;</code>
+         */
+        public int getOutputs(int index) {
+            return outputs_.getInt(index);
+        }
+
+        /**
+         * <code>repeated int32 outputs = 4;</code>
+         */
+        public Builder setOutputs(
+                int index, int value) {
+            ensureOutputsIsMutable();
+            outputs_.setInt(index, value);
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>repeated int32 outputs = 4;</code>
+         */
+        public Builder addOutputs(int value) {
+            ensureOutputsIsMutable();
+            outputs_.addInt(value);
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>repeated int32 outputs = 4;</code>
+         */
+        public Builder addAllOutputs(
+                java.lang.Iterable<? extends java.lang.Integer> values) {
+            ensureOutputsIsMutable();
+            com.google.protobuf.AbstractMessageLite.Builder.addAll(
+                    values, outputs_);
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>repeated int32 outputs = 4;</code>
+         */
+        public Builder clearOutputs() {
+            outputs_ = emptyIntList();
+            bitField0_ = (bitField0_ & ~0x00000004);
+            onChanged();
+            return this;
+        }
+
+        private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+        internalGetAttrs() {
+            if (attrs_ == null) {
+                return com.google.protobuf.MapField.emptyMapField(
+                        AttrsDefaultEntryHolder.defaultEntry);
+            }
+            return attrs_;
+        }
+
+        private com.google.protobuf.MapField<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+        internalGetMutableAttrs() {
+            onChanged();
+            ;
+            if (attrs_ == null) {
+                attrs_ = com.google.protobuf.MapField.newMapField(
+                        AttrsDefaultEntryHolder.defaultEntry);
+            }
+            if (!attrs_.isMutable()) {
+                attrs_ = attrs_.copy();
+            }
+            return attrs_;
+        }
+
+        public int getAttrsCount() {
+            return internalGetAttrs().getMap().size();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+         */
+
+        public boolean containsAttrs(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            return internalGetAttrs().getMap().containsKey(key);
+        }
+
+        /**
+         * Use {@link #getAttrsMap()} instead.
+         */
+        @java.lang.Deprecated
+        public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getAttrs() {
+            return getAttrsMap();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+         */
+
+        public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> getAttrsMap() {
+            return internalGetAttrs().getMap();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+         */
+
+        public com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrDefault(
+                java.lang.String key,
+                com.taobao.search.iquan.client.common.pb.AnyValue defaultValue) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
+                    internalGetAttrs().getMap();
+            return map.containsKey(key) ? map.get(key) : defaultValue;
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+         */
+
+        public com.taobao.search.iquan.client.common.pb.AnyValue getAttrsOrThrow(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> map =
+                    internalGetAttrs().getMap();
+            if (!map.containsKey(key)) {
+                throw new java.lang.IllegalArgumentException();
+            }
+            return map.get(key);
+        }
+
+        public Builder clearAttrs() {
+            internalGetMutableAttrs().getMutableMap()
+                    .clear();
+            return this;
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+         */
+
+        public Builder removeAttrs(
+                java.lang.String key) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            internalGetMutableAttrs().getMutableMap()
+                    .remove(key);
+            return this;
+        }
+
+        /**
+         * Use alternate mutation accessors instead.
+         */
+        @java.lang.Deprecated
+        public java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+        getMutableAttrs() {
+            return internalGetMutableAttrs().getMutableMap();
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+         */
+        public Builder putAttrs(
+                java.lang.String key,
+                com.taobao.search.iquan.client.common.pb.AnyValue value) {
+            if (key == null) {
+                throw new java.lang.NullPointerException();
+            }
+            if (value == null) {
+                throw new java.lang.NullPointerException();
+            }
+            internalGetMutableAttrs().getMutableMap()
+                    .put(key, value);
+            return this;
+        }
+
+        /**
+         * <code>map&lt;string, .iquan.pb.AnyValue&gt; attrs = 6;</code>
+         */
+
+        public Builder putAllAttrs(
+                java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue> values) {
+            internalGetMutableAttrs().getMutableMap()
+                    .putAll(values);
+            return this;
+        }
+
+        @java.lang.Override
+        public final Builder setUnknownFields(
+                final com.google.protobuf.UnknownFieldSet unknownFields) {
+            return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+                final com.google.protobuf.UnknownFieldSet unknownFields) {
+            return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:iquan.pb.PlanOp)
+    }
 
 }
 

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_EVALUATOR_H
-#define __INDEXLIB_ATTRIBUTE_EVALUATOR_H
+#pragma once
 
 #include <memory>
 
@@ -112,5 +111,3 @@ inline double AttributeEvaluator<autil::uint256_t>::GetValue(docid_t docId,
 }
 
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_ATTRIBUTE_EVALUATOR_H

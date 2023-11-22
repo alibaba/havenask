@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VERSION_COMMITTER_H
-#define __INDEXLIB_VERSION_COMMITTER_H
+#pragma once
 
 #include <memory>
 #include <set>
@@ -102,7 +101,7 @@ private:
                                                 const fslib::FileList& fileList,
                                                 const std::set<versionid_t>& reservedVersionSet,
                                                 uint32_t keepVersionCount, std::set<segmentid_t>& needKeepSegment,
-                                                std::set<schemavid_t>& needKeepSchemaId);
+                                                std::set<schemaid_t>& needKeepSchemaId);
 
     static void CleanVersionFiles(const file_system::DirectoryPtr& rootDir, const fslib::FileList& fileList,
                                   const std::set<versionid_t>& reservedVersionSet, uint32_t keepVersionCount);
@@ -115,7 +114,7 @@ private:
                                             const std::set<segmentid_t>& needKeepSegment);
 
     static void CleanUselessSchemaFiles(const file_system::DirectoryPtr& normRootDir,
-                                        const std::set<schemavid_t>& needKeepSchemaId);
+                                        const std::set<schemaid_t>& needKeepSchemaId);
 
 private:
     file_system::DirectoryPtr mFsRootDir;
@@ -131,5 +130,3 @@ DEFINE_SHARED_PTR(VersionCommitter);
 
 ////////////////////////////////////////////////////////////////////////////////
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_VERSION_COMMITTER_H

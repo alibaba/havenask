@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_DIRECTORY_CREATOR_H
-#define __INDEXLIB_SEGMENT_DIRECTORY_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -43,11 +42,11 @@ public:
 public:
     static SegmentDirectoryPtr Create(const config::IndexPartitionOptions& options,
                                       const file_system::DirectoryPtr& directory,
-                                      const index_base::Version& version = index_base::Version(INVALID_VERSION),
+                                      const index_base::Version& version = index_base::Version(INVALID_VERSIONID),
                                       bool hasSub = false);
 
     static SegmentDirectoryPtr Create(const file_system::DirectoryPtr& dir,
-                                      index_base::Version version = index_base::Version(INVALID_VERSION),
+                                      index_base::Version version = index_base::Version(INVALID_VERSIONID),
                                       const config::IndexPartitionOptions* options = NULL, bool hasSub = false);
 
     static SegmentDirectoryPtr Create(const file_system::DirectoryVector& directoryVec, bool hasSub = false);
@@ -64,5 +63,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentDirectoryCreator);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SEGMENT_DIRECTORY_CREATOR_H

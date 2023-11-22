@@ -10,8 +10,8 @@
           "db_name": "simple4", 
           "limit": 100, 
           "location": {
-            "partition_cnt": 2, 
-            "table_group_name": "simple4"
+            "node_name": "simple4", 
+            "partition_cnt": 2
           }, 
           "nest_table_attrs": [
             {
@@ -136,6 +136,7 @@
           "input_fields_type": [
             "INTEGER"
           ], 
+          "node_name": "simple4", 
           "op_scope": "default", 
           "output_distribution": {
             "hash_mode": {
@@ -153,7 +154,6 @@
             "partition_cnt": 2, 
             "type": "RANDOM_DISTRIBUTED"
           }, 
-          "table_group_name": "simple4", 
           "table_name": "simple4", 
           "table_type": "normal"
         }, 
@@ -172,8 +172,8 @@
         "attrs": {
           "limit": 100, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "offset": 0, 
           "op_scope": "default", 
@@ -200,8 +200,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {

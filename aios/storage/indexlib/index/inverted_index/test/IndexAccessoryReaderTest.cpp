@@ -15,7 +15,7 @@ namespace indexlib::index {
 namespace {
 using indexlibv2::config::IIndexConfig;
 using indexlibv2::config::InvertedIndexConfig;
-using indexlibv2::index::IndexerParameter;
+using indexlibv2::index::IndexReaderParameter;
 
 const static std::string identifier = "ut_test";
 }; // namespace
@@ -101,9 +101,8 @@ TEST_F(IndexAccessoryReaderTest, TestCaseForOpen)
     auto [status, tabletData] = CreateEmptyTabletData();
     ASSERT_TRUE(status.IsOK());
     auto indexConfigs = CreateDefaultConfigs();
-    IndexerParameter emptyIndexerParam;
 
-    auto accessoryReader = std::make_shared<IndexAccessoryReader>(indexConfigs, emptyIndexerParam);
+    auto accessoryReader = std::make_shared<IndexAccessoryReader>(indexConfigs, IndexReaderParameter {});
     ASSERT_TRUE(accessoryReader->Open(tabletData.get()).IsOK());
     ASSERT_EQ(accessoryReader->_sectionReaderMap.size(), (size_t)2);
     ASSERT_EQ(accessoryReader->_sectionReaderVec.size(), (size_t)1);
@@ -122,7 +121,7 @@ TEST_F(IndexAccessoryReaderTest, TestCaseForOpen)
     auto newIndexConfigs = newSchema->GetIndexConfigs(INVERTED_INDEX_TYPE_STR);
 
     newIndexConfigs.emplace_back(CreateTruncIndexConfig(newSchema, "pack1", "truncate_pack1"));
-    accessoryReader.reset(new IndexAccessoryReader(newIndexConfigs, emptyIndexerParam));
+    accessoryReader.reset(new IndexAccessoryReader(newIndexConfigs, IndexReaderParameter {}));
     // TODO: now we return true
     ASSERT_TRUE(accessoryReader->Open(tabletData.get()).IsOK());
     ASSERT_EQ(accessoryReader->_sectionReaderMap.size(), (size_t)0);
@@ -134,9 +133,8 @@ TEST_F(IndexAccessoryReaderTest, TestCaseForClone)
     auto [status, tabletData] = CreateEmptyTabletData();
     ASSERT_TRUE(status.IsOK());
     auto indexConfigs = CreateDefaultConfigs();
-    IndexerParameter emptyIndexerParam;
 
-    auto accessoryReader = std::make_shared<IndexAccessoryReader>(indexConfigs, emptyIndexerParam);
+    auto accessoryReader = std::make_shared<IndexAccessoryReader>(indexConfigs, IndexReaderParameter {});
     ASSERT_TRUE(accessoryReader->Open(tabletData.get()).IsOK());
 
     auto cloneReader = std::shared_ptr<IndexAccessoryReader>(accessoryReader->Clone());
@@ -150,9 +148,8 @@ TEST_F(IndexAccessoryReaderTest, TestCaseForGetSectionReader)
     auto [status, tabletData] = CreateEmptyTabletData();
     ASSERT_TRUE(status.IsOK());
     auto indexConfigs = CreateDefaultConfigs();
-    IndexerParameter emptyIndexerParam;
 
-    auto accessoryReader = std::make_shared<IndexAccessoryReader>(indexConfigs, emptyIndexerParam);
+    auto accessoryReader = std::make_shared<IndexAccessoryReader>(indexConfigs, IndexReaderParameter {});
     ASSERT_TRUE(accessoryReader->Open(tabletData.get()).IsOK());
 
     ASSERT_TRUE(accessoryReader->GetSectionReader("pack1") != NULL);

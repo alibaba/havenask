@@ -41,13 +41,14 @@ public:
         const std::shared_ptr<indexlibv2::config::ITabletSchema>&)>;
 
 public:
+    //  @requiredFields 如果是std::nullopt,则认为需要取出所有字段；否则取给定字段
     virtual Status Init(const std::shared_ptr<TabletData>& tabletData,
                         std::pair<uint32_t /*0-99*/, uint32_t /*0-99*/> rangeInRatio,
                         const std::shared_ptr<MetricsManager>& metricsManager,
-                        const std::vector<std::string>& requiredFields,
+                        const std::optional<std::vector<std::string>>& requiredFields,
                         const std::map<std::string, std::string>& params) = 0;
     virtual Status Next(indexlibv2::document::RawDocument* rawDocument, std::string* checkpoint,
-                        document::IDocument::DocInfo* docInfo) = 0;
+                        framework::Locator::DocInfo* docInfo) = 0;
     virtual bool HasNext() const = 0;
     virtual Status Seek(const std::string& checkpoint) = 0;
 };

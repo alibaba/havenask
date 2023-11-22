@@ -42,17 +42,17 @@ class IndexFactoryA : public IIndexFactory
 {
 public:
     std::shared_ptr<IDiskIndexer> CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override
+                                                    const DiskIndexerParameter& indexerParam) const override
     {
         return nullptr;
     }
     std::shared_ptr<IMemIndexer> CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                  const IndexerParameter& indexerParam) const override
+                                                  const MemIndexerParameter& indexerParam) const override
     {
         return nullptr;
     }
     std::unique_ptr<IIndexReader> CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override
+                                                    const IndexReaderParameter& indexReaderParam) const override
     {
         return nullptr;
     }
@@ -73,17 +73,17 @@ class IndexFactoryB : public IIndexFactory
 {
 public:
     std::shared_ptr<IDiskIndexer> CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override
+                                                    const DiskIndexerParameter& indexerParam) const override
     {
         return nullptr;
     }
     std::shared_ptr<IMemIndexer> CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                  const IndexerParameter& indexerParam) const override
+                                                  const MemIndexerParameter& indexerParam) const override
     {
         return nullptr;
     }
     std::unique_ptr<IIndexReader> CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override
+                                                    const IndexReaderParameter& indexReaderParam) const override
     {
         return nullptr;
     }

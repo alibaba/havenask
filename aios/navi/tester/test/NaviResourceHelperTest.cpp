@@ -2,6 +2,7 @@
 
 #include "navi/engine/test/MockAsyncPipe.h"
 #include "navi/resource/GraphMemoryPoolR.h"
+#include "navi/example/TestResource.h"
 #include "unittest/unittest.h"
 
 using namespace std;
@@ -55,6 +56,16 @@ TEST_F(NaviResourceHelperTest, testSimple) {
     auto res1 = naviRes.getOrCreateResPtr<GraphMemoryPoolR>();
     ASSERT_NE(nullptr, res1);
     auto res2 = naviRes.getOrCreateResPtr<GraphMemoryPoolR>();
+    ASSERT_EQ(res1, res2);
+}
+
+TEST_F(NaviResourceHelperTest, testSnapshotResourceCreate) {
+    // NaviLoggerProvider provider("DEBUG");
+    NaviResourceHelper naviRes;
+    naviRes.snapshotConfig(TestSnapshotR::RESOURCE_ID, "{}");
+    auto res1 = naviRes.getOrCreateResPtr<TestSnapshotR>();
+    ASSERT_NE(nullptr, res1);
+    auto res2 = naviRes.getOrCreateResPtr<TestSnapshotR>();
     ASSERT_EQ(res1, res2);
 }
 

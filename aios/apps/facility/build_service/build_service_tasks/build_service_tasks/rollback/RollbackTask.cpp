@@ -15,12 +15,26 @@
  */
 #include "build_service_tasks/rollback/RollbackTask.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/BuildRuleConfig.h"
+#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/proto/ErrorCollector.h"
-#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
-#include "build_service/util/MemUtil.h"
 #include "build_service/util/RangeUtil.h"
 #include "indexlib/partition/index_roll_back_util.h"
 
@@ -141,7 +155,7 @@ bool RollbackTask::prepareTargetVersion()
 {
     vector<Range> ranges = RangeUtil::splitRange(RANGE_MIN, RANGE_MAX, _partitionCount);
 
-    versionid_t maxVersionId = INVALID_VERSION;
+    versionid_t maxVersionId = indexlib::INVALID_VERSIONID;
     for (const auto& partRange : ranges) {
         PartitionId pid;
         *pid.mutable_range() = partRange;
@@ -151,7 +165,7 @@ bool RollbackTask::prepareTargetVersion()
         string partIndexRoot = IndexPathConstructor::constructIndexPath(_indexRoot, pid);
         versionid_t versionId = IndexRollBackUtil::GetLatestOnDiskVersion(partIndexRoot);
 
-        if (versionId == INVALID_VERSION) {
+        if (versionId == indexlib::INVALID_VERSIONID) {
             BS_LOG(ERROR, "get version from [%s] failed", partIndexRoot.c_str());
             return false;
         }

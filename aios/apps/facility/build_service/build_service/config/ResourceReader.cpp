@@ -15,21 +15,36 @@
  */
 #include "build_service/config/ResourceReader.h"
 
+#include <algorithm>
+#include <exception>
+#include <iterator>
+#include <stddef.h>
+#include <unordered_map>
+#include <utility>
+
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ConfigParser.h"
 #include "build_service/config/DocProcessorChainConfig.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/ZipFileUtil.h"
-#include "fslib/fslib.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
+#include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletSchema.h"
-#include "indexlib/framework/ITabletFactory.h"
-#include "indexlib/framework/TabletFactoryCreator.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace indexlib::config;
 
@@ -707,18 +722,22 @@ vector<string> ResourceReader::getAllSchemaFileNames() const
     return schemas;
 }
 
-std::vector<std::string> ResourceReader::getAllSchemaPatchFileNames() const
+std::vector<std::string> ResourceReader::getSchemaPatchFileNames(const std::vector<std::string>& tableNames) const
 {
     vector<string> files;
     string schemaDir = fslib::util::FileUtil::joinFilePath(_configRoot, SCHEMA_CONFIG_PATH);
     fslib::util::FileUtil::listDir(schemaDir, files);
-    vector<string> schemaPatches;
-    for (size_t i = 0; i < files.size(); i++) {
-        if (StringUtil::endsWith(files[i], SCHEMA_PATCH_JSON_FILE_SUFFIX)) {
-            schemaPatches.push_back(fslib::util::FileUtil::joinFilePath(SCHEMA_CONFIG_PATH, files[i]));
+    vector<string> ret;
+    std::set<std::string> schemaPatchNames;
+    for (const auto& tableName : tableNames) {
+        schemaPatchNames.insert(tableName + SCHEMA_PATCH_JSON_FILE_SUFFIX);
+    }
+    for (const auto& file : files) {
+        if (schemaPatchNames.find(file) != schemaPatchNames.end()) {
+            ret.push_back(fslib::util::FileUtil::joinFilePath(SCHEMA_CONFIG_PATH, file));
         }
     }
-    return schemaPatches;
+    return ret;
 }
 
 void ResourceReader::clearCache()

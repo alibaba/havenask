@@ -13,22 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_MERGE_META_H
-#define __INDEXLIB_INDEX_MERGE_META_H
+#pragma once
 
+#include <algorithm>
+#include <assert.h>
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
+#include "indexlib/index/merger_util/truncate/bucket_map.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_merge_info.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/merge_meta.h"
-#include "indexlib/merger/merge_plan_meta.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/merge_plan_resource.h"
-#include "indexlib/merger/merge_task.h"
 #include "indexlib/merger/merge_task_item.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 DECLARE_REFERENCE_CLASS(index_base, MergeTaskResource);
 DECLARE_REFERENCE_CLASS(index_base, MergeTaskResourceManager);
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 DECLARE_REFERENCE_CLASS(file_system, IFileSystem);
 
 namespace indexlib { namespace merger {
@@ -195,5 +206,3 @@ private:
 
 DEFINE_SHARED_PTR(IndexMergeMeta);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_INDEX_MERGE_META_H

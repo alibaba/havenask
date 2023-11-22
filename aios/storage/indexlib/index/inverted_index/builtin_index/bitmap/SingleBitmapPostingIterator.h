@@ -49,8 +49,8 @@ public:
     // for realtime segment init
     void Init(const PostingWriter* postingWriter, util::ObjectPool<InDocPositionStateType>* statePool);
 
-    inline docid_t SeekDoc(docid_t docId);
-    inline index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result);
+    inline docid64_t SeekDoc(docid64_t docId);
+    inline index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result);
 
     inline void Unpack(TermMatchData& termMatchData);
     inline bool HasPosition() const { return false; }
@@ -61,12 +61,12 @@ public:
         nextPos = INVALID_POSITION;
         return index::ErrorCode::OK;
     }
-    inline void SetBaseDocId(docid_t baseDocId) { _baseDocId = baseDocId; }
-    inline docid_t GetLastDocId() const { return _lastDocId; }
-    inline bool Test(docid_t docId)
+    inline void SetBaseDocId(docid64_t baseDocId) { _baseDocId = baseDocId; }
+    inline docid64_t GetLastDocId() const { return _lastDocId; }
+    inline bool Test(docid64_t docId)
     {
-        docid_t localDocId = docId - _baseDocId;
-        if (unlikely(localDocId >= static_cast<docid_t>(_bitmap.GetItemCount()))) {
+        docid64_t localDocId = docId - _baseDocId;
+        if (unlikely(localDocId >= static_cast<docid64_t>(_bitmap.GetItemCount()))) {
             if (!_expandBitmap.Test(localDocId - _bitmap.GetItemCount())) {
                 return false;
             }
@@ -89,23 +89,23 @@ public:
     void Reset();
 
 public:
-    static docid_t SeekBitmap(const util::Bitmap& bitmap, docid_t docId);
+    static docid64_t SeekBitmap(const util::Bitmap& bitmap, docid64_t docId);
 
 public:
     // for test.
     void Init(const util::Bitmap& _bitmap, TermMeta* termMeta, util::ObjectPool<InDocPositionStateType>* statePool);
     // for test
-    docid_t GetCurrentGlobalDocId() { return _currentLocalId + _baseDocId; }
+    docid64_t GetCurrentGlobalDocId() { return _currentLocalId + _baseDocId; }
 
 private:
     void SetStatePool(util::ObjectPool<InDocPositionStateType>* statePool) { _statePool = statePool; }
     void InitExpandBitmap(BitmapPostingExpandData* expandWriter);
 
 private:
-    docid_t _currentLocalId;
-    docid_t _baseDocId;
+    docid64_t _currentLocalId;
+    docid64_t _baseDocId;
     util::Bitmap _bitmap;
-    docid_t _lastDocId;
+    docid64_t _lastDocId;
     util::Bitmap _expandBitmap;
     util::ObjectPool<InDocPositionStateType>* _statePool;
     TermMeta _termMeta;
@@ -117,19 +117,19 @@ private:
 
 typedef std::shared_ptr<SingleBitmapPostingIterator> SingleBitmapPostingIteratorPtr;
 
-inline index::ErrorCode SingleBitmapPostingIterator::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+inline index::ErrorCode SingleBitmapPostingIterator::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
     result = SeekDoc(docId);
     return index::ErrorCode::OK;
 }
 
-inline docid_t SingleBitmapPostingIterator::SeekDoc(docid_t docId)
+inline docid64_t SingleBitmapPostingIterator::SeekDoc(docid64_t docId)
 {
     docId -= _baseDocId;
     docId = std::max(_currentLocalId + 1, docId);
 
-    if (docId >= static_cast<docid_t>(_bitmap.GetItemCount())) {
-        docid_t expandDocId = INVALID_DOCID;
+    if (docId >= static_cast<docid64_t>(_bitmap.GetItemCount())) {
+        docid64_t expandDocId = INVALID_DOCID;
         if (_expandBitmap.Size() != 0) {
             // has expand bitmap
             expandDocId = SeekBitmap(_expandBitmap, docId - _bitmap.GetItemCount());
@@ -140,13 +140,13 @@ inline docid_t SingleBitmapPostingIterator::SeekDoc(docid_t docId)
         }
         return INVALID_DOCID;
     }
-    docid_t localDocId = SeekBitmap(_bitmap, docId);
+    docid64_t localDocId = SeekBitmap(_bitmap, docId);
     if (localDocId != INVALID_DOCID) {
         _currentLocalId = localDocId;
         return _currentLocalId + _baseDocId;
     }
     if (_expandBitmap.Size() != 0) {
-        docid_t expandDocId = SeekBitmap(_expandBitmap, 0);
+        docid64_t expandDocId = SeekBitmap(_expandBitmap, 0);
         if (expandDocId != INVALID_DOCID) {
             _currentLocalId = expandDocId + _bitmap.GetItemCount();
             return _currentLocalId + _baseDocId;
@@ -155,9 +155,9 @@ inline docid_t SingleBitmapPostingIterator::SeekDoc(docid_t docId)
     return INVALID_DOCID;
 }
 
-inline docid_t SingleBitmapPostingIterator::SeekBitmap(const util::Bitmap& bitmap, docid_t docId)
+inline docid64_t SingleBitmapPostingIterator::SeekBitmap(const util::Bitmap& bitmap, docid64_t docId)
 {
-    if (unlikely(docId >= static_cast<docid_t>(bitmap.GetItemCount()))) {
+    if (unlikely(docId >= static_cast<docid64_t>(bitmap.GetItemCount()))) {
         return INVALID_DOCID;
     }
     uint32_t blockId = docId / 32;

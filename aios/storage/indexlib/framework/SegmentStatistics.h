@@ -15,7 +15,13 @@
  */
 #pragma once
 
+#include <algorithm>
+#include <cstdint>
+#include <functional>
 #include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Constant.h"

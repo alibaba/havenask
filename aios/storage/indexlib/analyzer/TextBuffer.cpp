@@ -15,6 +15,9 @@
  */
 #include "indexlib/analyzer/TextBuffer.h"
 
+#include <cstddef>
+#include <memory>
+
 #include "autil/codec/EncodeConverter.h"
 
 using namespace std;

@@ -8,7 +8,7 @@ cc_library(
         'primary_key_segment_formatter.h', 'sorted_primary_key_formatter.h'
     ],
     include_prefix='indexlib/index/normal/primarykey',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/index/common/block_array:reader',
         '//aios/storage/indexlib/index/common/block_array:writer',
@@ -40,7 +40,7 @@ cc_library(
         'sorted_primary_key_pair_segment_iterator.h'
     ],
     include_prefix='indexlib/index/normal/primarykey',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':format', '//aios/storage/indexlib/index/common/block_array:reader',
         '//aios/storage/indexlib/index/inverted_index/format:TermMeta',
@@ -59,7 +59,7 @@ cc_library(
     ]),
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/primarykey',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':format',
         '//aios/storage/indexlib/indexlib/index/normal/attribute:attribute_writer',
@@ -74,7 +74,7 @@ cc_library(
     ]),
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/primarykey',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':format',
         '//aios/storage/indexlib/indexlib/index/normal/attribute:attribute_merger',
@@ -85,6 +85,6 @@ cc_library(
     name='primarykey',
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/primarykey',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':merger', ':reader', ':writer']
 )

@@ -32,7 +32,7 @@ strict_cc_fast_test(
         '//aios/storage/indexlib/framework/index_task:IndexTaskPlan',
         '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager',
         '//aios/storage/indexlib/framework/index_task:LocalExecuteEngine',
-        '//aios/storage/indexlib/framework/index_task/testlib:trivial_task',
+        '//aios/storage/indexlib/framework/index_task/testlib:fake_task',
         '//aios/storage/indexlib/framework/mock:MockTabletFactory',
         '//aios/storage/indexlib/util/memory_control',
         '//aios/unittest_framework'

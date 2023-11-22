@@ -6,6 +6,7 @@ strict_cc_fast_test(
         'KKVMemIndexerTest.cpp', 'KKVValueWriterTest.cpp',
         'SuffixKeyWriterTest.cpp'
     ],
+    copts=['-fno-access-control'],
     shard_count=1,
     deps=[
         '//aios/future_lite/future_lite/executors:simple_executor',

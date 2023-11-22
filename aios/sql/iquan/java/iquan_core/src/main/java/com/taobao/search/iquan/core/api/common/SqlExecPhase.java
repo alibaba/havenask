@@ -1,10 +1,10 @@
 package com.taobao.search.iquan.core.api.common;
 
-import com.google.common.collect.ImmutableList;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import com.google.common.collect.ImmutableList;
+import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 
 public enum SqlExecPhase {
     START(0, "start"),
@@ -17,98 +17,12 @@ public enum SqlExecPhase {
     JNI_POST_OPTIMIZE(7, "jni.post.optimize"),
     END(8, "end");
 
+    final private int step;
+    final private String name;
+
     SqlExecPhase(int step, String name) {
         this.step = step;
         this.name = name;
-    }
-
-    public int getStep() {
-        return step;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return getName();
-    }
-
-    //
-    public static class PlanPrepareLevel {
-        private final static Set<SqlExecPhase> validPhases = new HashSet<>(
-                ImmutableList.of(
-                        SqlExecPhase.SQL_PARSE,
-                        SqlExecPhase.REL_TRANSFORM,
-                        SqlExecPhase.REL_POST_OPTIMIZE,
-                        SqlExecPhase.JNI_POST_OPTIMIZE,
-                        SqlExecPhase.END
-                )
-        );
-        private final SqlExecPhase phase;
-
-        public PlanPrepareLevel(SqlExecPhase phase) {
-            this.phase = phase;
-
-            if (!isValid()) {
-                throw new SqlQueryException(IquanErrorCode.IQUAN_EC_SQL_WORKFLOW_INVALID_INPUT_PARAMS, "prepare level is not valid.");
-            }
-        }
-
-        private boolean isValid() {
-            if (validPhases.contains(phase)) {
-                return true;
-            }
-            return false;
-        }
-
-        public SqlExecPhase getPhase() {
-            return phase;
-        }
-
-        public static Set<SqlExecPhase> getValidPhases() {
-            return validPhases;
-        }
-    }
-
-    //
-    public static class PlanExecPhaseResult {
-        private final static Set<SqlExecPhase> validPhases = new HashSet<>(
-                ImmutableList.of(
-                        SqlExecPhase.SQL_PARSE,
-                        SqlExecPhase.SQL_VALIDATE,
-                        SqlExecPhase.REL_TRANSFORM,
-                        SqlExecPhase.REL_OPTIMIZE,
-                        SqlExecPhase.REL_POST_OPTIMIZE,
-                        SqlExecPhase.JNI_POST_OPTIMIZE,
-                        SqlExecPhase.END
-                )
-        );
-        private final SqlExecPhase phase;
-
-        public PlanExecPhaseResult(SqlExecPhase phase) {
-            this.phase = phase;
-
-            if (!isValid()) {
-                throw new SqlQueryException(IquanErrorCode.IQUAN_EC_SQL_WORKFLOW_INVALID_INPUT_PARAMS, "exec phase result is not valid.");
-            }
-        }
-
-        private boolean isValid() {
-            if (validPhases.contains(phase)) {
-                return true;
-            }
-            return false;
-        }
-
-        public SqlExecPhase getPhase() {
-            return phase;
-        }
-
-        public static Set<SqlExecPhase> getValidPhases() {
-            return validPhases;
-        }
     }
 
     //
@@ -148,6 +62,92 @@ public enum SqlExecPhase {
         }
     }
 
-    final private int step;
-    final private String name;
+    public int getStep() {
+        return step;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
+
+    //
+    public static class PlanPrepareLevel {
+        private final static Set<SqlExecPhase> validPhases = new HashSet<>(
+                ImmutableList.of(
+                        SqlExecPhase.SQL_PARSE,
+                        SqlExecPhase.REL_TRANSFORM,
+                        SqlExecPhase.REL_POST_OPTIMIZE,
+                        SqlExecPhase.JNI_POST_OPTIMIZE,
+                        SqlExecPhase.END
+                )
+        );
+        private final SqlExecPhase phase;
+
+        public PlanPrepareLevel(SqlExecPhase phase) {
+            this.phase = phase;
+
+            if (!isValid()) {
+                throw new SqlQueryException(IquanErrorCode.IQUAN_EC_SQL_WORKFLOW_INVALID_INPUT_PARAMS, "prepare level is not valid.");
+            }
+        }
+
+        public static Set<SqlExecPhase> getValidPhases() {
+            return validPhases;
+        }
+
+        private boolean isValid() {
+            if (validPhases.contains(phase)) {
+                return true;
+            }
+            return false;
+        }
+
+        public SqlExecPhase getPhase() {
+            return phase;
+        }
+    }
+
+    //
+    public static class PlanExecPhaseResult {
+        private final static Set<SqlExecPhase> validPhases = new HashSet<>(
+                ImmutableList.of(
+                        SqlExecPhase.SQL_PARSE,
+                        SqlExecPhase.SQL_VALIDATE,
+                        SqlExecPhase.REL_TRANSFORM,
+                        SqlExecPhase.REL_OPTIMIZE,
+                        SqlExecPhase.REL_POST_OPTIMIZE,
+                        SqlExecPhase.JNI_POST_OPTIMIZE,
+                        SqlExecPhase.END
+                )
+        );
+        private final SqlExecPhase phase;
+
+        public PlanExecPhaseResult(SqlExecPhase phase) {
+            this.phase = phase;
+
+            if (!isValid()) {
+                throw new SqlQueryException(IquanErrorCode.IQUAN_EC_SQL_WORKFLOW_INVALID_INPUT_PARAMS, "exec phase result is not valid.");
+            }
+        }
+
+        public static Set<SqlExecPhase> getValidPhases() {
+            return validPhases;
+        }
+
+        private boolean isValid() {
+            if (validPhases.contains(phase)) {
+                return true;
+            }
+            return false;
+        }
+
+        public SqlExecPhase getPhase() {
+            return phase;
+        }
+    }
 }

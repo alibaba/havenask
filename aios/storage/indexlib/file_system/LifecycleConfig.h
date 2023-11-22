@@ -15,8 +15,14 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/Log.h"
-#include "autil/NoCopyable.h"
 #include "autil/legacy/jsonizable.h"
 
 namespace indexlib::file_system {
@@ -87,6 +93,7 @@ public:
 
 private:
     struct LifecycleConfigImpl;
+
     std::unique_ptr<LifecycleConfigImpl> _impl;
 
 private:

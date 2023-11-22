@@ -15,30 +15,46 @@
  */
 #include "build_service/admin/taskcontroller/SingleGeneralTaskManager.h"
 
+#include <Wal.h>
+#include <assert.h>
+#include <chrono>
+#include <exception>
+#include <map>
 #include <queue>
+#include <stddef.h>
+#include <thread>
+#include <utility>
 
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
 #include "build_service/admin/CheckpointMetricReporter.h"
-#include "build_service/config/ConfigDefine.h"
-#include "build_service/config/ConfigReaderAccessor.h"
-#include "build_service/config/IndexPartitionOptionsWrapper.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/ProtoJsonizer.h"
-#include "build_service/proto/ProtoUtil.h"
 #include "fslib/util/URLParser.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/JsonUtil.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/index_define.h"
 #include "indexlib/util/PathUtil.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace build_service::admin {
 BS_LOG_SETUP(admin, SingleGeneralTaskManager);
+
+#define ADMIN_LOG(level, format, args...)                                                                              \
+    BS_LOG(level, "[%s][%s] " format, _partitionWorkRoot.c_str(), _taskInfo.clusterName.c_str(), ##args)
+#define ADMIN_INTERVAL_LOG(interval, level, format, args...)                                                           \
+    BS_INTERVAL_LOG(interval, level, "[%s][%s] " format, _partitionWorkRoot.c_str(), _taskInfo.clusterName.c_str(),    \
+                    ##args)
 
 SingleGeneralTaskManager::SingleGeneralTaskManager(const std::string& id, const TaskResourceManagerPtr& resourceManager)
     : _id(id)
     , _resourceManager(resourceManager)
     , _currentState(State::RUNNING)
     , _lastParallelNum(0)
-    , _isRecover(false)
+    , _isRecovering(false)
 {
 }
 
@@ -47,17 +63,17 @@ bool SingleGeneralTaskManager::recover()
     bool planExist = false;
     auto ec = indexlib::file_system::FslibWrapper::IsExist(_planPath, planExist).Code();
     if (ec != indexlib::file_system::FSEC_OK) {
-        BS_LOG(ERROR, "test plan[%s] existance failed", _planPath.c_str());
+        ADMIN_LOG(ERROR, "test plan[%s] existance failed", _planPath.c_str());
         return false;
     }
     if (!planExist) {
-        BS_LOG(ERROR, "test plan[%s] not exist", _planPath.c_str());
+        ADMIN_LOG(ERROR, "test plan[%s] not exist", _planPath.c_str());
         finish();
         return true;
     }
     proto::OperationPlan plan;
     if (!loadPlan(&plan)) {
-        BS_LOG(ERROR, "load plan[%s] failed", _planPath.c_str());
+        ADMIN_LOG(ERROR, "load plan[%s] failed", _planPath.c_str());
         return false;
     }
     if (plan.has_taskname()) {
@@ -68,7 +84,7 @@ bool SingleGeneralTaskManager::recover()
     }
     _topoManager = std::make_unique<OperationTopoManager>();
     if (!_topoManager->init(plan)) {
-        BS_LOG(ERROR, "init new plan failed");
+        ADMIN_LOG(ERROR, "init new plan failed, clusterName[%s]", _taskInfo.clusterName.c_str());
         return false;
     }
     size_t recordCnt = 0;
@@ -79,9 +95,9 @@ bool SingleGeneralTaskManager::recover()
         std::string recordStr;
         auto r = _wal->ReadRecord(recordStr);
         if (!r) {
-            BS_LOG(WARN, "read wal failed");
+            ADMIN_LOG(WARN, "read wal failed");
             if (++retryCount > retryLimit) {
-                BS_LOG(ERROR, "retry [%lu] exceed limit[%lu]", retryCount, retryLimit);
+                ADMIN_LOG(ERROR, "retry [%lu] exceed limit[%lu]", retryCount, retryLimit);
                 return false;
             }
             using namespace std::chrono_literals;
@@ -96,7 +112,7 @@ bool SingleGeneralTaskManager::recover()
         }
         proto::GeneralTaskWalRecord record;
         if (!record.ParseFromString(recordStr)) {
-            BS_LOG(ERROR, "read wal record[%lu] failed", recordCnt);
+            ADMIN_LOG(ERROR, "read wal record[%lu] failed", recordCnt);
             return false;
         }
         for (const auto& opFinish : record.opfinish()) {
@@ -111,8 +127,8 @@ bool SingleGeneralTaskManager::recover()
         }
         ++recordCnt;
     }
-    BS_LOG(INFO, "plan [%s] redo [%lu] records", _id.c_str(), recordCnt);
-    _isRecover = true;
+    ADMIN_LOG(INFO, "plan [%s] redo [%lu] records", _id.c_str(), recordCnt);
+    _isRecovering = true;
     {
         std::lock_guard<std::mutex> lock(_infoMutex);
         _taskInfo.totalOpCount = _topoManager->totalOpCount();
@@ -128,24 +144,28 @@ bool SingleGeneralTaskManager::operator==(const SingleGeneralTaskManager& other)
 
 bool SingleGeneralTaskManager::init(const KeyValueMap& initParam, const proto::OperationPlan* plan)
 {
-    auto branchIdStr = getValueFromKeyValueMap(initParam, "branch_id", /*default*/ "0");
-    _taskInfo.branchId = autil::StringUtil::numberFromString<uint64_t>(branchIdStr);
+    std::string enableEncode;
+    if (autil::EnvUtil::getEnvWithoutDefault("ENABLE_OPTARGET_BASE64_ENCODE", enableEncode)) {
+        autil::StringUtil::fromString(enableEncode, _enableOpTargetEncode);
+        ADMIN_LOG(INFO, "init with ENABLE_OPTARGET_BASE64_ENCODE=%s, set _enableOpTargetEncode=%d",
+                  enableEncode.c_str(), _enableOpTargetEncode);
+    }
     auto baseVersionIdStr = getValueFromKeyValueMap(initParam, "base_version_id", /*default*/ "");
     if (baseVersionIdStr.empty()) {
-        BS_LOG(ERROR, "[base_version_id] not specified in initParam");
+        ADMIN_LOG(ERROR, "[base_version_id] not specified in initParam");
         return false;
     }
     _taskInfo.baseVersionId = autil::StringUtil::numberFromString<indexlibv2::versionid_t>(baseVersionIdStr);
     _taskInfo.clusterName = getValueFromKeyValueMap(initParam, "cluster_name", /*default*/ "");
     if (_taskInfo.clusterName.empty()) {
-        BS_LOG(ERROR, "[cluster_name] not specified in initParam");
+        ADMIN_LOG(ERROR, "[cluster_name] not specified in initParam");
         return false;
     }
 
     indexlib::file_system::WAL::WALOption walOption;
     _partitionWorkRoot = getValueFromKeyValueMap(initParam, "task_work_root", /*default*/ "");
     if (_partitionWorkRoot.empty()) {
-        BS_LOG(ERROR, "[task_work_root] not specified in initParam");
+        ADMIN_LOG(ERROR, "[task_work_root] not specified in initParam");
         return false;
     }
     _partitionWorkRoot = fslib::util::URLParser::eraseParam(_partitionWorkRoot, /*key*/ "ec");
@@ -154,9 +174,13 @@ bool SingleGeneralTaskManager::init(const KeyValueMap& initParam, const proto::O
     walOption.isCheckSum = false;
     _wal = std::make_unique<indexlib::file_system::WAL>(walOption);
     if (!_wal->Init()) {
-        BS_LOG(ERROR, "init wal at [%s] failed", walOption.workDir.c_str());
+        ADMIN_LOG(ERROR, "init wal at [%s] failed", walOption.workDir.c_str());
         return false;
     }
+    _taskInfo.taskTraceId = getValueFromKeyValueMap(initParam, "task_trace_id", /*default*/ "");
+    auto branchIdStr = getValueFromKeyValueMap(initParam, "branch_id", /*default*/ "0");
+    _taskInfo.branchId = autil::StringUtil::numberFromString<uint64_t>(branchIdStr);
+
     if (plan) {
         if (plan->has_taskname()) {
             _taskName = plan->taskname();
@@ -166,19 +190,22 @@ bool SingleGeneralTaskManager::init(const KeyValueMap& initParam, const proto::O
         }
         _topoManager = std::make_unique<OperationTopoManager>();
         if (!_topoManager->init(*plan)) {
-            BS_LOG(ERROR, "init new plan failed");
+            ADMIN_LOG(ERROR, "init new plan failed");
             return false;
         }
         if (!storePlan(*plan)) {
-            BS_LOG(ERROR, "store plan failed");
+            ADMIN_LOG(ERROR, "store plan failed");
             return false;
         }
     } else {
         if (!recover()) {
-            BS_LOG(ERROR, "recover failed");
+            ADMIN_LOG(ERROR, "recover failed");
             return false;
         }
     }
+
+    _taskInfo.taskType = _taskType;
+    _taskInfo.taskName = _taskName;
     return true;
 }
 
@@ -194,7 +221,7 @@ bool SingleGeneralTaskManager::loadPlan(proto::OperationPlan* plan)
     std::string content;
     auto ec = indexlib::file_system::FslibWrapper::AtomicLoad(_planPath, content).Code();
     if (ec != indexlib::file_system::FSEC_OK) {
-        BS_LOG(ERROR, "load [%s] failed: error code[%d]", _planPath.c_str(), ec);
+        ADMIN_LOG(ERROR, "load [%s] failed: error code[%d]", _planPath.c_str(), ec);
         return false;
     }
     return proto::ProtoJsonizer::fromJsonString(content, plan);
@@ -203,16 +230,15 @@ bool SingleGeneralTaskManager::loadPlan(proto::OperationPlan* plan)
 void SingleGeneralTaskManager::recoverNodeTargets(std::vector<GeneralNodeGroup>& nodeGroups)
 {
     assert(nodeGroups.size() == _lastParallelNum);
+    ADMIN_LOG(INFO, "start recover node target");
     for (auto& [opId, opDef] : *_topoManager) {
-        if (opDef->status != proto::OP_RUNNING) {
-            continue;
+        if (opDef->status == proto::OP_RUNNING) {
+            nodeGroups[opDef->assignedNodeId].assignOp(&(opDef->desc), /*walRecord=*/nullptr);
+            ADMIN_LOG(INFO, "recover opId[%ld] from target node[%ld]", opId, opDef->assignedNodeId);
         }
-        assert(opDef->assignedNodeId >= 0 && static_cast<size_t>(opDef->assignedNodeId) < nodeGroups.size());
-        assert(opDef->assignedNodeId < nodeGroups.size());
-        nodeGroups[opDef->assignedNodeId].recoverNodeTarget(opDef->desc);
     }
     for (auto& nodeGroup : nodeGroups) {
-        nodeGroup.updateTarget();
+        nodeGroup.serializeTarget();
     }
 }
 
@@ -221,7 +247,8 @@ void SingleGeneralTaskManager::prepareNodeGroup(TaskController::Nodes* nodes,
 {
     for (auto& node : *nodes) {
         if (node.sourceNodeId == -1) { // for main node
-            GeneralNodeGroup nodeGroup(_taskType, _taskName, node.nodeId, _topoManager.get());
+            GeneralNodeGroup nodeGroup(_taskType, _taskName, node.nodeId, _topoManager.get(), _enableOpTargetEncode,
+                                       _partitionWorkRoot);
             nodeGroup.addNode(&node);
             nodeGroups.push_back(std::move(nodeGroup));
         }
@@ -240,8 +267,6 @@ bool SingleGeneralTaskManager::operate(TaskController::Nodes* nodes, uint32_t pa
     if (_currentState == State::FINISH) {
         return true;
     }
-    assert(nodes);
-    assert(parallelNum > 0);
     std::vector<GeneralNodeGroup> nodeGroups;
     prepareNodeGroup(nodes, nodeGroups);
     if (nodeGroups.size() != parallelNum) {
@@ -258,42 +283,39 @@ bool SingleGeneralTaskManager::operate(TaskController::Nodes* nodes, uint32_t pa
         }
         prepareNodeGroup(nodes, nodeGroups);
     }
-    if (_isRecover && _lastParallelNum == parallelNum) {
+    if (_isRecovering && _lastParallelNum == parallelNum) {
         recoverNodeTargets(nodeGroups);
-        _isRecover = false;
+        _isRecovering = false;
     }
     if (_lastParallelNum != parallelNum) {
         _topoManager->cancelRunningOps();
     }
 
-    handlePlan(parallelNum, nodeRunningOpLimit, nodeGroups);
+    [[maybe_unused]] auto ret = handlePlan(parallelNum, nodeRunningOpLimit, nodeGroups);
 
     _lastParallelNum = parallelNum;
     return _currentState == State::FINISH;
 }
 
-void SingleGeneralTaskManager::handlePlan(uint32_t parallelNum, uint32_t nodeRunningOpLimit,
+bool SingleGeneralTaskManager::handlePlan(uint32_t parallelNum, uint32_t nodeRunningOpLimit,
                                           std::vector<GeneralNodeGroup>& nodeGroups)
 {
-    BS_LOG(DEBUG, "handle plan[%s], node size [%lu], parallelNum[%u]", _id.c_str(), nodeGroups.size(), parallelNum);
     assert(parallelNum == nodeGroups.size());
-
-    auto cmp = [](const auto& lhs, const auto& rhs) {
-        return lhs->getMinRunningOpCount() > rhs->getMinRunningOpCount();
-    };
+    auto cmp = [](const auto& lhs, const auto& rhs) { return lhs->getRunningOpCount() > rhs->getRunningOpCount(); };
     std::priority_queue<GeneralNodeGroup*, std::vector<GeneralNodeGroup*>, decltype(cmp)> nodeGroupQueue(cmp);
 
     proto::GeneralTaskWalRecord walRecord;
     walRecord.set_parallelnum(parallelNum);
     for (auto& nodeGroup : nodeGroups) {
-        if (!nodeGroup.handleFinishedOp(&walRecord)) {
-            BS_LOG(ERROR, "handle finished op failed.");
-            return;
+        if (!nodeGroup.collectFinishOp(&walRecord)) {
+            ADMIN_LOG(ERROR, "update finished op failed.");
+            continue;
         }
-        nodeGroup.syncPendingOp(nodeRunningOpLimit);
-        if (nodeGroup.hasStatus()) {
-            nodeGroupQueue.push(&nodeGroup);
+        if (!nodeGroup.updateTarget()) {
+            ADMIN_LOG(ERROR, "update target failed.");
+            continue;
         }
+        nodeGroupQueue.push(&nodeGroup);
     }
 
     int64_t remainOpCount = 0;
@@ -306,38 +328,75 @@ void SingleGeneralTaskManager::handlePlan(uint32_t parallelNum, uint32_t nodeRun
     reportMetric(remainOpCount);
     if (_topoManager->finishedOpCount() == _topoManager->totalOpCount()) {
         finish();
-        return;
+        return true;
     }
-    const auto& executableOps = _topoManager->getCurrentExecutableOperations();
-    BS_LOG(DEBUG, "handle plan, executable ops size [%lu]", executableOps.size());
-    // dispatch to nodes
+    const auto& executableOps = _topoManager->getNewExecutableOperations();
+    ADMIN_INTERVAL_LOG(300, INFO, "handle plan, nodeGroup size[%lu], executable ops size [%lu], topo[%s]",
+                       nodeGroupQueue.size(), executableOps.size(), _topoManager->DebugString().c_str());
+
     std::vector<const proto::OperationDescription*> ops;
     for (auto& [opId, desc] : executableOps) {
         ops.push_back(std::addressof(desc));
     }
-    for (auto op : ops) {
+    for (const auto& op : ops) {
         if (nodeGroupQueue.empty()) {
             break;
         }
         auto nodeGroup = nodeGroupQueue.top();
         nodeGroupQueue.pop();
-        if (nodeGroup->getMinRunningOpCount() < nodeRunningOpLimit) {
-            nodeGroup->dispatchExecutableOp(op, nodeRunningOpLimit, &walRecord);
+        if (nodeGroup->getRunningOpCount() < nodeRunningOpLimit) {
+            nodeGroup->assignOp(op, &walRecord);
             nodeGroupQueue.push(nodeGroup);
         } else {
-            BS_LOG(DEBUG, "handle plan: reach limit");
+            ADMIN_INTERVAL_LOG(60, INFO, "handle plan: reach limit[%u]", nodeRunningOpLimit);
             break;
         }
     }
-    BS_LOG(DEBUG, "handle plan: finish[%d], run[%d]", walRecord.opfinish_size(), walRecord.oprun_size());
+    auto container = [](const std::priority_queue<GeneralNodeGroup*, std::vector<GeneralNodeGroup*>, decltype(cmp)>& q)
+        -> const std::vector<GeneralNodeGroup*>& {
+        struct access : std::priority_queue<GeneralNodeGroup*, std::vector<GeneralNodeGroup*>, decltype(cmp)> {
+            using priority_queue::c;
+        };
+        auto ptdm = &access::c;
+        return q.*ptdm;
+    };
+
+    size_t inactiveCount = 0;
+    for (const auto& nodeGroup : container(nodeGroupQueue)) {
+        if (nodeGroup->isIdle()) {
+            inactiveCount++;
+        }
+    }
+
+    if (inactiveCount != nodeGroupQueue.size()) {
+        for (const auto& nodeGroup : container(nodeGroupQueue)) {
+            if (nodeGroup->isIdle()) {
+                ADMIN_INTERVAL_LOG(60, INFO,
+                                   "suspend, taskType[%s], taskName[%s], node[%u], planPath[%s], inactiveCount[%lu], "
+                                   "nodeGroupQueue[%lu]",
+                                   nodeGroup->getTaskType().c_str(), nodeGroup->getTaskName().c_str(),
+                                   nodeGroup->getNodeId(), _planPath.c_str(), inactiveCount, nodeGroupQueue.size());
+                nodeGroup->suspend();
+            } else {
+                ADMIN_INTERVAL_LOG(60, INFO,
+                                   "resume, taskType[%s], taskName[%s], node[%u], planPath[%s], inactiveCount[%lu], "
+                                   "nodeGroupQueue[%lu]",
+                                   nodeGroup->getTaskType().c_str(), nodeGroup->getTaskName().c_str(),
+                                   nodeGroup->getNodeId(), _planPath.c_str(), inactiveCount, nodeGroupQueue.size());
+                nodeGroup->resume();
+            }
+        }
+    }
+
+    ADMIN_LOG(DEBUG, "handle plan: finish[%d], run[%d]", walRecord.opfinish_size(), walRecord.oprun_size());
     if (walRecord.opfinish_size() != 0 || walRecord.oprun_size() != 0) {
         std::string content;
         auto r = walRecord.SerializeToString(&content);
         assert(r);
         r = _wal->AppendRecord(content);
         if (!r) {
-            BS_LOG(ERROR, "write wal failed");
-            return;
+            ADMIN_LOG(ERROR, "write wal failed");
+            return false;
         }
     }
     for (auto opRun : walRecord.oprun()) {
@@ -346,6 +405,7 @@ void SingleGeneralTaskManager::handlePlan(uint32_t parallelNum, uint32_t nodeRun
     for (auto& nodeGroup : nodeGroups) {
         nodeGroup.serializeTarget();
     }
+    return true;
 }
 
 std::string SingleGeneralTaskManager::getTaskInfo() const
@@ -368,8 +428,8 @@ void SingleGeneralTaskManager::finish()
         }
     }
     _currentState = State::FINISH;
-    BS_LOG(INFO, "task plan [%s] finished, total op count[%lu]", _id.c_str(),
-           _topoManager ? _topoManager->totalOpCount() : 0);
+    ADMIN_LOG(INFO, "task plan [%s] finished, total op count[%lu]", _id.c_str(),
+              _topoManager ? _topoManager->totalOpCount() : 0);
 }
 
 void SingleGeneralTaskManager::supplementLableInfo(KeyValueMap& info) const

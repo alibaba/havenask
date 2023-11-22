@@ -15,17 +15,20 @@
  */
 #include "build_service/common/ConfigDownloader.h"
 
-#include <cstring>
-#include <errno.h>
+#include <ostream>
 #include <signal.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#include <stdint.h>
 
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/TimeUtility.h"
 #include "build_service/common/PathDefine.h"
-#include "fslib/fslib.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/fs/File.h"
+#include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
 #include "worker_framework/DataClientWrapper.h"
+#include "worker_framework/DataOption.h"
 
 using namespace std;
 using namespace autil;

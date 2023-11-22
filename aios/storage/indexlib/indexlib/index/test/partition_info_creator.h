@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITION_INFO_CREATOR_H
-#define __INDEXLIB_PARTITION_INFO_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -41,5 +40,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionInfoCreator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PARTITION_INFO_CREATOR_H

@@ -15,8 +15,19 @@
  */
 #include "build_service/admin/taskcontroller/PrepareDataSourceTaskController.h"
 
+#include <map>
+#include <ostream>
+#include <stddef.h>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/DataDescription.h"
 
 using namespace std;
 using namespace build_service::config;

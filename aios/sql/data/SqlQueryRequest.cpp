@@ -136,13 +136,13 @@ const string &SqlQueryRequest::getValueWithDefault(const string &name, const str
     return iter->second;
 }
 
-bool SqlQueryRequest::getBoolKey(const std::string &key) const {
+bool SqlQueryRequest::getBoolKey(const std::string &key, bool defaultValue) const {
     std::string info;
     getValue(key, info);
     if (info.empty()) {
-        return false;
+        return defaultValue;
     }
-    bool res = false;
+    bool res = defaultValue;
     autil::StringUtil::fromString(info, res);
     return res;
 }
@@ -151,8 +151,12 @@ bool SqlQueryRequest::isOutputSqlPlan() const {
     return getBoolKey(SQL_GET_SQL_PLAN);
 }
 
-bool SqlQueryRequest::isResultReadable() const {
-    return getBoolKey(SQL_RESULT_READABLE);
+bool SqlQueryRequest::isResultAllowSoftFailure(bool defaultValue) const {
+    if (_kvPair.find(SQL_LACK_RESULT_ENABLE) != _kvPair.end()) {
+        // compatible logic with kvpair `lackResultEnable`
+        defaultValue = getBoolKey(SQL_LACK_RESULT_ENABLE, defaultValue);
+    }
+    return getBoolKey(SQL_RESULT_ALLOW_SOFT_FAILURE, defaultValue);
 }
 
 autil::CompressType SqlQueryRequest::getResultCompressType() const {

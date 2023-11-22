@@ -15,8 +15,13 @@
  */
 #pragma once
 
+#include <stddef.h>
+#include <string>
+#include <vector>
+
 #include "autil/Log.h"
 #include "indexlib/analyzer/ITokenizer.h"
+#include "indexlib/document/normal/tokenize/AnalyzerToken.h"
 
 namespace indexlibv2 { namespace analyzer {
 

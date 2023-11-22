@@ -38,7 +38,7 @@ void DocListFormat::Init(const DocListFormatOption& option)
     AddAtomicValue(_##atomic_value_type##Value);                                                                       \
     offset += sizeof(value_type);
 
-    ATOMIC_VALUE_INIT(docid_t, DocId, GetDocListEncoder);
+    ATOMIC_VALUE_INIT(docid32_t, DocId, GetDocListEncoder);
 
     if (option.HasTfList()) {
         ATOMIC_VALUE_INIT(tf_t, Tf, GetTfListEncoder);

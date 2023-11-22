@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORWORKITEM_H
-#define ISEARCH_BS_PROCESSORWORKITEM_H
+#pragma once
+
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <vector>
 
 #include "autil/WorkItem.h"
 #include "build_service/common_define.h"
-#include "build_service/config/ProcessorChainSelectorConfig.h"
+#include "build_service/document/ProcessedDocument.h"
+#include "build_service/document/RawDocument.h"
 #include "build_service/processor/DocumentProcessorChain.h"
 #include "build_service/processor/ProcessorChainSelector.h"
 #include "build_service/util/Log.h"
 
 namespace indexlib::util {
 class AccumulativeCounter;
+
 using AccumulativeCounterPtr = std::shared_ptr<AccumulativeCounter>;
 } // namespace indexlib::util
 
@@ -102,5 +108,3 @@ private:
 BS_TYPEDEF_PTR(ProcessorWorkItem);
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_PROCESSORWORKITEM_H

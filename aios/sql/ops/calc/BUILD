@@ -18,7 +18,7 @@ cc_test(
     copts=['-fno-access-control'],
     deps=[
         ':sql_ops_calc_table', '//aios/navi:navi_log_testlib',
-        '//aios/navi:navi_ops_testlib', '//aios/table/table/test:table_testlib',
+        '//aios/navi:navi_ops_testlib', '//aios/table/test:table_testlib',
         '//aios/unittest_framework'
     ]
 )

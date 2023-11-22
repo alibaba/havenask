@@ -15,15 +15,16 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
+#include <string>
+#include <utility>
 
+#include "autil/Log.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/framework/ITabletReader.h"
 #include "indexlib/framework/ReadResource.h"
 #include "indexlib/framework/TabletData.h"
-
-namespace indexlibv2::config {
-class ITabletSchema;
-}
 
 namespace indexlibv2::framework {
 
@@ -34,7 +35,7 @@ public:
     ~TabletReader();
 
 public:
-    virtual Status Open(const std::shared_ptr<TabletData>& tabletData, const ReadResource& readResource) = 0;
+    Status Open(const std::shared_ptr<TabletData>& tabletData, const ReadResource& readResource);
 
 public:
     Status Search(const std::string& jsonQuery, std::string& result) const override;
@@ -45,10 +46,14 @@ public:
     std::shared_ptr<IndexReaderType> GetIndexReader(const std::string& indexType, const std::string& indexName) const;
 
 protected:
+    virtual Status DoOpen(const std::shared_ptr<TabletData>& tabletData, const ReadResource& readResource) = 0;
+
+protected:
     using IndexReaderMapKey = std::pair<std::string, std::string>;
 
     std::shared_ptr<config::ITabletSchema> _schema;
     std::map<IndexReaderMapKey, std::shared_ptr<index::IIndexReader>> _indexReaderMap;
+    std::shared_ptr<IIndexMemoryReclaimer> _indexMemoryReclaimer;
 
 private:
     AUTIL_LOG_DECLARE();

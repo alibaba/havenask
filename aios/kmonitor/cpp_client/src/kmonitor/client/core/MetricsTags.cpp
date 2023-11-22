@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "autil/HashAlgorithm.h"
-#include "autil/StackBuf.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 
@@ -51,22 +50,20 @@ void MetricsTags::ComputeCache() {
     }
     cached_hash_ = result;
 
-    autil::StackBuf<char> stackBuf(maxBufSize);
-    char *buffer = stackBuf.getBuf();
-    size_t cursor = 0;
+    // cache string
+    string str;
+    str.reserve(maxBufSize);
     iter = tags_map_.begin();
     for (; iter != tags_map_.end(); ++iter) {
-        memcpy(buffer + cursor, iter->first.c_str(), iter->first.size());
-        cursor += iter->first.size();
-        buffer[cursor++] = '=';
-        memcpy(buffer + cursor, iter->second.c_str(), iter->second.size());
-        cursor += iter->second.size();
-        buffer[cursor++] = ' ';
+        if (iter != tags_map_.begin()) {
+            str.push_back(' ');
+        }
+        str.append(iter->first);
+        str.push_back('=');
+        str.append(iter->second);
     }
-    if (cursor > 0) {
-        cursor--;
-    }
-    cached_string_ = string(buffer, cursor);
+
+    cached_string_.swap(str);
 }
 
 size_t MetricsTags::Size() const { return tags_map_.size(); }
@@ -83,11 +80,13 @@ void MetricsTags::AddTag(const string &k, const string &v) {
 void MetricsTags::AddTagNoComputeCache(const string &k, const string &v) { tags_map_.emplace(k, v); }
 
 string MetricsTags::FindTag(const string &k) const {
+    static string emptyString;
+
     auto iter = tags_map_.find(k);
     if (iter != tags_map_.end()) {
         return iter->second;
     } else {
-        return string();
+        return emptyString;
     }
 }
 

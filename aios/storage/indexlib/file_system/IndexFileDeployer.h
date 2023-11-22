@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <memory>
 #include <stdint.h>
 #include <string>
 #include <unordered_map>
@@ -22,6 +23,7 @@
 #include "autil/Log.h"
 #include "indexlib/file_system/DeployIndexMeta.h"
 #include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 
 namespace indexlib { namespace file_system {

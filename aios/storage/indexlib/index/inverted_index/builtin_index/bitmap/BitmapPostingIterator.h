@@ -38,19 +38,19 @@ public:
     bool HasPosition() const override { return false; }
 
 public:
-    bool Test(docid_t docId);
+    bool Test(docid64_t docId);
 
 public:
     // for test
-    docid_t GetCurrentGlobalDocId() { return _singleIterators[_segmentCursor]->GetCurrentGlobalDocId(); }
+    docid64_t GetCurrentGlobalDocId() { return _singleIterators[_segmentCursor]->GetCurrentGlobalDocId(); }
 
 protected:
     index::ErrorCode InitSingleIterator(SingleIteratorType* singleIterator) override;
 
 protected:
-    docid_t _curBaseDocId;
-    docid_t _curLastDocId;
-    docid_t _segmentLastDocId;
+    docid64_t _curBaseDocId;
+    docid64_t _curLastDocId;
+    docid64_t _segmentLastDocId;
 
 private:
     friend class BitmapPostingIteratorTest;
@@ -59,7 +59,7 @@ private:
 
 ////////////////////////////////////////////////////////
 
-inline bool BitmapPostingIterator::Test(docid_t docId)
+inline bool BitmapPostingIterator::Test(docid64_t docId)
 {
     while (true) {
         if (unlikely(docId < _curBaseDocId)) {

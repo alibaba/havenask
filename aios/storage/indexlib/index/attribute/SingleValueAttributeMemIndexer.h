@@ -34,7 +34,7 @@ template <typename T>
 class SingleValueAttributeMemIndexer : public AttributeMemIndexer
 {
 public:
-    SingleValueAttributeMemIndexer(const IndexerParameter& indexerParam) : AttributeMemIndexer(indexerParam) {}
+    SingleValueAttributeMemIndexer(const MemIndexerParameter& indexerParam) : AttributeMemIndexer(indexerParam) {}
 
     ~SingleValueAttributeMemIndexer() = default;
 
@@ -45,7 +45,7 @@ public:
         FieldType GetAttributeType() const override { return TypeInfo<T>::GetFieldType(); }
 
         std::unique_ptr<AttributeMemIndexer> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override
+                                                    const MemIndexerParameter& indexerParam) const override
         {
             std::shared_ptr<AttributeConfig> attrConfig = std::dynamic_pointer_cast<AttributeConfig>(indexConfig);
             assert(nullptr != attrConfig);

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_HASHPRIMARYKEYFORMATTERTEST_H
-#define __INDEXLIB_HASHPRIMARYKEYFORMATTERTEST_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
@@ -124,5 +123,3 @@ inline void HashPrimaryKeyFormatterTest::CheckSliceFile(const file_system::FileW
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASHPRIMARYKEYFORMATTERTEST_H

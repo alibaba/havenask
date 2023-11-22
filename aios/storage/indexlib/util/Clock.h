@@ -16,8 +16,7 @@
 #pragma once
 
 #include <chrono>
-#include <stddef.h>
-#include <time.h>
+#include <stdint.h>
 #include <unistd.h>
 
 namespace indexlibv2::util {

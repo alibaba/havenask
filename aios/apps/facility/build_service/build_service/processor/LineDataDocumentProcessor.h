@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RAWTEXTDOCUMENTPROCESSOR_H
-#define ISEARCH_BS_RAWTEXTDOCUMENTPROCESSOR_H
+#pragma once
 
-#include "build_service/common_define.h"
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/util/Log.h"
-
-namespace indexlibv2::config {
-class ITabletSchema;
-}
+#include "indexlib/config/ITabletSchema.h"
 
 namespace build_service { namespace processor {
 
@@ -55,5 +55,3 @@ private:
 };
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_RAWTEXTDOCUMENTPROCESSOR_H

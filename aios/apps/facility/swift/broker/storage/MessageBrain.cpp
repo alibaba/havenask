@@ -224,6 +224,7 @@ ErrorCode MessageBrain::init(const config::PartitionConfig &config,
             return errorCode;
         }
     } else {
+        StageTime stageTime;
         _fileManager = new FileManager();
         ObsoleteFileCriterion obsoleteFileCriterion;
         obsoleteFileCriterion.obsoleteFileTimeInterval = obsoleteFileTimeInterval;
@@ -241,6 +242,11 @@ ErrorCode MessageBrain::init(const config::PartitionConfig &config,
                       dataDir.c_str());
             return errorCode;
         }
+        stageTime.end_stage();
+        if (_metricsReporter) {
+            _metricsReporter->reportInitFileManagerLatency(stageTime.last_us(), _metricsTags.get());
+        }
+
         _fsMessageReader = new FsMessageReader(_partitionId,
                                                _fileManager,
                                                fileCachePool,
@@ -565,7 +571,21 @@ void MessageBrain::delExpiredFile() {
         if (TOPIC_MODE_PERSIST_DATA == _topicMode) {
             _commitManager->getCommitTimestamp(committedTs);
         }
-        _fileManager->delExpiredFile(committedTs);
+        uint32_t deletedFileCount = 0;
+        _fileManager->delExpiredFile(committedTs, deletedFileCount);
+        if (_metricsReporter && deletedFileCount > 0) {
+            _metricsReporter->reportDeleteObsoleteFileQps(deletedFileCount, _metricsTags.get());
+        }
+    }
+}
+
+void MessageBrain::syncDfsUsedSize() {
+    if (_fileManager && !_fileManager->isUsedDfsSizeSynced()) {
+        FileManagerMetricsCollector collector;
+        _fileManager->syncDfsUsedSize(collector);
+        if (_metricsReporter) {
+            _metricsReporter->reportFileManagerMetrics(_metricsTags, collector);
+        }
     }
 }
 
@@ -1193,6 +1213,9 @@ void MessageBrain::getPartitionMetrics(monitor::PartitionMetricsCollector &colle
         collector.cacheFileCount = _fsMessageReader->getCacheFileCount();
         collector.cacheMetaBlockCount = _fsMessageReader->getCacheMetaBlockCount();
         collector.cacheDataBlockCount = _fsMessageReader->getCacheDataBlockCount();
+    }
+    if (_fileManager && _fileManager->isUsedDfsSizeSynced()) {
+        collector.usedDfsSize = _fileManager->getUsedDfsSize();
     }
 }
 

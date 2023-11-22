@@ -15,14 +15,26 @@
  */
 #include "build_service/processor/FastSlowQueueProcessor.h"
 
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/ProcessedDocument.h"
 #include "build_service/document/RawDocument.h"
 #include "build_service/util/Monitor.h"
-#include "fslib/fslib.h"
-#include "indexlib/util/metrics/Metric.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "fslib/fs/File.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace fslib::fs;
 using namespace build_service::document;

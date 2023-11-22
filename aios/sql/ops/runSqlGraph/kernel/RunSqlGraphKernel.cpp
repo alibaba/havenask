@@ -33,8 +33,10 @@
 #include "navi/engine/KernelConfigContext.h"
 #include "navi/proto/GraphDef.pb.h"
 #include "sql/common/Log.h"
+#include "sql/common/common.h"
 #include "sql/data/SqlGraphData.h"
 #include "sql/data/SqlGraphType.h"
+#include "sql/data/SqlQueryConfigData.h"
 #include "sql/data/TableType.h"
 #include "sql/ops/metaCollect/MetaCollectKernel.h"
 #include "sql/ops/metaCollect/MetaMergeKernel.h"
@@ -60,6 +62,7 @@ RunSqlGraphKernel::RunSqlGraphKernel() {}
 void RunSqlGraphKernel::def(navi::KernelDefBuilder &builder) const {
     builder.name("sql.RunSqlGraphKernel")
         .input("input0", SqlGraphType::TYPE_ID)
+        .input("input1", SqlQueryConfigType::TYPE_ID)
         .output("output0", TableType::TYPE_ID)
         .output("output1", SqlMetaDataType::TYPE_ID);
 }
@@ -85,6 +88,13 @@ navi::ErrorCode RunSqlGraphKernel::compute(navi::KernelComputeContext &ctx) {
     SqlGraphData *sqlGraphData = dynamic_cast<SqlGraphData *>(data.get());
     if (sqlGraphData == nullptr) {
         SQL_LOG(ERROR, "sql graph data is nullptr");
+        return navi::EC_ABORT;
+    }
+    navi::PortIndex inputIndex1(1, navi::INVALID_INDEX);
+    navi::DataPtr sqlQueryConfigData;
+    ctx.getInput(inputIndex1, sqlQueryConfigData, isEof);
+    if (dynamic_cast<SqlQueryConfigData *>(sqlQueryConfigData.get()) == nullptr) {
+        SQL_LOG(ERROR, "sql query config data[%p] cast failed", sqlQueryConfigData.get());
         return navi::EC_ABORT;
     }
 
@@ -114,7 +124,7 @@ navi::ErrorCode RunSqlGraphKernel::compute(navi::KernelComputeContext &ctx) {
         GraphBuilder builder(graphDef.get());
         string nodeName = sqlGraphData->getOutputNodes()[0];
         string portName = sqlGraphData->getOutputPorts()[0];
-        SQL_LOG(DEBUG, "sub graph def: %s", graphDef->ShortDebugString().c_str());
+        SQL_LOG(TRACE3, "sub graph def: %s", graphDef->ShortDebugString().c_str());
         builder.subGraph(0)
             .node(nodeName)
             .out(portName)
@@ -130,6 +140,18 @@ navi::ErrorCode RunSqlGraphKernel::compute(navi::KernelComputeContext &ctx) {
     _sqlSearchInfoCollectorR->getCollector()->setSqlRunForkGraphBeginTime(
         TimeUtility::currentTime());
     ForkGraphParam param;
+
+    NamedData namedData;
+    namedData.name = SQL_QUERY_CONFIG_NAME;
+    namedData.data = sqlQueryConfigData;
+    for (size_t i = 0, subCount = graphDef->sub_graphs_size(); i < subCount; ++i) {
+        auto graphId = graphDef->sub_graphs(i).graph_id();
+        if (graphId >= 0) {
+            namedData.graphId = graphId;
+            param.namedDataVec.emplace_back(namedData);
+        }
+    }
+
     auto remainTimeMs = ctx.getRemainTimeMs();
     param.timeoutMs
         = std::max(int64_t(remainTimeMs * TIMEOUT_DECAY_FACTOR), remainTimeMs - TIMEOUT_DECAY_MS);

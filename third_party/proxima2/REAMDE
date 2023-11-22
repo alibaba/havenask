@@ -8,4 +8,5 @@
     * 添加oswg实时构建算法,支持实时删除invalid doc
     * t-mit-proxima2-be-f01231c9-20221215104833.alios7.x86_64.rpm: fix #47036132
     * t-mit-proxima2-be-7c31780e-20230201204330.alios7.x86_64.rpm: 支持gpu topk 8192
+    * vector_store_0aab2ced_202311041359.tar.gz: 支持分布式向量索引构建
 """

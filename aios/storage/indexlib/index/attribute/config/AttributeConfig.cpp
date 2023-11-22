@@ -44,6 +44,7 @@ struct AttributeConfig::Impl {
     int64_t sliceCount = 1;
     // not jsonize, no sliceIdx means no slice
     int64_t sliceIdx = -1;
+    size_t sliceLen = index::ATTRIBUTE_DEFAULT_SLICE_LEN;
 };
 
 AttributeConfig::AttributeConfig() : _impl(std::make_unique<Impl>()) {}
@@ -81,6 +82,7 @@ Status AttributeConfig::Init(const std::shared_ptr<config::FieldConfig>& fieldCo
 
 int64_t AttributeConfig::GetSliceCount() const { return _impl->sliceCount; }
 int64_t AttributeConfig::GetSliceIdx() const { return _impl->sliceIdx; }
+size_t AttributeConfig::GetSliceLen() const { return _impl->sliceLen; }
 
 void AttributeConfig::Deserialize(const autil::legacy::Any& any, size_t idxInJsonArray,
                                   const config::IndexConfigDeserializeResource& resource)
@@ -105,8 +107,8 @@ void AttributeConfig::Deserialize(const autil::legacy::Any& any, size_t idxInJso
     std::string compressType;
     json.Jsonize(index::COMPRESS_TYPE, compressType, compressType);
     if (auto status = _impl->compressType.Init(compressType); !status.IsOK()) {
-        INDEXLIB_FATAL_ERROR(Schema, "invalid compressType [%s], status[%s]", compressType.c_str(),
-                             status.ToString().c_str());
+        INDEXLIB_FATAL_ERROR(Schema, "invalid compressType [%s], status[%s], fieldName[%s]", compressType.c_str(),
+                             status.ToString().c_str(), fieldName.c_str());
     }
 
     // file_compressor
@@ -392,6 +394,8 @@ Status AttributeConfig::SetCompressType(const std::string& compressStr)
 void AttributeConfig::SetAttrId(attrid_t id) { _impl->attrId = id; }
 
 void AttributeConfig::SetDefragSlicePercent(uint64_t percent) { _impl->defragSlicePercent = percent; }
+
+void AttributeConfig::TEST_SetSliceLen(size_t sliceLen) { _impl->sliceLen = sliceLen; }
 
 void AttributeConfig::SetFileCompressConfig(
     const std::shared_ptr<indexlib::config::FileCompressConfig>& fileCompressConfig)

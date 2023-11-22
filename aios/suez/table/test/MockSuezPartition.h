@@ -34,8 +34,8 @@ public:
     IncVersion getNewVersionId() const { return _newVersionId; }
 
 public:
-    IncVersion _oldVersionId = INVALID_VERSION;
-    IncVersion _newVersionId = INVALID_VERSION;
+    IncVersion _oldVersionId = indexlib::INVALID_VERSIONID;
+    IncVersion _newVersionId = indexlib::INVALID_VERSIONID;
     DeployStatus _status = DS_UNKNOWN;
 };
 

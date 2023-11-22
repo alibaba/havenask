@@ -106,6 +106,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='DefaultValueAttributePatchTest',
     srcs=['DefaultValueAttributePatchTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/autil:multi_value_helper',
         '//aios/storage/indexlib/index/attribute/patch:DefaultValueAttributePatch',

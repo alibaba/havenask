@@ -1,6 +1,20 @@
 #include "build_service/config/DocProcessorChainConfig.h"
 
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable_exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
+#include "build_service/config/ProcessorInfo.h"
+#include "build_service/plugin/ModuleInfo.h"
 #include "build_service/test/unittest.h"
+#include "fslib/util/FileUtil.h"
+#include "indexlib/util/KeyValueMap.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 

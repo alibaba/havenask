@@ -180,14 +180,14 @@ OpenExecutorChainPtr OpenExecutorChainCreator::CreateForceReopenExecutorChain(
         }
         chain->PushBack(CreateReclaimRtIndexExecutor());
         chain->PushBack(CreateGenerateJoinSegmentExecutor(joinSegWriter));
-        if (loadedIncVersion != index_base::Version(INVALID_VERSION)) {
+        if (loadedIncVersion != index_base::Version(INVALID_VERSIONID)) {
             chain->PushBack(CreateReleaseReaderExecutor());
         }
         chain->PushBack(CreateReopenPartitionReaderExecutor(false));
     } else {
         chain->PushBack(OpenExecutorPtr(new DumpContainerFlushExecutor(mPartition, &dataLock, mPartitionName, true)));
         chain->PushBack(CreateReclaimRtSegmentsExecutor(true));
-        if (loadedIncVersion != index_base::Version(INVALID_VERSION)) {
+        if (loadedIncVersion != index_base::Version(INVALID_VERSIONID)) {
             chain->PushBack(CreateReleaseReaderExecutor());
         }
         chain->PushBack(CreateReopenPartitionReaderExecutor(false));

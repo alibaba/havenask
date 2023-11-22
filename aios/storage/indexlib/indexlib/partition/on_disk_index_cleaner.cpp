@@ -76,7 +76,7 @@ void OnDiskIndexCleaner::DoExecute(const file_system::DirectoryPtr& rootDirectoy
     }
 
     set<segmentid_t> needKeepSegments;
-    set<schemavid_t> needKeepSchemaId;
+    set<schemaid_t> needKeepSchemaId;
     size_t firstKeepVersionIdx = 0;
     ConstructNeedKeepVersionIdxAndSegments(rootDirectoy, fileList, firstKeepVersionIdx, needKeepSegments,
                                            needKeepSchemaId);
@@ -93,7 +93,7 @@ void OnDiskIndexCleaner::ConstructNeedKeepVersionIdxAndSegments(const file_syste
                                                                 const fslib::FileList& fileList,
                                                                 size_t& firstKeepVersionIdx,
                                                                 set<segmentid_t>& needKeepSegments,
-                                                                set<schemavid_t>& needKeepSchemaId)
+                                                                set<schemaid_t>& needKeepSchemaId)
 {
     firstKeepVersionIdx = 0;
     while (firstKeepVersionIdx < fileList.size() - mKeepVersionCount) {
@@ -190,18 +190,18 @@ void OnDiskIndexCleaner::CleanPatchIndexSegmentFiles(const file_system::Director
 }
 
 void OnDiskIndexCleaner::CleanUselessSchemaFiles(const file_system::DirectoryPtr& dir,
-                                                 const set<schemavid_t>& needKeepSchemaId)
+                                                 const set<schemaid_t>& needKeepSchemaId)
 {
     if (needKeepSchemaId.empty()) {
         IE_LOG(WARN, "no valid schema id to keep!");
         return;
     }
 
-    schemavid_t maxSchemaId = *(needKeepSchemaId.rbegin());
+    schemaid_t maxSchemaId = *(needKeepSchemaId.rbegin());
     FileList tmpList;
     dir->ListDir("", tmpList, false);
     for (const auto& file : tmpList) {
-        schemavid_t schemaId = DEFAULT_SCHEMAID;
+        schemaid_t schemaId = DEFAULT_SCHEMAID;
         if (!Version::ExtractSchemaIdBySchemaFile(file, schemaId)) {
             continue;
         }

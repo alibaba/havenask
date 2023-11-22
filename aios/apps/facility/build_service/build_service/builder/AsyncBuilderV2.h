@@ -15,37 +15,38 @@
  */
 #pragma once
 
+#include <atomic>
 #include <memory>
+#include <optional>
+#include <stddef.h>
+#include <stdint.h>
+#include <vector>
 
 #include "autil/Thread.h"
 #include "build_service/builder/BuilderV2.h"
-#include "build_service/common_define.h"
+#include "build_service/config/BuilderConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/MemControlStreamQueue.h"
 #include "build_service/util/StreamQueue.h"
+#include "indexlib/framework/Locator.h"
 
 namespace indexlib::util {
-class MetricsProvider;
 class Metric;
 } // namespace indexlib::util
 
 namespace indexlibv2::framework {
 class ITablet;
-class Locator;
 } // namespace indexlibv2::framework
-
-namespace indexlibv2::document {
-class IDocumentBatch;
-}
 
 namespace build_service::builder {
 
 class AsyncBuilderV2 : public BuilderV2
 {
 public:
-    explicit AsyncBuilderV2(std::unique_ptr<BuilderV2> impl);
+    explicit AsyncBuilderV2(std::unique_ptr<BuilderV2> impl, bool regroup);
     AsyncBuilderV2(std::shared_ptr<indexlibv2::framework::ITablet> tablet,
-                   const proto::BuildId& buildId = proto::BuildId());
+                   const proto::BuildId& buildId = proto::BuildId(), bool regroup = true);
     /*override*/ ~AsyncBuilderV2();
     AsyncBuilderV2(const AsyncBuilderV2&) = delete;
     AsyncBuilderV2& operator=(const AsyncBuilderV2&) = delete;
@@ -76,6 +77,10 @@ private:
     void clearQueue();
     // virtual for test
     virtual void fillDocBatches(std::vector<std::shared_ptr<indexlibv2::document::IDocumentBatch>>& docBatches);
+    std::shared_ptr<indexlibv2::document::IDocumentBatch> popFromCollectingQueue();
+    std::shared_ptr<indexlibv2::document::IDocumentBatch> popAndRegroupToNewBatch();
+    void pushToReleaseQueue(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& inBatch);
+    bool checkInputDocType(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch) const;
 
 private:
     using DocQueue = util::MemControlStreamQueue<std::shared_ptr<indexlibv2::document::IDocumentBatch>>;
@@ -87,11 +92,13 @@ private:
     volatile size_t _ongoingDocSize = 0;
     volatile bool _running;
     std::atomic<bool> _needStop;
-
+    bool _regroup;
+    std::vector<std::shared_ptr<indexlibv2::document::IDocumentBatch>> _regroupedBatch;
     autil::ThreadPtr _asyncBuildThreadPtr;
     DocQueuePtr _docQueue;
     QueuePtr _releaseDocQueue;
-    size_t _batchBuildSize = 1;
+    size_t _regroupBatchSize = 1;
+    bool _inputCheckDone = false;
     std::shared_ptr<indexlib::util::Metric> _asyncQueueSizeMetric;
     std::shared_ptr<indexlib::util::Metric> _asyncQueueMemMetric;
     std::shared_ptr<indexlib::util::Metric> _releaseQueueSizeMetric;

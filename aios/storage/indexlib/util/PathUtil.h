@@ -15,8 +15,9 @@
  */
 #pragma once
 
-#include <memory>
-#include <string_view>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/Log.h"
 
@@ -33,7 +34,18 @@ public:
     static std::string GetFileName(const std::string& path) noexcept;
     static std::string GetDirName(const std::string& path) noexcept;
     static std::string JoinPath(const std::string& path, const std::string& name) noexcept;
-    static std::string JoinPath(const std::string& basePath, const std::string& path, const std::string& name) noexcept;
+
+    template <typename T>
+    static std::string JoinPath(const std::string& path, const T& name) noexcept
+    {
+        return JoinPath(path, std::string(name));
+    }
+
+    template <typename... Args>
+    static std::string JoinPath(const std::string& path, Args... args) noexcept
+    {
+        return JoinPath(path, JoinPath(std::forward<Args>(args)...));
+    }
     static std::string NormalizePath(const std::string& path) noexcept;
     static std::string NormalizeDir(const std::string& dir) noexcept;
     static void TrimLastDelim(std::string& dirPath) noexcept;

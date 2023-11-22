@@ -29,11 +29,11 @@
 #include "navi/engine/Kernel.h"
 #include "navi/engine/KernelConfigContext.h"
 #include "navi/resource/GraphMemoryPoolR.h"
-#include "sql/ops/join/JoinBase.h"
-#include "sql/proto/SqlSearchInfo.pb.h"
+#include "sql/ops/join/HashJoinMapR.h"
+#include "sql/ops/join/JoinBaseParamR.h"
+#include "sql/ops/join/JoinInfoCollectorR.h"
 #include "sql/proto/SqlSearchInfoCollectorR.h"
 #include "sql/resource/QueryMetricReporterR.h"
-#include "suez/turing/navi/QueryMemPoolR.h"
 #include "table/Table.h"
 
 namespace navi {
@@ -49,9 +49,6 @@ public:
     static const int DEFAULT_BATCH_SIZE;
 
 public:
-    typedef std::vector<std::pair<size_t, size_t>> HashValues; // row : hash value
-
-public:
     JoinKernelBase();
     virtual ~JoinKernelBase();
 
@@ -61,26 +58,17 @@ public:
     navi::ErrorCode init(navi::KernelInitContext &initContext) override;
     navi::ErrorCode compute(navi::KernelComputeContext &runContext) override;
 
-protected:
-    void addDepend(navi::KernelDefBuilder &builder) const;
+private:
+    virtual bool doInit() {
+        return true;
+    }
+    virtual bool doConfig(navi::KernelConfigContext &ctx) {
+        return true;
+    }
 
 protected:
-    inline void joinRow(size_t leftIndex, size_t rightIndex);
-    void reserveJoinRow(size_t rowCount);
     bool
     createHashMap(const table::TablePtr &table, size_t offset, size_t count, bool hashLeftTable);
-    bool getHashValues(const table::TablePtr &table,
-                       size_t offset,
-                       size_t count,
-                       const std::vector<std::string> &columnName,
-                       HashValues &values);
-    bool getColumnHashValues(const table::TablePtr &table,
-                             size_t offset,
-                             size_t count,
-                             const std::string &columnName,
-                             HashValues &values);
-    void combineHashValues(const HashValues &valuesA, HashValues &valuesB);
-
     // lookup join or left multi join
     bool getLookupInput(navi::KernelComputeContext &runContext,
                         const navi::PortIndex &portIndex,
@@ -103,8 +91,6 @@ protected:
     void incTotalRightInputTable(size_t count);
 
 private:
-    bool convertFields();
-    navi::ErrorCode initCalcTableAndJoinColumns(navi::KernelInitContext &ctx);
     void patchHintInfo(const std::map<std::string, std::string> &hintsMap);
 
 private:
@@ -114,41 +100,15 @@ protected:
     KERNEL_DEPEND_ON(navi::GraphMemoryPoolR, _graphMemoryPoolR);
     KERNEL_DEPEND_ON(SqlSearchInfoCollectorR, _sqlSearchInfoCollectorR);
     KERNEL_DEPEND_ON(QueryMetricReporterR, _queryMetricReporterR);
-    KERNEL_DEPEND_ON(suez::turing::QueryMemPoolR, _queryMemPoolR);
-    std::string _joinType;
-    std::string _semiJoinType;
-    std::string _conditionJson;
-    std::string _equiConditionJson;
-    std::string _remainConditionJson;
+    KERNEL_DEPEND_ON(JoinInfoCollectorR, _joinInfoR);
+    KERNEL_DEPEND_ON(JoinBaseParamR, _joinParamR);
+    KERNEL_DEPEND_ON(HashJoinMapR, _hashJoinMapR);
     std::vector<int32_t> _reuseInputs;
-
-    // join parameters
-    JoinBaseParam _joinBaseParam;
-    JoinInfo _joinInfo;
-    std::vector<std::string> _outputFields;
-
-    std::vector<size_t> _tableAIndexes;
-    std::vector<size_t> _tableBIndexes;
-    std::vector<std::string> _leftJoinColumns;
-    std::vector<std::string> _rightJoinColumns;
-    std::map<std::string, std::string> _hashHints;
-    std::map<std::string, std::pair<std::string, bool>> _output2InputMap;
-    std::unordered_map<size_t, std::vector<size_t>> _hashJoinMap;
-
-    JoinBasePtr _joinPtr;
-    size_t _joinIndex;
-    size_t _systemFieldNum;
     size_t _batchSize;
     size_t _truncateThreshold;
     int32_t _opId;
-    bool _isEquiJoin;
-    bool _shouldClearTable;
 };
 
 typedef std::shared_ptr<JoinKernelBase> JoinKernelBasePtr;
-void JoinKernelBase::joinRow(size_t leftIndex, size_t rightIndex) {
-    _tableAIndexes.emplace_back(leftIndex);
-    _tableBIndexes.emplace_back(rightIndex);
-}
 
 } // namespace sql

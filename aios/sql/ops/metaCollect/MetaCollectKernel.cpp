@@ -44,8 +44,17 @@ navi::ErrorCode MetaCollectKernel::compute(navi::KernelComputeContext &ctx) {
     collector->stealTo(*newCollector);
     newCollector->shrinkOverwrite();
     auto metaData = std::make_shared<SqlMetaData>(newCollector);
+    handleScopeError(ctx);
     ctx.setOutput(0, metaData, true);
     return navi::EC_NONE;
+}
+
+void MetaCollectKernel::handleScopeError(navi::KernelComputeContext &ctx) const {
+    auto error = ctx.getScopeError();
+    auto strategy = ctx.getScopeErrorHandleStrategy();
+    if (error && navi::EHS_ERROR_AS_FATAL == strategy) {
+        ctx.reportScopeError(error);
+    }
 }
 
 REGISTER_KERNEL(MetaCollectKernel);

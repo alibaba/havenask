@@ -1,7 +1,18 @@
 #include "build_service/config/IndexPartitionOptionsWrapper.h"
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
 #include "build_service/test/unittest.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/merge_config.h"
+#include "indexlib/config/merge_strategy_parameter.h"
+#include "indexlib/config/truncate_option_config.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

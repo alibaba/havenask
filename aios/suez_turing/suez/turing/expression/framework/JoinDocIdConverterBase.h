@@ -35,7 +35,7 @@ namespace turing {
 
 class DocIdWrapper {
 public:
-    DocIdWrapper(docid_t id = UNINITIALIZED_DOCID) : _id(id) {}
+    DocIdWrapper(docid_t id = indexlib::UNINITIALIZED_DOCID) : _id(id) {}
     operator docid_t() const { return _id; }
     docid_t _id;
 };
@@ -96,11 +96,11 @@ private:
 // Ha3_TYPEDEF_PTR(JoinDocIdConverterBase);
 /////////////////////////////////////////////////
 inline docid_t JoinDocIdConverterBase::convert(matchdoc::MatchDoc matchDoc) {
-    docid_t joinDocId = UNINITIALIZED_DOCID;
+    docid_t joinDocId = indexlib::UNINITIALIZED_DOCID;
 
     if (_docIdRef != NULL) {
         joinDocId = *_docIdRef->getPointer(matchDoc);
-        if (joinDocId != UNINITIALIZED_DOCID) {
+        if (joinDocId != indexlib::UNINITIALIZED_DOCID) {
             return joinDocId;
         }
     }

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_NORMAL_SEGMENT_OPERATION_ITERATOR_H
-#define __INDEXLIB_NORMAL_SEGMENT_OPERATION_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -50,5 +49,4 @@ private:
 };
 
 DEFINE_SHARED_PTR(NormalSegmentOperationIterator);
-}}     // namespace indexlib::partition
-#endif //__INDEXLIB_NORMAL_SEGMENT_OPERATION_ITERATOR_H
+}} // namespace indexlib::partition

@@ -17,6 +17,7 @@ strict_cc_library(
         '//aios/storage/indexlib/index:DocMapper',
         '//aios/storage/indexlib/index:IIndexMerger',
         '//aios/storage/indexlib/index:IndexFactoryCreator',
+        '//aios/storage/indexlib/index/common:PlainDocMapper',
         '//aios/storage/indexlib/index/primary_key:primary_key_indexer'
     ]
 )

@@ -31,6 +31,7 @@ TEST_F(BuildConfigTest, TestJsonize)
         {
             "keep_version_count":10,
             "keep_version_hour":72,
+            "tolerate_doc_error":false,
             "fence_timestamp_tolerant_deviation" : 3600000000
         }
     )";
@@ -38,6 +39,7 @@ TEST_F(BuildConfigTest, TestJsonize)
     ASSERT_EQ(72, buildConfig.GetKeepVersionHour());
     ASSERT_EQ(10, buildConfig.GetKeepVersionCount());
     ASSERT_EQ(3600000000l, buildConfig.GetFenceTsTolerantDeviation());
+    ASSERT_FALSE(buildConfig.GetIsTolerateDocError());
 }
 
 }} // namespace indexlibv2::config

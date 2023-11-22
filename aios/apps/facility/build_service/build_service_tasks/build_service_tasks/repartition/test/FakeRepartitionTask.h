@@ -1,9 +1,13 @@
-#ifndef ISEARCH_BS_FAKEREPARTITIONTASK_H
-#define ISEARCH_BS_FAKEREPARTITIONTASK_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common_define.h"
+#include "build_service/config/TaskTarget.h"
 #include "build_service/util/Log.h"
 #include "build_service_tasks/repartition/RepartitionTask.h"
+#include "indexlib/merger/filtered_multi_partition_merger.h"
 
 namespace build_service { namespace task_base {
 
@@ -39,5 +43,3 @@ private:
 BS_TYPEDEF_PTR(FakeRepartitionTask);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_FAKEREPARTITIONTASK_H

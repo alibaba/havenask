@@ -46,7 +46,7 @@ public:
     MockInMemBitmapIndexSegmentReader() : InMemBitmapIndexSegmentReader(NULL, false) {}
 
     MOCK_METHOD(bool, GetSegmentPosting,
-                (const indexlib::index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+                (const indexlib::index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                  autil::mem_pool::Pool* sessionPool, indexlib::file_system::ReadOption,
                  indexlib::index::InvertedIndexSearchTracer*),
                 (const, override));
@@ -118,7 +118,7 @@ public:
         }
         auto vocabulary = make_shared<HighFrequencyVocabulary>();
         indexConfig->SetHighFreqVocabulary(vocabulary);
-        vector<pair<docid_t, shared_ptr<BitmapLeafReader>>> diskReaders;
+        vector<pair<docid64_t, shared_ptr<BitmapLeafReader>>> diskReaders;
         auto status = GetBitmapDiskReaders(indexConfig, version, diskReaders);
         if (!status.IsOK()) {
             return nullptr;
@@ -131,7 +131,7 @@ public:
 
     Status GetBitmapDiskReaders(const shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig,
                                 const Version& version,
-                                vector<pair<docid_t, shared_ptr<BitmapLeafReader>>>& diskSegmentReaders)
+                                vector<pair<docid64_t, shared_ptr<BitmapLeafReader>>>& diskSegmentReaders)
     {
         docid_t baseDocId = 0;
         for (auto [segId, schemaId] : version) {

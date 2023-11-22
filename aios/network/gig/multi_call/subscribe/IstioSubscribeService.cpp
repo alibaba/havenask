@@ -70,7 +70,7 @@ bool IstioSubscribeService::getClusterInfoMap(TopoNodeVec &topoNodeVec,
             return false;
         }
     }
-    return _xdsStore->getClusterInfoMap(&topoNodeVec);
+    return _xdsStore->getClusterInfoMap(&topoNodeVec, heartbeatSpecs);
 };
 
 bool IstioSubscribeService::addSubscribe(const std::vector<std::string> &names) {

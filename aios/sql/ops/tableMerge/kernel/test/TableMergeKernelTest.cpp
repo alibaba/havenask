@@ -66,7 +66,7 @@ public:
         if (TESTBASE::HasFatalFailure()) {
             return navi::EC_ABORT;
         }
-        auto table = make_shared<Table>(docs, allocator);
+        TablePtr table = Table::fromMatchDocs(docs, allocator);
         DataPtr data(new TableData(table));
         PortIndex index(0, INVALID_INDEX);
         ctx.setOutput(index, data, eof);
@@ -234,9 +234,9 @@ TEST_F(TableMergeKernelTest, testSimple) {
     }
 
     auto naviResult = userResult->getNaviResult();
-    ASSERT_EQ("EC_NONE", std::string(CommonUtil::getErrorString(naviResult->ec)))
-        << naviResult->errorEvent.message;
-    ASSERT_EQ("", naviResult->errorEvent.message);
+    ASSERT_NE(nullptr, naviResult);
+    ASSERT_EQ(EC_NONE, naviResult->getErrorCode()) << naviResult->getErrorMessage();
+    ASSERT_EQ("", naviResult->getErrorMessage());
     // naviResult->show();
     ASSERT_EQ(2, dataVec.size());
     {

@@ -15,11 +15,17 @@
  */
 #pragma once
 
+#include <string>
+#include <vector>
+
+#include "autil/legacy/json.h"
 #include "build_service/common_define.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ControlConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/DataDescription.h"
 #include "build_service/util/Log.h"
+
 namespace build_service { namespace config {
 
 class DataLinkModeUtil
@@ -37,10 +43,11 @@ public:
     static bool addGraphParameters(const ControlConfig& controlConfig, const std::vector<std::string>& clusters,
                                    const std::vector<proto::DataDescription>& dsVec, KeyValueMap* parameters);
 
-    static std::string generateRealtimeInfoContent(const ControlConfig& controlConfig,
-                                                   const BuildServiceConfig& buildServiceConfig,
-                                                   const std::string& clusterName,
-                                                   const proto::DataDescription& realtimeDataDesc);
+    static autil::legacy::json::JsonMap generateRealtimeInfoContent(const ControlConfig& controlConfig,
+                                                                    const BuildServiceConfig& buildServiceConfig,
+                                                                    const std::string& clusterName,
+                                                                    const proto::DataDescription& realtimeDataDesc,
+                                                                    const proto::BuildId& buildId);
     static std::string generateNPCResourceName(const std::string& topicName);
 
     static bool isDataLinkNPCMode(const KeyValueMap& kvMap);
@@ -49,14 +56,21 @@ public:
 
     static bool adaptsRealtimeInfoToDataLinkMode(const std::string& specifiedDataLinkMode, KeyValueMap& kvMap);
 
+    static bool addDataLinkModeParamToBuilderTarget(const ControlConfig& controlConfig, const std::string& clusterName,
+                                                    proto::DataDescription* dataDesc);
+
 private:
-    static std::string generateRealTimeInfoForFPINPMode(const ControlConfig& controlConfig,
-                                                        const BuildServiceConfig& buildServiceConfig,
-                                                        const std::string& clusterName,
-                                                        const proto::DataDescription& realtimeDataDesc);
-    static std::string generateRealTimeInfoForNormalMode(const BuildServiceConfig& buildServiceConfig);
-    static std::string generateRealTimeInfoForNPCMode(const std::string& clusterName,
-                                                      const proto::DataDescription& realtimeDataDesc);
+    static autil::legacy::json::JsonMap generateRealTimeInfoForFPINPMode(const ControlConfig& controlConfig,
+                                                                         const BuildServiceConfig& buildServiceConfig,
+                                                                         const std::string& clusterName,
+                                                                         const proto::DataDescription& realtimeDataDesc,
+                                                                         const proto::BuildId& buildId);
+    static autil::legacy::json::JsonMap generateRealTimeInfoForNormalMode(const BuildServiceConfig& buildServiceConfig,
+                                                                          const proto::BuildId& buildId);
+    static autil::legacy::json::JsonMap generateRealTimeInfoForNPCMode(const std::string& clusterName,
+                                                                       const proto::DataDescription& realtimeDataDesc,
+                                                                       const BuildServiceConfig& buildServiceConfig,
+                                                                       const proto::BuildId& buildId);
     static bool generateBuilderInputsForNPCMode(const std::vector<proto::DataDescription>& dsVec,
                                                 std::string& dsStringInJson);
 

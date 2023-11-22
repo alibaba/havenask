@@ -15,9 +15,21 @@
  */
 #include "build_service_tasks/extract_doc/RawDocumentOutput.h"
 
-#include "autil/ConstString.h"
+#include <iosfwd>
+#include <map>
+#include <type_traits>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/HashFuncFactory.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "build_service/config/TaskInputConfig.h"
 #include "build_service/document/DocumentDefine.h"
+#include "build_service/io/IODefine.h"
 #include "build_service/task_base/BuildInTaskFactory.h"
+#include "build_service/task_base/Task.h"
 #include "build_service_tasks/factory/BuildServiceTaskFactory.h"
 #include "swift/client/MessageInfo.h"
 

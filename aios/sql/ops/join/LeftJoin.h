@@ -26,7 +26,7 @@ namespace sql {
 
 class LeftJoin : public JoinBase {
 public:
-    LeftJoin(const JoinBaseParam &joinBaseParam);
+    LeftJoin(const JoinBaseParamR &joinBaseParam);
     ~LeftJoin() {}
     LeftJoin(const LeftJoin &) = delete;
     LeftJoin &operator=(const LeftJoin &) = delete;

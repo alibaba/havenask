@@ -20,6 +20,8 @@
 #include "indexlib/index/attribute/AttributeDataInfo.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/inverted_index/Types.h"
+#include "indexlib/index/source/Common.h"
+#include "indexlib/index/source/config/SourceIndexConfig.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/merger/MergeStrategyDefine.h"
 #include "indexlib/table/normal_table/NormalSchemaResolver.h"
@@ -80,6 +82,15 @@ NormalTableMergeDescriptionCreator::CreateIndexMergeOperationDescription(
             opDesc.AddParameter(index::ATTRIBUTE_SLICE_COUNT, std::to_string(attributeIndexConfig->GetSliceCount()));
             opDesc.AddParameter(index::ATTRIBUTE_SLICE_IDX, std::to_string(attributeIndexConfig->GetSliceIdx()));
         }
+    }
+
+    auto sourceConfig = std::dynamic_pointer_cast<indexlibv2::config::SourceIndexConfig>(indexConfig);
+    if (sourceConfig) {
+        if (!sourceConfig->GetMergeId()) {
+            AUTIL_LOG(ERROR, "get merge id from source config failed");
+            return {Status::ConfigError("get merge id from source index config failed"), opDesc};
+        }
+        opDesc.AddParameter(index::SOURCE_MERGE_ID, std::to_string(sourceConfig->GetMergeId().value()));
     }
 
     if (invertedIndexConfig != nullptr && invertedIndexConfig->HasTruncate()) {
@@ -175,6 +186,16 @@ std::vector<std::shared_ptr<config::IIndexConfig>> NormalTableMergeDescriptionCr
                                          sliceAttributeConfigs.end());
             continue;
         }
+
+        if (indexConfig->GetIndexType() == indexlib::index::SOURCE_INDEX_TYPE_STR) {
+            auto sourceConfig = std::dynamic_pointer_cast<indexlibv2::config::SourceIndexConfig>(indexConfig);
+            if (sourceConfig) {
+                auto mergeConfigs = sourceConfig->CreateSourceIndexConfigForMerge();
+                allNeededIndexConfigs.insert(allNeededIndexConfigs.end(), mergeConfigs.begin(), mergeConfigs.end());
+            }
+            continue;
+        }
+
         allNeededIndexConfigs.emplace_back(indexConfig);
     }
 

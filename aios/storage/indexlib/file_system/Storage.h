@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <assert.h>
 #include <future>
 #include <memory>
 #include <stddef.h>
@@ -22,32 +23,25 @@
 #include <string>
 #include <vector>
 
+#include "autil/Lock.h"
 #include "autil/Log.h"
 #include "indexlib/file_system/EntryTable.h"
 #include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/ReaderOption.h"
 #include "indexlib/file_system/StorageMetrics.h"
+#include "indexlib/file_system/WriterOption.h"
 #include "indexlib/file_system/file/FileNode.h"
 #include "indexlib/file_system/file/FileNodeCache.h"
 #include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/file_system/file/ResourceFile.h"
 #include "indexlib/file_system/fslib/FenceContext.h"
-
-namespace autil {
-class RecursiveThreadMutex;
-} // namespace autil
-
-namespace indexlib::util {
-class BlockMemoryQuotaController;
-}
+#include "indexlib/util/memory_control/BlockMemoryQuotaController.h"
 
 namespace indexlib { namespace file_system {
-class Storage;
-class LogicalFileSystem;
 struct FileSystemOptions;
-struct WriterOption;
 
 class Storage
 {

@@ -42,8 +42,9 @@ public:
 
     virtual indexlib::index::TermMeta *GetTermMeta() const override;
 
-    docid_t SeekDoc(docid_t id) override;
-    indexlib::index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t &result) override {
+    indexlib::docid64_t SeekDoc(docid64_t id) override;
+    indexlib::index::ErrorCode SeekDocWithErrorCode(docid64_t docId,
+                                                    indexlib::docid64_t &result) override {
         result = SeekDoc(docId);
         return indexlib::index::ErrorCode::OK;
     }

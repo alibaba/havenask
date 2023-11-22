@@ -16,9 +16,11 @@
 #pragma once
 
 #include <cmath>
-#include <memory>
+#include <stddef.h>
+#include <stdint.h>
 
-#include "autil/ConstString.h"
+#include "autil/Log.h"
+#include "autil/Span.h"
 #include "autil/mem_pool/Pool.h"
 
 namespace indexlib { namespace util {

@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ROLLBACKTASK_H
-#define ISEARCH_BS_ROLLBACKTASK_H
+#pragma once
 
-#include <mutex>
+#include <stdint.h>
+#include <string>
 
-#include "autil/StringUtil.h"
 #include "build_service/common_define.h"
-#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/TaskConfig.h"
 #include "build_service/config/TaskTarget.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/task_base/Task.h"
 #include "build_service/util/Log.h"
-#include "fslib/util/FileUtil.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/util/counter/CounterMap.h"
 
 namespace build_service { namespace task_base {
 
@@ -72,5 +73,3 @@ private:
 BS_TYPEDEF_PTR(RollbackTask);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_ROLLBACKTASK_H

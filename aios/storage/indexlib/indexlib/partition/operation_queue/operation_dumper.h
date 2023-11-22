@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OPERATION_DUMPER_H
-#define __INDEXLIB_OPERATION_DUMPER_H
+#pragma once
 
 #include <memory>
 
@@ -82,5 +81,3 @@ inline size_t OperationDumper::DumpSingleOperation(OperationBase* op, char* buff
     return (cur - begin) + dataLen;
 }
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPERATION_DUMPER_H

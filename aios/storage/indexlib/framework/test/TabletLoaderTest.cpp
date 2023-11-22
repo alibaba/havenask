@@ -46,7 +46,7 @@ TEST_F(TabletLoaderTest, testPreLoad)
         EXPECT_CALL(*diskSegment, Open(_, _)).WillOnce(Return(Status::OK()));
         auto tabletLoader = std::make_unique<MockTabletLoader>();
         EXPECT_CALL(*tabletLoader, DoPreLoad(_, _, _)).WillOnce(Return(Status::OK()));
-        EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(1024));
+        EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return((std::make_pair(Status::OK(), 1024))));
         auto memController = std::make_shared<MemoryQuotaController>("test", 6 * 1024 * 1024);
         auto memReserver = createMemoryReserver(memController);
         tabletLoader->Init(memController, _schema, memReserver, /*isOnline=*/true);
@@ -62,8 +62,8 @@ TEST_F(TabletLoaderTest, testPreLoad)
         SegmentMeta segmentMeta(segmentId);
         auto diskSegment = std::make_shared<MockDiskSegment>(segmentMeta);
         auto tabletLoader = std::make_unique<MockTabletLoader>();
-        auto calculator =
-            [&](const std::vector<std::pair<std::shared_ptr<Segment>, /*need Open*/ bool>>& segmentPairs) -> size_t {
+        auto calculator = [&](const std::vector<std::pair<std::shared_ptr<Segment>, /*need Open*/ bool>>& segmentPairs)
+            -> std::pair<Status, size_t> {
             auto needOpenSegments = tabletLoader->TabletLoader::GetNeedOpenSegments(segmentPairs);
             return tabletLoader->TabletLoader::EstimateMemUsed(_schema, needOpenSegments);
         };
@@ -71,7 +71,8 @@ TEST_F(TabletLoaderTest, testPreLoad)
             std::make_pair(std::dynamic_pointer_cast<Segment>(diskSegment), /*need open*/ true)};
         auto needNotOpenSegmentPair = {
             std::make_pair(std::dynamic_pointer_cast<Segment>(diskSegment), /*need't open*/ false)};
-        EXPECT_CALL(*diskSegment, EstimateMemUsed(_)).WillRepeatedly(Return(2 * 1024 * 1024));
+        EXPECT_CALL(*diskSegment, EstimateMemUsed(_))
+            .WillRepeatedly(Return(std::make_pair(Status::OK(), 2 * 1024 * 1024)));
         EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _))
             .WillOnce(Return(calculator(needOpenSegmentPair)))
             .WillOnce(Return(calculator(needNotOpenSegmentPair)));
@@ -112,7 +113,7 @@ TEST_F(TabletLoaderTest, testPreLoad)
         auto diskSegment = std::make_shared<MockDiskSegment>(segmentMeta);
         EXPECT_CALL(*diskSegment, Open(_, _)).WillOnce(Return(Status::Corruption("open failed")));
         auto tabletLoader = std::make_unique<MockTabletLoader>();
-        EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(1024));
+        EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(std::make_pair(Status::OK(), 1024)));
         auto memController = std::make_shared<MemoryQuotaController>("test", 6 * 1024 * 1024);
         auto memReserver = createMemoryReserver(memController);
         tabletLoader->Init(memController, _schema, memReserver, /*isOnline=*/true);

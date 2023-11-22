@@ -318,9 +318,8 @@ std::shared_ptr<DocMapper> VarLenDataTest::CreateDocMapper(const index::IIndexMe
     }
 
     docMapper->Init(segMergeInfos.targetSegments[0]->segmentId, srcSegmentInfos, nullptr);
-    for (size_t i = 0; i < segMergeInfos.targetSegments.size(); ++i) {
-        auto& targetSegment = segMergeInfos.targetSegments[i];
-        targetSegment->segmentInfo->docCount = docMapper->GetTargetSegmentDocCount(i);
+    for (auto& targetSegment : segMergeInfos.targetSegments) {
+        targetSegment->segmentInfo->docCount = docMapper->GetTargetSegmentDocCount(targetSegment->segmentId);
     }
     return docMapper;
 }

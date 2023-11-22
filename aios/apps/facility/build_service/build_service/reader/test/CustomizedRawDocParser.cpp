@@ -1,6 +1,11 @@
 #include "build_service/reader/test/CustomizedRawDocParser.h"
 
 #include <sstream>
+#include <stddef.h>
+
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/plugin/ModuleFactory.h"
 
 using namespace std;
 using namespace autil;

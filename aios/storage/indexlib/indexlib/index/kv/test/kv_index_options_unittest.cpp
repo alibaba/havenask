@@ -2,6 +2,8 @@
 
 #include <random>
 
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/config/value_config.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/partition_data.h"
@@ -12,8 +14,6 @@
 #include "indexlib/index_define.h"
 #include "indexlib/partition/in_memory_partition_data.h"
 #include "indexlib/partition/segment/dump_segment_container.h"
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::common;

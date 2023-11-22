@@ -44,6 +44,7 @@ public:
 
     size_t Size() const;
     const LoadConfig& GetLoadConfig(size_t idx) const;
+    LoadConfigVector& GetLoadConfigs();
 
     void PushFront(const LoadConfig& loadConfig);
     void PushBack(const LoadConfig& loadConfig);
@@ -58,7 +59,9 @@ public:
     void SwitchLoadSpeedLimit(bool on);
 
 public:
-    LoadConfigVector& GetLoadConfigs();
+    // ADVICE: adviseRandom=false, lockSlice=4*1024*1024, lockInterval=0
+    static LoadConfig MakeMmapLoadConfig(const std::vector<std::string>& patterns, bool warmup, bool isLock,
+                                         bool adviseRandom, uint32_t lockSlice, uint32_t lockInterval);
 
 private:
     struct Impl;

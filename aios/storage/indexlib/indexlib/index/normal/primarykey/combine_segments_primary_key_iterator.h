@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_COMBINE_SEGMENTS_PRIMARY_KEY_ITERATOR_H
-#define __INDEXLIB_COMBINE_SEGMENTS_PRIMARY_KEY_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -104,5 +103,3 @@ void CombineSegmentsPrimaryKeyIterator<Key>::Next(TypedPKPair& pkPair)
     pkPair.docid -= mBaseDocId;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_COMBINE_SEGMENTS_PRIMARY_KEY_ITERATOR_H

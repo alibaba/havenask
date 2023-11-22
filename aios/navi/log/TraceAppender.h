@@ -29,13 +29,13 @@ class TraceAppender : public Appender
 {
 public:
     TraceAppender(const std::string &levelStr);
+    TraceAppender(const TraceAppender &other);
     ~TraceAppender();
 private:
-    TraceAppender(const TraceAppender &);
     TraceAppender &operator=(const TraceAppender &);
 public:
     void addBtFilter(const LogBtFilterParam &param);
-    void setLogManager(const NaviLogManager *logManager);
+    void setLogManager(NaviLogManager *logManager);
     int append(LoggingEvent &event) override;
     void flush() override {
     }
@@ -44,7 +44,6 @@ private:
     bool logBt(const LoggingEvent &event);
 private:
     autil::ThreadMutex _lock;
-    const NaviLogManager *_logManager;
     TraceCollector _traceCollector;
     LogBtFilter _btFilter;
 };

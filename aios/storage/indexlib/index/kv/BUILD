@@ -195,10 +195,11 @@ strict_cc_library(
         ':KVIndexFieldsParser', ':KVShardRecordIterator', ':kv_mem_indexer',
         ':kv_merger', ':kv_reader', '//aios/autil:log',
         '//aios/storage/indexlib/config:IIndexConfig',
+        '//aios/storage/indexlib/config:options',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:IIndexFactory',
         '//aios/storage/indexlib/index:IIndexMerger',
-        '//aios/storage/indexlib/index:IIndexReader',
-        '//aios/storage/indexlib/index:IndexerParameter'
+        '//aios/storage/indexlib/index:IIndexReader'
     ],
     alwayslink=True
 )

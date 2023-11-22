@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_EQUALVALUECOMPRESSADVISORTEST_H
-#define __INDEXLIB_EQUALVALUECOMPRESSADVISORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/data_structure/equal_value_compress_advisor.h"
@@ -43,5 +42,4 @@ private:
 INDEXLIB_UNIT_TEST_CASE(EqualValueCompressAdvisorTest, TestGetOptSlotItemCount);
 INDEXLIB_UNIT_TEST_CASE(EqualValueCompressAdvisorTest, TestEstimateOptimizeSlotItemCount);
 INDEXLIB_UNIT_TEST_CASE(EqualValueCompressAdvisorTest, TestSampledItemIterator);
-}}     // namespace indexlib::index
-#endif //__INDEXLIB_EQUALVALUECOMPRESSADVISORTEST_H
+}} // namespace indexlib::index

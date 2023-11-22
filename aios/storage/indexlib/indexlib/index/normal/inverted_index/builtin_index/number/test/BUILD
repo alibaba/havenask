@@ -2,7 +2,7 @@ load('//bazel:defs.bzl', 'cc_fast_test')
 cc_fast_test(
     name='indexlib_number_unittest',
     srcs=glob(['*unittest.cpp']),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     shard_count=5,
     deps=[

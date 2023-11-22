@@ -34,8 +34,8 @@ strict_cc_library(
         'FileSystemMetricsReporter.h', 'LifecycleTable.h', 'StorageMetrics.h'
     ],
     deps=[
-        ':JsonUtil', ':interface', '//aios/aios/common/beeper',
-        '//aios/autil:synchronized_queue', '//aios/autil:timeout_terminator',
+        ':JsonUtil', ':interface', '//aios/autil:synchronized_queue',
+        '//aios/autil:timeout_terminator', '//aios/common/beeper',
         '//aios/storage/indexlib/file_system/fslib',
         '//aios/storage/indexlib/file_system/load_config'
     ]
@@ -53,7 +53,7 @@ strict_cc_library(
         'LegacyVersion.h', 'PackageMetaInfo.h'
     ],
     deps=[
-        ':common', '//aios/aios/common/beeper', '//aios/autil:NoCopyable',
+        ':common', '//aios/autil:NoCopyable', '//aios/common/beeper',
         '//aios/storage/indexlib/base:PathUtil',
         '//aios/storage/indexlib/file_system/fslib',
         '//aios/storage/indexlib/file_system/load_config:interface',
@@ -64,10 +64,7 @@ strict_cc_library(
     name='byte_slice_rw',
     srcs=['ByteSliceReader.cpp', 'ByteSliceWriter.cpp'],
     hdrs=['ByteSliceReader.h', 'ByteSliceWriter.h'],
-    visibility=[
-        '//aios/khronos_table:__subpackages__',
-        '//aios/storage/indexlib:__subpackages__'
-    ],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
         ':common', '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/file_system/file:headers',

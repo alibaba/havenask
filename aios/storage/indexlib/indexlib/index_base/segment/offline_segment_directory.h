@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OFFLINE_SEGMENT_DIRECTORY_H
-#define __INDEXLIB_OFFLINE_SEGMENT_DIRECTORY_H
+#pragma once
 
 #include <memory>
 
@@ -47,5 +46,3 @@ private:
 
 DEFINE_SHARED_PTR(OfflineSegmentDirectory);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_OFFLINE_SEGMENT_DIRECTORY_H

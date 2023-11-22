@@ -8,7 +8,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_split_strategy_unittest',
     srcs=glob(['*.cpp']),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=(['//aios/storage/indexlib:testdata'] + glob(['testdata/**'])),
     deps=[
         ':indexlib_split_strategy_test_helper',

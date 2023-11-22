@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_DOC_READER_H
-#define __INDEXLIB_KV_DOC_READER_H
+#pragma once
 
 #include "indexlib/index/kv/doc_reader_base.h"
 #include "indexlib/index/kv/kv_segment_iterator.h"
@@ -55,5 +54,3 @@ private:
 
 DEFINE_SHARED_PTR(KVDocReader);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_DOC_READER_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DATEFIELDENCODERTEST_H
-#define __INDEXLIB_DATEFIELDENCODERTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/date/date_field_encoder.h"
 #include "indexlib/common_define.h"
@@ -33,5 +32,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(DateFieldEncoderTest, TestSimpleProcess);
 } // namespace indexlib::common
-
-#endif //__INDEXLIB_DATEFIELDENCODERTEST_H

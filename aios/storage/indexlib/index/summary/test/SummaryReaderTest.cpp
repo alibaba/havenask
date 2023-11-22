@@ -230,7 +230,7 @@ SummaryReaderTest::CreateSummaryReader(const std::vector<uint32_t>& fullBuildDoc
 
     std::vector<SummaryReader::IndexerInfo> indexerInfo;
     for (size_t i = 0; i < fullBuildDocCounts.size(); i++) {
-        IndexerParameter indexerParam;
+        DiskIndexerParameter indexerParam;
         indexerParam.docCount = fullBuildDocCounts[i];
         auto summaryDir = GetSummaryDirectory(i);
         assert(summaryDir != nullptr);
@@ -474,10 +474,12 @@ TEST_F(SummaryReaderTest, TestCaseForGetDocumentFromSummary)
     {
         // test for needStoreSummary = false
         summaryReader->_summaryIndexConfig->SetNeedStoreSummary(false);
+        summaryReader->_needStoreSummary = false;
         auto [status, ret] = summaryReader->GetDocument((docid_t)100, summaryDoc.get());
         ASSERT_TRUE(status.IsOK() && ret);
 
         summaryReader->_summaryIndexConfig->SetNeedStoreSummary(true);
+        summaryReader->_needStoreSummary = true;
     }
 
     {

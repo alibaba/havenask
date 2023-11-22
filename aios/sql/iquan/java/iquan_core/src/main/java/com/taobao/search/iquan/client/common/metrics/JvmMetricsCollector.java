@@ -1,12 +1,22 @@
 package com.taobao.search.iquan.client.common.metrics;
 
+import java.lang.management.ClassLoadingMXBean;
+import java.lang.management.CompilationMXBean;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.util.List;
+import java.util.Set;
+
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.management.*;
-import java.util.List;
-import java.util.Set;
 
 public class JvmMetricsCollector {
     private final static Logger logger = LoggerFactory.getLogger(JvmMetricsCollector.class);
@@ -20,18 +30,17 @@ public class JvmMetricsCollector {
     private final static String pid;
     private final static ClassLoadingMXBean classLoadingMXBean;
     private final static CompilationMXBean compilationMXBean;
+    private final static MemoryMXBean memoryMXBean;
+    private final static ThreadMXBean threadMXBean;
+    private final static JvmMetrics metrics = new JvmMetrics();
     private static GarbageCollectorMXBean youngGCMXBean = null;
     private static GarbageCollectorMXBean fullGCMXBean = null;
-    private final static MemoryMXBean memoryMXBean;
     private static MemoryPoolMXBean codeCacheMXBean = null;
     private static MemoryPoolMXBean metaspaceMXBean = null;
     private static MemoryPoolMXBean compressedClassSpaceMXBean = null;
     private static MemoryPoolMXBean g1EdenSpaceMXBean = null;
     private static MemoryPoolMXBean g1SurvivorSpaceMXBean = null;
     private static MemoryPoolMXBean g1OldGenMXBean = null;
-    private final static ThreadMXBean threadMXBean;
-
-    private final static JvmMetrics metrics = new JvmMetrics();
 
     static {
         operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();

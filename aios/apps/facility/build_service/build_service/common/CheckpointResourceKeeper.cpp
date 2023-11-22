@@ -15,9 +15,19 @@
  */
 #include "build_service/common/CheckpointResourceKeeper.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/ResourceCheckpointFormatter.h"
-#include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/AgentGroupConfig.h"
 
 using namespace std;
 using namespace build_service::config;
@@ -30,7 +40,7 @@ BS_LOG_SETUP(common, CheckpointResourceKeeper);
 CheckpointResourceKeeper::CheckpointResourceKeeper(const std::string& name, const std::string& type,
                                                    const ResourceContainerPtr& resourceContainer)
     : ResourceKeeper(name, type)
-    , _resourceVersion(INVALID_VERSION)
+    , _resourceVersion(indexlib::INVALID_VERSIONID)
     , _needLatestVersion(false)
 {
     common::CheckpointAccessorPtr accessor;
@@ -66,7 +76,7 @@ bool CheckpointResourceKeeper::init(const KeyValueMap& params)
 
     // version
     string versionStr = getValueFromKeyValueMap(params, RESOURCE_VERSION);
-    versionid_t version = INVALID_VERSION;
+    versionid_t version = indexlib::INVALID_VERSIONID;
     if (!versionStr.empty()) {
         if (!StringUtil::fromString(versionStr, version)) {
             BS_LOG(ERROR, "invalid version str[%s]", versionStr.c_str());
@@ -91,7 +101,7 @@ bool CheckpointResourceKeeper::updateSelf(const string& applyer, versionid_t new
         }
         newResourceVersion = ResourceCheckpointFormatter::decodeResourceCheckpointName(ckptName);
     }
-    if (newResourceVersion != INVALID_VERSION) {
+    if (newResourceVersion != indexlib::INVALID_VERSIONID) {
         _resourceVersion = newResourceVersion;
         string ckptId = getCkptId(_checkpointType);
         string ckptName = getCkptName(_resourceVersion);
@@ -167,7 +177,7 @@ bool CheckpointResourceKeeper::addResource(const KeyValueMap& params)
         BS_LOG(ERROR, "no checkpoint accessor");
         return false;
     }
-    versionid_t targetVersion = INVALID_VERSION;
+    versionid_t targetVersion = indexlib::INVALID_VERSIONID;
     string ckptName, ckptValue;
     string ckptId;
     auto iter = params.find(CHECKPOINT_TYPE);
@@ -199,7 +209,7 @@ bool CheckpointResourceKeeper::deleteResource(const KeyValueMap& params)
         BS_LOG(ERROR, "no checkpoint accessor");
         return false;
     }
-    versionid_t targetVersion = INVALID_VERSION;
+    versionid_t targetVersion = indexlib::INVALID_VERSIONID;
     string ckptName, ckptId;
     auto iter = params.find(CHECKPOINT_TYPE);
     if (iter == params.end()) {
@@ -225,13 +235,13 @@ void CheckpointResourceKeeper::clearUselessCheckpoints(const std::string& applye
     if (!_ckptAccessor) {
         return;
     }
-    versionid_t smallestVersionid = INVALID_VERSION;
+    versionid_t smallestVersionid = indexlib::INVALID_VERSIONID;
     for (size_t i = 0; i < workerNodes.size(); i++) {
         proto::WorkerNodeBase::ResourceInfo* resourceInfo;
         if (!workerNodes[i]->getUsingResource(_resourceName, resourceInfo)) {
             return;
         }
-        versionid_t version = INVALID_VERSION;
+        versionid_t version = indexlib::INVALID_VERSIONID;
         if (!StringUtil::fromString(resourceInfo->resourceId, version)) {
             return;
         }
@@ -259,7 +269,7 @@ void CheckpointResourceKeeper::syncResources(const std::string& applyer, const p
 {
     clearUselessCheckpoints(applyer, workerNodes);
     if (_needLatestVersion) {
-        updateSelf(applyer, INVALID_VERSION);
+        updateSelf(applyer, indexlib::INVALID_VERSIONID);
     }
     string resourceStr;
     for (auto node : workerNodes) {

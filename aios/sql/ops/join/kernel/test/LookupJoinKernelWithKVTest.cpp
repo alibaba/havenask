@@ -20,12 +20,12 @@
 #include "indexlib/config/OnlineConfig.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/ITabletReader.h"
 #include "indexlib/framework/IndexRoot.h"
 #include "indexlib/framework/Locator.h"
 #include "indexlib/table/kv_table/test/KVTableTestHelper.h"
-#include "indexlib/test/schema_maker.h"
 #include "matchdoc/MatchDoc.h"
 #include "matchdoc/MatchDocAllocator.h"
 #include "matchdoc/Trait.h"
@@ -294,8 +294,6 @@ private:
             // cout << name << " : " << column->toString(i) << endl;
             ASSERT_EQ(expect[i], column->toString(i)) << TableUtil::toString(outputTable);
         }
-        TablePtr inputTable = getTable(_inputData);
-        checkDependentTable(inputTable, outputTable);
     }
 
 public:

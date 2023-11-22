@@ -15,6 +15,11 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorWorkItem.h"
 
+#include <iosfwd>
+#include <memory>
+
+#include "build_service/util/ErrorLogCollector.h"
+
 using namespace std;
 using namespace build_service::util;
 

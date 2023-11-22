@@ -15,6 +15,8 @@
  */
 #include "indexlib/index/common/field_format/section_attribute/SectionAttributeEncoder.h"
 
+#include <string.h>
+
 #include "indexlib/index/common/numeric_compress/S16Compressor.h"
 
 namespace indexlib::index {

@@ -15,7 +15,10 @@
  */
 #include "indexlib/util/PrimeNumberTable.h"
 
+#include <algorithm>
 #include <cassert>
+#include <cstdint>
+#include <iosfwd>
 
 using namespace std;
 

@@ -63,6 +63,7 @@ static const std::string RS_ALLOW_BY_CONFIG("RS_ALLOW_BY_CONFIG");
 static const std::string KMONITOR_PORT("kmonitorPort");
 static const std::string KMONITOR_SINK_ADDRESS("kmonitorSinkAddress");
 static const std::string KMONITOR_ENABLE_LOGFILE_SINK("kmonitorEnableLogFileSink");
+static const std::string KMONITOR_MANUALLY_MODE("kmonitorManuallyMode");
 static const std::string KMONITOR_SERVICE_NAME("kmonitorServiceName");
 static const std::string KMONITOR_TENANT("kmonitorTenant");
 static const std::string KMONITOR_METRICS_PREFIX("kmonitorMetricsPrefix");

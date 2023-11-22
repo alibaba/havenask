@@ -1,6 +1,7 @@
 #include "indexlib/merger/test/merge_work_item_creator_unittest.h"
 
 #include "indexlib/config/source_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/merger_util/truncate/test/truncate_test_helper.h"
 #include "indexlib/index/normal/source/source_group_merger.h"
@@ -15,7 +16,6 @@
 #include "indexlib/merger/test/merge_work_item_creator_mock.h"
 #include "indexlib/merger/test/segment_directory_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

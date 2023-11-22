@@ -15,7 +15,10 @@
  */
 #pragma once
 
-#include "build_service/common_define.h"
+#include <stdint.h>
+#include <string>
+#include <utility>
+
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {

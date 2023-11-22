@@ -1,6 +1,7 @@
 #include "indexlib/index/normal/inverted_index/test/normal_index_writer_unittest.h"
 
 #include "indexlib/config/index_partition_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/MemDirectory.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/SegmentMetrics.h"
@@ -16,7 +17,6 @@
 #include "indexlib/index/normal/inverted_index/accessor/index_writer_factory.h"
 #include "indexlib/index/test/document_maker.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/memory_control/BuildResourceMetrics.h"
 

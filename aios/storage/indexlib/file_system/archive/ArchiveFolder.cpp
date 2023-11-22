@@ -215,7 +215,8 @@ FSResult<void> ArchiveFolder::List(std::vector<std::string>& fileList) noexcept
             fileList.push_back(fileName);
         }
     }
-    util::Algorithm::SortAndUnique(fileList.begin(), fileList.end());
+
+    util::Algorithm::SortUniqueAndErase(fileList);
     return FSEC_OK;
 }
 

@@ -1,7 +1,16 @@
 #include "build_service/config/SwiftTopicConfig.h"
 
-#include "autil/legacy/jsonizable.h"
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <string>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/test/unittest.h"
+#include "swift/protocol/AdminRequestResponse.pb.h"
+#include "swift/protocol/Common.pb.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

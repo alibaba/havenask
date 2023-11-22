@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCUMENT_MAKER_H
-#define __INDEXLIB_DOCUMENT_MAKER_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -187,5 +186,3 @@ private:
 
 DEFINE_SHARED_PTR(DocumentMaker);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DOCUMENT_MAKER_H

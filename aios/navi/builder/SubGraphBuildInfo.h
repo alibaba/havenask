@@ -36,6 +36,7 @@ public:
     void gigTag(const std::string &tag, multi_call::TagMatchType type);
     void subGraphAttr(const std::string &key, std::string &&value);
     void inlineMode(bool inlineMode);
+    void errorHandleStrategy(ErrorHandleStrategy strategy);
     void ignoreIsolate(bool ignoreIsolate);
     void replaceR(const std::string &from, const std::string &to);
     N addNode(const std::string &name, NodeType nodeType, int32_t scope);
@@ -56,6 +57,8 @@ public:
         return _isFork;
     }
     N createScopeTerminator(int32_t scopeIndex);
+    void scopeErrorHandleStrategy(int32_t scopeIndex,
+                                  ErrorHandleStrategy strategy);
     P getTerminatorInputPort();
 public:
     static void initLocation(LocationDef *location,
@@ -81,7 +84,7 @@ private:
     std::unordered_map<std::string, NImplBase *> _nodeMap;
     std::vector<NImplBase *> _fakeNodeVec;
     P _terminatorInput;
-    std::set<int32_t> _scopeSet;
+    std::unordered_map<int32_t, SubGraphScopeDef *> _scopeMap;
     ScopeId _currentScope;
 };
 

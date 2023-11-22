@@ -1,5 +1,11 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
 import com.taobao.search.iquan.core.api.schema.Distribution;
@@ -9,8 +15,8 @@ import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.ops.physical.explain.IquanHashJoinExplain;
 import com.taobao.search.iquan.core.rel.ops.physical.explain.IquanJoinExplain;
-import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import com.taobao.search.iquan.core.utils.IquanJoinUtils;
+import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelDistribution;
@@ -22,8 +28,6 @@ import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.sql.SqlExplainLevel;
-
-import java.util.*;
 
 public class IquanHashJoinOp extends IquanJoinOp {
     private final boolean leftIsBuild;
@@ -104,7 +108,7 @@ public class IquanHashJoinOp extends IquanJoinOp {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         int probeOrdinalInJoin = 0;
         int buildOrdinalInJoin = 1;
         Map<String, String> probeJoinKeyMap = getLeftKeyNameMap();
@@ -119,11 +123,11 @@ public class IquanHashJoinOp extends IquanJoinOp {
         List<String> buildJoinKeys = new ArrayList<>(buildJoinKeyMap.keySet());
         IquanRelNode probeNode = (IquanRelNode) inputs.get(probeOrdinalInJoin);
         if (isPendingUnion(probeNode)) {
-            return derivePendingUnion((IquanUnionOp) probeNode, catalog, dbName, config);
+            return derivePendingUnion((IquanUnionOp) probeNode, catalog, config);
         }
         IquanRelNode buildNode = (IquanRelNode) inputs.get(buildOrdinalInJoin);
         if (isPendingUnion(buildNode)) {
-            return derivePendingUnion((IquanUnionOp) buildNode, catalog, dbName, config);
+            return derivePendingUnion((IquanUnionOp) buildNode, catalog, config);
         }
         Distribution probeDistribution = probeNode.getOutputDistribution();
         Distribution buildDistribution = buildNode.getOutputDistribution();
@@ -204,7 +208,7 @@ public class IquanHashJoinOp extends IquanJoinOp {
                     buildDistribution, buildNode.getLocation(), buildHashFieldsPos);
         } else {
             int upLimitNum = Math.max(probeDistribution.getPartitionCnt(), buildDistribution.getPartitionCnt());
-            Location targetLocation = RelDistributionUtil.getNearComputeNode(upLimitNum, catalog, dbName, config).getLocation();
+            Location targetLocation = RelDistributionUtil.getNearComputeNode(upLimitNum, catalog, config);
             shuffleToComputeNode(probeNode, probeOrdinalInJoin, probeJoinKeys,
                     buildNode, buildOrdinalInJoin, buildJoinKeys, targetLocation);
             hashFieldInRight = false;

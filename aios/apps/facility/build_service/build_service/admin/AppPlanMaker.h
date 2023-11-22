@@ -13,17 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_APPPLANMAKER_H
-#define ISEARCH_BS_APPPLANMAKER_H
+#pragma once
 
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/Lock.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/MetaTagAppender.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/SharedPtrGuard.h"
+#include "hippo/DriverCommon.h"
+#include "master_framework/AppPlan.h"
+#include "master_framework/RolePlan.h"
+#include "master_framework/common.h"
 
 BS_DECLARE_REFERENCE_CLASS(proto, WorkerNodeBase);
+
 namespace build_service { namespace admin {
 class WorkerTable;
+
 typedef MF_NS(master_base)::RolePlan RolePlan;
 typedef MF_NS(simple_master)::AppPlan AppPlan;
 typedef std::shared_ptr<AppPlan> AppPlanPtr;
@@ -116,5 +132,3 @@ private:
 BS_TYPEDEF_PTR(AppPlanMaker);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_APPPLANMAKER_H

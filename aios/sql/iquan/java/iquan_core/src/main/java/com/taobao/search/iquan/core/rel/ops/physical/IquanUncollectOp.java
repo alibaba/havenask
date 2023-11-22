@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
@@ -7,6 +11,7 @@ import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.common.ConstantDefine;
+import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexShuttleUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptCluster;
@@ -18,11 +23,6 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexProgram;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
-import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
-
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class IquanUncollectOp extends AbstractRelNode implements IquanRelNode {
     private final List<String> nestFieldNames;
@@ -177,7 +177,7 @@ public class IquanUncollectOp extends AbstractRelNode implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         return null;
     }
 

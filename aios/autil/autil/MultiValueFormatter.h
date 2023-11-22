@@ -65,6 +65,8 @@ private:
     MultiValueFormatter &operator=(const MultiValueFormatter &);
 
 public:
+    static bool isNull(uint32_t count) { return count == VAR_NUM_NULL_FIELD_VALUE_COUNT; }
+
     template <typename T>
     static void formatToBuffer(const std::vector<T> &dataVec, char *buffer, size_t bufLen) {
         return formatToBuffer(dataVec.data(), dataVec.size(), buffer, bufLen);
@@ -232,7 +234,7 @@ public:
         }
         offsetLen = MultiValueFormatter::getOffsetItemLength(latestOffset);
         size_t bufLen =
-            MultiValueFormatter::getEncodedCountLength(dataCount) + +sizeof(uint8_t) + offsetLen * dataCount + length;
+            MultiValueFormatter::getEncodedCountLength(dataCount) + sizeof(uint8_t) + offsetLen * dataCount + length;
         return bufLen;
     }
 

@@ -13,24 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_MERGER_CREATOR_H
-#define __INDEXLIB_PARTITION_MERGER_CREATOR_H
+#pragma once
 
-#include <memory>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/file_system/FileSystemOptions.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
 #include "indexlib/index_base/index_meta/parallel_build_info.h"
 #include "indexlib/index_base/index_meta/partition_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/custom_partition_merger.h"
+#include "indexlib/merger/dump_strategy.h"
 #include "indexlib/merger/partition_merger.h"
+#include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/metrics/MetricProvider.h"
-
-DECLARE_REFERENCE_CLASS(merger, SegmentDirectory);
-DECLARE_REFERENCE_CLASS(merger, DumpStrategy);
-DECLARE_REFERENCE_CLASS(plugin, PluginManager);
 
 namespace indexlib { namespace merger {
 
@@ -115,8 +118,8 @@ private:
     static void SortSubPartitions(std::vector<file_system::DirectoryPtr>& mergeSrcVec,
                                   std::vector<index_base::Version>& versions);
 
-    static schemavid_t GetSchemaId(const file_system::DirectoryPtr& rootDirectory,
-                                   const index_base::ParallelBuildInfo& parallelInfo);
+    static schemaid_t GetSchemaId(const file_system::DirectoryPtr& rootDirectory,
+                                  const index_base::ParallelBuildInfo& parallelInfo);
 
     static file_system::FileSystemOptions GetDefaultFileSystemOptions(util::MetricProviderPtr metricProvider);
 
@@ -126,5 +129,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionMergerCreator);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PARTITION_MERGER_CREATOR_H

@@ -15,10 +15,20 @@
  */
 #include "build_service/processor/ProcessorChainSelector.h"
 
-#include "autil/ConstString.h"
-#include "autil/StringTokenizer.h"
+#include <cstddef>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "build_service/config/DocProcessorChainConfig.h"
 #include "build_service/config/ProcessorChainSelectorConfig.h"
+#include "build_service/config/ProcessorInfo.h"
+#include "build_service/document/DocumentDefine.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace autil;

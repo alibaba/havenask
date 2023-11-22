@@ -1,8 +1,13 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
-import com.taobao.search.iquan.core.api.schema.ComputeNode;
 import com.taobao.search.iquan.core.api.schema.Distribution;
+import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.ops.physical.explain.IquanJoinExplain;
@@ -18,8 +23,6 @@ import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.sql.SqlExplainLevel;
-
-import java.util.*;
 
 public class IquanNestedLoopJoinOp extends IquanJoinOp {
     private final boolean leftIsBuild;
@@ -99,7 +102,7 @@ public class IquanNestedLoopJoinOp extends IquanJoinOp {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         int probeOrdinalInJoin = 0;
         int buildOrdinalInJoin = 1;
         if (leftIsBuild) {
@@ -108,11 +111,11 @@ public class IquanNestedLoopJoinOp extends IquanJoinOp {
         }
         IquanRelNode probeNode = (IquanRelNode) inputs.get(probeOrdinalInJoin);
         if (isPendingUnion(probeNode)) {
-            return derivePendingUnion((IquanUnionOp) probeNode, catalog, dbName, config);
+            return derivePendingUnion((IquanUnionOp) probeNode, catalog, config);
         }
         IquanRelNode buildNode = (IquanRelNode) inputs.get(buildOrdinalInJoin);
         if (isPendingUnion(buildNode)) {
-            return derivePendingUnion((IquanUnionOp) buildNode, catalog, dbName, config);
+            return derivePendingUnion((IquanUnionOp) buildNode, catalog, config);
         }
 
         Distribution distribution = Distribution.SINGLETON;
@@ -126,8 +129,8 @@ public class IquanNestedLoopJoinOp extends IquanJoinOp {
                 //NestedLoopJoin can run in search when search partitionCnt is 1, but can not get location partitionCnt, degenerated into run in qrs
                 replaceInput(probeOrdinalInJoin, probeNode.singleExchange());
                 replaceInput(buildOrdinalInJoin, buildNode.singleExchange());
-                ComputeNode targetNode = RelDistributionUtil.getSingleComputeNode(catalog, dbName, config);
-                setLocation(targetNode.getLocation());
+                Location targetNode = RelDistributionUtil.getSingleLocationNode(catalog, config);
+                setLocation(targetNode);
             }
         } else if (probeNode.isBroadcast()) {
             //buildNode is less than probeNode, exchange buildNode first
@@ -137,14 +140,14 @@ public class IquanNestedLoopJoinOp extends IquanJoinOp {
             replaceInput(probeOrdinalInJoin, probeNode.singleExchange());
             setLocation(buildNode.getLocation());
         } else {
-            ComputeNode targetNode = RelDistributionUtil.getSingleComputeNode(catalog, dbName, config);
-            if (! buildNode.getLocation().equals(targetNode.getLocation())) {
+            Location targetNode = RelDistributionUtil.getSingleLocationNode(catalog, config);
+            if (! buildNode.getLocation().equals(targetNode)) {
                 replaceInput(buildOrdinalInJoin, buildNode.singleExchange());
             }
-            if (!probeNode.getLocation().equals(targetNode.getLocation())) {
+            if (!probeNode.getLocation().equals(targetNode)) {
                 replaceInput(probeOrdinalInJoin, probeNode.singleExchange());
             }
-            setLocation(targetNode.getLocation());
+            setLocation(targetNode);
         }
         setOutputDistribution(distribution);
         return this;

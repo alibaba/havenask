@@ -80,9 +80,9 @@ size_t PartitionSizeCalculator::CalculateDiffVersionLockSizeWithoutPatch(const V
         segmentid_t lftSegId = Version::GetSegmentIdByDirName(PathUtil::GetFileName(lft));
         segmentid_t rhtSegId = Version::GetSegmentIdByDirName(PathUtil::GetFileName(rht));
         if (lftSegId == rhtSegId) {
-            schemavid_t lftSchemaId = 0;
+            schemaid_t lftSchemaId = 0;
             PartitionPatchIndexAccessor::ExtractSchemaIdFromPatchRootDir(PathUtil::GetParentDirName(lft), lftSchemaId);
-            schemavid_t rhtSchemaId = 0;
+            schemaid_t rhtSchemaId = 0;
             PartitionPatchIndexAccessor::ExtractSchemaIdFromPatchRootDir(PathUtil::GetParentDirName(rht), rhtSchemaId);
             return lftSchemaId > rhtSchemaId;
         }
@@ -211,7 +211,7 @@ void PartitionSizeCalculator::GetSegmentPathVec(const Version& version, vector<s
         segPathVec.push_back(segDirName);
     }
 
-    if (version.GetVersionId() != INVALID_VERSION && version.GetSchemaVersionId() != DEFAULT_SCHEMAID) {
+    if (version.GetVersionId() != INVALID_VERSIONID && version.GetSchemaVersionId() != DEFAULT_SCHEMAID) {
         PartitionPatchMeta patchMeta;
         patchMeta.Load(mDirectory, version.GetVersionId());
         PartitionPatchMeta::Iterator metaIter = patchMeta.CreateIterator();

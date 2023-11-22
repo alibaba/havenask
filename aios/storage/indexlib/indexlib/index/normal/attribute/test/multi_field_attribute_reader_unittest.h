@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIFIELDATTRIBUTEREADERTEST_H
-#define __INDEXLIB_MULTIFIELDATTRIBUTEREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -33,5 +32,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(MultiFieldAttributeReaderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(MultiFieldAttributeReaderTest, TestLazyLoad);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_MULTIFIELDATTRIBUTEREADERTEST_H

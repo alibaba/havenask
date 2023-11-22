@@ -1,6 +1,7 @@
-#include "build_service/common/Locator.h"
+#include <iosfwd>
 
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

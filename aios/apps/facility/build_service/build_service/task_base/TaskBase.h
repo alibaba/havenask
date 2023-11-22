@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TASKBASE_H
-#define ISEARCH_BS_TASKBASE_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/task_base/JobConfig.h"
 #include "build_service/util/Log.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 #include "kmonitor/client/MetricsReporter.h"
-#include "kmonitor_adapter/MonitorFactory.h"
+#include "kmonitor_adapter/Monitor.h"
 
 namespace build_service { namespace task_base {
 
@@ -83,5 +86,3 @@ private:
 };
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_TASKBASE_H

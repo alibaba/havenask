@@ -15,9 +15,20 @@
  */
 #include "build_service/admin/controlflow/TaskFactory.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/controlflow/TaskBase.h"
-#include "build_service/admin/taskcontroller/BuildServiceTask.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/proto/WorkerNode.h"
 
 using namespace std;
 using namespace autil;

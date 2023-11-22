@@ -401,8 +401,8 @@ TEST_F(AggKernelTest, testSimpleGlocal) {
 
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<double>(table, "avgA", {4.0 / 3, 3.5}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<double>(table, "avgB", {2, 1}));
-    ASSERT_EQ("avgB", table->getColumnName(0));
-    ASSERT_EQ("avgA", table->getColumnName(1));
+    ASSERT_EQ("avgB", table->getColumn(0)->getName());
+    ASSERT_EQ("avgA", table->getColumn(1)->getName());
     ASSERT_EQ(EC_NONE, tester.getErrorCode());
     ASSERT_EQ("", tester.getErrorMessage());
 }
@@ -681,9 +681,9 @@ TEST_F(AggKernelTest, testFinalize) {
         ASSERT_NO_FATAL_FAILURE(
             _matchDocUtil.extendMatchDocAllocator<int64_t>(_allocator, docs, "b", {1, 2, 1, 2, 2}));
         auto table = getTable(createTable(_allocator, docs));
-        ASSERT_EQ("id", table->getColumnName(0));
-        ASSERT_EQ("a", table->getColumnName(1));
-        ASSERT_EQ("b", table->getColumnName(2));
+        ASSERT_EQ("id", table->getColumn(0)->getName());
+        ASSERT_EQ("a", table->getColumn(1)->getName());
+        ASSERT_EQ("b", table->getColumn(2)->getName());
 
         aggLocal->_localAggregator._table = table;
         _naviRHelper.kernelConfig(R"json(
@@ -703,9 +703,9 @@ TEST_F(AggKernelTest, testFinalize) {
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "a", {3, 2, 4, 1, 1}));
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {1, 2, 3, 4, 5}));
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "b", {1, 2, 1, 2, 2}));
-        ASSERT_EQ("a", outputTable->getColumnName(0));
-        ASSERT_EQ("id", outputTable->getColumnName(1));
-        ASSERT_EQ("b", outputTable->getColumnName(2));
+        ASSERT_EQ("a", outputTable->getColumn(0)->getName());
+        ASSERT_EQ("id", outputTable->getColumn(1)->getName());
+        ASSERT_EQ("b", outputTable->getColumn(2)->getName());
         ASSERT_EQ("", provider.getErrorMessage());
     }
 }
@@ -723,9 +723,9 @@ TEST_F(AggKernelTest, testFinalizeProject) {
     ASSERT_NO_FATAL_FAILURE(
         _matchDocUtil.extendMatchDocAllocator<int64_t>(_allocator, docs, "b", {1, 2, 1, 2, 2}));
     auto table = getTable(createTable(_allocator, docs));
-    ASSERT_EQ("id", table->getColumnName(0));
-    ASSERT_EQ("a", table->getColumnName(1));
-    ASSERT_EQ("b", table->getColumnName(2));
+    ASSERT_EQ("id", table->getColumn(0)->getName());
+    ASSERT_EQ("a", table->getColumn(1)->getName());
+    ASSERT_EQ("b", table->getColumn(2)->getName());
     table->clearRows();
 
     aggLocal->_localAggregator._table = table;
@@ -746,9 +746,9 @@ TEST_F(AggKernelTest, testFinalizeProject) {
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "a", {}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "b", {}));
-    ASSERT_EQ("a", outputTable->getColumnName(0));
-    ASSERT_EQ("id", outputTable->getColumnName(1));
-    ASSERT_EQ("b", outputTable->getColumnName(2));
+    ASSERT_EQ("a", outputTable->getColumn(0)->getName());
+    ASSERT_EQ("id", outputTable->getColumn(1)->getName());
+    ASSERT_EQ("b", outputTable->getColumn(2)->getName());
     ASSERT_EQ("", provider.getErrorMessage());
 }
 
@@ -860,8 +860,8 @@ TEST_F(AggKernelTest, testAvgGlobal) {
     TableUtil::sort(table, &comparator);
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<double>(table, "avgA", {4.0 / 3, 7.0 / 2}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<double>(table, "avgB", {2, 1}));
-    ASSERT_EQ("avgB", table->getColumnName(0));
-    ASSERT_EQ("avgA", table->getColumnName(1));
+    ASSERT_EQ("avgB", table->getColumn(0)->getName());
+    ASSERT_EQ("avgA", table->getColumn(1)->getName());
 }
 
 TEST_F(AggKernelTest, testCountPartial) {
@@ -944,7 +944,7 @@ TEST_F(AggKernelTest, testCountGlobal) {
     ASSERT_EQ(1, table->getRowCount());
     ASSERT_EQ(1, table->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(table, "count", {5}));
-    ASSERT_EQ("count", table->getColumnName(0));
+    ASSERT_EQ("count", table->getColumn(0)->getName());
 }
 
 TEST_F(AggKernelTest, testIdentity) {

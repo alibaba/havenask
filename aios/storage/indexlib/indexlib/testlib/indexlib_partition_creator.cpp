@@ -1,11 +1,11 @@
 #include "indexlib/testlib/indexlib_partition_creator.h"
 
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/index_builder.h"
 #include "indexlib/partition/index_partition_resource.h"
 #include "indexlib/partition/online_partition.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/TaskScheduler.h"
 #include "indexlib/util/memory_control/MemoryQuotaController.h"
 #include "indexlib/util/memory_control/QuotaControl.h"

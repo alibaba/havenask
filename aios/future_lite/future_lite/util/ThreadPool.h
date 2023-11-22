@@ -213,8 +213,8 @@ private:
     std::vector<std::queue<WorkItem*> >_queue;
     std::vector<std::thread> _threads;
     mutable std::vector<ProducerConsumerCond>_cond;
-    volatile bool _push;
-    volatile bool _run;
+    std::atomic_bool _push;
+    std::atomic_bool _run;
     std::atomic<std::uint32_t>  _activeThreadCount;
 private:
     friend class ThreadPoolTest;

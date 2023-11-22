@@ -1,6 +1,6 @@
 package com.taobao.search.iquan.core.api.exception;
 
-public class DatabaseAlreadyExistException extends Exception{
+public class DatabaseAlreadyExistException extends Exception {
     private static final String MSG = "Database %s already exists in Catalog %s.";
 
     public DatabaseAlreadyExistException(String catalog, String database, Throwable cause) {

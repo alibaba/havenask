@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INCPARALLELBUILDEXCEPTIONTEST_H
-#define __INDEXLIB_INCPARALLELBUILDEXCEPTIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -36,5 +35,4 @@ private:
 };
 
 INDEXLIB_UNIT_TEST_CASE(IncParallelBuildExceptionTest, TestSimpleProcess);
-}}     // namespace indexlib::partition
-#endif //__INDEXLIB_INCPARALLELBUILDEXCEPTIONTEST_H
+}} // namespace indexlib::partition

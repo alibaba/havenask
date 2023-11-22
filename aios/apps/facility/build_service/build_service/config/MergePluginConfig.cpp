@@ -15,6 +15,8 @@
  */
 #include "build_service/config/MergePluginConfig.h"
 
+#include <iosfwd>
+
 #include "build_service/config/ConfigDefine.h"
 
 using namespace std;

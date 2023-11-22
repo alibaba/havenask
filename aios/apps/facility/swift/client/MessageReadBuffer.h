@@ -118,6 +118,7 @@ private:
                            uint16_t msgCount,
                            const char *dataPart,
                            size_t dataLen);
+    bool fillMessage();
 
 private:
     mutable autil::ThreadMutex _mutex;

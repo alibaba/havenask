@@ -4,12 +4,12 @@
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema_maker.h"
 #include "indexlib/config/primary_key_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/kkv/kkv_define.h"
 #include "indexlib/index/kv/kv_define.h"
 #include "indexlib/index_base/index_meta/index_format_version.h"
 #include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/index_define.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 

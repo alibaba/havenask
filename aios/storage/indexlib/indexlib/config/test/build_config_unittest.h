@@ -1,10 +1,8 @@
-#ifndef __INDEXLIB_BUILDCONFIGTEST_H
-#define __INDEXLIB_BUILDCONFIGTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/build_config.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -24,12 +22,10 @@ public:
     void TestEnvBuildTotalMem();
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(BuildConfigTest, TestJsonize);
 INDEXLIB_UNIT_TEST_CASE(BuildConfigTest, TestCheck);
 INDEXLIB_UNIT_TEST_CASE(BuildConfigTest, TestEnvBuildTotalMem);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_BUILDCONFIGTEST_H

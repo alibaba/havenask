@@ -89,6 +89,7 @@ private:
     bool getDecompressedResult(isearch::proto::QrsResponse *response,
                                std::string &decompressedResult);
     int64_t getTimeout() const;
+    bool allowDegradedAccess() const;
 
 private:
     RESOURCE_DEPEND_DECLARE_BASE(ScanBase);

@@ -15,10 +15,26 @@
  */
 #include "build_service/processor/Processor.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/Locator.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ProcessorChainSelectorConfig.h"
 #include "build_service/config/ProcessorConfig.h"
+#include "build_service/config/ProcessorInfo.h"
+#include "build_service/document/ClassifiedDocument.h"
 #include "build_service/processor/DocumentProcessorChainCreator.h"
 #include "build_service/processor/DocumentProcessorChainCreatorV2.h"
 #include "build_service/processor/MultiThreadProcessorWorkItemExecutor.h"
@@ -26,12 +42,17 @@
 #include "build_service/processor/ProcessorWorkItem.h"
 #include "build_service/processor/RegionDocumentProcessor.h"
 #include "build_service/processor/SingleThreadProcessorWorkItemExecutor.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/module_info.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/counter/CounterMap.h"
-#include "indexlib/util/metrics/Metric.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;
@@ -244,7 +265,7 @@ bool Processor::loadChainV2(const config::ProcessorConfigReaderPtr& resourceRead
         if (clusterNames.empty()) {
             continue;
         }
-        DocumentProcessorChainPtr chain = creator.create(newChainConfig[i], clusterNames);
+        DocumentProcessorChainPtr chain = creator.create(newChainConfig[i], clusterNames, kvMap);
         if (!chain) {
             string errorMsg =
                 string("Create processor chain for table: ") + ToJsonString(newChainConfig[i]) + " failed.";

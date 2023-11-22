@@ -1,25 +1,46 @@
 
 #include "build_service_tasks/endbuild/EndBuildTask.h"
 
-#include "autil/EnvUtil.h"
+#include <iosfwd>
+#include <memory>
+#include <stdint.h>
+#include <string>
+
 #include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
-#include "build_service/config/BuildRuleConfig.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
+#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/io/Input.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/task_base/Task.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
-#include "build_service/util/RangeUtil.h"
 #include "build_service_tasks/test/unittest.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/config/field_config.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/file_system/IndexFileList.h"
+#include "indexlib/config/module_info.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/index_base/index_meta/parallel_build_info.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/index_meta/version.h"
-#include "indexlib/index_base/index_meta/version_loader.h"
+#include "indexlib/index_base/segment/segment_data.h"
 #include "indexlib/merger/parallel_partition_data_merger.h"
 #include "indexlib/test/directory_creator.h"
-#include "indexlib/test/partition_state_machine.h"
 #include "indexlib/test/version_maker.h"
 #include "indexlib/util/EpochIdUtil.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

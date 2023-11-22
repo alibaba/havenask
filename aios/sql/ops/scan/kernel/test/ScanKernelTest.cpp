@@ -489,7 +489,6 @@ TEST_F(ScanKernelTest, testOutputExprsConstWithType) {
     runKernel(outputTable);
 
     ASSERT_TRUE(outputTable != NULL);
-    cout << outputTable->getMatchDocAllocator()->toDebugString() << endl;
     ASSERT_EQ(4, outputTable->getRowCount());
     auto column = outputTable->getColumn("$f0");
     ASSERT_TRUE(column != NULL);
@@ -552,7 +551,6 @@ TEST_F(ScanKernelTest, testOutputExprsConstWithType2) {
     TablePtr outputTable;
     runKernel(outputTable);
     ASSERT_TRUE(outputTable != NULL);
-    cout << outputTable->getMatchDocAllocator()->toDebugString() << endl;
     cout << outputTable->getTableSchema().toString() << endl;
 
     ASSERT_EQ(4, outputTable->getRowCount());
@@ -1966,8 +1964,8 @@ TEST_F(ScanKernelTest, testOutputWithSubDoc) {
     TablePtr outputTable;
     runKernel(outputTable);
     ASSERT_TRUE(outputTable != NULL);
-    ASSERT_EQ("sub_id", outputTable->getColumnName(0));
-    ASSERT_EQ("attr1", outputTable->getColumnName(1));
+    ASSERT_EQ("sub_id", outputTable->getColumn(0)->getName());
+    ASSERT_EQ("attr1", outputTable->getColumn(1)->getName());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "attr1", {0, 0, 1, 2}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "sub_id", {2, 3, 4, 5}));
 }
@@ -2010,8 +2008,8 @@ TEST_F(ScanKernelTest, testConditionWithSubDoc) {
     runKernel(outputTable);
 
     ASSERT_TRUE(outputTable != NULL);
-    ASSERT_EQ("sub_id", outputTable->getColumnName(1));
-    ASSERT_EQ("attr1", outputTable->getColumnName(0));
+    ASSERT_EQ("sub_id", outputTable->getColumn(1)->getName());
+    ASSERT_EQ("attr1", outputTable->getColumn(0)->getName());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "attr1", {0, 0, 1, 2}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "sub_id", {2, 3, 4, 5}));
 }

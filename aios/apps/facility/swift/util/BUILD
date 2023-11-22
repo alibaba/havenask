@@ -18,7 +18,7 @@ cc_library(
         '//aios/apps/facility/swift/common:swift_file_pair',
         '//aios/apps/facility/swift/filter:swift_filter',
         '//aios/apps/facility/swift/protocol:swift_protocol',
-        '//aios/network/arpc', '@snappy'
+        '//aios/hippo:hippo_sdk_header', '//aios/network/arpc', '@snappy'
     ]
 )
 cc_library(

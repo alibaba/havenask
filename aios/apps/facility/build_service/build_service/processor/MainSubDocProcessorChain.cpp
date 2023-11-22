@@ -15,6 +15,14 @@
  */
 #include "build_service/processor/MainSubDocProcessorChain.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "indexlib/document/extend_document/indexlib_extend_document.h"
+
 using namespace std;
 using namespace build_service::document;
 using namespace indexlib::document;

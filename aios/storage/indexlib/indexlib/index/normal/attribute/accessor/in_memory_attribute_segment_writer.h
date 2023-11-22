@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_IN_MEMORY_ATTRIBUTE_SEGMENT_WRITER_H
-#define __INDEXLIB_IN_MEMORY_ATTRIBUTE_SEGMENT_WRITER_H
+#pragma once
 
 #include <memory>
 #include <queue>
@@ -130,5 +129,3 @@ private:
 
 DEFINE_SHARED_PTR(InMemoryAttributeSegmentWriter);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_IN_MEMORY_ATTRIBUTE_SEGMENT_WRITER_H

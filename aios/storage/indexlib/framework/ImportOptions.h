@@ -15,21 +15,38 @@
  */
 #pragma once
 #include "autil/legacy/jsonizable.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
 
 namespace indexlibv2::framework {
 
 struct ImportExternalFileOptions : public autil::legacy::Jsonizable {
+    static constexpr const char* INDEX_MODE = "index_mode";
+    static constexpr const char* VERSION_MODE = "version_mode";
+
     void Jsonize(JsonWrapper& json) override
     {
         json.Jsonize("move_files", moveFiles, moveFiles);
         json.Jsonize("failed_move_fall_back_to_copy", failedMoveFallBackToCopy, failedMoveFallBackToCopy);
         json.Jsonize("import_behind", importBehind, importBehind);
         json.Jsonize("fail_if_not_bottom_most_level", failIfNotBottomMostLevel, failIfNotBottomMostLevel);
+        json.Jsonize("ignore_duplicate_files", ignoreDuplicateFiles, ignoreDuplicateFiles);
+        json.Jsonize("mode", mode, mode);
     }
+    bool IsValidMode() const
+    {
+        if (mode != INDEX_MODE && mode != VERSION_MODE) {
+            return false;
+        }
+        return true;
+    }
+
     bool moveFiles = false;
     bool failedMoveFallBackToCopy = true;
     bool importBehind = false;
     bool failIfNotBottomMostLevel = false;
+    bool ignoreDuplicateFiles = false;
+    std::string mode = INDEX_MODE;
 };
 
 class ImportOptions

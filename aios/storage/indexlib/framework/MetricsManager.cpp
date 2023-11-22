@@ -15,6 +15,9 @@
  */
 #include "indexlib/framework/MetricsManager.h"
 
+#include <assert.h>
+#include <utility>
+
 #include "indexlib/util/counter/CounterMap.h"
 #include "kmonitor/client/MetricsReporter.h"
 

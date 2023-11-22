@@ -15,6 +15,14 @@
  */
 #include "build_service/common/ResourceKeeper.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/ResourceKeeperCreator.h"
 
 using namespace std;

@@ -46,7 +46,6 @@
 #include "sql/framework/PushDownOp.h"
 #include "sql/ops/calc/CalcInitParamR.h"
 #include "sql/ops/join/JoinBase.h"
-#include "sql/ops/join/JoinInfoCollector.h"
 #include "sql/ops/scan/KVScanR.h"
 #include "sql/ops/scan/ScanBase.h"
 #include "sql/proto/SqlSearchInfoCollector.h"
@@ -98,43 +97,36 @@ void LeftMultiJoinKernel::def(navi::KernelDefBuilder &builder) const {
             BIND_RESOURCE_TO(_scanBase))
         .resourceConfigKey(ScanInitParamR::RESOURCE_ID, "build_node")
         .resourceConfigKey(CalcInitParamR::RESOURCE_ID, "build_node")
+        .resourceConfigKey(WatermarkR::RESOURCE_ID, "build_node")
         .jsonAttrs(R"json(
 {
     "kv_require_pk" : false,
     "kv_async" : false
 })json");
     ;
-    JoinKernelBase::addDepend(builder);
 }
 
-bool LeftMultiJoinKernel::config(navi::KernelConfigContext &ctx) {
-    if (!JoinKernelBase::config(ctx)) {
-        return false;
-    }
+bool LeftMultiJoinKernel::doConfig(navi::KernelConfigContext &ctx) {
     NAVI_JSONIZE(ctx, "right_table_meta", _rightTableMeta, _rightTableMeta);
     _rightTableMeta.extractIndexInfos(_rightIndexInfos);
     return true;
 }
 
-navi::ErrorCode LeftMultiJoinKernel::init(navi::KernelInitContext &context) {
-    auto ec = JoinKernelBase::init(context);
-    if (ec != navi::EC_NONE) {
-        return ec;
-    }
-    if (_leftJoinColumns.size() != 1 || _rightJoinColumns.size() != 1) {
+bool LeftMultiJoinKernel::doInit() {
+    if (_joinParamR->_leftJoinColumns.size() != 1 || _joinParamR->_rightJoinColumns.size() != 1) {
         SQL_LOG(ERROR,
                 "only support join one column, left join columns [%s], right join columns [%s]",
-                autil::StringUtil::toString(_leftJoinColumns).c_str(),
-                autil::StringUtil::toString(_rightJoinColumns).c_str());
-        return navi::EC_ABORT;
+                autil::StringUtil::toString(_joinParamR->_leftJoinColumns).c_str(),
+                autil::StringUtil::toString(_joinParamR->_rightJoinColumns).c_str());
+        return false;
     }
-    _joinColumnName = _leftJoinColumns[0];
+    _joinColumnName = _joinParamR->_leftJoinColumns[0];
     if (!checkIndexInfo()) {
-        SQL_LOG(ERROR, "right column [%s] need index", _rightJoinColumns[0].c_str());
-        return navi::EC_ABORT;
+        SQL_LOG(ERROR, "right column [%s] need index", _joinParamR->_rightJoinColumns[0].c_str());
+        return false;
     }
 
-    return navi::EC_NONE;
+    return true;
 }
 
 bool LeftMultiJoinKernel::checkIndexInfo() const {
@@ -144,7 +136,7 @@ bool LeftMultiJoinKernel::checkIndexInfo() const {
             && "primarykey128" != indexInfo.type) {
             continue;
         }
-        if (indexInfo.name == _rightJoinColumns[0]) {
+        if (indexInfo.name == _joinParamR->_rightJoinColumns[0]) {
             return true;
         }
     }
@@ -152,7 +144,7 @@ bool LeftMultiJoinKernel::checkIndexInfo() const {
 }
 
 navi::ErrorCode LeftMultiJoinKernel::compute(navi::KernelComputeContext &runContext) {
-    JoinInfoCollector::incComputeTimes(&_joinInfo);
+    _joinInfoR->incComputeTimes();
     uint64_t beginTime = autil::TimeUtility::currentTime();
     navi::PortIndex portIndex(0, navi::INVALID_INDEX);
     table::TablePtr inputTable;
@@ -171,12 +163,12 @@ navi::ErrorCode LeftMultiJoinKernel::compute(navi::KernelComputeContext &runCont
     }
 
     uint64_t endTime = autil::TimeUtility::currentTime();
-    JoinInfoCollector::incTotalTime(&_joinInfo, endTime - beginTime);
+    _joinInfoR->incTotalTime(endTime - beginTime);
 
     if (inputEof || (inputTable == nullptr || inputTable->getRowCount() == 0)) {
         eof = true;
     }
-    _sqlSearchInfoCollectorR->getCollector()->overwriteJoinInfo(_joinInfo);
+    _sqlSearchInfoCollectorR->getCollector()->overwriteJoinInfo(*_joinInfoR->_joinInfo);
     if (outputTable || eof) {
         TableDataPtr tableData(new TableData(outputTable));
         runContext.setOutput(portIndex, tableData, eof);
@@ -200,7 +192,7 @@ bool LeftMultiJoinKernel::doMultiJoin(const table::TablePtr &inputTable, table::
         return false;
     }
     uint64_t endUpdateQuery = TimeUtility::currentTime();
-    JoinInfoCollector::incRightUpdateQueryTime(&_joinInfo, endUpdateQuery - beginUpdateQuery);
+    _joinInfoR->incRightUpdateQueryTime(endUpdateQuery - beginUpdateQuery);
 
     TablePtr scanOutput;
     bool eof = false;
@@ -217,7 +209,7 @@ bool LeftMultiJoinKernel::doMultiJoin(const table::TablePtr &inputTable, table::
         }
         incTotalRightInputTable(streamOutput->getRowCount());
         uint64_t endScan = TimeUtility::currentTime();
-        JoinInfoCollector::incRightScanTime(&_joinInfo, endScan - beginScan);
+        _joinInfoR->incRightScanTime(endScan - beginScan);
 
         if (scanOutput == nullptr) {
             scanOutput = std::move(streamOutput);
@@ -232,7 +224,7 @@ bool LeftMultiJoinKernel::doMultiJoin(const table::TablePtr &inputTable, table::
         return false;
     }
     uint64_t afterJoin = TimeUtility::currentTime();
-    JoinInfoCollector::incJoinTime(&_joinInfo, afterJoin - beginJoin);
+    _joinInfoR->incJoinTime(afterJoin - beginJoin);
 
     return true;
 }
@@ -247,7 +239,7 @@ bool LeftMultiJoinKernel::joinAndGather(const table::TablePtr &leftTable,
     }
 
     std::unordered_map<size_t, size_t> hashJoinMap;
-    if (!createHashMap(rightTable, _rightJoinColumns, hashJoinMap)) {
+    if (!createHashMap(rightTable, _joinParamR->_rightJoinColumns, hashJoinMap)) {
         SQL_LOG(ERROR, "create hash map failed");
         return false;
     }
@@ -329,7 +321,6 @@ template <BuiltinType ft>
 bool setExpandColumnData(table::Column *oldColumn,
                          table::Column *newColumn,
                          const vector<vector<size_t>> &resultIndexes,
-                         autil::mem_pool::Pool *pool,
                          size_t rowCount) {
     typedef typename MatchDocBuiltinType2CppType<ft, false>::CppType T;
     typedef typename MatchDocBuiltinType2CppType<ft, true>::CppType TT;
@@ -350,9 +341,7 @@ bool setExpandColumnData(table::Column *oldColumn,
                     values.emplace_back(value.data(), value.size());
                 }
             }
-            char *buf = autil::MultiValueCreator::createMultiStringBuffer(values, pool);
-            autil::MultiString ms(buf);
-            newColumnData->set(j, ms);
+            newColumnData->set(j, values.data(), values.size());
         } else {
             vector<T> values;
             values.reserve(resultIndexes[j].size());
@@ -363,9 +352,7 @@ bool setExpandColumnData(table::Column *oldColumn,
                     values.push_back(columnData->get(idx));
                 }
             }
-            char *buf = autil::MultiValueCreator::createMultiValueBuffer<T>(values, pool);
-            autil::MultiValueType<T> mv(buf);
-            newColumnData->set(j, mv);
+            newColumnData->set(j, values.data(), values.size());
         }
     }
     return true;
@@ -375,13 +362,13 @@ bool LeftMultiJoinKernel::generateOutput(const table::TablePtr &leftTable,
                                          const table::TablePtr &rightTable,
                                          const vector<vector<size_t>> &resultIndexes,
                                          table::TablePtr &outputTable) {
-    size_t outputSize = _joinBaseParam._outputFields.size();
-    size_t leftSize = min(_joinBaseParam._leftInputFields.size(), outputSize);
+    size_t outputSize = _joinParamR->_outputFields.size();
+    size_t leftSize = min(_joinParamR->_leftInputFields.size(), outputSize);
     outputTable->batchAllocateRow(leftTable->getRowCount());
 
     for (size_t i = 0; i < leftSize; i++) {
-        const string &inputField = _joinBaseParam._leftInputFields[i];
-        const string &outputField = _joinBaseParam._outputFields[i];
+        const string &inputField = _joinParamR->_leftInputFields[i];
+        const string &outputField = _joinParamR->_outputFields[i];
         auto newColumn = outputTable->getColumn(outputField);
         if (newColumn == nullptr) {
             SQL_LOG(ERROR, "get output table column [%s] failed", outputField.c_str());
@@ -419,8 +406,8 @@ bool LeftMultiJoinKernel::generateOutput(const table::TablePtr &leftTable,
     }
 
     for (size_t i = leftSize; i < outputSize; i++) {
-        const string &inputField = _joinBaseParam._rightInputFields[i - leftSize];
-        const string &outputField = _joinBaseParam._outputFields[i];
+        const string &inputField = _joinParamR->_rightInputFields[i - leftSize];
+        const string &outputField = _joinParamR->_outputFields[i];
         auto newColumn = outputTable->getColumn(outputField);
         if (newColumn == nullptr) {
             SQL_LOG(ERROR, "get output table column [%s] failed", outputField.c_str());
@@ -442,12 +429,11 @@ bool LeftMultiJoinKernel::generateOutput(const table::TablePtr &leftTable,
             return false;
         }
 
-        auto pool = outputTable->getMatchDocAllocator()->getPool();
         switch (vt.getBuiltinType()) {
 #define CASE_MACRO(ft)                                                                             \
     case ft: {                                                                                     \
         if (!setExpandColumnData<ft>(                                                              \
-                tableColumn, newColumn, resultIndexes, pool, leftTable->getRowCount())) {          \
+                tableColumn, newColumn, resultIndexes, leftTable->getRowCount())) {                \
             return false;                                                                          \
         }                                                                                          \
         break;                                                                                     \
@@ -469,19 +455,19 @@ bool LeftMultiJoinKernel::createHashMap(const table::TablePtr &table,
                                         std::unordered_map<size_t, size_t> &hashJoinMap) {
     uint64_t beginHash = TimeUtility::currentTime();
 
-    HashValues values;
-    if (!getHashValues(table, 0, table->getRowCount(), joinColumns, values)) {
+    HashJoinMapR::HashValues values;
+    if (!_hashJoinMapR->getHashValues(table, 0, table->getRowCount(), joinColumns, values)) {
         return false;
     }
-    JoinInfoCollector::incRightHashCount(&_joinInfo, values.size());
+    _joinInfoR->incRightHashCount(values.size());
     uint64_t afterHash = TimeUtility::currentTime();
-    JoinInfoCollector::incHashTime(&_joinInfo, afterHash - beginHash);
+    _joinInfoR->incHashTime(afterHash - beginHash);
     for (const auto &valuePair : values) {
         hashJoinMap.insert({valuePair.second, valuePair.first});
     }
-    JoinInfoCollector::incHashMapSize(&_joinInfo, hashJoinMap.size());
+    _joinInfoR->incHashMapSize(hashJoinMap.size());
     uint64_t endHash = TimeUtility::currentTime();
-    JoinInfoCollector::incCreateTime(&_joinInfo, endHash - afterHash);
+    _joinInfoR->incCreateTime(endHash - afterHash);
     return true;
 }
 
@@ -489,32 +475,29 @@ bool LeftMultiJoinKernel::initJoinedTable(const table::TablePtr &leftTable,
                                           const table::TablePtr &rightTable,
                                           table::TablePtr &outputTable) {
     outputTable.reset(new table::Table(_graphMemoryPoolR->getPool()));
-    outputTable->mergeDependentPools(leftTable);
-    outputTable->mergeDependentPools(rightTable);
 
-    size_t outputSize = _joinBaseParam._outputFields.size();
-    size_t leftSize = min(_joinBaseParam._leftInputFields.size(), outputSize);
+    size_t outputSize = _joinParamR->_outputFields.size();
+    size_t leftSize = min(_joinParamR->_leftInputFields.size(), outputSize);
     for (size_t i = 0; i < leftSize; i++) {
-        const string &inputField = _joinBaseParam._leftInputFields[i];
-        const string &outputField = _joinBaseParam._outputFields[i];
-        if (!declearTableColumn(leftTable, outputTable, inputField, outputField, false)) {
+        const string &inputField = _joinParamR->_leftInputFields[i];
+        const string &outputField = _joinParamR->_outputFields[i];
+        if (!declairTableColumn(leftTable, outputTable, inputField, outputField, false)) {
             return false;
         }
     }
 
     for (size_t i = leftSize; i < outputSize; i++) {
-        const string &inputField = _joinBaseParam._rightInputFields[i - leftSize];
-        const string &outputField = _joinBaseParam._outputFields[i];
-        if (!declearTableColumn(rightTable, outputTable, inputField, outputField, true)) {
+        const string &inputField = _joinParamR->_rightInputFields[i - leftSize];
+        const string &outputField = _joinParamR->_outputFields[i];
+        if (!declairTableColumn(rightTable, outputTable, inputField, outputField, true)) {
             return false;
         }
     }
 
-    outputTable->endGroup();
     return true;
 }
 
-bool LeftMultiJoinKernel::declearTableColumn(const table::TablePtr &inputTable,
+bool LeftMultiJoinKernel::declairTableColumn(const table::TablePtr &inputTable,
                                              table::TablePtr &outputTable,
                                              const std::string &inputField,
                                              const std::string &outputField,

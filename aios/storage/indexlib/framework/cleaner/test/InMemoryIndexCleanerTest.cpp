@@ -29,7 +29,10 @@ public:
         // TODO(xiuchen) impl
         return 0;
     }
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override { return 0; }
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override
+    {
+        return {Status::OK(), 0};
+    }
 };
 
 class InMemoryIndexCleanerTest : public TESTBASE

@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RUNSCRIPTTASK_H
-#define ISEARCH_BS_RUNSCRIPTTASK_H
+#pragma once
+
+#include <memory>
+#include <stdint.h>
+#include <string>
 
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
 #include "build_service/common_define.h"
-#include "build_service/config/TaskConfig.h"
 #include "build_service/config/TaskTarget.h"
 #include "build_service/task_base/Task.h"
 #include "build_service/util/Log.h"
 #include "build_service_tasks/script_task/ScriptExecutor.h"
+#include "indexlib/util/counter/CounterMap.h"
 
 namespace build_service { namespace task_base {
 
@@ -78,5 +81,3 @@ private:
 BS_TYPEDEF_PTR(RunScriptTask);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_RUNSCRIPTTASK_H

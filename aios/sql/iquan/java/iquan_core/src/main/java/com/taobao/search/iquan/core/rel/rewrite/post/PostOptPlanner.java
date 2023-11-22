@@ -1,17 +1,20 @@
 package com.taobao.search.iquan.core.rel.rewrite.post;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSinkOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableModifyOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanValuesOp;
 import com.taobao.search.iquan.core.rel.visitor.relshuttle.IquanDistributeShuttle;
-import com.taobao.search.iquan.core.rel.visitor.relvisitor.ConventionValidateVisitor;
 import com.taobao.search.iquan.core.rel.visitor.relshuttle.ParallelOptimizeShuttle;
+import com.taobao.search.iquan.core.rel.visitor.relvisitor.ConventionValidateVisitor;
 import org.apache.calcite.rel.RelNode;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class PostOptPlanner {
     //private static final Logger logger = LoggerFactory.getLogger(PostOptPlanner.class);
@@ -32,7 +35,7 @@ public class PostOptPlanner {
         }
 
         //root = checkAndAddExchangeIfNotExist(root);
-        root = IquanDistributeShuttle.go(root, catalog, dbName, config);
+        root = IquanDistributeShuttle.go(root, catalog, config);
         if (checkEmptyValues(root)) {
             return new IquanSinkOp(
                     root.getCluster(),
@@ -43,7 +46,7 @@ public class PostOptPlanner {
 
         root = ParallelOptimizeShuttle.go(root);
 
-        return addSink(root, catalog, dbName, config);
+        return addSink(root, catalog, config);
     }
 
     private void checkConvention(RelNode node) {
@@ -51,7 +54,7 @@ public class PostOptPlanner {
         visitor.go(node);
         if (!visitor.isValid()) {
             throw new SqlQueryException(IquanErrorCode.IQUAN_EC_SQL_WORKFLOW_CONVERT_FAIL,
-                                        "RelNode optimize fail, SQL is not support.");
+                    "RelNode optimize fail, SQL is not support.");
         }
     }
 
@@ -107,12 +110,12 @@ public class PostOptPlanner {
     }
     */
 
-    private RelNode addSink(RelNode node, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    private RelNode addSink(RelNode node, GlobalCatalog catalog, IquanConfigManager config) {
         IquanRelNode iquanRelNode = new IquanSinkOp(
                 node.getCluster(),
                 node.getTraitSet(),
                 node
         );
-        return iquanRelNode.deriveDistribution(iquanRelNode.getInputs(), catalog, dbName, config);
+        return iquanRelNode.deriveDistribution(iquanRelNode.getInputs(), catalog, config);
     }
 }

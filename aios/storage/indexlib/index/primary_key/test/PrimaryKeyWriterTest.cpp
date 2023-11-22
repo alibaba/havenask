@@ -2,6 +2,7 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/framework/ResourceMap.h"
 #include "indexlib/framework/mock/FakeDiskSegment.h"
+#include "indexlib/framework/mock/FakeMemSegment.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IndexFactoryCreator.h"
 #include "indexlib/index/common/KeyHasherWrapper.h"
@@ -44,7 +45,7 @@ private:
     void CreateData(const std::string& pksStr);
 
     template <typename Key>
-    shared_ptr<framework::TabletData> CreateTabletData(const vector<int>& segIds);
+    shared_ptr<framework::TabletData> CreateTabletData(const vector<int>& segIds, bool needMemSegment = false);
     template <typename Key>
     shared_ptr<IIndexer> CreateDiskIndexer(const shared_ptr<indexlib::file_system::Directory>& directory,
                                            uint32_t docCount);
@@ -83,7 +84,7 @@ shared_ptr<IIndexer>
 PrimaryKeyWriterTest::CreateDiskIndexer(const shared_ptr<indexlib::file_system::Directory>& directory,
                                         uint32_t docCount)
 {
-    IndexerParameter parameter {.docCount = docCount};
+    DiskIndexerParameter parameter {.docCount = docCount};
     auto diskIndexer = make_shared<PrimaryKeyDiskIndexer<Key>>(parameter);
     auto status = diskIndexer->Open(_indexConfig, directory->GetIDirectory());
     assert(status.IsOK());
@@ -91,7 +92,7 @@ PrimaryKeyWriterTest::CreateDiskIndexer(const shared_ptr<indexlib::file_system::
 }
 
 template <typename Key>
-shared_ptr<framework::TabletData> PrimaryKeyWriterTest::CreateTabletData(const vector<int>& segIds)
+shared_ptr<framework::TabletData> PrimaryKeyWriterTest::CreateTabletData(const vector<int>& segIds, bool needMemSegment)
 {
     auto tabletData = make_shared<framework::TabletData>("pktest");
     std::shared_ptr<framework::ResourceMap> map(new framework::ResourceMap());
@@ -111,11 +112,30 @@ shared_ptr<framework::TabletData> PrimaryKeyWriterTest::CreateTabletData(const v
         segMeta.segmentInfo = segInfo;
         segMeta.segmentDir = segDir;
         auto segment = std::make_shared<framework::FakeDiskSegment>(segMeta);
-        auto pkDir = segDir->GetDirectory("index/" + _indexConfig->GetIndexName(), false);
+        auto pkDir = segDir->GetDirectory("index/", false);
         assert(pkDir);
         auto diskIndexer = CreateDiskIndexer<Key>(pkDir, segInfo->docCount);
         assert(diskIndexer);
         segment->AddIndexer(_indexConfig->GetIndexType(), _indexConfig->GetIndexName(), diskIndexer);
+        segments.push_back(segment);
+    }
+
+    if (needMemSegment) {
+        framework::SegmentMeta segMeta(110120);
+        auto segment = std::make_shared<framework::FakeMemSegment>(segMeta);
+        auto currentBuildDocId = std::make_shared<const docid64_t>(0);
+        auto memIndexer = std::make_shared<PrimaryKeyWriter<Key>>(nullptr, currentBuildDocId);
+        if (!memIndexer->Init(_indexConfig, nullptr).IsOK()) {
+            assert(false);
+            return nullptr;
+        }
+        Key primaryKey;
+        std::string field = "memIndexer";
+        indexlib::index::KeyHasherWrapper::GetHashKey(ft_string, pk_default_hash, field.data(), field.size(),
+                                                      primaryKey);
+        auto hashMap = (indexlib::util::HashMap<Key, docid_t>*)memIndexer->GetHashMap().get();
+        hashMap->FindAndInsert(primaryKey, 0);
+        segment->AddIndexer(_indexConfig->GetIndexType(), _indexConfig->GetIndexName(), memIndexer);
         segments.push_back(segment);
     }
     auto status = tabletData->Init(/*invalid version*/ framework::Version(), segments, map);
@@ -136,7 +156,7 @@ void PrimaryKeyWriterTest::TestInternal(PrimaryKeyIndexType indexType)
     CreateData<Key>(pksStr);
 
     std::vector<int> segments {0, 1, 2};
-    auto tabletData = CreateTabletData<Key>(segments);
+    auto tabletData = CreateTabletData<Key>(segments, true);
     ASSERT_TRUE(tabletData);
     PrimaryKeyReader<Key> reader(nullptr);
     ASSERT_TRUE(reader.Open(_indexConfig, tabletData.get()).IsOK());
@@ -232,5 +252,31 @@ TEST_F(PrimaryKeyWriterTest, TestBlockPrimaryKeyWriterUint128) { TestInternal<au
 
 TEST_F(PrimaryKeyWriterTest, TestSortedPrimaryKeyWriterUint64) { TestInternal<uint64_t>(pk_sort_array); }
 TEST_F(PrimaryKeyWriterTest, TestSortedPrimaryKeyWriterUint128) { TestInternal<autil::uint128_t>(pk_sort_array); }
+
+TEST_F(PrimaryKeyWriterTest, TestDocid64)
+{
+    using Key = uint64_t;
+    _indexConfig = CreateIndexConfig((Key)0, "pk", pk_hash_table);
+    ASSERT_TRUE(_indexConfig->GetInvertedIndexType() == it_primarykey64 ||
+                _indexConfig->GetInvertedIndexType() == it_primarykey128);
+
+    // Prepare build data
+    std::string pksStr("pkstr0:0,pkstr1:1,pkstr2:2,pkstr3:3,pkstr4:4;");
+    CreateData<Key>(pksStr);
+
+    std::vector<int> segments {0};
+    auto tabletData = CreateTabletData<Key>(segments, true);
+    ASSERT_TRUE(tabletData);
+    PrimaryKeyReader<Key> reader(nullptr);
+    ASSERT_TRUE(reader.Open(_indexConfig, tabletData.get()).IsOK());
+
+    ASSERT_FALSE(reader._segmentReaderList.empty());
+    ASSERT_FALSE(reader._buildingIndexReader->mInnerSegReaderItems.empty());
+
+    reader._segmentReaderList[0]._segmentPair.first = std::numeric_limits<docid_t>::max() - 1;
+    get<0>(reader._buildingIndexReader->mInnerSegReaderItems[0]) = 2147483651L;
+    ASSERT_EQ(2147483650L, reader.Lookup("pkstr4", nullptr));
+    ASSERT_EQ(2147483651L, reader.Lookup("memIndexer", nullptr));
+}
 
 } // namespace indexlibv2::index

@@ -15,12 +15,19 @@
  */
 #include "build_service/admin/CounterFileCollector.h"
 
-#include "autil/TimeUtility.h"
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "build_service/common/CounterFileSynchronizer.h"
 #include "build_service/common/CounterSynchronizer.h"
-#include "fslib/fslib.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
+#include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
-#include "indexlib/util/counter/Counter.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace autil;

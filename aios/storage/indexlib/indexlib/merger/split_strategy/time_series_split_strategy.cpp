@@ -15,8 +15,17 @@
  */
 #include "indexlib/merger/split_strategy/time_series_split_strategy.h"
 
+#include <algorithm>
+#include <cstddef>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/attribute_schema.h"
 #include "indexlib/config/field_type_traits.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_segment_reader.h"
+#include "indexlib/index/normal/attribute/accessor/offline_attribute_segment_reader_container.h"
+#include "indexlib/util/IoExceptionController.h"
 
 using namespace std;
 

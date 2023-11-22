@@ -15,7 +15,18 @@
  */
 #include "build_service/processor/EncodingConvertDocumentProcessor.h"
 
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/ConstString.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "indexlib/document/RawDocument.h"
 
 using namespace std;
 using namespace autil;

@@ -15,10 +15,17 @@
  */
 #include "build_service/task_base/BuildInTaskFactory.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "build_service/build_task/BuildTask.h"
 #include "build_service/general_task/GeneralTask.h"
 #include "build_service/io/FileOutput.h"
+#include "build_service/io/IODefine.h"
 #include "build_service/io/IndexlibIndexInput.h"
+#include "build_service/io/Input.h"
 #include "build_service/io/MultiFileOutput.h"
 #include "build_service/io/SwiftOutput.h"
 

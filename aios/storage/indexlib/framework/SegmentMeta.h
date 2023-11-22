@@ -16,8 +16,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
-#include "indexlib/base/Constant.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/framework/SegmentInfo.h"
 
@@ -34,7 +34,6 @@ class ITabletSchema;
 }
 
 namespace indexlibv2::framework {
-class SegmentInfo;
 
 struct SegmentMeta {
     SegmentMeta();

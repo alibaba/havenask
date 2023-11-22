@@ -15,12 +15,16 @@
  */
 #pragma once
 
-#include "build_service/common_define.h"
+#include <map>
+#include <stdint.h>
+#include <string>
+
 #include "build_service/config/DocReclaimSource.h"
 #include "build_service/util/Log.h"
-#include "build_service/util/Monitor.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/framework/index_task/IndexTaskContext.h"
 #include "indexlib/util/TaskItem.h"
+#include "indexlib/util/metrics/Metric.h"
 #include "swift/client/SwiftReader.h"
 
 namespace build_service { namespace common {

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CHUNK_DEFINE_H
-#define __INDEXLIB_CHUNK_DEFINE_H
+#pragma once
 
 #include <memory>
 
@@ -30,5 +29,3 @@ struct ChunkMeta {
 
 const uint64_t MAX_CHUNK_DATA_LEN = (size_t)(1 << 24) - 1;
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CHUNK_DEFINE_H

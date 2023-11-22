@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIORITYQUEUEMERGESTRATEGYTEST_H
-#define __INDEXLIB_PRIORITYQUEUEMERGESTRATEGYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/merge_strategy/priority_queue_merge_strategy.h"
@@ -60,5 +59,3 @@ INDEXLIB_UNIT_TEST_CASE(PriorityQueueMergeStrategyTest, TestMaxTotalMergeSize);
 INDEXLIB_UNIT_TEST_CASE(PriorityQueueMergeStrategyTest, TestMaxMergedSegmentSize);
 INDEXLIB_UNIT_TEST_CASE(PriorityQueueMergeStrategyTest, TestMaxTotalMergedSize);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PRIORITYQUEUEMERGESTRATEGYTEST_H

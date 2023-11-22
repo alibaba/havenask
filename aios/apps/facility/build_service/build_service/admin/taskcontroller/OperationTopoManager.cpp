@@ -15,6 +15,15 @@
  */
 #include "build_service/admin/taskcontroller/OperationTopoManager.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <google/protobuf/stubs/port.h>
+#include <type_traits>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/jsonizable.h"
+
 namespace build_service::admin {
 
 BS_LOG_SETUP(admin, OperationTopoManager);
@@ -149,14 +158,13 @@ void OperationTopoManager::finish(int64_t opId, std::string workerEpochId, std::
                 op->desc.add_dependworkerepochids(dependIter->second->finishedWorkerEpochId);
             }
             _executableOperations[op->desc.id()] = op->desc;
-            // TODO: check cyclic
         }
     }
 }
 
 void OperationTopoManager::cancelRunningOps()
 {
-    for (auto& [opId, opDef] : _opMap) {
+    for (const auto& [opId, opDef] : _opMap) {
         if (opDef->status == proto::OP_RUNNING) {
             opDef->status = proto::OP_PENDING;
             _executableOperations[opId] = opDef->desc;
@@ -164,9 +172,18 @@ void OperationTopoManager::cancelRunningOps()
     }
 }
 
-const std::map<int64_t, proto::OperationDescription>& OperationTopoManager::getCurrentExecutableOperations() const
+const std::map<int64_t, proto::OperationDescription>& OperationTopoManager::getNewExecutableOperations() const
 {
     return _executableOperations;
+}
+
+std::string OperationTopoManager::DebugString() const
+{
+    std::vector<std::pair<int64_t, int32_t>> ops;
+    for (const auto& [opId, opDef] : _opMap) {
+        ops.push_back(std::make_pair(opId, opDef->status));
+    }
+    return autil::legacy::ToJsonString(ops, /*isCompact=*/true);
 }
 
 } // namespace build_service::admin

@@ -2,7 +2,8 @@ load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 strict_cc_fast_test(
     name='KKVTableMergeInteTest',
     srcs=['KKVTableMergeInteTest.cpp'],
-    shard_count=30,
+    copts=['-fno-access-control'],
+    shard_count=3,
     deps=[
         '//aios/filesystem/fslib:fslib-framework',
         '//aios/storage/indexlib/base:Status',
@@ -30,7 +31,8 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='KKVIndexMergeOperationTest',
     srcs=['KKVIndexMergeOperationTest.cpp'],
-    shard_count=30,
+    copts=['-fno-access-control'],
+    shard_count=3,
     deps=[
         '//aios/filesystem/fslib:fslib-framework',
         '//aios/storage/indexlib/base:Status',

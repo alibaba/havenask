@@ -33,7 +33,7 @@ public class ExecMultiLookupJoinRule extends RelOptRule {
         IquanMultiJoinOp join = call.rel(0);
         RelNode left = call.rel(1);
         RelNode right = call.rel(2);
-        if (right instanceof IquanTableScanBase){
+        if (right instanceof IquanTableScanBase) {
             return true;
         }
         throw new RuntimeException("Right of IquanLeftMultiJoinOp must be " +

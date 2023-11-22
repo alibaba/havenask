@@ -1,5 +1,11 @@
 package com.taobao.search.iquan.core.rel.rules.logical;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.catalog.function.IquanStdOperatorTable;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptUtil;
@@ -16,9 +22,6 @@ import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.tools.RelBuilder;
 import org.immutables.value.Value;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Value.Enclosing
 public class IquanToIquanInNotIquanInRule extends RelRule<RelRule.Config> implements TransformationRule {
@@ -83,7 +86,7 @@ public class IquanToIquanInNotIquanInRule extends RelRule<RelRule.Config> implem
                     if (right instanceof RexLiteral) {
                         List<RexCall> updatedList = combineMap.getOrDefault(left.toString(), new ArrayList<>());
                         updatedList.add(call);
-                        combineMap.put(left.toString(),updatedList);
+                        combineMap.put(left.toString(), updatedList);
                     } else if (left instanceof RexLiteral) {
                         List<RexCall> updatedList = combineMap.getOrDefault(right.toString(), new ArrayList<>());
                         updatedList.add(call);
@@ -93,7 +96,7 @@ public class IquanToIquanInNotIquanInRule extends RelRule<RelRule.Config> implem
                     }
                 } else if (op == composedOp) {
                     List<RexNode> newRex = decomposedBy(node, composedOp);
-                    for (int i = 0 ; i < newRex.size(); ++i) {
+                    for (int i = 0; i < newRex.size(); ++i) {
                         RexNode node1 = convertToContainOrNotContain(relBuilder, newRex.get(i), inFlag);
                         if (node1 != null) {
                             beenConverted = true;
@@ -113,7 +116,7 @@ public class IquanToIquanInNotIquanInRule extends RelRule<RelRule.Config> implem
                 newOperands.add(rexNodes.get(0).getOperands().get(0));
                 newOperands.addAll(rexNodes.stream().map(v -> v.getOperands().get(1)).collect(Collectors.toList()));
                 SqlOperator op = IquanStdOperatorTable.IQUAN_IN;
-                RexNode newCall =  relBuilder.getRexBuilder().makeCall(op, newOperands);
+                RexNode newCall = relBuilder.getRexBuilder().makeCall(op, newOperands);
                 if (!inFlag) {
                     newCall = relBuilder.getRexBuilder().makeCall(SqlStdOperatorTable.NOT, newCall);
                 }

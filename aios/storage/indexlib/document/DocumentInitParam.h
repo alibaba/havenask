@@ -16,7 +16,6 @@
 #pragma once
 
 #include <map>
-#include <memory>
 #include <string>
 
 namespace indexlibv2::document {

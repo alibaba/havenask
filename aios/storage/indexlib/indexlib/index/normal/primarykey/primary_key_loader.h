@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIMARY_KEY_LOADER_H
-#define __INDEXLIB_PRIMARY_KEY_LOADER_H
+#pragma once
 
 #include <memory>
 
@@ -143,7 +142,7 @@ size_t PrimaryKeyLoader<Key>::EstimateLoadSize(const PrimaryKeyLoadPlanPtr& plan
     file_system::DirectoryPtr directory = plan->GetTargetFileDirectory();
     std::string targetFileName = plan->GetTargetFileName();
     // when last load version is invalid may be force reopen
-    if (lastLoadVersion != index_base::Version(INVALID_VERSION) && directory->IsExistInCache(targetFileName)) {
+    if (lastLoadVersion != index_base::Version(INVALID_VERSIONID) && directory->IsExistInCache(targetFileName)) {
         // already load
         return 0;
     }
@@ -197,5 +196,3 @@ PrimaryKeyLoader<Key>::GetPrimaryKeyDirectory(const file_system::DirectoryPtr& s
     return pkDirectory;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARY_KEY_LOADER_H

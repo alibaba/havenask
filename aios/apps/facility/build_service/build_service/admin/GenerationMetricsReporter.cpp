@@ -15,7 +15,13 @@
  */
 #include "build_service/admin/GenerationMetricsReporter.h"
 
+#include <cstddef>
+#include <string>
+
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "build_service/util/Monitor.h"
+#include "kmonitor/client/MetricLevel.h"
 
 using namespace std;
 using namespace autil;

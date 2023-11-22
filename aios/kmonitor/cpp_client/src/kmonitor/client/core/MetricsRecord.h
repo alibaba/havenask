@@ -40,7 +40,27 @@ private:
 };
 
 TYPEDEF_PTR(MetricsRecord);
-typedef std::vector<MetricsRecord *> MetricsRecords;
+
+class MetricsRecords {
+public:
+    MetricsRecords() {}
+    ~MetricsRecords() { clear(); }
+
+    MetricsRecords(const MetricsRecords &) = delete;
+    MetricsRecords &operator=(const MetricsRecords &) = delete;
+
+    MetricsRecords(MetricsRecords &&other) noexcept;
+    MetricsRecords &operator=(MetricsRecords &&other) noexcept;
+    void push_back(MetricsRecord *const &record) { records_.push_back(record); }
+    size_t size() const { return records_.size(); }
+    MetricsRecord *&at(size_t index) { return records_.at(index); }
+    MetricsRecord *const &at(size_t index) const { return records_.at(index); }
+    void clear();
+    const std::vector<MetricsRecord *> &getRecords() const { return records_; }
+
+private:
+    std::vector<MetricsRecord *> records_;
+};
 
 END_KMONITOR_NAMESPACE(kmonitor);
 

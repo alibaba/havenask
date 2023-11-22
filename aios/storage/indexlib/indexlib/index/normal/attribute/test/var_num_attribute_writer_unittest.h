@@ -1,5 +1,4 @@
-#ifndef __VAR_NUM_ATTRIBUTE_WRITER_UNITTEST_H_
-#define __VAR_NUM_ATTRIBUTE_WRITER_UNITTEST_H_
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common/field_format/attribute/attribute_convertor_factory.h"
@@ -178,5 +177,3 @@ VarNumAttributeWriter<T>* VarNumAttributeWriterTest::PrepareWriter(bool isUniq,
     return writer;
 }
 }} // namespace indexlib::index
-
-#endif //__VAR_NUM_ATTRIBUTE_WRITER_UNITTEST_H_

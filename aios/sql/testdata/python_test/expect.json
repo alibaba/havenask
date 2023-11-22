@@ -1,101 +1,105 @@
 {
-    "version": 0,
+    "biz_config": {},
+    "engine_config": {
+        "builtin_task_queue": {
+            "processing_size": 300,
+            "queue_size": 1000,
+            "thread_num": 0
+        },
+        "extra_task_queue": {}
+    },
     "log_config": {
         "file_appenders": [
             {
+                "bt_filters": [],
                 "file_name": "logs/navi.log",
-                "log_level": "info",
-                "bt_filters": []
+                "log_level": "info"
             }
         ]
     },
-    "engine_config": {
-        "thread_num": 0,
-        "queue_size": 1000
-    },
     "modules": [],
-    "biz_config": {},
     "resource_config": [
         {
-            "name": "navi.buildin.gig_client",
             "config": {
+                "flow_config": {},
                 "init_config": {
+                    "connection_config": {
+                        "arpc": {
+                            "queue_size": 1000,
+                            "thread_num": 20
+                        },
+                        "grpc_stream": {
+                            "queue_size": 1000,
+                            "thread_num": 20
+                        }
+                    },
+                    "misc_config": {},
                     "subscribe_config": {
                         "local": [
                             {
-                                "part_count": 1,
                                 "biz_name": "simple.default",
-                                "tcp_port": 39159,
-                                "version": 1330419427,
+                                "ip": "11.160.225.20",
+                                "part_count": 1,
                                 "part_id": 0,
-                                "ip": "11.160.225.20"
+                                "tcp_port": 39159,
+                                "version": 1330419427
                             },
                             {
-                                "part_count": 1,
                                 "biz_name": "simple.para_search_4",
-                                "tcp_port": 39159,
-                                "version": 1330419427,
+                                "ip": "11.160.225.20",
+                                "part_count": 1,
                                 "part_id": 0,
-                                "ip": "11.160.225.20"
+                                "tcp_port": 39159,
+                                "version": 1330419427
                             },
                             {
-                                "part_count": 1,
                                 "biz_name": "simple.default_agg",
-                                "tcp_port": 39159,
-                                "version": 1330419427,
+                                "ip": "11.160.225.20",
+                                "part_count": 1,
                                 "part_id": 0,
-                                "ip": "11.160.225.20"
+                                "tcp_port": 39159,
+                                "version": 1330419427
                             },
                             {
-                                "part_count": 1,
                                 "biz_name": "simple.para_search_2",
-                                "tcp_port": 39159,
-                                "version": 1330419427,
+                                "ip": "11.160.225.20",
+                                "part_count": 1,
                                 "part_id": 0,
-                                "ip": "11.160.225.20"
+                                "tcp_port": 39159,
+                                "version": 1330419427
                             },
                             {
-                                "part_count": 1,
                                 "biz_name": "simple.default_sql",
-                                "tcp_port": 39159,
-                                "version": 1330419427,
+                                "ip": "11.160.225.20",
+                                "part_count": 1,
                                 "part_id": 0,
-                                "ip": "11.160.225.20"
+                                "tcp_port": 39159,
+                                "version": 1330419427
                             }
                         ]
-                    },
-                    "misc_config": {},
-                    "connection_config": {
-                        "grpc_stream": {
-                            "thread_num": 20,
-                            "queue_size": 1000
-                        },
-                        "arpc": {
-                            "thread_num": 20,
-                            "queue_size": 1000
-                        }
                     }
-                },
-                "flow_config": {}
-            }
+                }
+            },
+            "name": "navi.buildin.gig_client"
         },
         {
-            "name": "suez_navi.health_check_rpc_r",
             "config": {
-                "kernel_name": "suez_navi.health_check_k",
+                "biz_part_info_map": {},
                 "cm2_http_alias": [
                     "/SearchService/cm2_status",
                     "/SearchService/vip_status",
                     "/status_check",
                     "/QrsService/cm2_status"
                 ],
-                "biz_part_info_map": {}
-            }
+                "kernel_name": "suez_navi.health_check_k"
+            },
+            "name": "suez_navi.health_check_rpc_r"
         }
     ],
     "resource_list": [
         "suez_navi.health_check_rpc_r",
         "sql.sql_rpc.r"
     ],
-    "sleep_before_update_us": 0
+    "sleep_before_update_us": 0,
+    "version": 0
 }

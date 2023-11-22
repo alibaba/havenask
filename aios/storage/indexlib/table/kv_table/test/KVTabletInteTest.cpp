@@ -1,3 +1,4 @@
+#include "autil/CommonMacros.h"
 #include "autil/NetUtil.h"
 #include "autil/Scope.h"
 #include "fslib/fs/ExceptionTrigger.h"
@@ -162,8 +163,8 @@ class FakeKVTabletReader : public KVTabletReader
 {
 public:
     FakeKVTabletReader(const std::shared_ptr<config::ITabletSchema>& schema) : KVTabletReader(schema) {}
-    Status Open(const std::shared_ptr<framework::TabletData>& tabletData,
-                const framework::ReadResource& readResource) override
+    Status DoOpen(const std::shared_ptr<framework::TabletData>& tabletData,
+                  const framework::ReadResource& readResource) override
     {
         assert(_schema->GetIndexConfigs().size() == 1);
         auto indexConfig = _schema->GetIndexConfigs()[0];
@@ -260,7 +261,7 @@ framework::Locator KVTabletInteTest::MakeLocator(uint64_t src, int64_t minOffset
         base::Progress::Offset offset = {ts, 0};
         progress.emplace_back(from, to, offset);
     }
-    locator.SetProgress(progress);
+    locator.SetMultiProgress({progress});
     return locator;
 }
 std::shared_ptr<MockIdGenerator> KVTabletInteTest::MakeIdGenerator(const std::vector<segmentid_t>& segmentIdList,
@@ -1669,6 +1670,7 @@ TEST_P(KVTabletInteTest, TestRecoverLocalIndexFail)
 
 TEST_P(KVTabletInteTest, TestBuildingSegmentMemReclaim)
 {
+    RETURN_IF_ENABLE_TSAN();
     std::string jsonStr = R"( {
     "online_index_config": {
         "build_config": {

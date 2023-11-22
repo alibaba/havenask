@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OBSOLETE_DOC_RECLAIMER_H
-#define __INDEXLIB_OBSOLETE_DOC_RECLAIMER_H
+#pragma once
 
-#include <memory>
+#include <stddef.h>
+#include <stdint.h>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/index/normal/attribute/accessor/single_value_data_iterator.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 #include "indexlib/util/metrics/Monitor.h"
 
@@ -58,5 +59,3 @@ private:
 
 DEFINE_SHARED_PTR(ObsoleteDocReclaimer);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_OBSOLETE_DOC_RECLAIMER_H

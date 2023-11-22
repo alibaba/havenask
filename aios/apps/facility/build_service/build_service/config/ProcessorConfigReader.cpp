@@ -15,8 +15,13 @@
  */
 #include "build_service/config/ProcessorConfigReader.h"
 
+#include <iosfwd>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/SrcNodeConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/RangeUtil.h"
 
 using namespace std;

@@ -15,6 +15,7 @@
  */
 #include "indexlib/file_system/archive/LineReader.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 
@@ -52,7 +53,9 @@ bool LineReader::NextLine(string& line, ErrorCode& ec) noexcept
     while (true) {
         if (_cursor == _size) {
             _cursor = 0;
-            std::tie(ec, _size) = _fileReader->Read(_buf, DEFAULT_BUFFER_SIZE).CodeWith();
+            uint32_t readSize =
+                std::min((int64_t)DEFAULT_BUFFER_SIZE, (int64_t)_fileReader->GetLength() - _fileReader->Tell());
+            std::tie(ec, _size) = _fileReader->Read(_buf, readSize).CodeWith();
             if (unlikely(ec != FSEC_OK)) {
                 return false;
             }

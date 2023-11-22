@@ -15,6 +15,8 @@
  */
 #include "build_service/util/StatisticUtil.h"
 
+#include <cstdint>
+
 namespace build_service { namespace util {
 
 // Walker M L, Dovoedo Y H, Chakraborti S, et al. An improved boxplot for univariate data[J]. The American Statistician,

@@ -46,7 +46,7 @@
 #include "indexlib/table/normal_table/index_task/merger/AdaptiveMergeStrategy.h"
 #include "indexlib/table/normal_table/index_task/merger/BalanceTreeMergeStrategy.h"
 #include "indexlib/table/normal_table/index_task/merger/CombinedMergeStrategy.h"
-#include "indexlib/table/normal_table/index_task/merger/OptimizeMergeStrategy.h"
+#include "indexlib/table/normal_table/index_task/merger/NormalTabletOptimizeMergeStrategy.h"
 #include "indexlib/table/normal_table/index_task/merger/PriorityQueueMergeStrategy.h"
 
 using namespace std;
@@ -57,8 +57,9 @@ AUTIL_LOG_SETUP(indexlib.table, NormalTableCompactPlanCreator);
 const std::string NormalTableCompactPlanCreator::TASK_TYPE = MERGE_TASK_TYPE;
 
 NormalTableCompactPlanCreator::NormalTableCompactPlanCreator(const std::string& taskName,
+                                                             const std::string& taskTraceId,
                                                              const std::map<std::string, std::string>& params)
-    : SimpleIndexTaskPlanCreator(taskName, params)
+    : SimpleIndexTaskPlanCreator(taskName, taskTraceId, params)
 {
 }
 
@@ -154,7 +155,7 @@ std::pair<std::string, std::unique_ptr<MergeStrategy>>
 NormalTableCompactPlanCreator::CreateCompactStrategy(const std::string& mergeStrategyName, bool isOptimizeMerge)
 {
     if (mergeStrategyName == MergeStrategyDefine::OPTIMIZE_MERGE_STRATEGY_NAME or isOptimizeMerge) {
-        return {NORMAL_TABLE_MERGE_TYPE, std::make_unique<OptimizeMergeStrategy>()};
+        return {NORMAL_TABLE_MERGE_TYPE, std::make_unique<NormalTabletOptimizeMergeStrategy>()};
     }
     if (mergeStrategyName == MergeStrategyDefine::COMBINED_MERGE_STRATEGY_NAME) {
         auto strategy = std::make_unique<PriorityQueueMergeStrategy>();

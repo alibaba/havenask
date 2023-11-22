@@ -7,7 +7,7 @@ strict_cc_fast_test(
     name='package_unittest',
     srcs=[
         'DirectoryMergerTest.cpp', 'PackageDiskStorageTest.cpp',
-        'PackageMemStorageTest.cpp', 'PackageFileMetaTest.cpp',
+        'PackageFileMetaTest.cpp', 'PackageMemStorageTest.cpp',
         'VersionedPackageFileMetaTest.cpp'
     ],
     copts=['-fno-access-control'],
@@ -20,6 +20,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='PackageFileTagConfigListTest',
     srcs=['PackageFileTagConfigListTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/file_system/package',
         '//aios/storage/indexlib/file_system/test:test-util',
@@ -29,6 +30,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='MergePackageUtilTest',
     srcs=['MergePackageUtilTest.cpp'],
+    copts=['-fno-access-control'],
     data=glob(['testdata/**']),
     deps=[
         ':PackageTestUtil', '//aios/storage/indexlib/file_system/package',

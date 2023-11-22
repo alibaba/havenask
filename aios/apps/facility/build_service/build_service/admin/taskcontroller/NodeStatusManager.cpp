@@ -16,7 +16,10 @@
 #include "build_service/admin/taskcontroller/NodeStatusManager.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <vector>
+
+#include "autil/legacy/fast_jsonizable_dec.h"
 
 using namespace std;
 

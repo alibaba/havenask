@@ -69,6 +69,7 @@ public:
     bool NeedDump() const override;
     std::pair<Status, std::vector<std::shared_ptr<framework::SegmentDumpItem>>> CreateSegmentDumpItems() override;
     void EndDump() override;
+    void ValidateDocumentBatch(document::IDocumentBatch* batch) const override;
     void Seal() override;
     bool IsDirty() const override;
     void CollectSegmentDescription(const std::shared_ptr<framework::SegmentDescriptions>& segDescs) override;

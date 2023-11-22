@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_UPDATABLEVARNUMATTRIBUTEDATAFORMATTERTEST_H
-#define __INDEXLIB_UPDATABLEVARNUMATTRIBUTEDATAFORMATTERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/attribute_config.h"
@@ -39,5 +38,3 @@ INDEXLIB_UNIT_TEST_CASE(VarNumAttributeDataFormatterTest, TestGetNormalAttrDataL
 INDEXLIB_UNIT_TEST_CASE(VarNumAttributeDataFormatterTest, TestGetNormalEncodeFloatAttrDataLength);
 INDEXLIB_UNIT_TEST_CASE(VarNumAttributeDataFormatterTest, TestGetMultiStringAttrDataLength);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_UPDATABLEVARNUMATTRIBUTEDATAFORMATTERTEST_H

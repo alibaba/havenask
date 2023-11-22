@@ -39,12 +39,11 @@ namespace sql {
 const std::string ScanInitParamR::RESOURCE_ID = "scan_init_param_r";
 
 ScanInitParamR::ScanInitParamR()
-    : targetWatermark(0)
-    , targetWatermarkType(WatermarkType::WM_TYPE_DISABLED)
-    , batchSize(0)
+    : batchSize(0)
     , limit(std::numeric_limits<uint32_t>::max())
     , parallelNum(1)
     , parallelIndex(0)
+    , parallelBlockCount(PARALLEL_DEFAULT_BLOCK_COUNT)
     , opId(-1)
     , reserveMaxCount(0)
     , opScope("default") {}
@@ -57,8 +56,8 @@ void ScanInitParamR::def(navi::ResourceDefBuilder &builder) const {
 
 bool ScanInitParamR::config(navi::ResourceConfigContext &ctx) {
     try {
-        NAVI_JSONIZE(ctx, "parallel_num", parallelNum, parallelNum);
-        NAVI_JSONIZE(ctx, "parallel_index", parallelIndex, parallelIndex);
+        NAVI_JSONIZE(ctx, PARALLEL_NUM_ATTR, parallelNum, parallelNum);
+        NAVI_JSONIZE(ctx, PARALLEL_INDEX_ATTR, parallelIndex, parallelIndex);
         if (0 == parallelNum || parallelIndex >= parallelNum) {
             SQL_LOG(ERROR,
                     "illegal parallel param:parallelNum[%u],parallelIndex[%u]",
@@ -73,8 +72,6 @@ bool ScanInitParamR::config(navi::ResourceConfigContext &ctx) {
         NAVI_JSONIZE(ctx, "table_type", tableType);
         NAVI_JSONIZE(ctx, "db_name", dbName, dbName);
         NAVI_JSONIZE(ctx, "catalog_name", catalogName, catalogName);
-        NAVI_JSONIZE(ctx, SCAN_TARGET_WATERMARK, targetWatermark, targetWatermark);
-        NAVI_JSONIZE(ctx, SCAN_TARGET_WATERMARK_TYPE, targetWatermarkType, targetWatermarkType);
         NAVI_JSONIZE(ctx, "use_nest_table", useNest, useNest);
         NAVI_JSONIZE(ctx, "nest_table_attrs", nestTableAttrs, nestTableAttrs);
         NAVI_JSONIZE(ctx, "batch_size", batchSize, batchSize);
@@ -102,6 +99,7 @@ bool ScanInitParamR::config(navi::ResourceConfigContext &ctx) {
             return false;
         }
         NAVI_JSONIZE(ctx, "used_fields", usedFields, usedFields);
+        NAVI_JSONIZE(ctx, "used_fields_type", usedFieldsType, usedFieldsType);
 
         if (ctx.hasKey("aggregation_index_name")) {
             NAVI_JSONIZE(ctx, "aggregation_index_name", aggIndexName, aggIndexName);
@@ -203,6 +201,11 @@ void ScanInitParamR::patchHintInfo() {
     if (fromHint(hints, "batchSize", localBatchSize) && localBatchSize > 0) {
         batchSize = localBatchSize;
     }
+    uint32_t parallelBlockCountFromHint = 0;
+    if (fromHint(hints, PARALLEL_BLOCK_COUNT_ATTR, parallelBlockCountFromHint)
+        && parallelBlockCountFromHint > 0) {
+        parallelBlockCount = parallelBlockCountFromHint;
+    }
 }
 
 bool ScanInitParamR::isRemoteScan(
@@ -270,20 +273,20 @@ void ScanInitParamR::incTotalTime(int64_t time) {
     scanInfo.set_totalusetime(scanInfo.totalusetime() + time);
 }
 
-void ScanInitParamR::incTotalScanCount(int64_t count) {
-    scanInfo.set_totalscancount(scanInfo.totalscancount() + count);
-}
-
-void ScanInitParamR::incTotalSeekCount(int64_t count) {
-    scanInfo.set_totalseekcount(scanInfo.totalseekcount() + count);
-}
-
 void ScanInitParamR::incTotalOutputCount(int64_t count) {
     scanInfo.set_totaloutputcount(scanInfo.totaloutputcount() + count);
 }
 
-void ScanInitParamR::setTotalSeekCount(int64_t count) {
-    scanInfo.set_totalseekcount(count);
+void ScanInitParamR::setTotalScanCount(int64_t count) {
+    scanInfo.set_totalscancount(count);
+}
+
+void ScanInitParamR::setTotalSeekedCount(int64_t count) {
+    scanInfo.set_totalseekedcount(count);
+}
+
+void ScanInitParamR::setTotalWholeDocCount(int64_t count) {
+    scanInfo.set_totalwholedoccount(count);
 }
 
 void ScanInitParamR::updateDurationTime(int64_t time) {

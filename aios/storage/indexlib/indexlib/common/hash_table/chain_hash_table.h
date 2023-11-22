@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CHAIN_HASH_TABLE_H
-#define __INDEXLIB_CHAIN_HASH_TABLE_H
+#pragma once
 
 #include "indexlib/common/hash_table/closed_hash_table_iterator.h"
 #include "indexlib/common/hash_table/closed_hash_table_traits.h"
@@ -267,5 +266,3 @@ inline uint64_t ChainHashTable<_KT, _VT>::MemoryUse() const
     return mItemCount * sizeof(Item) + mBucketCount * sizeof(Bucket) + sizeof(HashTableHeader);
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CHAIN_HASH_TABLE_H

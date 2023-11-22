@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEGMENTATTRIBUTEUPDATERTEST_H
-#define __INDEXLIB_SEGMENTATTRIBUTEUPDATERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/framework/SegmentMetrics.h"
@@ -57,5 +56,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(SegmentMetricsUpdaterTestMode, TestLifecycleS
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(SegmentMetricsUpdaterTestMode, TestLifecycleForEmptyOutputSegment);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(SegmentMetricsUpdaterTestMode, TestLifecycleFromEmptyMetrics);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SEGMENTATTRIBUTEUPDATERTEST_H

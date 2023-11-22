@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_IO_CONFIG_H
-#define __INDEXLIB_MERGE_IO_CONFIG_H
+#pragma once
 
 #include <memory>
 
-#include "indexlib/common_define.h"
 #include "indexlib/file_system/fslib/IoConfig.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
 using MergeIOConfig = file_system::IOConfig;
 using MergeIOConfigPtr = std::shared_ptr<MergeIOConfig>;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_MERGE_IO_CONFIG_H

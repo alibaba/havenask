@@ -15,13 +15,13 @@
  */
 #pragma once
 
-#include "indexlib/index/ann/aitheta2/CommonDefine.h"
-#include "indexlib/index/ann/aitheta2/AithetaFilterCreator.h"
+#include "aios/storage/indexlib/index/ann/aitheta2/proto/AithetaQuery.pb.h"
 #include "indexlib/index/ann/aitheta2/AithetaAuxSearchInfoBase.h"
+#include "indexlib/index/ann/aitheta2/AithetaFilterCreator.h"
+#include "indexlib/index/ann/aitheta2/CommonDefine.h"
 #include "indexlib/index/ann/aitheta2/impl/Segment.h"
 #include "indexlib/index/ann/aitheta2/util/MetricReporter.h"
 #include "indexlib/index/ann/aitheta2/util/ResultHolder.h"
-#include "aios/storage/indexlib/index/ann/aitheta2/proto/AithetaQuery.pb.h"
 
 namespace indexlibv2::index::ann {
 
@@ -39,7 +39,8 @@ public:
 public:
     virtual bool Init(const SegmentPtr& segment, docid_t segmentBaseDocId,
                       const std::shared_ptr<AithetaFilterCreatorBase>& creator) = 0;
-    bool Search(const AithetaQueries& query, const std::shared_ptr<AithetaAuxSearchInfoBase>& searchInfo, ResultHolder& holder);
+    bool Search(const AithetaQueries& query, const std::shared_ptr<AithetaAuxSearchInfoBase>& searchInfo,
+                ResultHolder& holder);
 
 protected:
     void InitSearchMetrics();

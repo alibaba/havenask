@@ -15,9 +15,16 @@
  */
 #include "indexlib/merger/sorted_index_partition_merger.h"
 
-#include "indexlib/document/locator.h"
+#include <cstddef>
+#include <memory>
+
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/merge_config.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/merger_util/reclaim_map/reclaim_map_creator.h"
 #include "indexlib/index/merger_util/reclaim_map/sorted_reclaim_map_creator.h"
-#include "indexlib/index_base/index_meta/partition_meta.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
 #include "indexlib/plugin/plugin_manager.h"
 
 using namespace std;

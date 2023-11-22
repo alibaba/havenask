@@ -3,8 +3,8 @@
 #include "autil/ConstString.h"
 #include "autil/StringUtil.h"
 #include "indexlib/common/chunk/chunk_strategy.h"
+#include "indexlib/config/test/region_schema_maker.h"
 #include "indexlib/index/kkv/normal_kkv_data_dumper.h"
-#include "indexlib/test/region_schema_maker.h"
 #include "indexlib/util/SimplePool.h"
 
 using namespace std;

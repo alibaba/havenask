@@ -63,7 +63,6 @@ navi::ErrorCode ScanR::init(navi::ResourceInitContext &ctx) {
     const auto &sqlConfig = _sqlConfigResource->getSqlConfig();
     scanConfig.enableScanTimeout = sqlConfig.enableScanTimeout;
     scanConfig.asyncScanConcurrency = sqlConfig.asyncScanConcurrency;
-    scanConfig.targetWatermarkTimeoutRatio = sqlConfig.targetWatermarkTimeoutRatio;
     kernelPoolPtr = graphMemoryPoolR->getPool();
     return navi::EC_NONE;
 }

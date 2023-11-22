@@ -37,4 +37,4 @@ public:
         return option;
     }
 };
-}
+} // namespace indexlibv2::index

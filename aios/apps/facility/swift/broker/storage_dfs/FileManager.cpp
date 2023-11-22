@@ -25,6 +25,7 @@
 #include "autil/TimeUtility.h"
 #include "ext/alloc_traits.h"
 #include "fslib/fs/FileSystem.h"
+#include "swift/monitor/BrokerMetricsReporter.h"
 #include "swift/protocol/ErrCode.pb.h"
 #include "swift/util/FileManagerUtil.h"
 #include "swift/util/PanguInlineFileUtil.h"
@@ -32,6 +33,7 @@
 using namespace std;
 using namespace fslib::fs;
 using namespace autil;
+using namespace swift::monitor;
 using namespace swift::protocol;
 using namespace swift::util;
 
@@ -39,7 +41,7 @@ namespace swift {
 namespace storage {
 AUTIL_LOG_SETUP(swift, FileManager);
 
-FileManager::FileManager() : _lastDelFileTime(0) {}
+FileManager::FileManager() : _lastDelFileTime(0), _usedDfsSizeSynced(false), _usedDfsSize(0) {}
 FileManager::~FileManager() {}
 
 int64_t FileManager::getLastMessageId() const {
@@ -192,6 +194,41 @@ protocol::ErrorCode FileManager::initForReadOnly(const string &dataPath, const v
         return errorCode;
     }
     return ERROR_NONE;
+}
+
+void FileManager::syncDfsUsedSize(FileManagerMetricsCollector &collector) {
+    if (_usedDfsSizeSynced) {
+        return;
+    }
+    StageTime stageTime;
+    fslib::PathMeta pathMeta;
+    fslib::ErrorCode ec = FileSystem::getPathMeta(_dataPath, pathMeta);
+    if (ec != fslib::EC_OK) {
+        AUTIL_LOG(ERROR,
+                  "get path meta[%s] failed, fslib error[%d %s]",
+                  _dataPath.c_str(),
+                  ec,
+                  FileSystem::getErrorString(ec).c_str());
+        return;
+    }
+    int64_t dfsSize = pathMeta.length;
+    for (const std::string &extendFile : _extendDataPathVec) {
+        ec = FileSystem::getPathMeta(extendFile, pathMeta);
+        if (ec != fslib::EC_OK) {
+            AUTIL_LOG(ERROR,
+                      "get path meta[%s] failed, fslib error[%d %s]",
+                      extendFile.c_str(),
+                      ec,
+                      FileSystem::getErrorString(ec).c_str());
+            return;
+        }
+        dfsSize += pathMeta.length;
+    }
+    _usedDfsSize = dfsSize;
+    stageTime.end_stage();
+    collector.getPathMetaLatency = stageTime.last_us();
+    collector.getPathMetaCount = _extendDataPathVec.size() + 1;
+    _usedDfsSizeSynced = true;
 }
 
 protocol::ErrorCode FileManager::removeInlineFile() {
@@ -390,27 +427,33 @@ int32_t FileManager::getObsoleteFilePos(uint32_t reservedFileCount, int64_t comm
     return obsoleteFilePos;
 }
 
-void FileManager::doDeleteObsoleteFile() {
+void FileManager::doDeleteObsoleteFile(uint32_t &deletedFileCount) {
+    deletedFileCount = 0;
+    int64_t freeDfsSize = 0;
+    int64_t filePairSize = 0;
     FilePairVec::iterator it = _obsoleteFilePairVec.begin();
     while (it != _obsoleteFilePairVec.end()) {
         if (1 == (*it).use_count()) {
-            if (FileManagerUtil::removeFilePair(*it)) {
+            if (FileManagerUtil::removeFilePairWithSize(*it, filePairSize)) {
                 it = _obsoleteFilePairVec.erase(it);
+                deletedFileCount++;
             } else {
                 it++;
             }
+            freeDfsSize += filePairSize;
         } else {
             it++;
         }
     }
+    _usedDfsSize -= freeDfsSize;
 }
 
-void FileManager::deleteObsoleteFile(int64_t commitedTimestamp) {
+void FileManager::deleteObsoleteFile(int64_t commitedTimestamp, uint32_t &deletedFileCount) {
     syncFilePair();
     uint32_t reservedFileCount =
         _obsoleteFileCriterion.reservedFileCount > 1 ? _obsoleteFileCriterion.reservedFileCount : 1;
     if (_filePairVec.size() <= (size_t)reservedFileCount) {
-        doDeleteObsoleteFile();
+        doDeleteObsoleteFile(deletedFileCount);
         return;
     }
     int32_t obsoleteFilePos = getObsoleteFilePos(reservedFileCount, commitedTimestamp);
@@ -423,7 +466,7 @@ void FileManager::deleteObsoleteFile(int64_t commitedTimestamp) {
         }
         _filePairVec.erase(beginIt, endIt);
     }
-    doDeleteObsoleteFile();
+    doDeleteObsoleteFile(deletedFileCount);
 }
 
 fslib::ErrorCode FileManager::doListFiles(const fslib::FileList &paths, FileManagerUtil::FileLists &fileList) {
@@ -449,12 +492,12 @@ fslib::ErrorCode FileManager::listFiles(FileManagerUtil::FileLists &fileList) {
     return ec;
 }
 
-void FileManager::delExpiredFile(int64_t commitedTimestamp) {
+void FileManager::delExpiredFile(int64_t commitedTimestamp, uint32_t &deletedFileCount) {
     if (_obsoleteFileCriterion.obsoleteFileTimeInterval != -1 && _obsoleteFileCriterion.reservedFileCount != -1) {
         int64_t curTime = TimeUtility::currentTime();
         if (_lastDelFileTime + _obsoleteFileCriterion.delObsoleteFileInterval < curTime) {
             AUTIL_LOG(INFO, "begin del expired file in path[%s]", _dataPath.c_str());
-            deleteObsoleteFile(commitedTimestamp);
+            deleteObsoleteFile(commitedTimestamp, deletedFileCount);
             AUTIL_LOG(INFO, "end del expired file in path[%s]", _dataPath.c_str());
             _lastDelFileTime = curTime;
         }
@@ -576,6 +619,8 @@ protocol::ErrorCode FileManager::sealLastFilePair(const FilePairVec &filePairVec
 string FileManager::getInlineFilePath() const {
     return FileSystem::joinFilePath(_dataPath, FileManagerUtil::INLINE_FILE);
 }
+
+void FileManager::addUsedDfsSize(int64_t usedSize) { _usedDfsSize += usedSize; }
 
 } // namespace storage
 } // namespace swift

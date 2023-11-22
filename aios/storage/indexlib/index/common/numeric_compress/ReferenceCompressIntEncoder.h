@@ -179,11 +179,15 @@ template <typename T>
 std::pair<Status, uint32_t> ReferenceCompressIntEncoder<T>::Decode(T* dest, uint32_t destLen,
                                                                    file_system::ByteSliceReader& sliceReader) const
 {
-    int32_t header = sliceReader.PeekInt32();
+    auto peekRet = sliceReader.PeekInt32();
+    RETURN_RESULT_IF_FS_ERROR(peekRet.Code(), std::make_pair(peekRet.Status(), 0), "PeekInt32 failed");
+    int32_t header = peekRet.Value();
     uint32_t compressedLen = 0;
     uint32_t count = 0;
     DecodeHeader(header, compressedLen, count);
-    uint32_t actualLen = sliceReader.Read((void*)dest, compressedLen);
+    auto ret = sliceReader.Read((void*)dest, compressedLen);
+    RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), uint32_t(0)), "Read failed");
+    uint32_t actualLen = ret.Value();
     if (actualLen != compressedLen) {
         RETURN2_IF_STATUS_ERROR(Status::Corruption(), 0, "Decode posting FAILED.");
     }
@@ -195,11 +199,15 @@ std::pair<Status, uint32_t>
 ReferenceCompressIntEncoder<T>::DecodeMayCopy(T*& dest, uint32_t destLen,
                                               file_system::ByteSliceReader& sliceReader) const
 {
-    int32_t header = sliceReader.PeekInt32();
+    auto peekRet = sliceReader.PeekInt32();
+    RETURN_RESULT_IF_FS_ERROR(peekRet.Code(), std::make_pair(peekRet.Status(), 0), "PeekInt32 failed");
+    int32_t header = peekRet.Value();
     uint32_t compressedLen = 0;
     uint32_t count = 0;
     DecodeHeader(header, compressedLen, count);
-    uint32_t actualLen = sliceReader.ReadMayCopy((void*&)dest, compressedLen);
+    auto ret = sliceReader.ReadMayCopy((void*&)dest, compressedLen);
+    RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), uint32_t(0)), "ReadMayCopy failed");
+    uint32_t actualLen = ret.Value();
     if (actualLen != compressedLen) {
         RETURN2_IF_STATUS_ERROR(Status::Corruption(), 0, "Decode posting FAILED.");
     }

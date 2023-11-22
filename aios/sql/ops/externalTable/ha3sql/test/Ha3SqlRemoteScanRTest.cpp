@@ -58,12 +58,15 @@ public:
     void setUp() override;
 
 private:
+    std::shared_ptr<SqlQueryConfigData> _queryConfigData;
     NaviResourceHelper _naviRes;
     navi::GraphMemoryPoolR *_graphMemoryPoolR = nullptr;
     TimeoutTerminatorR *_timeoutTerminatorR = nullptr;
 };
 
 void Ha3SqlRemoteScanRTest::setUp() {
+    _queryConfigData = std::make_shared<SqlQueryConfigData>();
+    _naviRes.namedData(SQL_QUERY_CONFIG_NAME, _queryConfigData);
     _graphMemoryPoolR = _naviRes.getOrCreateRes<GraphMemoryPoolR>();
     ASSERT_TRUE(_graphMemoryPoolR);
     _timeoutTerminatorR = _naviRes.getOrCreateRes<TimeoutTerminatorR>();
@@ -176,7 +179,9 @@ TEST_F(Ha3SqlRemoteScanRTest, testGenQueryString) {
     meta.indexType = "primary_key";
     param.tableMeta.fieldsMeta = {meta};
     auto pipe = std::make_shared<MockAsyncPipe>();
+    SqlQueryConfig sqlQueryConfig;
     Ha3SqlRemoteScanR scan;
+    scan._queryConfig = &sqlQueryConfig;
     scan._scanInitParamR = &param;
     scan._graphMemoryPoolR = _graphMemoryPoolR;
     scan._outputFieldsVisitor.reset(new OutputFieldsVisitor());
@@ -193,6 +198,7 @@ TEST_F(Ha3SqlRemoteScanRTest, testGenQueryString) {
     ASSERT_TRUE(scan.genQueryString(queryParam, query));
     ASSERT_THAT(query, HasSubstr("WHERE 1=1 AND contain(`ccc`, ?)"));
     ASSERT_THAT(query, HasSubstr(R"str(dynamic_params:[["1|2|3"]])str"));
+    ASSERT_THAT(query, HasSubstr("resultAllowSoftFailure:0"));
     auto sign = getSignature(query, queryParam.authKey);
     ASSERT_THAT(query, HasSubstr("authToken=token&&authSignature=" + sign));
 }
@@ -405,15 +411,20 @@ TEST_F(Ha3SqlRemoteScanRTest, testDoBatchScan_WithDegraded) {
     auto scanInitParamR = _naviRes.getOrCreateRes<ScanInitParamR>();
     ASSERT_TRUE(scanInitParamR);
     TableConfig tableConfig;
+    SqlQueryConfig queryConfig;
+    queryConfig.set_resultallowsoftfailure(true);
     auto ctx = _naviRes.getOrCreateRes<GigQuerySessionCallbackCtxR>();
     ASSERT_TRUE(ctx);
     Ha3SqlRemoteScanR scan;
+    ASSERT_TRUE(_naviRes.getOrCreateRes(scan._sqlSearchInfoCollectorR));
     scan._scanInitParamR = scanInitParamR;
     scan._tableConfig = &tableConfig;
     scan._ctx = ctx;
     scan._graphMemoryPoolR = _graphMemoryPoolR;
+    scan._queryConfig = &queryConfig;
     {
         tableConfig.allowDegradedAccess = true; // key
+
         scan._ctx->_result = autil::result::RuntimeError::make("aaa bbb ccc");
 
         TablePtr table;
@@ -426,6 +437,10 @@ TEST_F(Ha3SqlRemoteScanRTest, testDoBatchScan_WithDegraded) {
         ASSERT_TRUE(eof);
         ASSERT_NE(nullptr, table);
         ASSERT_LT(0, scan._scanInitParamR->scanInfo.degradeddocscount());
+        ASSERT_EQ(RPC_ERROR,
+                  scan._sqlSearchInfoCollectorR->getCollector()
+                      ->_sqlSearchInfo.degradedinfos(0)
+                      .degradederrorcodes(0));
     }
     {
         tableConfig.allowDegradedAccess = false; // key

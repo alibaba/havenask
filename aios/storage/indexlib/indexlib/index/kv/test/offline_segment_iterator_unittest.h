@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CREATEOFFLINESEGMENTITERATORTEST_H
-#define __INDEXLIB_CREATEOFFLINESEGMENTITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/indexlib.h"
@@ -39,5 +38,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(OfflineSegmentIteratorTest, TestCreateHashTableIterator);
 INDEXLIB_UNIT_TEST_CASE(OfflineSegmentIteratorTest, TestCreateMultiRegionHashTableIterator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_CREATEOFFLINESEGMENTITERATORTEST_H

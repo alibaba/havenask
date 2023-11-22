@@ -53,7 +53,6 @@ public:
 public:
     bool fillTableDef(const std::string &zoneName,
                       const std::string &tableName,
-                      int32_t tablePartCount,
                       iquan::TableDef &tableDef,
                       TableSortDescMap &tableSortDescMap) const;
 
@@ -63,10 +62,6 @@ private:
 private:
     static void addDistributeInfo(const suez::TableDefConfig &tableConfig,
                                   iquan::TableDef &tableDef);
-    static void addLocationInfo(const suez::TableDefConfig &tableConfig,
-                                const std::string &tableGroupName,
-                                int32_t tablePartCount,
-                                iquan::TableDef &tableDef);
     static void addSortDesc(const suez::TableDefConfig &tableConfig,
                             const std::string &tableName,
                             iquan::TableDef &tableDef);

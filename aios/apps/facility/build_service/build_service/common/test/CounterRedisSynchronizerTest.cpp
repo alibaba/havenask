@@ -1,9 +1,19 @@
 #include "build_service/common/CounterRedisSynchronizer.h"
 
+#include <iosfwd>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <unistd.h>
+
+#include "build_service/common_define.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RedisClient.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 #include "indexlib/util/counter/CounterMap.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

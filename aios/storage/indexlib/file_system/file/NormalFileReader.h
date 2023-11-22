@@ -54,11 +54,12 @@ public:
     std::shared_ptr<FileNode> GetFileNode() const noexcept override { return _fileNode; }
 
     // future_lite
-    future_lite::Future<size_t> ReadAsync(void* buffer, size_t length, size_t offset,
-                                          ReadOption option) noexcept(false) override;
-    future_lite::Future<uint32_t> ReadVUInt32Async(size_t offset, ReadOption option) noexcept(false) override;
-    future_lite::Future<uint32_t> ReadUInt32Async(size_t offset, ReadOption option) noexcept(false) override;
-    future_lite::Future<size_t> PrefetchAsync(size_t length, size_t offset, ReadOption option) noexcept(false) override;
+    future_lite::Future<FSResult<size_t>> ReadAsync(void* buffer, size_t length, size_t offset,
+                                                    ReadOption option) noexcept override;
+    future_lite::Future<FSResult<uint32_t>> ReadVUInt32Async(size_t offset, ReadOption option) noexcept override;
+    future_lite::Future<FSResult<uint32_t>> ReadUInt32Async(size_t offset, ReadOption option) noexcept override;
+    future_lite::Future<FSResult<size_t>> PrefetchAsync(size_t length, size_t offset,
+                                                        ReadOption option) noexcept override;
 
     // FL_LAZY
     FL_LAZY(FSResult<size_t>)
@@ -96,7 +97,8 @@ inline FL_LAZY(FSResult<size_t>) NormalFileReader::PrefetchAsyncCoro(size_t leng
     FL_CORETURN FL_COAWAIT _fileNode->PrefetchAsyncCoro(length, offset, option);
 }
 
-inline future_lite::Future<uint32_t> NormalFileReader::ReadUInt32Async(size_t offset, ReadOption option) noexcept(false)
+inline future_lite::Future<FSResult<uint32_t>> NormalFileReader::ReadUInt32Async(size_t offset,
+                                                                                 ReadOption option) noexcept
 {
     return _fileNode->ReadUInt32Async(offset, option);
 }

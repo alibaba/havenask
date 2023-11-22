@@ -24,7 +24,7 @@ class PackAttributeDiskIndexer : public MultiValueAttributeDiskIndexer<char>
 {
 public:
     PackAttributeDiskIndexer(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                             const IndexerParameter& indexerParameter);
+                             const DiskIndexerParameter& indexerParameter);
     ~PackAttributeDiskIndexer();
 
 public:

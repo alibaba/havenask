@@ -36,11 +36,16 @@ class FileAppender;
 class TraceAppender;
 class NaviLogManager;
 
+class NaviLogger;
+NAVI_TYPEDEF_PTR(NaviLogger);
+class NaviObjectLogger;
+
 class NaviLogger
 {
 public:
     NaviLogger(size_t maxMessageLength,
                const std::shared_ptr<NaviLogManager> &logManager);
+    NaviLogger(const NaviLogger &other);
     ~NaviLogger();
 public:
     void init(SessionId id, const std::vector<FileAppender *> &appenders);
@@ -51,20 +56,17 @@ public:
     const std::string &getName() const;
 public:
     void log(LogLevel level, void *object, const std::string &prefix,
-             const char *format, va_list ap);
-    void log(LogLevel level, void *object, const std::string &prefix,
              const char *filename, int line, const char *function,
              const char *format, va_list ap);
     inline bool isLevelEnabled(LogLevel level) {
         return (level <= _level)? true : false;
     }
     LogLevel getTraceLevel() const;
-    void addAppender(Appender *appender);
+    void addAppender(const std::shared_ptr<Appender> &appender);
     bool hasTraceAppender() const;
-    void setTraceAppender(TraceAppender *appender);
+    void setTraceAppender(const std::shared_ptr<TraceAppender> &appender);
     void collectTrace(TraceCollector &collector);
-    LoggingEvent firstErrorEvent();
-    std::string firstErrorBackTrace();
+    LoggingEventPtr firstErrorEvent();
     std::string getCurrentBtString() const;
     std::string getExceptionMessage(const autil::legacy::ExceptionBase &e) const;
     void updateTraceLevel(const std::string &levelStr);
@@ -79,16 +81,15 @@ private:
     std::atomic<bool> _stopped;
     size_t _maxMessageLength;
     std::vector<Appender *> _appenders;
-    std::vector<Appender *> _ownAppenders;
+    std::vector<std::shared_ptr<Appender>> _ownAppenders;
     TraceAppender *_traceAppender;
     std::shared_ptr<NaviLogManager> _logManager;
-    autil::ThreadMutex _lock;
+    mutable autil::ThreadMutex _lock;
     bool _hasError;
-    LoggingEvent _firstErrorEvent;
-    std::string _firstErrorBackTrace;
+    LoggingEventPtr _firstErrorEvent;
 };
 
-NAVI_TYPEDEF_PTR(NaviLogger);
+thread_local extern const NaviObjectLogger *NAVI_TLS_LOGGER;
 
 class NaviObjectLogger {
 public:
@@ -96,13 +97,10 @@ public:
         : object(nullptr)
     {
     }
-    explicit NaviObjectLogger(void *object_, const char *prefix_,
-                              const NaviLoggerPtr &logger_)
-        : object(object_)
-        , prefix(prefix_)
-        , logger(logger_)
-    {
-    }
+    explicit NaviObjectLogger(void *object_,
+                              const char *prefix_,
+                              const NaviLoggerPtr &logger_ = NAVI_TLS_LOGGER ? NAVI_TLS_LOGGER->logger : nullptr)
+        : object(object_), prefix(prefix_), logger(logger_) {}
     ~NaviObjectLogger() {
     }
 public:
@@ -127,7 +125,6 @@ inline void NaviObjectLogger::addPrefix(const char *fmt, ...) {
     prefix.append(buffer, n);
 }
 
-thread_local extern const NaviObjectLogger *NAVI_TLS_LOGGER;
 
 class NaviLoggerScope {
 public:

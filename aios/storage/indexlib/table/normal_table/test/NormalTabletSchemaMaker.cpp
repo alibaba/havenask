@@ -7,6 +7,8 @@
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/common/Constant.h"
+#include "indexlib/index/field_meta/Common.h"
+#include "indexlib/index/field_meta/config/FieldMetaConfig.h"
 #include "indexlib/index/inverted_index/config/DateIndexConfig.h"
 #include "indexlib/index/inverted_index/config/PackageIndexConfig.h"
 #include "indexlib/index/inverted_index/config/RangeIndexConfig.h"
@@ -14,10 +16,13 @@
 #include "indexlib/index/inverted_index/config/TruncateProfileConfig.h"
 #include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 #include "indexlib/index/primary_key/config/PrimaryKeyIndexConfig.h"
+#include "indexlib/index/source/config/SourceGroupConfig.h"
+#include "indexlib/index/source/config/SourceIndexConfig.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/Constant.h"
 #include "indexlib/index/summary/config/SummaryConfig.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
+#include "indexlib/util/Algorithm.h"
 
 using namespace std;
 using namespace indexlibv2::config;
@@ -25,11 +30,11 @@ using namespace indexlibv2::config;
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTabletSchemaMaker);
 
-std::shared_ptr<TabletSchema> NormalTabletSchemaMaker::Make(const std::string& fieldNames,
-                                                            const std::string& indexNames,
-                                                            const std::string& attributeNames,
-                                                            const std::string& summaryNames,
-                                                            const std::string& truncateProfiles)
+std::shared_ptr<TabletSchema>
+NormalTabletSchemaMaker::Make(const std::string& fieldNames, const std::string& indexNames,
+                              const std::string& attributeNames, const std::string& summaryNames,
+                              const std::string& truncateProfiles, const std::string& sourceNames,
+                              const std::string& fieldMetaNames)
 {
     auto schema = std::make_shared<TabletSchema>();
     auto unresolvedSchema = schema->TEST_GetImpl();
@@ -54,6 +59,17 @@ std::shared_ptr<TabletSchema> NormalTabletSchemaMaker::Make(const std::string& f
         AUTIL_LOG(ERROR, "make summary config failed");
         return nullptr;
     }
+    if (sourceNames.size() > 0 && !MakeSourceConfig(unresolvedSchema, sourceNames).IsOK()) {
+        AUTIL_LOG(ERROR, "make source config failed");
+        return nullptr;
+    }
+
+    if (fieldMetaNames.size() > 0 &&
+        !MakeFieldMetaConfig(unresolvedSchema, FieldConfigMaker::SplitToStringVector(fieldMetaNames)).IsOK()) {
+        AUTIL_LOG(ERROR, "make field meta config failed");
+        return nullptr;
+    }
+
     SetNeedStoreSummary(unresolvedSchema);
 
     if (truncateProfiles.size() > 0 && !MakeTruncateProfiles(unresolvedSchema, truncateProfiles).IsOK()) {
@@ -180,6 +196,48 @@ Status NormalTabletSchemaMaker::MakeIndexConfig(UnresolvedSchema* schema, const 
                 "add general_inverted failed");
         }
     }
+    return Status::OK();
+}
+
+Status NormalTabletSchemaMaker::MakeSourceConfig(UnresolvedSchema* schema, const std::string& sourceStr)
+{
+    auto groupFields = autil::StringUtil::split(sourceStr, "|");
+    auto sourceIndexConfig = make_shared<SourceIndexConfig>();
+    std::vector<std::string> indexFieldNames;
+    for (size_t i = 0; i < groupFields.size(); ++i) {
+        auto sourceGroupConfig = make_shared<indexlib::config::SourceGroupConfig>();
+        sourceGroupConfig->SetGroupId(i);
+        if (groupFields[i] == "__UDF__") {
+            for (auto fieldConfig : schema->GetFieldConfigs()) {
+                indexFieldNames.push_back(fieldConfig->GetFieldName());
+            }
+            sourceGroupConfig->SetFieldMode(indexlib::config::SourceGroupConfig::SourceFieldMode::USER_DEFINE);
+        } else if (groupFields[i] == "__ALL__") {
+            for (auto fieldConfig : schema->GetFieldConfigs()) {
+                indexFieldNames.push_back(fieldConfig->GetFieldName());
+            }
+            sourceGroupConfig->SetFieldMode(indexlib::config::SourceGroupConfig::SourceFieldMode::ALL_FIELD);
+        } else {
+            auto fieldNames = FieldConfigMaker::SplitToStringVector(groupFields[i]);
+            for (auto& fieldName : fieldNames) {
+                assert(schema->GetFieldConfig(fieldName));
+                indexFieldNames.push_back(fieldName);
+            }
+            sourceGroupConfig->SetSpecifiedFields(fieldNames);
+            sourceGroupConfig->SetFieldMode(indexlib::config::SourceGroupConfig::SourceFieldMode::SPECIFIED_FIELD);
+        }
+        sourceIndexConfig->AddGroupConfig(sourceGroupConfig);
+    }
+
+    indexlib::util::Algorithm::SortUniqueAndErase(indexFieldNames);
+    std::vector<std::shared_ptr<config::FieldConfig>> fieldConfigs;
+    for (auto& fieldName : indexFieldNames) {
+        fieldConfigs.push_back(schema->GetFieldConfig(fieldName));
+    }
+    sourceIndexConfig->SetFieldConfigs(fieldConfigs);
+
+    RETURN_IF_STATUS_ERROR(schema->DoAddIndexConfig(sourceIndexConfig->GetIndexType(), sourceIndexConfig, true),
+                           "add source index config failed");
     return Status::OK();
 }
 
@@ -455,6 +513,42 @@ Status NormalTabletSchemaMaker::EnsureSpatialIndexWithAttribute(config::Unresolv
                 RETURN_IF_STATUS_ERROR(schema->AddIndexConfig(attributeConfig), "add spatial attribute [%s] failed",
                                        fieldName.c_str());
             }
+        }
+    }
+    return Status::OK();
+}
+
+Status NormalTabletSchemaMaker::MakeFieldMetaConfig(config::UnresolvedSchema* schema,
+                                                    const std::vector<std::string>& fieldNames)
+{
+    for (size_t i = 0; i < fieldNames.size(); ++i) {
+        autil::StringTokenizer st(fieldNames[i], ":",
+                                  autil::StringTokenizer::TOKEN_TRIM | autil::StringTokenizer::TOKEN_IGNORE_EMPTY);
+        assert(st.getNumTokens() >= 2);
+        const auto& fieldName = st[0];
+        auto fieldConfig = schema->GetFieldConfig(fieldName);
+        if (!fieldConfig) {
+            RETURN_IF_STATUS_ERROR(Status::InternalError(), "get field config [%s] failed", fieldName.c_str());
+        }
+        auto fieldMetaConfig = make_shared<indexlib::index::FieldMetaConfig>();
+        RETURN_IF_STATUS_ERROR(fieldMetaConfig->Init(fieldConfig, fieldName), "field meta config init failed");
+        auto& fieldMetaInfos = fieldMetaConfig->TEST_GetFieldMetaInfos();
+        fieldMetaInfos.clear();
+        for (size_t i = 1; i < st.getNumTokens(); ++i) {
+            indexlib::index::FieldMetaConfig::FieldMetaInfo info;
+            info.metaName = st[i];
+            fieldMetaInfos.push_back(info);
+        }
+        if (fieldMetaConfig->NeedFieldSource()) {
+            fieldMetaConfig->TEST_SetStoreMetaSourceType(indexlib::index::FieldMetaConfig::MetaSourceType::MST_FIELD);
+        } else {
+            fieldMetaConfig->TEST_SetStoreMetaSourceType(
+                indexlib::index::FieldMetaConfig::MetaSourceType::MST_TOKEN_COUNT);
+        }
+
+        auto status = schema->DoAddIndexConfig(fieldMetaConfig->GetIndexType(), fieldMetaConfig, true);
+        if (!status.IsOK()) {
+            return status;
         }
     }
     return Status::OK();

@@ -20,7 +20,7 @@
 #include "suez/table/wal/WALStrategy.h"
 namespace swift::client {
 class SwiftClient;
-class SwiftWriterAsyncHelper;
+class FixedTimeoutSwiftWriterAsyncHelper;
 } // namespace swift::client
 
 namespace build_service::util {
@@ -42,13 +42,12 @@ public:
     void flush() override;
 
 private:
-    std::shared_ptr<swift::client::SwiftWriterAsyncHelper> getSwiftWriterAsyncHelper();
+    std::shared_ptr<swift::client::FixedTimeoutSwiftWriterAsyncHelper> getSwiftWriterAsyncHelper();
 
 private:
-    int64_t _timeoutMs = 100;
     int64_t _currentId = 0;
     std::string _topicName;
-    std::shared_ptr<swift::client::SwiftWriterAsyncHelper> _swiftWriterAsyncHelper;
+    std::shared_ptr<swift::client::FixedTimeoutSwiftWriterAsyncHelper> _swiftWriterAsyncHelper;
     autil::ReadWriteLock _swiftHelperLock;
 };
 

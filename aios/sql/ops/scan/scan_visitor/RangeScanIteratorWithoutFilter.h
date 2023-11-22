@@ -43,9 +43,10 @@ public:
         const std::shared_ptr<indexlib::index::DeletionMapReaderAdaptor> &delMapReader,
         const isearch::search::LayerMetaPtr &layerMeta,
         isearch::common::TimeoutTerminator *timeoutTerminator = NULL);
-
     autil::Result<bool> batchSeek(size_t batchSize,
                                   std::vector<matchdoc::MatchDoc> &matchDocs) override;
+    uint32_t getTotalSeekedCount() const override;
+    uint32_t getTotalWholeDocCount() const override;
 
 private:
     std::shared_ptr<indexlib::index::DeletionMapReaderAdaptor> _delMapReader;

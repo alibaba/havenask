@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEMO_INDEX_REDUCE_ITEM_H
-#define __INDEXLIB_DEMO_INDEX_REDUCE_ITEM_H
+#pragma once
 
 #include <memory>
 
@@ -36,5 +35,3 @@ private:
 
 DEFINE_SHARED_PTR(DemoIndexReduceItem);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DEMO_INDEX_REDUCE_ITEM_H

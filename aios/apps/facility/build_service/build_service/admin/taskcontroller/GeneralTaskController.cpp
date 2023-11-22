@@ -15,22 +15,27 @@
  */
 #include "build_service/admin/taskcontroller/GeneralTaskController.h"
 
+#include <assert.h>
+#include <optional>
+#include <ostream>
+#include <tuple>
+#include <utility>
+
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
-#include "autil/TimeUtility.h"
-#include "build_service/common/BeeperCollectorDefine.h"
-#include "build_service/config/BuildRuleConfig.h"
-#include "build_service/config/BuildServiceConfig.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/TaskConfig.h"
-#include "build_service/util/IndexPathConstructor.h"
-#include "build_service/util/RangeUtil.h"
-#include "fslib/util/FileUtil.h"
-#include "indexlib/base/Constant.h"
+#include "build_service/config/TaskTarget.h"
 #include "indexlib/base/PathUtil.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/config/IndexTaskConfig.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
-#include "indexlib/util/EpochIdUtil.h"
-#include "indexlib/util/PathUtil.h"
 
 namespace build_service::admin {
 BS_LOG_SETUP(admin, GeneralTaskController);
@@ -128,6 +133,7 @@ bool GeneralTaskController::initTaskManager(const GeneralTaskParam& param, const
     auto singleTaskManager = std::make_shared<SingleGeneralTaskManager>(
         /*id*/ param.taskEpochId, _resourceManager);
     KeyValueMap partitionParam;
+    partitionParam["task_trace_id"] = param.taskTraceId;
     partitionParam["branch_id"] = param.branchId;
     auto taskWorkRoot = indexlibv2::PathUtil::GetTaskTempWorkRoot(param.partitionIndexRoot, param.taskEpochId);
     if (taskWorkRoot.empty()) {

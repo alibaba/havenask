@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_METRICS_UTIL_H
-#define __INDEXLIB_SEGMENT_METRICS_UTIL_H
+#pragma once
 
 #include "autil/StringUtil.h"
 
@@ -29,5 +28,3 @@ public:
     }
 };
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SEGMENT_METRICS_UTIL_H

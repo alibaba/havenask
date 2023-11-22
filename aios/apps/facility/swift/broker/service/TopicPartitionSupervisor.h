@@ -17,6 +17,7 @@
 
 #include <map>
 #include <memory>
+#include <random>
 #include <stdint.h>
 #include <utility>
 #include <vector>
@@ -103,7 +104,8 @@ private:
     void recycleObsoleteReader();
     void commitMessage();
     void delExpiredFile();
-    std::vector<BrokerPartitionPtr> getToDelFilePartition();
+    void syncDfsUsedSize();
+    std::vector<BrokerPartitionPtr> getBatchPartition(int32_t batchSize, int64_t &count);
     void loadBrokerPartitionMutilThread(const std::vector<protocol::TaskInfo> &taskInfoVec);
     void unLoadBrokerPartitionMutilThread(const std::vector<protocol::PartitionId> &partIdVec);
     void getRecycleFileThreshold(int64_t &threshold, const std::vector<int64_t> &fileBlocks);
@@ -132,11 +134,16 @@ public:
     autil::ThreadPoolPtr _loadThreadPool;
     autil::ThreadPoolPtr _unloadThreadPool;
     autil::ThreadMutex _unloadMutex;
+    autil::ThreadPtr _syncDfsUsedSizeThread;
+    autil::Notifier _syncNotifier;
     bool _isStop;
     int64_t _delCount;
+    int64_t _syncDfsCount;
     bool _firstLoad = true;
     util::ZkDataAccessorPtr _zkDataAccessor;
     std::shared_ptr<network::SwiftRpcChannelManager> _channelManager;
+    std::mt19937 _random;
+    std::unique_ptr<std::uniform_int_distribution<int32_t>> _uniform;
 
 private:
     AUTIL_LOG_DECLARE();

@@ -7,6 +7,7 @@ import com.taobao.search.iquan.boot.common.service.BootFunctionService;
 import com.taobao.search.iquan.boot.common.service.BootSqlQueryService;
 import com.taobao.search.iquan.boot.common.service.BootTableService;
 import com.taobao.search.iquan.boot.utils.HttpUtils;
+import com.taobao.search.iquan.client.common.service.CatalogService;
 import com.taobao.search.iquan.core.api.SqlTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -67,30 +69,20 @@ public class BootController {
         SqlResponse response = queryService.sqlQuery(sqlTranslator, reqMap);
         long endTimeNs = System.nanoTime();
         accessLogger.info("sql query time: {} us.", ((double) (endTimeNs - startTimeNs)) / 1000);
+        accessLogger.info("sql query: {}. response: {}.", reqMap.toString(),
+                          response.getErrorMessage());
         return HttpUtils.buildResponseEntity(response, FormatType.from(formatType));
-    }
-
-    // ****************************************
-    // Table Service
-    // ****************************************
-    @PostMapping(path = "/iquan/catalog/update/table")
-    public ResponseEntity<?> updateTables(@RequestBody Map<String, Object> reqMap) {
-        SqlResponse response = tableService.updateTables(sqlTranslator, reqMap);
-        return HttpUtils.buildResponseEntity(response, FormatType.JSON);
-    }
-
-    // ****************************************
-    // Function Service
-    // ****************************************
-    @PostMapping(path = "/iquan/catalog/update/function")
-    public ResponseEntity<?> updateFunctions(@RequestBody Map<String, Object> reqMap) {
-        SqlResponse response = functionService.updateFunctions(sqlTranslator, reqMap);
-        return HttpUtils.buildResponseEntity(response, FormatType.JSON);
     }
 
     // ****************************************
     // Catalog Service
     // ****************************************
+    @PostMapping(path = "/iquan/catalog/register/catalogs")
+    public ResponseEntity<?> registerCatalogs(@RequestBody List<Object> catalogs) {
+        SqlResponse response = CatalogService.registerCatalogs(sqlTranslator, catalogs);
+        return HttpUtils.buildResponseEntity(response, FormatType.JSON);
+    }
+
     @PostMapping(path = "/iquan/catalog/list/catalog")
     public ResponseEntity<?> getCatalogNames() {
         SqlResponse response = catalogService.getCatalogNames(sqlTranslator);

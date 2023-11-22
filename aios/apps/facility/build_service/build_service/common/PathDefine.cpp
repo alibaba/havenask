@@ -15,16 +15,29 @@
  */
 #include "build_service/common/PathDefine.h"
 
+#include <assert.h>
 #include <errno.h>
+#include <iomanip>
 #include <limits.h>
+#include <memory>
+#include <ostream>
+#include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "build_service/proto/ProcessorTaskIdentifier.h"
 #include "build_service/proto/ProtoUtil.h"
-#include "fslib/fslib.h"
+#include "build_service/proto/TaskIdentifier.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
+#include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
+
 using namespace std;
 using namespace autil;
 using namespace fslib;

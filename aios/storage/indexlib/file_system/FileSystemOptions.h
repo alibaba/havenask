@@ -15,7 +15,10 @@
  */
 #pragma once
 
+#include <memory>
+#include <stdint.h>
 #include <string>
+#include <vector>
 
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/load_config/LoadConfigList.h"
@@ -33,7 +36,6 @@ class MetricProvider;
 namespace file_system {
 class PackageFileTagConfigList;
 class FileBlockCacheContainer;
-class PackageFileTagConfigLis;
 
 struct FlushRetryStrategy {
     int32_t retryTimes = 3;

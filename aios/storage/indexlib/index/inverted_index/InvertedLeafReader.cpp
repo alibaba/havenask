@@ -45,9 +45,9 @@ InvertedLeafReader::InvertedLeafReader(const std::shared_ptr<indexlibv2::config:
     }
 }
 
-bool InvertedLeafReader::GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
-                                           autil::mem_pool::Pool* sessionPool, file_system::ReadOption option,
-                                           InvertedIndexSearchTracer* tracer) const
+bool InvertedLeafReader::GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId,
+                                           SegmentPosting& segPosting, autil::mem_pool::Pool* sessionPool,
+                                           file_system::ReadOption option, InvertedIndexSearchTracer* tracer) const
 {
     dictvalue_t dictValue;
     if (!_dictReader) {
@@ -74,7 +74,7 @@ std::shared_ptr<indexlibv2::config::InvertedIndexConfig> InvertedLeafReader::Get
 }
 std::shared_ptr<file_system::FileReader> InvertedLeafReader::GetPostingReader() const { return _postingReader; }
 
-void InvertedLeafReader::InnerGetSegmentPosting(dictvalue_t dictValue, docid_t baseDocId, SegmentPosting& segPosting,
+void InvertedLeafReader::InnerGetSegmentPosting(dictvalue_t dictValue, docid64_t baseDocId, SegmentPosting& segPosting,
                                                 autil::mem_pool::Pool* sessionPool) const
 {
     PostingFormatOption postingFormatOption = _indexFormatOption.GetPostingFormatOption();
@@ -126,10 +126,9 @@ InvertedLeafReader::GetSessionPostingFileReader(autil::mem_pool::Pool* sessionPo
     return _postingReader;
 }
 
-future_lite::coro::Lazy<index::Result<bool>>
-InvertedLeafReader::GetSegmentPostingAsync(const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
-                                           autil::mem_pool::Pool* sessionPool, file_system::ReadOption option,
-                                           InvertedIndexSearchTracer* tracer) const noexcept
+future_lite::coro::Lazy<index::Result<bool>> InvertedLeafReader::GetSegmentPostingAsync(
+    const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting, autil::mem_pool::Pool* sessionPool,
+    file_system::ReadOption option, InvertedIndexSearchTracer* tracer) const noexcept
 {
     if (!_dictReader) {
         co_return false;
@@ -151,14 +150,14 @@ InvertedLeafReader::GetSegmentPostingAsync(const index::DictKeyInfo& key, docid_
     auto errorCode = co_await GetSegmentPostingAsync(lookupResult.Value().second, baseDocId, segPosting, sessionPool,
                                                      option, tracer);
     if (errorCode != index::ErrorCode::OK) {
-        AUTIL_LOG(ERROR, "read segment posting fail, baseDocId[%d]", baseDocId);
+        AUTIL_LOG(ERROR, "read segment posting fail, baseDocId[%ld]", baseDocId);
         co_return errorCode;
     }
     co_return true;
 }
 
 future_lite::coro::Lazy<index::ErrorCode>
-InvertedLeafReader::GetSegmentPostingAsync(dictvalue_t dictValue, docid_t baseDocId, SegmentPosting& segPosting,
+InvertedLeafReader::GetSegmentPostingAsync(dictvalue_t dictValue, docid64_t baseDocId, SegmentPosting& segPosting,
                                            autil::mem_pool::Pool* sessionPool, file_system::ReadOption option,
                                            InvertedIndexSearchTracer* tracer) const noexcept
 {

@@ -61,9 +61,11 @@ protected:
     std::string _searcherName;
     docid_t _segmentBaseDocId;
     std::shared_ptr<AithetaFilterCreatorBase> _filterCreator;
-    IndexQueryMeta _queryMeta;
     AiThetaContextHolderPtr _contextHolder;
+
+    AiThetaMeta _aithetaMeta;
     AiThetaMeasurePtr _measure;
+    IndexQueryMeta _queryMeta;
     AUTIL_LOG_DECLARE();
 };
 
@@ -91,14 +93,15 @@ bool IndexSearcher::DoSearch(const T& searcher, const AithetaQuery& query, AiThe
     auto ctx = std::unique_ptr<AiThetaContext>(context);
     autil::ScopeGuard guard([&ctx]() { ctx.release(); });
 
-    const void* data = query.embeddings().data();
+    const void* data = (_indexConfig.distanceType == HAMMING) ? (const void*)query.binaryembeddings().data()
+                                                              : (const void*)query.embeddings().data();
+    ANN_CHECK(data != nullptr, "embedding is null");
+
     size_t queryCount = query.embeddingcount();
     if (!query.lrsearch()) {
-        ANN_CHECK_OK(searcher->search_impl(data, _queryMeta, queryCount, ctx), "search failed, query[%s]",
-                     query.DebugString().c_str());
+        ANN_CHECK_OK(searcher->search_impl(data, _queryMeta, queryCount, ctx), "search failed");
     } else {
-        ANN_CHECK_OK(searcher->search_bf_impl(data, _queryMeta, queryCount, ctx), "bf search failed, query[%s]",
-                     query.DebugString().c_str());
+        ANN_CHECK_OK(searcher->search_bf_impl(data, _queryMeta, queryCount, ctx), "bf search failed");
     }
 
     assert(_measure != nullptr);

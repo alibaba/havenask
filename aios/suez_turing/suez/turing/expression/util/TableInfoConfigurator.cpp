@@ -36,6 +36,7 @@
 #include "indexlib/config/package_index_config.h"
 #include "indexlib/config/primary_key_index_config.h"
 #include "indexlib/config/single_field_index_config.h"
+#include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/index/common/Constant.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/config/PackageIndexConfig.h"
@@ -51,6 +52,7 @@
 #include "suez/turing/expression/util/FieldInfos.h"
 #include "suez/turing/expression/util/IndexInfos.h"
 #include "suez/turing/expression/util/SummaryInfo.h"
+
 
 using namespace std;
 using namespace autil::legacy;
@@ -76,15 +78,9 @@ TableInfoPtr TableInfoConfigurator::createFromFile(const std::string &filePath) 
 }
 
 TableInfoPtr TableInfoConfigurator::createFromString(const std::string &configStr) {
-    IndexPartitionSchemaPtr indexPartitionSchemaPtr(new IndexPartitionSchema);
-    try {
-        FromJsonString(*indexPartitionSchemaPtr, configStr); // not use FastFromJsonString for special char
-    } catch (const ExceptionBase &e) {
-        AUTIL_LOG(
-            ERROR, "Parse config string failed. configStr[%s] Error description[%s]", configStr.c_str(), e.what());
-        return TableInfoPtr();
-    }
-    return createFromSchema(indexPartitionSchemaPtr);
+    shared_ptr<indexlibv2::config::ITabletSchema> tabletSchema =
+        indexlib::index_base::SchemaAdapter::LoadSchema(configStr);
+    return createFromSchema(tabletSchema);
 }
 
 TableInfoPtr TableInfoConfigurator::createFromSchema(const IndexPartitionSchemaPtr &indexPartitionSchemaPtr,
@@ -141,6 +137,10 @@ TableInfoPtr TableInfoConfigurator::createFromIndexApp(const std::string &mainTa
     }
     AttributeInfos *attributeInfos = tableInfo->getAttributeInfos();
     FieldInfos *fieldInfos = tableInfo->getFieldInfos();
+    if (!attributeInfos || !fieldInfos) {
+        AUTIL_LOG(INFO, "main table [%s] has no attribute info and field info", mainTable.c_str());
+        return tableInfo;
+    }
     for (auto &schema : tableSchemas) {
         if (schema->GetTableName() == mainTable) {
             continue;
@@ -151,6 +151,9 @@ TableInfoPtr TableInfoConfigurator::createFromIndexApp(const std::string &mainTa
         }
         // TODO support pack
         auto joinAttributeInfos = auxTableInfo->getAttributeInfos();
+        if (!joinAttributeInfos) {
+            continue;
+        }
         const auto &attributesVect = joinAttributeInfos->getAttrbuteInfoVector();
         for (size_t i = 0; i < attributesVect.size(); i++) {
             const AttributeInfo *attributeInfo = attributesVect[i];

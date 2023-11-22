@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ONLINE_PARTITION_TASK_ITEM_H
-#define __INDEXLIB_ONLINE_PARTITION_TASK_ITEM_H
+#pragma once
 
 #include <memory>
 
@@ -63,5 +62,3 @@ private:
 
 DEFINE_SHARED_PTR(OnlinePartitionTaskItem);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINE_PARTITION_TASK_ITEM_H

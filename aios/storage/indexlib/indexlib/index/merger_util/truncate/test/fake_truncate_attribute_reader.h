@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_TRUNCATE_ATTRIBUTE_READER_H
-#define __INDEXLIB_FAKE_TRUNCATE_ATTRIBUTE_READER_H
+#pragma once
 
 #include <memory>
 
@@ -79,5 +78,3 @@ inline void FakeTruncateAttributeReader<T>::clear()
     mNullVec.clear();
 }
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_FAKE_TRUNCATE_ATTRIBUTE_READER_H

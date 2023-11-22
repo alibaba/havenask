@@ -141,11 +141,7 @@ bool Biz::collectPublish(std::vector<multi_call::ServerBizTopoInfo> &infoVec) co
 
 void Biz::startPublish(multi_call::GigRpcServer *gigRpcServer) {
     for (const auto &pair : _resourceManagers) {
-        auto partId = pair.first;
-        if (partId != NAVI_BIZ_PART_ID) {
-            const auto &manager = pair.second;
-            manager->startPublish(gigRpcServer);
-        }
+        pair.second->startPublish(gigRpcServer);
     }
 }
 
@@ -290,6 +286,13 @@ bool Biz::collectResourceMap(NaviPartId partCount,
                         partId,
                         partCount,
                         _bizName.c_str());
+        return false;
+    }
+    if (partCount != _partCount) {
+        NAVI_KERNEL_LOG(
+            ERROR,
+            "partCount mismatch, expect: [%d], actual: [%d], bizName: %s",
+            _partCount, partCount, _bizName.c_str());
         return false;
     }
     resourceManager->collectResourceMap(multiLayerResourceMap);
@@ -666,6 +669,10 @@ bool Biz::isSinglePart() const {
 
 bool Biz::hasPartId(NaviPartId partId) const {
     return _resourceManagers.end() != _resourceManagers.find(partId);
+}
+
+NaviPartId Biz::getPartCount() const {
+    return _partCount;
 }
 
 void Biz::getPartInfo(NaviPartId &partCount, std::vector<NaviPartId> &partIds) const {

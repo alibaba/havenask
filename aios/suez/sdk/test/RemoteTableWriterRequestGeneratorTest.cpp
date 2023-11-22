@@ -58,4 +58,13 @@ TEST_F(RemoteTableWriterRequestGeneratorTest, testGenerate) {
     ASSERT_THAT(requestMap, ElementsAre(Pair(0, Ne(nullptr)), Pair(3, Ne(nullptr)), Pair(7, Ne(nullptr))));
 }
 
+TEST_F(RemoteTableWriterRequestGeneratorTest, testSetLeaderTags) {
+    RemoteTableWriterRequestGenerator generator(_param);
+    generator.setLeaderTags(multi_call::TMT_PREFER);
+    auto &tagMap = *generator._tags;
+    auto iter = tagMap.find(GeneratorDef::LEADER_TAG);
+    ASSERT_NE(tagMap.end(), iter);
+    ASSERT_EQ(multi_call::TMT_PREFER, iter->second.type);
+}
+
 } // namespace suez

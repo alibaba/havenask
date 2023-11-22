@@ -38,8 +38,8 @@ public:
 public:
     virtual bool Init(const std::shared_ptr<SegmentPostingVector>& segPostings, const uint32_t statePoolSize);
 
-    docid_t SeekDoc(docid_t docId) override;
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    docid64_t SeekDoc(docid64_t docId) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
     index::ErrorCode SeekPositionWithErrorCode(pos_t pos, pos_t& nextpos) override;
     void Unpack(TermMatchData& termMatchData) override;
 
@@ -50,8 +50,8 @@ public:
 
 public:
     // for runtime inline.
-    docid_t InnerSeekDoc(docid_t docId);
-    index::ErrorCode InnerSeekDoc(docid_t docId, docid_t& result);
+    docid64_t InnerSeekDoc(docid64_t docId);
+    index::ErrorCode InnerSeekDoc(docid64_t docId, docid64_t& result);
     void Reset() override;
 
 protected:
@@ -116,18 +116,18 @@ void PositionIteratorTyped<SingleIterator>::Reset()
 }
 
 template <class SingleIterator>
-docid_t PositionIteratorTyped<SingleIterator>::InnerSeekDoc(docid_t docId)
+docid64_t PositionIteratorTyped<SingleIterator>::InnerSeekDoc(docid64_t docId)
 {
-    docid_t docRet = INVALID_DOCID;
+    docid64_t docRet = INVALID_DOCID;
     auto ec = InnerSeekDoc(docId, docRet);
     index::ThrowIfError(ec);
     return docRet;
 }
 
 template <class SingleIterator>
-index::ErrorCode PositionIteratorTyped<SingleIterator>::InnerSeekDoc(docid_t docId, docid_t& result)
+index::ErrorCode PositionIteratorTyped<SingleIterator>::InnerSeekDoc(docid64_t docId, docid64_t& result)
 {
-    docid_t docRet = INVALID_DOCID;
+    docid64_t docRet = INVALID_DOCID;
     for (;;) {
         SingleIteratorType* singleIterator = _singleIterators[_segmentCursor];
         index::ErrorCode ec = singleIterator->SeekDocWithErrorCode(docId, docRet);
@@ -154,13 +154,13 @@ index::ErrorCode PositionIteratorTyped<SingleIterator>::InnerSeekDoc(docid_t doc
 }
 
 template <class SingleIterator>
-docid_t PositionIteratorTyped<SingleIterator>::SeekDoc(docid_t docId)
+docid64_t PositionIteratorTyped<SingleIterator>::SeekDoc(docid64_t docId)
 {
     return InnerSeekDoc(docId);
 }
 
 template <class SingleIterator>
-index::ErrorCode PositionIteratorTyped<SingleIterator>::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+index::ErrorCode PositionIteratorTyped<SingleIterator>::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
     return InnerSeekDoc(docId, result);
 }
@@ -213,7 +213,7 @@ inline index::Result<bool> PositionIteratorTyped<SingleIterator>::MoveToNextSegm
 {
     if ((size_t)_segmentCursor != mSegmentPostings->size() - 1) {
         ++_segmentCursor;
-        docid_t currentBaseDocId = (*mSegmentPostings)[_segmentCursor].GetBaseDocId();
+        docid64_t currentBaseDocId = (*mSegmentPostings)[_segmentCursor].GetBaseDocId();
         SingleIteratorType* singleIterator =
             CreateSingleIterator((*mSegmentPostings)[_segmentCursor].GetCompressMode());
         singleIterator->SetBaseDocId(currentBaseDocId);
@@ -234,7 +234,7 @@ inline index::Result<bool> PositionIteratorTyped<SingleBitmapPostingIterator>::M
 {
     if ((size_t)_segmentCursor != mSegmentPostings->size() - 1) {
         ++_segmentCursor;
-        docid_t currentBaseDocId = (*mSegmentPostings)[_segmentCursor].GetBaseDocId();
+        docid64_t currentBaseDocId = (*mSegmentPostings)[_segmentCursor].GetBaseDocId();
         SingleIteratorType* singleIterator =
             CreateSingleIterator((*mSegmentPostings)[_segmentCursor].GetCompressMode());
         singleIterator->SetBaseDocId(currentBaseDocId);

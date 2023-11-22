@@ -21,6 +21,7 @@
 #include "indexlib/framework/VersionLoader.h"
 #include "suez/common/TablePathDefine.h"
 #include "suez/table/LeaderElectionManager.h"
+#include "suez/table/PartitionProperties.h"
 #include "suez/table/VersionManager.h"
 #include "suez/table/VersionPublisher.h"
 #include "suez/table/VersionSynchronizer.h"
@@ -62,19 +63,28 @@ bool SyncVersion::syncRollbackVersion() {
     }
     std::vector<TableVersion> versions;
     const auto &pid = getPartitionId();
-    if (!_versionSync->getVersionList(pid, versions)) {
+    build_service::workflow::RealtimeInfoWrapper realtimeInfo;
+    if (!PartitionProperties::loadRealtimeInfo(pid,
+                                               _target.getConfigPath(),
+                                               TablePathDefine::constructIndexPath(_target.getRawIndexRoot(), pid),
+                                               &realtimeInfo)) {
+        AUTIL_LOG(ERROR, "load realtime info for %s failed", autil::legacy::FastToJsonString(pid).c_str());
+        return false;
+    }
+
+    if (!_versionSync->getVersionList(pid, realtimeInfo.getAppName(), realtimeInfo.getDataTable(), versions)) {
         AUTIL_LOG(ERROR, "[%s]: get version list  failed  ", FastToJsonString(pid, true).c_str());
         return false;
     }
     auto currentVersionId = _table->getPartitionMeta().getIncVersion();
-    if (currentVersionId == INVALID_VERSION) {
+    if (currentVersionId == indexlib::INVALID_VERSIONID) {
         AUTIL_LOG(ERROR, "[%s]: current version id invalid  ", FastToJsonString(pid, true).c_str());
         return false;
     }
     while (!versions.empty() && versions.back().getVersionId() > currentVersionId) {
         versions.pop_back();
     }
-    if (!_versionSync->updateVersionList(pid, versions)) {
+    if (!_versionSync->updateVersionList(pid, realtimeInfo.getAppName(), realtimeInfo.getDataTable(), versions)) {
         AUTIL_LOG(ERROR, "[%s]: update version list failed  ", FastToJsonString(pid, true).c_str());
     }
     AUTIL_LOG(INFO,
@@ -121,8 +131,17 @@ bool SyncVersion::isLeader() const { return _leaderElectionMgr->getRoleType(getP
 
 bool SyncVersion::updateVersionList(const TableVersion &newVersion) {
     const auto &pid = getPartitionId();
+    build_service::workflow::RealtimeInfoWrapper realtimeInfo;
+    if (!PartitionProperties::loadRealtimeInfo(pid,
+                                               _target.getConfigPath(),
+                                               TablePathDefine::constructIndexPath(_target.getRawIndexRoot(), pid),
+                                               &realtimeInfo)) {
+        AUTIL_LOG(ERROR, "load realtime info for %s failed", autil::legacy::FastToJsonString(pid).c_str());
+        return false;
+    }
+
     std::vector<TableVersion> versions;
-    if (!_versionSync->getVersionList(pid, versions)) {
+    if (!_versionSync->getVersionList(pid, realtimeInfo.getAppName(), realtimeInfo.getDataTable(), versions)) {
         AUTIL_LOG(WARN, "[%s]: get list failed, retry later", FastToJsonString(pid, true).c_str());
         return false;
     }
@@ -147,7 +166,7 @@ bool SyncVersion::updateVersionList(const TableVersion &newVersion) {
         }
     }
     newVersions.emplace_back(newVersion);
-    if (!_versionSync->updateVersionList(pid, newVersions)) {
+    if (!_versionSync->updateVersionList(pid, realtimeInfo.getAppName(), realtimeInfo.getDataTable(), newVersions)) {
         AUTIL_LOG(WARN,
                   "[%s]: update version list failed, retry later, version[%s]",
                   FastToJsonString(pid, true).c_str(),
@@ -165,10 +184,20 @@ void SyncVersion::syncForLeader(PartitionVersion &version) {
     const auto &pid = getPartitionId();
     // persist local version to persistent storage
     if (version.localVersion.getVersionId() > version.leaderVersion.getVersionId()) {
-        std::string localConfigPath =
-            TablePathDefine::constructLocalConfigPath(pid.getTableName(), _target.getConfigPath());
-        if (version.localVersion.isLeaderVersion() &&
-            _versionSync->persistVersion(pid, localConfigPath, version.localVersion)) {
+        build_service::workflow::RealtimeInfoWrapper realtimeInfo;
+        if (!PartitionProperties::loadRealtimeInfo(pid,
+                                                   _target.getConfigPath(),
+                                                   TablePathDefine::constructIndexPath(_target.getRawIndexRoot(), pid),
+                                                   &realtimeInfo)) {
+            AUTIL_LOG(ERROR, "load realtime info for %s failed", autil::legacy::FastToJsonString(pid).c_str());
+            return;
+        }
+
+        if (version.localVersion.isLeaderVersion() && _versionSync->persistVersion(pid,
+                                                                                   realtimeInfo.getAppName(),
+                                                                                   realtimeInfo.getDataTable(),
+                                                                                   _target.getConfigPath(),
+                                                                                   version.localVersion)) {
             AUTIL_LOG(INFO,
                       "[%s]: leader version updated from %s to %s",
                       FastToJsonString(pid, true).c_str(),
@@ -198,8 +227,18 @@ void SyncVersion::syncForLeader(PartitionVersion &version) {
 void SyncVersion::syncForFollower(PartitionVersion &version) {
     const auto &pid = getPartitionId();
     if (!version.leaderVersion.isFinished() && _versionSync->supportSyncFromPersist(_target)) {
+        build_service::workflow::RealtimeInfoWrapper realtimeInfo;
+        if (!PartitionProperties::loadRealtimeInfo(pid,
+                                                   _target.getConfigPath(),
+                                                   TablePathDefine::constructIndexPath(_target.getRawIndexRoot(), pid),
+                                                   &realtimeInfo)) {
+            AUTIL_LOG(ERROR, "load realtime info for %s failed", autil::legacy::FastToJsonString(pid).c_str());
+            return;
+        }
+
         TableVersion leaderVersion;
-        if (_versionSync->syncFromPersist(pid, _target.getConfigPath(), leaderVersion) &&
+        if (_versionSync->syncFromPersist(
+                pid, realtimeInfo.getAppName(), realtimeInfo.getDataTable(), _target.getConfigPath(), leaderVersion) &&
             leaderVersion.getVersionId() > version.leaderVersion.getVersionId()) {
             AUTIL_LOG(INFO,
                       "[%s]: leader version updated from %s to %s",
@@ -232,7 +271,17 @@ bool SyncVersion::recoverVersion(const PartitionId &pid,
         AUTIL_LOG(INFO, "[%s] no need sync from remote", FastToJsonString(pid, true).c_str());
         return true;
     }
-    if (!versionSync->syncFromPersist(pid, target.getConfigPath(), leaderVersion)) {
+    build_service::workflow::RealtimeInfoWrapper realtimeInfo;
+    if (!PartitionProperties::loadRealtimeInfo(pid,
+                                               target.getConfigPath(),
+                                               TablePathDefine::constructIndexPath(target.getRawIndexRoot(), pid),
+                                               &realtimeInfo)) {
+        AUTIL_LOG(ERROR, "load realtime info for %s failed", autil::legacy::FastToJsonString(pid).c_str());
+        return false;
+    }
+
+    if (!versionSync->syncFromPersist(
+            pid, realtimeInfo.getAppName(), realtimeInfo.getDataTable(), target.getConfigPath(), leaderVersion)) {
         AUTIL_LOG(ERROR, "[%s]: recover leader version failed", FastToJsonString(pid, true).c_str());
         return false;
     }

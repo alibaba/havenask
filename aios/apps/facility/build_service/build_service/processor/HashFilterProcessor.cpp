@@ -15,9 +15,22 @@
  */
 #include "build_service/processor/HashFilterProcessor.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
-#include "indexlib/indexlib.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/ProcessedDocument.h"
+#include "build_service/document/RawDocument.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
 
 using namespace std;
 using namespace autil;

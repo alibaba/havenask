@@ -46,5 +46,6 @@
             "data_path" : "data/tj_shop.dat"
         }
     ],
-    "config_path" : "config/config_multi_iquan_table"
+    "config_path" : "config/config_multi_iquan_table",
+    "tablet_mode" : "false"
 }

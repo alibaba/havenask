@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SUMMARY_READER_H
-#define __INDEXLIB_SUMMARY_READER_H
+#pragma once
 
 #include <memory>
 
@@ -37,6 +36,7 @@ namespace indexlib { namespace index {
     std::string GetIdentifier() const override { return Identifier(); }
 
 typedef std::vector<document::SearchSummaryDocument*> SearchSummaryDocVec;
+typedef std::vector<summarygroupid_t> SummaryGroupIdVec;
 
 class SummaryReader
 {
@@ -148,5 +148,3 @@ inline bool SummaryReader::GetDocumentByPkHash(const Key& key, document::SearchS
     return GetDocument(docId, summaryDoc);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SUMMARY_READER_H

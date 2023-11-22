@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RAWTEXTBUILDER_H
-#define ISEARCH_BS_RAWTEXTBUILDER_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "build_service/builder/Builder.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common_define.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/util/Log.h"
+#include "fslib/fs/FileLock.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/index_partition_options.h"
 #include "indexlib/file_system/file/BufferedFileWriter.h"
 #include "indexlib/file_system/fslib/FenceContext.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/partition/index_builder.h"
 #include "indexlib/util/counter/CounterMap.h"
 
 namespace build_service { namespace builder {
@@ -88,5 +97,3 @@ private:
 BS_TYPEDEF_PTR(LineDataBuilder);
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_RAWTEXTBUILDER_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUCKET_OFFSET_COMPRESSOR_H
-#define __INDEXLIB_BUCKET_OFFSET_COMPRESSOR_H
+#pragma once
 
 #include <memory>
 
@@ -99,5 +98,4 @@ public:
         return sizeof(ShortBucket);
     }
 };
-}}     // namespace indexlib::index
-#endif //__INDEXLIB_BUCKET_OFFSET_COMPRESSOR_H
+}} // namespace indexlib::index

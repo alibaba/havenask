@@ -1,10 +1,21 @@
 #include "build_service_tasks/io/MultiFileOutput.h"
 
-#include "autil/ConstString.h"
-#include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/Span.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "build_service/config/TaskInputConfig.h"
+#include "build_service/config/TaskOutputConfig.h"
+#include "build_service/io/IODefine.h"
 #include "build_service_tasks/test/unittest.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

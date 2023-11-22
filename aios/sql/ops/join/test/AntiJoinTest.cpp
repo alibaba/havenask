@@ -37,14 +37,14 @@ public:
             _allocator, leftDocs, "uid", {2, 1, 3, 4}));
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMatchDocAllocator<uint32_t>(
             _allocator, leftDocs, "group_name", {100, 101, 203, 204}));
-        _leftTable.reset(new Table(leftDocs, _allocator));
+        _leftTable = Table::fromMatchDocs(leftDocs, _allocator);
 
         vector<MatchDoc> rightDocs = _matchDocUtil.createMatchDocs(_allocator, 4);
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMatchDocAllocator<uint32_t>(
             _allocator, rightDocs, "cid", {10, 11, 23, 24}));
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMatchDocAllocator<uint32_t>(
             _allocator, rightDocs, "group_name", {99, 101, 200, 201}));
-        _rightTable.reset(new Table(rightDocs, _allocator));
+        _rightTable = Table::fromMatchDocs(rightDocs, _allocator);
         _naviRHelper.kernelConfig(R"json(
         {
             "output_fields" : ["a", "id", "b"],
@@ -57,12 +57,13 @@ public:
         ConditionParser parser(_poolPtr.get());
         ASSERT_TRUE(parser.parseCondition(conditionStr, _calcTableR->_condition));
 
-        _param = {{"uid", "group_name"},
-                  {"cid", "group_name"},
-                  {"uid", "group_name", "cid", "group_name0"},
-                  &_joinInfo,
-                  _poolPtr,
-                  nullptr};
+        auto *naviRHelper = getNaviRHelper();
+        ASSERT_TRUE(naviRHelper->getOrCreateRes(_param._joinInfoR));
+        _param._leftInputFields = {"uid", "group_name"};
+        _param._rightInputFields = {"cid", "group_name"};
+        _param._outputFields = {"uid", "group_name", "cid", "group_name0"};
+        _param._poolPtr = _poolPtr;
+        _param._pool = nullptr;
         _param._calcTableR = _calcTableR;
         _joinBase.reset(new AntiJoin(_param));
     }
@@ -72,8 +73,7 @@ private:
     TablePtr _leftTable;
     TablePtr _rightTable;
     CalcTableRPtr _calcTableR;
-    JoinInfo _joinInfo;
-    JoinBaseParam _param;
+    JoinBaseParamR _param;
     AntiJoinPtr _joinBase;
 };
 
@@ -136,7 +136,7 @@ TEST_F(AntiJoinTest, testFinish) {
         _matchDocUtil.extendMatchDocAllocator<uint32_t>(_allocator, docs, "uid", {}));
     ASSERT_NO_FATAL_FAILURE(
         _matchDocUtil.extendMatchDocAllocator<uint32_t>(_allocator, docs, "group_name", {}));
-    TablePtr outputTable(new Table(docs, _allocator));
+    TablePtr outputTable = Table::fromMatchDocs(docs, _allocator);
 
     _joinBase->_joinedFlag = {false, true, false, false};
     ASSERT_TRUE(_joinBase->finish(_leftTable, 4, outputTable));

@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
@@ -16,11 +21,6 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
-import com.google.common.collect.ImmutableList;
-
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class IquanValuesOp extends Values implements IquanRelNode {
     private int parallelNum = -1;
@@ -101,7 +101,7 @@ public class IquanValuesOp extends Values implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         return null;
     }
 

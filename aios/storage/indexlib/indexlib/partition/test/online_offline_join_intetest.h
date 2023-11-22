@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONLINEOFFLINEJOINTEST_H
-#define __INDEXLIB_ONLINEOFFLINEJOINTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -66,5 +65,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OnlineOfflineJoinTest, TestDelOpRedoOptimizeW
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OnlineOfflineJoinTest, TestDeletionMapMergeWithIncNotConsistentWithRt);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OnlineOfflineJoinTest, TestUpdateDocInSubDocScene);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINEOFFLINEJOINTEST_H

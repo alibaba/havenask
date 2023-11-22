@@ -15,11 +15,10 @@
  */
 #pragma once
 
-#include <memory>
 #include <mutex>
-#include <string>
 #include <thread>
 
+#include "autil/Log.h"
 #include "future_lite/Executor.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 

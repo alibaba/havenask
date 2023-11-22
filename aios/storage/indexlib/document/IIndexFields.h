@@ -32,7 +32,6 @@ public:
 
     virtual autil::StringView GetIndexType() const = 0;
     virtual size_t EstimateMemory() const = 0;
-    virtual bool HasFormatError() const = 0;
 };
 
 } // namespace indexlibv2::document

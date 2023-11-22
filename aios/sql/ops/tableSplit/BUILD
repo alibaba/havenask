@@ -16,7 +16,7 @@ cc_test(
     copts=['-fno-access-control'],
     linkopts=['-Wl,--as-needed'],
     deps=[
-        ':sql_ops_table_split_base', '//aios/table/table/test:table_testlib',
+        ':sql_ops_table_split_base', '//aios/table/test:table_testlib',
         '//aios/unittest_framework'
     ]
 )

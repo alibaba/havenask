@@ -1,10 +1,17 @@
 package com.taobao.search.iquan.core.utils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.IndexType;
-import com.taobao.search.iquan.core.api.schema.Table;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
@@ -24,8 +31,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.*;
-
 public class IquanJoinUtils {
 
     public static boolean isEquiJoin(Join join) {
@@ -36,8 +41,8 @@ public class IquanJoinUtils {
         return !(equiCondition instanceof RexLiteral);
     }
 
-    public static boolean isScannable(final Table table, final RelNode input) {
-        if (null == table || table.getTableType().isScannable()) {
+    public static boolean isScannable(final IquanTable iquanTable, final RelNode input) {
+        if (null == iquanTable || iquanTable.getTableType().isScannable()) {
             return true;
         }
         if (input instanceof IquanTableScanBase && !((IquanTableScanBase) input).isSimple()) {
@@ -51,7 +56,7 @@ public class IquanJoinUtils {
             throw new SqlQueryException(IquanErrorCode.IQUAN_EC_SQL_JOIN_INVALID, "input is not scan op");
         }
 
-        if (table.getTableType().isFilterable() && rexProgram != null && rexProgram.getCondition() != null) {
+        if (iquanTable.getTableType().isFilterable() && rexProgram != null && rexProgram.getCondition() != null) {
             return true;
         }
         return false;
@@ -72,7 +77,7 @@ public class IquanJoinUtils {
         //an insertion-ordered map
         Map<String, String> keyNameMap = new LinkedHashMap<>();
         Map<String, Object> outputFieldExprMap = new HashMap<>();
-        RelDistributionUtil.getTableFieldExpr(relNode, outputFieldExprMap);
+        RelDistributionUtil.getTableFieldExpr(relNode, outputFieldExprMap, true);
         List<RelDataTypeField> fields = relNode.getRowType().getFieldList();
         String mapKey;
         String mapValue;
@@ -92,8 +97,8 @@ public class IquanJoinUtils {
         return keyNameMap;
     }
 
-    public static boolean hasIndex(final Table table, List<String> keys) {
-        Map<String, IndexType> fieldToIndexMap = table.getFieldToIndexMap();
+    public static boolean hasIndex(final IquanTable iquanTable, List<String> keys) {
+        Map<String, IndexType> fieldToIndexMap = iquanTable.getFieldToIndexMap();
         return !keys.isEmpty() && keys.stream().map(fieldToIndexMap::get).anyMatch(
                 v -> v != null && v != IndexType.IT_NONE);
     }
@@ -226,7 +231,7 @@ public class IquanJoinUtils {
                                           IquanRelNode probeNode, List<String> probeJoinKeys,
                                           IquanRelNode buildNode, List<String> buildJoinKeys) {
         updatePartFixKey(iquanJoinOp, outputDistribution.getPartFixKeyMap(),
-                probeNode, probeJoinKeys,buildNode, buildJoinKeys);
+                probeNode, probeJoinKeys, buildNode, buildJoinKeys);
         if (outputDistribution.getType() != RelDistribution.Type.HASH_DISTRIBUTED) {
             return;
         }
@@ -242,9 +247,9 @@ public class IquanJoinUtils {
                             int key = 0;
                             JoinInfo joinInfo = iquanJoinOp.analyzeCondition();
                             ImmutableIntList rightKeys = joinInfo.rightKeys;
-                            while((rightKeys.get(key) != j) && (++key < rightKeys.size()));
+                            while ((rightKeys.get(key) != j) && (++key < rightKeys.size())) ;
                             String fieldName = outputFieldList.get(joinInfo.leftKeys.get(key)).getName();
-                            if(!posHashField.right.equals(fieldName)) {
+                            if (!posHashField.right.equals(fieldName)) {
                                 posHashField.right = fieldName;
                             }
                         } else if (!posHashField.right.equals(outputFieldList.get(leftFieldCount + j).getName())) {
@@ -296,7 +301,7 @@ public class IquanJoinUtils {
                 addLists = ListUtils.partition(iquanRelNode.getOutputDistribution().getHashFields(), 1);
             } else if (tmpPosHashFields.size() < size) {
                 addLists = new ArrayList<>(size);
-                for (int i = 0 ;i < tmpPosHashFields.size(); i++) {
+                for (int i = 0; i < tmpPosHashFields.size(); i++) {
                     Pair<Integer, String> tmpPosHashField = tmpPosHashFields.get(i);
                     while (addLists.size() < tmpPosHashField.getLeft()) {
                         addLists.add(new ArrayList<>());
@@ -336,7 +341,7 @@ public class IquanJoinUtils {
                     break;
                 }
             }
-            if(index >= 0) {
+            if (index >= 0) {
                 equalHashFieldList.get(index).add(fieldList.get(offset).getName());
             }
         }
@@ -350,7 +355,9 @@ public class IquanJoinUtils {
         }
         List<List<String>> equalHashFieldList = new ArrayList<>(baseLists.size());
         List<RelDataTypeField> outputFieldList = iquanJoinOp.getRowType().getFieldList();
-        int a = 0; int index; String field;
+        int a = 0;
+        int index;
+        String field;
         for (; a < baseLists.size() && a < addLists.size(); a++) {
             List<String> basePartFields = baseLists.get(a);
             List<String> addPartFields = addLists.get(a);

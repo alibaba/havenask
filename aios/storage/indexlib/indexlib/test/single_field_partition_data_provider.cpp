@@ -2,6 +2,7 @@
 
 #include "autil/StringUtil.h"
 #include "indexlib/common/file_system_factory.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index_base/branch_fs.h"
@@ -12,7 +13,6 @@
 #include "indexlib/partition/segment/dump_segment_container.h"
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/raw_document.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 #include "indexlib/util/test/build_test_util.h"
@@ -130,7 +130,7 @@ vector<NormalDocumentPtr> SingleFieldPartitionDataProvider::CreateDocuments(cons
 
     vector<NormalDocumentPtr> docs = DocumentCreator::CreateNormalDocuments(mSchema, normalizedDocString);
     for (size_t i = 0; i < docs.size(); i++) {
-        document::Locator locator(StringUtil::toString(mDocCount));
+        document::IndexLocator locator(0, mDocCount, StringUtil::toString(mDocCount));
         docs[i]->SetLocator(locator);
         docs[i]->SetTimestamp(mDocCount);
         mDocCount++;
@@ -196,7 +196,7 @@ PartitionDataPtr SingleFieldPartitionDataProvider::GetPartitionData()
     auto memoryController = util::MemoryQuotaControllerCreator::CreatePartitionMemoryController();
     BuildingPartitionParam param(mOptions, mSchema, memoryController, dumpSegContainer, counterMap, pluginManager,
                                  metricProvider, document::SrcSignature());
-    return PartitionDataCreator::CreateBuildingPartitionData(param, fileSystem, index_base::Version(INVALID_VERSION),
+    return PartitionDataCreator::CreateBuildingPartitionData(param, fileSystem, index_base::Version(INVALID_VERSIONID),
                                                              "", index_base::InMemorySegmentPtr());
 }
 

@@ -58,7 +58,7 @@ QueryScanIterator::QueryScanIterator(
     , _curDocId((*layerMeta)[0].nextBegin)
     , _curBegin((*layerMeta)[0].nextBegin)
     , _curEnd((*layerMeta)[0].end)
-    , _rangeCousor(0)
+    , _rangeCursor(0)
     , _batchFilterTime(0)
     , _scanTime(0) {}
 
@@ -148,10 +148,10 @@ size_t QueryScanIterator::batchFilter(const std::vector<int32_t> &docIds,
 }
 
 bool QueryScanIterator::moveToCorrectRange(docid_t &docId) {
-    while (++_rangeCousor < _layerMeta->size()) {
-        if (docId <= (*_layerMeta)[_rangeCousor].end) {
-            _curBegin = (*_layerMeta)[_rangeCousor].begin;
-            _curEnd = (*_layerMeta)[_rangeCousor].end;
+    while (++_rangeCursor < _layerMeta->size()) {
+        if (docId <= (*_layerMeta)[_rangeCursor].end) {
+            _curBegin = (*_layerMeta)[_rangeCursor].begin;
+            _curEnd = (*_layerMeta)[_rangeCursor].end;
             if (docId < _curBegin) {
                 docId = _curBegin;
                 return false;
@@ -164,8 +164,23 @@ bool QueryScanIterator::moveToCorrectRange(docid_t &docId) {
     return false;
 }
 
-uint32_t QueryScanIterator::getTotalSeekDocCount() {
-    return _queryExecutor->getSeekDocCount();
+uint32_t QueryScanIterator::getTotalSeekedCount() const {
+    uint32_t docCount = 0;
+    for (size_t cursor = 0; cursor < _rangeCursor; ++cursor) {
+        docCount += (*_layerMeta)[cursor].end - (*_layerMeta)[cursor].begin;
+    }
+    if (_rangeCursor < _layerMeta->size()) { // accumulate for last cursor
+        docCount += _curDocId - _curBegin;
+    }
+    return docCount;
+}
+
+uint32_t QueryScanIterator::getTotalWholeDocCount() const {
+    uint32_t docCount = 0;
+    for (size_t cursor = 0; cursor < _layerMeta->size(); ++cursor) {
+        docCount += (*_layerMeta)[cursor].end - (*_layerMeta)[cursor].begin;
+    }
+    return docCount;
 }
 
 } // namespace sql

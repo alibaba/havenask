@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PLUGIN_MODULE_H
-#define __INDEXLIB_PLUGIN_MODULE_H
+#pragma once
 
-#include <memory>
+#include <map>
+#include <string>
 
 #include "autil/Lock.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/plugin/DllWrapper.h"
-#include "indexlib/util/KeyValueMap.h"
 
 namespace indexlib { namespace plugin {
 class ModuleFactory;
@@ -80,5 +79,3 @@ private:
 };
 
 }} // namespace indexlib::plugin
-
-#endif //__INDEXLIB_PLUGIN_MODULE_H

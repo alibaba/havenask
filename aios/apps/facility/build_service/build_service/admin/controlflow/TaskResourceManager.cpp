@@ -15,8 +15,15 @@
  */
 #include "build_service/admin/controlflow/TaskResourceManager.h"
 
+#include <ostream>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/ResourceKeeperCreator.h"
-#include "build_service/common/SwiftResourceKeeper.h"
 
 using namespace std;
 

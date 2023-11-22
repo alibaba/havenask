@@ -16,9 +16,78 @@ strict_cc_library(
 strict_cc_library(
     name='KVTableTaskPlanCreator',
     deps=[
-        ':KVTableAlterTablePlanCreator', ':KVTableMergePlanCreator',
-        ':KVTableTaskOperationCreator',
+        ':KVTableAlterTablePlanCreator', ':KVTableBulkloadPlanCreator',
+        ':KVTableMergePlanCreator', ':KVTableTaskOperationCreator',
         '//aios/storage/indexlib/table/index_task:ComplexIndexTaskPlanCreator'
+    ]
+)
+strict_cc_library(
+    name='KVTableBulkloadPlanCreator',
+    deps=[
+        ':KVTableBulkloadOperation', ':KVTableBulkloadSegmentCreateOperation',
+        ':KVTableMergeDescriptionCreator', '//aios/autil:log',
+        '//aios/storage/indexlib/base:Status',
+        '//aios/storage/indexlib/config:TabletSchema',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskPlan',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResource',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/index_task:SimpleIndexTaskPlanCreator',
+        '//aios/storage/indexlib/table/kv_table/index_task:KVTableResourceCreator'
+    ]
+)
+strict_cc_library(
+    name='KVTableExternalFileImportJob',
+    deps=[
+        '//aios/autil:log', '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:ImportOptions',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework:VersionLoader',
+        '//aios/storage/indexlib/util:path_util'
+    ]
+)
+strict_cc_library(
+    name='KVTableBulkloadSegmentCreatePlan',
+    deps=[
+        ':KVTableExternalFileImportJob', '//aios/autil:json',
+        '//aios/autil:log', '//aios/storage/indexlib/base:constants',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResource',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant'
+    ]
+)
+strict_cc_library(
+    name='KVTableBulkloadOperation',
+    deps=[
+        ':KVTableBulkloadSegmentCreatePlan', ':KVTableExternalFileImportJob',
+        '//aios/autil:log', '//aios/storage/indexlib/framework:ImportOptions',
+        '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework:Version',
+        '//aios/storage/indexlib/framework/index_task:IndexOperation',
+        '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResource',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/table/index_task:VersionResource',
+        '//aios/storage/indexlib/table/kv_table:KVTabletOptions',
+        '//aios/storage/indexlib/util:JsonUtil',
+        '//aios/storage/indexlib/util:path_util'
+    ]
+)
+strict_cc_library(
+    name='KVTableBulkloadSegmentCreateOperation',
+    deps=[
+        ':KVTableBulkloadSegmentCreatePlan', '//aios/autil:log',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework:SegmentDescriptions',
+        '//aios/storage/indexlib/framework/index_task:IndexOperation',
+        '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager',
+        '//aios/storage/indexlib/table/index_task:IndexTaskConstant',
+        '//aios/storage/indexlib/util:path_util'
     ]
 )
 strict_cc_library(
@@ -60,6 +129,7 @@ strict_cc_library(
 strict_cc_library(
     name='KVTableResourceCreator',
     deps=[
+        'KVTableBulkloadSegmentCreatePlan',
         '//aios/storage/indexlib/framework/index_task:IIndexTaskResourceCreator',
         '//aios/storage/indexlib/table/index_task:VersionResource',
         '//aios/storage/indexlib/table/index_task/merger:MergePlan'
@@ -68,7 +138,8 @@ strict_cc_library(
 strict_cc_library(
     name='KVTableTaskOperationCreator',
     deps=[
-        ':KVIndexMergeOperation',
+        ':KVIndexMergeOperation', ':KVTableBulkloadOperation',
+        ':KVTableBulkloadSegmentCreateOperation',
         '//aios/storage/indexlib/table/index_task/merger:CommonTaskOperationCreator'
     ]
 )

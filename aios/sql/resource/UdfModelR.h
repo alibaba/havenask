@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "iquan/common/Common.h"
+#include "iquan/common/catalog/CatalogDef.h"
 #include "iquan/common/catalog/FunctionModel.h"
 #include "navi/common.h"
 #include "navi/engine/Resource.h"
@@ -51,16 +52,15 @@ public:
     navi::ErrorCode init(navi::ResourceInitContext &ctx) override;
 
 public:
-    void fillZoneUdfMap(const iquan::TableModels &tableModels);
-    bool fillFunctionModels(iquan::FunctionModels &functionModels,
-                            iquan::TvfModels &tvfModels) const;
+    bool fillFunctionModels(iquan::CatalogDefs &catalogDefs);
 
 private:
-    template <typename IquanModels>
-    static void addUserFunctionModels(const IquanModels &inModels,
-                                      const std::vector<std::string> &specialCatalogs,
-                                      const std::string &dbName,
-                                      IquanModels &outModels);
+    static void mergeUdfs(std::vector<iquan::FunctionModel> &destUdfModels,
+                          std::vector<iquan::FunctionModel> &srcUdfModels);
+    static bool addFunctions(iquan::CatalogDefs &catalogDefs,
+                             const std::vector<std::string> &catalogList,
+                             const std::vector<iquan::FunctionModel> &functionModes,
+                             const std::string &dbName);
 
 public:
     static const std::string RESOURCE_ID;
@@ -71,38 +71,11 @@ private:
 private:
     RESOURCE_DEPEND_ON_FALSE(AggFuncFactoryR, _aggFuncFactoryR);
     RESOURCE_DEPEND_ON_FALSE(TvfFuncFactoryR, _tvfFuncFactoryR);
-    iquan::FunctionModels _defaultUdfFunctionModels;
-    std::map<std::string, std::vector<iquan::FunctionModel>> _zoneUdfMap;
+    std::vector<iquan::FunctionModel> _defaultUdfModels;
+    std::vector<iquan::FunctionModel> _systemUdfModels;
+    std::map<std::string, std::vector<iquan::FunctionModel>> _dbUdfMap;
     std::vector<std::string> _specialCatalogs;
-    std::map<std::string, iquan::FunctionModels> _zoneFunctionModels;
 };
-
-template <typename IquanModels>
-void UdfModelR::addUserFunctionModels(const IquanModels &inModels,
-                                      const std::vector<std::string> &specialCatalogs,
-                                      const std::string &dbName,
-
-                                      IquanModels &outModels) {
-
-    for (auto model : inModels.functions) {
-        if (!model.catalogName.empty()) {
-            model.databaseName = dbName;
-            model.functionVersion = 1;
-            outModels.functions.emplace_back(model);
-        } else {
-            model.catalogName = SQL_DEFAULT_CATALOG_NAME;
-            model.databaseName = dbName;
-            model.functionVersion = 1;
-            outModels.functions.emplace_back(model);
-            for (auto const &catalogName : specialCatalogs) {
-                model.catalogName = catalogName;
-                model.databaseName = dbName;
-                model.functionVersion = 1;
-                outModels.functions.emplace_back(model);
-            }
-        }
-    }
-}
 
 NAVI_TYPEDEF_PTR(UdfModelR);
 

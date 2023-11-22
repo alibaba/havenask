@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_FILE_SYSTEM_CONFIG_H
-#define __INDEXLIB_FILE_SYSTEM_CONFIG_H
+#pragma once
 
 #include <memory>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -54,10 +53,8 @@ public:
     static const uint32_t DEFAULT_WRITE_QUEUE_SIZE;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(FileSystemConfig);
+typedef std::shared_ptr<FileSystemConfig> FileSystemConfigPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_FILE_SYSTEM_CONFIG_H

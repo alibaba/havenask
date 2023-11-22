@@ -24,7 +24,7 @@
 #include "indexlib/framework/BuildResource.h"
 #include "indexlib/framework/DiskSegment.h"
 #include "indexlib/framework/SegmentMeta.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 
 namespace indexlibv2::index {
 class IIndexer;
@@ -59,7 +59,7 @@ public:
                     std::shared_ptr<indexlibv2::index::IIndexer> indexer) override;
     void DeleteIndexer(const std::string& type, const std::string& indexName) override;
 
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
     size_t EvaluateCurrentMemUsed() override;
 
 protected:
@@ -74,7 +74,7 @@ protected:
                       const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
                       index::IIndexFactory* indexFactory);
 
-    index::IndexerParameter GenerateIndexerParameter() const;
+    index::DiskIndexerParameter GenerateIndexerParameter() const;
     virtual bool NeedDrop(const std::string& indexType, const std::string& indexName,
                           const std::vector<std::shared_ptr<config::ITabletSchema>>& schemas);
 

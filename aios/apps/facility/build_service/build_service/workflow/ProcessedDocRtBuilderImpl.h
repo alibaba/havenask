@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSEDDOCRTBUILDERIMPL_H
-#define ISEARCH_BS_PROCESSEDDOCRTBUILDERIMPL_H
+#pragma once
 
-#include "autil/Lock.h"
-#include "autil/LoopThread.h"
+#include <memory>
+#include <stdint.h>
+#include <string>
+
+#include "build_service/common/Locator.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeper.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/workflow/FlowFactory.h"
+#include "build_service/workflow/RealtimeBuilderDefine.h"
 #include "build_service/workflow/RealtimeBuilderImplBase.h"
-#include "build_service/workflow/Workflow.h"
+#include "build_service/workflow/SwiftProcessedDocProducer.h"
+#include "indexlib/partition/index_partition.h"
 
-namespace build_service {
-
-namespace builder {
-class Builder;
-}
-
-namespace workflow {
-
-class FlowFactory;
-class SwiftProcessedDocProducer;
+namespace build_service { namespace workflow {
 
 class ProcessedDocRtBuilderImpl : public RealtimeBuilderImplBase
 {
@@ -80,7 +78,4 @@ private:
     BS_LOG_DECLARE();
 };
 
-} // namespace workflow
-} // namespace build_service
-
-#endif // ISEARCH_BS_PROCESSEDDOCRTBUILDERIMPL_H
+}} // namespace build_service::workflow

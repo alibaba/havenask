@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PACK_ATTR_UPDATE_DOC_SIZE_CALCULATOR_H
-#define __INDEXLIB_PACK_ATTR_UPDATE_DOC_SIZE_CALCULATOR_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -88,5 +87,3 @@ private:
 
 DEFINE_SHARED_PTR(PackAttrUpdateDocSizeCalculator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PACK_ATTR_UPDATE_DOC_SIZE_CALCULATOR_H

@@ -15,15 +15,24 @@
  */
 #include "build_service/admin/ClusterCheckpointSynchronizerCreator.h"
 
-#include "build_service//admin/ClusterCheckpointSynchronizer.h"
-#include "build_service//admin/ZKClusterCheckpointSynchronizer.h"
-#include "build_service/admin/CheckpointSynchronizer.h"
-#include "build_service/admin/ZKCheckpointSynchronizer.h"
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/admin/CheckpointMetricReporter.h"
+#include "build_service/admin/ClusterCheckpointSynchronizer.h"
+#include "build_service/admin/ZKClusterCheckpointSynchronizer.h"
+#include "build_service/common/CheckpointAccessor.h"
 #include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
 #include "build_service/util/RangeUtil.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/config/TabletOptions.h"
 
 namespace build_service { namespace admin {
 BS_LOG_SETUP(admin, ClusterCheckpointSynchronizerCreator);

@@ -46,7 +46,7 @@ ErrorCode SpatialPostingIterator::Init(const std::vector<BufferedPostingIterator
         TermMeta* termMeta = postingIterators[i]->GetTermMeta();
         docFreq += termMeta->GetDocFreq();
         totalTF += termMeta->GetTotalTermFreq();
-        docid_t docid = INVALID_DOCID;
+        docid64_t docid = INVALID_DOCID;
         auto errorCode = postingIterators[i]->SeekDocWithErrorCode(INVALID_DOCID, docid);
         if (errorCode != ErrorCode::OK) {
             return errorCode;
@@ -65,18 +65,18 @@ void SpatialPostingIterator::Unpack(TermMatchData& termMatchData)
     termMatchData.SetMatched(true);
 }
 
-docid_t SpatialPostingIterator::InnerSeekDoc(docid_t docid)
+docid64_t SpatialPostingIterator::InnerSeekDoc(docid64_t docid)
 {
-    docid_t result = 0;
+    docid64_t result = 0;
     auto ec = InnerSeekDoc(docid, result);
     ThrowIfError(ec);
     return result;
 }
 
-ErrorCode SpatialPostingIterator::InnerSeekDoc(docid_t docid, docid_t& result)
+ErrorCode SpatialPostingIterator::InnerSeekDoc(docid64_t docid, docid64_t& result)
 {
     docid = std::max(_curDocid + 1, docid);
-    docid_t nextDocid = 0;
+    docid64_t nextDocid = 0;
     while (!_heap.empty()) {
         _seekDocCounter++;
         auto [iter, heapDocId] = _heap.top();
@@ -98,7 +98,7 @@ ErrorCode SpatialPostingIterator::InnerSeekDoc(docid_t docid, docid_t& result)
     return ErrorCode::OK;
 }
 
-docid_t SpatialPostingIterator::SeekDoc(docid_t docid)
+docid64_t SpatialPostingIterator::SeekDoc(docid64_t docid)
 {
     // should not seek back
     return InnerSeekDoc(docid);
@@ -113,7 +113,7 @@ void SpatialPostingIterator::Reset()
 
     for (auto iter : _postingIterators) {
         iter->Reset();
-        docid_t docid = iter->SeekDoc(INVALID_DOCID);
+        docid64_t docid = iter->SeekDoc(INVALID_DOCID);
         if (docid != INVALID_DOCID) {
             _heap.push(std::make_pair(iter, docid));
         }

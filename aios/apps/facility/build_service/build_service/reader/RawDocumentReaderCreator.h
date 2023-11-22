@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RAWDOCUMENTREADERCREATOR_H
-#define ISEARCH_BS_RAWDOCUMENTREADERCREATOR_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
@@ -67,6 +66,7 @@ private:
                                                 const indexlib::util::CounterMapPtr& counterMap,
                                                 const indexlib::config::IndexPartitionSchemaPtr schema,
                                                 const std::shared_ptr<indexlibv2::config::ITabletSchema>& schemaV2);
+    RawDocumentReader* createFilterRawDocumentReader(const KeyValueMap& kvMap, RawDocumentReader* reader);
 
 private:
     ReaderManagerPtr _readerManagerPtr;
@@ -80,5 +80,3 @@ private:
 BS_TYPEDEF_PTR(RawDocumentReaderCreator);
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_RAWDOCUMENTREADERCREATOR_H

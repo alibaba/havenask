@@ -1,16 +1,18 @@
 package com.taobao.search.iquan.client.common.json.function;
 
-import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
-import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
+import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Getter
 public class JsonTvfFunction {
     private static final Logger logger = LoggerFactory.getLogger(JsonTvfFunction.class);
 
@@ -22,21 +24,6 @@ public class JsonTvfFunction {
 
     @JsonProperty(value = "properties")
     private Map<String, Object> properties = new HashMap<>(1);
-
-    public JsonTvfFunction() {
-    }
-
-    public List<JsonTvfSignature> getPrototypes() {
-        return prototypes;
-    }
-
-    public JsonTvfDistribution getDistribution() {
-        return distribution;
-    }
-
-    public Map<String, Object> getProperties() {
-        return properties;
-    }
 
     @JsonIgnore
     public boolean isValid() {

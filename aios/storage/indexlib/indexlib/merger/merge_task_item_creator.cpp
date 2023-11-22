@@ -15,8 +15,26 @@
  */
 #include "indexlib/merger/merge_task_item_creator.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+#include <type_traits>
+
+#include "autil/legacy/exception.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/customized_config.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/index_schema.h"
 #include "indexlib/config/merge_config.h"
+#include "indexlib/config/merge_io_config.h"
+#include "indexlib/config/pack_attribute_config.h"
+#include "indexlib/config/source_schema.h"
+#include "indexlib/config/summary_group_config.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/common/Types.h"
+#include "indexlib/index/data_structure/adaptive_attribute_offset_dumper.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_merger.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_merger_factory.h"
 #include "indexlib/index/normal/framework/index_merger.h"
@@ -24,12 +42,14 @@
 #include "indexlib/index/normal/source/source_group_merger.h"
 #include "indexlib/index/normal/source/source_meta_merger.h"
 #include "indexlib/index/normal/summary/local_disk_summary_merger.h"
+#include "indexlib/index/normal/summary/summary_merger.h"
+#include "indexlib/index/source/config/SourceGroupConfig.h"
+#include "indexlib/index/summary/Types.h"
+#include "indexlib/index_base/index_meta/merge_task_resource.h"
 #include "indexlib/index_base/index_meta/parallel_merge_item.h"
-#include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/merge_task_resource_manager.h"
-#include "indexlib/index_base/segment/segment_data.h"
 #include "indexlib/index_define.h"
-#include "indexlib/merger/merge_meta.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/merge_task_item.h"
 #include "indexlib/merger/segment_directory.h"

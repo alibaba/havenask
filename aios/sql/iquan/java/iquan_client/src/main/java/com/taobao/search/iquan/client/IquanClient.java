@@ -2,21 +2,20 @@ package com.taobao.search.iquan.client;
 
 import com.taobao.kmonitor.KMonitor;
 import com.taobao.search.iquan.client.common.common.FormatType;
+import com.taobao.search.iquan.client.common.json.api.JsonSqlConfig;
 import com.taobao.search.iquan.client.common.metrics.QueryMetricsReporter;
 import com.taobao.search.iquan.client.common.response.SqlResponse;
 import com.taobao.search.iquan.client.common.service.CatalogService;
-import com.taobao.search.iquan.client.common.service.FunctionService;
 import com.taobao.search.iquan.client.common.service.SqlQueryService;
-import com.taobao.search.iquan.client.common.service.TableService;
 import com.taobao.search.iquan.client.common.utils.ClientUtils;
 import com.taobao.search.iquan.client.common.utils.ErrorUtils;
-import com.taobao.search.iquan.client.common.json.api.JsonSqlConfig;
 import com.taobao.search.iquan.core.api.SqlTranslator;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,7 +23,7 @@ import java.util.Map;
  */
 public class IquanClient {
     private static final Logger logger = LoggerFactory.getLogger(IquanClient.class);
-    private SqlTranslator translator;
+    private final SqlTranslator translator;
 
     public IquanClient(int format, byte[] params) {
         JsonSqlConfig sqlConfig = ClientUtils.parseRequest(format, params, JsonSqlConfig.class);
@@ -35,60 +34,12 @@ public class IquanClient {
         translator = new SqlTranslator(sqlConfig.debugFlag);
     }
 
-    public byte[] updateCatalog(int format, byte[] request) {
+    public byte[] registerCatalogs(int format, byte[] request) {
         SqlResponse response;
 
         try {
-            Map<String, Object> reqMap = ClientUtils.parseMapRequest(format, request);
-            response = CatalogService.updateCatalog(translator, reqMap);
-        } catch (SqlQueryException e) {
-            response = new SqlResponse();
-            ErrorUtils.setSqlQueryException(e, response);
-        } catch (Exception e) {
-            response = new SqlResponse();
-            ErrorUtils.setException(e, response);
-        }
-        return ClientUtils.toResponseByte(FormatType.JSON.getIndex(), response);
-    }
-
-    public byte[] updateFunctions(int format, byte[] request) {
-        SqlResponse response;
-
-        try {
-            Map<String, Object> reqMap = ClientUtils.parseMapRequest(format, request);
-            response = FunctionService.updateFunctions(translator, reqMap);
-        } catch (SqlQueryException e) {
-            response = new SqlResponse();
-            ErrorUtils.setSqlQueryException(e, response);
-        } catch (Exception e) {
-            response = new SqlResponse();
-            ErrorUtils.setException(e, response);
-        }
-        return ClientUtils.toResponseByte(FormatType.JSON.getIndex(), response);
-    }
-
-    public byte[] updateTables(int format, byte[] request) {
-        SqlResponse response;
-
-        try {
-            Map<String, Object> reqMap = ClientUtils.parseMapRequest(format, request);
-            response = TableService.updateTables(translator, reqMap);
-        } catch (SqlQueryException e) {
-            response = new SqlResponse();
-            ErrorUtils.setSqlQueryException(e, response);
-        } catch (Exception e) {
-            response = new SqlResponse();
-            ErrorUtils.setException(e, response);
-        }
-        return ClientUtils.toResponseByte(FormatType.JSON.getIndex(), response);
-    }
-
-    public byte[] updateLayerTables(int format, byte[] request) {
-        SqlResponse response;
-
-        try {
-            Map<String, Object> reqMap = ClientUtils.parseMapRequest(format, request);
-            response = TableService.updateLayerTables(translator, reqMap);
+            List<Object> catalogs = ClientUtils.parseRequest(format, request, List.class);
+            response = CatalogService.registerCatalogs(translator, catalogs);
         } catch (SqlQueryException e) {
             response = new SqlResponse();
             ErrorUtils.setSqlQueryException(e, response);

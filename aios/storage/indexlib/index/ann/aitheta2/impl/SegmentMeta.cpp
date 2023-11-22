@@ -28,6 +28,33 @@ static constexpr const char* UNKNOWN_SEGMENT = "unknown";
 static constexpr const char* NORMAL_SEGMENT = "normal";
 static constexpr const char* REALTIME_SEGMENT = "realtime";
 
+static constexpr const char* STATS_TYPE_JSON_STRING = "json_string";
+
+TrainStats::TrainStats() : statsType(STATS_TYPE_JSON_STRING), stats {"{}"} {}
+
+void TrainStats::Jsonize(JsonWrapper& json)
+{
+    json.Jsonize("stats_type", statsType, STATS_TYPE_JSON_STRING);
+    json.Jsonize("stats", stats, "{}");
+}
+
+BuildStats::BuildStats() : statsType(STATS_TYPE_JSON_STRING), stats {"{}"} {}
+
+void BuildStats::Jsonize(JsonWrapper& json)
+{
+    json.Jsonize("stats_type", statsType, STATS_TYPE_JSON_STRING);
+    json.Jsonize("stats", stats, "{}");
+}
+
+void IndexMeta::Jsonize(JsonWrapper& json)
+{
+    json.Jsonize("doc_count", docCount);
+    json.Jsonize("builder_name", builderName);
+    json.Jsonize("searcher_name", searcherName);
+    json.Jsonize("train_stats", trainStats, TrainStats {});
+    json.Jsonize("build_stats", buildStats, BuildStats {});
+}
+
 bool SegmentMeta::IsExist(const indexlib::file_system::DirectoryPtr& directory)
 {
     return directory->IsExist(SEGMENT_META_FILE) || HasParallelMergeMeta(directory);

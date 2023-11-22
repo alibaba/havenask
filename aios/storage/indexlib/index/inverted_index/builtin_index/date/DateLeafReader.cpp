@@ -48,7 +48,7 @@ DateLeafReader::DateLeafReader(const std::shared_ptr<indexlibv2::config::DateInd
 DateLeafReader::~DateLeafReader() {}
 
 future_lite::coro::Lazy<index::Result<SegmentPostingsVec>>
-DateLeafReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId, autil::mem_pool::Pool* sessionPool,
+DateLeafReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid64_t baseDocId, autil::mem_pool::Pool* sessionPool,
                        file_system::ReadOption option, InvertedIndexSearchTracer* tracer) noexcept
 {
     SegmentPostingsVec result;
@@ -73,7 +73,7 @@ DateLeafReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId,
 }
 
 future_lite::coro::Lazy<ErrorCode> DateLeafReader::FillSegmentPostings(
-    const DateTerm::Ranges& ranges, docid_t baseDocId, const std::shared_ptr<SegmentPostings>& dateSegmentPostings,
+    const DateTerm::Ranges& ranges, docid64_t baseDocId, const std::shared_ptr<SegmentPostings>& dateSegmentPostings,
     autil::mem_pool::Pool* sessionPool, file_system::ReadOption option, InvertedIndexSearchTracer* tracer) noexcept
 {
     if (_isHashTypeDict) {
@@ -137,7 +137,7 @@ future_lite::coro::Lazy<ErrorCode> DateLeafReader::FillSegmentPostings(
 }
 
 future_lite::coro::Lazy<index::Result<SegmentPosting>>
-DateLeafReader::FillOneSegment(dictvalue_t value, docid_t baseDocId, autil::mem_pool::Pool* sessionPool,
+DateLeafReader::FillOneSegment(dictvalue_t value, docid64_t baseDocId, autil::mem_pool::Pool* sessionPool,
                                file_system::ReadOption option, InvertedIndexSearchTracer* tracer) noexcept
 {
     SegmentPosting segPosting;

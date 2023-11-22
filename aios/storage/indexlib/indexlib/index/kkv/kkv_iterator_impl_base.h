@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KKV_ITERATOR_IMPL_BASE_H
-#define __INDEXLIB_KKV_ITERATOR_IMPL_BASE_H
+#pragma once
 
 #include <memory>
 #include <unordered_set>
@@ -80,5 +79,3 @@ protected:
     KVMetricsCollector* mMetricsCollector;
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KKV_ITERATOR_IMPL_BASE_H

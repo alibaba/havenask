@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OFFLINEPARTITIONTEST_H
-#define __INDEXLIB_OFFLINEPARTITIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/offline_partition.h"
@@ -46,5 +45,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OfflinePartitionTest, TestIncIndexOpen);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OfflinePartitionTest, TestIncOpenWithIncompatibleFormatVersion);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OfflinePartitionTest, TestOpenWithInvalidPartitionMeta);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OFFLINEPARTITIONTEST_H

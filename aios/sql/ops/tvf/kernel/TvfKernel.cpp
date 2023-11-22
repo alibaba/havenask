@@ -81,9 +81,6 @@ navi::ErrorCode TvfKernel::compute(KernelComputeContext &ctx) {
     }
     navi::PortIndex outputIndex(0, navi::INVALID_INDEX);
     if (outputTable || isEof) {
-        if (outputTable && inputTable) {
-            outputTable->mergeDependentPools(inputTable);
-        }
         TableDataPtr tableData(new TableData(outputTable));
         ctx.setOutput(outputIndex, tableData, isEof);
     }

@@ -52,6 +52,7 @@ public:
     bool cancelled() const {
         return _cancelled;
     }
+    bool isAllReplicaStopped(SignatureTy sig);
 
 private:
     void updateClientSignatureMap(const NewHeartbeatRequest &request);

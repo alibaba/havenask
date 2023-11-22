@@ -2,23 +2,22 @@ package(default_visibility=['//visibility:private'])
 load('//bazel:defs.bzl', 'cc_proto', 'gen_conf_lib')
 cc_proto(
     name='master_framework_proto',
-    visibility=['//visibility:public'],
     srcs=glob(['master_framework/proto/*.proto']),
-    deps=['//aios/hippo:proto', '//aios/network/arpc:proto'],
     import_prefix='master_framework',
-    strip_import_prefix='master_framework'
+    strip_import_prefix='master_framework',
+    visibility=['//visibility:public'],
+    deps=['//aios/hippo:proto', '//aios/network/arpc:proto']
 )
 cc_proto(
     name='carbon3_proto',
-    visibility=['//visibility:public'],
     srcs=glob(['carbon/proto/*.proto']),
-    deps=['//aios/hippo:proto', '//aios/network/arpc:proto'],
     import_prefix='carbon',
-    strip_import_prefix='carbon'
+    strip_import_prefix='carbon',
+    visibility=['//visibility:public'],
+    deps=['//aios/hippo:proto', '//aios/network/arpc:proto']
 )
 cc_library(
     name='master_framework',
-    visibility=['//visibility:public'],
     srcs=(
         glob([
             'src/master_framework/master_base/*.h',
@@ -50,13 +49,13 @@ cc_library(
         ]
     ),
     hdrs=glob(['include/master_framework/*.h', 'include/carbon/Log.h']),
-    deps=[':master_framework_proto_cc_proto', ':carbon3', '//aios/hippo:hippo'],
     includes=['src/master_framework'],
-    strip_include_prefix='include'
+    strip_include_prefix='include',
+    visibility=['//visibility:public'],
+    deps=[':carbon3', ':master_framework_proto_cc_proto', '//aios/hippo']
 )
 cc_library(
     name='carbon3',
-    visibility=['//visibility:public'],
     srcs=glob([
         'src/master/*.h', 'src/common/*.h', 'src/compatible/*.h',
         'src/service/*.h', 'src/monitor/*.h', 'src/master/*.cpp',
@@ -64,12 +63,34 @@ cc_library(
         'src/monitor/*.cpp'
     ]),
     hdrs=glob(['include/carbon/*.h', 'include/carbon/legacy/*.h']),
-    deps=[
-        ':carbon3_proto_cc_proto', '//aios/hippo:hippo',
-        '//aios/autil:closure_guard', '//third_party/lzma:lzma'
-    ],
     includes=['src'],
-    strip_include_prefix='include'
+    strip_include_prefix='include',
+    visibility=['//visibility:public'],
+    deps=[
+        ':carbon3_proto_cc_proto', '//aios/autil:closure_guard', '//aios/hippo',
+        '//third_party/lzma'
+    ]
+)
+cc_library(
+    name='c2',
+    srcs=glob([
+        'src/master/*.h', 'src/common/*.h', 'src/compatible/*.h',
+        'src/service/*.h', 'src/monitor/*.h', 'src/client/*.h',
+        'src/master/*.cpp', 'src/common/*.cpp', 'src/compatible/*.cpp',
+        'src/service/*.cpp', 'src/monitor/*.cpp', 'src/client/*.cpp'
+    ]),
+    hdrs=glob([
+        'include/c2/*.h', 'include/c2/legacy/*.h', 'include/carbon/*.h',
+        'include/carbon/legacy/*.h'
+    ]),
+    includes=['src'],
+    strip_include_prefix='include',
+    visibility=['//visibility:public'],
+    deps=[
+        ':carbon3_proto_cc_proto', '//aios/autil:closure_guard', '//aios/hippo',
+        '//aios/hippo:hippo_sdk', '//aios/network/http_arpc',
+        '//third_party/lzma'
+    ]
 )
 gen_conf_lib(
     name='test_header',

@@ -28,6 +28,7 @@ table SqlResult {
       leaderInfos: [TableLeaderInfo] (id:6);
       buildWatermarks: [TableBuildWatermark] (id:7);
       hasSoftFailure: bool (id:8);
+      softFailureCodes: [long] (id:9);
 }
 
 root_type SqlResult;

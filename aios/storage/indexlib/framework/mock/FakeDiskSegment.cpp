@@ -16,10 +16,10 @@
 #include "indexlib/framework/mock/FakeDiskSegment.h"
 
 #include "indexlib/framework/SegmentInfo.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IDiskIndexer.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IndexFactoryCreator.h"
-#include "indexlib/index/IndexerParameter.h"
 
 #define SEGMENT_LOG(level, format, args...)                                                                            \
     AUTIL_LOG(level, "[%s] [%p] segment[%d] " format, _options->GetTabletName().c_str(), this, GetSegmentId(), ##args)
@@ -45,7 +45,8 @@ Status FakeDiskSegment::Open(const std::shared_ptr<MemoryQuotaController>& memor
         }
         const auto& indexConfig = GetSegmentSchema()->GetIndexConfig(key.first, key.second);
         if (!indexer) {
-            indexlibv2::index::IndexerParameter indexerParam;
+            indexlibv2::index::DiskIndexerParameter indexerParam;
+            indexerParam.segmentId = GetSegmentId();
             indexerParam.segmentInfo = GetSegmentInfo();
             indexerParam.docCount = GetSegmentInfo()->GetDocCount();
             indexerParam.segmentMetrics = GetSegmentMetrics();
@@ -83,7 +84,10 @@ void FakeDiskSegment::DeleteIndexer(const std::string& type, const std::string& 
     _indexers.erase({type, indexName});
 }
 
-size_t FakeDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) { return 0; }
+std::pair<Status, size_t> FakeDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
+{
+    return {Status::OK(), 0};
+}
 size_t FakeDiskSegment::EvaluateCurrentMemUsed() { return 0; }
 void FakeDiskSegment::SetSegmentId(segmentid_t segId) { _segmentMeta.segmentId = segId; }
 void FakeDiskSegment::SetSegmentSchema(const std::shared_ptr<config::ITabletSchema>& schema)

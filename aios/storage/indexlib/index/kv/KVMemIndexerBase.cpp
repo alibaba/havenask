@@ -36,7 +36,7 @@
 namespace indexlibv2::index {
 AUTIL_DECLARE_AND_SETUP_LOGGER(indexlib.index, KVMemIndexerBase);
 
-KVMemIndexerBase::KVMemIndexerBase() : _indexNameHash(0) {}
+KVMemIndexerBase::KVMemIndexerBase(bool tolerateDocError) : _tolerateDocError(tolerateDocError), _indexNameHash(0) {}
 
 KVMemIndexerBase::~KVMemIndexerBase() {}
 
@@ -83,7 +83,7 @@ Status KVMemIndexerBase::Build(document::IDocumentBatch* docBatch)
         singleField.pkFieldName = kvDoc->GetPkFieldName();
         singleField.pkFieldValue = kvDoc->GetPkFieldValue();
 
-        auto s = BuildSingleField(kvDoc->GetDocOperateType(), singleField);
+        auto s = ConvertBuildDocStatus(BuildSingleField(kvDoc->GetDocOperateType(), singleField));
         if (!s.IsOK()) {
             return s;
         }
@@ -93,17 +93,18 @@ Status KVMemIndexerBase::Build(document::IDocumentBatch* docBatch)
 
 Status KVMemIndexerBase::Build(const document::IIndexFields* indexFields, size_t n)
 {
-    for (size_t i = 0; i < n; ++i) {
-        auto kvIndexFields = dynamic_cast<const KVIndexFields*>(indexFields + i);
-        if (!kvIndexFields) {
-            return Status::InternalError("not KVIndexFields!");
-        }
+    auto kvIndexFields = dynamic_cast<const KVIndexFields*>(indexFields);
+    if (!kvIndexFields) {
+        RETURN_STATUS_ERROR(Status::InvalidArgs, "cast to kv index field failed");
+    }
+    for (size_t i = 0; i < n; ++i, ++kvIndexFields) {
         auto singleField = kvIndexFields->GetSingleField(GetIndexNameHash());
         if (!singleField) {
             continue;
         }
-        RETURN_IF_STATUS_ERROR(BuildSingleField(kvIndexFields->GetDocOperateType(), *singleField),
-                               "build single field [%lu] failed", singleField->pkeyHash);
+        RETURN_IF_STATUS_ERROR(
+            ConvertBuildDocStatus(BuildSingleField(kvIndexFields->GetDocOperateType(), *singleField)),
+            "build single field [%lu] failed", singleField->pkeyHash);
     }
     return Status::OK();
 }
@@ -189,21 +190,25 @@ Status KVMemIndexerBase::BuildSingleField(DocOperateType docType, const KVIndexF
     if (IsFull()) {
         return Status::NeedDump("IsFull");
     }
-
     switch (docType) {
     case ADD_DOC:
         return AddField(singleField);
     case DELETE_DOC:
         return DeleteField(singleField);
     default:
-        return Status::InternalError("unsupported doc type: ", docType);
+        return Status::ParseError("unsupported doc type: ", docType);
     }
 }
 
 Status KVMemIndexerBase::AddField(const KVIndexFields::SingleField& field)
 {
     auto key = field.pkeyHash;
-    auto timestamp = KVTimestamp::Normalize(field.userTimestamp);
+    uint32_t timestamp;
+    if (field.ttl > 0) {
+        timestamp = field.ttl;
+    } else {
+        timestamp = KVTimestamp::Normalize(field.userTimestamp);
+    }
     auto value = field.value;
     if (!value.empty()) {
         auto meta = _attrConvertor->Decode(value);
@@ -211,7 +216,7 @@ Status KVMemIndexerBase::AddField(const KVIndexFields::SingleField& field)
         if (_plainFormatEncoder) {
             _memBuffer.Reserve(value.size());
             if (!_plainFormatEncoder->Encode(value, _memBuffer.GetBuffer(), _memBuffer.GetBufferSize(), value)) {
-                return Status::InternalError("encode plain format error.");
+                return Status::ParseError("encode plain format error.");
             }
         }
     }
@@ -224,6 +229,17 @@ Status KVMemIndexerBase::DeleteField(const KVIndexFields::SingleField& field)
     auto key = field.pkeyHash;
     auto timestamp = KVTimestamp::Normalize(field.userTimestamp);
     return Delete(key, timestamp);
+}
+
+Status KVMemIndexerBase::ConvertBuildDocStatus(const Status& status) const
+{
+    if (!_tolerateDocError || status.IsOK()) {
+        return status;
+    }
+    if (status.IsParseError()) {
+        return Status::OK();
+    }
+    return status;
 }
 
 } // namespace indexlibv2::index

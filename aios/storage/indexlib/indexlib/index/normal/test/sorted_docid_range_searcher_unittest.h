@@ -1,3 +1,4 @@
+#pragma once
 #include "autil/StringTokenizer.h"
 #include "indexlib/common_define.h"
 #include "indexlib/config/attribute_schema.h"

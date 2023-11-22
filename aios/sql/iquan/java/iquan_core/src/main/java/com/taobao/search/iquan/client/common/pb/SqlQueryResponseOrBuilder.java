@@ -4,68 +4,76 @@
 package com.taobao.search.iquan.client.common.pb;
 
 public interface SqlQueryResponseOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:iquan.pb.SqlQueryResponse)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:iquan.pb.SqlQueryResponse)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>int32 error_code = 1;</code>
-   */
-  int getErrorCode();
+    /**
+     * <code>int32 error_code = 1;</code>
+     */
+    int getErrorCode();
 
-  /**
-   * <code>string error_message = 2;</code>
-   */
-  java.lang.String getErrorMessage();
-  /**
-   * <code>string error_message = 2;</code>
-   */
-  com.google.protobuf.ByteString
-      getErrorMessageBytes();
+    /**
+     * <code>string error_message = 2;</code>
+     */
+    java.lang.String getErrorMessage();
 
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
-   */
-  int getDebugInfosCount();
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
-   */
-  boolean containsDebugInfos(
-      java.lang.String key);
-  /**
-   * Use {@link #getDebugInfosMap()} instead.
-   */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-  getDebugInfos();
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
-   */
-  java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-  getDebugInfosMap();
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
-   */
+    /**
+     * <code>string error_message = 2;</code>
+     */
+    com.google.protobuf.ByteString
+    getErrorMessageBytes();
 
-  com.taobao.search.iquan.client.common.pb.AnyValue getDebugInfosOrDefault(
-      java.lang.String key,
-      com.taobao.search.iquan.client.common.pb.AnyValue defaultValue);
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
-   */
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
+     */
+    int getDebugInfosCount();
 
-  com.taobao.search.iquan.client.common.pb.AnyValue getDebugInfosOrThrow(
-      java.lang.String key);
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
+     */
+    boolean containsDebugInfos(
+            java.lang.String key);
 
-  /**
-   * <code>.iquan.pb.SqlPlan result = 4;</code>
-   */
-  boolean hasResult();
-  /**
-   * <code>.iquan.pb.SqlPlan result = 4;</code>
-   */
-  com.taobao.search.iquan.client.common.pb.SqlPlan getResult();
-  /**
-   * <code>.iquan.pb.SqlPlan result = 4;</code>
-   */
-  com.taobao.search.iquan.client.common.pb.SqlPlanOrBuilder getResultOrBuilder();
+    /**
+     * Use {@link #getDebugInfosMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+    getDebugInfos();
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
+     */
+    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+    getDebugInfosMap();
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
+     */
+
+    com.taobao.search.iquan.client.common.pb.AnyValue getDebugInfosOrDefault(
+            java.lang.String key,
+            com.taobao.search.iquan.client.common.pb.AnyValue defaultValue);
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; debug_infos = 3;</code>
+     */
+
+    com.taobao.search.iquan.client.common.pb.AnyValue getDebugInfosOrThrow(
+            java.lang.String key);
+
+    /**
+     * <code>.iquan.pb.SqlPlan result = 4;</code>
+     */
+    boolean hasResult();
+
+    /**
+     * <code>.iquan.pb.SqlPlan result = 4;</code>
+     */
+    com.taobao.search.iquan.client.common.pb.SqlPlan getResult();
+
+    /**
+     * <code>.iquan.pb.SqlPlan result = 4;</code>
+     */
+    com.taobao.search.iquan.client.common.pb.SqlPlanOrBuilder getResultOrBuilder();
 }

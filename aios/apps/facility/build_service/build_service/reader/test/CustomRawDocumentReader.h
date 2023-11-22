@@ -1,7 +1,12 @@
-#ifndef ISEARCH_CUSTOMRAWDOCUMENTREADER_H
-#define ISEARCH_CUSTOMRAWDOCUMENTREADER_H
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/reader/RawDocumentReader.h"
+#include "build_service/util/Log.h"
 
 namespace build_service { namespace reader {
 
@@ -35,5 +40,3 @@ private:
 };
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_CUSTOMRAWDOCUMENTREADER_H

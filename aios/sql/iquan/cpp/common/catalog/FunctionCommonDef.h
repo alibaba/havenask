@@ -80,43 +80,4 @@ public:
     autil::legacy::json::JsonMap valueType;
 };
 
-class FunctionModelBase : public autil::legacy::Jsonizable {
-public:
-    FunctionModelBase()
-        : functionVersion(0)
-        , isDeterministic(0) {}
-
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        json.Jsonize("catalog_name", catalogName, std::string());
-        json.Jsonize("database_name", databaseName, std::string());
-        json.Jsonize("function_name", functionName);
-        json.Jsonize("function_type", functionType);
-        json.Jsonize("function_version", functionVersion, 0L);
-        json.Jsonize("is_deterministic", isDeterministic);
-        json.Jsonize("function_content_version", functionContentVersion);
-    }
-
-    bool isValid() const {
-        if (functionName.empty() || functionType.empty() || functionVersion <= 0
-            || (isDeterministic != 0 && isDeterministic != 1) || functionContentVersion.empty()) {
-            return false;
-        }
-        return true;
-    }
-
-    bool operator==(const FunctionModelBase &other) const {
-        return catalogName == other.catalogName && databaseName == other.databaseName
-               && functionName == other.functionName;
-    }
-
-public:
-    std::string catalogName;
-    std::string databaseName;
-    std::string functionName;
-    std::string functionType;
-    long functionVersion;
-    int isDeterministic;
-    std::string functionContentVersion;
-};
-
 } // namespace iquan

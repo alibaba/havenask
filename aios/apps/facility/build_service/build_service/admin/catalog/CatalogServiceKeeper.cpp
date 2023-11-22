@@ -15,9 +15,22 @@
  */
 #include "build_service/admin/catalog/CatalogServiceKeeper.h"
 
+#include <algorithm>
+#include <arpc/ANetRPCController.h>
+#include <cstddef>
+#include <functional>
+#include <google/protobuf/service.h>
+#include <type_traits>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "build_service/admin/catalog/CatalogPartitionIdentifier.h"
 #include "build_service/admin/catalog/ProtoOperator.h"
 #include "build_service/common/RpcChannelManager.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/ProtoComparator.h"
 #include "catalog/proto/CatalogService.pb.h"
+#include "hippo/DriverCommon.h"
 
 using namespace std;
 

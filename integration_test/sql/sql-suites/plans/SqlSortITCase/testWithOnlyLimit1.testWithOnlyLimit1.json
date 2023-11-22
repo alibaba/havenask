@@ -10,8 +10,8 @@
           "db_name": "t1", 
           "limit": 10, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "t1"
+            "node_name": "t1", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -135,6 +135,7 @@
             "INTEGER", 
             "VARCHAR"
           ], 
+          "node_name": "t1", 
           "op_scope": "default", 
           "output_distribution": {
             "hash_mode": {
@@ -158,7 +159,6 @@
             "partition_cnt": 1, 
             "type": "BROADCAST_DISTRIBUTED"
           }, 
-          "table_group_name": "t1", 
           "table_name": "t1", 
           "table_type": "normal"
         }, 
@@ -176,8 +176,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {

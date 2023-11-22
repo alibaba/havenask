@@ -15,13 +15,14 @@
  */
 #pragma once
 #include "indexlib/index/ann/aitheta2/impl/NormalSegment.h"
+#include "indexlib/index/ann/aitheta2/impl/NormalSegmentBuildResource.h"
 #include "indexlib/index/ann/aitheta2/impl/SegmentBuilder.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingDataHolder.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingDataExtractor.h"
+#include "indexlib/index/ann/aitheta2/util/EmbeddingExtractor.h"
+#include "indexlib/index/ann/aitheta2/util/EmbeddingHolder.h"
 
 namespace indexlibv2::index::ann {
 
-class EmbeddingAttrSegmentBase;
+class EmbeddingAttrSegment;
 
 class NormalSegmentMerger
 {
@@ -38,8 +39,11 @@ public:
 public:
     bool Init();
     bool Merge(const NormalSegmentVector& segments,
-               const std::vector<std::shared_ptr<EmbeddingAttrSegmentBase>>& embAttrSegments,
+               const std::vector<std::shared_ptr<EmbeddingAttrSegment>>& embAttrSegments,
+               const std::shared_ptr<NormalSegmentMergeResource>& mergeResource,
                const indexlib::file_system::DirectoryPtr& directory);
+    bool DistributedEndMerge(const std::vector<indexlib::file_system::DirectoryPtr>& directories,
+                             const indexlib::file_system::DirectoryPtr& outputDirectory);
     void SetMergeTask(const MergeTask& mergeTask) { _mergeTask = mergeTask; }
 
 public:
@@ -48,8 +52,10 @@ public:
 protected:
     AithetaIndexConfig _indexConfig;
     std::string _indexName;
-    AiThetaMeta _aiThetaMeta;
     MergeTask _mergeTask;
+    METRIC_DECLARE(_extractPkLatencyMetric);
+    METRIC_DECLARE(_extractEmbeddingLatencyMetric);
+    METRIC_DECLARE(_mergeLatencyMetric);
     MetricReporterPtr _metricReporter;
     AUTIL_LOG_DECLARE();
 };

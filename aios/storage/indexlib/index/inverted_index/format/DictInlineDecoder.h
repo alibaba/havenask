@@ -35,9 +35,9 @@ public:
     ~DictInlineDecoder() = default;
 
     static void Decode(uint64_t compressValue, uint32_t count, uint32_t* dataBuf);
-    static void DecodeContinuousDocId(InlinePostingValueWithOrder inlinePostingValueWithOrder, docid_t& startDocid,
+    static void DecodeContinuousDocId(InlinePostingValueWithOrder inlinePostingValueWithOrder, docid32_t& startDocid,
                                       df_t& df);
-    static void FastMemSet(docid_t* dest, size_t destLen, docid_t value);
+    static void FastMemSet(docid32_t* dest, size_t destLen, docid32_t value);
 };
 
 ///////////////////////////////////////////////////////////////
@@ -57,19 +57,19 @@ inline void DictInlineDecoder::Decode(uint64_t compressValue, uint32_t count, ui
 }
 
 inline void DictInlineDecoder::DecodeContinuousDocId(InlinePostingValueWithOrder inlinePostingValueWithOrder,
-                                                     docid_t& startDocid, df_t& df)
+                                                     docid32_t& startDocid, df_t& df)
 {
     auto& [dfFirst, inlinePostingValue] = inlinePostingValueWithOrder;
     uint64_t value = ShortListOptimizeUtil::GetDictInlineValue(inlinePostingValue);
     df = (df_t)(value >> 32);
     value = value << 32;
-    startDocid = (docid_t)(value >> 32);
+    startDocid = (docid32_t)(value >> 32);
     if (!dfFirst) {
         std::swap(startDocid, df);
     }
 }
 
-inline void DictInlineDecoder::FastMemSet(docid_t* dest, size_t destLen, docid_t value)
+inline void DictInlineDecoder::FastMemSet(docid32_t* dest, size_t destLen, docid32_t value)
 {
     uint32_t maxBlocks = destLen >> 4;
     uint32_t rest = destLen % 16;

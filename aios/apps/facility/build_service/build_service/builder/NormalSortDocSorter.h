@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_NORMALSORTDOCSORTER_H
-#define ISEARCH_BS_NORMALSORTDOCSORTER_H
+#pragma once
 
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <stddef.h>
 #include <tr1/functional>
+#include <type_traits>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "autil/ConstString.h"
-#include "autil/mem_pool/Pool.h"
+#include "autil/Span.h"
 #include "autil/mem_pool/PoolVector.h"
 #include "autil/mem_pool/pool_allocator.h"
 #include "build_service/builder/NormalSortDocConvertor.h"
+#include "build_service/builder/SortDocumentConverter.h"
 #include "build_service/builder/SortDocumentSorter.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
 
 namespace build_service { namespace builder {
 
@@ -110,5 +117,3 @@ private:
 BS_TYPEDEF_PTR(NormalSortDocSorter);
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_NORMALSORTDOCSORTER_H

@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
@@ -18,10 +22,6 @@ import org.apache.calcite.rel.core.Exchange;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
-
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class IquanExchangeOp extends Exchange implements IquanRelNode {
     private int parallelNum = -1;
@@ -61,11 +61,11 @@ public class IquanExchangeOp extends Exchange implements IquanRelNode {
                 PlanWriteUtils.formatTableInfo(map, (TableScan) inputRelNode, conf);
             } else {
                 IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.CATALOG_NAME,
-                        ((IquanOptContext)inputRelNode.getCluster().getPlanner().getContext()).getExecutor().getDefaultCatalogName());
+                        ((IquanOptContext) inputRelNode.getCluster().getPlanner().getContext()).getExecutor().getDefaultCatalogName());
                 IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.DB_NAME,
-                        ((IquanOptContext)inputRelNode.getCluster().getPlanner().getContext()).getExecutor().getDefaultDbName());
+                        ((IquanOptContext) inputRelNode.getCluster().getPlanner().getContext()).getExecutor().getDefaultDbName());
             }
-            IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.TABLE_GROUP_NAME, ((IquanRelNode) inputRelNode).getLocation().getTableGroupName());
+            IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.NODE_NAME, ((IquanRelNode) inputRelNode).getLocation().getNodeName());
             IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.TABLE_DISTRIBUTION, RelDistributionUtil.formatDistribution((IquanRelNode) inputRelNode, true));
             map.put(ConstantDefine.OUTPUT_PRUNABLE, outputPrunable);
 
@@ -124,7 +124,7 @@ public class IquanExchangeOp extends Exchange implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         return null;
     }
 

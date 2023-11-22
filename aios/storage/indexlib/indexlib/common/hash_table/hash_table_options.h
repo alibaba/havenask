@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_HASH_TABLE_OPTIONS_H
-#define __INDEXLIB_HASH_TABLE_OPTIONS_H
+#pragma once
 
 #include <limits>
 
@@ -34,5 +33,3 @@ struct HashTableOptions {
     bool Valid() const { return occupancyPct != INVALID_OCCUPANCY; }
 };
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_HASH_TABLE_OPTIONS_H

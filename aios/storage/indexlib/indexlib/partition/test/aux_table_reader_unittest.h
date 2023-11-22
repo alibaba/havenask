@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_AUXTABLEREADERTEST_H
-#define __INDEXLIB_AUXTABLEREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -30,5 +29,3 @@ INDEXLIB_UNIT_TEST_CASE(AuxTableReaderTest, TestReadFixLengthFloatFromKVTable);
 INDEXLIB_UNIT_TEST_CASE(AuxTableReaderTest, TestReadFixLengthFloatFromIndexTable);
 INDEXLIB_UNIT_TEST_CASE(AuxTableReaderTest, TestReadNullValueFromIndexTable);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_AUXTABLEREADERTEST_H

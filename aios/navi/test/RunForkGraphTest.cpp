@@ -67,7 +67,7 @@ TEST_F(RunForkGraphTest, testRunForkGraph_withOptional) {
         ASSERT_NE(nullptr, naviUserResult);
         auto naviResult = naviUserResult->getNaviResult();
         ASSERT_NE(nullptr, naviUserResult);
-        ASSERT_EQ(EC_NONE, naviResult->ec) << naviResult->errorEvent.message;
+        ASSERT_EQ(EC_NONE, naviResult->getErrorCode()) << naviResult->getErrorMessage();
         NaviUserData data;
         bool eof = false;
         ASSERT_TRUE(naviUserResult->nextData(data, eof));
@@ -119,7 +119,7 @@ TEST_F(RunForkGraphTest, testRunForkGraph_forkGraphTimeoutAsEof) {
         ASSERT_NE(nullptr, naviUserResult);
         auto naviResult = naviUserResult->getNaviResult();
         ASSERT_NE(nullptr, naviUserResult);
-        ASSERT_EQ(EC_NONE, naviResult->ec) << naviResult->errorEvent.message;
+        ASSERT_EQ(EC_NONE, naviResult->getErrorCode()) << naviResult->getErrorMessage();
         NaviUserData data;
         bool eof = false;
         ASSERT_TRUE(naviUserResult->nextData(data, eof));
@@ -172,7 +172,7 @@ TEST_F(RunForkGraphTest, testRunForkGraph_forkGraphTimeoutAsError) {
         ASSERT_NE(nullptr, naviUserResult);
         auto naviResult = naviUserResult->getNaviResult();
         ASSERT_NE(nullptr, naviUserResult);
-        ASSERT_EQ(EC_TIMEOUT, naviResult->ec) << naviResult->errorEvent.message;
+        ASSERT_EQ(EC_TIMEOUT, naviResult->getErrorCode()) << naviResult->getErrorMessage();
     });
     // NaviLoggerProvider logProvider("SCHEDULE1");
     naviGraphRunner.runLocalGraphAsync(graphDef.release(), {}, &closure);
@@ -214,7 +214,7 @@ TEST_F(RunForkGraphTest, testRunForkGraph_sessionTimeout) {
         ASSERT_NE(nullptr, naviUserResult);
         auto naviResult = naviUserResult->getNaviResult();
         ASSERT_NE(nullptr, naviUserResult);
-        ASSERT_EQ(EC_TIMEOUT, naviResult->ec) << naviResult->errorEvent.message;
+        ASSERT_EQ(EC_TIMEOUT, naviResult->getErrorCode()) << naviResult->getErrorMessage();
     });
     // NaviLoggerProvider logProvider("SCHEDULE1");
     int64_t timeoutMs = 1;

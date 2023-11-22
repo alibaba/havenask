@@ -15,19 +15,42 @@
  */
 #include "build_service/workflow/ProcessedDocRtBuilderImpl.h"
 
+#include <assert.h>
+#include <atomic>
+#include <functional>
+#include <map>
+#include <ostream>
+#include <stddef.h>
+#include <unordered_map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Lock.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/builder/Builder.h"
 #include "build_service/common/Locator.h"
 #include "build_service/common/ResourceKeeperCreator.h"
 #include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/common/SwiftResourceKeeper.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ResourceReaderManager.h"
 #include "build_service/config/TaskInputConfig.h"
-#include "build_service/util/Monitor.h"
+#include "build_service/workflow/AsyncStarter.h"
+#include "build_service/workflow/BuildFlow.h"
+#include "build_service/workflow/BuildFlowMode.h"
+#include "build_service/workflow/Producer.h"
+#include "build_service/workflow/RealtimeErrorDefine.h"
+#include "build_service/workflow/Workflow.h"
+#include "build_service/workflow/WorkflowItem.h"
 #include "indexlib/base/Progress.h"
-#include "indexlib/partition/online_partition.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/partition/builder_branch_hinter.h"
+#include "indexlib/partition/table_reader_container_updater.h"
 
 using namespace std;
 using namespace indexlib::index_base;
@@ -160,7 +183,8 @@ bool ProcessedDocRtBuilderImpl::producerSeek(const Locator& locator)
     // 兼容老locator的range逻辑
     indexlibv2::base::Progress progress(_partitionId.range().from(), _partitionId.range().to(),
                                         targetLocator.GetOffset());
-    targetLocator.SetProgress({progress});
+
+    targetLocator.SetMultiProgress({{progress}});
 
     if (targetLocator == _lastSkipedLocator) {
         BS_INTERVAL_LOG2(120, INFO, "[%s] already skip to locator [%s] a moment ago!",

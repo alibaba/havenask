@@ -15,7 +15,19 @@
  */
 #include "build_service/common/IndexReclaimConfigMaker.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <set>
+#include <utility>
+
+#include "autil/Log.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 
 using namespace std;
 using namespace autil;

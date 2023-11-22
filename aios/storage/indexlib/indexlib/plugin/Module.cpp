@@ -15,10 +15,13 @@
  */
 #include "indexlib/plugin/Module.h"
 
-#include <cassert>
-#include <dlfcn.h>
+#include <cstddef>
+#include <memory>
+#include <utility>
 
+#include "alog/Logger.h"
 #include "indexlib/plugin/ModuleFactory.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

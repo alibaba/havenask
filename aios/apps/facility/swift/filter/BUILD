@@ -1,23 +1,23 @@
 package(default_visibility=['//aios/apps/facility/swift:__subpackages__'])
 cc_library(
     name='swift_filter',
-    include_prefix='swift/filter',
     srcs=glob(['*.cpp', '*.h']),
     hdrs=glob(['*.h']),
+    include_prefix='swift/filter',
     deps=[
-        '//aios/apps/facility/swift/protocol:swift_protocol',
-        '//aios/apps/facility/swift/common:swift_common'
+        '//aios/apps/facility/swift/common:swift_common',
+        '//aios/apps/facility/swift/protocol:swift_protocol'
     ]
 )
 cc_test(
     name='swift_filter_test',
     srcs=glob(['test/*Test.cpp']),
-    data=['//aios/apps/facility/swift:swift_testdata'],
     copts=['-fno-access-control'],
+    data=['//aios/apps/facility/swift:swift_testdata'],
     deps=[
         '//aios/apps/facility/swift:swift_test_h',
-        '//aios/unittest_framework:unittest_framework',
         '//aios/apps/facility/swift/filter:swift_filter',
-        '//aios/apps/facility/swift/util:swift_util'
+        '//aios/apps/facility/swift/util:swift_util',
+        '//aios/unittest_framework'
     ]
 )

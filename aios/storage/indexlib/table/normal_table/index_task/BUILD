@@ -29,8 +29,8 @@ strict_cc_library(
         ':NormalTableAddIndexOperation', ':NormalTableReclaimOperation',
         ':NormalTableResourceCreator', ':OpLog2PatchOperation',
         ':PackAttributeIndexMergeOperation', ':ReclaimMapOperation',
-        '//aios/autil:NoCopyable', '//aios/autil:log',
-        '//aios/storage/indexlib/config:IIndexConfig',
+        ':SourceIndexMergeOperation', '//aios/autil:NoCopyable',
+        '//aios/autil:log', '//aios/storage/indexlib/config:IIndexConfig',
         '//aios/storage/indexlib/framework/index_task:IIndexOperationCreator',
         '//aios/storage/indexlib/table/index_task/add_index:PatchSegmentMoveOperation',
         '//aios/storage/indexlib/table/index_task/merger:CommonTaskOperationCreator'
@@ -98,7 +98,7 @@ strict_cc_library(
         '//aios/storage/indexlib/table/normal_table/index_task/merger:BalanceTreeMergeStrategy',
         '//aios/storage/indexlib/table/normal_table/index_task/merger:CombinedMergeStrategy',
         '//aios/storage/indexlib/table/normal_table/index_task/merger:NormalTableMergeStrategyUtil',
-        '//aios/storage/indexlib/table/normal_table/index_task/merger:OptimizeMergeStrategy',
+        '//aios/storage/indexlib/table/normal_table/index_task/merger:NormalTabletOptimizeMergeStrategy',
         '//aios/storage/indexlib/table/normal_table/index_task/merger:PriorityQueueMergeStrategy'
     ]
 )
@@ -161,6 +161,15 @@ strict_cc_library(
         '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
         '//aios/storage/indexlib/index/attribute:merger',
         '//aios/storage/indexlib/index/attribute:patch',
+        '//aios/storage/indexlib/table/index_task/merger:IndexMergeOperation'
+    ]
+)
+strict_cc_library(
+    name='SourceIndexMergeOperation',
+    deps=[
+        ':Common', '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
+        '//aios/storage/indexlib/index/source:config',
         '//aios/storage/indexlib/table/index_task/merger:IndexMergeOperation'
     ]
 )
@@ -311,6 +320,7 @@ strict_cc_library(
         '//aios/storage/indexlib/framework/index_task:BasicDefs',
         '//aios/storage/indexlib/index:DocMapper',
         '//aios/storage/indexlib/index/inverted_index:constants',
+        '//aios/storage/indexlib/index/source:config',
         '//aios/storage/indexlib/table/index_task/merger:CommonMergeDescriptionCreator',
         '//aios/storage/indexlib/table/index_task/merger:MergeStrategyDefine',
         '//aios/storage/indexlib/table/normal_table:NormalSchemaResolver'
@@ -322,6 +332,7 @@ strict_cc_library(
     deps=[
         '//aios/storage/indexlib/index/attribute:constants',
         '//aios/storage/indexlib/index/deletionmap:constants',
+        '//aios/storage/indexlib/index/inverted_index:constants',
         '//aios/storage/indexlib/index/operation_log:constants',
         '//aios/storage/indexlib/index/pack_attribute:constants',
         '//aios/storage/indexlib/index/primary_key:constants'
@@ -356,8 +367,8 @@ strict_cc_library(
         '//aios/storage/indexlib/framework:TabletData',
         '//aios/storage/indexlib/framework/index_task:IndexOperation',
         '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:IndexFactoryCreator',
-        '//aios/storage/indexlib/index:IndexerParameter',
         '//aios/storage/indexlib/table/normal_table:NormalTabletDocIterator',
         '//aios/storage/indexlib/table/normal_table:NormalTabletExportLoader',
         '//aios/storage/indexlib/util:simple_pool'

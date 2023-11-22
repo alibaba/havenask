@@ -70,10 +70,8 @@ TEST_F(WarmupServiceTest, testWarmup) {
     config.warmupFilePathList
         = {GET_PRIVATE_TEST_DATA_PATH_WITHIN_TEST() + std::string("/warmup/warmup_sqls.json")};
     auto iquan = TestUtils::createIquan();
-    std::string catalogRootPath
-        = GET_PRIVATE_TEST_DATA_PATH_WITHIN_TEST() + std::string("/iquan_catalog");
-    std::vector<std::string> tableList = {std::string("t1.json"), std::string("t2.json")};
-    ASSERT_TRUE(TestUtils::registerTable(iquan, catalogRootPath, tableList).ok());
+    std::string catalogPath = GET_PRIVATE_TEST_DATA_PATH_WITHIN_TEST() + std::string("/iquan_catalog/catalogs.json");
+    ASSERT_TRUE(TestUtils::registerCatalogs(catalogPath,iquan).ok());
     auto status = WarmupService::warmup(iquan->_impl.get(), config);
     ASSERT_TRUE(status.ok());
 }

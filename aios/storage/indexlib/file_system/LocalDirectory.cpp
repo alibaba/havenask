@@ -18,7 +18,9 @@
 #include <assert.h>
 #include <memory>
 
+#include "autil/CommonMacros.h"
 #include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/MemDirectory.h"
 #include "indexlib/file_system/RemoveOption.h"

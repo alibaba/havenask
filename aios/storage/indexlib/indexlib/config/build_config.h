@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILD_CONFIG_H
-#define __INDEXLIB_BUILD_CONFIG_H
+#pragma once
 
 #include <memory>
 #include <vector>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/build_config_base.h"
 #include "indexlib/config/module_class_config.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
-DECLARE_REFERENCE_CLASS(config, BuildConfigImpl);
+namespace indexlib::config {
+class BuildConfigImpl;
+typedef std::shared_ptr<BuildConfigImpl> BuildConfigImplPtr;
+} // namespace indexlib::config
 namespace indexlib { namespace config {
 
 class BuildConfig : public BuildConfigBase
@@ -84,10 +86,8 @@ private:
     BuildConfigImplPtr mImpl;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(BuildConfig);
+typedef std::shared_ptr<BuildConfig> BuildConfigPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_BUILD_CONFIG_H

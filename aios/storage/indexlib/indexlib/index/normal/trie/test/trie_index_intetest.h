@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TRIEINDEXINTETEST_H
-#define __INDEXLIB_TRIEINDEXINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -68,5 +67,3 @@ INDEXLIB_UNIT_TEST_CASE(TrieIndexInteTest, TestRealtimeBuild);
 INDEXLIB_UNIT_TEST_CASE(TrieIndexInteTest, TestMergeWithTestSplit);
 INDEXLIB_UNIT_TEST_CASE(TrieIndexInteTest, TestMergeWithTestSplitWithEmpty);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TRIEINDEXINTETEST_H

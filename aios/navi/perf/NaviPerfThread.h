@@ -52,6 +52,7 @@ private:
 private:
     DECLARE_LOGGER();
     pid_t _pid;
+    std::atomic<bool> _enabled;
     perf_event_attr _attr;
     size_t _bufferSize;
     size_t _mmapSize;

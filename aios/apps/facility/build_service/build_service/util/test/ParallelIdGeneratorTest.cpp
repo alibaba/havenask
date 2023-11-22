@@ -1,6 +1,13 @@
 #include "build_service/util/ParallelIdGenerator.h"
 
+#include <iosfwd>
+
 #include "build_service/test/unittest.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/framework/Version.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

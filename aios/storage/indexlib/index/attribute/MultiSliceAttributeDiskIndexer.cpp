@@ -21,6 +21,13 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, MultiSliceAttributeDiskIndexer);
 
+void MultiSliceAttributeDiskIndexer::EnableGlobalReadContext()
+{
+    for (auto& diskIndexer : _sliceAttributes) {
+        diskIndexer->EnableGlobalReadContext();
+    }
+}
+
 Status MultiSliceAttributeDiskIndexer::Open(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                                             const std::shared_ptr<indexlib::file_system::IDirectory>& indexDirectory)
 {
@@ -160,6 +167,16 @@ bool MultiSliceAttributeDiskIndexer::Read(docid_t docId, std::string* value, aut
         return false;
     }
     return _sliceAttributes[sliceIdx]->Read(docId - _sliceBaseDocIds[sliceIdx], value, pool);
+}
+
+bool MultiSliceAttributeDiskIndexer::ReadBinaryValue(docid_t docId, autil::StringView* value,
+                                                     autil::mem_pool::Pool* pool)
+{
+    int64_t sliceIdx = GetSliceIdxByDocId(docId);
+    if (sliceIdx == -1) {
+        return false;
+    }
+    return _sliceAttributes[sliceIdx]->ReadBinaryValue(docId - _sliceBaseDocIds[sliceIdx], value, pool);
 }
 
 uint32_t MultiSliceAttributeDiskIndexer::TEST_GetDataLength(docid_t docId, autil::mem_pool::Pool* pool) const

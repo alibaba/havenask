@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_HASHDOCUMENTPROCESSOR_H
-#define ISEARCH_BS_HASHDOCUMENTPROCESSOR_H
+#pragma once
+
+#include <string>
+#include <vector>
 
 #include "autil/HashFunctionBase.h"
 #include "build_service/common_define.h"
-#include "build_service/config/HashMode.h"
 #include "build_service/config/HashModeConfig.h"
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/util/Log.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/index/kv/Types.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/util/counter/CounterMap.h"
 
 namespace build_service { namespace processor {
@@ -81,5 +86,3 @@ private:
 BS_TYPEDEF_PTR(HashDocumentProcessor);
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_HASHDOCUMENTPROCESSOR_H

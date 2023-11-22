@@ -8,7 +8,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_trie_unittest',
     srcs=glob(['*.cpp']),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     shard_count=2,
     deps=[

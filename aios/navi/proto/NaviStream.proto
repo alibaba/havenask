@@ -1,6 +1,7 @@
 syntax = "proto3";
 import "proto/GraphDef.proto";
 import "proto/KernelDef.proto";
+import "proto/GraphVis.proto";
 
 package navi;
 option cc_enable_arenas = true;
@@ -93,7 +94,7 @@ message NaviMessage
     DomainGraphDef domain_graph = 2;
     RunParams params = 3;
     repeated NaviBorderData border_datas = 4;
-    bytes navi_result = 5;
-    bytes navi_trace = 6;
+    SerializedResultDef navi_result = 5;
+    repeated SerializedResultDef sub_result = 6;
     int64 version = 7;
 }

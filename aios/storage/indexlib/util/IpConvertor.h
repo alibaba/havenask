@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <stdint.h>
 #include <string>
 
 namespace indexlibv2::util {

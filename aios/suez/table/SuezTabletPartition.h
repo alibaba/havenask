@@ -56,7 +56,7 @@ private:
     std::shared_ptr<TableWriter> createTableWriter(const PartitionProperties &properties) const override;
 
     std::shared_ptr<indexlibv2::config::TabletSchema> loadSchema(const PartitionProperties &properties) const;
-    IncVersion getUnloadedIncVersion() override { return INVALID_VERSION - 1; };
+    IncVersion getUnloadedIncVersion() override { return indexlib::INVALID_VERSIONID - 1; };
     std::shared_ptr<indexlibv2::framework::ITabletMergeController>
     createMergeController(const PartitionProperties &properties,
                           const std::shared_ptr<indexlibv2::config::TabletSchema> &schema,

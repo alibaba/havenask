@@ -1,0 +1,64 @@
+{
+    "tables": [
+        {
+            "catalog_name": "default",
+            "database_name": "mainse_excellent_search",
+            "table_version": 1,
+            "table_name": "trigger_table",
+            "table_type": "json_default",
+            "table_content_version": "0.1",
+            "table_content": {
+                "table_name": "trigger_table",
+                "table_type": "logical",
+                "fields": [
+                    {
+                        "field_name": "trigger_id",
+                        "field_type": {
+                            "type": "int64"
+                        }
+                    },
+                    {
+                        "field_name": "trigger_str",
+                        "field_type": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "field_name": "trigger_score_float",
+                        "field_type": {
+                            "type": "float"
+                        }
+                    },
+                    {
+                        "field_name": "trigger_score_double",
+                        "field_type": {
+                            "type": "double"
+                        }
+                    },
+                    {
+                        "field_name": "trigger_score_int",
+                        "field_type": {
+                            "type": "int32"
+                        }
+                    },
+                    {
+                        "field_name": "trigger_score_long",
+                        "field_type": {
+                            "type": "int64"
+                        }
+                    }
+                ],
+                "sub_tables": [
+                ],
+                "distribution": {
+                    "partition_cnt": 1,
+                    "hash_fields": [
+                        "trigger_id"
+                    ],
+                    "hash_function": "HASH64"
+                },
+                "properties": {}
+            }
+        }
+    ]
+}

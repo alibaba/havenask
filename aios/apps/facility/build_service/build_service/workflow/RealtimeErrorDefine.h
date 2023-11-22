@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_REALTIMEERRORCODE_H
-#define ISEARCH_BS_REALTIMEERRORCODE_H
+#pragma once
 
 namespace build_service { namespace workflow {
 
@@ -27,5 +26,3 @@ enum RealtimeErrorCode {
 };
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_REALTIMEERRORCODE_H

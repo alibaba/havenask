@@ -3,8 +3,9 @@ load('//aios/storage:defs.bzl', 'strict_cc_library')
 strict_cc_library(
     name='DocumentInfoExtractorFactory',
     deps=[
-        ':AttrFieldInfoExtractor', ':InvertedIndexDocInfoExtractor',
-        ':PackAttrFieldInfoExtractor', ':PrimaryKeyInfoExtractor',
+        ':AttrFieldInfoExtractor', ':FieldMetaFieldInfoExtractor',
+        ':InvertedIndexDocInfoExtractor', ':PackAttrFieldInfoExtractor',
+        ':PrimaryKeyInfoExtractor', ':SourceDocInfoExtractor',
         ':SummaryDocInfoExtractor',
         '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractorFactory'
     ]
@@ -35,6 +36,14 @@ strict_cc_library(
     ]
 )
 strict_cc_library(
+    name='FieldMetaFieldInfoExtractor',
+    deps=[
+        '//aios/storage/indexlib/document:interface',
+        '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractor',
+        '//aios/storage/indexlib/document/normal:NormalDocument'
+    ]
+)
+strict_cc_library(
     name='PackAttrFieldInfoExtractor',
     deps=[
         ':AttrDocInfoExtractor', '//aios/storage/indexlib/document:interface',
@@ -62,5 +71,15 @@ strict_cc_library(
         '//aios/storage/indexlib/document/normal:IndexDocument',
         '//aios/storage/indexlib/document/normal:NormalDocument',
         '//aios/storage/indexlib/index/summary:config'
+    ]
+)
+strict_cc_library(
+    name='SourceDocInfoExtractor',
+    deps=[
+        '//aios/storage/indexlib/document:interface',
+        '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractor',
+        '//aios/storage/indexlib/document/normal:IndexDocument',
+        '//aios/storage/indexlib/document/normal:NormalDocument',
+        '//aios/storage/indexlib/index/source:config'
     ]
 )

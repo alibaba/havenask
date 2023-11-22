@@ -1,5 +1,11 @@
 package com.taobao.search.iquan.core.rel.rules.logical;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptRule;
@@ -10,12 +16,6 @@ import org.apache.calcite.rel.logical.LogicalUnion;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public class IquanSortPushUnion extends RelOptRule {
     public static final IquanSortPushUnion INSTANCE =

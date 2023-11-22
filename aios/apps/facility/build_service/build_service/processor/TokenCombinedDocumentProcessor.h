@@ -15,14 +15,19 @@
  */
 #pragma once
 
+#include <memory>
 #include <set>
+#include <string>
+#include <vector>
 
+#include "build_service/common_define.h"
+#include "build_service/document/ExtendDocument.h"
+#include "build_service/document/TokenizeDocument.h"
+#include "build_service/document/TokenizeSection.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/util/Log.h"
-
-namespace indexlibv2::config {
-class ITabletSchema;
-}
+#include "indexlib/config/FieldConfig.h"
+#include "indexlib/config/ITabletSchema.h"
 
 namespace build_service { namespace processor {
 class TokenCombinedDocumentProcessor : public DocumentProcessor

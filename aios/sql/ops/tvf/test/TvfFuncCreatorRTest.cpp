@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "iquan/common/catalog/FunctionCommonDef.h"
+#include "iquan/common/catalog/FunctionModel.h"
 #include "iquan/common/catalog/TvfFunctionDef.h"
-#include "iquan/common/catalog/TvfFunctionModel.h"
 #include "navi/engine/Resource.h"
 #include "navi/log/NaviLoggerProvider.h"
 #include "navi/tester/NaviResourceHelper.h"
@@ -186,7 +186,7 @@ TEST_F(TvfFuncCreatorRTest, testSimple) {
 
 TEST_F(TvfFuncCreatorRTest, testGenerateTvfModel) {
     navi::NaviLoggerProvider provider;
-    iquan::TvfModel tvfModel;
+    iquan::FunctionModel tvfModel;
     SqlTvfProfileInfo info({"abc", "abc"});
     {
         navi::NaviResourceHelper naviRHelper;
@@ -208,30 +208,30 @@ TEST_F(TvfFuncCreatorRTest, testGenerateTvfModel) {
 
 TEST_F(TvfFuncCreatorRTest, testCheckTvfModel) {
     {
-        iquan::TvfModel tvfModel;
+        iquan::FunctionModel tvfModel;
         ASSERT_FALSE(TvfFuncCreatorR::checkTvfModel(tvfModel));
     }
     {
-        iquan::TvfModel tvfModel;
+        iquan::FunctionModel tvfModel;
         iquan::TvfDef tvfDef;
         iquan::ParamTypeDef paramDef;
         paramDef.type = "int";
         tvfDef.params.scalars.push_back(paramDef);
-        tvfModel.functionContent.tvfs.push_back(tvfDef);
+        tvfModel.tvfFunctionDef.tvfs.push_back(tvfDef);
         ASSERT_FALSE(TvfFuncCreatorR::checkTvfModel(tvfModel));
     }
     {
-        iquan::TvfModel tvfModel;
-        tvfModel.functionContent.tvfs.push_back(iquan::TvfDef());
+        iquan::FunctionModel tvfModel;
+        tvfModel.tvfFunctionDef.tvfs.push_back(iquan::TvfDef());
         ASSERT_TRUE(TvfFuncCreatorR::checkTvfModel(tvfModel));
     }
     {
-        iquan::TvfModel tvfModel;
+        iquan::FunctionModel tvfModel;
         iquan::TvfDef tvfDef;
         iquan::ParamTypeDef paramDef;
         paramDef.type = "string";
         tvfDef.params.scalars.push_back(paramDef);
-        tvfModel.functionContent.tvfs.push_back(tvfDef);
+        tvfModel.tvfFunctionDef.tvfs.push_back(tvfDef);
         ASSERT_TRUE(TvfFuncCreatorR::checkTvfModel(tvfModel));
     }
 }
@@ -242,21 +242,22 @@ TEST_F(TvfFuncCreatorRTest, test_regTvfModels_failed) {
         auto creator = naviRHelper.getOrCreateRes<NormalTvfFuncCreator>();
         ASSERT_TRUE(creator);
         {
-            iquan::TvfModels tvfModels;
+            std::vector<iquan::FunctionModel> tvfModels;
             navi::NaviLoggerProvider provider;
             creator->_tvfDef = "xxx";
             ASSERT_FALSE(creator->regTvfModels(tvfModels));
-            ASSERT_EQ(0u, tvfModels.functions.size());
+            ASSERT_EQ(0u, tvfModels.size());
             ASSERT_EQ("register tvf models failed [xxx].", provider.getErrorMessage());
         }
         {
-            iquan::TvfModels tvfModels;
+            std::vector<iquan::FunctionModel> tvfModels;
             navi::NaviLoggerProvider provider;
             creator->_tvfDef = errorTvfDef;
             ASSERT_FALSE(creator->regTvfModels(tvfModels));
-            ASSERT_EQ(0u, tvfModels.functions.size());
-            ASSERT_EQ("tvf [abc] func prototypes only support string type. now is [int]",
-                      provider.getErrorMessage());
+            ASSERT_EQ(0u, tvfModels.size());
+            ASSERT_EQ(
+                R"json(tvf {"function_name":"abc","function_type":"TVF","function_version":1,"is_deterministic":1,"function_content_version":"json_default_0.1","function_content":{"prototypes":[{"params":{"scalars":[{"type":"int"}],"tables":[{"auto_infer":true,"input_fields":[],"check_fields":[]}]},"returns":{"new_fields":[],"tables":[{"auto_infer":true,"field_names":[]}]}}],"properties":{"enable_shuffle":false},"distribution":{"partition_cnt":0}}} func prototypes only support string type. now is [int])json",
+                provider.getErrorMessage());
         }
         {
             creator->_tvfDef = tvfDef;
@@ -264,9 +265,9 @@ TEST_F(TvfFuncCreatorRTest, test_regTvfModels_failed) {
             creator->_sqlTvfProfileInfos["test_1"] = SqlTvfProfileInfo("x1", "y1");
             creator->_sqlTvfProfileInfos["test_2"] = SqlTvfProfileInfo("x2", "y2");
 
-            iquan::TvfModels tvfModels;
+            std::vector<iquan::FunctionModel> tvfModels;
             ASSERT_TRUE(creator->regTvfModels(tvfModels));
-            ASSERT_EQ(2u, tvfModels.functions.size());
+            ASSERT_EQ(2u, tvfModels.size());
         }
     }
 }

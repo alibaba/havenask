@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BUILD_SERVICE_TASKS_TASK_FACTORY_H
-#define ISEARCH_BUILD_SERVICE_TASKS_TASK_FACTORY_H
+#pragma once
+
+#include <string>
 
 #include "build_service/common_define.h"
+#include "build_service/config/TaskInputConfig.h"
+#include "build_service/config/TaskOutputConfig.h"
+#include "build_service/io/InputCreator.h"
+#include "build_service/io/OutputCreator.h"
+#include "build_service/task_base/Task.h"
 #include "build_service/task_base/TaskFactory.h"
 #include "build_service/util/Log.h"
 
@@ -44,5 +50,3 @@ private:
 BS_TYPEDEF_PTR(BuildServiceTaskFactory);
 
 }} // namespace build_service::task_base
-
-#endif

@@ -63,6 +63,8 @@ public:
     static int64_t sec2us(int64_t sec) { return sec * 1000000; }
     static std::string currentTimeString();
     static std::string currentTimeString(const std::string &format);
+
+    static std::string usFormat(int64_t us, const std::string &format);
 };
 
 class ScopedTime {

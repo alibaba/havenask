@@ -1,5 +1,7 @@
 package com.taobao.search.iquan.core.rel.convert.physical;
 
+import java.math.BigDecimal;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
@@ -16,8 +18,6 @@ import org.apache.calcite.rel.logical.LogicalSort;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexDynamicParam;
 import org.apache.calcite.rex.RexLiteral;
-
-import java.math.BigDecimal;
 
 public class IquanSortConverterRule extends ConverterRule {
     public static IquanSortConverterRule INSTANCE = new IquanSortConverterRule();

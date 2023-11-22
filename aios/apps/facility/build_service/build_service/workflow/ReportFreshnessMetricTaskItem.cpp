@@ -15,7 +15,12 @@
  */
 #include "build_service/workflow/ReportFreshnessMetricTaskItem.h"
 
+#include <assert.h>
+#include <string>
+
 #include "build_service/workflow/SwiftProcessedDocProducer.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace workflow {
 BS_LOG_SETUP(workflow, ReportFreshnessMetricTaskItem);

@@ -1,7 +1,6 @@
 package com.taobao.search.iquan.core.rel.convert.physical;
 
-import com.taobao.search.iquan.core.api.schema.Table;
-import com.taobao.search.iquan.core.api.schema.TableType;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.rel.convention.IquanConvention;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
@@ -24,8 +23,8 @@ public class IquanTableScanConverterRule extends ConverterRule {
     public RelNode convert(RelNode relNode) {
         final LogicalTableScan tableScan = (LogicalTableScan) relNode;
         final RelTraitSet traitSet = tableScan.getTraitSet().replace(IquanConvention.PHYSICAL);
-        Table table = IquanRelOptUtils.getIquanTable(tableScan);
+        IquanTable iquanTable = IquanRelOptUtils.getIquanTable(tableScan);
         return new IquanTableScanOp(relNode.getCluster(), traitSet,
-                                    ((Hintable) relNode).getHints(), tableScan.getTable());
+                ((Hintable) relNode).getHints(), tableScan.getTable());
     }
 }

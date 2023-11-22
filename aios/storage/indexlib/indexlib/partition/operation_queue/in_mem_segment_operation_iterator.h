@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_IN_MEM_SEGMENT_OPERATION_ITERATOR_H
-#define __INDEXLIB_IN_MEM_SEGMENT_OPERATION_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -138,5 +137,3 @@ inline void InMemSegmentOperationIterator::SeekNextValidOperation()
     }
 }
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_IN_MEM_SEGMENT_OPERATION_ITERATOR_H

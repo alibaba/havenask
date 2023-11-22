@@ -15,11 +15,9 @@
  */
 #include "build_service/common/Locator.h"
 
-#include "autil/StringUtil.h"
+#include <iosfwd>
+
+#include "autil/Span.h"
 
 using namespace std;
 using namespace autil;
-
-namespace build_service { namespace common {
-
-}} // namespace build_service::common

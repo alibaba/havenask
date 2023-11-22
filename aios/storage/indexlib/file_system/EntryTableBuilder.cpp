@@ -17,14 +17,15 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <exception>
+#include <initializer_list>
 #include <map>
 #include <string.h>
 #include <utility>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "fslib/common/common_type.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/PathUtil.h"
@@ -45,6 +46,7 @@
 #include "indexlib/file_system/package/PackageFileMeta.h"
 #include "indexlib/file_system/package/VersionedPackageFileMeta.h"
 #include "indexlib/util/PathUtil.h"
+
 using indexlib::util::PathUtil;
 using std::string;
 

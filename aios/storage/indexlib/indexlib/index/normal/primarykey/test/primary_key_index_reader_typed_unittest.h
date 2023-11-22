@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIMARY_KEY_INDEX_READER_TYPED_UNITTEST_H
-#define __INDEXLIB_PRIMARY_KEY_INDEX_READER_TYPED_UNITTEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common_define.h"
@@ -144,5 +143,3 @@ inline void PrimaryKeyIndexReaderTypedTest::MakeOneSegment(uint32_t urls[], uint
     writer.Dump(indexDirectory, &mSimplePool);
 }
 }} // namespace indexlib::index
-
-#endif // __INDEXLIB_PRIMARY_KEY_INDEX_READER_TYPED_UNITTEST_H

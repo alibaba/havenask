@@ -15,18 +15,16 @@
  */
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "autil/Log.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/fslib/FenceContext.h"
 
-namespace indexlib {
-namespace misc {
-class MetricProvider;
-}
-namespace file_system {
+namespace indexlib { namespace file_system {
 
 class FileSystemCreator
 {
@@ -58,5 +56,4 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-} // namespace file_system
-} // namespace indexlib
+}} // namespace indexlib::file_system

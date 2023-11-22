@@ -34,8 +34,8 @@ private:
         std::vector<Port *> ports;
     };
 public:
-    SubGraphBorder(GraphParam *param, NaviPartId partId,
-                   const BorderId &borderId);
+    SubGraphBorder(const NaviLoggerPtr &logger, GraphParam *param,
+                   NaviPartId partId, const BorderId &borderId);
     virtual ~SubGraphBorder();
 public:
     bool init(const PartInfoDef &partInfo, const BorderDef &borderDef,

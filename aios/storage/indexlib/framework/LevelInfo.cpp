@@ -15,7 +15,10 @@
  */
 #include "indexlib/framework/LevelInfo.h"
 
-#include "autil/StringUtil.h"
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+
 #include "indexlib/base/Constant.h"
 #include "indexlib/util/ShardUtil.h"
 

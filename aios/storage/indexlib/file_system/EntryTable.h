@@ -16,7 +16,9 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <set>
+#include <stddef.h>
 #include <stdint.h>
 #include <string>
 #include <vector>

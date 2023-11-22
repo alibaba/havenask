@@ -15,10 +15,18 @@
  */
 #include "indexlib/merger/merge_plan.h"
 
-#include "autil/StringUtil.h"
+#include <algorithm>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+
+#include "autil/Span.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/file/FileWriter.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/framework/SegmentInfo.h"
 
 using namespace std;
 using namespace autil;

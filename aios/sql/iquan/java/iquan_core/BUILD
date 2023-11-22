@@ -4,7 +4,7 @@ java_library(
     srcs=glob(['src/main/java/com/taobao/search/iquan/**/*.java']),
     resources=glob(['src/main/resources/**']),
     deps=[
-        '//aios/sql/iquan/java:immutables',
+        '//aios/sql/iquan/java:immutables', '//aios/sql/iquan/java:lombok',
         '@iquan_maven//:com_fasterxml_jackson_core_jackson_annotations',
         '@iquan_maven//:com_fasterxml_jackson_core_jackson_core',
         '@iquan_maven//:com_fasterxml_jackson_core_jackson_databind',

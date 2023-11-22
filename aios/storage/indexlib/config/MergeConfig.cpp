@@ -15,11 +15,13 @@
  */
 #include "indexlib/config/MergeConfig.h"
 
+#include <cstdint>
 #include <mutex>
-#include <unistd.h>
+#include <type_traits>
+#include <utility>
 
 #include "autil/legacy/exception.h"
-#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/config/MergeStrategyParameter.h"
 #include "indexlib/file_system/package/PackageFileTagConfigList.h"
 #include "indexlib/util/Singleton.h"

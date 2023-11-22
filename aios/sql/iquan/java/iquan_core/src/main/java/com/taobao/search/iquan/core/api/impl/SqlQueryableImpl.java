@@ -1,43 +1,58 @@
 package com.taobao.search.iquan.core.api.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import com.taobao.kmonitor.KMonitor;
 import com.taobao.search.iquan.client.common.metrics.QueryMetricsReporter;
 import com.taobao.search.iquan.core.api.SqlQueryable;
 import com.taobao.search.iquan.core.api.SqlTranslator;
-import com.taobao.search.iquan.core.api.common.*;
+import com.taobao.search.iquan.core.api.common.ConstantDefine;
+import com.taobao.search.iquan.core.api.common.IquanErrorCode;
+import com.taobao.search.iquan.core.api.common.OptimizeLevel;
+import com.taobao.search.iquan.core.api.common.PlanFormatType;
+import com.taobao.search.iquan.core.api.common.PlanFormatVersion;
+import com.taobao.search.iquan.core.api.config.ExecConfigOptions;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
+import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.catalog.*;
+import com.taobao.search.iquan.core.catalog.GlobalCatalogManager;
 import com.taobao.search.iquan.core.rel.IquanRuleListener;
 import com.taobao.search.iquan.core.rel.IquanRuleSuccessListener;
 import com.taobao.search.iquan.core.rel.convention.IquanConvention;
 import com.taobao.search.iquan.core.rel.programs.CTEOptimizer;
 import com.taobao.search.iquan.core.rel.programs.IquanOptContext;
+import com.taobao.search.iquan.core.rel.programs.IquanPrograms;
 import com.taobao.search.iquan.core.rel.rewrite.post.PostOptPlanner;
 import com.taobao.search.iquan.core.rel.rewrite.sql.AliasRewrite;
 import com.taobao.search.iquan.core.rel.rewrite.sql.LimitRewrite;
-import com.taobao.search.iquan.core.rel.visitor.relshuttle.*;
+import com.taobao.search.iquan.core.rel.visitor.relshuttle.OptimizeInfoCollectShuttle;
+import com.taobao.search.iquan.core.rel.visitor.relshuttle.OptimizeInfoRewriteShuttle;
+import com.taobao.search.iquan.core.rel.visitor.relshuttle.SameRelExpandShuttle;
+import com.taobao.search.iquan.core.rel.visitor.relshuttle.SameRelUniqShuttle;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexOptimizeInfoCollectShuttle;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexOptimizeInfoRewriteShuttle;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
-import com.taobao.search.iquan.core.api.config.ExecConfigOptions;
-import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
-import com.taobao.search.iquan.core.rel.programs.IquanPrograms;
-import org.javatuples.Pair;
-import org.apache.calcite.plan.*;
+import org.apache.calcite.plan.Context;
+import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelTrait;
+import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelShuttle;
-import org.apache.calcite.sql.*;
+import org.apache.calcite.sql.SqlExplainLevel;
+import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
-
+import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class SqlQueryableImpl implements SqlQueryable {
     private static final Logger logger = LoggerFactory.getLogger(SqlQueryableImpl.class);
@@ -46,8 +61,8 @@ public class SqlQueryableImpl implements SqlQueryable {
     private final boolean defaultDebug;
 
     private SqlQueryableImpl(
-                             IquanExecutorFactory executorFactory,
-                             boolean defaultDebug) {
+            IquanExecutorFactory executorFactory,
+            boolean defaultDebug) {
         assert executorFactory != null;
 
         this.executorFactory = executorFactory;
@@ -61,14 +76,11 @@ public class SqlQueryableImpl implements SqlQueryable {
                          String defDbName,
                          IquanConfigManager config,
                          Map<String, Object> infos) {
+        SqlWorkFlow sqlWorkFlow = buildSqlWorkFlow(executorFactory, sqls, dynamicParams, config, defCatalogName, defDbName, infos);
         try {
-            SqlWorkFlow sqlWorkFlow = buildSqlWorkFlow(executorFactory, sqls, dynamicParams, config, defCatalogName, defDbName, infos);
-            try {
-                return sqlWorkFlow.process();
-            } catch (SqlParseException e) {
-                throw new RuntimeException(e);
-            }
-        } finally {
+            return sqlWorkFlow.process();
+        } catch (SqlParseException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -78,8 +90,7 @@ public class SqlQueryableImpl implements SqlQueryable {
                                         IquanConfigManager config,
                                         String defaultCatalogName,
                                         String defaultDbName,
-                                        Map<String, Object> infos) throws SqlQueryException
-    {
+                                        Map<String, Object> infos) throws SqlQueryException {
         boolean debug = defaultDebug || config.getBoolean(SqlConfigOptions.IQUAN_OPTIMIZER_DEBUG_ENABLE);
         return new SqlWorkFlow(debug, executorFactory, sqls, dynamicParams, config, defaultCatalogName, defaultDbName, infos);
     }
@@ -129,10 +140,10 @@ public class SqlQueryableImpl implements SqlQueryable {
         private final List<RelNode> relNodes = new ArrayList<>();
         private final List<RelNode> optimizedRelNodes = new ArrayList<>();
         private final List<RelNode> finalRelNodes = new ArrayList<>();
-        private boolean needCollectOptimizeInfos = false;
         private final boolean needDetailDebugInfos;
         private final IquanOptContext context;
         private final List<IquanRuleListener> listeners;
+        private boolean needCollectOptimizeInfos = false;
 
         public SqlWorkFlow(
                 boolean debug,
@@ -171,6 +182,92 @@ public class SqlQueryableImpl implements SqlQueryable {
             if (debug && enableCteOpt) {
                 logger.info("cte optimize enabled");
             }
+        }
+
+        private static RelNode relOptRuleApply(RelNode root,
+                                               Pair<String, HepProgram> programPair,
+                                               Context context,
+                                               RelTrait[] relTraits,
+                                               String stageName,
+                                               List<IquanRuleListener> listeners,
+                                               boolean debug) {
+            HepPlanner planner = new HepPlanner(programPair.getValue1(), context);
+            listeners.forEach(planner::addListener);
+            planner.setRoot(root);
+            if (relTraits != null) {
+                RelTraitSet targetTraitsSet = root
+                        .getTraitSet()
+                        .plusAll(relTraits);
+                if (!root.getTraitSet().equals(targetTraitsSet)) {
+                    planner.changeTraits(root, targetTraitsSet.simplify());
+                }
+            }
+            long startUs = System.nanoTime();
+            root = planner.findBestExp();
+            long endUs = System.nanoTime();
+            if (debug) {
+                String header = "[" + stageName + "]" + "---" +
+                        programPair.getValue0() + "---time cost " +
+                        (endUs - startUs) / 1000 + "us";
+                dumpPlan(header, root);
+            }
+            return root;
+        }
+
+        private static RelNode relOptRuleListApply(RelNode root,
+                                                   List<Pair<String, HepProgram>> programList,
+                                                   Context context,
+                                                   RelTrait[] relTraits,
+                                                   String description,
+                                                   List<IquanRuleListener> listeners,
+                                                   boolean debug) {
+            if (debug) {
+                dumpPlan("[" + description + "]" + "----init----", root);
+            }
+            for (Pair<String, HepProgram> pair : programList) {
+                root = relOptRuleApply(root, pair, context, relTraits, description, listeners, debug);
+            }
+            return root;
+        }
+
+        public static IquanOptContext genIquanOptContext(
+                IquanExecutorFactory.Executor executor,
+                GlobalCatalogManager manager,
+                IquanConfigManager config,
+                List<List<Object>> dynamicParams,
+                Map<String, Object> planMeta) {
+            IquanOptContext context = new IquanOptContext(dynamicParams) {
+                @Override
+                public <C> C unwrap(Class<C> aClass) {
+                    if (aClass.isInstance(this)) {
+                        return aClass.cast(this);
+                    } else {
+                        return null;
+                    }
+                }
+
+                @Override
+                public GlobalCatalogManager getCatalogManager() {
+                    return manager;
+                }
+
+                @Override
+                public IquanConfigManager getConfiguration() {
+                    return config;
+                }
+
+                @Override
+                public IquanExecutorFactory.Executor getExecutor() {
+                    return executor;
+                }
+            };
+            context.setPlanMeta(planMeta);
+            return context;
+        }
+
+        private static void dumpPlan(String header, RelNode node) {
+            String data = IquanRelOptUtils.relToString(node);
+            logger.info(String.format("%s----- \n%s", header, data));
         }
 
         // only for test
@@ -327,52 +424,6 @@ public class SqlQueryableImpl implements SqlQueryable {
             optimizedRelNodes.add(optNode.accept(cteShuttle));
         }
 
-        private static RelNode relOptRuleApply(RelNode root,
-                                               Pair<String, HepProgram> programPair,
-                                               Context context,
-                                               RelTrait[] relTraits,
-                                               String stageName,
-                                               List<IquanRuleListener> listeners,
-                                               boolean debug) {
-            HepPlanner planner = new HepPlanner(programPair.getValue1(), context);
-            listeners.forEach(planner::addListener);
-            planner.setRoot(root);
-            if (relTraits != null) {
-                RelTraitSet targetTraitsSet = root
-                        .getTraitSet()
-                        .plusAll(relTraits);
-                if (!root.getTraitSet().equals(targetTraitsSet)) {
-                    planner.changeTraits(root, targetTraitsSet.simplify());
-                }
-            }
-            long startUs = System.nanoTime();
-            root = planner.findBestExp();
-            long endUs = System.nanoTime();
-            if (debug) {
-                String header = "[" + stageName + "]" + "---" +
-                        programPair.getValue0() + "---time cost " +
-                        (endUs - startUs) / 1000 + "us";
-                dumpPlan(header, root);
-            }
-            return root;
-        }
-
-        private static RelNode relOptRuleListApply(RelNode root,
-                                                   List<Pair<String, HepProgram>> programList,
-                                                   Context context,
-                                                   RelTrait[] relTraits,
-                                                   String description,
-                                                   List<IquanRuleListener> listeners,
-                                                   boolean debug) {
-            if (debug) {
-                dumpPlan("[" + description + "]" + "----init----", root);
-            }
-            for (Pair<String, HepProgram> pair : programList) {
-                root = relOptRuleApply(root, pair, context, relTraits, description, listeners, debug);
-            }
-            return root;
-        }
-
         private RelNode relOptimize(RelNode rootNode, IquanOptContext context) {
             OptimizeLevel optimizeLevel = OptimizeLevel.from(config.getString(SqlConfigOptions.IQUAN_OPTIMIZER_LEVEL));
             final List<Pair<String, HepProgram>> fuseLayerTablePrepare = IquanPrograms.fuseLayerTableRules();
@@ -441,47 +492,6 @@ public class SqlQueryableImpl implements SqlQueryable {
                 finalRelNodes.add(node.accept(relShuttle));
             }
             needCollectOptimizeInfos = (rexShuttle.getRewriteNum() > 0);
-        }
-
-        public static IquanOptContext genIquanOptContext(
-                IquanExecutorFactory.Executor executor,
-                GlobalCatalogManager manager,
-                IquanConfigManager config,
-                List<List<Object>> dynamicParams,
-                Map<String, Object> planMeta) {
-            IquanOptContext context = new IquanOptContext(dynamicParams) {
-                @Override
-                public <C> C unwrap(Class<C> aClass) {
-                    if (aClass.isInstance(this)) {
-                        return aClass.cast(this);
-                    }
-                    else {
-                        return null;
-                    }
-                }
-
-                @Override
-                public GlobalCatalogManager getCatalogManager() {
-                    return manager;
-                }
-
-                @Override
-                public IquanConfigManager getConfiguration() {
-                    return config;
-                }
-
-                @Override
-                public IquanExecutorFactory.Executor getExecutor() {
-                    return executor;
-                }
-            };
-            context.setPlanMeta(planMeta);
-            return context;
-        }
-
-        private static void dumpPlan(String header, RelNode node) {
-            String data = IquanRelOptUtils.relToString(node);
-            logger.info(String.format("%s----- \n%s", header, data));
         }
     }
 }

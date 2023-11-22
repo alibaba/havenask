@@ -94,18 +94,21 @@ RawDocumentReader::ErrorCode SwiftTopicStreamRawDocumentReader::readDocStr(std::
         return ERROR_EXCEPTION;
     }
     auto streamIdx = _swiftTopicStreamReader->getCurrentIdx();
-    for (auto& singleProgress : checkpoint->progress) {
-        if (!util::LocatorUtil::EncodeOffset(streamIdx, singleProgress.offset.first, &singleProgress.offset.first)) {
-            BS_LOG(ERROR, "encode offset failed, streamIdx [%d], singleProgress offset [%ld]", streamIdx,
-                   singleProgress.offset.first);
-            return ERROR_EXCEPTION;
+    for (auto& progressVec : checkpoint->progress) {
+        for (auto& singleProgress : progressVec) {
+            if (!util::LocatorUtil::encodeOffset(streamIdx, singleProgress.offset.first,
+                                                 &singleProgress.offset.first)) {
+                BS_LOG(ERROR, "encode offset failed, streamIdx [%d], singleProgress offset [%ld]", streamIdx,
+                       singleProgress.offset.first);
+                return ERROR_EXCEPTION;
+            }
         }
     }
-    if (!util::LocatorUtil::EncodeOffset(streamIdx, docInfo.timestamp, &docInfo.timestamp)) {
+    if (!util::LocatorUtil::encodeOffset(streamIdx, docInfo.timestamp, &docInfo.timestamp)) {
         BS_LOG(ERROR, "encode timestamp failed, streamIdx [%d], tiemstamp [%ld]", streamIdx, docInfo.timestamp);
         return ERROR_EXCEPTION;
     }
-    if (!util::LocatorUtil::EncodeOffset(streamIdx, checkpoint->offset, &checkpoint->offset)) {
+    if (!util::LocatorUtil::encodeOffset(streamIdx, checkpoint->offset, &checkpoint->offset)) {
         BS_LOG(ERROR, "encode offset failed, streamIdx [%d], tiemstamp [%ld]", streamIdx, checkpoint->offset);
         return ERROR_EXCEPTION;
     }
@@ -117,7 +120,7 @@ bool SwiftTopicStreamRawDocumentReader::seek(const Checkpoint& checkpoint)
     auto progress = checkpoint.progress;
     int8_t streamIdx;
     int64_t timestamp;
-    util::LocatorUtil::DecodeOffset(checkpoint.offset, &streamIdx, &timestamp);
+    util::LocatorUtil::decodeOffset(checkpoint.offset, &streamIdx, &timestamp);
     auto expectTopicName = checkpoint.userData;
     auto topicName = _swiftTopicStreamReader->getTopicName((size_t)streamIdx);
     if (topicName.empty()) {
@@ -129,8 +132,10 @@ bool SwiftTopicStreamRawDocumentReader::seek(const Checkpoint& checkpoint)
                expectTopicName.c_str(), topicName.c_str());
         return false;
     }
-    for (auto& singleProgress : progress) {
-        util::LocatorUtil::DecodeOffset(singleProgress.offset.first, &streamIdx, &singleProgress.offset.first);
+    for (auto& progressVec : progress) {
+        for (auto& singleProgress : progressVec) {
+            util::LocatorUtil::decodeOffset(singleProgress.offset.first, &streamIdx, &singleProgress.offset.first);
+        }
     }
     BS_LOG(INFO, "topic stream seek start, timestamp [%ld], topicName [%s], checkpoint [%s]", timestamp,
            topicName.c_str(), checkpoint.debugString().c_str());

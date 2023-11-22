@@ -15,7 +15,7 @@ cc_test(
     srcs=glob(['test/*Test.cpp']),
     copts=['-fno-access-control'],
     deps=[
-        ':sql_ops_util', '//aios/table/table/test:table_testlib',
+        ':sql_ops_util', '//aios/table/test:table_testlib',
         '//aios/unittest_framework'
     ]
 )

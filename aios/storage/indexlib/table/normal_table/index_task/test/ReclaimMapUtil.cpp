@@ -88,9 +88,7 @@ void ReclaimMapUtil::CheckAnswer(const ReclaimMap& reclaimMap, const std::string
         ASSERT_EQ(expectedSegIds.size(), expectedOldDocIds.size());
         ASSERT_EQ(expectedSegIds.size(), reclaimMap.GetNewDocCount());
         for (uint32_t i = 0; i < reclaimMap.GetNewDocCount(); i++) {
-            segmentid_t segId = INVALID_SEGMENTID;
-            docid_t docId = INVALID_DOCID;
-            reclaimMap.GetOldDocIdAndSegId((docid_t)i, docId, segId);
+            auto [segId, docId] = reclaimMap.ReverseMap(i);
             ASSERT_EQ(expectedOldDocIds[i], docId);
             ASSERT_EQ(expectedSegIds[i], segId);
         }

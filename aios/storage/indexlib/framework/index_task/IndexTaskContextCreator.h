@@ -53,6 +53,7 @@ public:
 
 public:
     IndexTaskContextCreator& SetTabletName(const std::string& tabletName);
+    IndexTaskContextCreator& SetTaskTraceId(const std::string& taskTraceId);
     IndexTaskContextCreator& SetTaskEpochId(const std::string& taskEpochId);
     IndexTaskContextCreator& SetExecuteEpochId(const std::string& executeEpochId);
     IndexTaskContextCreator& SetTabletFactory(framework::ITabletFactory* factory);

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_SEGMENT_READER_H
-#define __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_SEGMENT_READER_H
+#pragma once
 
 #include <fcntl.h>
 #include <memory>
@@ -541,5 +540,3 @@ int32_t SingleValueAttributeSegmentReader<T>::SearchNullCount(const indexlibv2::
     return 0;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_ATTRIBUTE_SEGMENT_READER_H

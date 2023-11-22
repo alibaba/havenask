@@ -15,6 +15,8 @@
  */
 #include "indexlib/merger/merge_meta.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace merger {

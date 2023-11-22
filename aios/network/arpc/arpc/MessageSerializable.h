@@ -31,14 +31,18 @@ public:
     virtual ~MessageSerializable();
 
 public:
-    virtual bool serialize(anet::DataBuffer *outputBuffer) const;
-    virtual bool deserialize(anet::DataBuffer *inputBuffer, int length = 0);
     RPCMessage *getMessage() const { return _message; }
-    virtual int64_t getSpaceUsed() { return _message->SpaceUsed(); }
+
+    // override anet::DataBufferSerializable
+    bool serialize(anet::DataBuffer *outputBuffer) const override;
+    bool deserialize(anet::DataBuffer *inputBuffer, int length = 0) override;
+    int64_t getSpaceUsed() override { return _message->SpaceUsed(); }
+    size_t getSerializedSize() const override { return _messageSerializedSize; }
 
 private:
     std::shared_ptr<google::protobuf::Arena> _arena;
     RPCMessage *_message;
+    size_t _messageSerializedSize{0};
 };
 
 ARPC_END_NAMESPACE(arpc);

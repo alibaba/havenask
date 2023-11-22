@@ -4,13 +4,13 @@
 #include "indexlib/common/field_format/pack_attribute/pack_attribute_formatter.h"
 #include "indexlib/common/hash_table/hash_table_reader.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_rewriter/pack_attribute_rewriter.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/index/kkv/prefix_key_table_creator.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 

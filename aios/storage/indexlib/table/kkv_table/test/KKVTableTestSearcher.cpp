@@ -70,8 +70,7 @@ std::shared_ptr<indexlibv2::table::Result> KKVTableTestSearcher::Search(const st
 std::shared_ptr<indexlibv2::table::Result>
 KKVTableTestSearcher::Search(const std::vector<std::string>& pkeyStrVec,
                              const std::vector<std::vector<std::string>>& skeyStrsVec,
-                             indexlibv2::table::KKVReadOptions& readOptions,
-                             bool batchFinish)
+                             indexlibv2::table::KKVReadOptions& readOptions, bool batchFinish)
 {
     vector<autil::StringView> pkeyVec;
     std::vector<std::vector<autil::StringView>> skeysVec;
@@ -132,13 +131,13 @@ KKVTableTestSearcher::Search(const std::vector<std::string>& pkeyStrVec,
         }
     }
 #endif
-if (batchFinish) {
-    kkvResult->Finish();
-} else {
-    for (size_t i = 0 ; i < kkvResult->GetKKVIteratorSize(); i++) {
-        kkvResult->Finish(i);
+    if (batchFinish) {
+        kkvResult->Finish();
+    } else {
+        for (size_t i = 0; i < kkvResult->GetKKVIteratorSize(); i++) {
+            kkvResult->Finish(i);
+        }
     }
-}
 
     indexlib::IE_POOL_COMPATIBLE_DELETE_CLASS(readOptions.pool, kkvResult);
 

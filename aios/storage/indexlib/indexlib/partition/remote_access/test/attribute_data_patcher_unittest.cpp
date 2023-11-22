@@ -1,8 +1,8 @@
 #include "indexlib/partition/remote_access/test/attribute_data_patcher_unittest.h"
 
 #include "indexlib/config/merge_io_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/remote_access/attribute_data_patcher_typed.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

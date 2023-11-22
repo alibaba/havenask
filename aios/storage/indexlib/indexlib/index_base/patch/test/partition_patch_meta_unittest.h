@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONPATCHMETATEST_H
-#define __INDEXLIB_PARTITIONPATCHMETATEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/patch/partition_patch_meta.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(PartitionPatchMetaTest, TestSimpleProcess);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_PARTITIONPATCHMETATEST_H

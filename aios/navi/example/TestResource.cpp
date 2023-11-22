@@ -37,5 +37,9 @@ REGISTER_RESOURCE(ReplaceA);
 REGISTER_RESOURCE(ReplaceAA);
 REGISTER_RESOURCE(ReplaceB);
 
+const std::string TestSnapshotR::RESOURCE_ID = "navi.test.test_snapshot_r";
+
+REGISTER_RESOURCE(TestSnapshotR);
+
 }
 

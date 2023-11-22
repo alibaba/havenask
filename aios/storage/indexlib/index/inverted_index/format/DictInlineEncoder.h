@@ -35,7 +35,7 @@ public:
     ~DictInlineEncoder() = default;
 
     static bool Encode(const std::vector<uint32_t>& data, uint64_t& result);
-    static bool EncodeContinuousDocId(docid_t startDocid, df_t df, bool enableDictInlineLongDF,
+    static bool EncodeContinuousDocId(docid32_t startDocid, df_t df, bool enableDictInlineLongDF,
                                       InlinePostingValueWithOrder& inlinePostingValueWithOrder);
 
 private:
@@ -72,7 +72,7 @@ inline bool DictInlineEncoder::Encode(const std::vector<uint32_t>& data, uint64_
     return true;
 }
 
-inline bool DictInlineEncoder::EncodeContinuousDocId(docid_t startDocid, df_t df, bool enableDictInlineLongDF,
+inline bool DictInlineEncoder::EncodeContinuousDocId(docid32_t startDocid, df_t df, bool enableDictInlineLongDF,
                                                      InlinePostingValueWithOrder& inlinePostingValueWithOrder)
 {
     const int32_t THRESHOLD = 0xFFFFFFF; // 2 ^ 28 - 1

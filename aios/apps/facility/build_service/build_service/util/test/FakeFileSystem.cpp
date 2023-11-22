@@ -1,5 +1,9 @@
-#include "build_service/test/unittest.h"
+#include <iosfwd>
+#include <string>
+
+#include "fslib/common/common_type.h"
 #include "fslib/fs/FileSystem.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 

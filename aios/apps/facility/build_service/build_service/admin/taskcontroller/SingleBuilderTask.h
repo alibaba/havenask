@@ -13,24 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SINGLEBUILDERTASK_H
-#define ISEARCH_BS_SINGLEBUILDERTASK_H
+#pragma once
 
+#include <algorithm>
 #include <limits>
+#include <map>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
 
-#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/AdminTaskBase.h"
+#include "build_service/admin/CounterCollector.h"
+#include "build_service/admin/DefaultSlowNodeDetectStrategy.h"
 #include "build_service/admin/FatalErrorDiscoverer.h"
+#include "build_service/admin/NewSlowNodeDetectStrategy.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
-#include "build_service/common/BuilderCheckpointAccessor.h"
+#include "build_service/admin/taskcontroller/NodeStatusManager.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeperGuard.h"
 #include "build_service/common_define.h"
-#include "build_service/config/ConfigReaderAccessor.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/DataDescription.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/WorkerNode.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
 
@@ -168,5 +178,3 @@ private:
 BS_TYPEDEF_PTR(SingleBuilderTask);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_SINGLEBUILDERTASK_H

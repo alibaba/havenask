@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXLIBEXCEPTIONPERFTEST_H
-#define __INDEXLIB_INDEXLIBEXCEPTIONPERFTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/test/truncate_config_maker.h"
@@ -63,5 +62,3 @@ INDEXLIB_UNIT_TEST_CASE(IndexlibExceptionPerfTest, TestCaseForDocReclaimExceptio
 INDEXLIB_UNIT_TEST_CASE(IndexlibExceptionPerfTest, TestIndexBuilderInitFail);
 INDEXLIB_UNIT_TEST_CASE(IndexlibExceptionPerfTest, TestSeekWithIOException);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEXLIBEXCEPTIONPERFTEST_H

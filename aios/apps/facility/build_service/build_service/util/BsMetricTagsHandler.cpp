@@ -15,6 +15,10 @@
  */
 #include "build_service/util/BsMetricTagsHandler.h"
 
+#include <iosfwd>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/util/KmonitorUtil.h"

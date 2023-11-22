@@ -1,11 +1,23 @@
 #include "build_service/config/ResourceReaderManager.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <memory>
+#include <ostream>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <unistd.h>
+#include <unordered_map>
+#include <utility>
+
 #include "autil/Lock.h"
-#include "autil/LoopThread.h"
 #include "autil/Thread.h"
 #include "autil/TimeUtility.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

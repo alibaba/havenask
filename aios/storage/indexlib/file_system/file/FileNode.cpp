@@ -50,7 +50,7 @@ FileNode::FileNode(const FileNode& other) noexcept
     , _openType(other._openType)
     , _originalOpenType(other._originalOpenType)
     , _metricGroup(other._metricGroup)
-    , _dirty(other._dirty)
+    , _dirty(other._dirty.load())
     , _inPackage(other._inPackage)
     , _fileLenReporter(other._fileLenReporter)
     , _fileNodeUseCountReporter(other._fileNodeUseCountReporter)
@@ -87,29 +87,31 @@ FileNode* FileNode::Clone() const noexcept
     return nullptr;
 }
 
-future_lite::Future<uint32_t> FileNode::ReadVUInt32Async(size_t offset, ReadOption option) noexcept(false)
+future_lite::Future<FSResult<uint32_t>> FileNode::ReadVUInt32Async(size_t offset, ReadOption option) noexcept
 {
     auto fileLen = GetLength();
     if (unlikely(offset >= fileLen)) {
-        INDEXLIB_FATAL_ERROR(OutOfRange,
-                             "read file out of range, offset: [%lu], "
-                             "file length: [%lu]",
-                             offset, fileLen);
+        AUTIL_LOG(ERROR,
+                  "read file out of range, offset: [%lu], "
+                  "file length: [%lu]",
+                  offset, fileLen);
+        return future_lite::makeReadyFuture(FSResult<uint32_t> {FSEC_ERROR, 0});
     }
     auto bufferPtr = std::make_unique<uint64_t>(0);
     auto buffer = static_cast<void*>(bufferPtr.get());
     size_t bufferSize = std::min(sizeof(uint64_t), fileLen - offset);
-    return ReadAsync(buffer, bufferSize, offset, option).thenValue([ptr = std::move(bufferPtr)](size_t readSize) {
-        uint8_t* byte = reinterpret_cast<uint8_t*>(ptr.get());
-        uint32_t value = (*byte) & 0x7f;
-        int shift = 7;
-        while ((*byte) & 0x80) {
-            ++byte;
-            value |= ((*byte & 0x7F) << shift);
-            shift += 7;
-        }
-        return value;
-    });
+    return ReadAsync(buffer, bufferSize, offset, option)
+        .thenValue([ptr = std::move(bufferPtr)](FSResult<size_t>&& ret) {
+            uint8_t* byte = reinterpret_cast<uint8_t*>(ptr.get());
+            uint32_t value = (*byte) & 0x7f;
+            int shift = 7;
+            while ((*byte) & 0x80) {
+                ++byte;
+                value |= ((*byte & 0x7F) << shift);
+                shift += 7;
+            }
+            return FSResult<uint32_t> {ret.Code(), value};
+        });
 }
 
 string FileNode::DebugString() const noexcept { return GetLogicalPath() + " -> " + GetPhysicalPath(); }

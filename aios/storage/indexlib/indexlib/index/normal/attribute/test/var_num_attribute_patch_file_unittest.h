@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_VARNUMATTRIBUTEPATCHFILETEST_H
-#define __INDEXLIB_VARNUMATTRIBUTEPATCHFILETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/var_num_attribute_patch_file.h"
@@ -41,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE(VarNumAttributePatchFileTest, TestSkipCurDocValue);
 INDEXLIB_UNIT_TEST_CASE(VarNumAttributePatchFileTest, TestGetPatchValueForMultiChar);
 INDEXLIB_UNIT_TEST_CASE(VarNumAttributePatchFileTest, TestSkipCurDocValueForMultiChar);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VARNUMATTRIBUTEPATCHFILETEST_H

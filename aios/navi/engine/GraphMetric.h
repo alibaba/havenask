@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NAVI_GRAPHMETRIC_H
-#define NAVI_GRAPHMETRIC_H
+#pragma once
 
 #include "navi/engine/KernelMetric.h"
 #include <unordered_map>
 
 namespace navi {
 
+class NaviResult;
 class GraphMetricDef;
 class NaviSymbolTable;
 typedef std::shared_ptr<NaviSymbolTable> NaviSymbolTablePtr;
+class StringHashTable;
 
 struct GraphMetricTime {
     int64_t queueUs = 0;
@@ -37,30 +38,35 @@ public:
     ~GraphMetric();
 private:
     GraphMetric(const GraphMetric &);
-    GraphMetric &operator=(const GraphMetric &);
 public:
-    KernelMetric *getKernelMetric(const std::string &bizName,
-                                  GraphId graphId,
-                                  const std::string &node,
-                                  const std::string &kernel);
-    void serialize(autil::DataBuffer &dataBuffer) const;
-    void deserialize(autil::DataBuffer &dataBuffer);
-    const std::vector<KernelMetric *> &getKernelMetricVec() const;
-    void merge(GraphMetric &other);
-    GraphMetricTime end();
+    void setNaviSymbolTable(const NaviSymbolTablePtr &naviSymbolTable) {
+        _naviSymbolTable = naviSymbolTable;
+    }
+    const NaviSymbolTablePtr &getNaviSymbolTable() const {
+        return _naviSymbolTable;
+    }
+    void addKernelMetric(const std::string &bizName, const KernelMetricPtr &metric);
+    void end();
+    const GraphMetricTime &getGraphMetricTime() const;
     int64_t getLatency() const;
-    void setNaviSymbolTable(const NaviSymbolTablePtr &naviSymbolTable);
-    void fillProto(GraphMetricDef *metric) const;
+    bool needToProto() const {
+        return !_kernelMetricMap.empty();
+    }
+    void toProto(GraphMetricDef *metric, StringHashTable *stringHashTable) const;
     void show() const;
+    void fillResult(NaviResult &result) const;
 private:
+    void fillKernelProto(GraphMetricDef *metricDef,
+                         std::unordered_map<uint64_t, uint32_t> &addrMap,
+                         int64_t &computeLatencyUs,
+                         int64_t &queueLatencyUs) const;
+private:
+    NaviSymbolTablePtr _naviSymbolTable;
     int64_t _beginTime;
     int64_t _endTime;
     int64_t _beginTimeMonoNs;
-    mutable autil::ThreadMutex _metricLock;
-    std::unordered_map<std::string, std::vector<KernelMetric *>> _kernelMetricMap;
-    NaviSymbolTablePtr _naviSymbolTable;
+    GraphMetricTime _graphMetricTime;
+    std::unordered_map<std::string, std::vector<KernelMetricPtr>> _kernelMetricMap;
 };
 
 }
-
-#endif //NAVI_GRAPHMETRIC_H

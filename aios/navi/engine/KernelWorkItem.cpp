@@ -19,8 +19,9 @@
 namespace navi {
 
 KernelWorkItem::KernelWorkItem(NaviWorkerBase *worker,
-                               Node *node)
-    : NaviWorkerItem(worker)
+                               Node *node,
+                               bool collectPerf)
+    : NaviWorkerItem(worker, collectPerf)
     , _node(node)
 {
 }

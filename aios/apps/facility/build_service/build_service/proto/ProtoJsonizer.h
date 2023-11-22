@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROTOJSONIZER_H
-#define ISEARCH_BS_PROTOJSONIZER_H
+#pragma once
 
-#include "autil/legacy/jsonizable.h"
-#include "build_service/common_define.h"
+#include <google/protobuf/descriptor.h>
+#include <string>
+
+#include "autil/legacy/any.h"
+#include "autil/legacy/json.h"
 #include "build_service/util/Log.h"
 #include "google/protobuf/message.h"
 
@@ -47,5 +49,4 @@ private:
     BS_LOG_DECLARE();
 };
 
-}}     // namespace build_service::proto
-#endif // ISEARCH_BS_PROTOJSONIZER_H
+}} // namespace build_service::proto

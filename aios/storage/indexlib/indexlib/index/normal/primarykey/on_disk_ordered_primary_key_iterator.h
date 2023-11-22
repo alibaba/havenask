@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ON_DISK_ORDERED_PRIMARY_KEY_ITERATOR_H
-#define __INDEXLIB_ON_DISK_ORDERED_PRIMARY_KEY_ITERATOR_H
+#pragma once
 
 #include <memory>
 #include <queue>
@@ -152,5 +151,3 @@ void OnDiskOrderedPrimaryKeyIterator<Key>::Next(PKPair& pair)
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ON_DISK_ORDERED_PRIMARY_KEY_ITERATOR_H

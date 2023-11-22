@@ -36,13 +36,6 @@ int32_t TopoClusterManager::init() { return 0; }
 
 TopoClusterManager::~TopoClusterManager() {}
 
-// we do the timeout in subscribing thread to make this function simple
-void TopoClusterManager::onClusterQuery(const std::string& cluster_name)
-{
-    autil::ScopedLock lock(_queriedMutex);
-    _queriedClusters[cluster_name] = autil::TimeUtility::currentTime();
-}
-
 int32_t TopoClusterManager::getPartitionCnt(const char* topo_cluster_name)
 {
     if (topo_cluster_name == NULL) {
@@ -224,25 +217,6 @@ int32_t TopoClusterManager::allocAllNode(const char* topo_cluster_name, std::vec
     }
 
     return cluster->allocAllNode(node_vec, valid);
-}
-
-size_t TopoClusterManager::getQueriedClusters(std::vector<std::string>& names)
-{
-#ifdef NDEBUG
-    const int64_t interval = 30 * 60 * 1000 * 1000; // 30 min
-#else
-    const int64_t interval = 2 * 1000 * 1000; // for unittest, 2 sec
-#endif
-    int64_t now = autil::TimeUtility::currentTime();
-    autil::ScopedLock lock(_queriedMutex);
-    for (QueriedClusters::iterator it = _queriedClusters.begin(); it != _queriedClusters.end();) {
-        if (it->second + interval < now) {
-            _queriedClusters.erase(it++);
-        } else {
-            names.push_back((it++)->first);
-        }
-    }
-    return names.size();
 }
 
 } // namespace cm_sub

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_OFFSET_READER_H
-#define __INDEXLIB_ATTRIBUTE_OFFSET_READER_H
+#pragma once
 
 #include <memory>
 
@@ -136,5 +135,3 @@ inline void AttributeOffsetReader::UpdateMetrics()
 
 inline bool AttributeOffsetReader::IsU32Offset() const { return mOffsetReader.IsU32Offset(); }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_OFFSET_READER_H

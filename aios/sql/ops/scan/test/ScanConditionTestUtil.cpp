@@ -143,8 +143,6 @@ void ScanConditionTestUtil::initParam() {
         = isearch::search::DefaultLayerMetaUtil::createFullRange(
             &_pool, _indexPartitionReaderWrapper.get());
     fullLayerMeta.quota = std::numeric_limits<uint32_t>::max();
-    isearch::search::LayerMetaPtr tmpLayerMeta(new isearch::search::LayerMeta(fullLayerMeta));
-    _layerMeta = ScanIteratorCreatorR::splitLayerMeta(&_pool, tmpLayerMeta, 0, 1);
     _indexInfoMap["name"] = IndexInfo("name", "string");
     _indexInfoMap["index_2"] = IndexInfo("index_2", "string");
     _indexInfoMap["attr2"] = IndexInfo("attr2", "number");
@@ -152,7 +150,7 @@ void ScanConditionTestUtil::initParam() {
     _param.attrExprCreator = _attributeExpressionCreator;
     _param.indexPartitionReaderWrapper = _indexPartitionReaderWrapper;
     _param.mainTableName = _tableName;
-    _param.layerMeta = _layerMeta.get();
+    _param.layerMeta = &fullLayerMeta;
     _param.pool = &_pool;
     _param.analyzerFactory = _analyzerFactory.get();
     _param.indexInfos = _tableInfo->getIndexInfos();

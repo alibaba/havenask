@@ -85,7 +85,7 @@ void TemperatureSplitStrategyTest::TestSimpleProcess()
     ASSERT_TRUE(psm.Transfer(BUILD_INC, docStrings, "", ""));
     Version incVersion;
 
-    VersionLoader::GetVersionS(rootDir, incVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(rootDir, incVersion, INVALID_VERSIONID);
     ASSERT_EQ(3, incVersion.GetSegmentCount());
     auto temperatureMetas = incVersion.GetSegTemperatureMetas();
     ASSERT_EQ(3, temperatureMetas.size());

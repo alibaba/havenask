@@ -19,7 +19,7 @@
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
 
 namespace indexlibv2 {
 namespace framework {
@@ -46,7 +46,7 @@ public:
 
 public:
     IndexAccessoryReader(const std::vector<std::shared_ptr<indexlibv2::config::IIndexConfig>>& indexConfigs,
-                         const indexlibv2::index::IndexerParameter& indexerParam);
+                         const indexlibv2::index::IndexReaderParameter& indexerParam);
     IndexAccessoryReader(const IndexAccessoryReader& other);
     ~IndexAccessoryReader();
 
@@ -76,7 +76,7 @@ private:
 
     SectionReaderPosMap _sectionReaderMap;
     SectionReaderVec _sectionReaderVec;
-    indexlibv2::index::IndexerParameter::SortPatternFunc _sortPatternFunc;
+    indexlibv2::index::IndexReaderParameter::SortPatternFunc _sortPatternFunc;
 
 private:
     AUTIL_LOG_DECLARE();

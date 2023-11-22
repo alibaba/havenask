@@ -36,19 +36,22 @@ class SimpleIndexTaskPlanCreator;
 class ComplexIndexTaskPlanCreator : public framework::IIndexTaskPlanCreator
 {
 public:
-    using CreateSimpleFunc =
-        std::function<SimpleIndexTaskPlanCreator*(const std::string&, const std::map<std::string, std::string>&)>;
+    using CreateSimpleFunc = std::function<SimpleIndexTaskPlanCreator*(const std::string&, const std::string&,
+                                                                       const std::map<std::string, std::string>&)>;
 
     struct SimpleTaskItem {
         explicit SimpleTaskItem(const std::string& taskType, const std::string& taskName = "",
+                                const std::string& taskTraceId = "",
                                 const std::map<std::string, std::string>& params = {})
             : taskType(taskType)
             , taskName(taskName)
+            , taskTraceId(taskTraceId)
             , params(params)
         {
         }
         std::string taskType;
         std::string taskName;
+        std::string taskTraceId;
         std::map<std::string, std::string> params;
         int64_t priority = 0;
     };
@@ -63,16 +66,13 @@ protected:
     template <typename T>
     void RegisterSimpleCreator()
     {
-        auto createFunc = [](const std::string& taskName,
+        auto createFunc = [](const std::string& taskName, const std::string& taskTraceId,
                              const std::map<std::string, std::string>& params) -> SimpleIndexTaskPlanCreator* {
-            SimpleIndexTaskPlanCreator* ret = new T(taskName, params);
+            SimpleIndexTaskPlanCreator* ret = new T(taskName, taskTraceId, params);
             return ret;
         };
         _simpleCreatorFuncMap[T::TASK_TYPE] = std::move(createFunc);
     }
-
-    virtual std::shared_ptr<framework::IIndexOperationCreator>
-    CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& tabletSchema) = 0;
 
     Status ScheduleSimpleTask(const framework::IndexTaskContext* taskContext, std::vector<SimpleTaskItem>* tasks);
     Status GetCandidateTasks(const framework::IndexTaskContext* taskContext, std::vector<SimpleTaskItem>* taskItems);

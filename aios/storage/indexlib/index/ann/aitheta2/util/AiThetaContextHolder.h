@@ -28,7 +28,7 @@ public:
 public:
     template <typename T>
     std::pair<bool, AiThetaContext*> CreateIfNotExist(const T& searcher, const std::string& searcherName,
-                                                      const std::string& searchParams)
+                                                      const std::string& searchParams = "")
     {
         std::string id = autil::StringUtil::toString(pthread_self()).append(searcherName).append(searchParams);
         bool isNew = true;

@@ -26,7 +26,7 @@ namespace sql {
 
 class SemiJoin : public JoinBase {
 public:
-    SemiJoin(const JoinBaseParam &joinBaseParam);
+    SemiJoin(const JoinBaseParamR &joinBaseParam);
     ~SemiJoin() {}
     SemiJoin(const SemiJoin &) = delete;
     SemiJoin &operator=(const SemiJoin &) = delete;

@@ -36,19 +36,22 @@ using namespace std;
 
 Appender::Appender(const std::string &levelStr,
                    NaviLogManager *manager)
-    : _manager(manager)
+    : m_layout(std::make_shared<BasicLayout>())
+    , m_bAutoFlush(false)
+    , _level(getLevelByString(levelStr))
+    , _manager(manager)
 {
-    _level = getLevelByString(levelStr);
-    m_layout = new BasicLayout();
-    m_bAutoFlush = false;
 }
 
-Appender::~Appender()
+Appender::Appender(const Appender &other)
+    : m_layout(other.m_layout)
+    , m_bAutoFlush(other.m_bAutoFlush)
+    , _level(other._level)
+    , _manager(other._manager)
 {
-    if(m_layout) {
-    	delete m_layout;
-        m_layout = NULL;
-    }
+}
+
+Appender::~Appender() {
 }
 
 void Appender::setLevel(const std::string &levelStr) {
@@ -59,14 +62,11 @@ LogLevel Appender::getLevel() const {
     return _level;
 }
 
-void Appender::setLayout(Layout* layout)
-{
-    if (layout != m_layout)
-    {
-        Layout *oldLayout = m_layout;
-        m_layout = (layout == NULL) ? new BasicLayout() : layout;
-        if(oldLayout)
-            delete oldLayout;
+void Appender::setLayout(const std::shared_ptr<Layout> &layout) {
+    if (layout) {
+        m_layout = layout;
+    } else {
+        m_layout = std::make_shared<BasicLayout>();
     }
 }
 
@@ -119,8 +119,6 @@ FileAppender::FileAppender(const std::string &levelStr,
     createDir(m_patentDir);
     open();
     m_needFlush = false;
-    if(m_layout == NULL)
-        m_layout = new BasicLayout();
 }
 
 FileAppender::~FileAppender()

@@ -44,7 +44,7 @@ PostingWriter* InMemBitmapIndexSegmentReader::GetPostingWriter(const index::Dict
     return nullptr;
 }
 
-bool InMemBitmapIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId,
+bool InMemBitmapIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId,
                                                       SegmentPosting& segPosting, autil::mem_pool::Pool* sessionPool,
                                                       indexlib::file_system::ReadOption option,
                                                       InvertedIndexSearchTracer* tracer) const

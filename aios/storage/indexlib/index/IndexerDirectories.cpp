@@ -15,8 +15,15 @@
  */
 #include "indexlib/index/IndexerDirectories.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <stddef.h>
+#include <string>
+#include <type_traits>
+
 #include "indexlib/base/Constant.h"
 #include "indexlib/config/IIndexConfig.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/IDirectory.h"
 
 using indexlib::file_system::IDirectory;

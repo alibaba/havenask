@@ -38,7 +38,8 @@ public class IquanProjectSortTransposeRule extends RelOptRule {
         return simpleProject && sort.getTraitSet().equalsSansConvention(project.getTraitSet());
     }
 
-    @Override public void onMatch(RelOptRuleCall call) {
+    @Override
+    public void onMatch(RelOptRuleCall call) {
         Project proj = call.rel(0);
         Sort sort = call.rel(1);
         RelNode newProj = proj.copy(proj.getTraitSet(), sort.getInputs());

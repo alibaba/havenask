@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KKV_DOCS_H
-#define __INDEXLIB_KKV_DOCS_H
+#pragma once
 
 #include <deque>
 
@@ -140,5 +139,3 @@ private:
     util::PooledUniquePtr<Queue> mDocs;
 };
 }} // namespace indexlib::index
-
-#endif

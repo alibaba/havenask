@@ -80,7 +80,7 @@ bool SingleDocumentParser::Init(const IndexPartitionSchemaPtr& schema, Accumulat
 
 NormalDocumentPtr SingleDocumentParser::Parse(const IndexlibExtendDocumentPtr& document)
 {
-    const RawDocumentPtr& rawDoc = document->getRawDocument();
+    const RawDocumentPtr& rawDoc = document->GetRawDocument();
     if (!rawDoc) {
         IE_LOG(ERROR, "empty raw document!");
         return NormalDocumentPtr();
@@ -180,7 +180,7 @@ void SingleDocumentParser::SetPrimaryKeyField(const IndexlibExtendDocumentPtr& d
         return;
     }
 
-    const RawDocumentPtr& rawDoc = document->getRawDocument();
+    const RawDocumentPtr& rawDoc = document->GetRawDocument();
     const ClassifiedDocumentPtr& classifiedDoc = document->getClassifiedDocument();
     string pkValue = rawDoc->getField(pkFieldName);
     document->setIdentifier(pkValue);
@@ -224,7 +224,7 @@ NormalDocumentPtr SingleDocumentParser::CreateDocument(const IndexlibExtendDocum
 
 bool SingleDocumentParser::Validate(const IndexlibExtendDocumentPtr& document)
 {
-    const RawDocumentPtr& rawDocumentPtr = document->getRawDocument();
+    const RawDocumentPtr& rawDocumentPtr = document->GetRawDocument();
     if (rawDocumentPtr == NULL) {
         IE_LOG(WARN, "raw document is NULL");
         return false;

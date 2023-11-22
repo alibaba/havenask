@@ -15,8 +15,19 @@
  */
 #include "build_service/processor/SleepProcessor.h"
 
+#include <ext/alloc_traits.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <stdlib.h>
+#include <unistd.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "build_service/document/ClassifiedDocument.h"
 
 using namespace std;
 using namespace autil;

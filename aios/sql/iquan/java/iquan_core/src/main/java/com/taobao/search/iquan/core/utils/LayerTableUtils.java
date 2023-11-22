@@ -1,13 +1,31 @@
 package com.taobao.search.iquan.core.utils;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.client.common.common.ConstantDefine;
-import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
-import com.taobao.search.iquan.core.common.Range;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
+import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.*;
+import com.taobao.search.iquan.core.api.schema.AbstractField;
+import com.taobao.search.iquan.core.api.schema.FieldMeta;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
+import com.taobao.search.iquan.core.api.schema.Layer;
+import com.taobao.search.iquan.core.api.schema.LayerFormat;
+import com.taobao.search.iquan.core.api.schema.LayerInfo;
+import com.taobao.search.iquan.core.api.schema.LayerTable;
 import com.taobao.search.iquan.core.catalog.LayerBaseTable;
+import com.taobao.search.iquan.core.common.Range;
 import com.taobao.search.iquan.core.rel.ops.logical.CTEConsumer;
 import com.taobao.search.iquan.core.rel.ops.logical.CTEProducer;
 import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LayerTableDistinct;
@@ -16,16 +34,31 @@ import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LogicalLayerTable
 import com.taobao.search.iquan.core.rel.programs.IquanOptContext;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexLayerDynamicParamsShuttle;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexShuttleUtils;
-import org.apache.calcite.plan.*;
+import org.apache.calcite.plan.Context;
+import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelOptRuleCall;
+import org.apache.calcite.plan.RelOptSchema;
+import org.apache.calcite.plan.RelOptTable;
+import org.apache.calcite.plan.RelOptUtil;
+import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.BiRel;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.RelVisitor;
 import org.apache.calcite.rel.SingleRel;
-import org.apache.calcite.rel.core.Correlate;
-import org.apache.calcite.rel.logical.*;
+import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.calcite.rel.logical.LogicalProject;
+import org.apache.calcite.rel.logical.LogicalTableScan;
+import org.apache.calcite.rel.logical.LogicalUnion;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.rex.RexVisitor;
+import org.apache.calcite.rex.RexVisitorImpl;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.type.SqlTypeFamily;
 import org.apache.calcite.tools.RelBuilder;
@@ -34,10 +67,6 @@ import org.apache.calcite.util.Sarg;
 import org.apache.calcite.util.mapping.Mappings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.apache.calcite.sql.SqlKind.GREATER_THAN;
 import static org.apache.calcite.sql.SqlKind.GREATER_THAN_OR_EQUAL;
@@ -158,7 +187,7 @@ public class LayerTableUtils {
         List<LayerInfo> layerInfos = table.getLayerInfos();
 
         for (int i = 0; i < limit; ++i) {
-            projects.add(rexBuilder.makeInputRef(fields.get(i).getType(),i));
+            projects.add(rexBuilder.makeInputRef(fields.get(i).getType(), i));
         }
         for (int i = limit; i < fields.size(); ++i) {
             LayerInfo layerInfo = layerInfos.get(i - limit);
@@ -268,15 +297,15 @@ public class LayerTableUtils {
     }
 
     public static void addIfNotExistProject(LogicalProject originProject,
-                                        List<RexNode> projects,
-                                        String fieldName,
-                                        List<String> newFieldNames, RelNode newInput) {
+                                            List<RexNode> projects,
+                                            String fieldName,
+                                            List<String> newFieldNames, RelNode newInput) {
         RexBuilder rexBuilder = originProject.getCluster().getRexBuilder();
         if (!checkExistProject(originProject, fieldName)) {
             List<RelDataTypeField> fields = newInput.getRowType().getFieldList();
             for (int i = 0; i < fields.size(); ++i) {
                 if (fieldName.equals(fields.get(i).getName())) {
-                    projects.add(rexBuilder.makeInputRef(fields.get(i).getType(),i));
+                    projects.add(rexBuilder.makeInputRef(fields.get(i).getType(), i));
                     newFieldNames.add(fieldName);
                     return;
                 }
@@ -299,13 +328,9 @@ public class LayerTableUtils {
         IquanOptContext context = originalContext.unwrap(IquanOptContext.class);
         List<List<Object>> dynameicPramas = context.getDynamicParams();
         Map<String, Object> planMeta = context.getPlanMeta();
-        List<Map<String, Object>> layerTablePlanMeta;
-        if (planMeta.containsKey(ConstantDefine.LAYER_TABLE_PLAN_META)) {
-            layerTablePlanMeta = (List<Map<String, Object>>) planMeta.get(ConstantDefine.LAYER_TABLE_PLAN_META);
-        } else {
-            layerTablePlanMeta = new ArrayList<>();
-            planMeta.put(ConstantDefine.LAYER_TABLE_PLAN_META, layerTablePlanMeta);
-        }
+
+        List<Map<String, Object>> layerTablePlanMeta =
+            (List<Map<String, Object>>)planMeta.computeIfAbsent(ConstantDefine.LAYER_TABLE_PLAN_META, v -> new ArrayList<>());
         RexBuilder rexBuilder = filter.getCluster().getRexBuilder();
 
         RexNode condition = filter.getCondition();
@@ -317,7 +342,7 @@ public class LayerTableUtils {
     }
 
     public static String getPkFieldName(LogicalLayerTableScan scan) {
-        List<FieldMeta> fieldList = scan.getLayerTable().getFakeTable().getFieldMetaList();
+        List<FieldMeta> fieldList = scan.getLayerTable().getFakeIquanTable().getFieldMetaList();
         for (FieldMeta fieldMeta : fieldList) {
             switch (fieldMeta.indexType) {
                 case IT_PRIMARY_KEY:
@@ -346,7 +371,7 @@ public class LayerTableUtils {
         if (condition == null) {
             return Collections.singletonList(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
         }
-        RexVisitor visitorInt = new RexVisitorImpl<List<Range>>(true){
+        RexVisitor visitorInt = new RexVisitorImpl<List<Range>>(true) {
             @Override
             public List<Range> visitCall(RexCall call) {
                 SqlKind op = call.getKind();
@@ -368,7 +393,7 @@ public class LayerTableUtils {
                     case GREATER_THAN:
                     case GREATER_THAN_OR_EQUAL:
                     case LESS_THAN:
-                    case LESS_THAN_OR_EQUAL:{
+                    case LESS_THAN_OR_EQUAL: {
                         RexInputRef inputRef = RexShuttleUtils.getInputRefFromCall(call);
                         RexLiteral literal = RexShuttleUtils.getRexLiteralFromCall(call);
                         if (inputRef != null && literal != null && inputRef.getIndex() == layerId) {
@@ -400,9 +425,8 @@ public class LayerTableUtils {
                         }
                         return Collections.singletonList(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
                     }
-                    case DEFAULT:
+                    default:
                         logger.error("layerInfo not support {}", op);
-                        assert false;
                 }
                 return Collections.singletonList(new Range(Long.MIN_VALUE, Long.MAX_VALUE));
             }
@@ -435,7 +459,7 @@ public class LayerTableUtils {
         if (condition == null) {
             return Collections.singletonList(ConstantDefine.LAYER_STRING_ANY);
         }
-        RexVisitor visitorString = new RexVisitorImpl<List<String>>(true){
+        RexVisitor visitorString = new RexVisitorImpl<List<String>>(true) {
             @Override
             public List<String> visitCall(RexCall call) {
                 SqlKind op = call.getKind();
@@ -444,7 +468,7 @@ public class LayerTableUtils {
                         List<List<String>> all = new ArrayList<>();
                         for (RexNode node : call.operands) {
                             List<String> cur = node.accept(this);
-                            if (cur.size() == 1 && cur.get(0).equals(ConstantDefine.LAYER_STRING_ANY)){
+                            if (cur.size() == 1 && cur.get(0).equals(ConstantDefine.LAYER_STRING_ANY)) {
                                 continue;
                             }
                             all.add(cur);
@@ -458,7 +482,7 @@ public class LayerTableUtils {
                         Set<String> union = new HashSet<>();
                         for (RexNode node : call.operands) {
                             List<String> cur = node.accept(this);
-                            if (cur.size() == 1 && cur.get(0).equals(ConstantDefine.LAYER_STRING_ANY)){
+                            if (cur.size() == 1 && cur.get(0).equals(ConstantDefine.LAYER_STRING_ANY)) {
                                 return Collections.singletonList(ConstantDefine.LAYER_STRING_ANY);
                             }
                             union.addAll(cur);
@@ -498,11 +522,10 @@ public class LayerTableUtils {
                         }
                         return Collections.singletonList(ConstantDefine.LAYER_STRING_ANY);
                     }
-                    case DEFAULT:
+                    default:
                         logger.error("layerInfo not support {}", op);
                         throw new IquanNotValidateException("LayerTable layerFields condition op only support = > < >= <=");
                 }
-                return Collections.singletonList(ConstantDefine.LAYER_STRING_ANY);
             }
         };
         return condition.accept(visitorString);
@@ -591,7 +614,7 @@ public class LayerTableUtils {
     }
 
     public static RexNode fillDynamicParamsInAncestors(List<RelNode> ancestors,
-                                                    RelOptRuleCall call) {
+                                                       RelOptRuleCall call) {
         int size = ancestors.size();
         if (size < 2 || !(ancestors.get(size - 2) instanceof LogicalFilter)) {
             return null;
@@ -667,7 +690,7 @@ public class LayerTableUtils {
                 if (id < leftCnt) {
                     return inputRef;
                 }
-                return rexBuilder.makeInputRef(fieldList.get(id - leftCnt).getType(),inputRef.getIndex() + offset);
+                return rexBuilder.makeInputRef(fieldList.get(id - leftCnt).getType(), inputRef.getIndex() + offset);
             }
         });
         return condition;
@@ -690,45 +713,85 @@ public class LayerTableUtils {
     public static boolean isLayerTableField(RelNode root, int idx) {
         RelNode node = IquanRelOptUtils.toRel(root);
 
-       if (node instanceof LogicalTableScan) {
-           return false;
-       }
+        if (node instanceof LogicalTableScan) {
+            return false;
+        }
 
-       if (node instanceof LogicalLayerTableScan) {
-           LayerTable layerTable = ((LogicalLayerTableScan) node).getLayerTable();
-           int layerFieldsCnt = layerTable.getLayerFormats().size();
-           Table table = layerTable.getFakeTable();
-           int physicalFieldCnt = table.getFields().size() + table.getSubTablesCnt();
-           return idx >= physicalFieldCnt - layerFieldsCnt;
-       }
+        if (node instanceof LogicalLayerTableScan) {
+            LayerTable layerTable = ((LogicalLayerTableScan) node).getLayerTable();
+            int layerFieldsCnt = layerTable.getLayerFormats().size();
+            IquanTable table = layerTable.getFakeIquanTable();
+            int physicalFieldCnt = table.getFields().size() + table.getSubTablesCnt();
+            return idx >= physicalFieldCnt - layerFieldsCnt;
+        }
 
-       if (node instanceof LogicalJoin) {
-           LogicalJoin join  = (LogicalJoin) node;
-           int leftCnt = join.getLeft().getRowType().getFieldCount();
-           return idx >= leftCnt ? isLayerTableField(join.getRight(), idx - leftCnt) : isLayerTableField(join.getLeft(), idx);
-       }
+        if (node instanceof LogicalJoin) {
+            LogicalJoin join = (LogicalJoin) node;
+            int leftCnt = join.getLeft().getRowType().getFieldCount();
+            return idx >= leftCnt ? isLayerTableField(join.getRight(), idx - leftCnt) : isLayerTableField(join.getLeft(), idx);
+        }
 
-       if (node instanceof LogicalProject) {
-           RexNode rexNode = ((LogicalProject) node).getProjects().get(idx);
-           Integer index = rexNode.accept(new RexVisitorImpl<Integer>(true) {
-               @Override
-               public Integer visitInputRef(RexInputRef inputRef) {
-                   return inputRef.getIndex();
-               }
-           });
-           return index != null && isLayerTableField(((LogicalProject) node).getInput(), index);
-       }
+        if (node instanceof LogicalProject) {
+            RexNode rexNode = ((LogicalProject) node).getProjects().get(idx);
+            Integer index = rexNode.accept(new RexVisitorImpl<Integer>(true) {
+                @Override
+                public Integer visitInputRef(RexInputRef inputRef) {
+                    return inputRef.getIndex();
+                }
+            });
+            return index != null && isLayerTableField(((LogicalProject) node).getInput(), index);
+        }
 
-       if (node instanceof BiRel) {
-           //ToDo process Correlate situation or other biInput node
-           return false;
-       }
+        if (node instanceof BiRel) {
+            //ToDo process Correlate situation or other biInput node
+            return false;
+        }
 
-       if (node instanceof CTEConsumer) {
-           return isLayerTableField(((CTEConsumer) node).getProducer().getInput(), idx);
-       }
+        if (node instanceof CTEConsumer) {
+            return isLayerTableField(((CTEConsumer) node).getProducer().getInput(), idx);
+        }
 
-       return isLayerTableField(node.getInput(0), idx);
+        return isLayerTableField(node.getInput(0), idx);
+
+       // if (node instanceof LogicalTableScan) {
+       //     return false;
+       // }
+
+       // if (node instanceof LogicalLayerTableScan) {
+       //     LayerTable layerTable = ((LogicalLayerTableScan) node).getLayerTable();
+       //     int layerFieldsCnt = layerTable.getLayerFormats().size();
+       //     IquanTable table = layerTable.getFakeIquanTable();
+       //     int physicalFieldCnt = table.getFields().size() + table.getSubTablesCnt();
+       //     return idx >= physicalFieldCnt - layerFieldsCnt;
+       // }
+
+       // if (node instanceof LogicalJoin) {
+       //     LogicalJoin join  = (LogicalJoin) node;
+       //     int leftCnt = join.getLeft().getRowType().getFieldCount();
+       //     return idx >= leftCnt ? isLayerTableField(join.getRight(), idx - leftCnt) : isLayerTableField(join.getLeft(), idx);
+       // }
+
+       // if (node instanceof LogicalProject) {
+       //     RexNode rexNode = ((LogicalProject) node).getProjects().get(idx);
+       //     Integer index = rexNode.accept(new RexVisitorImpl<Integer>(true) {
+       //         @Override
+       //         public Integer visitInputRef(RexInputRef inputRef) {
+       //             return inputRef.getIndex();
+       //         }
+       //     });
+       //     return index != null && isLayerTableField(((LogicalProject) node).getInput(), index);
+       // }
+
+       // if (node instanceof BiRel) {
+       //     //ToDo process Correlate situation or other biInput node
+       //     return false;
+       // }
+
+       // if (node instanceof CTEConsumer) {
+       //     return isLayerTableField(((CTEConsumer) node).getProducer().getInput(), idx);
+       // }
+
+       // return isLayerTableField(node.getInput(0), idx);
     }
 
     public static RelNode eliminateCte(RelNode root) {

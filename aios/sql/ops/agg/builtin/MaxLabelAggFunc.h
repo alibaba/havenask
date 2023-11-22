@@ -77,8 +77,7 @@ private:
     MaxLabelAggFunc &operator=(const MaxLabelAggFunc &);
 
 public:
-    DEF_CREATE_ACCUMULATOR_FUNC(AccumulatorType)
-    bool needDependInputTablePools() const override;
+    DEF_CREATE_ACCUMULATOR_FUNC(AccumulatorType);
 
 private:
     // local
@@ -98,12 +97,6 @@ private:
     table::ColumnData<InputType1> *_labelColumn;
     table::ColumnData<InputType2> *_maxColumn;
 };
-
-template <typename InputType1, typename InputType2>
-bool MaxLabelAggFunc<InputType1, InputType2>::needDependInputTablePools() const {
-    return autil::IsMultiType<InputType1>::type::value
-           || autil::IsMultiType<InputType2>::type::value;
-}
 
 // local
 template <typename InputType1, typename InputType2>
@@ -125,19 +118,18 @@ template <typename InputType1, typename InputType2>
 bool MaxLabelAggFunc<InputType1, InputType2>::initAccumulatorOutput(
     const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 2);
-    _labelColumn = table::TableUtil::declareAndGetColumnData<InputType1>(
-        outputTable, _outputFields[0], false);
+    _labelColumn
+        = table::TableUtil::declareAndGetColumnData<InputType1>(outputTable, _outputFields[0]);
     if (_labelColumn == nullptr) {
         return false;
     }
 
-    _maxColumn = table::TableUtil::declareAndGetColumnData<InputType2>(
-        outputTable, _outputFields[1], false);
+    _maxColumn
+        = table::TableUtil::declareAndGetColumnData<InputType2>(outputTable, _outputFields[1]);
     if (_maxColumn == nullptr) {
         return false;
     }
 
-    outputTable->endGroup();
     return true;
 }
 
@@ -170,8 +162,8 @@ bool MaxLabelAggFunc<InputType1, InputType2>::initMergeInput(const table::TableP
 template <typename InputType1, typename InputType2>
 bool MaxLabelAggFunc<InputType1, InputType2>::initResultOutput(const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
-    _labelColumn = table::TableUtil::declareAndGetColumnData<InputType1>(
-        outputTable, _outputFields[0], false);
+    _labelColumn
+        = table::TableUtil::declareAndGetColumnData<InputType1>(outputTable, _outputFields[0]);
     if (_labelColumn == nullptr) {
         return false;
     }

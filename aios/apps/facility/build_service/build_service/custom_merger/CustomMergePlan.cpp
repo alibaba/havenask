@@ -15,6 +15,13 @@
  */
 #include "build_service/custom_merger/CustomMergePlan.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <utility>
+
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+
 using namespace std;
 
 namespace build_service { namespace custom_merger {

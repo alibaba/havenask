@@ -13,14 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_NODESTATUSMANAGER_H
-#define ISEARCH_BS_NODESTATUSMANAGER_H
+#pragma once
 
 #include <algorithm>
+#include <assert.h>
+#include <cstdint>
+#include <iostream>
+#include <limits>
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common_define.h"
 #include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/ProtoComparator.h"
+#include "build_service/proto/RoleNameGenerator.h"
 #include "build_service/proto/WorkerNode.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/StatisticUtil.h"
@@ -710,5 +729,3 @@ void NodeStatusManager::GetStartedNodesAttr(const NodeStatusManager::NodeGroupMa
 }
 
 }} // namespace build_service::taskcontroller
-
-#endif // ISEARCH_BS_NODESTATUSMANAGER_H

@@ -85,7 +85,7 @@
       },
       "table_name" : "t1",
       "table_type" : "normal",
-      "table_group_name" : "db1"
+      "node_name" : "db1"
     },
     "id" : 1,
     "inputs" : {

@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKERTABLE_H
-#define ISEARCH_BS_WORKERTABLE_H
+#pragma once
 
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
 #include "build_service/admin/WorkerTableBase.h"
 #include "build_service/common_define.h"
 #include "build_service/proto/WorkerNode.h"
@@ -131,5 +136,3 @@ bool WorkerTable::forEachActiveNodeInMap(const MapType& nodesMap, functorType& f
 }
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_WORKERTABLE_H

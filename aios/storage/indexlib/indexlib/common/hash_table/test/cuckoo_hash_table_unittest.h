@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CUCKOOHASHTABLETEST_H
-#define __INDEXLIB_CUCKOOHASHTABLETEST_H
+#pragma once
 
 #include "indexlib/common/hash_table/cuckoo_hash_table.h"
 #include "indexlib/common_define.h"
@@ -66,5 +65,3 @@ INDEXLIB_UNIT_TEST_CASE(CuckooHashTableTest, TestCompress);
 INDEXLIB_UNIT_TEST_CASE(CuckooHashTableTest, TestCalculateDeleteCount);
 INDEXLIB_UNIT_TEST_CASE(CuckooHashTableTest, TestInitNoIO);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CUCKOOHASHTABLETEST_H

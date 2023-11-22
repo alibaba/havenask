@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TOKENIZEDOCUMENT_H
-#define ISEARCH_BS_TOKENIZEDOCUMENT_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/document/TokenizeField.h"
@@ -26,5 +25,3 @@ typedef indexlib::document::TokenizeDocument TokenizeDocument;
 BS_TYPEDEF_PTR(TokenizeDocument);
 
 }} // namespace build_service::document
-
-#endif // ISEARCH_BS_TOKENIZEDOCUMENT_H

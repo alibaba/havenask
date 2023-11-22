@@ -23,7 +23,7 @@ strict_cc_fast_test(
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/framework:TabletData',
         '//aios/storage/indexlib/framework/mock:FakeDiskSegment',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index/attribute/test:AttributeTestUtil',
         '//aios/storage/indexlib/index/inverted_index:InvertedDiskIndexer',
         '//aios/storage/indexlib/index/inverted_index/section_attribute:SectionAttributeReaderImpl',

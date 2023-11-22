@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 #pragma once
+#include <limits>
+#include <map>
 #include <memory>
-#include <vector>
+#include <stdint.h>
+#include <string>
+#include <utility>
 
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/Locator.h"
 #include "indexlib/framework/SegmentStatistics.h"
 
@@ -46,6 +52,7 @@ public:
 
     Status Load(const std::shared_ptr<indexlib::file_system::IDirectory>& directory,
                 const indexlib::file_system::ReaderOption& readerOption) noexcept;
+    Status Load(const std::string& filePath) noexcept;
     Status Store(const std::shared_ptr<indexlib::file_system::IDirectory>& directory) const noexcept;
 
 public:

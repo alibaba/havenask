@@ -1,10 +1,10 @@
 package com.taobao.search.iquan.core.rel.hint;
 
+import java.util.List;
+
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.hint.HintPredicate;
 import org.apache.calcite.rel.hint.RelHint;
-
-import java.util.List;
 
 public interface IquanHint extends HintPredicate {
     String getName();

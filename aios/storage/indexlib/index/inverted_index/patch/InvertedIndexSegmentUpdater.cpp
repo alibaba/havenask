@@ -43,6 +43,11 @@ InvertedIndexSegmentUpdater::InvertedIndexSegmentUpdater(segmentid_t segId,
 void InvertedIndexSegmentUpdater::Update(docid_t docId, const document::ModifiedTokens& modifiedTokens)
 {
     assert(docId >= 0);
+    std::unique_lock<std::mutex> lock(_dataMutex, std::try_to_lock);
+    if (!lock.owns_lock()) {
+        AUTIL_LOG(DEBUG, "Skip update doc [%d] for the segment has been dumped", docId);
+        return;
+    }
     for (size_t i = 0; i < modifiedTokens.NonNullTermSize(); ++i) {
         uint64_t termKey = modifiedTokens[i].first;
         auto iter = _hashMap.find(termKey);
@@ -74,6 +79,11 @@ void InvertedIndexSegmentUpdater::Update(docid_t docId, const document::Modified
 void InvertedIndexSegmentUpdater::Update(docid_t localDocId, index::DictKeyInfo termKey, bool isDelete)
 {
     assert(localDocId >= 0);
+    std::unique_lock<std::mutex> lock(_dataMutex, std::try_to_lock);
+    if (!lock.owns_lock()) {
+        AUTIL_LOG(DEBUG, "Skip update doc [%d] for the segment has been dumped", localDocId);
+        return;
+    }
     if (termKey.IsNull()) {
         _nullTermDocs.push_back(ComplexDocId(localDocId, /*remove*/ isDelete));
     } else {
@@ -101,6 +111,7 @@ std::pair<Status, std::shared_ptr<indexlibv2::index::PatchFileInfo>>
 InvertedIndexSegmentUpdater::DumpToIndexDir(const std::shared_ptr<file_system::IDirectory>& indexDir,
                                             segmentid_t srcSegment, const std::vector<docid_t>* old2NewDocId)
 {
+    std::lock_guard<std::mutex> guard(_dataMutex);
     std::vector<uint64_t> sortedTermKeys;
     util::Algorithm::GetSortedKeys(_hashMap, &sortedTermKeys);
     if (sortedTermKeys.empty() and _nullTermDocs.empty()) {

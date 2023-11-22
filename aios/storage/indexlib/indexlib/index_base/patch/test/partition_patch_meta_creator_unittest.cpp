@@ -1,9 +1,9 @@
 #include "indexlib/index_base/patch/test/partition_patch_meta_creator_unittest.h"
 
+#include "indexlib/config/test/modify_schema_maker.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/patch/partition_patch_index_accessor.h"
 #include "indexlib/index_base/patch/partition_patch_meta.h"
-#include "indexlib/test/modify_schema_maker.h"
 #include "indexlib/testlib/indexlib_partition_creator.h"
 #include "indexlib/util/PathUtil.h"
 
@@ -193,7 +193,7 @@ Version PartitionPatchMetaCreatorTest::CreateVersion(const string& versionStr, v
     return version;
 }
 
-void PartitionPatchMetaCreatorTest::PreparePatchIndex(const DirectoryPtr& rootDir, schemavid_t schemaId,
+void PartitionPatchMetaCreatorTest::PreparePatchIndex(const DirectoryPtr& rootDir, schemaid_t schemaId,
                                                       const string& dataStr)
 {
     DirectoryPtr patchIndexRoot = rootDir->MakeDirectory(PartitionPatchIndexAccessor::GetPatchRootDirName(schemaId));
@@ -222,7 +222,7 @@ void PartitionPatchMetaCreatorTest::PreparePatchIndex(const DirectoryPtr& rootDi
     }
 }
 
-void PartitionPatchMetaCreatorTest::CheckPatchMeta(const PartitionPatchMetaPtr& patchMeta, schemavid_t schemaId,
+void PartitionPatchMetaCreatorTest::CheckPatchMeta(const PartitionPatchMetaPtr& patchMeta, schemaid_t schemaId,
                                                    const string& dataStr)
 {
     ASSERT_TRUE(patchMeta);

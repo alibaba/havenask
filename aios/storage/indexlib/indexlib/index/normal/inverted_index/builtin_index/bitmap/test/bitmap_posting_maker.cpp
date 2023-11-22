@@ -17,7 +17,6 @@ using namespace autil;
 using namespace autil::mem_pool;
 
 using namespace indexlib::util;
-using namespace indexlib::common;
 using namespace indexlib::document;
 using namespace indexlib::file_system;
 using namespace indexlib::index_base;

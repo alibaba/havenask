@@ -1,52 +1,32 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.utils.IquanTypeFactory;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class TvfSignature {
 
-    public enum Version {
-        /**
-         * 支持的调用形式
-         * tvfFunc('arg0', arg1, (TABLE t1))
-         * */
-        VER_1_0,
-        /**
-         * 对比VER_1_0
-         * 1. 将表输入的参数调整到了参数列表的最前面
-         * 2. 新增按参数名指定参数值的传参方式
-         * 支持的调用形式
-         * tvfFunc(TABLE t1, 'arg1', arg2)
-         * tvfFunc(
-         *     data => TABLE t1,
-         *     arg1 => 'arg1',
-         *     arg2 => arg2
-         * )
-         * */
-        VER_2_0
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(TvfSignature.class);
-
     private String digest;
     private Version version;
     private List<AbstractField> inputScalars = new ArrayList<>();
     private List<TvfInputTable> inputTables = new ArrayList<>();
     private List<AbstractField> outputNewFields = new ArrayList<>();
     private List<TvfOutputTable> outputTables = new ArrayList<>();
-
     // for internal use
     private List<RelDataType> inputRelScalars = null;
     private List<RelDataTypeField> outputRelNewFields = null;
-
     public TvfSignature() {
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     @Override
@@ -163,8 +143,25 @@ public class TvfSignature {
         setDigest(sb.toString());
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
+    public enum Version {
+        /**
+         * 支持的调用形式
+         * tvfFunc('arg0', arg1, (TABLE t1))
+         */
+        VER_1_0,
+        /**
+         * 对比VER_1_0
+         * 1. 将表输入的参数调整到了参数列表的最前面
+         * 2. 新增按参数名指定参数值的传参方式
+         * 支持的调用形式
+         * tvfFunc(TABLE t1, 'arg1', arg2)
+         * tvfFunc(
+         * data => TABLE t1,
+         * arg1 => 'arg1',
+         * arg2 => arg2
+         * )
+         */
+        VER_2_0
     }
 
     public static class Builder {

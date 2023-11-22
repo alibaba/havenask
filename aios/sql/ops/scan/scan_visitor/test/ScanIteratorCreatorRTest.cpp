@@ -727,194 +727,6 @@ TEST_F(ScanIteratorCreatorRTest, testProportionalLayerQuota) {
         innerTestProportionalLayerQuota("0,13006392,0;13006393,13111882,0", 83334, "82664,670"));
 }
 
-TEST_F(ScanIteratorCreatorRTest, testSplitLayerMeta) {
-    {
-        // 0 range -> 1 spit
-        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
-        LayerMetaPtr newLayerMeta = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 0, 1);
-        ASSERT_TRUE(newLayerMeta);
-        ASSERT_EQ(0, newLayerMeta->size());
-    }
-
-    {
-        // 1 range -> 1 split
-        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
-        layerMeta->push_back(DocIdRangeMeta(10, 20));
-        LayerMetaPtr splitLayerMeta0
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 0, 1);
-        ASSERT_TRUE(splitLayerMeta0);
-        ASSERT_EQ(1, splitLayerMeta0->size());
-        const auto &rangeMeta0 = (*splitLayerMeta0)[0];
-        ASSERT_EQ(10, rangeMeta0.begin);
-        ASSERT_EQ(20, rangeMeta0.end);
-        ASSERT_EQ(11, rangeMeta0.quota);
-    }
-
-    {
-        // 1 range -> 2 split
-        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
-        layerMeta->push_back(DocIdRangeMeta(10, 20));
-        LayerMetaPtr splitLayerMeta0
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 0, 2);
-        ASSERT_TRUE(splitLayerMeta0);
-        ASSERT_EQ(1, splitLayerMeta0->size());
-        const auto &rangeMeta0 = (*splitLayerMeta0)[0];
-        ASSERT_EQ(10, rangeMeta0.begin);
-        ASSERT_EQ(14, rangeMeta0.end);
-        ASSERT_EQ(5, rangeMeta0.quota);
-
-        LayerMetaPtr splitLayerMeta1
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 1, 2);
-        ASSERT_TRUE(splitLayerMeta1);
-        ASSERT_EQ(1, splitLayerMeta1->size());
-        const auto &rangeMeta1 = (*splitLayerMeta1)[0];
-        ASSERT_EQ(15, rangeMeta1.begin);
-        ASSERT_EQ(20, rangeMeta1.end);
-        ASSERT_EQ(6, rangeMeta1.quota);
-    }
-
-    {
-        // 1 range(1 document) -> 2 split
-        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
-        layerMeta->push_back(DocIdRangeMeta(10, 10));
-        LayerMetaPtr splitLayerMeta0
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 0, 2);
-        ASSERT_TRUE(splitLayerMeta0);
-        ASSERT_EQ(0, splitLayerMeta0->size());
-
-        LayerMetaPtr splitLayerMeta1
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 1, 2);
-        ASSERT_TRUE(splitLayerMeta1);
-        ASSERT_EQ(1, splitLayerMeta1->size());
-        const auto &rangeMeta1 = (*splitLayerMeta1)[0];
-        ASSERT_EQ(10, rangeMeta1.begin);
-        ASSERT_EQ(10, rangeMeta1.end);
-        ASSERT_EQ(1, rangeMeta1.quota);
-    }
-
-    {
-        // 2 range -> 1 split
-        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
-        layerMeta->push_back(DocIdRangeMeta(10, 20));
-        layerMeta->push_back(DocIdRangeMeta(21, 30));
-        LayerMetaPtr splitLayerMeta0
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 0, 1);
-        ASSERT_TRUE(splitLayerMeta0);
-        ASSERT_EQ(2, splitLayerMeta0->size());
-        const auto &rangeMeta0 = (*splitLayerMeta0)[0];
-        ASSERT_EQ(10, rangeMeta0.begin);
-        ASSERT_EQ(20, rangeMeta0.end);
-        ASSERT_EQ(11, rangeMeta0.quota);
-        const auto &rangeMeta1 = (*splitLayerMeta0)[1];
-        ASSERT_EQ(21, rangeMeta1.begin);
-        ASSERT_EQ(30, rangeMeta1.end);
-        ASSERT_EQ(10, rangeMeta1.quota);
-    }
-
-    {
-        // 2 range -> 3 split
-        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
-        layerMeta->push_back(DocIdRangeMeta(10, 20));
-        layerMeta->push_back(DocIdRangeMeta(30, 40));
-
-        LayerMetaPtr splitLayerMeta0
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 0, 3);
-        ASSERT_TRUE(splitLayerMeta0);
-        ASSERT_EQ(1, splitLayerMeta0->size());
-        const auto &rangeMeta00 = (*splitLayerMeta0)[0];
-        ASSERT_EQ(10, rangeMeta00.begin);
-        ASSERT_EQ(16, rangeMeta00.end);
-        ASSERT_EQ(7, rangeMeta00.quota);
-
-        LayerMetaPtr splitLayerMeta1
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 1, 3);
-        ASSERT_TRUE(splitLayerMeta1);
-        ASSERT_EQ(2, splitLayerMeta1->size());
-        const auto &rangeMeta10 = (*splitLayerMeta1)[0];
-        ASSERT_EQ(17, rangeMeta10.begin);
-        ASSERT_EQ(20, rangeMeta10.end);
-        ASSERT_EQ(4, rangeMeta10.quota);
-        const auto &rangeMeta11 = (*splitLayerMeta1)[1];
-        ASSERT_EQ(30, rangeMeta11.begin);
-        ASSERT_EQ(32, rangeMeta11.end);
-        ASSERT_EQ(3, rangeMeta11.quota);
-
-        LayerMetaPtr splitLayerMeta2
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 2, 3);
-        ASSERT_TRUE(splitLayerMeta2);
-        ASSERT_EQ(1, splitLayerMeta2->size());
-        const auto &rangeMeta20 = (*splitLayerMeta2)[0];
-        ASSERT_EQ(33, rangeMeta20.begin);
-        ASSERT_EQ(40, rangeMeta20.end);
-        ASSERT_EQ(8, rangeMeta20.quota);
-    }
-
-    {
-        // 3 range -> 2 plit
-        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
-        layerMeta->push_back(DocIdRangeMeta(10, 11));
-        layerMeta->push_back(DocIdRangeMeta(13, 14));
-        layerMeta->push_back(DocIdRangeMeta(16, 17));
-        LayerMetaPtr splitLayerMeta0
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 0, 2);
-        ASSERT_TRUE(splitLayerMeta0);
-        ASSERT_EQ(2, splitLayerMeta0->size());
-        const auto &rangeMeta00 = (*splitLayerMeta0)[0];
-        ASSERT_EQ(10, rangeMeta00.begin);
-        ASSERT_EQ(10, rangeMeta00.nextBegin);
-        ASSERT_EQ(11, rangeMeta00.end);
-        ASSERT_EQ(2, rangeMeta00.quota);
-        const auto &rangeMeta01 = (*splitLayerMeta0)[1];
-        ASSERT_EQ(13, rangeMeta01.begin);
-        ASSERT_EQ(13, rangeMeta01.nextBegin);
-        ASSERT_EQ(13, rangeMeta01.end);
-        ASSERT_EQ(1, rangeMeta01.quota);
-
-        LayerMetaPtr splitLayerMeta1
-            = ScanIteratorCreatorR::splitLayerMeta(&_pool, layerMeta, 1, 2);
-        ASSERT_TRUE(splitLayerMeta1);
-        ASSERT_EQ(2, splitLayerMeta1->size());
-        const auto &rangeMeta10 = (*splitLayerMeta1)[0];
-        ASSERT_EQ(14, rangeMeta10.begin);
-        ASSERT_EQ(14, rangeMeta10.end);
-        ASSERT_EQ(1, rangeMeta10.quota);
-        const auto &rangeMeta11 = (*splitLayerMeta1)[1];
-        ASSERT_EQ(16, rangeMeta11.begin);
-        ASSERT_EQ(17, rangeMeta11.end);
-        ASSERT_EQ(2, rangeMeta11.quota);
-    }
-}
-
-TEST_F(ScanIteratorCreatorRTest, testParseTruncateDesc_InvalidOption) {
-    navi::NaviLoggerProvider provider("WARN");
-    string desc("a|b");
-    vector<string> names;
-    vector<SelectAuxChainType> types;
-    ASSERT_FALSE(ScanIteratorCreatorR::parseTruncateDesc(desc, names, types));
-    auto traces = provider.getTrace("");
-    CHECK_TRACE_COUNT(1, "Invalid truncate query option[a], skip optimize", traces);
-}
-
-TEST_F(ScanIteratorCreatorRTest, testParseTruncateDesc_InvalidType) {
-    navi::NaviLoggerProvider provider("WARN");
-    string desc("select#not_exist");
-    vector<string> names;
-    vector<SelectAuxChainType> types;
-    ASSERT_FALSE(ScanIteratorCreatorR::parseTruncateDesc(desc, names, types));
-    auto traces = provider.getTrace("");
-    CHECK_TRACE_COUNT(1, "Invalid truncate query select type [not_exist], skip optimize", traces);
-}
-
-TEST_F(ScanIteratorCreatorRTest, testParseTruncateDesc_NoTruncateName) {
-    navi::NaviLoggerProvider provider("WARN");
-    string desc("select#all");
-    vector<string> names;
-    vector<SelectAuxChainType> types;
-    ASSERT_FALSE(ScanIteratorCreatorR::parseTruncateDesc(desc, names, types));
-    auto traces = provider.getTrace("");
-    CHECK_TRACE_COUNT(1, "Invalid truncate query, truncate name not found", traces);
-}
-
 TEST_F(ScanIteratorCreatorRTest, testParseTruncateDesc_bigger) {
     navi::NaviLoggerProvider provider("WARN");
     string desc("select#bigger|aux_name#uvsum");
@@ -1060,4 +872,257 @@ TEST_F(ScanIteratorCreatorRTest, testSubMatchQuery_full_term) {
     }
 }
 
+TEST_F(ScanIteratorCreatorRTest, testSplitLayerMetaByStep) {
+    uint32_t parallelBlockCount = 10;
+    {
+        // 0 range -> 1 spit
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        LayerMetaPtr newLayerMeta = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 1, parallelBlockCount);
+        ASSERT_TRUE(newLayerMeta);
+        ASSERT_EQ(0, newLayerMeta->size());
+    }
+    {
+        // 1 range -> 1 split
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(0, 1000000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 1, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        EXPECT_EQ("(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) "
+                  "begin: 0 end: 1000000 nextBegin: 0 quota: 0;",
+                  splitLayerMeta0->toString());
+    }
+    {
+        // 1 range -> 2 split
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(0, 1000000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        EXPECT_EQ(
+            "(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) begin: 0 "
+            "end: 50000 nextBegin: 0 quota: 50001;begin: 100002 end: 150002 nextBegin: 100002 "
+            "quota: 50001;begin: 200004 end: 250004 nextBegin: 200004 quota: 50001;begin: 300006 "
+            "end: 350006 nextBegin: 300006 quota: 50001;begin: 400008 end: 450008 nextBegin: "
+            "400008 quota: 50001;begin: 500010 end: 550010 nextBegin: 500010 quota: 50001;begin: "
+            "600012 end: 650012 nextBegin: 600012 quota: 50001;begin: 700014 end: 750014 "
+            "nextBegin: 700014 quota: 50001;begin: 800016 end: 850016 nextBegin: 800016 quota: "
+            "50001;begin: 900018 end: 950018 nextBegin: 900018 quota: 50001;",
+            splitLayerMeta0->toString());
+        LayerMetaPtr splitLayerMeta1 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 1, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta1);
+        EXPECT_EQ(
+            "(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) begin: "
+            "50001 end: 100001 nextBegin: 50001 quota: 50001;begin: 150003 end: 200003 nextBegin: "
+            "150003 quota: 50001;begin: 250005 end: 300005 nextBegin: 250005 quota: 50001;begin: "
+            "350007 end: 400007 nextBegin: 350007 quota: 50001;begin: 450009 end: 500009 "
+            "nextBegin: 450009 quota: 50001;begin: 550011 end: 600011 nextBegin: 550011 quota: "
+            "50001;begin: 650013 end: 700013 nextBegin: 650013 quota: 50001;begin: 750015 end: "
+            "800015 nextBegin: 750015 quota: 50001;begin: 850017 end: 900017 nextBegin: 850017 "
+            "quota: 50001;begin: 950019 end: 1000000 nextBegin: 950019 quota: 49982;",
+            splitLayerMeta1->toString());
+    }
+    {
+        // 1 range(1 document) -> 2 split
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(1000000, 1000000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        EXPECT_EQ("(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) "
+                  "begin: 1000000 end: 1000000 nextBegin: 1000000 quota: 1;",
+                  splitLayerMeta0->toString());
+        LayerMetaPtr splitLayerMeta1 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 1, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta1);
+        EXPECT_EQ("(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) ",
+                  splitLayerMeta1->toString());
+    }
+    {
+        // 2 range -> 1 split
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(0, 500000));
+        layerMeta->push_back(DocIdRangeMeta(500001, 1000000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 1, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        EXPECT_EQ("(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) "
+                  "begin: 0 end: 500000 nextBegin: 0 quota: 0;begin: 500001 end: 1000000 "
+                  "nextBegin: 500001 quota: 0;",
+                  splitLayerMeta0->toString());
+    }
+    {
+        // 2 range -> 3 split
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(0, 498729));
+        layerMeta->push_back(DocIdRangeMeta(679320, 1000000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 3, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        EXPECT_EQ(
+            "(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) begin: 0 "
+            "end: 27313 nextBegin: 0 quota: 27314;begin: 81942 end: 109255 nextBegin: 81942 quota: "
+            "27314;begin: 163884 end: 191197 nextBegin: 163884 quota: 27314;begin: 245826 end: "
+            "273139 nextBegin: 245826 quota: 27314;begin: 327768 end: 355081 nextBegin: 327768 "
+            "quota: 27314;begin: 409710 end: 437023 nextBegin: 409710 quota: 27314;begin: 491652 "
+            "end: 498729 nextBegin: 491652 quota: 7078;begin: 679320 end: 699555 nextBegin: 679320 "
+            "quota: 20236;begin: 754184 end: 781497 nextBegin: 754184 quota: 27314;begin: 836126 "
+            "end: 863439 nextBegin: 836126 quota: 27314;begin: 918068 end: 945381 nextBegin: "
+            "918068 quota: 27314;",
+            splitLayerMeta0->toString());
+        LayerMetaPtr splitLayerMeta1 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 1, 3, parallelBlockCount);
+        EXPECT_EQ(
+            "(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) begin: "
+            "27314 end: 54627 nextBegin: 27314 quota: 27314;begin: 109256 end: 136569 nextBegin: "
+            "109256 quota: 27314;begin: 191198 end: 218511 nextBegin: 191198 quota: 27314;begin: "
+            "273140 end: 300453 nextBegin: 273140 quota: 27314;begin: 355082 end: 382395 "
+            "nextBegin: 355082 quota: 27314;begin: 437024 end: 464337 nextBegin: 437024 quota: "
+            "27314;begin: 699556 end: 726869 nextBegin: 699556 quota: 27314;begin: 781498 end: "
+            "808811 nextBegin: 781498 quota: 27314;begin: 863440 end: 890753 nextBegin: 863440 "
+            "quota: 27314;begin: 945382 end: 972695 nextBegin: 945382 quota: 27314;",
+            splitLayerMeta1->toString());
+        LayerMetaPtr splitLayerMeta2 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 2, 3, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta2);
+        EXPECT_EQ(
+            "(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) begin: "
+            "54628 end: 81941 nextBegin: 54628 quota: 27314;begin: 136570 end: 163883 nextBegin: "
+            "136570 quota: 27314;begin: 218512 end: 245825 nextBegin: 218512 quota: 27314;begin: "
+            "300454 end: 327767 nextBegin: 300454 quota: 27314;begin: 382396 end: 409709 "
+            "nextBegin: 382396 quota: 27314;begin: 464338 end: 491651 nextBegin: 464338 quota: "
+            "27314;begin: 726870 end: 754183 nextBegin: 726870 quota: 27314;begin: 808812 end: "
+            "836125 nextBegin: 808812 quota: 27314;begin: 890754 end: 918067 nextBegin: 890754 "
+            "quota: 27314;begin: 972696 end: 1000000 nextBegin: 972696 quota: 27305;",
+            splitLayerMeta2->toString());
+    }
+    {
+        // 3 range -> 2 split
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(10, 180000));
+        layerMeta->push_back(DocIdRangeMeta(192000, 540300));
+        layerMeta->push_back(DocIdRangeMeta(563000, 1000000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        EXPECT_EQ(
+            "(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) begin: 10 "
+            "end: 48274 nextBegin: 10 quota: 48265;begin: 96540 end: 144804 nextBegin: 96540 "
+            "quota: 48265;begin: 205069 end: 253333 nextBegin: 205069 quota: 48265;begin: 301599 "
+            "end: 349863 nextBegin: 301599 quota: 48265;begin: 398129 end: 446393 nextBegin: "
+            "398129 quota: 48265;begin: 494659 end: 540300 nextBegin: 494659 quota: 45642;begin: "
+            "563000 end: 565622 nextBegin: 563000 quota: 2623;begin: 613888 end: 662152 nextBegin: "
+            "613888 quota: 48265;begin: 710418 end: 758682 nextBegin: 710418 quota: 48265;begin: "
+            "806948 end: 855212 nextBegin: 806948 quota: 48265;begin: 903478 end: 951742 "
+            "nextBegin: 903478 quota: 48265;",
+            splitLayerMeta0->toString());
+        LayerMetaPtr splitLayerMeta1 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 1, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta1);
+        EXPECT_EQ(
+            "(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) begin: "
+            "48275 end: 96539 nextBegin: 48275 quota: 48265;begin: 144805 end: 180000 nextBegin: "
+            "144805 quota: 35196;begin: 192000 end: 205068 nextBegin: 192000 quota: 13069;begin: "
+            "253334 end: 301598 nextBegin: 253334 quota: 48265;begin: 349864 end: 398128 "
+            "nextBegin: 349864 quota: 48265;begin: 446394 end: 494658 nextBegin: 446394 quota: "
+            "48265;begin: 565623 end: 613887 nextBegin: 565623 quota: 48265;begin: 662153 end: "
+            "710417 nextBegin: 662153 quota: 48265;begin: 758683 end: 806947 nextBegin: 758683 "
+            "quota: 48265;begin: 855213 end: 903477 nextBegin: 855213 quota: 48265;begin: 951743 "
+            "end: 1000000 nextBegin: 951743 quota: 48258;",
+            splitLayerMeta1->toString());
+    }
+    // // invalid parallel index
+    {
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(1, 1000000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 3, 3, parallelBlockCount);
+        EXPECT_FALSE(splitLayerMeta0);
+    }
+    // blockSize too small, ceil to PARALLEL_MIN_BLOCK_SIZE
+    {
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(1, 100000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        EXPECT_EQ("(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) "
+                  "begin: 1 end: 16384 nextBegin: 1 quota: 16384;begin: 32769 end: 49152 "
+                  "nextBegin: 32769 quota: 16384;begin: 65537 end: 81920 nextBegin: 65537 quota: "
+                  "16384;begin: 98305 end: 100000 nextBegin: 98305 quota: 1696;",
+                  splitLayerMeta0->toString());
+        LayerMetaPtr splitLayerMeta1 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 1, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta1);
+        EXPECT_EQ(
+            "(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) begin: "
+            "16385 end: 32768 nextBegin: 16385 quota: 16384;begin: 49153 end: 65536 nextBegin: "
+            "49153 quota: 16384;begin: 81921 end: 98304 nextBegin: 81921 quota: 16384;",
+            splitLayerMeta1->toString());
+    }
+    // parallel block count too large, floor to PARALLEL_MAX_BLOCK_COUNT
+    {
+        uint32_t parallelBlockCount = PARALLEL_MAX_BLOCK_COUNT + 10;
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(1, 60000000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        ASSERT_EQ(PARALLEL_MAX_BLOCK_COUNT, splitLayerMeta0->size());
+        LayerMetaPtr splitLayerMeta1 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 1, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta1);
+        ASSERT_EQ(PARALLEL_MAX_BLOCK_COUNT, splitLayerMeta1->size());
+    }
+
+    // each meta size is small, but compress to split
+    {
+        uint32_t parallelBlockCount = 2;
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        layerMeta->push_back(DocIdRangeMeta(0, 20000));
+        layerMeta->push_back(DocIdRangeMeta(30000, 50000));
+        layerMeta->push_back(DocIdRangeMeta(60000, 80000));
+        layerMeta->push_back(DocIdRangeMeta(90000, 110000));
+        layerMeta->push_back(DocIdRangeMeta(120000, 140000));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        EXPECT_EQ("(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) "
+                  "begin: 0 end: 20000 nextBegin: 0 quota: 20001;begin: 30000 end: 35000 "
+                  "nextBegin: 30000 quota: 5001;begin: 70002 end: 80000 nextBegin: 70002 quota: "
+                  "9999;begin: 90000 end: 105002 nextBegin: 90000 quota: 15003;",
+                  splitLayerMeta0->toString());
+        LayerMetaPtr splitLayerMeta1 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 1, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta1);
+        EXPECT_EQ("(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) "
+                  "begin: 35001 end: 50000 nextBegin: 35001 quota: 15000;begin: 60000 end: 70001 "
+                  "nextBegin: 60000 quota: 10002;begin: 105003 end: 110000 nextBegin: 105003 "
+                  "quota: 4998;begin: 120000 end: 140000 nextBegin: 120000 quota: 20001;",
+                  splitLayerMeta1->toString());
+    }
+    // block size exceed the limit of uint32_t
+    {
+        uint32_t parallelBlockCount = 1;
+        LayerMetaPtr layerMeta(new LayerMeta(&_pool));
+        const int32_t INF = std::numeric_limits<int32_t>::max();
+        layerMeta->push_back(DocIdRangeMeta(1, INF / 2));
+        layerMeta->push_back(DocIdRangeMeta(INF / 2 + 1, INF));
+        LayerMetaPtr splitLayerMeta0 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 0, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta0);
+        EXPECT_EQ("(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) "
+                  "begin: 1 end: 1073741823 nextBegin: 1 quota: 1073741823;begin: 1073741824 end: "
+                  "1073741824 nextBegin: 1073741824 quota: 1;",
+                  splitLayerMeta0->toString());
+        LayerMetaPtr splitLayerMeta1 = ScanIteratorCreatorR::splitLayerMetaByStep(
+            &_pool, layerMeta, 1, 2, parallelBlockCount);
+        ASSERT_TRUE(splitLayerMeta1);
+        EXPECT_EQ("(quota: 0 maxQuota: 4294967295 quotaMode: 0 needAggregate: 1 quotaType: 0) "
+                  "begin: 1073741825 end: 2147483647 nextBegin: 1073741825 quota: 1073741823;",
+                  splitLayerMeta1->toString());
+    }
+}
 } // namespace sql

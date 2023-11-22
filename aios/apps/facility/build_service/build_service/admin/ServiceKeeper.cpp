@@ -15,24 +15,60 @@
  */
 #include "build_service/admin/ServiceKeeper.h"
 
-#include <google/protobuf/util/json_util.h>
+#include <assert.h>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <limits>
+#include <ostream>
+#include <type_traits>
+#include <unistd.h>
 
-#include "autil/HashAlgorithm.h"
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/EnvUtil.h"
 #include "autil/LoopThread.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
+#include "build_service/admin/AgentRoleInfo.h"
 #include "build_service/admin/AgentSimpleMasterScheduler.h"
 #include "build_service/admin/ConfigValidator.h"
+#include "build_service/admin/GenerationMetricsReporter.h"
 #include "build_service/admin/GenerationRecoverWorkItem.h"
+#include "build_service/admin/GenerationTaskBase.h"
+#include "build_service/admin/ProhibitedIpCollector.h"
+#include "build_service/admin/SingleGlobalAgentGroup.h"
+#include "build_service/admin/TaskStatusMetricReporter.h"
 #include "build_service/admin/taskcontroller/GeneralTaskController.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CounterSynchronizer.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ConfigDefine.h"
-#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/JsonizableProtobuf.h"
+#include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/RoleNameGenerator.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/Monitor.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/framework/VersionCoord.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
+#include "kmonitor/client/MetricLevel.h"
+#include "master_framework/AppPlan.h"
+#include "master_framework/RolePlan.h"
+#include "master_framework/proto/SimpleMaster.pb.h"
+#include "worker_framework/LeaderElector.h"
+#include "worker_framework/WorkerState.h"
 
 using namespace std;
 using namespace autil;
@@ -110,7 +146,11 @@ bool ServiceKeeper::start(const string& zkRoot, const string& adminServiceName, 
     }
 
     // read from pkgList if specified in env
-    _specifiedWorkerPkgList = prepareSpecifiedWorkerPkgList();
+    if (!prepareSpecifiedWorkerPkgList(_specifiedWorkerPkgList)) {
+        string errorMsg = "prepare specified worker pkg list failed";
+        BS_LOG(ERROR, "%s", errorMsg.c_str());
+        return false;
+    }
 
     vector<BuildId> buildIds;
     if (!collectRecoverBuildIds(buildIds)) {
@@ -228,16 +268,16 @@ void ServiceKeeper::stop()
     _recoverThread.reset();
 };
 
-std::vector<hippo::PackageInfo> ServiceKeeper::prepareSpecifiedWorkerPkgList()
+bool ServiceKeeper::prepareSpecifiedWorkerPkgList(std::vector<hippo::PackageInfo>& pkgList)
 {
-    std::vector<hippo::PackageInfo> pkgList;
+    pkgList.clear();
     std::string specifiedPackageFile = "";
     if ((EnvUtil::getEnvWithoutDefault("specified_worker_package_file", specifiedPackageFile))) {
         string fileContent;
         if (!fslib::util::FileUtil::readFile(specifiedPackageFile, fileContent)) {
             string errorMsg = "read specifiedPackageFile failed: file [" + specifiedPackageFile + "]";
-            BS_LOG(WARN, "%s", errorMsg.c_str());
-            return {};
+            BS_LOG(ERROR, "%s", errorMsg.c_str());
+            return false;
         }
         try {
             FromJsonString(pkgList, fileContent);
@@ -246,14 +286,14 @@ std::vector<hippo::PackageInfo> ServiceKeeper::prepareSpecifiedWorkerPkgList()
             ss << "Invalid json file[" << specifiedPackageFile << "], content[" << fileContent << "], exception["
                << string(e.what()) << "], do not specified";
             string errorMsg = ss.str();
-            BS_LOG(WARN, "%s", errorMsg.c_str());
-            return {};
+            BS_LOG(ERROR, "%s", errorMsg.c_str());
+            return false;
         }
         if (!pkgList.empty()) {
             BS_LOG(INFO, "specified package info to [%s]", fileContent.c_str());
         }
     }
-    return pkgList;
+    return true;
 }
 
 void ServiceKeeper::fillTaskInfo(const proto::TaskInfoRequest* request, proto::TaskInfoResponse* response)
@@ -335,6 +375,10 @@ void ServiceKeeper::fillWorkerRoleInfo(const proto::WorkerRoleInfoRequest* reque
             roleInfo->set_identifier(roleIt->second.identifier);
             roleInfo->set_heartbeattime(roleIt->second.heartbeatTime);
             roleInfo->set_workerstarttime(roleIt->second.workerStartTime);
+            roleInfo->set_workerstatus(roleIt->second.workerStatus);
+            roleInfo->set_taskidentifier(roleIt->second.taskIdentifier);
+            roleInfo->set_cpuamount(roleIt->second.cpuAmount);
+            roleInfo->set_memamount(roleIt->second.memAmount);
             roleInfo->set_isfinish(roleIt->second.isFinish);
             roleInfo->set_agentnodename(roleIt->second.agentRoleName);
             roleInfo->set_agentidentifier(roleIt->second.agentIdentifier);
@@ -467,7 +511,12 @@ void ServiceKeeper::startBuild(const proto::StartBuildRequest* request, proto::S
         SET_ERROR_AND_RETURN(buildId, response, ADMIN_BAD_REQUEST, "validate config [%s] failed, error msg:%s",
                              request->configpath().c_str(), errorInfo.c_str());
     }
-
+    if (buildMode == "import") {
+        if (!cleanGenerationDir(buildId)) {
+            SET_ERROR_AND_RETURN(buildId, response, ADMIN_INTERNAL_ERROR, "build[%s] cleanGenerationDir failed",
+                                 buildId.ShortDebugString().c_str());
+        }
+    }
     bool isRecoverFailed = false;
     if (getGeneration(buildId, false, isRecoverFailed)) {
         autil::ScopedLock lock(_startBuildLock);
@@ -505,6 +554,39 @@ void ServiceKeeper::startBuild(const proto::StartBuildRequest* request, proto::S
     BEEPER_REPORT(GENERATION_CMD_COLLECTOR_NAME, msg, collectTags);
 }
 
+bool ServiceKeeper::cleanGenerationDir(const proto::BuildId& buildId) const
+{
+    std::vector<GenerationKeeperPtr> keeperNeedClean;
+    if (!buildId.has_datatable() && !buildId.has_generationid()) {
+        BS_LOG(ERROR, "cleanGenerationDir does not support buildId with no datatable or generationid, buildId [%s]",
+               buildId.ShortDebugString().c_str());
+        return false;
+    }
+    for (const auto& [id, keeper] : _allGenerationKeepers) {
+        if (buildId.datatable() != id.datatable()) {
+            continue;
+        }
+        if (buildId.generationid() != id.generationid()) {
+            continue;
+        }
+        if (!id.has_appname()) {
+            continue;
+        }
+        auto appName = (keeper->getGenerationTaskType() != GenerationTaskBase::TT_GENERAL)
+                           ? id.appname()
+                           : ProtoUtil::getOriginalAppName(id.appname());
+        if (appName != buildId.appname()) {
+            continue;
+        }
+        keeperNeedClean.push_back(keeper);
+    }
+    for (const auto& keeper : keeperNeedClean) {
+        if (!keeper->cleanGenerationDir()) {
+            return false;
+        }
+    }
+    return true;
+}
 bool ServiceKeeper::getGenerationDetailInfoStr(const proto::BuildId& buildid, const std::string& paramStr,
                                                std::string& detailInfoStr) const
 {
@@ -587,16 +669,42 @@ void ServiceKeeper::fillSummaryInfo(const GenerationKeeperPtr& keeper, autil::le
     summaryInfoMap["generation_step"] = autil::legacy::ToJson(getGenerationStepString(keeper));
     summaryInfoMap["generation_zk_root"] = autil::legacy::ToJson(keeper->getGenerationDir());
     summaryInfoMap["generation_type"] = autil::legacy::ToJson(keeper->getGenerationTaskTypeString());
-    summaryInfoMap["cluster_names"] = autil::legacy::ToJson(
-            autil::StringUtil::toString(keeper->getClusterNames(), ";"));
+    summaryInfoMap["cluster_names"] =
+        autil::legacy::ToJson(autil::StringUtil::toString(keeper->getClusterNames(), ";"));
     auto metricPtr = keeper->getGenerationMetrics();
     if (metricPtr) {
         summaryInfoMap["active_node_count"] = autil::legacy::ToJson(metricPtr->activeNodeCount);
         summaryInfoMap["assign_slot_node_count"] = autil::legacy::ToJson(metricPtr->assignSlotCount);
         summaryInfoMap["wait_slot_node_count"] = autil::legacy::ToJson(metricPtr->waitSlotNodeCount);
         summaryInfoMap["total_release_slow_slot_count"] = autil::legacy::ToJson(metricPtr->totalReleaseSlowSlotCount);
+        summaryInfoMap["allocate_cpu_amount"] = autil::legacy::ToJson(metricPtr->totalCpuAmount);
+        summaryInfoMap["allocate_mem_amount"] = autil::legacy::ToJson(metricPtr->totalMemAmount);
     }
+    fillGeneralTaskSummaryInfo(keeper, summaryInfoMap);
     jsonMap["generation_summary"] = summaryInfoMap;
+}
+
+void ServiceKeeper::fillGeneralTaskSummaryInfo(const GenerationKeeperPtr& keeper,
+                                               autil::legacy::json::JsonMap& summaryInfoMap) const
+{
+    autil::legacy::json::JsonArray array;
+    if (keeper->getGenerationTaskType() == GenerationTaskBase::TT_SERVICE) {
+        auto generalTaskKeepers = getGeneralTaskGenerationKeepers(keeper->getBuildId());
+        for (auto& gKeeper : generalTaskKeepers) {
+            autil::legacy::json::JsonMap innerMap;
+            auto& bid = gKeeper->getBuildId();
+            innerMap["app_name"] = autil::legacy::ToJson(bid.appname());
+            auto metricPtr = gKeeper->getGenerationMetrics();
+            if (metricPtr) {
+                innerMap["active_node_count"] = autil::legacy::ToJson(metricPtr->activeNodeCount);
+                innerMap["wait_slot_node_count"] = autil::legacy::ToJson(metricPtr->waitSlotNodeCount);
+                innerMap["allocate_cpu_amount"] = autil::legacy::ToJson(metricPtr->totalCpuAmount);
+                innerMap["allocate_mem_amount"] = autil::legacy::ToJson(metricPtr->totalMemAmount);
+            }
+            array.emplace_back(innerMap);
+        }
+    }
+    summaryInfoMap["general_task_info"] = array;
 }
 
 void ServiceKeeper::fillTaskFlowGraphInfo(const GenerationKeeperPtr& keeper, bool onlyBriefInfo,
@@ -671,10 +779,14 @@ void ServiceKeeper::fillWorkerRoleInfo(const GenerationKeeper::WorkerRoleInfoMap
         roleInfoMap["type"] = autil::legacy::ToJson(roleInfo.roleType);
         roleInfoMap["identifier"] = autil::legacy::ToJson(roleInfo.identifier);
         roleInfoMap["heartbeat_time"] = autil::legacy::ToJson(roleInfo.heartbeatTime);
-        roleInfoMap["worker_start_time"] = autil::legacy::ToJson(roleInfo.workerStartTime);        
+        roleInfoMap["worker_start_time"] = autil::legacy::ToJson(roleInfo.workerStartTime);
+        roleInfoMap["worker_status"] = autil::legacy::ToJson(roleInfo.workerStatus);
         roleInfoMap["is_finish"] = autil::legacy::ToJson(roleInfo.isFinish);
         roleInfoMap["agent_role"] = autil::legacy::ToJson(roleInfo.agentRoleName);
         roleInfoMap["agent_identifier"] = autil::legacy::ToJson(roleInfo.agentIdentifier);
+        roleInfoMap["task_identifier"] = autil::legacy::ToJson(roleInfo.taskIdentifier);
+        roleInfoMap["cpu_amount"] = autil::legacy::ToJson(roleInfo.cpuAmount);
+        roleInfoMap["mem_amount"] = autil::legacy::ToJson(roleInfo.memAmount);
         array.emplace_back(roleInfoMap);
     }
     jsonMap["worker_role_list"] = array;
@@ -702,6 +814,36 @@ std::vector<GenerationKeeperPtr> ServiceKeeper::getBuildIdMatchedGenerationKeepe
     return matchKeepers;
 }
 
+std::vector<GenerationKeeperPtr> ServiceKeeper::getGeneralTaskGenerationKeepers(const proto::BuildId& buildid) const
+{
+    std::vector<GenerationKeeperPtr> matchKeepers;
+    if (!buildid.has_appname() || !buildid.has_datatable() || !buildid.has_generationid()) {
+        BS_LOG(WARN, "invalid buildid [%s] for getGeneralTaskGenerationKeepers.", buildid.ShortDebugString().c_str());
+        return matchKeepers;
+    }
+    GenerationKeepers keepers;
+    {
+        autil::ScopedLock lock(_mapLock);
+        keepers = _activeGenerationKeepers;
+    }
+    for (GenerationKeepers::const_iterator it = keepers.begin(); it != keepers.end(); ++it) {
+        const GenerationKeeperPtr& keeper = it->second;
+        if (keeper->getGenerationTaskType() != GenerationTaskBase::TT_GENERAL) {
+            continue;
+        }
+        auto originalAppName = proto::ProtoUtil::getOriginalAppName(it->first.appname());
+        if (originalAppName != buildid.appname()) {
+            continue;
+        }
+        proto::BuildId originalBuildId = it->first;
+        originalBuildId.set_appname(originalAppName);
+        if (isBuildIdMatched(buildid, originalBuildId)) {
+            matchKeepers.emplace_back(keeper);
+        }
+    }
+    return matchKeepers;
+}
+
 std::string ServiceKeeper::getGenerationListInfoStr() const
 {
     GenerationKeepers keepers;
@@ -723,6 +865,19 @@ std::string ServiceKeeper::getGenerationListInfoStr() const
         string statusStr = keeper->isStopped() ? "stopped" : "active";
         infoMap["status"] = autil::legacy::ToJson(statusStr);
         infoMap["generation_type"] = autil::legacy::ToJson(keeper->getGenerationTaskTypeString());
+        GenerationKeeper::GenerationMetricsPtr generationMetrics = keeper->getGenerationMetrics();
+        if (generationMetrics) {
+            infoMap["active_node_count"] = autil::legacy::ToJson(generationMetrics->activeNodeCount);
+            infoMap["assign_slot_count"] = autil::legacy::ToJson(generationMetrics->assignSlotCount);
+            infoMap["allocate_cpu_amount"] = autil::legacy::ToJson(generationMetrics->totalCpuAmount);
+            infoMap["allocate_mem_amount"] = autil::legacy::ToJson(generationMetrics->totalMemAmount);
+        } else {
+            int64_t zero = 0;
+            infoMap["active_node_count"] = autil::legacy::ToJson(zero);
+            infoMap["assign_slot_count"] = autil::legacy::ToJson(zero);
+            infoMap["allocate_cpu_amount"] = autil::legacy::ToJson(zero);
+            infoMap["allocate_mem_amount"] = autil::legacy::ToJson(zero);
+        }
         array.emplace_back(infoMap);
     }
     for (auto& bid : recoverFailedGenerations) {
@@ -733,6 +888,11 @@ std::string ServiceKeeper::getGenerationListInfoStr() const
         infoMap["build_step"] = autil::legacy::ToJson(std::string("unknown"));
         infoMap["status"] = autil::legacy::ToJson(std::string("recover_failed"));
         infoMap["generation_type"] = autil::legacy::ToJson(std::string("unknown"));
+        int64_t zero = 0;
+        infoMap["active_node_count"] = autil::legacy::ToJson(zero);
+        infoMap["assign_slot_count"] = autil::legacy::ToJson(zero);
+        infoMap["allocate_cpu_amount"] = autil::legacy::ToJson(zero);
+        infoMap["allocate_mem_amount"] = autil::legacy::ToJson(zero);
         array.emplace_back(infoMap);
     }
     autil::legacy::json::JsonMap jsonMap;
@@ -743,6 +903,14 @@ std::string ServiceKeeper::getGenerationListInfoStr() const
     jsonMap["hippo_zk_root"] = autil::legacy::ToJson(_hippoZkRoot);
     jsonMap["kmonitor_service_name"] = autil::legacy::ToJson(_kmonServiceName);
     jsonMap["generation_list"] = array;
+    AgentSimpleMasterScheduler* agentScheduler = dynamic_cast<AgentSimpleMasterScheduler*>(_scheduler);
+    if (agentScheduler) {
+        int64_t cpuAmount = 0;
+        int64_t memAmount = 0;
+        agentScheduler->getTotalResourceAmount(cpuAmount, memAmount);
+        jsonMap["total_allocate_cpu_amount"] = autil::legacy::ToJson(cpuAmount);
+        jsonMap["total_allocate_mem_amount"] = autil::legacy::ToJson(memAmount);
+    }
     return autil::legacy::ToJsonString(jsonMap);
 }
 
@@ -810,6 +978,44 @@ void ServiceKeeper::getBulkloadInfo(const proto::BulkloadInfoRequest* request, p
     }
     BS_LOG(INFO, "Finish getBulkloadInfo [%s].", request->ShortDebugString().c_str());
     msg = "Finish getBulkloadInfo [" + request->ShortDebugString() + "].";
+    BEEPER_REPORT(GENERATION_CMD_COLLECTOR_NAME, msg, collectTags);
+}
+
+void ServiceKeeper::bulkload(const proto::BulkloadRequest* request, proto::InformResponse* response)
+{
+    BS_LOG(INFO, "Begin bulkload [%s].", request->ShortDebugString().c_str());
+    std::string msg = "Begin bulkload [" + request->ShortDebugString() + "].";
+    beeper::EventTags collectTags = BuildIdWrapper::getEventTags(request->targetbuildid());
+    BEEPER_REPORT(GENERATION_CMD_COLLECTOR_NAME, msg, collectTags);
+
+    kmonitor_adapter::ScopeLatencyReporter kreporter(_keeperMetric.krpcRequestLatency);
+    REPORT_KMONITOR_METRIC(_keeperMetric.krpcRequestQps, 1);
+
+    const std::string& bulkloadId = request->bulkloadid();
+    const std::string& clusterName = request->clustername();
+    const BuildId& targetBuildId = request->targetbuildid();
+    const auto& externalFiles = request->externalfiles();
+    const std::string& options = request->importexternalfileoptions();
+    const std::string& action = request->action();
+
+    bool isRecoverFailed = false;
+    GenerationKeeperPtr generationKeeper = getGeneration(targetBuildId, false, isRecoverFailed);
+    if (isRecoverFailed) {
+        SET_ERROR_AND_RETURN(targetBuildId, response, ADMIN_INTERNAL_ERROR,
+                             "start bulkload failed : [%s] exists, but recover failed.",
+                             targetBuildId.ShortDebugString().c_str());
+    }
+    if (!generationKeeper) {
+        SET_ERROR_AND_RETURN(targetBuildId, response, ADMIN_NOT_FOUND, "start bulkload failed : [%s] not exists.",
+                             targetBuildId.ShortDebugString().c_str());
+    }
+    std::string errorMsg;
+    if (!generationKeeper->bulkload(clusterName, bulkloadId, externalFiles, options, action, &errorMsg)) {
+        SET_ERROR_AND_RETURN(targetBuildId, response, ADMIN_INTERNAL_ERROR, "getBulkloadInfo [%s] failed for: %s",
+                             targetBuildId.ShortDebugString().c_str(), errorMsg.c_str());
+    }
+    BS_LOG(INFO, "Finish bulkload [%s].", request->ShortDebugString().c_str());
+    msg = "Finish bulkload [" + request->ShortDebugString() + "].";
     BEEPER_REPORT(GENERATION_CMD_COLLECTOR_NAME, msg, collectTags);
 }
 
@@ -943,6 +1149,13 @@ void ServiceKeeper::rollBackCheckpoint(const proto::RollBackCheckpointRequest* r
     REPORT_KMONITOR_METRIC(_keeperMetric.krpcRequestQps, 1);
 
     const BuildId& buildId = request->buildid();
+    if (!(request->has_buildid()) || (!request->has_clustername()) || (!request->has_checkpointid())) {
+        SET_ERROR_AND_RETURN(
+            buildId, response, ADMIN_INTERNAL_ERROR,
+            "rollBack failed : request [%s] does not have required parameter (buildId&clusterName&checkpointId)",
+            request->ShortDebugString().c_str());
+    }
+
     const string& clusterName = request->clustername();
     const checkpointid_t targetCheckpointId = request->checkpointid();
     const auto& ranges = request->ranges();
@@ -1753,11 +1966,12 @@ void ServiceKeeper::startGeneralTask(const proto::StartGeneralTaskRequest* reque
     startTaskRequest.set_taskname(BS_GENERAL_TASK);
     startTaskRequest.set_clustername(request->clustername());
     GeneralTaskParam param;
-    param.branchId = request->branchid();
+    param.taskTraceId = request->tasktraceid();
     param.taskEpochId = request->taskepochid();
     param.partitionIndexRoot = request->partitionindexroot();
     param.generationId = request->buildid().generationid();
     param.sourceVersionIds.push_back(request->sourceversionid()); // ? deprecate vector
+    param.branchId = request->branchid();
     if (request->paramkeys_size() != request->paramvalues_size()) {
         SET_ERROR_AND_RETURN(request->buildid(), response, ADMIN_BAD_REQUEST,
                              "param keys & values mismatch, request[%s]", request->ShortDebugString().c_str());

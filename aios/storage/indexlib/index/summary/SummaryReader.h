@@ -38,11 +38,12 @@ namespace indexlibv2::index {
 class AttributeReader;
 class PackAttributeReader;
 class SummaryMemReaderContainer;
+class SourceReader;
 
 class SummaryReader : public IIndexReader
 {
 public:
-    SummaryReader() : _executor(nullptr) {};
+    SummaryReader() : _sourceReader(nullptr), _executor(nullptr), _needStoreSummary(false) {}
     virtual ~SummaryReader() = default;
 
     // indexer, segId, segStatus, docCount
@@ -84,7 +85,11 @@ public:
 
     void AddAttrReader(fieldid_t fieldId, AttributeReader* attrReader);
     void AddPackAttrReader(fieldid_t fieldId, PackAttributeReader* packAttrReader);
+    void AddSourceReader(const std::vector<index::sourcegroupid_t>& groupIdFromSource,
+                         const std::vector<std::string>& fieldNames, SourceReader* sourceReader);
+    void AddSourceReader(const std::vector<std::string>& fieldNames, SourceReader* sourceReader);
     void ClearAttrReaders();
+    void ClearSourceReader();
     void SetPrimaryKeyReader(indexlib::index::PrimaryKeyIndexReader* pkIndexReader) { _pkIndexReader = pkIndexReader; }
 
 public:
@@ -100,8 +105,11 @@ private:
                                                    indexlib::document::SearchSummaryDocument* summaryDoc) const;
     bool GetDocumentFromAttributes(docid_t docId, const SummaryGroupIdVec& groupVec,
                                    indexlib::document::SearchSummaryDocument* summaryDoc) const;
+
     bool GetDocumentFromAttributes(docid_t docId, const AttributeReaderInfo& attrReaders,
                                    indexlib::document::SearchSummaryDocument* summaryDoc) const;
+    bool GetDocumentFromSource(docid_t docId, const SummaryGroupIdVec& groupVec,
+                               indexlib::document::SearchSummaryDocument* summaryDoc) const;
     bool GetDocumentFromPackAttributes(docid_t docId, const PackAttributeReaderInfo& packAttrReaders,
                                        indexlib::document::SearchSummaryDocument* summaryDoc) const;
     bool SetSummaryDocField(indexlib::document::SearchSummaryDocument* summaryDoc, fieldid_t fieldId,
@@ -132,6 +140,10 @@ private:
     GetDocumentFromSummaryAsync(const std::vector<docid_t>& docIds, const SummaryGroupIdVec& groupVec,
                                 autil::mem_pool::Pool* sessionPool, indexlib::file_system::ReadOption readOption,
                                 const SearchSummaryDocVec* docs) const noexcept;
+    future_lite::coro::Lazy<indexlib::index::ErrorCodeVec>
+    GetDocumentFromSourceAsync(const std::vector<docid_t>& docIds, const SummaryGroupIdVec& groupVec,
+                               autil::mem_pool::Pool* sessionPool, indexlib::file_system::ReadOption readOption,
+                               const SearchSummaryDocVec* docs) const;
 
 private:
     std::shared_ptr<config::SummaryIndexConfig> _summaryIndexConfig;
@@ -144,7 +156,14 @@ private:
     GroupAttributeReaderInfo _groupAttributeReaders;
     GroupPackAttributeReaderInfo _groupPackAttributeReaders;
     SummaryGroupIdVec _allGroupIds;
+
+    std::vector<index::sourcegroupid_t> _requiredSourceGroups;
+    SourceReader* _sourceReader;
+    std::vector<std::shared_ptr<std::string>> _allGroupFieldName2SummaryFieldIdMapHolder;
+    std::vector<std::map<autil::StringView, indexlib::index::summaryfieldid_t>> _groupFieldName2SummaryFieldIdMap;
+
     future_lite::Executor* _executor;
+    bool _needStoreSummary;
 
 private:
     AUTIL_LOG_DECLARE();

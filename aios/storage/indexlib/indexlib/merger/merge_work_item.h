@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_WORK_ITEM_H
-#define __INDEXLIB_MERGE_WORK_ITEM_H
+#pragma once
 
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
 #include "indexlib/merger/index_partition_merger_metrics.h"
 #include "indexlib/merger/merge_file_system.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/counter/StateCounter.h"
 #include "indexlib/util/metrics/ProgressMetrics.h"
 #include "indexlib/util/resource_control_work_item.h"
-
-DECLARE_REFERENCE_CLASS(merger, MergeFileSystem);
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace indexlib { namespace merger {
 
@@ -95,5 +96,3 @@ private:
 };
 DEFINE_SHARED_PTR(MergeWorkItem);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_WORK_ITEM_H

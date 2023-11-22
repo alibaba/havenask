@@ -21,7 +21,7 @@ using namespace std;
 using namespace autil;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, MergeStrategyParameter);
+AUTIL_LOG_SETUP(indexlib.config, MergeStrategyParameter);
 
 MergeStrategyParameter::MergeStrategyParameter() {}
 

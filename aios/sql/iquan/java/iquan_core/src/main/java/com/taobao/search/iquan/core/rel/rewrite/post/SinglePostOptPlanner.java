@@ -1,8 +1,18 @@
 package com.taobao.search.iquan.core.rel.rewrite.post;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSinkOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUnionOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanValuesOp;
+import com.taobao.search.iquan.core.rel.ops.physical.Scope;
 import com.taobao.search.iquan.core.rel.visitor.relshuttle.ParallelOptimizeShuttle;
 import com.taobao.search.iquan.core.rel.visitor.relvisitor.ConventionValidateVisitor;
 import com.taobao.search.iquan.core.rel.visitor.relvisitor.ExchangeVisitor;
@@ -10,9 +20,6 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SinglePostOptPlanner {
     private static final Logger logger = LoggerFactory.getLogger(PostOptPlanner.class);

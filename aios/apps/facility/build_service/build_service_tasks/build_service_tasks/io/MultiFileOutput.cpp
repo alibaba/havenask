@@ -15,11 +15,28 @@
  */
 #include "build_service_tasks/io/MultiFileOutput.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/HashFunctionBase.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "build_service/config/TaskInputConfig.h"
 #include "build_service/document/DocumentDefine.h"
+#include "build_service/io/IODefine.h"
+#include "build_service/task_base/Task.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/WriterOption.h"
 #include "indexlib/file_system/file/BufferedFileWriter.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "swift/client/MessageInfo.h"
 
 using namespace std;
 using namespace autil;

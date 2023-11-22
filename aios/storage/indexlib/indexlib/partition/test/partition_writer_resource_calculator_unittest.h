@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONWRITERRESOURCECALCULATORTEST_H
-#define __INDEXLIB_PARTITIONWRITERRESOURCECALCULATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/partition_writer_resource_calculator.h"
@@ -31,5 +30,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(PartitionWriterResourceCalculatorTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITIONWRITERRESOURCECALCULATORTEST_H

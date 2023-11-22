@@ -50,7 +50,7 @@ private:
 
 private:
     static constexpr int64_t INVALID_TS = std::numeric_limits<int64_t>::max();
-    static constexpr size_t BUF_SIZE = 1 << 16;
+    static constexpr size_t BUF_SIZE = 1 << 20;
 
 private:
     void *_parent = nullptr;

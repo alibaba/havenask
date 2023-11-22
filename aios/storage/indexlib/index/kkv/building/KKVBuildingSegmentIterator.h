@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include "autil/MultiValueType.h"
 #include "indexlib/index/kkv/building/BuildingSKeyIterator.h"
 #include "indexlib/index/kkv/building/KKVValueWriter.h"
 #include "indexlib/index/kkv/common/KKVResultBuffer.h"

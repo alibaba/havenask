@@ -33,6 +33,10 @@ public:
     std::unique_ptr<framework::IndexOperation>
     CreateOperation(const framework::IndexOperationDescription& opDesc) override;
 
+protected:
+    virtual std::unique_ptr<framework::IndexOperation>
+    CreateOtherOperation(const framework::IndexOperationDescription& opDesc);
+
 private:
     std::unique_ptr<framework::IndexOperation>
     CreateOperationForCommon(const framework::IndexOperationDescription& opDesc);

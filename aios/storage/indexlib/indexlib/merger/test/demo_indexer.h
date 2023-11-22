@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEMO_INDEXER_H
-#define __INDEXLIB_DEMO_INDEXER_H
+#pragma once
 
 #include <memory>
 
@@ -47,5 +46,3 @@ private:
 
 DEFINE_SHARED_PTR(DemoIndexer);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_DEMO_INDEXER_H

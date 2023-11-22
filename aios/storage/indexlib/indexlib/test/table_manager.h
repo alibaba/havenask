@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TABLE_MANAGER_H
-#define __INDEXLIB_TABLE_MANAGER_H
+#pragma once
 
 #include <memory>
 
@@ -60,10 +59,10 @@ public:
     bool BuildRt(const std::string& docString);
     bool BuildIncAndRt(const std::string& docString, OfflineBuildFlag flag = OfflineBuildFlag::OFB_DEFAULT);
 
-    bool DeployAndLoadVersion(versionid_t versionId = INVALID_VERSION);
-    bool DeployVersion(versionid_t versionId = INVALID_VERSION);
-    bool LegacyDeployVersion(versionid_t versionId = INVALID_VERSION);
-    bool ReOpenVersion(versionid_t versionId = INVALID_VERSION, ReOpenFlag falg = ReOpenFlag::RO_NORMAL);
+    bool DeployAndLoadVersion(versionid_t versionId = INVALID_VERSIONID);
+    bool DeployVersion(versionid_t versionId = INVALID_VERSIONID);
+    bool LegacyDeployVersion(versionid_t versionId = INVALID_VERSIONID);
+    bool ReOpenVersion(versionid_t versionId = INVALID_VERSIONID, ReOpenFlag falg = ReOpenFlag::RO_NORMAL);
 
     test::ResultPtr Search(const std::string& query, SearchFlag flag = SearchFlag::SF_ONLINE) const;
 
@@ -121,5 +120,3 @@ private:
 
 DEFINE_SHARED_PTR(TableManager);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_TABLE_MANAGER_H

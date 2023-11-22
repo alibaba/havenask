@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_METRIC_UPDATE_WORK_ITEM_H
-#define __INDEXLIB_SEGMENT_METRIC_UPDATE_WORK_ITEM_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
 
-#include "indexlib/common_define.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/index/segment_metrics_updater/multi_segment_metrics_updater.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/resource_control_work_item.h"
 
 namespace indexlib { namespace merger {
@@ -53,5 +55,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentMetricUpdateWorkItem);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_SEGMENT_METRIC_UPDATE_WORK_ITEM_H

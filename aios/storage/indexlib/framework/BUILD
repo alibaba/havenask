@@ -59,6 +59,28 @@ strict_cc_library(
     deps=[':ImportOptions', ':Version', '//aios/storage/indexlib/base:Status']
 )
 strict_cc_library(
+    name='IMemoryControlStrategy',
+    srcs=[],
+    hdrs=['IMemoryControlStrategy.h'],
+    deps=[
+        ':TabletInfos', ':TabletMetrics',
+        '//aios/storage/indexlib/base:MemoryQuotaSynchronizer',
+        '//aios/storage/indexlib/config:TabletOptions'
+    ]
+)
+strict_cc_library(
+    name='EnvironmentVariablesProvider',
+    deps=['//aios/autil:NoCopyable', '//aios/autil:env_util']
+)
+strict_cc_library(
+    name='DefaultMemoryControlStrategy',
+    deps=[':IMemoryControlStrategy', '//aios/autil:unit_util']
+)
+strict_cc_library(
+    name='LSMMemTableControlStrategy',
+    deps=[':DefaultMemoryControlStrategy', '//aios/autil:unit_util']
+)
+strict_cc_library(
     name='TabletReaderContainer',
     deps=[
         '//aios/storage/indexlib/framework:ITabletReader',
@@ -196,9 +218,10 @@ strict_cc_library(
 strict_cc_library(
     name='Version',
     deps=[
-        ':Locator', ':SegmentDescriptions', ':VersionLine', '//aios/alog',
-        '//aios/autil:json', '//aios/autil:murmur_hash', '//aios/autil:net',
-        '//aios/autil:string_helper', '//aios/storage/indexlib/base:Status',
+        ':IndexTaskQueue', ':Locator', ':SegmentDescriptions', ':VersionLine',
+        '//aios/alog', '//aios/autil:json', '//aios/autil:murmur_hash',
+        '//aios/autil:net', '//aios/autil:string_helper',
+        '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/base:Types',
         '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/file_system',
@@ -238,7 +261,11 @@ strict_cc_library(
     srcs=[],
     deps=['//aios/storage/indexlib/base:constants']
 )
-strict_cc_library(name='ImportOptions', srcs=[])
+strict_cc_library(
+    name='ImportOptions',
+    srcs=[],
+    deps=['//aios/storage/indexlib/base:constants']
+)
 strict_cc_library(
     name='Segment',
     srcs=[],
@@ -264,6 +291,7 @@ strict_cc_library(
 strict_cc_library(
     name='Tablet',
     deps=[
+        ':DefaultMemoryControlStrategy', ':EnvironmentVariablesProvider',
         ':Fence', ':ITablet', ':ITabletFactory', ':ITabletMergeController',
         ':ITabletReader', ':IdGenerator', ':IndexRecoverStrategy', ':Locator',
         ':MemSegmentCreator', ':MetricsManager', ':OpenOptions', ':Segment',
@@ -361,6 +389,8 @@ strict_cc_library(
         ':VersionLoader', '//aios/alog', '//aios/autil:scope',
         '//aios/future_lite', '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/framework:TabletData',
+        '//aios/storage/indexlib/framework/index_task:CustomIndexTaskFactory',
+        '//aios/storage/indexlib/framework/index_task:CustomIndexTaskFactoryCreator',
         '//aios/storage/indexlib/framework/index_task:IndexTaskMetrics',
         '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager'
     ]
@@ -407,7 +437,8 @@ strict_cc_library(
     deps=[
         ':MetricsWrapper', '//aios/autil:time',
         '//aios/kmonitor:kmonitor_client_cpp',
-        '//aios/storage/indexlib/document:DocumentBatch'
+        '//aios/storage/indexlib/document:DocumentBatch',
+        '//aios/storage/indexlib/document:ElementaryDocumentBatch'
     ]
 )
 strict_cc_library(
@@ -598,5 +629,14 @@ strict_cc_library(
     deps=[
         '//aios/autil:NoCopyable', '//aios/autil:json', '//aios/autil:log',
         '//aios/autil:time'
+    ]
+)
+strict_cc_library(
+    name='IndexTaskQueue',
+    deps=[
+        '//aios/autil:json', '//aios/autil:log',
+        '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/base:constants',
+        '//aios/storage/indexlib/framework/index_task:Constant'
     ]
 )

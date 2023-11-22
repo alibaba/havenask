@@ -15,7 +15,13 @@
  */
 #include "build_service/common/CounterRedisSynchronizer.h"
 
+#include <iosfwd>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RedisClient.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

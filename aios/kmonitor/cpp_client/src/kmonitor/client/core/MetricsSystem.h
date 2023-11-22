@@ -9,6 +9,7 @@
 #define KMONITOR_CLIENT_CORE_METRICSSYSTEM_H_
 
 #include <map>
+#include <queue>
 #include <set>
 #include <string>
 #include <vector>
@@ -28,6 +29,8 @@ class MetricsSource;
 class MetricsConfig;
 class MetricsRecord;
 
+constexpr int MAX_LATENCY = 3;
+
 class MetricsSystem {
 public:
     explicit MetricsSystem();
@@ -45,12 +48,19 @@ public:
     bool AddSink(const SinkPtr &sink);
     SinkPtr GetSink(const std::string &name) const;
 
+public:
+    void ManuallySnapshot(); // ATTENTION: for debug with console mode
+
 private:
     bool initSink(MetricsConfig *config);
-    const MetricsRecords &SampleMetrics(const std::set<MetricLevel> &levels, int64_t now);
-    void PublishMetrics(const MetricsRecords &records);
+    MetricsRecords SampleMetrics(const std::set<MetricLevel> &levels, int64_t now);
+    void PublishMetrics(MetricsRecords &records);
     void StartTimer();
     void OnTimerEvent(int64_t nowUs);
+    void SendEvent(int64_t nowUs);
+    void SetRandomTime(int64_t randomTime);
+    int64_t GetRandomTime() const;
+    void DoSnapshot(const std::set<MetricLevel> &levels, int64_t timeAlignUs);
 
 private:
     int timer_interval_us_;
@@ -63,6 +73,10 @@ private:
     std::map<std::string, MetricsSource *> source_map_;
     std::map<std::string, SinkPtr> sinks_;
     autil::LoopThreadPtr timer_thread_ptr_;
+    autil::LoopThreadPtr send_thread_ptr_;
+    int64_t random_time_;
+    std::mutex queue_mutex_;
+    std::queue<std::pair<int64_t, MetricsRecords>> publish_queue_;
 
 private:
     AUTIL_LOG_DECLARE();

@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDINSTANCEWORKITEM_H
-#define ISEARCH_BS_BUILDINSTANCEWORKITEM_H
+#pragma once
 
+#include <stdint.h>
+#include <string>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
 #include "autil/WorkItem.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/local_job/LocalBrokerFactory.h"
+#include "build_service/local_job/ReduceDocumentQueue.h"
 #include "build_service/task_base/BuildTask.h"
+#include "build_service/task_base/TaskBase.h"
 
 namespace build_service { namespace local_job {
 
@@ -70,5 +76,3 @@ private:
 };
 
 }} // namespace build_service::local_job
-
-#endif // ISEARCH_BS_BUILDINSTANCEWORKITEM_H

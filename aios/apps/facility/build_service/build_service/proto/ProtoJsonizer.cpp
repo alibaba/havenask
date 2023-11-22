@@ -15,6 +15,16 @@
  */
 #include "build_service/proto/ProtoJsonizer.h"
 
+#include <cstddef>
+#include <google/protobuf/message.h>
+#include <google/protobuf/stubs/port.h>
+#include <map>
+#include <stdint.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "google/protobuf/descriptor.h"
 
 using namespace std;

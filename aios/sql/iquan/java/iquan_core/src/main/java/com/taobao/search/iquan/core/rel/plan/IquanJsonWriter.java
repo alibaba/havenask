@@ -1,5 +1,13 @@
 package com.taobao.search.iquan.core.rel.plan;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+import java.util.TreeMap;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.taobao.search.iquan.core.api.common.PlanFormatVersion;
@@ -13,8 +21,6 @@ import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.externalize.RelJsonReader;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.util.Pair;
-
-import java.util.*;
 
 /**
  * Callback for a relational expression to dump itself as JSON.

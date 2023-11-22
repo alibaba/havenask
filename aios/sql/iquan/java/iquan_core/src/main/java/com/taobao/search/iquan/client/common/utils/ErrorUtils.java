@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.client.common.utils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import com.taobao.search.iquan.client.common.response.SqlResponse;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 public class ErrorUtils {
     private static final Logger logger = LoggerFactory.getLogger(ErrorUtils.class);

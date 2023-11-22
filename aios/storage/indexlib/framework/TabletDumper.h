@@ -18,21 +18,20 @@
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 
 #include "autil/Log.h"
-#include "future_lite/coro/Lazy.h"
+#include "autil/NoCopyable.h"
+#include "future_lite/Executor.h"
 #include "indexlib/base/Status.h"
-#include "indexlib/config/TabletOptions.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/SegmentDumper.h"
 #include "indexlib/framework/TabletCommitter.h"
-
-namespace future_lite {
-class Executor;
-}
+#include "indexlib/framework/TabletData.h"
 
 namespace indexlibv2::framework {
-class Version;
-class TabletData;
 
 class TabletDumper : public autil::NoMoveable
 {
@@ -43,8 +42,8 @@ public:
     void Init(int32_t maxRealtimeDumpIntervalSecond);
     void PushSegmentDumper(std::unique_ptr<SegmentDumper> segmentDumper);
     bool NeedDump() const;
-    Status Dump();
-    Status Seal();
+    Status Dump(const uint32_t dumpThreadCount);
+    Status Seal(const uint32_t dumpThreadCount);
     void AlterTable(schemaid_t schemaId);
     void TrimDumpingQueue(const TabletData& tabletData);
     size_t GetDumpQueueSize() const;

@@ -114,6 +114,42 @@
       "raw",
     "field_type":
       "RAW"
+    },
+    {
+    "field_name":
+      "time",
+    "field_type":
+      "TIME"
+    },
+    {
+    "field_name":
+      "timestamp",
+    "field_type":
+      "TIMESTAMP"
+    },
+    {
+    "field_name":
+      "date",
+    "field_type":
+      "DATE"
+    },
+    {
+    "field_name":
+      "location",
+    "field_type":
+      "LOCATION"
+    },
+    {
+    "field_name":
+      "polygon",
+    "field_type":
+      "POLYGON"
+    },
+    {
+    "field_name":
+      "line",
+    "field_type":
+      "LINE"
     }
   ],
 "indexes":
@@ -199,6 +235,42 @@
         "number",
       "index_type":
         "NUMBER"
+      },
+      {
+      "build_granularity":
+        "minute",
+      "index_fields":
+        "uint64",
+      "index_name":
+        "date",
+      "index_type":
+        "DATE"
+      },
+      {
+      "index_fields":
+        "uint32",
+      "index_name":
+        "spatial1",
+      "index_type":
+        "SPATIAL",
+      "max_dist_err":
+        100,
+      "max_search_dist":
+        10000
+      },
+      {
+      "distance_loss_accuracy":
+        0.03,
+      "index_fields":
+        "uint64",
+      "index_name":
+        "spatial2",
+      "index_type":
+        "SPATIAL",
+      "max_dist_err":
+        100,
+      "max_search_dist":
+        10000
       },
       {
       "file_compressor":
@@ -330,6 +402,18 @@
         "default_hash",
       "pk_storage_type":
         "sort_array"
+      }
+    ],
+  "source":
+    [
+      {
+      "group_configs":
+        [
+          {
+          "field_mode":
+            "all_field"
+          }
+        ]
       }
     ],
   "summary":

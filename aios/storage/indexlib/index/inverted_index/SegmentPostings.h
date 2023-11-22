@@ -36,12 +36,12 @@ public:
     }
     SegmentPostingVector& GetSegmentPostings() { return _segmentPostings; }
 
-    docid_t GetBaseDocId() const { return _baseDocId; }
+    docid64_t GetBaseDocId() const { return _baseDocId; }
     size_t GetDocCount() const { return _docCount; }
 
 public:
     SegmentPostingVec _segmentPostings;
-    docid_t _baseDocId;
+    docid64_t _baseDocId;
     uint32_t _docCount;
 
 private:

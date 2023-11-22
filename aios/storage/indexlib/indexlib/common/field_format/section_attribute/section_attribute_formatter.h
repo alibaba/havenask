@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SECTION_ATTRIBUTE_FORMATTER_H
-#define __INDEXLIB_SECTION_ATTRIBUTE_FORMATTER_H
+#pragma once
 
 #include <memory>
 
@@ -80,5 +79,3 @@ inline void SectionAttributeFormatter::Decode(const std::string& value, uint8_t*
     Decode((const char*)value.data(), (uint32_t)value.size(), buffer, bufLength);
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_SECTION_ATTRIBUTE_FORMATTER_H

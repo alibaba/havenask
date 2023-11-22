@@ -29,46 +29,8 @@ class KernelComputeEventDef;
 
 struct KernelComputeEvent {
 public:
-    int64_t queueTime() const {
-        return beginTime - scheduleInfo.enqueueTime;
-    }
-    int64_t computeTime() const {
-        return endTime - beginTime;
-    }
     void fillProto(KernelComputeEventDef *event,
                    std::unordered_map<uint64_t, uint32_t> &addrMap) const;
-    void serialize(autil::DataBuffer &dataBuffer) const {
-        dataBuffer.write(type);
-        dataBuffer.write(partId);
-        dataBuffer.write(scheduleId);
-        dataBuffer.write(scheduleInfo);
-        dataBuffer.write(beginTime);
-        dataBuffer.write(endTime);
-        dataBuffer.write(utimeInUs);
-        dataBuffer.write(stimeInUs);
-        dataBuffer.write(nvcsw);
-        dataBuffer.write(nivcsw);
-        dataBuffer.write(minflt);
-        dataBuffer.write(majflt);
-        dataBuffer.write(poolMallocCount);
-        dataBuffer.write(poolMallocSize);
-    }
-    void deserialize(autil::DataBuffer &dataBuffer) {
-        dataBuffer.read(type);
-        dataBuffer.read(partId);
-        dataBuffer.read(scheduleId);
-        dataBuffer.read(scheduleInfo);
-        dataBuffer.read(beginTime);
-        dataBuffer.read(endTime);
-        dataBuffer.read(utimeInUs);
-        dataBuffer.read(stimeInUs);
-        dataBuffer.read(nvcsw);
-        dataBuffer.read(nivcsw);;
-        dataBuffer.read(minflt);
-        dataBuffer.read(majflt);
-        dataBuffer.read(poolMallocCount);
-        dataBuffer.read(poolMallocSize);
-    }
 public:
     int32_t type;
     NaviPartId partId;
@@ -87,6 +49,9 @@ public:
     NaviPerfResultPtr perfResult;
 };
 
+class KernelMetric;
+NAVI_TYPEDEF_PTR(KernelMetric);
+
 class KernelMetric
 {
 public:
@@ -99,14 +64,6 @@ private:
     KernelMetric(const KernelMetric &);
     KernelMetric &operator=(const KernelMetric &);
 public:
-    void incScheduleCount();
-    void incTryScheduleCount();
-    void reportTime(int32_t type, NaviPartId partId, int64_t beginTime,
-                    int64_t endTime, const rusage &usageBegin,
-                    const rusage &usageEnd, const ScheduleInfo &schedInfo,
-                    const NaviPerfResultPtr &perfResult, size_t poolMallocCount,
-                    size_t poolMallocSize);
-public:
     int64_t scheduleCount() const;
     int64_t tryScheduleCount() const;
     int64_t queueLatencyUs() const;
@@ -114,22 +71,44 @@ public:
     inline int64_t getMicroSecond(const timeval &val) const {
         return val.tv_sec * 1000000 + val.tv_usec;
     }
-public:
+    KernelMetricPtr cloneAndClearEvent();
+    std::string toString() const;
+private:
+    void incScheduleCount();
+    void incTryScheduleCount();
+    void reportTime(ErrorCode ec, int32_t type, NaviPartId partId,
+                    int64_t beginTime, int64_t endTime,
+                    const rusage &usageBegin, const rusage &usageEnd,
+                    const ScheduleInfo &schedInfo,
+                    const NaviPerfResultPtr &perfResult, size_t poolMallocCount,
+                    size_t poolMallocSize);
+    void reportTime(ErrorCode ec, int64_t beginTime, int64_t endTime,
+                    const ScheduleInfo &schedInfo)
+    {
+        if (EC_NONE == _ec) {
+            _ec = ec;
+        }
+        _queueLatencyNs += beginTime - schedInfo.enqueueTime;
+        _computeLatencyNs += endTime - beginTime;
+    }
     void fillProto(KernelMetricDef *metric,
                    std::unordered_map<uint64_t, uint32_t> &addrMap) const;
-    void serialize(autil::DataBuffer &dataBuffer) const;
-    void deserialize(autil::DataBuffer &dataBuffer);
-    std::string toString() const;
-public:
+private:
+    friend class Node;
+    friend class ComputeScope;
+    friend class GraphMetric;
+private:
     GraphId _graphId;
     std::string _node;
     std::string _kernel;
 
+    ErrorCode _ec; // need_restore
     int64_t _scheduleCount;
     int64_t _tryScheduleCount;
     int64_t _queueLatencyNs;
     int64_t _computeLatencyNs;
-    std::list<KernelComputeEvent> _eventList;
+    mutable autil::ThreadMutex _mutex;
+    std::shared_ptr<std::list<KernelComputeEvent>> _eventList; // need_restore
 };
 
 }

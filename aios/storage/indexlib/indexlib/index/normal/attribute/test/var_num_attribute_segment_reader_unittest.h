@@ -1,3 +1,4 @@
+#pragma once
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common/field_format/attribute/attribute_convertor_factory.h"
 #include "indexlib/common_define.h"

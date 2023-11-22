@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BITMAP_INDEX_SORTED_QUEUE_ITEM_H
-#define __INDEXLIB_BITMAP_INDEX_SORTED_QUEUE_ITEM_H
+#pragma once
 
 #include <memory>
 #include <queue>
@@ -67,5 +66,3 @@ typedef std::priority_queue<BitmapIndexSortedQueueItem*, std::vector<BitmapIndex
                             BitmapIndexSortedQueueItemComparator>
     SortByWeightQueue;
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_BITMAP_INDEX_SORTED_QUEUE_ITEM_H

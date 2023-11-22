@@ -15,6 +15,9 @@
  */
 #include "build_service/builder/KKVSortDocSorter.h"
 
+#include <algorithm>
+#include <cstddef>
+
 using namespace std;
 
 namespace build_service { namespace builder {

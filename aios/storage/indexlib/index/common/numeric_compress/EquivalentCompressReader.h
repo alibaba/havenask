@@ -106,18 +106,21 @@ protected:
         return std::make_pair(Status::OK(), slotItem);
     }
 
-    inline future_lite::Future<size_t>
+    inline future_lite::Future<std::pair<Status, size_t>>
     AsyncGetSlotItem(const std::shared_ptr<indexlib::file_system::FileStream>& fileStream, size_t slotIdx,
                      SlotItem* slotItem, indexlib::file_system::ReadOption readOption) const __ALWAYS_INLINE
     {
         if (_slotBaseAddr) {
             *slotItem = *((SlotItem*)_slotBaseAddr + slotIdx);
-            return future_lite::makeReadyFuture(size_t(0));
+            return future_lite::makeReadyFuture(std::make_pair(Status::OK(), 0ul));
         }
         assert(fileStream);
         return fileStream
             ->ReadAsync(slotItem, sizeof(SlotItem), _slotBaseOffset + slotIdx * sizeof(SlotItem), readOption)
-            .thenValue([](size_t readSize) { return future_lite::makeReadyFuture(size_t(readSize)); });
+            .thenValue([](file_system::FSResult<size_t>&& ret) {
+                RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0ul), "ReadAsync failed");
+                return std::make_pair(Status::OK(), size_t(ret.Value()));
+            });
     }
 
     inline std::pair<Status, LongSlotItem>
@@ -137,17 +140,22 @@ protected:
         return std::make_pair(status, slotItem);
     }
 
-    inline future_lite::Future<size_t>
+    inline future_lite::Future<std::pair<Status, size_t>>
     AsyncGetLongSlotItem(const std::shared_ptr<indexlib::file_system::FileStream>& fileStream, size_t slotIdx,
                          LongSlotItem* longSlotItem, indexlib::file_system::ReadOption readOption) const __ALWAYS_INLINE
     {
         if (_slotBaseAddr) {
             *longSlotItem = *((LongSlotItem*)_slotBaseAddr + slotIdx);
-            return future_lite::makeReadyFuture(size_t(0));
+            return future_lite::makeReadyFuture(std::make_pair(Status::OK(), 0ul));
         }
         assert(fileStream);
-        return fileStream->ReadAsync(longSlotItem, sizeof(LongSlotItem),
-                                     _slotBaseOffset + slotIdx * sizeof(LongSlotItem), readOption);
+        return fileStream
+            ->ReadAsync(longSlotItem, sizeof(LongSlotItem), _slotBaseOffset + slotIdx * sizeof(LongSlotItem),
+                        readOption)
+            .thenValue([](file_system::FSResult<size_t>&& ret) {
+                RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0ul), "ReadAsync failed");
+                return std::make_pair(Status::OK(), size_t(ret.Value()));
+            });
     }
 
     void InitInplaceUpdateFlags();

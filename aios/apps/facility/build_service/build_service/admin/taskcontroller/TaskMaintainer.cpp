@@ -15,13 +15,34 @@
  */
 #include "build_service/admin/taskcontroller/TaskMaintainer.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <stdint.h>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
+#include "build_service/admin/SlowNodeDetector.h"
 #include "build_service/admin/controlflow/TaskFlow.h"
 #include "build_service/admin/taskcontroller/BuildinTaskControllerFactory.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/ProtoComparator.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/WorkerNodeCreator.h"
+#include "fslib/util/FileUtil.h"
+#include "indexlib/misc/common.h"
 
 using namespace std;
 using namespace autil;
@@ -152,12 +173,12 @@ bool TaskMaintainer::run(TaskNodes& taskNodes)
     TaskController::Nodes nodes;
     taskNodesToNodes(taskNodes, nodes);
     bool ret = _taskController->operate(nodes);
-
     auto propertyMap = _taskController->GetPropertyMap();
     for (const auto& kv : propertyMap) {
         SetProperty(kv.first, kv.second);
     }
     nodesToTaskNodes(nodes, taskNodes);
+
     if (needRecoverBackInfo) {
         recoverFromBackInfo(taskNodes);
     }
@@ -203,6 +224,11 @@ void TaskMaintainer::taskNodesToNodes(const TaskNodes& taskNodes, TaskController
             node.reachedTarget = true;
         } else {
             node.reachedTarget = false;
+        }
+        if (taskNodes[i]->isSuspended()) {
+            node.isSuspended = true;
+        } else {
+            node.isSuspended = false;
         }
         nodes.push_back(node);
     }
@@ -353,7 +379,7 @@ TaskNodePtr TaskMaintainer::createTaskNode(const TaskController::Node& node)
     TaskNodePtr taskNode(new TaskNode(pid));
     proto::TaskTarget targetStatus;
     targetStatus.set_configpath(_configPath);
-    targetStatus.set_targetdescription(ToJsonString(node.taskTarget));
+    targetStatus.set_targetdescription(ToJsonString(node.taskTarget, /*isCompact=*/true));
     targetStatus.set_targettimestamp(TimeUtility::currentTimeInSeconds());
     targetStatus.set_taskidentifier(_taskId);
     taskNode->setTargetStatus(targetStatus);
@@ -361,6 +387,11 @@ TaskNodePtr TaskMaintainer::createTaskNode(const TaskController::Node& node)
     taskNode->setInstanceIdx(node.instanceIdx);
     if (node.reachedTarget) {
         taskNode->setFinished(true);
+    }
+    if (node.isSuspended) {
+        taskNode->setSuspended(true);
+    } else {
+        taskNode->setSuspended(false);
     }
     return taskNode;
 }
@@ -440,10 +471,16 @@ void TaskMaintainer::nodesToTaskNodes(const TaskController::Nodes& nodes, TaskNo
             if (nodes[i].reachedTarget) {
                 taskNode->setFinished(true);
             } else {
+                if (nodes[i].isSuspended) {
+                    taskNode->setSuspended(true);
+                } else {
+                    if (taskNode->isSuspended()) {
+                        taskNode->setSuspended(false);
+                    }
+                }
                 proto::TaskTarget target;
                 target.set_configpath(_configPath);
-                target.set_targetdescription(ToJsonString(nodes[i].taskTarget));
-
+                target.set_targetdescription(ToJsonString(nodes[i].taskTarget, /*isCompact=*/true));
                 const auto& targetStatus = taskNode->getTargetStatus();
                 config::TaskTarget taskTarget;
                 FromJsonString(taskTarget, targetStatus.targetdescription());
@@ -483,6 +520,7 @@ bool TaskMaintainer::start(const KeyValueMap& kvMap)
     assert(_beeperTags);
     if (_taskController->start(kvMap)) {
         _taskStatus = TASK_NORMAL;
+        _configPath = _taskController->getUsingConfigPath();
         return true;
     }
     return false;

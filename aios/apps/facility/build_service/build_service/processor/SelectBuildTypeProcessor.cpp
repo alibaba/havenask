@@ -15,7 +15,18 @@
  */
 #include "build_service/processor/SelectBuildTypeProcessor.h"
 
-#include "autil/StringTokenizer.h"
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <stdint.h>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "build_service/common_define.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/ProcessedDocument.h"
+#include "build_service/document/RawDocument.h"
+#include "indexlib/document/RawDocument.h"
 
 using namespace std;
 using namespace autil;

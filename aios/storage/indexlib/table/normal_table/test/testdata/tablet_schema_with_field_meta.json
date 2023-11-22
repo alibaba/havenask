@@ -1,0 +1,119 @@
+{
+    "fields": [
+        {
+            "analyzer": "taobao_analyzer",
+            "field_name": "title",
+            "field_type": "TEXT"
+        },
+        {
+            "field_name": "price",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "info",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "product_id",
+            "field_type": "LONG"
+        }
+    ],
+    "indexes": {
+        "attribute": [
+            {
+                "field_name": "product_id"
+            },
+            {
+                "field_name": "price"
+            },
+            {
+                "field_name": "info"
+            }
+        ],
+        "inverted_index": [
+            {
+                "doc_payload_flag": 1,
+                "format_version_id": 1,
+                "high_frequency_dictionary": "top10",
+                "high_frequency_term_posting_type": "both",
+                "index_analyzer": "taobao_analyzer",
+                "index_fields": [
+                    {
+                        "boost": 1000,
+                        "field_name": "title"
+                    }
+                ],
+                "index_name": "phrase",
+                "index_type": "PACK",
+                "position_list_flag": 1,
+                "position_payload_flag": 1,
+                "term_frequency_bitmap": 0,
+                "term_payload_flag": 1
+            }
+        ],
+        "primarykey": [
+            {
+                "format_version_id": 1,
+                "has_primary_key_attribute": true,
+                "has_shortlist_vbyte_compress": false,
+                "index_fields": "product_id",
+                "index_name": "product_id",
+                "index_type": "PRIMARYKEY64",
+                "use_number_pk_hash": true
+            }
+        ],
+        "summary": [
+            {
+                "compress_block_size": 5,
+                "summary_fields": [
+                    "title",
+                    "price"
+                ]
+            }
+        ],
+        "field_meta" : [
+            {
+                "field_name" : "price",
+                "index_name" : "price",
+                "metas" : [
+                    {
+                        "metaName" : "MinMax"
+                    },
+                    {
+                        "metaName" : "Histogram"
+                    },
+                    {
+                        "metaName" : "DataStatistics"
+                    }
+                ]
+            },
+            {
+                "field_name" : "title",
+                "index_name" : "title",
+                "metas" : [
+                    {
+                        "metaName" : "FieldTokenCount"
+                    }
+                ]
+            },
+            {
+                "field_name" : "info",
+                "index_name" : "info",
+                "metas" : [
+                    {
+                        "metaName" : "DataStatistics"
+                    }
+                ]
+            }
+        ]
+    },
+    "settings": {
+        "dictionaries": [
+            {
+                "dictionary_name": "top10",
+                "content": "of;a;an"
+            }
+        ]
+    },
+    "table_name": "auction"
+}

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NAVI_NODE_H
-#define NAVI_NODE_H
+#pragma once
 
 #include "navi/common.h"
 #include "navi/engine/Edge.h"
@@ -66,8 +65,7 @@ private:
         SS_FINISH,
     };
 public:
-    Node(const NaviLoggerPtr &logger, Biz *biz, KernelMetric *metric,
-         LocalSubGraph *graph);
+    Node(const NodeDef &nodeDef, const NaviLoggerPtr &logger, Biz *biz, LocalSubGraph *graph, bool isResourceNode);
     ~Node();
 private:
     Node(const Node &);
@@ -112,13 +110,14 @@ public:
     bool isBorder() const {
         return _isInputBorder || _isOutputBorder;
     }
-    ErrorCode getScopeErrorCode() const;
+    NaviErrorPtr getScopeError() const;
+    ErrorHandleStrategy getScopeErrorHandleStrategy() const;
+    void reportScopeError(ErrorCode ec);
     int64_t getRemainTimeMs() const;
     const TimeoutChecker *getTimeoutChecker() const;
-
 public:
     // engine interface
-    bool init(const NodeDef &nodeDef);
+    bool init();
     bool bindPort(Port *port);
     bool addInput(const std::string &portName, bool require,
                   const EdgeOutputInfo &edgeOutputInfo, PortIndex &inputIndex,
@@ -140,6 +139,9 @@ public:
     bool isStarted() const {
         return _scheduleStat != SS_INIT;
     }
+    void setErrorCode(ErrorCode ec);
+    void reportError(const NaviErrorPtr &error);
+    void notifyFinish(const NaviErrorPtr &error);
     bool startSchedule(const Node *callNode, bool ignoreFrozen = false);
     bool schedule(const Node *callNode, bool ignoreFrozen = false);
     bool isInline() const;
@@ -151,17 +153,20 @@ public:
     const KernelCreator *getKernelCreator() const;
     ErrorCode fork(GraphDef *graphDef, const ForkGraphParam &param);
     void stopSchedule();
-    void appendResult(NaviResult &result);
     void updateTraceLevel(const std::string &levelStr);
     bool updateTimeoutMs(int64_t timeoutMs);
-    void fillTrace(std::vector<std::string> &traceVec) const;
-    LoggingEvent firstErrorEvent() const;
+    void updateCollect(bool collectMetric, bool collectPerf) const;
+    void collectTrace(std::vector<std::string> &traceVec) const;
+    std::shared_ptr<multi_call::GigStreamRpcInfoMap> getRpcInfoMap() const;
     void terminate(ErrorCode ec);
     int64_t getComputeId() const;
     KernelMetric *getMetric() const;
+    void collectForkGraphMetric() const;
     KernelConfigContext getConfigContext() const;
     bool getConfigContext(const std::string &dependName, KernelConfigContext &ctx);
-    bool getBizPartInfo(const std::string &bizName, NaviPartId &partCount, std::vector<NaviPartId> &partIds) const;
+    const std::string &getBizName() const;
+    bool getBizPartInfo(const std::string &bizName, NaviPartId &partCount,
+                        std::vector<NaviPartId> &partIds) const;
     const std::vector<int32_t> &getSelectorResult() const;
     bool getBinaryAttr(const std::string &attr, std::string &value) const;
     ResourcePtr buildR(const std::string &name, KernelConfigContext *ctx, ResourceMap &inputResourceMap);
@@ -177,13 +182,14 @@ public:
     int32_t getScope() const {
         return _scope;
     }
-    void forceStop(Node *node);
+    void setForceStopFlag(Node *node);
+    void forceStop();
     // for test
     Kernel *getKernel() const;
     void setFrozen(bool frozen);
     bool isFinished() const;
 private:
-    bool initDef(const NodeDef &nodeDef);
+    bool initDef();
     void initBuildinAttrs();
     bool initResourceMap();
     bool checkRequireResource(const std::string &resourceName, bool require) const;
@@ -224,6 +230,7 @@ private:
     bool checkForkGraph(const GraphDef *graphDef) const;
     bool bindDomain(GraphDomainFork *domain);
     void destructData(DataPtr &&data) const;
+    void notifyFinish(ErrorCode ec);
 private:
     bool scheduleLock(const Node *callNode);
     bool doSchedule(const Node *callNode, bool ignoreFrozen, bool &resched);
@@ -233,7 +240,8 @@ private:
                                      IndexType inputIndex);
     void resetIOSnapshot();
     bool checkFinish(ErrorCode ec);
-    void propagateEof() const;
+    void propagateEof();
+    void doForceStop();
     size_t mySwapPoolMallocSize(size_t size);
     size_t mySwapPoolMallocCount(size_t count);
     void startKernelResourceInput() const;
@@ -244,6 +252,7 @@ private:
     NodeAsyncInfoPtr getAsyncInfo() const;
 private:
     DECLARE_LOGGER();
+    const NodeDef *_def;
     std::string _name;
     std::string _kernelName;
     int32_t _scope;
@@ -251,7 +260,7 @@ private:
     LocalSubGraph *_graph;
     Port *_port;
     ResourceMap _resourceMap;
-    KernelMetric *_metric;
+    KernelMetricPtr _metric;
     std::vector<EdgeOutputInfo> _inputs;
     std::vector<Edge *> _outputs;
     std::vector<Edge *> _controlOutputs;
@@ -270,7 +279,6 @@ private:
     size_t _outputDegree;
     atomic64_t _nodeSnapshot;
     volatile SS_STATE _scheduleStat;
-    const NodeDef *_def;
     const KernelCreator *_kernelCreator;
     Kernel *_kernel;
     void *_kernelBaseAddr;
@@ -281,6 +289,7 @@ private:
     std::vector<IndexType> _flushIndexVec;
     const std::map<std::string, bool> *_dependResourceMap;
     CreatorStats *_creatorStats;
+    std::atomic<bool> _forceStopped; // need_restore
     bool _hasInput : 1;
     bool _hasOutput : 1;
     bool _skipConfig : 1;
@@ -306,5 +315,3 @@ private:
 NAVI_TYPEDEF_PTR(Node);
 
 }
-
-#endif //NAVI_NODE_H

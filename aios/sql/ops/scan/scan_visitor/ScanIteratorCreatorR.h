@@ -106,10 +106,22 @@ public:
     const suez::turing::IndexInfoHelper *getIndexInfoHelper() const {
         return _indexInfoHelper;
     }
+    static isearch::search::LayerMetaPtr
+    splitLayerMetaByStep(autil::mem_pool::Pool *pool,
+                         const isearch::search::LayerMetaPtr &layerMeta,
+                         uint32_t parallelIndex,
+                         uint32_t parallelNum,
+                         uint32_t parallelBlockCount);
 
 private:
+    static void intersectRange(isearch::search::LayerMetaPtr newMeta,
+                               uint64_t rangeStart,
+                               uint64_t rangeEnd,
+                               const isearch::search::LayerMeta &oldMeta,
+                               size_t metaIdx);
     bool initMatchData();
     void postInitMatchData();
+    void initMetaInfo();
     ScanIterator *createRangeScanIterator(const isearch::search::FilterWrapperPtr &filterWrapper,
                                           const isearch::search::LayerMetaPtr &layerMeta);
     ScanIterator *createHa3ScanIterator(const isearch::common::QueryPtr &query,
@@ -136,8 +148,6 @@ private:
                                                         isearch::search::LayerMeta *layerMeta,
                                                         bool &emptyScan);
     isearch::search::LayerMetaPtr createLayerMeta();
-    isearch::search::LayerMetaPtr
-    splitLayerMeta(const isearch::search::LayerMetaPtr &layerMeta, uint32_t index, uint32_t num);
     bool createFilterWrapper(suez::turing::AttributeExpression *attrExpr,
                              const std::vector<suez::turing::AttributeExpression *> &queryExprVec,
                              suez::turing::JoinDocIdConverterCreator *joinDocIdConverterCreator,
@@ -160,14 +170,6 @@ private:
                      const std::shared_ptr<indexlibv2::config::ITabletSchema> &tabletSchema);
 
 public:
-    // for test
-    static isearch::search::LayerMetaPtr
-    splitLayerMeta(autil::mem_pool::Pool *pool,
-                   const isearch::search::LayerMetaPtr &layerMeta,
-                   uint32_t index,
-                   uint32_t num);
-
-public:
     static const std::string RESOURCE_ID;
 
 private:
@@ -186,6 +188,7 @@ private:
     RESOURCE_DEPEND_ON(AttributeExpressionCreatorR, _attributeExpressionCreatorR);
     RESOURCE_DEPEND_ON(Ha3TableInfoR, _ha3TableInfoR);
     isearch::search::IndexPartitionReaderWrapperPtr _indexPartitionReaderWrapper;
+    std::shared_ptr<suez::turing::FieldMetaReaderWrapper> _fieldMetaReaderWrapper;
     suez::turing::TableInfoPtr _tableInfo;
     std::shared_ptr<matchdoc::MatchDocAllocator> _matchDocAllocator;
     suez::turing::FunctionProviderPtr _functionProvider;

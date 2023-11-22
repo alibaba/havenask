@@ -15,9 +15,13 @@
  */
 #pragma once
 
+#include <stdint.h>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "build_service/common_define.h"
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/util/Log.h"
 

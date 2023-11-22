@@ -15,6 +15,8 @@
  */
 #include "build_service/config/DocReclaimSource.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace build_service { namespace config {

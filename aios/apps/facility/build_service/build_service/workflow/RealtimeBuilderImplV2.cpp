@@ -15,18 +15,31 @@
  */
 #include "build_service/workflow/RealtimeBuilderImplV2.h"
 
-#include "build_service/config/CLIOptionNames.h"
+#include <assert.h>
+#include <cstddef>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/builder/BuildSpeedLimiter.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ResourceReaderManager.h"
-#include "build_service/util/Monitor.h"
+#include "build_service/reader/RawDocumentReader.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/workflow/BuildFlow.h"
-#include "build_service/workflow/RealTimeBuilderTaskItem.h"
 #include "future_lite/NamedTaskScheduler.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/framework/CommitOptions.h"
 #include "indexlib/framework/TabletInfos.h"
-#include "indexlib/index_base/online_join_policy.h"
-#include "indexlib/partition/index_partition.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/partition/builder_branch_hinter.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/TaskItem.h"
 #include "indexlib/util/TaskScheduler.h"
-#include "indexlib/util/metrics/Metric.h"
-#include "indexlib/util/metrics/MetricProvider.h"
 
 using namespace std;
 using namespace autil;
@@ -167,7 +180,7 @@ void RealtimeBuilderImplV2::executeBuildControlTask()
 void RealtimeBuilderImplV2::skipRtBeforeTimestamp()
 {
     // TODO(tianxiao) check high bit
-    auto [latestLocator, _] = getLatestLocator();
+    auto latestLocator = getLatestLocator();
     if (latestLocator.GetOffset().first >= _timestampToSkip) {
         return;
     }
@@ -175,24 +188,14 @@ void RealtimeBuilderImplV2::skipRtBeforeTimestamp()
     producerSeek(locatorToJump);
 }
 
-std::pair<indexlibv2::framework::Locator, /*fromInc*/ bool> RealtimeBuilderImplV2::getLatestLocator() const
+indexlibv2::framework::Locator RealtimeBuilderImplV2::getLatestLocator() const
 {
-    auto incLocator = _builder->getLatestVersionLocator();
-    if (!incLocator.IsValid()) {
-        return {indexlibv2::framework::Locator(), false};
+    auto latestLocator = _builder->getLastLocator();
+    if (!latestLocator.IsValid()) {
+        BS_PREFIX_LOG(WARN, "get invalid locator from builder");
+        return indexlibv2::framework::Locator();
     }
-    auto rtLocator = _builder->getLastLocator();
-    if (!rtLocator.IsValid()) {
-        return {indexlibv2::framework::Locator(), false};
-    }
-    auto compareResult = rtLocator.IsFasterThan(incLocator, true);
-    assert(compareResult != indexlibv2::framework::Locator::LocatorCompareResult::LCR_INVALID);
-    if (indexlibv2::framework::Locator::LocatorCompareResult::LCR_FULLY_FASTER == compareResult) {
-        return {rtLocator, false};
-    } else {
-        incLocator.SetSrc(rtLocator.GetSrc());
-        return {incLocator, true};
-    }
+    return latestLocator;
 }
 
 void RealtimeBuilderImplV2::checkRecoverBuild()
@@ -352,7 +355,7 @@ void RealtimeBuilderImplV2::autoResume()
 BuildFlow* RealtimeBuilderImplV2::createBuildFlow(indexlibv2::framework::ITablet* tablet,
                                                   const SwiftClientCreatorPtr& swiftClientCreator) const
 {
-    return new BuildFlow(swiftClientCreator, tablet->GetTabletSchema(), _buildFlowThreadResource);
+    return new BuildFlow(tablet->GetTabletSchema(), _buildFlowThreadResource);
 }
 
 void RealtimeBuilderImplV2::setErrorInfoUnsafe(RealtimeErrorCode errorCode, const string& errorMsg)

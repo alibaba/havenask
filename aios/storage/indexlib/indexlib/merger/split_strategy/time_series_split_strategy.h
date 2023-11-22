@@ -13,18 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TIME_SERIES_SPLIT_STRATEGY_H
-#define __INDEXLIB_TIME_SERIES_SPLIT_STRATEGY_H
+#pragma once
 
+#include <limits>
+#include <map>
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/mem_pool/Pool.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/FieldType.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/framework/SegmentGroupMetrics.h"
+#include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_segment_reader.h"
 #include "indexlib/index/segment_metrics_updater/max_min_segment_metrics_updater.h"
+#include "indexlib/index/segment_metrics_updater/segment_metrics_updater.h"
 #include "indexlib/index/segment_metrics_updater/time_series_segment_metrics_updater.h"
+#include "indexlib/index/util/segment_directory_base.h"
+#include "indexlib/index_base/index_meta/segment_merge_info.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/split_strategy/split_segment_strategy.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/KeyValueMap.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace merger {
 class TimeSeriesSplitProcessor
@@ -161,5 +183,3 @@ private:
 
 DEFINE_SHARED_PTR(TimeSeriesSplitStrategy);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TIME_SERIES_SPLIT_STRATEGY_H

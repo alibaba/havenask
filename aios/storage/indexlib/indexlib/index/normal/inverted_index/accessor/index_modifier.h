@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_MODIFIER_H
-#define __INDEXLIB_INDEX_MODIFIER_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/index_document/normal_document/modified_tokens.h"
@@ -48,5 +47,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index
-
-#endif

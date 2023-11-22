@@ -72,7 +72,7 @@ const int32_t FileSystem::DEFAULT_THREAD_QUEUE_SIZE = 1024;
         }                                                                                                              \
     }
 
-bool FileSystem::_useMock = false;
+std::atomic_bool FileSystem::_useMock = false;
 bool FileSystem::_mmapDontDump = ("true" == EnvUtil::getEnv("MMAP_DONTDUMP"));
 ErrorCode FileSystem::GENERATE_ERROR(const string &operation, const string &filename) {
     ErrorCode __ec = EC_OK;

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTE_WRITER_HELPER_H
-#define __INDEXLIB_ATTRIBUTE_WRITER_HELPER_H
+#pragma once
 
 #include <memory>
 
@@ -25,5 +24,3 @@ private:
 
 DEFINE_SHARED_PTR(AttributeWriterHelper);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_WRITER_HELPER_H

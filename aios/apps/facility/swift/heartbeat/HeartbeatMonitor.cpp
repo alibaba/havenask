@@ -110,13 +110,11 @@ bool HeartbeatMonitor::start(int64_t syncInterval) {
         _zk.setDeleteCallback(0);
         return false;
     }
-
     if (!_zk.createPath(_path)) {
         AUTIL_LOG(ERROR, "HeartbeatMonitor root path create failed. path[%s]", _path.c_str());
         stop();
         return false;
     }
-
     ScopedLock lock(_mutex);
     diffChildren(true);
     _syncHeartbeatThreadPtr = autil::LoopThread::createLoopThread(

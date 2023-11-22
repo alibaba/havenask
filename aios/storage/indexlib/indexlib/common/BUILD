@@ -3,7 +3,7 @@ cc_library(
     hdrs=['multi_region_rehasher.h'],
     copts=['-Werror'],
     include_prefix='indexlib/common',
-    visibility=['//aios/storage/indexlib:__subpackages__']
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
 )
 cc_library(
     name='field_format',
@@ -24,7 +24,7 @@ cc_library(
     ]),
     copts=['-Werror', '-mavx'],
     include_prefix='indexlib/common',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         '//aios/autil:memory', '//aios/autil:pack_data',
         '//aios/storage/indexlib/file_system:byte_slice_rw',
@@ -56,7 +56,7 @@ cc_library(
                        'hash_table/spatial_value.h']),
     copts=['-Werror', '-mavx'],
     include_prefix='indexlib/common',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/file_system:byte_slice_rw',
         '//aios/storage/indexlib/index/common:radix_tree',

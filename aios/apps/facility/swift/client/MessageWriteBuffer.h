@@ -96,6 +96,8 @@ public:
     bool stealUnsendMessage(std::vector<common::MessageInfo> &msgInfoVec);
     void setSealed(bool sealed) { _sealed = sealed; }
     bool getSealed() { return _sealed; }
+    void
+    getMsgInBufferInfo(size_t &inWriteCount, size_t &toSendCount, size_t &leftMergeCount, size_t &uncommittedCount);
 
 private:
     bool compressAndAddMsgToSend(MessageInfo *msgInfo, autil::ZlibCompressor *compressor, bool compressFlag = true);
@@ -111,6 +113,7 @@ private:
     bool mergeMessage();
     bool doConvertMessage();
     size_t getLeftToMergeCount();
+    size_t getLeftToMergeCountSafe();
     void cleanMergeInfo();
     void cleanMsgs(std::vector<MessageInfo *> &msgVec);
 

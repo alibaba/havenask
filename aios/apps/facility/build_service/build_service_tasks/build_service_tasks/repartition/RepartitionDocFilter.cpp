@@ -15,10 +15,30 @@
  */
 #include "build_service_tasks/repartition/RepartitionDocFilter.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+#include <stdint.h>
+#include <type_traits>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/offline_config.h"
+#include "indexlib/config/offline_config_base.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/index_base/segment/segment_data.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/partition/index_partition_reader.h"
 #include "indexlib/partition/offline_partition_reader.h"
 #include "indexlib/partition/on_disk_partition_data.h"
 

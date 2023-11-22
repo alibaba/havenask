@@ -1,14 +1,13 @@
 #include <fstream>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/configurator_define.h"
 #include "indexlib/config/single_field_index_config.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/inverted_index/config/AdaptiveDictionaryConfig.h"
 #include "indexlib/index/inverted_index/config/DictionaryConfig.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 using namespace std;
 using namespace autil::legacy;
@@ -68,7 +67,7 @@ private:
     {
         ifstream in(configFile.c_str());
         if (!in) {
-            IE_LOG(ERROR, "OPEN INPUT FILE[%s] ERROR", configFile.c_str());
+            AUTIL_LOG(ERROR, "OPEN INPUT FILE[%s] ERROR", configFile.c_str());
             return "";
         }
         string line;
@@ -77,15 +76,15 @@ private:
             jsonString += line;
         }
 
-        IE_LOG(DEBUG, "jsonString:%s", jsonString.c_str());
+        AUTIL_LOG(DEBUG, "jsonString:%s", jsonString.c_str());
         return jsonString;
     }
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-IE_LOG_SETUP(index, SingleFieldIndexConfigTest);
+AUTIL_LOG_SETUP(index, SingleFieldIndexConfigTest);
 INDEXLIB_UNIT_TEST_CASE(SingleFieldIndexConfigTest, TestCaseForToJson);
 INDEXLIB_UNIT_TEST_CASE(SingleFieldIndexConfigTest, TestInvalidIndexTypeForEnableNull);
 }} // namespace indexlib::config

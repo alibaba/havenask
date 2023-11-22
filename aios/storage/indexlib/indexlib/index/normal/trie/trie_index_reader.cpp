@@ -96,7 +96,7 @@ size_t TrieIndexReader::EstimateLoadSize(const PartitionDataPtr& partitionData, 
     return totalSize;
 }
 
-docid_t TrieIndexReader::Lookup(const StringView& pkStr) const
+docid64_t TrieIndexReader::Lookup(const StringView& pkStr) const
 {
     if (mBuildingIndexReader) {
         docid_t gDocId = mBuildingIndexReader->Lookup(pkStr);
@@ -110,11 +110,11 @@ docid_t TrieIndexReader::Lookup(const StringView& pkStr) const
         docid_t baseDocId = it->first;
         const SegmentReaderPtr& segmentReader = it->second;
         assert(segmentReader);
-        docid_t localDocId = segmentReader->Lookup(pkStr);
+        docid64_t localDocId = segmentReader->Lookup(pkStr);
         if (localDocId == INVALID_DOCID) {
             continue;
         }
-        docid_t gDocId = baseDocId + localDocId;
+        docid64_t gDocId = baseDocId + localDocId;
         if (!IsDocidValid(gDocId)) {
             // TODO:
             // for inc cover rt, rt doc deleted use inc doc

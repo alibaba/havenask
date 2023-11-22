@@ -7,6 +7,12 @@ cc_proto(
     visibility=['//visibility:public'],
     deps=['//aios/network/arpc:proto']
 )
+cc_proto(
+    name='sql_query_config',
+    srcs=['SqlQueryConfig.proto'],
+    import_prefix='sql/proto',
+    deps=[]
+)
 cc_library(
     name='sql_proto',
     srcs=glob(['SqlSearchInfoCollector.cpp', 'SqlSearchInfoCollectorR.cpp']),
@@ -17,4 +23,13 @@ cc_library(
         '//aios/sql/common:sql_log'
     ],
     alwayslink=True
+)
+cc_test(
+    name='test',
+    srcs=glob(['test/*Test.cpp']),
+    copts=['-fno-access-control'],
+    deps=[
+        ':sql_proto', '//aios/navi:navi_log_testlib',
+        '//aios/unittest_framework'
+    ]
 )

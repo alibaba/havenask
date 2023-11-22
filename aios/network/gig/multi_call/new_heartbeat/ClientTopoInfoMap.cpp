@@ -16,6 +16,7 @@
 #include "aios/network/gig/multi_call/new_heartbeat/ClientTopoInfoMap.h"
 
 #include "aios/network/gig/multi_call/new_heartbeat/ServerTopoMap.h"
+#include "aios/network/gig/multi_call/new_heartbeat/HostHeartbeatInfo.h"
 #include "aios/network/gig/multi_call/service/SearchServiceReplica.h"
 #include "aios/network/gig/multi_call/service/SearchServiceResource.h"
 #include "aios/network/gig/multi_call/util/MiscUtil.h"
@@ -104,11 +105,13 @@ void ClientTopoInfo::initTags(SignatureTy sig, const BizTagsDef &tags) {
     _tags = std::move(newTagMap);
 }
 
-void ClientTopoInfo::update(const BizTopoDef &bizTopoDef, int64_t netLatencyUs) {
+bool ClientTopoInfo::update(const BizTopoDef &bizTopoDef, int64_t netLatencyUs) {
     const auto &signature = bizTopoDef.signature();
+    bool needNotify = false;
     bool flush = false;
     if (_signature.meta != signature.meta()) {
         initMetas(signature.meta(), bizTopoDef.metas());
+        needNotify = true;
         flush = true;
     }
     if (_signature.tag != signature.tag()) {
@@ -125,6 +128,7 @@ void ClientTopoInfo::update(const BizTopoDef &bizTopoDef, int64_t netLatencyUs) 
     if (flush) {
         flushUpdate();
     }
+    return needNotify;
 }
 
 void ClientTopoInfo::flushUpdate() {
@@ -132,13 +136,20 @@ void ClientTopoInfo::flushUpdate() {
     if (!_provider) {
         return;
     }
-    _provider->setTargetWeight(_topoNode.meta.targetWeight);
+    auto oldTargetWeight = _provider->getTargetWeight();
+    auto targetWeight = _topoNode.meta.targetWeight;
+    if (oldTargetWeight != targetWeight) {
+        _provider->setTargetWeight(targetWeight);
+    }
     if (_tags) {
         _provider->updateTagsFromMap(*_tags);
     } else {
         _provider->updateTagsFromMap(TagMap());
     }
     _provider->updateHeartbeatMetas(_metas);
+    if ((oldTargetWeight != targetWeight) && (MIN_WEIGHT == targetWeight)) {
+        _hostStats->ignoreNextSkip = true;
+    }
 }
 
 std::shared_ptr<SearchServiceProvider> ClientTopoInfo::getProvider() const {
@@ -199,12 +210,19 @@ void ClientTopoInfo::updatePropagationStat(const PropagationStatDef &statDef,
 }
 
 void ClientTopoInfo::fillTopoRequest(TopoHeartbeatRequest &request) const {
-    autil::ScopedReadWriteLock lock(_lock, 'r');
-    auto sigDef = request.mutable_signature();
-    sigDef->set_topo(_signature.topo);
-    sigDef->set_meta(_signature.meta);
-    sigDef->set_tag(_signature.tag);
-    sigDef->set_publish_id(_signature.publishId);
+    std::shared_ptr<SearchServiceReplica> replica;
+    {
+        autil::ScopedReadWriteLock lock(_lock, 'r');
+        auto sigDef = request.mutable_signature();
+        sigDef->set_topo(_signature.topo);
+        sigDef->set_meta(_signature.meta);
+        sigDef->set_tag(_signature.tag);
+        sigDef->set_publish_id(_signature.publishId);
+        replica = _replica;
+    }
+    if ((MIN_WEIGHT == _topoNode.meta.targetWeight) && replica) {
+        request.set_all_provider_stopped(!replica->hasStartedProvider());
+    }
 }
 
 void ClientTopoInfo::disableProvider() const {
@@ -302,7 +320,8 @@ ClientTopoInfoPtr ClientTopoInfoMap::getInfo(SignatureTy topoSig) const {
     return nullptr;
 }
 
-bool ClientTopoInfoMap::update(const NewHeartbeatResponse &response, int64_t netLatencyUs) {
+bool ClientTopoInfoMap::update(const NewHeartbeatResponse &response, int64_t netLatencyUs,
+                               bool &needNotify) {
     _clientId = response.client_id();
     if (_serverId->getSignature() != response.server_signature()) {
         return false;
@@ -317,7 +336,9 @@ bool ClientTopoInfoMap::update(const NewHeartbeatResponse &response, int64_t net
             isSame = false;
             continue;
         }
-        clientInfo->update(topoDef, netLatencyUs);
+        if (clientInfo->update(topoDef, netLatencyUs)) {
+            needNotify = true;
+        }
     }
     return isSame && ((size_t)responseCount == _topoMap.size());
 }
@@ -351,7 +372,7 @@ void ClientTopoInfoMap::disableAllProvider() const {
 void ClientTopoInfoMap::toString(std::string &debugStr, MetasSignatureMap &allMetas) const {
     debugStr += ", clientId: " + autil::StringUtil::toString(_clientId);
     debugStr += ", serverSig: " + autil::StringUtil::toString(_serverId->getSignature());
-    debugStr += ", topCount: " + autil::StringUtil::toString(_topoMap.size());
+    debugStr += ", topoCount: " + autil::StringUtil::toString(_topoMap.size());
     for (const auto &pair : _topoMap) {
         debugStr += "\n";
         pair.second->toString(debugStr, allMetas);

@@ -1,9 +1,28 @@
 #include "build_service/common/IndexCheckpointResourceKeeper.h"
 
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <string>
+
 #include "build_service/common/CheckpointAccessor.h"
+#include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeper.h"
 #include "build_service/common/ResourceKeeperGuard.h"
+#include "build_service/common_define.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/test/unittest.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

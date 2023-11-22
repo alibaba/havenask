@@ -33,6 +33,7 @@ public:
     ~EpochBasedMemReclaimer();
 
     struct RetireItem {
+        int64_t retireId = 0;
         void* addr = nullptr;
         int64_t epoch = 0;
         std::function<void(void*)> deAllocator;
@@ -45,8 +46,11 @@ public:
     };
 
 public:
-    void Retire(void* addr, std::function<void(void*)> deAllocator) override;
+    int64_t Retire(void* addr, std::function<void(void*)> deAllocator) override;
+    void DropRetireItem(int64_t retireItemId) override;
     void TryReclaim() override;
+    void GetMaxMinEpochId(int64_t& maxEpochId, int64_t& minEpochId);
+    void Reclaim() override;
 
 public:
     void Clear();
@@ -55,15 +59,13 @@ public:
     void LeaveCritical(EpochItem* epochItem);
 
 private:
-    void DoReclaim();
-
-private:
     std::deque<RetireItem> _retireList;
+    int64_t _globalRetireId;
     std::deque<EpochItem> _epochItemList;
 
     std::atomic<int64_t> _globalEpoch;
     mutable std::mutex _epochMutex;
-    mutable std::mutex _retireMutex;
+    mutable std::mutex _reclaimMutex;
 
     size_t _reclaimFreq;
     size_t _tryReclaimCounter;

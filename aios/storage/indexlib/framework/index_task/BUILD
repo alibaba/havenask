@@ -61,6 +61,22 @@ strict_cc_library(
     ]
 )
 strict_cc_library(
+    name='CustomIndexTaskFactory',
+    srcs=[],
+    deps=[
+        ':IIndexOperationCreator', ':IIndexTaskPlanCreator',
+        '//aios/autil:NoCopyable'
+    ]
+)
+strict_cc_library(
+    name='CustomIndexTaskFactoryCreator',
+    hdrs=['CustomIndexTaskFactory.h', 'CustomIndexTaskFactoryCreator.h'],
+    deps=[
+        ':IIndexOperationCreator', ':IIndexTaskPlanCreator',
+        '//aios/autil:NoCopyable', '//aios/storage/indexlib/util:Singleton'
+    ]
+)
+strict_cc_library(
     name='IndexTaskPlan',
     deps=[
         ':IndexOperationDescription', '//aios/autil:json', '//aios/autil:log'
@@ -129,6 +145,7 @@ strict_cc_library(
         '//aios/storage/indexlib/base:NoExceptionWrapper',
         '//aios/storage/indexlib/config:TabletOptions',
         '//aios/storage/indexlib/framework:DiskSegment',
+        '//aios/storage/indexlib/framework:EnvironmentVariablesProvider',
         '//aios/storage/indexlib/framework:ITabletFactory',
         '//aios/storage/indexlib/framework:MetricsManager',
         '//aios/storage/indexlib/framework:TabletData',

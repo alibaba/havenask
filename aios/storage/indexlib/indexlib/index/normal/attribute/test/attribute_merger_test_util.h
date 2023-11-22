@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTE_MERGER_TEST_UTIL_H
-#define __INDEXLIB_ATTRIBUTE_MERGER_TEST_UTIL_H
+#pragma once
 
 #include <memory>
 
@@ -85,5 +84,3 @@ config::AttributeConfigPtr AttributeMergerTestUtil::CreateAttributeConfig(bool i
     return CreateAttributeConfig(type, isMultiValue);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_MERGER_TEST_UTIL_H

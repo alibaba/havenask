@@ -78,7 +78,7 @@ TEST_F(BsVersionSynchronizerTest, testPersistVersion) {
     auto pid = TableMetaUtil::makePid("orc", /*fullVersion*/ generationId, /*rangeFrom*/ 0, /*rangeTo*/ 128);
     TableVersion tableVersion(10, versionMeta);
     ASSERT_TRUE(synchronizer.init());
-    ASSERT_TRUE(synchronizer.persistVersion(pid, configPath, tableVersion));
+    ASSERT_TRUE(synchronizer.persistVersion(pid, "", "", configPath, tableVersion));
 }
 
 TEST_F(BsVersionSynchronizerTest, testUselessFunction) {
@@ -88,8 +88,8 @@ TEST_F(BsVersionSynchronizerTest, testUselessFunction) {
     synchronizer.remove(pid);
     TableVersion tableVersion;
     std::vector<TableVersion> versions;
-    ASSERT_TRUE(synchronizer.getVersionList(pid, versions));
-    ASSERT_TRUE(synchronizer.updateVersionList(pid, versions));
+    ASSERT_TRUE(synchronizer.getVersionList(pid, "", "", versions));
+    ASSERT_TRUE(synchronizer.updateVersionList(pid, "", "", versions));
 }
 
 TEST_F(BsVersionSynchronizerTest, testSyncFromPersist) {
@@ -118,13 +118,13 @@ TEST_F(BsVersionSynchronizerTest, testSyncFromPersist) {
             auto pid = TableMetaUtil::makePid("orc", /*fullVersion*/ generationId, /*rangeFrom*/ 0, /*rangeTo*/ 128);
             TableVersion tableVersion(10, versionMeta);
             ASSERT_TRUE(synchronizer.init());
-            ASSERT_TRUE(synchronizer.persistVersion(pid, configPath, tableVersion));
+            ASSERT_TRUE(synchronizer.persistVersion(pid, "", "", configPath, tableVersion));
             ON_CALL(*synchronizer._committer, GetCommittedVersions(1, _))
                 .WillByDefault(DoAll(SetArgReferee<1>(committedVersions), Return(Status::OK())));
             if (expectedSupportSyncFromPersist) {
                 TableVersion version;
                 ASSERT_TRUE(synchronizer.supportSyncFromPersist(target));
-                ASSERT_TRUE(synchronizer.syncFromPersist(pid, configPath, version));
+                ASSERT_TRUE(synchronizer.syncFromPersist(pid, "", "", configPath, version));
                 ASSERT_EQ(10, version.getVersionId());
             } else {
                 ASSERT_FALSE(synchronizer.supportSyncFromPersist(target));

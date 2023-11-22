@@ -46,6 +46,9 @@ public:
     static const std::string OUTPUT_PORT;
 
 private:
+    void handleScopeError(navi::KernelComputeContext &ctx) const;
+
+private:
     KERNEL_DEPEND_DECLARE();
 
 private:

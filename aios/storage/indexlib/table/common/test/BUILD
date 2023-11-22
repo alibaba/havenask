@@ -14,6 +14,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='CommonVersionImporterTest',
     srcs=['CommonVersionImporterTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/table/common:CommonVersionImporter',
         '//aios/unittest_framework'
@@ -22,6 +23,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='TabletWriterResourceCalculatorTest',
     srcs=['TabletWriterResourceCalculatorTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/table/common:TabletWriterResourceCalculator',
         '//aios/unittest_framework'

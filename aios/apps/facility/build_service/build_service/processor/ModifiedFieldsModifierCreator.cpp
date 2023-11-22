@@ -15,12 +15,18 @@
  */
 #include "build_service/processor/ModifiedFieldsModifierCreator.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "build_service/processor/LegacyModifiedFieldsModifierCreator.h"
 #include "build_service/processor/ModifiedFieldsIgnoreModifier.h"
-#include "build_service/processor/ModifiedFieldsSubRelationModifier.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/config/IIndexConfig.h"
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/legacy_schema_adapter.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
 
 using namespace std;
 using namespace indexlib::config;

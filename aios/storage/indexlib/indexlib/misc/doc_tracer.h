@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOC_TRACER_H
-#define __INDEXLIB_DOC_TRACER_H
+#pragma once
 #include "beeper/beeper.h"
 #include "indexlib/document/document.h"
 #include "indexlib/document/raw_document.h"
@@ -59,5 +58,3 @@ class EventTags;
     } while (0)
 
 #define IE_DOC_TRACER_COLLECTOR_NAME "doc_tracer"
-
-#endif //__INDEXLIB_DOC_TRACER_H

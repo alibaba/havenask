@@ -1,14 +1,15 @@
 package com.taobao.search.iquan.core.planner.functions;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 import org.apache.calcite.sql.type.SqlTypeName;
 
-import java.util.Collections;
-import java.util.List;
-
-public abstract class MinAggFunction extends DeclarativeAggregateFunction{
+public abstract class MinAggFunction extends DeclarativeAggregateFunction {
     private static final String min = "min";
+
     protected MinAggFunction(SqlTypeFactoryImpl typeFactory) {
         super(typeFactory);
     }

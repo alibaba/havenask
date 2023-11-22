@@ -15,7 +15,11 @@
  */
 #include "build_service/admin/CheckpointCreator.h"
 
+#include <iosfwd>
+#include <memory>
+
 #include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/common/BuilderCheckpointAccessor.h"
 
 using namespace std;
 

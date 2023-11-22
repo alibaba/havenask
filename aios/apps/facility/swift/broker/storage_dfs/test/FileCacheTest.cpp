@@ -102,7 +102,7 @@ TEST_F(FileCacheTest, testGetFileWrapperAppendingChangeRecycle) {
     ASSERT_EQ(0, fileCache._fileCache.size());
 }
 
-TEST_F(FileCacheTest, testGetAndRecycleFileWrapper) {
+TEST_F(FileCacheTest, testGetAndRecycleFileWrapperTimeout) {
     string fileName = _localTestDataPath + "/block_data_f_1";
     ASSERT_TRUE(prepartData(fileName));
     string fileName2 = _localTestDataPath + "/block_data_f_2";
@@ -119,7 +119,7 @@ TEST_F(FileCacheTest, testGetAndRecycleFileWrapper) {
     ASSERT_TRUE(fileWrapper2 != NULL);
     ASSERT_EQ(1, fileCache._fileCache.size());
     ASSERT_TRUE(fileWrapper1.get() == fileWrapper2.get());
-    sleep(2);
+    sleep(3);
     FileWrapperPtr fileWrapper3 = fileCache.getFileWrapper(fileName2, false, 0);
     ASSERT_TRUE(fileWrapper3 != NULL);
     ASSERT_EQ(2, fileCache._fileCache.size());
@@ -130,7 +130,7 @@ TEST_F(FileCacheTest, testGetAndRecycleFileWrapper) {
     ASSERT_EQ(3, fileCache._fileCache.size());
     ASSERT_TRUE(fileCache._fileCache.find(fileName3) != fileCache._fileCache.end());
 
-    sleep(2);
+    sleep(1);
     fileCache.setFileReserveTime(3);
     fileCache.recycleFile();
     ASSERT_EQ(2, fileCache._fileCache.size());
@@ -140,6 +140,34 @@ TEST_F(FileCacheTest, testGetAndRecycleFileWrapper) {
     ASSERT_TRUE(fileWrapper1.get() != fileWrapper2.get());
     ASSERT_EQ(3, fileCache._fileCache.size());
     ASSERT_EQ(3, fileCache._fileCache[fileName].size());
+}
+
+TEST_F(FileCacheTest, testGetAndRecycleFileWrapperBadFile) {
+    string fileName = _localTestDataPath + "/block_data_f_1";
+    ASSERT_TRUE(prepartData(fileName));
+    string fileName2 = _localTestDataPath + "/block_data_f_2";
+    ASSERT_TRUE(prepartData(fileName2));
+    string fileName3 = _localTestDataPath + "/block_data_f_3";
+    ASSERT_TRUE(prepartData(fileName3));
+    BlockPool fileCachePool(9, 3);
+    FileCache fileCache(&fileCachePool, 3);
+    FileWrapperPtr fileWrapper1 = fileCache.getFileWrapper(fileName, false, 0);
+    ASSERT_TRUE(fileWrapper1 != NULL);
+    ASSERT_EQ(1, fileCache._fileCache.size());
+    ASSERT_EQ(3, fileCache._fileCache[fileName].size());
+    FileWrapperPtr fileWrapper2 = fileCache.getFileWrapper(fileName, false, 0);
+    ASSERT_TRUE(fileWrapper2 != NULL);
+    ASSERT_EQ(1, fileCache._fileCache.size());
+    ASSERT_TRUE(fileWrapper1.get() == fileWrapper2.get());
+    FileWrapperPtr fileWrapper3 = fileCache.getFileWrapper(fileName2, false, 0);
+    ASSERT_TRUE(fileWrapper3 != NULL);
+    ASSERT_EQ(2, fileCache._fileCache.size());
+    ASSERT_EQ(3, fileCache._fileCache[fileName2].size());
+    FileWrapperPtr fileWrapper4 = fileCache.getFileWrapper(fileName3, true, 0);
+    ASSERT_TRUE(fileWrapper4 != NULL);
+    ASSERT_TRUE(fileWrapper4->isAppending());
+    ASSERT_EQ(3, fileCache._fileCache.size());
+    ASSERT_TRUE(fileCache._fileCache.find(fileName3) != fileCache._fileCache.end());
 
     fileWrapper2->setBad(true); // remove bad file
     fileCache.recycleFile();
@@ -317,8 +345,7 @@ TEST_F(FileCacheTest, testBackGroudRecycleDis) {
     ASSERT_EQ(2, fileCache._fileCache.size());
     ASSERT_EQ(0, fileCache._metaBlockCache.size());
     ASSERT_EQ(3, fileCache._dataBlockCache.size());
-    fileCache.setFileReserveTime(3);
-    sleep(4);
+
     ReaderInfoMap readerInfoMap;
     ReaderDes des("10.1.1.1:100", 0, 20);
     ReaderInfoPtr info(new ReaderInfo());
@@ -326,11 +353,11 @@ TEST_F(FileCacheTest, testBackGroudRecycleDis) {
     info->dataInfo->blockId = 0;
     info->setReadFile(true);
     info->dataInfo->msgSize = 100;
-    info->dataInfo->updateRate(10); //每秒读10字节
     readerInfoMap[des] = info;
     fileCache.recycle(&readerInfoMap, 1, 1);
     ASSERT_EQ(3, fileCache._dataBlockCache.size());
     vector<int64_t> metaDisVec, dataDisVec;
+    info->dataInfo->_latedData.push_back(make_pair(autil::TimeUtility::currentTime(), 10));
     fileCache.getBlockDis(&readerInfoMap, metaDisVec, dataDisVec);
     fileCache.recycle(&readerInfoMap, 1, 1);
     ASSERT_EQ(1, fileCache._dataBlockCache.size());

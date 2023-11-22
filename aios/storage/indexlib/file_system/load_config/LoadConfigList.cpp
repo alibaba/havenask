@@ -19,6 +19,7 @@
 
 #include "autil/StringUtil.h"
 #include "indexlib/file_system/load_config/CacheLoadStrategy.h"
+#include "indexlib/file_system/load_config/MmapLoadStrategy.h"
 #include "indexlib/util/Exception.h"
 
 namespace indexlib { namespace file_system {
@@ -158,5 +159,17 @@ size_t LoadConfigList::Size() const { return _impl->loadConfigs.size(); }
 void LoadConfigList::SwitchLoadSpeedLimit(bool on) { *(_impl->enableLoadSpeedLimit) = on; }
 
 LoadConfigList::LoadConfigVector& LoadConfigList::GetLoadConfigs() { return _impl->loadConfigs; }
+
+LoadConfig LoadConfigList::MakeMmapLoadConfig(const std::vector<std::string>& patterns, bool warmup, bool isLock,
+                                              bool adviseRandom, uint32_t lockSlice, uint32_t lockInterval)
+{
+    LoadConfig loadConfig;
+    loadConfig.SetLoadStrategyPtr(std::make_shared<MmapLoadStrategy>(isLock, adviseRandom, lockSlice, lockInterval));
+    loadConfig.SetFilePatternString(patterns);
+    WarmupStrategy warmupStrategy;
+    warmupStrategy.SetWarmupType(warmup ? WarmupStrategy::WARMUP_SEQUENTIAL : WarmupStrategy::WARMUP_NONE);
+    loadConfig.SetWarmupStrategy(warmupStrategy);
+    return loadConfig;
+}
 
 }} // namespace indexlib::file_system

@@ -99,7 +99,7 @@ public:
 
     bool GetDocument(docid_t docId,
                      indexlib::document::SearchSummaryDocument *summaryDoc,
-                     const SummaryGroupIdVec &groupVec) const override {
+                     const indexlib::index::SummaryGroupIdVec &groupVec) const override {
         if (docId < (docid_t)_summaryDocuments.size()) {
             for (size_t i = 0; i < groupVec.size(); ++i) {
                 const indexlib::config::SummaryGroupConfigPtr &summaryGroupConfig
@@ -119,7 +119,7 @@ public:
     }
     future_lite::coro::Lazy<indexlib::index::ErrorCodeVec>
     GetDocument(const std::vector<docid_t> &docIds,
-                const SummaryGroupIdVec &groupVec,
+                const indexlib::index::SummaryGroupIdVec &groupVec,
                 autil::mem_pool::Pool *sessionPool,
                 file_system::ReadOption option,
                 const SearchSummaryDocVec *docs) const noexcept override {

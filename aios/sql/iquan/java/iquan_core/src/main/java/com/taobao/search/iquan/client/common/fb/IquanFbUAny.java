@@ -3,18 +3,21 @@
 package com.taobao.search.iquan.client.common.fb;
 
 public final class IquanFbUAny {
-  private IquanFbUAny() { }
-  public static final byte NONE = 0;
-  public static final byte IquanFbBool = 1;
-  public static final byte IquanFbInt = 2;
-  public static final byte IquanFbLong = 3;
-  public static final byte IquanFbDouble = 4;
-  public static final byte IquanFbString = 5;
-  public static final byte IquanFbList = 6;
-  public static final byte IquanFbMap = 7;
+    public static final byte NONE = 0;
+    public static final byte IquanFbBool = 1;
+    public static final byte IquanFbInt = 2;
+    public static final byte IquanFbLong = 3;
+    public static final byte IquanFbDouble = 4;
+    public static final byte IquanFbString = 5;
+    public static final byte IquanFbList = 6;
+    public static final byte IquanFbMap = 7;
+    public static final String[] names = {"NONE", "IquanFbBool", "IquanFbInt", "IquanFbLong", "IquanFbDouble", "IquanFbString", "IquanFbList", "IquanFbMap",};
 
-  public static final String[] names = { "NONE", "IquanFbBool", "IquanFbInt", "IquanFbLong", "IquanFbDouble", "IquanFbString", "IquanFbList", "IquanFbMap", };
+    private IquanFbUAny() {
+    }
 
-  public static String name(int e) { return names[e]; }
+    public static String name(int e) {
+        return names[e];
+    }
 }
 

@@ -25,13 +25,16 @@ class PackageIndexConfig;
 namespace indexlib::document {
 class IndexDocument;
 }
+namespace indexlibv2::index {
+class InvertedIndexFields;
+}
 
 namespace indexlib::index {
 
 class SectionAttributeMemIndexer : public indexlibv2::index::IMemIndexer
 {
 public:
-    SectionAttributeMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam);
+    SectionAttributeMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam);
     ~SectionAttributeMemIndexer();
 
 public:
@@ -56,6 +59,7 @@ public:
     bool IsDirty() const override;
 
     void EndDocument(const document::IndexDocument& indexDocument);
+    void EndDocument(const indexlibv2::index::InvertedIndexFields* indexFields, docid64_t docId) { assert(false); }
 
     const std::shared_ptr<indexlibv2::index::AttributeMemReader> CreateInMemReader() const
     {
@@ -65,7 +69,7 @@ public:
 private:
     std::shared_ptr<indexlibv2::config::PackageIndexConfig> _config;
     std::unique_ptr<indexlibv2::index::MultiValueAttributeMemIndexer<char>> _attrMemIndexer;
-    indexlibv2::index::IndexerParameter _indexerParam;
+    indexlibv2::index::MemIndexerParameter _indexerParam;
 
 private:
     AUTIL_LOG_DECLARE();

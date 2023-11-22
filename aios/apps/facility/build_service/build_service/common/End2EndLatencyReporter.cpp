@@ -15,7 +15,14 @@
  */
 #include "build_service/common/End2EndLatencyReporter.h"
 
+#include <cstddef>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 

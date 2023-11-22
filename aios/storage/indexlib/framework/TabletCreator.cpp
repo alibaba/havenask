@@ -15,10 +15,18 @@
  */
 #include "indexlib/framework/TabletCreator.h"
 
+#include <iosfwd>
+
+#include "future_lite/Executor.h"
+#include "future_lite/TaskScheduler.h"
+#include "indexlib/base/MemoryQuotaController.h"
+#include "indexlib/framework/ITabletMergeController.h"
+#include "indexlib/framework/IdGenerator.h"
 #include "indexlib/framework/Tablet.h"
 #include "indexlib/framework/TabletCenter.h"
 #include "indexlib/framework/TabletId.h"
 #include "indexlib/framework/TabletResource.h"
+#include "kmonitor/client/MetricsReporter.h"
 
 using namespace std;
 

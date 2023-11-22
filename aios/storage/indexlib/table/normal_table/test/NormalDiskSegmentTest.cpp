@@ -76,7 +76,7 @@ TEST_F(NormalDiskSegmentTest, TestSimpleProcess)
     tabletFactoryCreator->Register(indexType, mockFactory);
     auto diskSegment2 = std::make_unique<NormalDiskSegment>(schema, segmentMeta, buildResource);
     ASSERT_TRUE(diskSegment2->OpenIndexer(indexConfig).first.IsOK());
-    ASSERT_EQ(0, diskSegment2->EstimateMemUsed(schema));
+    ASSERT_EQ(0, diskSegment2->EstimateMemUsed(schema).second);
 
     // factory is existed, type is primarykey
     std::string indexType2 = "primarykey";

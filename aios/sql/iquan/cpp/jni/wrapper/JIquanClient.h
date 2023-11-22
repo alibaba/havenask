@@ -26,13 +26,8 @@ class JIquanClient : public JavaClass<JIquanClient> {
 public:
     static constexpr const char *kJavaDescriptor = "Lcom.taobao.search.iquan.client.IquanClient;";
 
-    LocalRef<jbyteArray> updateCatalog(jint format, AliasRef<jbyteArray> request);
-    LocalRef<jbyteArray>
-    query(jint inputFormat, jint outputFormat, AliasRef<jbyteArray> rquest) const;
-
-    LocalRef<jbyteArray> updateTables(jint format, AliasRef<jbyteArray> request);
-    LocalRef<jbyteArray> updateLayerTables(jint format, AliasRef<jbyteArray> request);
-    LocalRef<jbyteArray> updateFunctions(jint format, AliasRef<jbyteArray> request);
+    LocalRef<jbyteArray> registerCatalogs(jint format, AliasRef<jbyteArray> request);
+    LocalRef<jbyteArray> query(jint inputFormat, jint outputFormat, AliasRef<jbyteArray> rquest) const;
 
     // inspect interface
     LocalRef<jbyteArray> listCatalogs();

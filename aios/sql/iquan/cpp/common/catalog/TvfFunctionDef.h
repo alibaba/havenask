@@ -131,6 +131,9 @@ public:
         json.Jsonize("properties", properties, properties);
         json.Jsonize("distribution", distribution, distribution);
     }
+    bool isValid() const {
+        return !tvfs.empty();
+    }
 
 public:
     std::vector<TvfDef> tvfs;

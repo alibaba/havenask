@@ -18,11 +18,11 @@
 #include <assert.h>
 #include <cstddef>
 #include <exception>
+#include <linux/limits.h>
 #include <stdint.h>
+#include <sys/statvfs.h>
 #include <sys/uio.h>
 #include <utility>
-#include <sys/statvfs.h>
-#include <linux/limits.h>
 
 #include "alog/Logger.h"
 #include "autil/CommonMacros.h"
@@ -101,16 +101,16 @@ FSResult<void> FslibCommonFileWrapper::Read(void* buffer, size_t length, size_t&
 
 FSResult<void> FslibCommonFileWrapper::PRead(void* buffer, size_t length, off_t offset, size_t& realLength) noexcept
 {
-    try {
-        realLength = PReadAsync(buffer, length, offset, IO_ADVICE_NORMAL, nullptr).get();
-    } catch (...) {
+    auto ret = PReadAsync(buffer, length, offset, IO_ADVICE_NORMAL, nullptr).get();
+    if (!ret.OK()) {
         return FSEC_ERROR;
     }
+    realLength = ret.Value();
     return FSEC_OK;
 }
 
-Future<size_t> FslibCommonFileWrapper::PReadAsync(void* buffer, size_t length, off_t offset, int advice,
-                                                  Executor* executor) noexcept
+Future<FSResult<size_t>> FslibCommonFileWrapper::PReadAsync(void* buffer, size_t length, off_t offset, int advice,
+                                                            Executor* executor) noexcept
 {
     return InternalPReadASync(buffer, length, offset, advice, executor);
 }
@@ -194,8 +194,8 @@ FSResult<void> FslibCommonFileWrapper::PReadV(const iovec* iov, int iovcnt, off_
     return FSEC_OK;
 }
 
-Future<size_t> FslibCommonFileWrapper::PReadVAsync(const iovec* iov, int iovcnt, off_t offset, int advice,
-                                                   Executor* executor, int64_t timeout) noexcept
+Future<FSResult<size_t>> FslibCommonFileWrapper::PReadVAsync(const iovec* iov, int iovcnt, off_t offset, int advice,
+                                                             Executor* executor, int64_t timeout) noexcept
 {
     assert(_file);
     size_t totalReadLen = 0;
@@ -207,10 +207,10 @@ Future<size_t> FslibCommonFileWrapper::PReadVAsync(const iovec* iov, int iovcnt,
                   "PReadV data from file: [%s] FAILED, "
                   "total size [%ld] exceeds PANGU_MAX_READ_BYTES[%ld] errno[%d]",
                   _file->getFileName(), totalReadLen, PANGU_MAX_READ_BYTES, _file->getLastError());
-        return future_lite::makeReadyFuture<size_t>(
-            std::make_exception_ptr(util::OutOfRangeException("total size exceeds PANGU_MAX_READ_BYTES")));
+        // TODO(qisa.cb) 需要定义一个EC表示这个错误
+        return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_ERROR, 0});
     }
-    Promise<size_t> promise;
+    Promise<FSResult<size_t>> promise;
     auto future = promise.getFuture();
     future.setExecutor(executor);
     MoveWrapper<decltype(promise)> p(std::move(promise));
@@ -226,20 +226,13 @@ Future<size_t> FslibCommonFileWrapper::PReadVAsync(const iovec* iov, int iovcnt,
     }
     _file->preadv(controller, iov, iovcnt, offset, [p, controller, this]() mutable {
         if (controller->getErrorCode() == fslib::EC_OK) {
-            p.get().setValue(controller->getIoSize());
+            p.get().setValue({FSEC_OK, controller->getIoSize()});
         } else if (controller->getErrorCode() == fslib::EC_OPERATIONTIMEOUT) {
-            try {
-                INDEXLIB_FATAL_ERROR(Timeout, "read file[%s] timeout", _file->getFileName());
-            } catch (...) {
-                p.get().setException(std::current_exception());
-            }
+            AUTIL_LOG(ERROR, "read file[%s] timeout", _file->getFileName());
+            p.get().setValue({ParseFromFslibEC(controller->getErrorCode()), 0});
         } else {
-            try {
-                INDEXLIB_FATAL_ERROR(FileIO, "preadv file[%s] failed, fslibec[%d]", _file->getFileName(),
-                                     controller->getErrorCode());
-            } catch (...) {
-                p.get().setException(std::current_exception());
-            }
+            AUTIL_LOG(ERROR, "preadv file[%s] failed, fslibec[%d]", _file->getFileName(), controller->getErrorCode());
+            p.get().setValue({ParseFromFslibEC(controller->getErrorCode()), 0});
         }
         delete controller;
     });
@@ -298,33 +291,36 @@ FSResult<void> FslibCommonFileWrapper::Write(fslib::fs::File* file, const void* 
     return FSEC_OK;
 }
 
-Future<size_t> FslibCommonFileWrapper::InternalPReadASync(void* buffer, size_t length, off_t offset, int advice,
-                                                          Executor* executor) noexcept
+Future<FSResult<size_t>> FslibCommonFileWrapper::InternalPReadASync(void* buffer, size_t length, off_t offset,
+                                                                    int advice, Executor* executor) noexcept
 {
     if (length == 0) {
-        return future_lite::makeReadyFuture((size_t)0);
+        return future_lite::makeReadyFuture(FSResult<size_t> {FSEC_OK, (size_t)0});
     }
     size_t readLen = length > DEFAULT_READ_WRITE_LENGTH ? DEFAULT_READ_WRITE_LENGTH : length;
-    auto future = SinglePreadAsync(buffer, readLen, offset, advice, executor)
-                      .thenValue([buffer, length, offset, advice, executor, this](size_t result) mutable {
-                          if (result > 0) {
-                              if (_useDirectIO && (result % MIN_ALIGNMENT) != 0) {
-                                  return future_lite::makeReadyFuture<size_t>(result);
-                              }
-                              return InternalPReadASync((char*)buffer + result, length - result, offset + result,
-                                                        advice, executor)
-                                  .thenValue([result](size_t value) { return result + value; });
-                          } else {
-                              return future_lite::makeReadyFuture((size_t)0);
-                          }
-                      });
+    auto future =
+        SinglePreadAsync(buffer, readLen, offset, advice, executor)
+            .thenValue([buffer, length, offset, advice, executor, this](FSResult<size_t>&& ret) mutable {
+                if (!ret.OK() || ret.Value() == 0) {
+                    return future_lite::makeReadyFuture(std::move(ret));
+                }
+                assert(ret.Value() > 0);
+                size_t result = ret.Value();
+                if (_useDirectIO && (result % MIN_ALIGNMENT) != 0) {
+                    return future_lite::makeReadyFuture(std::move(ret));
+                }
+                return InternalPReadASync((char*)buffer + result, length - result, offset + result, advice, executor)
+                    .thenValue([result](FSResult<size_t>&& ret) {
+                        return ret.OK() ? FSResult<size_t> {FSEC_OK, result + ret.Value()} : ret;
+                    });
+            });
     return future;
 }
 
-Future<size_t> FslibCommonFileWrapper::SinglePreadAsync(void* buffer, size_t length, off_t offset, int advice,
-                                                        Executor* executor) noexcept
+Future<FSResult<size_t>> FslibCommonFileWrapper::SinglePreadAsync(void* buffer, size_t length, off_t offset, int advice,
+                                                                  Executor* executor) noexcept
 {
-    Promise<size_t> promise;
+    Promise<FSResult<size_t>> promise;
     auto future = promise.getFuture();
     future.setExecutor(executor);
     MoveWrapper<decltype(promise)> p(std::move(promise));
@@ -339,14 +335,10 @@ Future<size_t> FslibCommonFileWrapper::SinglePreadAsync(void* buffer, size_t len
 
     _file->pread(controller, buffer, length, offset, [p, controller, this]() mutable {
         if (controller->getErrorCode() == fslib::EC_OK) {
-            p.get().setValue(controller->getIoSize());
+            p.get().setValue({FSEC_OK, controller->getIoSize()});
         } else {
-            try {
-                INDEXLIB_FATAL_ERROR(FileIO, "pread file[%s] failed, fslibec[%d]", _file->getFileName(),
-                                     controller->getErrorCode());
-            } catch (...) {
-                p.get().setException(std::current_exception());
-            }
+            AUTIL_LOG(ERROR, "pread file[%s] failed, fslibec[%d]", _file->getFileName(), controller->getErrorCode());
+            p.get().setValue({ParseFromFslibEC(controller->getErrorCode()), 0});
         }
         delete controller;
     });

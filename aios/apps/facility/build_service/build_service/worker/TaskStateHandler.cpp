@@ -15,9 +15,23 @@
  */
 #include "build_service/worker/TaskStateHandler.h"
 
+#include <cstddef>
+#include <deque>
+#include <memory>
+#include <unordered_map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "beeper/beeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CounterSynchronizer.h"
 #include "build_service/common/CounterSynchronizerCreator.h"
 #include "build_service/common/CpuSpeedEstimater.h"
+#include "build_service/common/NetworkTrafficEstimater.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CounterConfig.h"
 #include "build_service/config/ResourceReaderManager.h"
@@ -26,9 +40,15 @@
 #include "build_service/io/OutputCreator.h"
 #include "build_service/plugin/Module.h"
 #include "build_service/plugin/ModuleFactory.h"
+#include "build_service/proto/ProtoComparator.h"
+#include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/TaskIdentifier.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RangeUtil.h"
-#include "indexlib/util/counter/CounterMap.h"
+#include "build_service/workflow/SwiftProcessedDocConsumer.h"
+#include "indexlib/util/Exception.h"
+#include "indexlib/util/KeyValueMap.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 using namespace std;
 using namespace autil;

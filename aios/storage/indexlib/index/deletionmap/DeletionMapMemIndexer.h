@@ -16,6 +16,7 @@
 #pragma once
 
 #include "autil/Log.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/index/IMemIndexer.h"
 #include "indexlib/util/ExpandableBitmap.h"
 

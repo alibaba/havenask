@@ -8,7 +8,7 @@ namespace indexlibv2::framework {
 
 class LocatorTest : public TESTBASE
 {
-    void SetProgress(Locator& locator, std::vector<base::Progress> progress) { locator.SetProgress(progress); }
+    void SetProgress(Locator& locator, std::vector<base::Progress> progress) { locator.SetMultiProgress({progress}); }
     std::vector<base::Progress> GetProgress(std::vector<std::tuple<uint32_t, uint32_t, int64_t>> params)
     {
         std::vector<base::Progress> progress;
@@ -20,7 +20,7 @@ class LocatorTest : public TESTBASE
     }
     void SetProgress(Locator& locator, std::vector<std::tuple<uint32_t, uint32_t, int64_t>> params)
     {
-        locator.SetProgress(GetProgress(params));
+        locator.SetMultiProgress({GetProgress(params)});
     }
 };
 
@@ -43,17 +43,17 @@ TEST_F(LocatorTest, ValidOrNot)
 
     using namespace indexlibv2::base;
     Locator otherLocator;
-    otherLocator.SetProgress({Progress(0, 32767, {-1, 0}), Progress(32768, 65535, {-1, 0})});
+    otherLocator.SetMultiProgress({{Progress(0, 32767, {-1, 0}), Progress(32768, 65535, {-1, 0})}});
     Locator locator6;
     ASSERT_FALSE(locator6.IsValid());
     ASSERT_FALSE(otherLocator.IsValid());
 
     locator6.Update(otherLocator);
-    ASSERT_FALSE(locator6.IsValid());
+    ASSERT_FALSE(locator6.IsValid()) << locator6.DebugString();
 
     SetProgress(otherLocator, {Progress(0, 32767, {-1, 0}), Progress(32768, 65535, {100, 0})});
     locator6.Update(otherLocator);
-    ASSERT_TRUE(locator6.IsValid());
+    ASSERT_TRUE(locator6.IsValid()) << locator6.DebugString();
     ASSERT_TRUE(otherLocator.IsValid());
 
     SetProgress(otherLocator, {Progress(0, 16383, {-1, 0}), Progress(16384, 32767, {100, 0}),
@@ -90,7 +90,7 @@ TEST_F(LocatorTest, SerializeAndDeserialize)
         ASSERT_EQ(123, locator.GetSrc());
         ASSERT_EQ(offset, locator.GetOffset());
         ASSERT_EQ(40, locator.Size());
-        progress = locator.GetProgress();
+        progress = locator.GetMultiProgress()[0];
         ASSERT_EQ(progress.size(), 1);
         ASSERT_EQ(progress[0].from, 12);
         ASSERT_EQ(progress[0].to, 34);
@@ -105,7 +105,7 @@ TEST_F(LocatorTest, SerializeAndDeserialize)
         ASSERT_EQ(123, locator.GetSrc());
         ASSERT_EQ(offset, locator.GetOffset());
         ASSERT_EQ(40, locator.Size());
-        std::vector<base::Progress> progress = locator.GetProgress();
+        std::vector<base::Progress> progress = locator.GetMultiProgress()[0];
         ASSERT_EQ(progress.size(), 1);
         ASSERT_EQ(progress[0].from, 12);
         ASSERT_EQ(progress[0].to, 34);
@@ -130,7 +130,7 @@ TEST_F(LocatorTest, SerializeAndDeserializeWithUserData)
         ASSERT_TRUE(locator.Deserialize(serializedStr));
         ASSERT_EQ(1, locator.GetSrc());
         ASSERT_EQ(1024, locator.GetOffset().first);
-        const auto& progress = locator.GetProgress();
+        const auto& progress = locator.GetMultiProgress()[0];
         ASSERT_EQ(1, progress.size());
         ASSERT_EQ(base::Progress(0, 65535, {1024, 0}), progress[0]);
         ASSERT_EQ("userdata1", locator.GetUserData());
@@ -144,20 +144,20 @@ TEST_F(LocatorTest, TestSimple)
     EXPECT_EQ(123, locator1.GetSrc());
     EXPECT_EQ(456, locator1.GetOffset().first);
     EXPECT_EQ(40, locator1.Size());
-    EXPECT_EQ(1, locator1.GetProgress().size());
-    EXPECT_EQ(0, locator1.GetProgress()[0].from);
-    EXPECT_EQ(65535, locator1.GetProgress()[0].to);
-    EXPECT_EQ(456, locator1.GetProgress()[0].offset.first);
+    EXPECT_EQ(1, locator1.GetMultiProgress()[0].size());
+    EXPECT_EQ(0, locator1.GetMultiProgress()[0][0].from);
+    EXPECT_EQ(65535, locator1.GetMultiProgress()[0][0].to);
+    EXPECT_EQ(456, locator1.GetMultiProgress()[0][0].offset.first);
 
     Locator locator2;
-    EXPECT_EQ(0, locator2.GetProgress().size());
+    EXPECT_EQ(0, locator2.GetMultiProgress()[0].size());
 
     Locator locator3;
     locator3.SetOffset({100, 0});
-    EXPECT_EQ(1, locator3.GetProgress().size());
-    EXPECT_EQ(0, locator3.GetProgress()[0].from);
-    EXPECT_EQ(65535, locator3.GetProgress()[0].to);
-    EXPECT_EQ(100, locator3.GetProgress()[0].offset.first);
+    EXPECT_EQ(1, locator3.GetMultiProgress()[0].size());
+    EXPECT_EQ(0, locator3.GetMultiProgress()[0][0].from);
+    EXPECT_EQ(65535, locator3.GetMultiProgress()[0][0].to);
+    EXPECT_EQ(100, locator3.GetMultiProgress()[0][0].offset.first);
 }
 
 TEST_F(LocatorTest, TestLegacyLocator)
@@ -208,15 +208,15 @@ TEST_F(LocatorTest, TestLegacyLocator)
     // test equal
     {
         Locator locator1(/*src=*/0, /*offset=*/0);
-        locator1.SetProgress({{/*from=*/0, /*to=*/100, /*offset=*/ {10, 0}}});
+        locator1.SetMultiProgress({{{/*from=*/0, /*to=*/100, /*offset=*/ {10, 0}}}});
         Locator locator2(/*src=*/0, /*offset=*/0);
-        locator2.SetProgress({{/*from=*/0, /*to=*/100, /*offset=*/ {10, 0}}});
+        locator2.SetMultiProgress({{{/*from=*/0, /*to=*/100, /*offset=*/ {10, 0}}}});
 
         ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER,
                   locator1.IsFasterThan(locator2, /*ignoreLegacyDiffSrc=*/true));
         ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER,
                   locator2.IsFasterThan(locator1, /*ignoreLegacyDiffSrc=*/true));
-        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator1.IsFasterThan(0, {10, 0}));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator1.IsFasterThan(Locator::DocInfo(0, 10, 0, 0)));
     }
 }
 // TEST_F(LocatorTest, TestCompatable)
@@ -237,10 +237,11 @@ TEST_F(LocatorTest, TestCompareProgress)
     ASSERT_EQ(50, locator.GetOffset().first);
 
     {
-        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator.IsFasterThan(0, {100, 0}));
-        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator.IsFasterThan(100, {100, 0}));
-        ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER, locator.IsFasterThan(100, {30, 0}));
-        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator.IsFasterThan(500, {30, 0}));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator.IsFasterThan(Locator::DocInfo(0, 100, 0, 0)));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator.IsFasterThan(Locator::DocInfo(100, 100, 0, 0)));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER,
+                  locator.IsFasterThan(Locator::DocInfo(100, 30, 0, 0)));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator.IsFasterThan(Locator::DocInfo(500, 30, 0, 0)));
     }
     {
         Locator locator2;
@@ -399,7 +400,7 @@ TEST_F(LocatorTest, testUpdateProgress)
     locator2._userData = "222";
     expectedProgress = GetProgress({{0, 50, 11}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(11, locator1.GetOffset().first);
     ASSERT_EQ("222", locator1.GetUserData());
 
@@ -408,35 +409,35 @@ TEST_F(LocatorTest, testUpdateProgress)
     SetProgress(locator2, {{50, 100, 11}});
     expectedProgress = GetProgress({{0, 49, 10}, {50, 100, 11}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(10, locator1.GetOffset().first);
 
     SetProgress(locator1, {{0, 50, 10}});
     SetProgress(locator2, {{20, 30, 11}});
     expectedProgress = GetProgress({{0, 19, 10}, {20, 30, 11}, {31, 50, 10}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(10, locator1.GetOffset().first);
 
     SetProgress(locator1, {{0, 50, 10}, {100, 150, 11}});
     SetProgress(locator2, {{0, 200, 20}});
     expectedProgress = GetProgress({{0, 200, 20}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(20, locator1.GetOffset().first);
 
     SetProgress(locator1, {{0, 50, 10}, {100, 150, 11}});
     SetProgress(locator2, {{30, 130, 20}});
     expectedProgress = GetProgress({{0, 29, 10}, {30, 130, 20}, {131, 150, 11}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(10, locator1.GetOffset().first);
 
     SetProgress(locator1, {{0, 50, 10}, {100, 150, 11}});
     SetProgress(locator2, {{0, 50, 11}, {110, 130, 20}});
     expectedProgress = GetProgress({{0, 50, 11}, {100, 109, 11}, {110, 130, 20}, {131, 150, 11}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(11, locator1.GetOffset().first);
 
     // test range merge
@@ -444,21 +445,21 @@ TEST_F(LocatorTest, testUpdateProgress)
     SetProgress(locator2, {{30, 120, 11}});
     expectedProgress = GetProgress({{0, 29, 10}, {30, 150, 11}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(10, locator1.GetOffset().first);
 
     SetProgress(locator1, {{0, 50, 10}, {100, 150, 11}});
     SetProgress(locator2, {{51, 99, 11}});
     expectedProgress = GetProgress({{0, 50, 10}, {51, 150, 11}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(10, locator1.GetOffset().first);
 
     SetProgress(locator1, {{0, 50, 10}, {100, 150, 10}});
     SetProgress(locator2, {{51, 99, 10}, {120, 200, 10}});
     expectedProgress = GetProgress({{0, 200, 10}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(10, locator1.GetOffset().first);
 
     // test not merge empty range
@@ -466,14 +467,14 @@ TEST_F(LocatorTest, testUpdateProgress)
     SetProgress(locator2, {{0, 120, 11}, {121, 200, 11}});
     expectedProgress = GetProgress({{0, 200, 11}, {201, 65535, 0}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(0, locator1.GetOffset().first);
 
     SetProgress(locator1, {{0, 65535, 0}});
     SetProgress(locator2, {{0, 120, 11}, {121, 130, 0}, {150, 200, 12}});
     expectedProgress = GetProgress({{0, 120, 11}, {121, 149, 0}, {150, 200, 12}, {201, 65535, 0}});
     ASSERT_TRUE(locator1.Update(locator2));
-    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, locator1.GetMultiProgress()[0]));
     ASSERT_EQ(0, locator1.GetOffset().first);
 
     // from version synchronizerTest
@@ -482,42 +483,42 @@ TEST_F(LocatorTest, testUpdateProgress)
     SetProgress(updateLocator, {{0, 32767, 15}});
     expectedProgress = GetProgress({{0, 32767, 15}, {32768, 65535, 12}});
     ASSERT_TRUE(baseLocator.Update(updateLocator));
-    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetMultiProgress()[0]));
     ASSERT_EQ(12, baseLocator.GetOffset().first);
 
     SetProgress(baseLocator, {{0, 32767, 10}, {32768, 65535, 12}});
     SetProgress(updateLocator, {{32768, 65535, 15}});
     expectedProgress = GetProgress({{0, 32767, 10}, {32768, 65535, 15}});
     ASSERT_TRUE(baseLocator.Update(updateLocator));
-    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetMultiProgress()[0]));
     ASSERT_EQ(10, baseLocator.GetOffset().first);
 
     SetProgress(baseLocator, {{0, 32767, 10}, {32768, 65535, 12}});
     SetProgress(updateLocator, {{0, 32767, 15}, {32768, 65535, 15}});
     expectedProgress = GetProgress({{0, 65535, 15}});
     ASSERT_TRUE(baseLocator.Update(updateLocator));
-    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetMultiProgress()[0]));
     ASSERT_EQ(15, baseLocator.GetOffset().first);
 
     SetProgress(baseLocator, {{0, 32767, 10}, {32768, 65535, 12}});
     SetProgress(updateLocator, {{21845, 43960, 14}});
     expectedProgress = GetProgress({{0, 21844, 10}, {21845, 43960, 14}, {43961, 65535, 12}});
     ASSERT_TRUE(baseLocator.Update(updateLocator));
-    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetMultiProgress()[0]));
     ASSERT_EQ(10, baseLocator.GetOffset().first);
 
     SetProgress(baseLocator, {{0, 21844, 10}, {21845, 43960, 11}, {43961, 65535, 12}});
     SetProgress(updateLocator, {{32768, 65535, 13}});
     expectedProgress = GetProgress({{0, 21844, 10}, {21845, 32767, 11}, {32768, 65535, 13}});
     ASSERT_TRUE(baseLocator.Update(updateLocator));
-    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetMultiProgress()[0]));
     ASSERT_EQ(10, baseLocator.GetOffset().first);
 
     SetProgress(baseLocator, {{0, 21844, 10}, {21845, 43960, 11}, {43961, 65535, 12}});
     SetProgress(updateLocator, {{0, 32767, 14}});
     expectedProgress = GetProgress({{0, 32767, 14}, {32768, 43960, 11}, {43961, 65535, 12}});
     ASSERT_TRUE(baseLocator.Update(updateLocator));
-    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetMultiProgress()[0]));
     ASSERT_EQ(11, baseLocator.GetOffset().first);
 
     SetProgress(baseLocator, {{0, 10000, 10},
@@ -530,7 +531,7 @@ TEST_F(LocatorTest, testUpdateProgress)
     expectedProgress =
         GetProgress({{0, 10000, 10}, {10001, 20000, 11}, {20001, 30000, 12}, {30001, 32767, 13}, {32768, 65535, 20}});
     ASSERT_TRUE(baseLocator.Update(updateLocator));
-    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetMultiProgress()[0]));
     ASSERT_EQ(10, baseLocator.GetOffset().first);
 
     SetProgress(baseLocator, {{0, 10000, 10},
@@ -542,14 +543,14 @@ TEST_F(LocatorTest, testUpdateProgress)
     SetProgress(updateLocator, {{0, 32767, 20}});
     expectedProgress = GetProgress({{0, 32767, 20}, {32768, 40000, 13}, {40001, 50000, 14}, {50001, 65535, 15}});
     ASSERT_TRUE(baseLocator.Update(updateLocator));
-    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetMultiProgress()[0]));
     ASSERT_EQ(13, baseLocator.GetOffset().first);
 
     SetProgress(baseLocator, {{0, 32767, 10}});
     SetProgress(updateLocator, {{0, 50, 15}, {65530, 65535, 17}});
     expectedProgress = GetProgress({{0, 50, 15}, {51, 32767, 10}, {65530, 65535, 17}});
     ASSERT_TRUE(baseLocator.Update(updateLocator));
-    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetProgress()));
+    ASSERT_TRUE(CheckProgress(expectedProgress, baseLocator.GetMultiProgress()[0]));
     ASSERT_EQ(10, baseLocator.GetOffset().first);
 }
 
@@ -588,7 +589,7 @@ TEST_F(LocatorTest, tesDeserializeV0UserData)
     ASSERT_EQ("biz_order_v3_02_wal_biz_order_summary_topic", curLocator.GetUserData());
     ASSERT_EQ(1, curLocator.GetSrc());
     ASSERT_EQ(1687837590605538L, curLocator.GetOffset().first);
-    ASSERT_EQ(base::Progress(0, 127, {1687837590605538L, 0}), curLocator.GetProgress()[0]);
+    ASSERT_EQ(base::Progress(0, 127, {1687837590605538L, 0}), curLocator.GetMultiProgress()[0][0]);
 }
 
 TEST_F(LocatorTest, testSubOffset)
@@ -604,9 +605,10 @@ TEST_F(LocatorTest, testSubOffset)
     ASSERT_TRUE(locator2.IsFasterThan(locator3, false) == Locator::LocatorCompareResult::LCR_SLOWER);
     ASSERT_TRUE(locator2.IsFasterThan(locator4, false) == Locator::LocatorCompareResult::LCR_PARTIAL_FASTER);
 
-    ASSERT_TRUE(locator2.IsFasterThan(/*hashId*/ 0, /*offset*/ {1, 0}) ==
+    ASSERT_TRUE(locator2.IsFasterThan(Locator::DocInfo(/*hashId*/ 0, /*offset*/ 1, 0, 0)) ==
                 Locator::LocatorCompareResult::LCR_FULLY_FASTER);
-    ASSERT_TRUE(locator2.IsFasterThan(/*hashId*/ 0, /*offset*/ {1, 1}) == Locator::LocatorCompareResult::LCR_SLOWER);
+    ASSERT_TRUE(locator2.IsFasterThan(Locator::DocInfo(/*hashId*/ 0, /*offset*/ 1, 1, 0)) ==
+                Locator::LocatorCompareResult::LCR_SLOWER);
 }
 
 TEST_F(LocatorTest, testDeserializeInvalidLocator)
@@ -623,11 +625,117 @@ TEST_F(LocatorTest, testDeserializeInvalidLocator)
 TEST_F(LocatorTest, testUpdateLocatorWithInitialRange)
 {
     Locator locator, locator1, locator2;
-    locator1.SetProgress({{0, 32767, {123, 0}}});
+    locator1.SetMultiProgress({{{0, 32767, {123, 0}}}});
     locator.Update(locator1);
-    locator2.SetProgress({{32768, 65535, {-1, 0}}});
+    locator2.SetMultiProgress({{{32768, 65535, {-1, 0}}}});
     locator.Update(locator2);
     ASSERT_EQ(-1, locator.GetOffset().first);
+}
+
+TEST_F(LocatorTest, testForMultiProgress)
+{
+    Locator locator, locator1, loactor2;
+    locator.SetMultiProgress(
+        {{{0, 32767, {50, 0}}, {32768, 65535, {100, 0}}}, {{0, 32767, {100, 0}}, {32768, 65535, {50, 0}}}});
+    ASSERT_TRUE(locator.IsValid());
+    ASSERT_EQ(50, locator.GetOffset().first);
+    // test content
+    base::MultiProgress multiProgress = locator.GetMultiProgress();
+    ASSERT_EQ(2, multiProgress.size());
+    ASSERT_EQ(2, multiProgress[0].size());
+    ASSERT_EQ(base::Progress(0, 32767, {50, 0}), multiProgress[0][0]);
+    ASSERT_EQ(base::Progress(32768, 65535, {100, 0}), multiProgress[0][1]);
+    ASSERT_EQ(2, multiProgress[1].size());
+    ASSERT_EQ(base::Progress(0, 32767, {100, 0}), multiProgress[1][0]);
+    ASSERT_EQ(base::Progress(32768, 65535, {50, 0}), multiProgress[1][1]);
+    // test serialize && deserialize
+    auto serializedStr = locator.Serialize();
+    locator1.Deserialize(serializedStr);
+    ASSERT_EQ(locator, locator1) << locator1.DebugString() << "  " << locator.DebugString();
+    // test debug string
+    ASSERT_EQ("0:50:[{0,32767,50,0}{32768,65535,100,0};{0,32767,100,0}{32768,65535,50,0}]", locator.DebugString());
+    // test shrank to range
+    locator1.ShrinkToRange(10000, 60000);
+    ASSERT_EQ("0:50:[{10000,32767,50,0}{32768,60000,100,0};{10000,32767,100,0}{32768,60000,50,0}]",
+              locator1.DebugString());
+}
+
+TEST_F(LocatorTest, testIsFasterThanForMultiProgress)
+{
+    {
+        Locator locator1, locator2;
+        locator1.SetMultiProgress(
+            {{{0, 32767, {50, 0}}, {32768, 65535, {100, 0}}}, {{0, 32767, {100, 0}}, {32768, 65535, {50, 0}}}});
+        locator2.SetMultiProgress(
+            {{{0, 32767, {50, 0}}, {32768, 65535, {100, 0}}}, {{0, 32767, {100, 0}}, {32768, 65535, {50, 0}}}});
+        ASSERT_EQ(locator1, locator2);
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER, locator1.IsFasterThan(locator2, false));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER, locator2.IsFasterThan(locator1, false));
+    }
+    {
+        Locator locator1, locator2;
+        locator1.SetMultiProgress(
+            {{{0, 32767, {150, 0}}, {32768, 65535, {100, 0}}}, {{0, 32767, {150, 0}}, {32768, 65535, {50, 0}}}});
+        locator2.SetMultiProgress(
+            {{{0, 32767, {50, 0}}, {32768, 65535, {100, 0}}}, {{0, 32767, {100, 0}}, {32768, 65535, {50, 0}}}});
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER, locator1.IsFasterThan(locator2, false));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator2.IsFasterThan(locator1, false));
+    }
+    {
+        Locator locator1, locator2;
+        locator1.SetMultiProgress(
+            {{{0, 32767, {50, 0}}, {32768, 65535, {150, 0}}}, {{0, 32767, {100, 0}}, {32768, 65535, {50, 0}}}});
+        locator2.SetMultiProgress(
+            {{{0, 32767, {50, 0}}, {32768, 65535, {100, 0}}}, {{0, 32767, {100, 0}}, {32768, 65535, {150, 0}}}});
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_PARTIAL_FASTER, locator1.IsFasterThan(locator2, false));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_PARTIAL_FASTER, locator2.IsFasterThan(locator1, false));
+    }
+    {
+        Locator locator1, locator2, locator3;
+        locator1.SetMultiProgress(
+            {{{0, 32767, {50, 0}}, {32768, 65535, {150, 0}}}, {{0, 32767, {100, 0}}, {32768, 65535, {50, 0}}}});
+        // locator2 is invalid
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER, locator1.IsFasterThan(locator2, false));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator2.IsFasterThan(locator1, false));
+        // loactor2, locator3
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER, locator2.IsFasterThan(locator3, false));
+    }
+    {
+        Locator locator1;
+        locator1.SetMultiProgress(
+            {{{0, 32767, {50, 0}}, {32768, 65535, {150, 0}}}, {{0, 32767, {100, 0}}, {32768, 65535, {50, 0}}}});
+
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER,
+                  locator1.IsFasterThan(
+                      Locator::DocInfo(/*hashId*/ 60000, /*timestamp*/ 50, /*concurrentIdx*/ 0, /*sourceIdx*/ 1)));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER,
+                  locator1.IsFasterThan(
+                      Locator::DocInfo(/*hashId*/ 60000, /*timestamp*/ 49, /*concurrentIdx*/ 0, /*sourceIdx*/ 1)));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER,
+                  locator1.IsFasterThan(
+                      Locator::DocInfo(/*hashId*/ 60000, /*timestamp*/ 50, /*concurrentIdx*/ 0, /*sourceIdx*/ 0)));
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER,
+                  locator1.IsFasterThan(
+                      Locator::DocInfo(/*hashId*/ 60000, /*timestamp*/ 200, /*concurrentIdx*/ 0, /*sourceIdx*/ 0)));
+    }
+    {
+        // locator is invalid
+        Locator locator;
+        ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER,
+                  locator.IsFasterThan(
+                      Locator::DocInfo(/*hashId*/ 60000, /*timestamp*/ 50, /*concurrentIdx*/ 0, /*sourceIdx*/ 1)));
+    }
+}
+
+TEST_F(LocatorTest, testUpdateForMultiProgress)
+{
+    Locator locator, locator1, locator2;
+    locator1.SetMultiProgress(
+        {{{0, 32767, {150, 0}}, {32768, 65535, {100, 0}}}, {{0, 32767, {150, 0}}, {32768, 65535, {50, 0}}}});
+    locator2.SetMultiProgress(
+        {{{0, 32767, {50, 0}}, {32768, 65535, {100, 0}}}, {{0, 32767, {100, 0}}, {32768, 65535, {50, 0}}}});
+    ASSERT_EQ(Locator::LocatorCompareResult::LCR_FULLY_FASTER, locator1.IsFasterThan(locator2, false));
+    ASSERT_EQ(Locator::LocatorCompareResult::LCR_SLOWER, locator2.IsFasterThan(locator1, false));
 }
 
 } // namespace indexlibv2::framework

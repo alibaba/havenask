@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEX_DEMO_INDEX_RETRIEVER_H
-#define __INDEXLIB_INDEX_DEMO_INDEX_RETRIEVER_H
+#pragma once
 
 #include <memory>
 
@@ -22,5 +21,3 @@ private:
 
 DEFINE_SHARED_PTR(DemoIndexRetriever);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEX_DEMO_INDEX_RETRIEVER_H

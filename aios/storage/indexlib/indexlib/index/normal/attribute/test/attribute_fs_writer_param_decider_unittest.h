@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEFSWRITERPARAMDECIDERTEST_H
-#define __INDEXLIB_ATTRIBUTEFSWRITERPARAMDECIDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_fs_writer_param_decider.h"
@@ -40,5 +39,3 @@ INDEXLIB_UNIT_TEST_CASE(AttributeFsWriterParamDeciderTest, TestMakeParamForUpdat
 INDEXLIB_UNIT_TEST_CASE(AttributeFsWriterParamDeciderTest, TestMakeParamForSingleString);
 INDEXLIB_UNIT_TEST_CASE(AttributeFsWriterParamDeciderTest, TestMakeParamForMultiString);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTEFSWRITERPARAMDECIDERTEST_H

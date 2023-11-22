@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_PROCESSORWRITERVERSION_H
-#define ISEARCH_PROCESSORWRITERVERSION_H
+#pragma once
 
-#include "autil/StringUtil.h"
+#include <cstdint>
+#include <optional>
+#include <stddef.h>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/legacy/jsonizable.h"
 #include "build_service/proto/WorkerNode.h"
 #include "build_service/util/Log.h"
@@ -59,5 +64,4 @@ private:
     BS_LOG_DECLARE();
 };
 
-}}     // namespace build_service::admin
-#endif // ISEARCH_PROCESSORWRITERVERSION_H
+}} // namespace build_service::admin

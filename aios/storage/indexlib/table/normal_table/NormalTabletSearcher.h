@@ -73,10 +73,11 @@ public:
                        std::vector<docid_t>& docids) const;
 
 protected:
-    enum class IndexTableQueryType { Unknown, ByDocid, ByRawPk, ByPkHash, ByCondition };
+    enum class IndexTableQueryType { Unknown, ByDocid, ByRawPk, ByPkHash, ByCondition, ByFieldMeta };
     static Status ValidateQuery(const base::PartitionQuery& query, IndexTableQueryType& queryType);
 
 private:
+    Status QueryFieldMeta(const base::PartitionQuery& query, base::PartitionResponse& partitionResponse) const;
     static Status ValidateDocIds(const std::shared_ptr<index::DeletionMapIndexReader>& deletionMapReader,
                                  const std::vector<docid_t>& docids);
 
@@ -109,10 +110,10 @@ private:
 
     Status QueryRowAttrByDocId(const docid_t docid, const std::vector<std::string>& attrs, base::Row& row) const;
     Status QueryRowSummaryByDocId(const docid_t docid, const std::vector<std::string>& summarys, base::Row& row) const;
-
+    Status QueryRowSourceByDocId(const docid_t docid, const std::vector<std::string>& sources, base::Row& row) const;
     Status QueryIndexByDocId(const std::vector<std::string>& attrs, const std::vector<std::string>& summarys,
-                             const std::vector<docid_t>& docids, const int64_t limit,
-                             base::PartitionResponse& partitionResponse) const;
+                             const std::vector<std::string>& sources, const std::vector<docid_t>& docids,
+                             const int64_t limit, base::PartitionResponse& partitionResponse) const;
 
     static bool ParseRangeQueryStr(const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig,
                                    const std::string& range, int64_t& leftTimestamp, int64_t& rightTimestamp);

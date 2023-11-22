@@ -15,7 +15,13 @@
  */
 #include "build_service/task_base/RestartIntervalController.h"
 
+#include <iosfwd>
+#include <string>
+#include <unistd.h>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 
 using namespace std;

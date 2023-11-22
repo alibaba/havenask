@@ -53,10 +53,6 @@ struct DocIdRangeMeta {
         return begin == other.begin && end == other.end && nextBegin == other.nextBegin
                && quota == other.quota && ordered == other.ordered;
     }
-    bool operator==(const DocIdRangeMeta &meta) {
-        return begin == meta.begin && end == meta.end && nextBegin == meta.nextBegin
-               && quota == meta.quota && ordered == meta.ordered;
-    }
 
     docid_t nextBegin;
     docid_t end;

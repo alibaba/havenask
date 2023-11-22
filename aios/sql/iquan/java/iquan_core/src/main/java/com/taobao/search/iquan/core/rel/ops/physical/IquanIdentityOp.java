@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
@@ -14,22 +18,19 @@ import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.SingleRel;
 import org.apache.calcite.sql.SqlExplainLevel;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 public class IquanIdentityOp extends SingleRel implements IquanRelNode {
 
     private final String nodeName;
     private Location location;
     private Distribution distribution;
+    private int parallelNum = -1;
+    private int parallelIndex = -1;
 
     public IquanIdentityOp(
             RelOptCluster cluster,
             RelTraitSet traits,
             RelNode input,
-            String nodeName)
-    {
+            String nodeName) {
         super(cluster, traits, input);
         this.nodeName = nodeName;
     }
@@ -68,7 +69,7 @@ public class IquanIdentityOp extends SingleRel implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         IquanRelNode input = RelDistributionUtil.checkIquanRelType(inputs.get(0));
         return simpleRelDerive(input);
     }
@@ -91,5 +92,25 @@ public class IquanIdentityOp extends SingleRel implements IquanRelNode {
     @Override
     public void setOutputDistribution(Distribution distribution) {
         this.distribution = distribution;
+    }
+
+    @Override
+    public int getParallelNum() {
+        return parallelNum;
+    }
+
+    @Override
+    public void setParallelNum(int parallelNum) {
+        this.parallelNum = parallelNum;
+    }
+
+    @Override
+    public int getParallelIndex() {
+        return parallelIndex;
+    }
+
+    @Override
+    public void setParallelIndex(int parallelIndex) {
+        this.parallelIndex = parallelIndex;
     }
 }

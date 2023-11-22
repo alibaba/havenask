@@ -20,7 +20,7 @@
 #include "indexlib/document/extractor/IDocumentInfoExtractor.h"
 #include "indexlib/document/extractor/IDocumentInfoExtractorFactory.h"
 #include "indexlib/index/IMemIndexer.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/attribute/AttributeMemReader.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
@@ -41,7 +41,7 @@ class AttributeMemIndexer : public IMemIndexer
 {
 public:
     // move counter and isOffline and flushRtIndex to IndexMeta?
-    AttributeMemIndexer(const IndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
+    AttributeMemIndexer(const MemIndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
     ~AttributeMemIndexer() = default;
 
 public:
@@ -86,7 +86,7 @@ protected:
     std::shared_ptr<autil::mem_pool::Pool> _pool;
     indexlib::util::SimplePool _simplePool;
     std::shared_ptr<AttributeConvertor> _attrConvertor;
-    IndexerParameter _indexerParam;
+    MemIndexerParameter _indexerParam;
     std::unique_ptr<document::extractor::IDocumentInfoExtractor> _docInfoExtractor;
 
 private:

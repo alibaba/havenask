@@ -1,18 +1,20 @@
 package com.taobao.search.iquan.client.common.json.function;
 
-import com.taobao.search.iquan.client.common.json.common.JsonType;
-import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
-import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.taobao.search.iquan.core.api.schema.FieldType;
-import com.taobao.search.iquan.core.api.schema.FunctionType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.client.common.json.common.JsonType;
+import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
+import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import com.taobao.search.iquan.core.api.schema.FieldType;
+import com.taobao.search.iquan.core.api.schema.FunctionType;
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Getter
 public class JsonUdxfSignature {
     private static final Logger logger = LoggerFactory.getLogger(JsonUdxfSignature.class);
 
@@ -21,27 +23,10 @@ public class JsonUdxfSignature {
 
     @JsonProperty(value = "returns", required = true)
     List<JsonType> returnTypes;
-
-    @JsonProperty(value = "acc_types")
-    private List<JsonType> accTypes = new ArrayList<>();
-
     @JsonProperty(value = "variable_args")
     boolean variableArgs = false;
-
-    public JsonUdxfSignature() {
-    }
-
-    public List<JsonType> getParamTypes() {
-        return paramTypes;
-    }
-
-    public List<JsonType> getReturnTypes() {
-        return returnTypes;
-    }
-
-    public List<JsonType> getAccTypes() {
-        return accTypes;
-    }
+    @JsonProperty(value = "acc_types")
+    private List<JsonType> accTypes = new ArrayList<>();
 
     public boolean isVariableArgs() {
         return variableArgs;

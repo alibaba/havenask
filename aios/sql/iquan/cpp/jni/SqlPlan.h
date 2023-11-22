@@ -40,7 +40,11 @@ public:
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         if (json.GetMode() == TO_JSON) {
-            throw IquanException("PlanOp does not support TO_JSON");
+            json.Jsonize("id", id, id);
+            json.Jsonize("op_name", opName, std::string());
+            json.Jsonize("inputs", inputs, {});
+            json.Jsonize("outputs", outputs, {});
+            json.Jsonize("IQUAN_ATTRS", jsonAttrs, jsonAttrs);
         } else {
             json.Jsonize("id", id, id);
             json.Jsonize("op_name", opName, std::string());

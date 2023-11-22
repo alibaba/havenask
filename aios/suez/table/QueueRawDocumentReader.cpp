@@ -66,7 +66,15 @@ QueueRawDocumentReader::readDocStr(string &docStr, Checkpoint *checkpoint, DocIn
     if (_docQueuePtr->Empty()) {
         return RawDocumentReader::ERROR_WAIT;
     }
-    if (_docQueuePtr->Pop(&docStr)) {
+    RawDoc doc;
+    if (_docQueuePtr->Pop(&doc)) {
+        docStr = doc.second;
+        checkpoint->offset = doc.first;
+        vector<indexlibv2::base::Progress>progress;
+        progress.emplace_back(indexlibv2::base::Progress({doc.first + 1, 0}));
+        docInfo.hashId = 0;
+        docInfo.timestamp = doc.first;
+        checkpoint->progress = {progress};
         return RawDocumentReader::ERROR_NONE;
     }
     return RawDocumentReader::ERROR_WAIT;

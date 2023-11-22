@@ -131,7 +131,7 @@ void LoadConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("load_strategy", loadStrategyName, READ_MODE_MMAP);
     if (json.GetMode() == FROM_JSON) {
         if (loadStrategyName == READ_MODE_MMAP) {
-            MmapLoadStrategyPtr loadStrategy(new MmapLoadStrategy);
+            auto loadStrategy = std::make_shared<MmapLoadStrategy>();
             json.Jsonize("load_strategy_param", *loadStrategy, *loadStrategy);
             _impl->loadStrategy = loadStrategy;
         } else if (loadStrategyName == READ_MODE_CACHE) {

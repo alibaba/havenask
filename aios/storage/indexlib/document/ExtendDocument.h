@@ -17,6 +17,8 @@
 
 #include <memory>
 
+#include "autil/ResourceContainer.h"
+
 namespace indexlibv2::document {
 class RawDocument;
 
@@ -25,11 +27,34 @@ class ExtendDocument
 public:
     virtual ~ExtendDocument() {}
 
-    void setRawDocument(const std::shared_ptr<RawDocument>& rawDoc);
-    const std::shared_ptr<RawDocument>& getRawDocument() const;
+    void SetRawDocument(const std::shared_ptr<RawDocument>& rawDoc);
+    const std::shared_ptr<RawDocument>& GetRawDocument() const;
+
+    template <typename T>
+    bool AddResource(const std::string& resourcName, const std::shared_ptr<T>& resource);
+
+    template <typename T>
+    std::shared_ptr<T> GetResource(const std::string& resourcName) const;
 
 private:
+    autil::ResourceContainer _resourceContainer;
     std::shared_ptr<RawDocument> _rawDocument;
 };
+
+template <typename T>
+inline bool ExtendDocument::AddResource(const std::string& resourcName, const std::shared_ptr<T>& resource)
+{
+    return _resourceContainer.addResource(resourcName, resource);
+}
+
+template <typename T>
+inline std::shared_ptr<T> ExtendDocument::GetResource(const std::string& resourcName) const
+{
+    std::shared_ptr<T> ret;
+    if (_resourceContainer.getResource(resourcName, ret)) {
+        return ret;
+    }
+    return nullptr;
+}
 
 } // namespace indexlibv2::document

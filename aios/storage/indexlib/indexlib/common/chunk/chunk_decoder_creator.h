@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CHUNK_DECODER_CREATOR_H
-#define __INDEXLIB_CHUNK_DECODER_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -115,5 +114,3 @@ inline FL_LAZY(ChunkDecoder*) ChunkDecoderCreator::CreateAsync(file_system::File
     FL_CORETURN IE_POOL_COMPATIBLE_NEW_CLASS(pool, IntegratedPlainChunkDecoder, buffer, meta.length, recordLen);
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CHUNK_DECODER_CREATOR_H

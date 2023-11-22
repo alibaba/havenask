@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DELETION_MAP_READER_H
-#define __INDEXLIB_DELETION_MAP_READER_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -140,5 +139,3 @@ inline docid_t DeletionMapReader::GetBaseDocId(segmentid_t segId) const
     return INVALID_DOCID;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DELETION_MAP_READER_H

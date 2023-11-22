@@ -85,7 +85,7 @@ void PositionListSegmentDecoder::InitPositionBitmapBlockBuffer(file_system::Byte
     _posBitmapBlockBuffer = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, uint32_t, _posBitmapBlockCount);
 
     void* tmpPtr = _posBitmapBlockBuffer;
-    posListReader.ReadMayCopy(tmpPtr, posSkipListLen);
+    posListReader.ReadMayCopy(tmpPtr, posSkipListLen).GetOrThrow();
     if (tmpPtr == _posBitmapBlockBuffer) {
         _ownPosBitmapBlockBuffer = true;
     } else {
@@ -143,11 +143,11 @@ void PositionListSegmentDecoder::Init(ByteSlice* posList, tf_t totalTF, uint32_t
         return;
     }
 
-    _posListReader.Open(posList);
-    _posListReader.Seek(posListBegin);
-    uint32_t posSkipListLen = _posListReader.ReadVUInt32();
+    _posListReader.Open(posList).GetOrThrow();
+    _posListReader.Seek(posListBegin).GetOrThrow();
+    uint32_t posSkipListLen = _posListReader.ReadVUInt32().GetOrThrow();
     // read pos list length
-    _posListReader.ReadVUInt32();
+    _posListReader.ReadVUInt32().GetOrThrow();
 
     uint32_t posSkipListStart = _posListReader.Tell();
     _posListBegin = posSkipListStart + posSkipListLen;
@@ -158,7 +158,7 @@ void PositionListSegmentDecoder::Init(ByteSlice* posList, tf_t totalTF, uint32_t
         InitPositionSkipList(posList, totalTF, posSkipListStart, posSkipListLen, state);
     }
 
-    _posListReader.Seek(_posListBegin);
+    _posListReader.Seek(_posListBegin).GetOrThrow();
     state->SetCompressMode(ShortListOptimizeUtil::GetPosCompressMode(compressMode));
 }
 
@@ -178,11 +178,11 @@ void PositionListSegmentDecoder::Init(const ByteSliceList* posList, tf_t totalTF
         return;
     }
 
-    _posListReader.Open(const_cast<ByteSliceList*>(posList));
-    _posListReader.Seek(posListBegin);
-    uint32_t posSkipListLen = _posListReader.ReadVUInt32();
+    _posListReader.Open(const_cast<ByteSliceList*>(posList)).GetOrThrow();
+    _posListReader.Seek(posListBegin).GetOrThrow();
+    uint32_t posSkipListLen = _posListReader.ReadVUInt32().GetOrThrow();
     // read pos list length
-    _posListReader.ReadVUInt32();
+    _posListReader.ReadVUInt32().GetOrThrow();
 
     uint32_t posSkipListStart = _posListReader.Tell();
     _posListBegin = posSkipListStart + posSkipListLen;
@@ -193,7 +193,7 @@ void PositionListSegmentDecoder::Init(const ByteSliceList* posList, tf_t totalTF
         InitPositionSkipList(posList, totalTF, posSkipListStart, posSkipListLen, state);
     }
 
-    _posListReader.Seek(_posListBegin);
+    _posListReader.Seek(_posListBegin).GetOrThrow();
     state->SetCompressMode(ShortListOptimizeUtil::GetPosCompressMode(compressMode));
 }
 
@@ -246,13 +246,13 @@ bool PositionListSegmentDecoder::LocateRecord(const NormalInDocState* state, uin
 
     if (_needReopen || _lastDecodeOffset > _recordOffset) {
         if (_posSingleSlice) {
-            _posListReader.Open(_posSingleSlice);
+            _posListReader.Open(_posSingleSlice).GetOrThrow();
         } else {
-            _posListReader.Open(positionList);
+            _posListReader.Open(positionList).GetOrThrow();
         }
         _lastDecodeOffset = 0;
     }
-    _posListReader.Seek(_recordOffset);
+    _posListReader.Seek(_recordOffset).GetOrThrow();
     _needReopen = false;
     return true;
 }

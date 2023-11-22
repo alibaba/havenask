@@ -1,4 +1,5 @@
 #include "indexlib/common_define.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/config/test/truncate_config_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/inverted_index/InvertedIndexReader.h"
@@ -11,6 +12,7 @@
 #include "indexlib/index/test/document_maker.h"
 #include "indexlib/index/test/index_test_util.h"
 #include "indexlib/index/test/partition_schema_maker.h"
+#include "indexlib/index_base/deploy_index_wrapper.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/merger/index_partition_merger.h"
@@ -27,7 +29,6 @@
 #include "indexlib/partition/online_partition.h"
 #include "indexlib/partition/test/index_partition_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/single_field_partition_data_provider.h"
 #include "indexlib/test/test.h"
 #include "indexlib/test/unittest.h"
@@ -852,7 +853,7 @@ public:
         MakeEmptyDocsAndDump();
 
         Version version;
-        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
         mSegmentDir.reset(new SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
         mSegmentDir->Init(false, true);
         mOptions.SetIsOnline(false);
@@ -868,7 +869,7 @@ public:
         {
             SetTargetSegmentCount(2);
             Version version;
-            VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+            VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
             mSegmentDir.reset(new SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
             mSegmentDir->Init(false, true);
             mOptions.SetIsOnline(false);
@@ -938,7 +939,7 @@ public:
         builder.Merge(options);
         Version version;
         GET_FILE_SYSTEM()->TEST_MountLastVersion();
-        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
         INDEXLIB_TEST_EQUAL((versionid_t)3, version.GetVersionId());
         INDEXLIB_TEST_EQUAL((segmentid_t)5, version[0]);
 
@@ -1284,7 +1285,7 @@ public:
 
         Version version0;
         GET_FILE_SYSTEM()->TEST_MountLastVersion();
-        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version0, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version0, INVALID_VERSIONID);
         INDEXLIB_TEST_EQUAL((versionid_t)0, version0.GetVersionId());
         INDEXLIB_TEST_EQUAL(startTimestamp, version0.GetTimestamp());
 
@@ -1299,7 +1300,7 @@ public:
 
         Version version1;
         GET_FILE_SYSTEM()->TEST_MountLastVersion();
-        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version1, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version1, INVALID_VERSIONID);
         INDEXLIB_TEST_EQUAL((versionid_t)1, version1.GetVersionId());
         INDEXLIB_TEST_EQUAL(startTimestamp + 1, version1.GetTimestamp());
 
@@ -1307,7 +1308,7 @@ public:
         builder->Merge(mOptions);
         Version version2;
         GET_FILE_SYSTEM()->TEST_MountLastVersion();
-        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version2, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version2, INVALID_VERSIONID);
         INDEXLIB_TEST_EQUAL((versionid_t)2, version2.GetVersionId());
         INDEXLIB_TEST_EQUAL(startTimestamp + 1, version2.GetTimestamp());
     }
@@ -1369,7 +1370,7 @@ public:
 
         Version version0;
         GET_FILE_SYSTEM()->TEST_MountLastVersion();
-        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version0, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version0, INVALID_VERSIONID);
         INDEXLIB_TEST_EQUAL((versionid_t)0, version0.GetVersionId());
         INDEXLIB_TEST_EQUAL(startTimestamp, version0.GetTimestamp());
 
@@ -1377,7 +1378,7 @@ public:
         indexBuilder->Merge(mOptions);
         Version version1;
         GET_FILE_SYSTEM()->TEST_MountLastVersion();
-        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version1, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version1, INVALID_VERSIONID);
         INDEXLIB_TEST_EQUAL((versionid_t)1, version1.GetVersionId());
         INDEXLIB_TEST_EQUAL(startTimestamp, version1.GetTimestamp());
     }
@@ -1404,7 +1405,7 @@ public:
 
         Version buildVersion;
         GET_FILE_SYSTEM()->TEST_MountLastVersion();
-        VersionLoader::GetVersion(baseDir, buildVersion, INVALID_VERSION);
+        VersionLoader::GetVersion(baseDir, buildVersion, INVALID_VERSIONID);
         if (buildVersion.GetVersionId() == 0 && noBuildVersion) {
             baseDir->RemoveFile("version.0");
         }
@@ -1420,18 +1421,18 @@ public:
 
         indexMerger->DoMerge(optimizeMerge, mergeMeta, 0);
 
-        if (alignedVersionId != INVALID_VERSION && alignedVersionId < mergeMeta->GetTargetVersion().GetVersionId()) {
+        if (alignedVersionId != INVALID_VERSIONID && alignedVersionId < mergeMeta->GetTargetVersion().GetVersionId()) {
             EXPECT_THROW(indexMerger->EndMerge(mergeMeta, alignedVersionId), IndexCollapsedException);
             return;
         }
         indexMerger->EndMerge(mergeMeta, alignedVersionId);
         Version mergeVersion;
         GET_FILE_SYSTEM()->TEST_MountLastVersion();
-        VersionLoader::GetVersion(baseDir, mergeVersion, INVALID_VERSION);
+        VersionLoader::GetVersion(baseDir, mergeVersion, INVALID_VERSIONID);
 
-        if (alignedVersionId != INVALID_VERSION) {
+        if (alignedVersionId != INVALID_VERSIONID) {
             ASSERT_EQ(alignedVersionId, mergeVersion.GetVersionId());
-        } else { // alignedVersionId == INVALID_VERSION
+        } else { // alignedVersionId == INVALID_VERSIONID
             if (indexMergeMeta->GetMergePlans().size() == 0) {
                 if (noBuildVersion) {
                     ASSERT_EQ(0, mergeVersion.GetVersionId());
@@ -1453,13 +1454,13 @@ public:
         // InnerTestForAlignedVersionId("1,2,3", "optimize", false, 0);
         // InnerTestForAlignedVersionId("1,2,3", "align_version", false, 0);
         // test not specify alignedVersion
-        InnerTestForAlignedVersionId("1,2,3", "optimize", false, INVALID_VERSION);
+        InnerTestForAlignedVersionId("1,2,3", "optimize", false, INVALID_VERSIONID);
         // test empty mergeMeta with alignedVersionId
         InnerTestForAlignedVersionId("", "optimize", false, 6);
         // test empty mergeMeta with no alignedVersionId
-        InnerTestForAlignedVersionId("", "optimize", false, INVALID_VERSION);
+        InnerTestForAlignedVersionId("", "optimize", false, INVALID_VERSIONID);
         // test empty mergeMeta with no buildVersion and with no alignedVersionId
-        InnerTestForAlignedVersionId("", "optimize", true, INVALID_VERSION);
+        InnerTestForAlignedVersionId("", "optimize", true, INVALID_VERSIONID);
         // test empty mergeMeta with no buildVersion and with spcified alignedVersionId
         InnerTestForAlignedVersionId("", "optimize", true, 6);
     }
@@ -1786,7 +1787,7 @@ private:
         RESET_FILE_SYSTEM("ut", false, file_system::FileSystemOptions::OfflineWithBlockCache(nullptr));
         GET_FILE_SYSTEM()->TEST_MountLastVersion();
         Version version;
-        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
         mSegmentDir.reset(new SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
         mSegmentDir->Init(mSchema->GetSubIndexPartitionSchema() != NULL, true);
 
@@ -1849,7 +1850,7 @@ private:
                     mergeMeta->LoadBasicInfo(mergeMetaRoot);
                     IndexPartitionMerger merger(mSegmentDir, rewriteSchema, option, merger::DumpStrategyPtr(), NULL,
                                                 plugin::PluginManagerPtr(), CommonBranchHinterOption::Test());
-                    merger.EndMerge(mergeMeta, INVALID_VERSION);
+                    merger.EndMerge(mergeMeta, INVALID_VERSIONID);
                 }
             }
         }

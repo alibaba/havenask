@@ -15,15 +15,39 @@
  */
 #include "indexlib/merger/key_value_merge_meta_creator.h"
 
+#include <algorithm>
 #include <beeper/beeper.h>
+#include <limits>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <utility>
+#include <vector>
 
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "autil/CommonMacros.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/merge_io_config.h"
+#include "indexlib/document/locator.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/fslib/IoConfig.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/util/segment_directory_base.h"
 #include "indexlib/index_base/index_meta/progress_synchronizer.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/segment_topology_info.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/merge_task_resource_manager.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/dump_strategy.h"
 #include "indexlib/merger/merge_meta_work_item.h"
+#include "indexlib/merger/merge_task_item.h"
 #include "indexlib/merger/merge_task_item_creator.h"
 #include "indexlib/merger/merge_task_item_dispatcher.h"
+#include "indexlib/merger/multi_part_segment_directory.h"
+#include "indexlib/merger/segment_directory.h"
 #include "indexlib/plugin/plugin_manager.h"
 #include "indexlib/util/PathUtil.h"
 

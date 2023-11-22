@@ -49,7 +49,7 @@ namespace indexlib { namespace partition {
 IE_LOG_SETUP(partition, PartitionResourceProvider);
 
 PartitionResourceProvider::PartitionResourceProvider(const config::IndexPartitionOptions& options)
-    : mTargetVersionId(INVALID_VERSION)
+    : mTargetVersionId(INVALID_VERSIONID)
     , mOptions(options)
 {
     int64_t minCacheSize = autil::EnvUtil::getEnv("INDEXLIB_PROVIDER_CACHE_SIZE_MB", 512);
@@ -178,7 +178,7 @@ PartitionPatcherPtr PartitionResourceProvider::CreatePartitionPatcher(const Inde
         CounterMapPtr counterMap(new CounterMap());
         PartitionMeta partitionMeta = mOfflinePartition->GetPartitionMeta();
         PluginResourcePtr resource(
-            new IndexPluginResource(newSchema, mOptions, counterMap, partitionMeta, mPluginPath));
+            new IndexPluginResource(newSchema, mOptions, counterMap, partitionMeta, mPluginPath, nullptr));
         pluginManager->SetPluginResource(resource);
         mPluginManagerPair.first = newId;
         mPluginManagerPair.second = pluginManager;
@@ -230,8 +230,8 @@ int32_t PartitionResourceProvider::GetNewSchemaVersionId(const IndexPartitionSch
         return newSchema->GetSchemaVersionId();
     }
 
-    schemavid_t oldId = mSchema->GetSchemaVersionId();
-    schemavid_t newId = newSchema->GetSchemaVersionId();
+    schemaid_t oldId = mSchema->GetSchemaVersionId();
+    schemaid_t newId = newSchema->GetSchemaVersionId();
     // if (newId == DEFAULT_SCHEMAID)
     // {
     //     // newSchema verionid : auto inc 1

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OPENEXECUTORCHAINTEST_H
-#define __INDEXLIB_OPENEXECUTORCHAINTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/open_executor/open_executor_chain.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(OpenExecutorChainTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPENEXECUTORCHAINTEST_H

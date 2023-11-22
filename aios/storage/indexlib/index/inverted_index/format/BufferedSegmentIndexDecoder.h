@@ -28,10 +28,10 @@ public:
     BufferedSegmentIndexDecoder() : _skipedItemCount(0) {}
     virtual ~BufferedSegmentIndexDecoder() = default;
 
-    virtual bool DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                 ttf_t& currentTTF) = 0;
-    virtual bool DecodeDocBufferMayCopy(docid_t startDocId, docid_t*& docBuffer, docid_t& firstDocId,
-                                        docid_t& lastDocId, ttf_t& currentTTF) = 0;
+    virtual bool DecodeDocBuffer(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId,
+                                 docid32_t& lastDocId, ttf_t& currentTTF) = 0;
+    virtual bool DecodeDocBufferMayCopy(docid32_t startDocId, docid32_t*& docBuffer, docid32_t& firstDocId,
+                                        docid32_t& lastDocId, ttf_t& currentTTF) = 0;
     virtual bool DecodeCurrentTFBuffer(tf_t* tfBuffer) = 0;
     virtual void DecodeCurrentDocPayloadBuffer(docpayload_t* docPayloadBuffer) = 0;
     virtual void DecodeCurrentFieldMapBuffer(fieldmap_t* fieldBitmapBuffer) = 0;

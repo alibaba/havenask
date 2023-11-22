@@ -3,10 +3,14 @@ cc_library(
     name='util',
     srcs=glob(['*.cpp']),
     hdrs=glob(['*.h']),
+    include_prefix='fslib/util',
     deps=[
         '//aios/filesystem/fslib/fslib:common',
-        '//aios/kmonitor:kmonitor_cpp_adapter',
-        '//aios/kmonitor:kmonitor_client_cpp'
+        '//aios/kmonitor:kmonitor_client_cpp',
+        '//aios/kmonitor:kmonitor_cpp_adapter'
     ],
-    include_prefix='fslib/util'
+    visibility=[
+        '//aios/filesystem/fslib:__subpackages__',
+        '//aios/network/gig:__subpackages__'
+    ]
 )

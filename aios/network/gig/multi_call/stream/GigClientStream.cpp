@@ -30,7 +30,9 @@ GigClientStream::GigClientStream(const std::string &bizName, const std::string &
     , _methodName(methodName)
     , _timeout(DEFAULT_TIMEOUT)
     , _hasError(false)
-    , _forceStop(false) {
+    , _forceStop(false)
+    , _allowLack(true)
+{
 }
 
 GigClientStream::~GigClientStream() {

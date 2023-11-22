@@ -15,6 +15,7 @@
  */
 #include "indexlib/index/kkv/codegen_kkv_reader.h"
 
+#include "indexlib/codegen/code_factory.h"
 #include "indexlib/index/kkv/kkv_reader_impl_factory.h"
 
 using namespace std;

@@ -125,6 +125,7 @@ public:
     void recycleBuffer(int64_t blockCount = 0);
     void recycleFileCache(int64_t metaThreshold, int64_t dataThreshold);
     void delExpiredFile();
+    void syncDfsUsedSize();
 
     protocol::TopicMode getTopicMode();
     void setForceUnload(bool flag);

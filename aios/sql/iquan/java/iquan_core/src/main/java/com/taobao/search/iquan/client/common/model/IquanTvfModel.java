@@ -31,11 +31,11 @@ public class IquanTvfModel extends IquanFunctionModel {
             ExceptionUtils.throwIfTrue(!isPathValid(), "tvf path is not valid");
             ExceptionUtils.throwIfTrue(function_version <= 0, "tvf function_version is smaller than 0");
             ExceptionUtils.throwIfTrue(!function_type.isValid(),
-                                        "tvf function_type is not valid");
+                    "tvf function_type is not valid");
             ExceptionUtils.throwIfTrue(function_content_version.isEmpty(),
-                                        "tvf function_content_version.isEmpty()");
+                    "tvf function_content_version.isEmpty()");
             ExceptionUtils.throwIfTrue(function_content.isEmpty(),
-                                        "tvf function_content is empty");
+                    "tvf function_content is empty");
         } catch (IquanNotValidateException e) {
             logger.error("tvf function model is not valid: " + getDigest());
             logger.error(e.getMessage());

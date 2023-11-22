@@ -15,9 +15,18 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
+#include <stddef.h>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "autil/Log.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/framework/SegmentGroupMetrics.h"
 #include "indexlib/util/Exception.h"
@@ -40,6 +49,7 @@ public:
     void FromString(const std::string& str);
     void Store(const std::shared_ptr<file_system::Directory>& directory) const;
     void Load(const std::shared_ptr<file_system::Directory>& directory);
+    Status Load(const std::string& filePath);
     Status LoadSegmentMetrics(const std::shared_ptr<file_system::IDirectory>& directory);
     Status StoreSegmentMetrics(const std::shared_ptr<file_system::IDirectory>& directory) const;
 

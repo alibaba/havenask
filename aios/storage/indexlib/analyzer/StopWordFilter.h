@@ -15,7 +15,9 @@
  */
 #pragma once
 
+#include <memory>
 #include <set>
+#include <string>
 
 #include "autil/Log.h"
 

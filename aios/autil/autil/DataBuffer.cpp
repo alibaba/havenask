@@ -312,30 +312,6 @@ void DataBuffer::initByString(const std::string &str, mem_pool::Pool *pool, bool
     }
 }
 
-void DataBuffer::write(const MultiValueType<MultiValueType<char>> &value) {
-    uint32_t len = value.length();
-    write(len);
-    if (len > 0) {
-        assert(value.hasEncodedCount());
-        uint32_t count = value.getCount();
-        if (count == 0) {
-            // see xxxx://invalid/issue/23705044
-            uint16_t zero = 0;
-            writeBytes(&zero, sizeof(zero));
-        } else {
-            char header[MultiValueFormatter::VALUE_COUNT_MAX_BYTES];
-            size_t countLen =
-                MultiValueFormatter::encodeCount(value.getCount(), header, MultiValueFormatter::VALUE_COUNT_MAX_BYTES);
-            writeBytes(header, countLen);
-            if (len > countLen) {
-                const char *data = value.getData();
-                assert(data != nullptr);
-                writeBytes(data, len - countLen);
-            }
-        }
-    }
-}
-
 void DataBuffer::_writeConstString(const StringView &value) {
     uint32_t len = value.size();
     write(len);

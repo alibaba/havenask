@@ -17,6 +17,7 @@
 
 #include "autil/ClosureGuard.h"
 #include "autil/Log.h"
+#include "suez/admin/SuezAccessLog.h"
 
 namespace suez {
 
@@ -24,10 +25,12 @@ AUTIL_DECLARE_AND_SETUP_LOGGER(suez, ClusterServiceImp);
 
 #define RPC_GUARD()                                                                                                    \
     autil::ClosureGuard guard(done);                                                                                   \
+    SuezAccessLog suezAccessLog(request, response, __func__);                                                          \
     do {                                                                                                               \
         if (!_serviceReady) {                                                                                          \
             response->set_errorcode(CommonResponse::ERROR_SERVICE_NOT_READY);                                          \
             response->set_errormsg("service not ready, drop rpc request");                                             \
+            return;                                                                                                    \
         }                                                                                                              \
     } while (0)
 
@@ -123,6 +126,7 @@ void ClusterServiceImpl::getClusterDeployment(::google::protobuf::RpcController 
                                               google::protobuf::Closure *done) {
     autil::ScopedReadLock lock(_lock);
     autil::ClosureGuard guard(done);
+    SuezAccessLog suezAccessLog(request, response, __func__);
 
     if (!_serviceReady) {
         return;
@@ -137,6 +141,7 @@ void ClusterServiceImpl::getDatabaseDeployment(::google::protobuf::RpcController
                                                google::protobuf::Closure *done) {
     autil::ScopedReadLock lock(_lock);
     autil::ClosureGuard guard(done);
+    SuezAccessLog suezAccessLog(request, response, __func__);
 
     if (!_serviceReady) {
         return;

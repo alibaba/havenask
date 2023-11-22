@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_HASHMODECONFIG_H
-#define ISEARCH_BS_HASHMODECONFIG_H
+#pragma once
+
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
 #include "build_service/common_define.h"
 #include "build_service/config/HashMode.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/util/Log.h"
-#include "indexlib/config/index_partition_schema.h"
-
-namespace indexlibv2::config {
-class ITabletSchema;
-}
+#include "indexlib/config/ITabletSchema.h"
 
 namespace build_service { namespace config {
 
@@ -75,5 +75,3 @@ private:
 BS_TYPEDEF_PTR(HashModeConfig);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_HASHMODECONFIG_H

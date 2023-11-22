@@ -15,13 +15,31 @@
  */
 #include "build_service/workflow/ProcessedDocHandler.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <exception>
+#include <string>
+
+#include "alog/Logger.h"
 #include "autil/MurmurHash.h"
+#include "autil/ThreadPool.h"
+#include "autil/WorkItem.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ProcessorConfig.h"
 #include "build_service/config/ProcessorConfigReader.h"
+#include "build_service/config/SrcNodeConfig.h"
+#include "build_service/document/DocumentDefine.h"
+#include "build_service/document/RawDocument.h"
+#include "build_service/reader/RawDocumentReaderCreator.h"
 #include "build_service/util/Monitor.h"
-#include "build_service/util/SwiftClientCreator.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/document.h"
 #include "indexlib/document/raw_document/default_raw_document.h"
+#include "indexlib/indexlib.h"
+#include "kmonitor/client/MetricType.h"
 
 using autil::MurmurHash;
 using autil::ScopedLock;

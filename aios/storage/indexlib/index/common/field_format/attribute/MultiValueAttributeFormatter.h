@@ -24,7 +24,6 @@ namespace indexlibv2::index {
 class MultiValueAttributeFormatter : private autil::NoCopyable
 {
 public:
-    static const size_t MULTI_VALUE_ATTRIBUTE_SLICE_LEN = 64 * 1024 * 1024;
     static const size_t MULTI_VALUE_NULL_FIELD_VALUE_COUNT = autil::MultiValueFormatter::VAR_NUM_NULL_FIELD_VALUE_COUNT;
     static const size_t MULTI_VALUE_ATTRIBUTE_MAX_COUNT = MULTI_VALUE_NULL_FIELD_VALUE_COUNT - 1;
 

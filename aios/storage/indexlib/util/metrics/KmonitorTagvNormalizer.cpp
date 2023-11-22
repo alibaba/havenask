@@ -15,6 +15,8 @@
  */
 #include "indexlib/util/metrics/KmonitorTagvNormalizer.h"
 
+#include <string.h>
+
 using namespace std;
 
 namespace indexlib { namespace util {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+
 #include "autil/Log.h"
 #include "future_lite/executors/SimpleExecutor.h"
 #include "indexlib/table/kkv_table/KKVReader.h"
@@ -39,8 +40,7 @@ public:
 
     std::shared_ptr<Result> Search(const std::vector<std::string>& pkeyStr,
                                    const std::vector<std::vector<std::string>>& skeyStrs,
-                                   indexlibv2::table::KKVReadOptions& readOptions,
-                                   bool batchFinish);
+                                   indexlibv2::table::KKVReadOptions& readOptions, bool batchFinish);
 
 private:
     void FillResult(const std::shared_ptr<Result>& result, index::KKVIterator* iter,

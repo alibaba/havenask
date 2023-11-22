@@ -63,6 +63,7 @@ void SqlResultUtil::toFlatBuffersString(double processTime,
                                         const map<string, bool> &leaderInfo,
                                         const map<string, int64_t> &watermarkInfo,
                                         bool hasSoftFailure,
+                                        const vector<int64_t> &softFailureCodes,
                                         Pool *pool) {
     FlatBufferSimpleAllocator flatbufferAllocator(pool);
     FlatBufferBuilder fbb(FB_BUILDER_INIT_SIZE, &flatbufferAllocator);
@@ -75,6 +76,7 @@ void SqlResultUtil::toFlatBuffersString(double processTime,
                                                       leaderInfo,
                                                       watermarkInfo,
                                                       hasSoftFailure,
+                                                      softFailureCodes,
                                                       fbb);
     fbb.Finish(fbSqlResult);
     char *data = reinterpret_cast<char *>(fbb.GetBufferPointer());
@@ -89,6 +91,7 @@ Offset<SqlResult> SqlResultUtil::CreateFBSqlResult(double processTime,
                                                    const map<string, bool> &leaderInfo,
                                                    const map<string, int64_t> &watermarkInfo,
                                                    bool hasSoftFailure,
+                                                   const vector<int64_t> &softFailureCodes,
                                                    FlatBufferBuilder &fbb) {
     return isearch::fbs::CreateSqlResult(fbb,
                                          processTime,
@@ -99,12 +102,14 @@ Offset<SqlResult> SqlResultUtil::CreateFBSqlResult(double processTime,
                                          coveredPercent,
                                          fbb.CreateVector(CreateLeaderInfo(leaderInfo, fbb)),
                                          fbb.CreateVector(CreateWatermarkInfo(watermarkInfo, fbb)),
-                                         hasSoftFailure);
+                                         hasSoftFailure,
+                                         fbb.CreateVector(softFailureCodes));
 }
 
 bool SqlResultUtil::FromFBSqlResult(const isearch::fbs::SqlResult *fbSqlResult,
                                     ErrorResult &errorResult,
                                     bool &hasSoftFailure,
+                                    std::vector<int64_t> &softFailureCodes,
                                     std::shared_ptr<table::Table> &table) {
     if (!FromSqlErrorResult(fbSqlResult->errorResult(), errorResult)) {
         SQL_LOG(ERROR, "from sql error result failed");
@@ -115,6 +120,10 @@ bool SqlResultUtil::FromFBSqlResult(const isearch::fbs::SqlResult *fbSqlResult,
         return false;
     }
     hasSoftFailure = fbSqlResult->hasSoftFailure() || (fbSqlResult->coveredPercent() < 1 - 1e-5);
+    if (fbSqlResult->softFailureCodes()) {
+        softFailureCodes.assign(fbSqlResult->softFailureCodes()->begin(),
+                                fbSqlResult->softFailureCodes()->end());
+    }
     return true;
 }
 
@@ -162,7 +171,7 @@ Offset<TwoDimTable> SqlResultUtil::CreateSqlTable(const std::shared_ptr<table::T
 #define NUMERIC_SWITCH_CASE(fbType, fieldType)                                                     \
     case fieldType: {                                                                              \
         typedef MatchDocBuiltinType2CppType<fieldType, false>::CppType cppType;                    \
-        ColumnData<cppType> *columnData = table->getColumn(columnIdx)->getColumnData<cppType>();   \
+        ColumnData<cppType> *columnData = column->getColumnData<cppType>();                        \
         if (!columnData) {                                                                         \
             break;                                                                                 \
         }                                                                                          \
@@ -173,7 +182,7 @@ Offset<TwoDimTable> SqlResultUtil::CreateSqlTable(const std::shared_ptr<table::T
 #define MULTINUMERIC_SWITCH_CASE(fbType, fieldType)                                                \
     case fieldType: {                                                                              \
         typedef MatchDocBuiltinType2CppType<fieldType, true>::CppType cppType;                     \
-        ColumnData<cppType> *columnData = table->getColumn(columnIdx)->getColumnData<cppType>();   \
+        ColumnData<cppType> *columnData = column->getColumnData<cppType>();                        \
         if (!columnData) {                                                                         \
             break;                                                                                 \
         }                                                                                          \
@@ -187,27 +196,42 @@ Offset<TwoDimTable> SqlResultUtil::CreateSqlTable(const std::shared_ptr<table::T
         rowCount = table->getRowCount();
         size_t columnCount = table->getColumnCount();
         for (size_t columnIdx = 0; columnIdx < columnCount; columnIdx++) {
-            const string &columnName = table->getColumnName(columnIdx);
-            matchdoc::ValueType columnValueType = table->getColumnType(columnIdx);
+            table::Column *column = table->getColumn(columnIdx);
+            const string &columnName = column->getName();
+            matchdoc::ValueType columnValueType = column->getType();
             matchdoc::BuiltinType columnType = columnValueType.getBuiltinType();
             bool isMultiValue = columnValueType.isMultiValue();
             if (!isMultiValue) {
                 switch (columnType) {
                     FLATBUFFER_NUMERIC_SWITCH_CASE_HELPER(NUMERIC_SWITCH_CASE);
-                default:
-                    auto column = table->getColumn(columnIdx);
+                case bt_bool: {
+                    auto *columnData = column->getColumnData<bool>();
+                    if (!columnData) {
+                        SQL_LOG(ERROR, "Unexpected get no data from table");
+                    }
+                    CreateSqlTableColumnByBool(columnName, columnData, fbb, sqlTableColumns);
+                    break;
+                }
+                case bt_string: {
                     if (_useByteString) {
                         CreateSqlTableColumnByByteString(columnName, column, fbb, sqlTableColumns);
                     } else {
                         CreateSqlTableColumnByString(columnName, column, fbb, sqlTableColumns);
                     }
+                    break;
+                }
+                default: {
+                    SQL_LOG(ERROR,
+                            "Unexpected bt type [%s]",
+                            matchdoc::builtinTypeToString(columnType).c_str());
+                }
                 }
             } else {
                 switch (columnType) {
                     FLATBUFFER_NUMERIC_SWITCH_CASE_HELPER(MULTINUMERIC_SWITCH_CASE);
                 case bt_string: {
                     ColumnData<autil::MultiString> *columnData
-                        = table->getColumn(columnIdx)->getColumnData<autil::MultiString>();
+                        = column->getColumnData<autil::MultiString>();
                     if (_useByteString) {
                         CreateSqlTableColumnByMultiByteString(
                             columnName, columnData, fbb, sqlTableColumns);
@@ -218,12 +242,9 @@ Offset<TwoDimTable> SqlResultUtil::CreateSqlTable(const std::shared_ptr<table::T
                     break;
                 }
                 default: {
-                    auto column = table->getColumn(columnIdx);
-                    if (_useByteString) {
-                        CreateSqlTableColumnByByteString(columnName, column, fbb, sqlTableColumns);
-                    } else {
-                        CreateSqlTableColumnByString(columnName, column, fbb, sqlTableColumns);
-                    }
+                    SQL_LOG(ERROR,
+                            "Unexpected bt type [%s]",
+                            matchdoc::builtinTypeToString(columnType).c_str());
                 }
                 }
             }
@@ -254,12 +275,12 @@ bool SqlResultUtil::FromSqlTable(const isearch::fbs::TwoDimTable *fbsTable,
     case ColumnType_##fbType##Column: {                                                            \
         auto columnData = TableUtil::declareAndGetColumnData<                                      \
             matchdoc::MatchDocBuiltinType2CppType<matchdoc::fieldType, false>::CppType>(           \
-            table, columnName, true, true);                                                        \
+            table, columnName, true);                                                              \
         if (!columnData) {                                                                         \
             SQL_LOG(ERROR, "duplicate column name [%s]", columnName.c_str());                      \
             return false;                                                                          \
         }                                                                                          \
-        if (!FromSqlTableColumnBy##fbType(table->getDataPool(), fbsColumn, columnData)) {          \
+        if (!FromSqlTableColumnBy##fbType(table->getPool(), fbsColumn, columnData)) {              \
             SQL_LOG(ERROR, "from sql table column failed, name[%s]", columnName.c_str());          \
             return false;                                                                          \
         }                                                                                          \
@@ -270,12 +291,12 @@ bool SqlResultUtil::FromSqlTable(const isearch::fbs::TwoDimTable *fbsTable,
     case ColumnType_Multi##fbType##Column: {                                                       \
         auto columnData = TableUtil::declareAndGetColumnData<                                      \
             matchdoc::MatchDocBuiltinType2CppType<matchdoc::fieldType, true>::CppType>(            \
-            table, columnName, true, true);                                                        \
+            table, columnName, true);                                                              \
         if (!columnData) {                                                                         \
             SQL_LOG(ERROR, "duplicate column name [%s]", columnName.c_str());                      \
             return false;                                                                          \
         }                                                                                          \
-        if (!FromSqlTableColumnByMulti##fbType(table->getDataPool(), fbsColumn, columnData)) {     \
+        if (!FromSqlTableColumnByMulti##fbType(table->getPool(), fbsColumn, columnData)) {         \
             SQL_LOG(ERROR, "from sql table column failed, name[%s]", columnName.c_str());          \
             return false;                                                                          \
         }                                                                                          \
@@ -285,6 +306,7 @@ bool SqlResultUtil::FromSqlTable(const isearch::fbs::TwoDimTable *fbsTable,
             FLATBUFFER_NUMERIC_SWITCH_CASE_HELPER(MULTINUMERIC_SWITCH_CASE)
             NUMERIC_SWITCH_CASE(String, bt_string)
             NUMERIC_SWITCH_CASE(ByteString, bt_string)
+            NUMERIC_SWITCH_CASE(Bool, bt_bool)
             MULTINUMERIC_SWITCH_CASE(String, bt_string)
             MULTINUMERIC_SWITCH_CASE(ByteString, bt_string)
         default:
@@ -393,10 +415,7 @@ bool SqlResultUtil::FromSqlTable(const isearch::fbs::TwoDimTable *fbsTable,
         }                                                                                          \
         for (size_t i = 0; i < columnValue->size(); ++i) {                                         \
             const isearch::fbs::Multi##fbType *fbValue = columnValue->Get(i);                      \
-            auto *buf = MultiValueCreator::createMultiValueBuffer(                                 \
-                fbValue->value()->data(), fbValue->value()->size(), pool);                         \
-            multi##fieldType##type mv(buf);                                                        \
-            columnData->set(i, mv);                                                                \
+            columnData->set(i, fbValue->value()->data(), fbValue->value()->size());                \
         }                                                                                          \
         return true;                                                                               \
     }
@@ -442,10 +461,48 @@ bool SqlResultUtil::FromSqlTableColumnByString(autil::mem_pool::Pool *pool,
     for (size_t i = 0; i < columnValue->size(); ++i) {
         const flatbuffers::String *strValue = columnValue->Get(i);
         assert(strValue && "column value need exist");
-        auto buf
-            = MultiValueCreator::createMultiValueBuffer(strValue->c_str(), strValue->size(), pool);
-        MultiChar ms(buf);
-        columnData->set(i, ms);
+        columnData->set(i, strValue->c_str(), strValue->size());
+    }
+    return true;
+}
+
+void SqlResultUtil::CreateSqlTableColumnByBool(
+    const string &columnName,
+    table::ColumnData<bool> *columnData,
+    FlatBufferBuilder &fbb,
+    vector<Offset<isearch::fbs::Column>> &sqlTableColumns) {
+    size_t rowCount = columnData->getRowCount();
+    vector<uint8_t> columnValue(rowCount, 0);
+    for (size_t rowIdx = 0; rowIdx < rowCount; rowIdx++) {
+        columnValue[rowIdx] = columnData->get(rowIdx);
+    }
+    Offset<BoolColumn> fb_columnValue = CreateBoolColumn(fbb, fbb.CreateVector(columnValue));
+    sqlTableColumns.emplace_back(
+        CreateColumnDirect(fbb, columnName.c_str(), ColumnType_BoolColumn, fb_columnValue.Union()));
+}
+
+bool SqlResultUtil::FromSqlTableColumnByBool(autil::mem_pool::Pool *pool,
+                                             const isearch::fbs::Column *fbsColumn,
+                                             table::ColumnData<bool> *columnData) {
+    const auto *column = fbsColumn->value_as_BoolColumn();
+    if (!column) {
+        SQL_LOG(ERROR,
+                "fbs column type cast to [%s] failed, column[%s]",
+                "Bool",
+                fbsColumn->name() ? fbsColumn->name()->str().c_str() : "");
+        return false;
+    }
+    const auto *columnValue = column->value();
+    if (columnValue->size() != columnData->getRowCount()) {
+        SQL_LOG(ERROR,
+                "row count mismatch, fb[%u] table[%lu], column[%s]",
+                columnValue->size(),
+                columnData->getRowCount(),
+                fbsColumn->name() ? fbsColumn->name()->str().c_str() : "");
+        return false;
+    }
+    for (size_t i = 0; i < columnValue->size(); ++i) {
+        columnData->set(i, columnValue->Get(i));
     }
     return true;
 }
@@ -500,9 +557,7 @@ bool SqlResultUtil::FromSqlTableColumnByMultiString(
         for (auto value : *offset->value()) {
             strVec.emplace_back(value->c_str(), value->size());
         }
-        auto *buf = MultiValueCreator::createMultiStringBuffer(strVec, pool);
-        autil::MultiString ms(buf);
-        columnData->set(i, ms);
+        columnData->set(i, strVec.data(), strVec.size());
     }
     return true;
 }
@@ -550,10 +605,7 @@ bool SqlResultUtil::FromSqlTableColumnByByteString(
     }
     for (size_t i = 0; i < columnValue->size(); ++i) {
         auto byteVal = columnValue->Get(i)->value();
-        auto buf
-            = MultiValueCreator::createMultiValueBuffer(byteVal->data(), byteVal->size(), pool);
-        MultiChar ms(buf);
-        columnData->set(i, ms);
+        columnData->set(i, reinterpret_cast<const char *>(byteVal->data()), byteVal->size());
     }
     return true;
 }
@@ -610,9 +662,7 @@ bool SqlResultUtil::FromSqlTableColumnByMultiByteString(
             strVec.emplace_back((const char *)byteString->value()->data(),
                                 byteString->value()->size());
         }
-        auto *buf = MultiValueCreator::createMultiStringBuffer(strVec, pool);
-        autil::MultiString ms(buf);
-        columnData->set(i, ms);
+        columnData->set(i, strVec.data(), strVec.size());
     }
     return true;
 }

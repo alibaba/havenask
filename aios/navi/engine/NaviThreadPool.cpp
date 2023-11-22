@@ -376,6 +376,10 @@ size_t NaviThreadPool::getQueueSize() const {
     return _scheduleQueue.Size();
 }
 
+size_t NaviThreadPool::getIdleQueueSize() const {
+    return _idleQueue.Size();
+}
+
 NaviThreadPoolItemBase *NaviThreadPool::pop() {
     NaviThreadPoolItemBase *item = nullptr;
     if (_scheduleQueue.Pop(&item)) {

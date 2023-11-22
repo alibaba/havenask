@@ -65,7 +65,7 @@ bool TokenizeHelper::processField(const IndexlibExtendDocumentPtr& document, con
         return true;
     }
 
-    const RawDocumentPtr& rawDocument = document->getRawDocument();
+    const RawDocumentPtr& rawDocument = document->GetRawDocument();
     const autil::StringView& fieldValue = rawDocument->getField(autil::StringView(fieldName));
     IE_LOG(DEBUG, "fieldtype:[%d], fieldname:[%s], fieldvalue:[%s]", fieldType, fieldName.c_str(),
            string(fieldValue.data(), fieldValue.size()).c_str());
@@ -125,7 +125,7 @@ bool TokenizeHelper::process(const IndexlibExtendDocumentPtr& document)
             return false;
         }
         std::string lastFieldName = LAST_VALUE_PREFIX + fieldName;
-        const RawDocumentPtr& rawDocument = document->getRawDocument();
+        const RawDocumentPtr& rawDocument = document->GetRawDocument();
         if (!rawDocument->exist(lastFieldName)) {
             continue;
         }

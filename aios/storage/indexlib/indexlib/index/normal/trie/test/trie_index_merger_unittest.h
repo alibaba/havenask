@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TRIEINDEXMERGERTEST_H
-#define __INDEXLIB_TRIEINDEXMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/trie/trie_index_merger.h"
@@ -36,5 +35,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(TrieIndexMergerTest, TestEstimateMemoryUse);
 INDEXLIB_UNIT_TEST_CASE(TrieIndexMergerTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TRIEINDEXMERGERTEST_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_EXPACK_INDEX_DOCUMENT_MAKER_H
-#define __INDEXLIB_EXPACK_INDEX_DOCUMENT_MAKER_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -26,5 +25,3 @@ private:
 
 typedef std::shared_ptr<ExpackIndexDocumentMaker> ExPackIndexDocumentMakerPtr;
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_EXPACK_INDEX_DOCUMENT_MAKER_H

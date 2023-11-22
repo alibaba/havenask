@@ -15,20 +15,27 @@
  */
 #pragma once
 
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <stdint.h>
+#include <string>
+
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeper.h"
+#include "build_service/common_define.h"
 #include "build_service/config/TaskTarget.h"
-#include "build_service/proto/BuildTaskTargetInfo.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
 #include "build_service/task_base/RestartIntervalController.h"
 #include "build_service/task_base/Task.h"
-#include "build_service/util/Log.h"
 #include "build_service/workflow/BuildFlow.h"
 #include "build_service/workflow/FlowFactory.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/util/TaskScheduler.h"
 #include "indexlib/util/counter/CounterMap.h"
-
-namespace indexlibv2::framework {
-class ITablet;
-}
 
 namespace build_service::build_task {
 

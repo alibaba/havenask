@@ -6,6 +6,7 @@
 #include "autil/TimeUtility.h"
 #include "iquan/common/Status.h"
 #include "iquan/common/Utils.h"
+#include "iquan/common/catalog/CatalogDef.h"
 #include "iquan/jni/IquanDqlResponse.h"
 #include "iquan/jni/test/testlib/Counter.h"
 #include "iquan/jni/test/testlib/IquanTestBase.h"
@@ -23,9 +24,8 @@ struct CaseInfo {
 
 struct SuiteInfo {
     std::string name;
+    CatalogDefs catalogDefs;
     DefaultCatalogPath defaultCatalogPath;
-    std::vector<std::string> tableContentList;
-    std::vector<std::string> functionContentList;
     std::vector<CaseInfo> caseInfos;
 };
 
@@ -38,9 +38,7 @@ public:
 private:
     static void loadDefaultCatalogPath(const std::string &rootPath,
                                        DefaultCatalogPath &defaultCatalogPath);
-    static void loadTableAndFunctions(const std::string &rootPath,
-                                      std::vector<std::string> &tableContentList,
-                                      std::vector<std::string> &functionContentList);
+    static void loadCatalogDefs(const std::string &catalogDefPath, CatalogDefs &catalogDefs);
     static void loadCaseInfos(const std::string &rootPath, std::vector<CaseInfo> &caseInfos);
 
     static void runCheck(const std::vector<SuiteInfo> &suiteInfos);
@@ -102,18 +100,15 @@ void ItTest::loadSuiteInfos(const std::string &sqlSuitesRootPath,
         suiteInfo.name = suiteName;
         AUTIL_LOG(INFO, "==== start to load suite %s", suiteName.c_str());
 
+        loadCatalogDefs(suitesRootPath + "/" + suiteName + "/catalogs/catalog_def.json",
+                        suiteInfo.catalogDefs);
+        ASSERT_TRUE(suiteInfo.catalogDefs.isValid());
+
         loadDefaultCatalogPath(suitesRootPath + "/" + suiteName
                                    + "/catalogs/default_catalog_path.json",
                                suiteInfo.defaultCatalogPath);
         ASSERT_TRUE(suiteInfo.defaultCatalogPath.isValid());
         AUTIL_LOG(INFO, "load suite %s default catalog path success", suiteName.c_str());
-
-        loadTableAndFunctions(suitesRootPath + "/" + suiteName,
-                              suiteInfo.tableContentList,
-                              suiteInfo.functionContentList);
-        ASSERT_TRUE(suiteInfo.tableContentList.size() > 0);
-        ASSERT_TRUE(suiteInfo.functionContentList.size() > 0);
-        AUTIL_LOG(INFO, "load suite %s tables and functions success", suiteName.c_str());
 
         loadCaseInfos(plansRootPath + "/" + suiteName, suiteInfo.caseInfos);
         ASSERT_TRUE(!suiteInfo.caseInfos.empty());
@@ -137,43 +132,13 @@ void ItTest::loadDefaultCatalogPath(const std::string &rootPath,
     ASSERT_TRUE(status.ok()) << status.errorMessage();
 }
 
-void ItTest::loadTableAndFunctions(const std::string &rootPath,
-                                   std::vector<std::string> &tableContentList,
-                                   std::vector<std::string> &functionContentList) {
-    std::string catalogInfosPath = rootPath + "/catalogs/catalog_infos.json";
-    std::string content;
-    Status status = Utils::readFile(catalogInfosPath, content);
-    ASSERT_TRUE(!content.empty());
-    std::vector<DbCatalogInfo> catalogInfos;
-    status = Utils::fromJson(catalogInfos, content);
+void ItTest::loadCatalogDefs(const std::string &catalogDefPath, CatalogDefs &catalogDefs) {
+    ASSERT_TRUE(Utils::isExist(catalogDefPath));
+    std::string catalogDefsContent;
+    Status status = Utils::readFile(catalogDefPath, catalogDefsContent);
     ASSERT_TRUE(status.ok()) << status.errorMessage();
-
-    for (const auto &catalogInfo : catalogInfos) {
-        AUTIL_LOG(INFO, "start to load catalog %s", catalogInfo.catalogName.c_str());
-        for (const auto &databaseInfo : catalogInfo.databaseInfos) {
-            AUTIL_LOG(INFO,
-                      "start to load database %s.%s",
-                      catalogInfo.catalogName.c_str(),
-                      databaseInfo.databaseName.c_str());
-
-            for (const auto &table : databaseInfo.tables) {
-                std::string content;
-                status = Utils::readFile(rootPath + "/" + table, content);
-                ASSERT_TRUE(status.ok()) << status.errorMessage();
-                ASSERT_TRUE(!content.empty());
-                tableContentList.emplace_back(content);
-                AUTIL_LOG(INFO, "load table %s success", table.c_str());
-            }
-            for (const auto &function : databaseInfo.functions) {
-                std::string content;
-                status = Utils::readFile(rootPath + "/" + function, content);
-                ASSERT_TRUE(status.ok()) << status.errorMessage();
-                ASSERT_TRUE(!content.empty());
-                functionContentList.emplace_back(content);
-                AUTIL_LOG(INFO, "load function %s success", function.c_str());
-            }
-        }
-    }
+    status = Utils::fromJson(catalogDefs, catalogDefsContent);
+    ASSERT_TRUE(status.ok()) << status.errorMessage();
 }
 
 void ItTest::loadCaseInfos(const std::string &rootPath, std::vector<CaseInfo> &caseInfos) {
@@ -431,20 +396,10 @@ IquanPtr ItTest::createIquan(const SuiteInfo &suiteInfo) {
         AUTIL_LOG(INFO, "pIquan create error");
         return pIquan;
     }
-    Status status;
-    for (const std::string &content : suiteInfo.tableContentList) {
-        status = pIquan->updateTables(content);
-        if (!status.ok()) {
-            AUTIL_LOG(INFO, "update tables failed: %s", status.errorMessage().c_str());
-            return IquanPtr();
-        }
-    }
-    for (const std::string &content : suiteInfo.functionContentList) {
-        status = pIquan->updateFunctions(content);
-        if (!status.ok()) {
-            AUTIL_LOG(INFO, "update function failed");
-            return IquanPtr();
-        }
+    Status status = pIquan->registerCatalogs(suiteInfo.catalogDefs);
+    if (!status.ok()) {
+        AUTIL_LOG(INFO, "register catalogdefs failed: %s", status.errorMessage().c_str());
+        return IquanPtr();
     }
     return pIquan;
 }

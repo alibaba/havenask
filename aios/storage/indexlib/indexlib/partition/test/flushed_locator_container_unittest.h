@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FLUSHEDLOCATORCONTAINERTEST_H
-#define __INDEXLIB_FLUSHEDLOCATORCONTAINERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/flushed_locator_container.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(FlushedLocatorContainerTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_FLUSHEDLOCATORCONTAINERTEST_H

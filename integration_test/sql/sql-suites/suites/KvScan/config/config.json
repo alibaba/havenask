@@ -11,5 +11,6 @@
             "data_path" : "data/kkv1.dat"
         }
     ],
-    "config_path" : "config/config_table_kv_kkv"
+    "config_path" : "config/config_table_kv_kkv",
+    "tablet_mode" : "false"
 }

@@ -15,8 +15,17 @@
  */
 #include "indexlib/framework/DeployIndexUtil.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <memory>
+#include <vector>
+
+#include "autil/Log.h"
 #include "autil/NetUtil.h"
 #include "indexlib/base/Constant.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileInfo.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/IndexFileDeployer.h"
 #include "indexlib/file_system/IndexFileList.h"

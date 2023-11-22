@@ -80,11 +80,12 @@ public:
     virtual bool ReadOnly() const noexcept = 0;
 
     // future_lite
-    virtual future_lite::Future<size_t> ReadAsync(void* buffer, size_t length, size_t offset,
-                                                  ReadOption option) noexcept(false);
-    virtual future_lite::Future<uint32_t> ReadUInt32Async(size_t offset, ReadOption option) noexcept(false);
-    virtual future_lite::Future<size_t> PrefetchAsync(size_t length, size_t offset, ReadOption option) noexcept(false);
-    virtual future_lite::Future<uint32_t> ReadVUInt32Async(size_t offset, ReadOption option) noexcept(false);
+    virtual future_lite::Future<FSResult<size_t>> ReadAsync(void* buffer, size_t length, size_t offset,
+                                                            ReadOption option) noexcept;
+    virtual future_lite::Future<FSResult<uint32_t>> ReadUInt32Async(size_t offset, ReadOption option) noexcept;
+    virtual future_lite::Future<FSResult<size_t>> PrefetchAsync(size_t length, size_t offset,
+                                                                ReadOption option) noexcept;
+    virtual future_lite::Future<FSResult<uint32_t>> ReadVUInt32Async(size_t offset, ReadOption option) noexcept;
 
     // FL_LAZY
     virtual FL_LAZY(FSResult<size_t>)
@@ -124,7 +125,7 @@ protected:
     FSOpenType _openType;
     FSOpenType _originalOpenType;
     FSMetricGroup _metricGroup;
-    volatile bool _dirty;
+    std::atomic_bool _dirty;
     volatile bool _inPackage;
     std::shared_ptr<util::StatusMetricReporter> _fileLenReporter;
     std::shared_ptr<util::StatusMetricReporter> _fileNodeUseCountReporter;
@@ -148,20 +149,20 @@ inline future_lite::coro::Lazy<std::vector<FSResult<size_t>>> FileNode::BatchRea
     co_return result;
 }
 
-inline future_lite::Future<size_t> FileNode::PrefetchAsync(size_t length, size_t offset,
-                                                           ReadOption option) noexcept(false)
+inline future_lite::Future<FSResult<size_t>> FileNode::PrefetchAsync(size_t length, size_t offset,
+                                                                     ReadOption option) noexcept
 {
-    return future_lite::makeReadyFuture<size_t>(0);
+    return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, 0});
 }
 inline FL_LAZY(FSResult<size_t>) FileNode::PrefetchAsyncCoro(size_t length, size_t offset, ReadOption option) noexcept
 {
     FL_CORETURN FSResult<size_t> {FSEC_OK, 0ul};
 }
 
-inline future_lite::Future<size_t> FileNode::ReadAsync(void* buffer, size_t length, size_t offset,
-                                                       ReadOption option) noexcept(false)
+inline future_lite::Future<FSResult<size_t>> FileNode::ReadAsync(void* buffer, size_t length, size_t offset,
+                                                                 ReadOption option) noexcept
 {
-    return future_lite::makeReadyFuture(Read(buffer, length, offset, option).GetOrThrow());
+    return future_lite::makeReadyFuture(Read(buffer, length, offset, option));
 }
 inline FL_LAZY(FSResult<size_t>) FileNode::ReadAsyncCoro(void* buffer, size_t length, size_t offset,
                                                          ReadOption option) noexcept
@@ -169,13 +170,12 @@ inline FL_LAZY(FSResult<size_t>) FileNode::ReadAsyncCoro(void* buffer, size_t le
     FL_CORETURN Read(buffer, length, offset, option);
 }
 
-inline future_lite::Future<uint32_t> FileNode::ReadUInt32Async(size_t offset, ReadOption option) noexcept(false)
+inline future_lite::Future<FSResult<uint32_t>> FileNode::ReadUInt32Async(size_t offset, ReadOption option) noexcept
 {
     uint32_t buffer = 0;
-    auto readSize = Read(static_cast<void*>(&buffer), sizeof(buffer), offset, option).GetOrThrow();
-    assert(readSize == sizeof(buffer));
-    (void)readSize;
-    return future_lite::makeReadyFuture<uint32_t>(buffer);
+    auto result = Read(static_cast<void*>(&buffer), sizeof(buffer), offset, option);
+    assert(result.GetOrThrow() == sizeof(buffer));
+    return future_lite::makeReadyFuture<FSResult<uint32_t>>({result.Code(), buffer});
 }
 inline FL_LAZY(FSResult<uint32_t>) FileNode::ReadUInt32AsyncCoro(size_t offset, ReadOption option) noexcept
 {

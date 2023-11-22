@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
@@ -17,7 +22,6 @@ import org.apache.calcite.rel.core.Union;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.commons.lang3.tuple.Triple;
-import java.util.*;
 
 public class IquanUnionOp extends Union implements IquanRelNode {
     private int parallelNum = -1;
@@ -102,7 +106,7 @@ public class IquanUnionOp extends Union implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         if (locationList == null) {
             throw new SqlQueryException(IquanErrorCode.IQUAN_EC_SQL_UNION_INIT_NULL, "locationList is null, can not do derive distribution");
         }

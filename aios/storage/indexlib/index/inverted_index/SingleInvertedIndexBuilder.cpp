@@ -86,13 +86,13 @@ SingleInvertedIndexBuilder::Init(const indexlibv2::framework::TabletData& tablet
 
     std::shared_ptr<InvertedIndexMetrics> indexMetrics;
 
-    docid_t baseDocId = 0;
+    docid64_t baseDocId = 0;
     auto slice = tabletData.CreateSlice();
     for (auto it = slice.begin(); it != slice.end(); it++) {
         Segment* segment = it->get();
         auto segStatus = segment->GetSegmentStatus();
         auto docCount = segment->GetSegmentInfo()->docCount;
-        std::pair<docid_t, uint64_t> key(baseDocId, docCount);
+        std::pair<docid64_t, uint64_t> key(baseDocId, docCount);
         baseDocId += docCount;
 
         // Lazily init disk indexer. Current segment will load data once Segment::GetIndexer() is called.

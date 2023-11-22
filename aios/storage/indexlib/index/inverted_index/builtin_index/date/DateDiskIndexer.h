@@ -24,7 +24,7 @@ class DateLeafReader;
 class DateDiskIndexer : public InvertedDiskIndexer
 {
 public:
-    explicit DateDiskIndexer(const indexlibv2::index::IndexerParameter& indexerParam);
+    explicit DateDiskIndexer(const indexlibv2::index::DiskIndexerParameter& indexerParam);
     ~DateDiskIndexer();
     Status Open(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
                 const std::shared_ptr<file_system::IDirectory>& indexDirectory) override;

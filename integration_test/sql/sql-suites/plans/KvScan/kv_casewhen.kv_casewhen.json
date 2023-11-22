@@ -10,8 +10,8 @@
           "db_name": "kv2", 
           "limit": 100, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "kv2"
+            "node_name": "kv2", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -141,6 +141,7 @@
           "input_fields_type": [
             "INTEGER"
           ], 
+          "node_name": "kv2", 
           "op_scope": "default", 
           "output_distribution": {
             "hash_mode": {
@@ -158,7 +159,6 @@
             "partition_cnt": 1, 
             "type": "BROADCAST_DISTRIBUTED"
           }, 
-          "table_group_name": "kv2", 
           "table_name": "kv2", 
           "table_type": "kv"
         }, 
@@ -176,8 +176,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {

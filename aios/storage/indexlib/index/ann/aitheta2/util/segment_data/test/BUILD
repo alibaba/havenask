@@ -2,6 +2,7 @@ load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 strict_cc_fast_test(
     name='segment_data_util_test',
     srcs=['SegmentDataReaderTest.cpp', 'SegmentDataWriterTest.cpp'],
+    copts=['-fno-access-control'],
     data=[],
     deps=[
         '//aios/storage/indexlib/file_system',

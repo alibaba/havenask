@@ -58,6 +58,7 @@ private:
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int32_t, mergeBaseVersionId);
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int32_t, mergeTargetVersionId);
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int32_t, mergeCommittedVersionId);
+    INDEXLIB_FM_DECLARE_NORMAL_METRIC(int64_t, mergeCommittedVersionDelay);
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int32_t, runningMergeBaseVersionId);
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int64_t, runningMergeLeftOps);
     INDEXLIB_FM_DECLARE_NORMAL_METRIC(int64_t, runningMergeTotalOps);

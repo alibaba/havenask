@@ -60,7 +60,7 @@ Status OperationDumper::Dump(const file_system::DirectoryPtr& directory, autil::
     const OperationMeta::BlockMetaVec& blockMetas = _operationMeta.GetBlockMetaVec();
     for (size_t i = 0; i < _opBlockVec.size(); i++) {
         RETURN_IF_STATUS_ERROR(_opBlockVec[i]->Dump(dataFileWriter, blockMetas[i].maxOperationSerializeSize,
-                                                    blockMetas[i].hasConcurrentIdx),
+                                                    blockMetas[i].hasConcurrentIdx, blockMetas[i].hasSourceIdx),
                                "dump operation failed");
     }
 

@@ -281,7 +281,8 @@ Status UniqEncodedMultiValueAttributeMerger<T>::GetPatchReaders(
     std::vector<std::shared_ptr<MultiValueAttributePatchReader<T>>>& patchReaders)
 {
     std::map<segmentid_t, std::shared_ptr<AttributePatchReader>> segId2PatchReader;
-    auto status = AttributeMerger::CreatePatchReader(srcSegments, segId2PatchReader);
+    auto status = AttributeMerger::CreatePatchReader(srcSegments, AttributeMerger::_allPatchInfos,
+                                                     AttributeMerger::_attributeConfig, segId2PatchReader);
     RETURN_IF_STATUS_ERROR(status, "load patch reader failed.");
     for (const auto& [_, segment] : srcSegments) {
         auto segId = segment->GetSegmentId();

@@ -15,15 +15,35 @@
  */
 #include "build_service/worker/ServiceWorker.h"
 
+#include <assert.h>
+#include <iostream>
+#include <stddef.h>
+#include <unistd.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
+#include "autil/OptionParser.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CounterSynchronizer.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/common/PeriodDocCounter.h"
+#include "build_service/common_define.h"
+#include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/util/BsMetricTagsHandler.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/KmonitorUtil.h"
 #include "build_service/util/LeaderCheckerGuard.h"
+#include "build_service/util/Monitor.h"
 #include "build_service/worker/AgentServiceImpl.h"
 #include "build_service/worker/BuildJobImpl.h"
 #include "build_service/worker/BuilderServiceImpl.h"
@@ -31,15 +51,28 @@
 #include "build_service/worker/ProcessorServiceImpl.h"
 #include "build_service/worker/RpcWorkerHeartbeat.h"
 #include "build_service/worker/TaskStateHandler.h"
+#include "build_service/worker/WorkerHeartbeat.h"
 #include "build_service/worker/ZkWorkerHeartbeat.h"
 #include "fslib/cache/FSCacheModule.h"
+#include "fslib/common/common_define.h"
+#include "fslib/fs/FileLock.h"
 #include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
 #include "fslib/util/MetricTagsHandler.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/misc/doc_tracer.h"
 #include "indexlib/util/EpochIdUtil.h"
-#include "kmonitor/client/KMonitorFactory.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricLevel.h"
+#include "kmonitor/client/MetricType.h"
+#include "kmonitor/client/MetricsReporter.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor_adapter/LightMetric.h"
 #include "kmonitor_adapter/MonitorFactory.h"
+#include "worker_framework/LeaderElector.h"
+#include "worker_framework/WorkerBase.h"
 
 using namespace std;
 using namespace autil;
@@ -144,8 +177,7 @@ bool ServiceWorker::doStart()
     string appName;
     getOptionParser().getOptionValue(config::SERVICE_NAME, appName);
 
-    string roleId;
-    getOptionParser().getOptionValue(config::ROLE, roleId);
+    getOptionParser().getOptionValue(config::ROLE, _roleId);
 
     string adminServiceName;
     if (!getOptionParser().getOptionValue(ADMIN_SERVICE_NAME, adminServiceName)) {
@@ -154,13 +186,13 @@ bool ServiceWorker::doStart()
         return false;
     }
 
-    string msg = roleId + " worker starting ...";
+    string msg = _roleId + " worker starting ...";
     BEEPER_REPORT(WORKER_STATUS_COLLECTOR_NAME, msg);
-    BS_LOG(INFO, "%s worker starting ...", roleId.c_str());
+    BS_LOG(INFO, "%s worker starting ...", _roleId.c_str());
     _partitionId.Clear();
-    if (!extractPartitionId(roleId, adminServiceName, appName, _partitionId)) {
+    if (!extractPartitionId(_roleId, adminServiceName, appName, _partitionId)) {
         BEEPER_REPORT(WORKER_STATUS_COLLECTOR_NAME, "worker start fail, parse partitionId fail");
-        BS_LOG(ERROR, "create PartitionId from [%s] failed", roleId.c_str());
+        BS_LOG(ERROR, "create PartitionId from [%s] failed", _roleId.c_str());
         return false;
     }
 
@@ -226,9 +258,9 @@ bool ServiceWorker::doStart()
 
     _workerHeartbeatExecutor->setExitCallback([this] { releaseLeader(); });
     lc->done();
-    BS_LOG(INFO, "%s worker started", roleId.c_str());
+    BS_LOG(INFO, "%s worker started", _roleId.c_str());
 
-    msg = roleId + " worker started";
+    msg = _roleId + " worker started";
     BEEPER_REPORT(WORKER_STATUS_COLLECTOR_NAME, msg);
     return true;
 }
@@ -254,6 +286,11 @@ bool ServiceWorker::startMonitor(const PartitionId& pid)
     _monitor = kmonitor_adapter::MonitorFactory::getInstance()->createMonitor(kmonServiceName);
     kmonitor::MetricsTags tags;
     KmonitorUtil::getTags(pid, tags);
+    auto agentRoleName = autil::EnvUtil::getEnv("BUILD_SERVICE_AGENT_ROLE_NAME");
+    if (!agentRoleName.empty()) {
+        tags.AddTag("bs_agent_role", agentRoleName);
+    }
+    tags.AddTag("bs_worker_role_id", _roleId);
     BS_LOG(INFO, "set metrics tag[%s]", tags.ToString().c_str());
 
     string serviceName;
@@ -430,7 +467,7 @@ void ServiceWorker::initBeeper()
     DECLARE_BEEPER_COLLECTOR(FSLIB_ERROR_CODE_NOT_SUPPORT);
     DECLARE_BEEPER_COLLECTOR(FSLIB_LONG_INTERVAL_COLLECTOR_NAME);
 
-    DECLARE_BEEPER_COLLECTOR(INDEXLIB_BUILD_INFO_COLLECTOR_NAME);
+    DECLARE_BEEPER_COLLECTOR(indexlib::INDEXLIB_BUILD_INFO_COLLECTOR_NAME);
     DECLARE_BEEPER_COLLECTOR(WORKER_PROCESS_ERROR_COLLECTOR_NAME);
 }
 

@@ -1,3 +1,4 @@
+#pragma once
 namespace {
 
 template <typename HashTable>

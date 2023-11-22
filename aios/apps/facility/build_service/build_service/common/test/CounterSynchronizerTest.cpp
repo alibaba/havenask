@@ -1,6 +1,12 @@
 #include "build_service/common/CounterSynchronizer.h"
 
+#include <iosfwd>
+#include <string>
+
+#include "autil/TimeUtility.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

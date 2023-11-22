@@ -100,17 +100,17 @@ void NormalKKVIteratorImplTest::PrepareReaders()
     // dumped rt segment
     auto builtReader2 = CreateBuiltSegmentReader("segment_2", _docStr2, true);
     // building segment
-    KKVMemIndexer<SKeyType> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true);
+    KKVMemIndexer<SKeyType> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true, true);
     ASSERT_TRUE(memIndexer.Init(_indexConfig, nullptr).IsOK());
     BuildDocs(memIndexer, _docStr3);
     auto buildingReader1 = memIndexer.CreateInMemoryReader();
 
     auto locator1 = std::make_shared<framework::Locator>();
-    locator1->SetProgress({Progress(0, 32767, {97, 0}), Progress(32768, 65535, {99, 0})});
+    locator1->SetMultiProgress({{Progress(0, 32767, {97, 0}), Progress(32768, 65535, {99, 0})}});
     auto locator2 = std::make_shared<framework::Locator>();
-    locator2->SetProgress({Progress(0, 32767, {101, 0}), Progress(32768, 65535, {103, 0})});
+    locator2->SetMultiProgress({{Progress(0, 32767, {101, 0}), Progress(32768, 65535, {103, 0})}});
     auto locator3 = std::make_shared<framework::Locator>();
-    locator3->SetProgress({Progress(0, 32767, {105, 0}), Progress(32768, 65535, {107, 0})});
+    locator3->SetMultiProgress({{Progress(0, 32767, {105, 0}), Progress(32768, 65535, {107, 0})}});
 
     _builtSegReaders.emplace_back(std::make_pair(builtReader1, locator1));
     _builtSegReaders.emplace_back(std::make_pair(builtReader2, locator2));
@@ -135,7 +135,7 @@ NormalKKVIteratorImplTest::CreateBuiltSegmentReader(const std::string& indexDirP
 {
     uint32_t segTimestamp = 100;
 
-    KKVMemIndexer<SKeyType> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true);
+    KKVMemIndexer<SKeyType> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true, true);
     assert(memIndexer.Init(_indexConfig, nullptr).IsOK());
     BuildDocs(memIndexer, docStr);
 

@@ -15,9 +15,18 @@
  */
 #include "indexlib/framework/TabletMetrics.h"
 
+#include <assert.h>
+#include <functional>
+
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/LogicalFileSystem.h"
+#include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionMerger.h"
+#include "kmonitor/client/MetricType.h"
 
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, TabletMetrics);
@@ -271,7 +280,7 @@ void TabletMetrics::UpdateMetrics(const std::shared_ptr<TabletReaderContainer>& 
     }
     int64_t latestIncVersionTaskTs = tabletReaderContainer->GetLatestIncVersionTaskLogTimestamp();
     if (latestIncVersionTaskTs != 0) {
-        SetincVersionLatestTaskFreshnessValue((currentTs - latestIncVersionTaskTs) / 1000);
+        SetincVersionLatestTaskFreshnessValue(autil::TimeUtility::us2sec(currentTs) - latestIncVersionTaskTs);
     }
 }
 
@@ -284,7 +293,7 @@ size_t TabletMetrics::GetTabletMemoryUse() const
     return _tabletMemoryCalculator->GetIncIndexMemsize() + _tabletMemoryCalculator->GetRtIndexMemsize();
 }
 
-size_t TabletMetrics::GetRtIndexMemsize() const
+size_t TabletMetrics::GetRtIndexMemSize() const
 {
     std::lock_guard<std::mutex> guard(_mutex);
     if (_tabletMemoryCalculator == nullptr) {
@@ -294,13 +303,31 @@ size_t TabletMetrics::GetRtIndexMemsize() const
     return _tabletMemoryCalculator->GetRtIndexMemsize();
 }
 
+size_t TabletMetrics::GetRtIndexMemSize(RealtimeIndexMemoryType memType) const
+{
+    std::lock_guard<std::mutex> guard(_mutex);
+    if (_tabletMemoryCalculator == nullptr) {
+        return 0;
+    }
+    switch (memType) {
+    case RealtimeIndexMemoryType::BUILT:
+        return _tabletMemoryCalculator->GetRtBuiltSegmentsMemsize();
+    case RealtimeIndexMemoryType::DUMPING:
+        return _tabletMemoryCalculator->GetDumpingSegmentMemsize();
+    case RealtimeIndexMemoryType::BUILDING:
+        return _tabletMemoryCalculator->GetBuildingSegmentMemsize();
+    default:
+        return 0;
+    }
+    return 0;
+}
+
 size_t TabletMetrics::GetBuildingSegmentDumpExpandMemsize() const
 {
     std::lock_guard<std::mutex> guard(_mutex);
     if (_tabletMemoryCalculator == nullptr) {
         return 0;
     }
-
     return _tabletMemoryCalculator->GetBuildingSegmentDumpExpandMemsize();
 }
 
@@ -325,6 +352,13 @@ size_t TabletMetrics::GetIncIndexSize(const std::shared_ptr<TabletData>& tabletD
     auto lfs = std::dynamic_pointer_cast<indexlib::file_system::LogicalFileSystem>(fileSystem);
     assert(lfs != nullptr);
     return lfs->GetVersionFileSize(tabletData->GetOnDiskVersion().GetVersionId());
+}
+
+size_t TabletMetrics::GetFreeQuota() const { return _tabletMemoryQuotaController->GetFreeQuota(); }
+
+size_t TabletMetrics::GetMaxDumpingSegmentExpandMemsize() const
+{
+    return _tabletDumper->GetMaxDumpingSegmentExpandMemsize();
 }
 
 #undef TABLET_LOG

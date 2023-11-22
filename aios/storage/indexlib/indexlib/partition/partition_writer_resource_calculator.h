@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_WRITER_RESOURCE_CALCULATOR_H
-#define __INDEXLIB_PARTITION_WRITER_RESOURCE_CALCULATOR_H
+#pragma once
 
 #include <memory>
 
@@ -61,5 +60,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionWriterResourceCalculator);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITION_WRITER_RESOURCE_CALCULATOR_H

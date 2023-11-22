@@ -2,12 +2,12 @@
 
 #include "fslib/cache/FSCacheModule.h"
 #include "fslib/fs/FileSystem.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/merger/partition_merger_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/single_field_partition_data_provider.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 #include "indexlib/util/counter/CounterMap.h"
@@ -272,7 +272,7 @@ void MultiPartitionMergerInteTest::TestMaxDocCountWithFullMerge()
     Version version;
     VersionLoader versionLoader;
     auto mergePartDir = GET_TEMP_DATA_PATH("mergePart");
-    versionLoader.GetVersionS(mergePartDir, version, INVALID_VERSION);
+    versionLoader.GetVersionS(mergePartDir, version, INVALID_VERSIONID);
     ASSERT_TRUE(version.GetSegmentCount() == (size_t)1);
 }
 
@@ -283,7 +283,7 @@ void MultiPartitionMergerInteTest::TestMaxDocCountWithIncOptimizeMerge()
     Version version;
     VersionLoader versionLoader;
     auto mergePartDir = GET_TEMP_DATA_PATH("mergePart");
-    versionLoader.GetVersionS(mergePartDir, version, INVALID_VERSION);
+    versionLoader.GetVersionS(mergePartDir, version, INVALID_VERSIONID);
     ASSERT_TRUE(version.GetSegmentCount() > (size_t)1);
 }
 
@@ -292,7 +292,7 @@ void MultiPartitionMergerInteTest::TestOptimizeMergeToOneSegmentMergeTwice()
     DoTestMerge(true, false, OPTIMIZE_MERGE_STRATEGY_STR, "", true);
     Version version;
     auto mergePartDir = GET_TEMP_DATA_PATH("mergePart");
-    VersionLoader::GetVersionS(mergePartDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mergePartDir, version, INVALID_VERSIONID);
     // after build: version 0
     // after first merge: version 1
     // after second merge: version 1
@@ -304,7 +304,7 @@ void MultiPartitionMergerInteTest::TestOptimizeMergeToMultiSegmentMergeTwice()
     DoTestMerge(true, false, OPTIMIZE_MERGE_STRATEGY_STR, "after-merge-max-doc-count=4", true);
     Version version;
     auto mergePartDir = GET_TEMP_DATA_PATH("mergePart");
-    VersionLoader::GetVersionS(mergePartDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(mergePartDir, version, INVALID_VERSIONID);
     // after build: version 0
     // after first merge: version 1
     // after second merge: version 1
@@ -444,7 +444,7 @@ void MultiPartitionMergerInteTest::DoTestMerge(bool isFullMerge, bool isMultiPar
         mergeSrcs.push_back(GET_TEMP_DATA_PATH() + "part2");
         auto branchOption = CommonBranchHinterOption::Test();
         MultiPartitionMerger multiPartMerger(options, NULL, "", branchOption);
-        vector<DirectoryPtr> mergeSrcDirs = multiPartMerger.CreateMergeSrcDirs(mergeSrcs, INVALID_VERSION, nullptr);
+        vector<DirectoryPtr> mergeSrcDirs = multiPartMerger.CreateMergeSrcDirs(mergeSrcs, INVALID_VERSIONID, nullptr);
         merger = multiPartMerger.CreatePartitionMerger(mergeSrcDirs, mergePartPath);
     } else {
         MakeOnePartitionData(schema, options, "mergePart", part1DocString + part2DocString);
@@ -675,7 +675,7 @@ void MultiPartitionMergerInteTest::TestMergeWithStopTimestamp()
 
     auto partitionDir = GET_TEMP_DATA_PATH("mergePart");
     Version version;
-    VersionLoader::GetVersionS(partitionDir, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(partitionDir, version, INVALID_VERSIONID);
     EXPECT_EQ((int64_t)25, version.GetTimestamp());
 }
 }} // namespace indexlib::merger

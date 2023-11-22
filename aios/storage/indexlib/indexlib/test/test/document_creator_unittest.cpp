@@ -1,9 +1,9 @@
 #include "indexlib/test/test/document_creator_unittest.h"
 
 #include "indexlib/config/kkv_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_parser/kv_parser/kkv_keys_extractor.h"
 #include "indexlib/document/index_document/normal_document/index_tokenize_field.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

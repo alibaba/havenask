@@ -1,5 +1,7 @@
 package com.taobao.search.iquan.core.rel.rules.logical.calcite;
 
+import java.util.function.Predicate;
+
 import com.taobao.search.iquan.core.utils.IquanRuleUtils;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptRuleOperand;
@@ -11,8 +13,6 @@ import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
 import org.apache.calcite.rex.RexUtil;
 import org.apache.calcite.tools.RelBuilderFactory;
 import org.immutables.value.Value;
-
-import java.util.function.Predicate;
 
 @Value.Enclosing
 public class IquanFilterProjectTransposeRule extends FilterProjectTransposeRule {
@@ -36,7 +36,8 @@ public class IquanFilterProjectTransposeRule extends FilterProjectTransposeRule 
         super(operand, copyFilter, copyProject, relBuilderFactory);
     }
 
-    @Override public boolean matches(RelOptRuleCall call) {
+    @Override
+    public boolean matches(RelOptRuleCall call) {
         final Filter filterRel = call.rel(0);
         final Project project = call.rel(1);
         return RexUtil.isDeterministic(filterRel.getCondition())
@@ -47,7 +48,8 @@ public class IquanFilterProjectTransposeRule extends FilterProjectTransposeRule 
     public interface Config extends RelRule.Config {
         IquanFilterProjectTransposeRule.Config DEFAULT = ImmutableIquanFilterProjectTransposeRule.Config.builder().build();
 
-        @Override default IquanFilterProjectTransposeRule toRule() {
+        @Override
+        default IquanFilterProjectTransposeRule toRule() {
             return new IquanFilterProjectTransposeRule(this);
         }
     }

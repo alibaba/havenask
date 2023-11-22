@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_EXPACK_POSTING_MAKER_H
-#define __INDEXLIB_EXPACK_POSTING_MAKER_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -67,5 +66,3 @@ private:
 
 typedef std::shared_ptr<ExpackPostingMaker> ExpackPostingMakerPtr;
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_EXPACK_POSTING_MAKER_H

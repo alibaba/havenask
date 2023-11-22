@@ -1,6 +1,13 @@
 #include "build_service/config/ProcessorConfig.h"
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/test/unittest.h"
+#include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 

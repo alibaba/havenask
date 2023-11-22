@@ -1,9 +1,16 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.ComputeNode;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.HashType;
 import com.taobao.search.iquan.core.api.schema.Location;
@@ -13,10 +20,9 @@ import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.hint.IquanHintCategory;
 import com.taobao.search.iquan.core.rel.hint.IquanHintOptUtils;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
-import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import com.taobao.search.iquan.core.utils.IquanAggregateUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
-import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
+import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelDistribution;
@@ -30,10 +36,8 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
+import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 import org.apache.commons.lang3.tuple.Triple;
-import com.google.common.collect.ImmutableList;
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintable {
     private final List<AggregateCall> aggCalls;
@@ -104,7 +108,7 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
 
     public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs, Scope newScope) {
         IquanAggregateOp rel = new IquanAggregateOp(getCluster(), traitSet, getHints(), sole(inputs),
-            aggCalls, groupKeyFieldList, inputParams, outputParams, outputRowType, newScope);
+                aggCalls, groupKeyFieldList, inputParams, outputParams, outputRowType, newScope);
         rel.setParallelNum(parallelNum);
         rel.setParallelIndex(parallelIndex);
         rel.setLocation(location);
@@ -115,7 +119,7 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
 
     public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs, Boolean newIndexOptimize) {
         IquanAggregateOp rel = new IquanAggregateOp(getCluster(), traitSet, getHints(), sole(inputs),
-            aggCalls, groupKeyFieldList, inputParams, outputParams, outputRowType, getScope());
+                aggCalls, groupKeyFieldList, inputParams, outputParams, outputRowType, getScope());
         rel.setParallelNum(parallelNum);
         rel.setParallelIndex(parallelIndex);
         rel.setLocation(location);
@@ -231,12 +235,12 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
         this.distribution = distribution;
     }
 
-    private IquanRelNode derivePendingUnionInSingleNode(IquanUnionOp pendingUnion, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
-        ComputeNode targetNode = RelDistributionUtil.getSingleComputeNode(catalog, dbName, config);
+    private IquanRelNode derivePendingUnionInSingleNode(IquanUnionOp pendingUnion, GlobalCatalog catalog, IquanConfigManager config) {
+        Location targetNode = RelDistributionUtil.getSingleLocationNode(catalog, config);
         List<RelNode> newInputs = new ArrayList<>(getInputs().size());
         for (RelNode relNode : pendingUnion.getInputs()) {
             IquanRelNode iquanRelNode = (IquanRelNode) relNode;
-            if (iquanRelNode.getLocation().equals(targetNode.getLocation())) {
+            if (iquanRelNode.getLocation().equals(targetNode)) {
                 newInputs.add(iquanRelNode);
             } else {
                 newInputs.add(iquanRelNode.singleExchange());
@@ -250,12 +254,13 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
                 null
         );
         finalUnion.setOutputDistribution(Distribution.SINGLETON);
-        finalUnion.setLocation(targetNode.getLocation());
+        finalUnion.setLocation(targetNode);
         replaceInput(0, finalUnion);
         return simpleRelDerive(finalUnion);
     }
 
-    public IquanRelNode derivePendingUnion(IquanUnionOp pendingUnion, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    @Override
+    public IquanRelNode derivePendingUnion(IquanUnionOp pendingUnion, GlobalCatalog catalog, IquanConfigManager config) {
         List<IquanRelNode> localAggInputs = new ArrayList<>();
         List<Triple<Location, Distribution, List<RelNode>>> locationList = pendingUnion.getLocationList();
         IquanAggregateOp comLocalAgg = null;
@@ -264,12 +269,12 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
         for (Triple<Location, Distribution, List<RelNode>> triple : locationList) {
             IquanAggregateOp localAgg;
             if (triple.getRight().size() == 1) {
-                localAgg = twoStageDerive((IquanRelNode) triple.getRight().get(0), catalog, dbName, config, true);
+                localAgg = twoStageDerive((IquanRelNode) triple.getRight().get(0), catalog, config, true);
             } else {
                 IquanUnionOp sameLocationUnion = new IquanUnionOp(pendingUnion.getCluster(), pendingUnion.getTraitSet(), triple.getRight(), pendingUnion.all, null);
                 sameLocationUnion.setLocation(triple.getLeft());
                 sameLocationUnion.setOutputDistribution(triple.getMiddle());
-                localAgg = twoStageDerive(sameLocationUnion, catalog, dbName, config, true);
+                localAgg = twoStageDerive(sameLocationUnion, catalog, config, true);
             }
             if (aggCallAccNames == null) {
                 aggCallAccNames = localAgg.getOutputParams();
@@ -297,15 +302,15 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
         Location finalUnionLocation;
         Distribution finalUnionDistribution;
         if (groupKeyNames.isEmpty()) {
-            ComputeNode targetNode = RelDistributionUtil.getSingleComputeNode(catalog, dbName, config);
+            Location targetNode = RelDistributionUtil.getSingleLocationNode(catalog, config);
             for (IquanRelNode iquanRelNode : localAggInputs) {
-                if (iquanRelNode.getLocation().equals(targetNode.getLocation())) {
+                if (iquanRelNode.getLocation().equals(targetNode)) {
                     finalUnionInputs.add(iquanRelNode);
                 } else {
                     finalUnionInputs.add(iquanRelNode.singleExchange());
                 }
             }
-            finalUnionLocation = targetNode.getLocation();
+            finalUnionLocation = targetNode;
             finalUnionDistribution = Distribution.SINGLETON;
         } else if (comLocalAgg != null) {
             //final agg on search node
@@ -325,19 +330,19 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
             finalUnionLocation = comLocalAgg.getLocation();
             finalUnionDistribution = comLocalAgg.getOutputDistribution();
         } else {
-            ComputeNode targetNode = RelDistributionUtil.getNearComputeNode(maxPartCount, catalog, dbName, config);
+            Location targetNode = RelDistributionUtil.getNearComputeNode(maxPartCount, catalog, config);
             Distribution distribution;
             if (targetNode.isSingle()) {
                 distribution = Distribution.SINGLETON;
             } else {
                 distribution = Distribution.newBuilder(RelDistribution.Type.HASH_DISTRIBUTED, Distribution.EMPTY)
-                        .partitionCnt(targetNode.getLocation().getPartitionCnt())
+                        .partitionCnt(targetNode.getPartitionCnt())
                         .hashFunction(HashType.HF_HASH.getName())
                         .hashFields(getGroupKeyNames())
                         .build();
             }
             for (IquanRelNode iquanRelNode : localAggInputs) {
-                if (iquanRelNode.getLocation().equals(targetNode.getLocation())) {
+                if (iquanRelNode.getLocation().equals(targetNode)) {
                     finalUnionInputs.add(iquanRelNode);
                 } else {
                     IquanExchangeOp exchangeOp = new IquanExchangeOp(
@@ -349,7 +354,7 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
                     finalUnionInputs.add(exchangeOp);
                 }
             }
-            finalUnionLocation = targetNode.getLocation();
+            finalUnionLocation = targetNode;
             finalUnionDistribution = distribution;
         }
         IquanUnionOp finalUnion = new IquanUnionOp(
@@ -379,18 +384,18 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         IquanRelNode iquanRelNode = RelDistributionUtil.checkIquanRelType(inputs.get(0));
         Map<String, Object> outputFieldExprMap = new HashMap<>();
-        RelDistributionUtil.getTableFieldExpr(iquanRelNode, outputFieldExprMap);
+        RelDistributionUtil.getTableFieldExpr(iquanRelNode, outputFieldExprMap, false);
         List<String> exactGroupKeyNames = getExactGroupKeyNames(groupKeyFieldList, outputFieldExprMap);
         RelHint hint = IquanHintOptUtils.resolveHints(this, IquanHintCategory.CAT_AGG);
         if (isPendingUnion(iquanRelNode)) {
             if (IquanAggregateUtils.isNormalAggByLayerTable(hint)
                     || IquanAggregateUtils.isNormalAggByHint(hint, this, exactGroupKeyNames)) {
-                return derivePendingUnionInSingleNode((IquanUnionOp) iquanRelNode, catalog, dbName, config);
+                return derivePendingUnionInSingleNode((IquanUnionOp) iquanRelNode, catalog, config);
             } else {
-                return derivePendingUnion((IquanUnionOp) iquanRelNode, catalog, dbName, config);
+                return derivePendingUnion((IquanUnionOp) iquanRelNode, catalog, config);
             }
         }
         Distribution inputDistribution = iquanRelNode.getOutputDistribution();
@@ -399,7 +404,7 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
         if (inputDistributionType.equals(RelDistribution.Type.SINGLETON)
                 || inputDistributionType.equals(RelDistribution.Type.BROADCAST_DISTRIBUTED)) {
             //todo: Do not transform broadcast into single before cost
-            resultNode = (IquanAggregateOp)simpleRelDerive(iquanRelNode);
+            resultNode = (IquanAggregateOp) simpleRelDerive(iquanRelNode);
         } else if (inputDistributionType.equals(RelDistribution.Type.HASH_DISTRIBUTED)) {
             List<String> hashFields = inputDistribution.getHashFields();
             if (!hashFields.isEmpty() && groupKeyNames.containsAll(hashFields)
@@ -407,14 +412,14 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
                     || groupKeyPartFixed(groupKeyNames, iquanRelNode)) {
                 resultNode = (IquanAggregateOp) simpleRelDerive(iquanRelNode);
             } else {
-                resultNode = twoStageDerive(iquanRelNode, catalog, dbName, config, false);
+                resultNode = twoStageDerive(iquanRelNode, catalog, config, false);
             }
         } else if (inputDistributionType.equals(RelDistribution.Type.RANDOM_DISTRIBUTED)) {
             if (IquanAggregateUtils.isNormalAggByHint(hint, this, exactGroupKeyNames)
                     || groupKeyPartFixed(groupKeyNames, iquanRelNode)) {
                 resultNode = (IquanAggregateOp) simpleRelDerive(iquanRelNode);
             } else {
-                resultNode = twoStageDerive(iquanRelNode, catalog, dbName, config, false);
+                resultNode = twoStageDerive(iquanRelNode, catalog, config, false);
             }
         } else {
             throw new SqlQueryException(IquanErrorCode.IQUAN_EC_DISTRIBUTION_TYPE_INVALID,
@@ -460,11 +465,11 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
                 String inputField = inputParams.get(i).get(idx);
                 String originKey = distribution.getPartFixKeyMap().get(inputField);
                 idx = distribution.indexOfHashField(inputField);
-                if ((originKey == null && idx < 0)|| outputField.equals(inputField) || !distribution.getType().equals(RelDistribution.Type.HASH_DISTRIBUTED)) {
+                if ((originKey == null && idx < 0) || outputField.equals(inputField) || !distribution.getType().equals(RelDistribution.Type.HASH_DISTRIBUTED)) {
                     continue;
                 }
                 if (!newDistribution && (
-                                (originKey != null)
+                        (originKey != null)
                                 || (distribution.getEqualHashFields().size() <= idx)
                                 || !distribution.getEqualHashFields().get(idx).contains(outputField))) {
                     distribution = distribution.copy();
@@ -488,7 +493,7 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
         }
     }
 
-    private IquanAggregateOp twoStageDerive(IquanRelNode input, GlobalCatalog catalog, String dbName, IquanConfigManager config, Boolean getLocal) {
+    private IquanAggregateOp twoStageDerive(IquanRelNode input, GlobalCatalog catalog, IquanConfigManager config, Boolean getLocal) {
         List<List<RelDataType>> aggCallAccTypes = new ArrayList<>();
         List<List<String>> aggCallAccNames = new ArrayList<>();
         RelDataType inputRowType = input.getRowType();
@@ -502,11 +507,11 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
         RelDataType partialAggRowType = IquanAggregateUtils.inferPartialAggRowType(typeFactory, getGroupKeyTypes(),
                 getGroupKeyNames(), aggCallAccTypes, aggCallAccNames);
 
-        ComputeNode computeNode;
+        Location computeNode;
         if (groupKeyNames.isEmpty()) {
-            computeNode = RelDistributionUtil.getSingleComputeNode(catalog, dbName, config);
+            computeNode = RelDistributionUtil.getSingleLocationNode(catalog, config);
         } else {
-            computeNode = RelDistributionUtil.getNearComputeNode(input.getOutputDistribution().getPartitionCnt(), catalog, dbName, config);
+            computeNode = RelDistributionUtil.getNearComputeNode(input.getOutputDistribution().getPartitionCnt(), catalog, config);
         }
         if (Boolean.TRUE.equals(indexOptimize)) {
             // 通过agg索引加速 不需要local agg了 scan出的结果 直接喂给global agg
@@ -556,5 +561,7 @@ public class IquanAggregateOp extends SingleRel implements IquanRelNode, Hintabl
         return hints;
     }
 
-    public void setIndexOptimize(Boolean indexOptimize) { this.indexOptimize = indexOptimize; }
+    public void setIndexOptimize(Boolean indexOptimize) {
+        this.indexOptimize = indexOptimize;
+    }
 }

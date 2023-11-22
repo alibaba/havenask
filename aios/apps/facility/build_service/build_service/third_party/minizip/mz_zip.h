@@ -1,3 +1,4 @@
+#pragma once
 /* mz_zip.h -- Zip manipulation
    Version 2.8.9, July 4, 2019
    part of the MiniZip project
@@ -13,9 +14,6 @@
    This program is distributed under the terms of the same license as zlib.
    See the accompanying LICENSE file for the full text of the license.
 */
-
-#ifndef MZ_ZIP_H
-#define MZ_ZIP_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -239,5 +237,3 @@ int32_t mz_zip_path_compare(const char* path1, const char* path2, uint8_t ignore
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* _ZIP_H */

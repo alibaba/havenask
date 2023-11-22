@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SORTEDPRIMARYKEYFORMATTERTEST_H
-#define __INDEXLIB_SORTEDPRIMARYKEYFORMATTERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
@@ -65,5 +64,3 @@ void SortedPrimaryKeyFormatterTest::InnerTestEstimateDirectLoadSize(bool isLock,
     ASSERT_EQ(expected, formatter.EstimateDirectLoadSize(newLoadPlan));
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SORTEDPRIMARYKEYFORMATTERTEST_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEDOCUMENTTEST_H
-#define __INDEXLIB_ATTRIBUTEDOCUMENTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/index_document/normal_document/attribute_document.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(AttributeDocumentTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(AttributeDocumentTest, TestNullField);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_ATTRIBUTEDOCUMENTTEST_H

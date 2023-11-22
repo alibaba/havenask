@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SERVICEKEEPEROBSOLETEDATACLEANER_H
-#define ISEARCH_BS_SERVICEKEEPEROBSOLETEDATACLEANER_H
+#pragma once
 
+#include <map>
+#include <memory>
 #include <queue>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 #include <tuple>
+#include <utility>
+#include <vector>
 
+#include "autil/Lock.h"
 #include "autil/LoopThread.h"
 #include "build_service/admin/GenerationKeeper.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace admin {
 
@@ -95,5 +105,3 @@ private:
 BS_TYPEDEF_PTR(ServiceKeeperObsoleteDataCleaner);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_SERVICEKEEPEROBSOLETEDATACLEANER_H

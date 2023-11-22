@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORTASKIDENTIFIER_H
-#define ISEARCH_BS_PROCESSORTASKIDENTIFIER_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/proto/TaskIdentifier.h"
@@ -49,5 +51,3 @@ private:
 BS_TYPEDEF_PTR(ProcessorTaskIdentifier);
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_PROCESSORTASKIDENTIFIER_H

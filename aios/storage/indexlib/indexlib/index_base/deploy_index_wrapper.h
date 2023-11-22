@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DEPLOY_FILES_WRAPPER_H
-#define __INDEXLIB_DEPLOY_FILES_WRAPPER_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -50,8 +49,8 @@ public:
                                 // just default value
         const config::OnlineConfig* baseOnlineConfig = nullptr;
         const config::OnlineConfig* targetOnlineConfig = nullptr;
-        versionid_t baseVersionId = INVALID_VERSION;
-        versionid_t targetVersionId = INVALID_VERSION;
+        versionid_t baseVersionId = INVALID_VERSIONID;
+        versionid_t targetVersionId = INVALID_VERSIONID;
     };
     static bool GetDeployIndexMeta(const GetDeployIndexMetaInputParams& inputParams,
                                    file_system::DeployIndexMetaVec& localDeployIndexMetaVec,
@@ -92,5 +91,3 @@ private:
 
 DEFINE_SHARED_PTR(DeployIndexWrapper);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_DEPLOY_FILES_WRAPPER_H

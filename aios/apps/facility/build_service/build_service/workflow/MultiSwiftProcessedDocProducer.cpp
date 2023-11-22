@@ -15,8 +15,19 @@
  */
 #include "build_service/workflow/MultiSwiftProcessedDocProducer.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <limits>
+#include <unistd.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
-#include "build_service/util/LocatorUtil.h"
+#include "build_service/document/ProcessedDocument.h"
+#include "build_service/workflow/SingleSwiftProcessedDocProducer.h"
+#include "indexlib/framework/Locator.h"
 
 using namespace std;
 
@@ -140,13 +151,13 @@ FlowError MultiSwiftProcessedDocProducer::produce(document::ProcessedDocumentVec
         std::pair<size_t, document::ProcessedDocumentPtr> ret;
         if (_documentQueue->tryGetAndPopFront(ret)) {
             (*processedDocVec)[0] = ret.second;
-            _progress[ret.first] = (*processedDocVec)[0]->getLocator().GetProgress();
-            std::vector<indexlibv2::base::Progress> progress;
+            _progress[ret.first] = (*processedDocVec)[0]->getLocator().GetMultiProgress()[0];
+            indexlibv2::base::ProgressVector progress;
             for (const auto& singleProgress : _progress) {
                 progress.insert(progress.end(), singleProgress.begin(), singleProgress.end());
             }
             auto locator = (*processedDocVec)[0]->getLocator();
-            locator.SetProgress(progress);
+            locator.SetMultiProgress({progress});
             (*processedDocVec)[0]->setLocator(locator);
             return FE_OK;
         } else if (_stopedSingleProducerCount.load() == _parallelNum) {
@@ -173,13 +184,13 @@ bool MultiSwiftProcessedDocProducer::seek(const common::Locator& locator)
                    seekLocator.DebugString().c_str());
             return false;
         }
-        if (seekLocator.GetProgress().empty()) {
+        if (seekLocator.GetMultiProgress()[0].empty()) {
             BS_LOG(ERROR, "skip seek producer [%lu/%u][%u ~ %u], empty progress", parallelId, _parallelNum, from, to);
             continue;
         }
         auto [success, actualLocator] = _singleProducers[parallelId]->seekAndGetLocator(seekLocator);
         if (success) {
-            _progress[parallelId] = actualLocator.GetProgress();
+            _progress[parallelId] = actualLocator.GetMultiProgress()[0];
         } else {
             BS_LOG(ERROR, "seek producer [%lu/%u][%u ~ %u] failed", parallelId, _parallelNum, from, to);
             return false;
@@ -256,7 +267,7 @@ bool MultiSwiftProcessedDocProducer::getMaxTimestamp(int64_t& timestamp)
     return true;
 }
 
-bool MultiSwiftProcessedDocProducer::getLastReadTimestamp(int64_t& timestamp)
+bool MultiSwiftProcessedDocProducer::getLastReadTimestamp(int64_t& timestamp) const
 {
     assert(_singleProducers.size() == _parallelNum);
 

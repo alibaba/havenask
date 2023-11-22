@@ -35,6 +35,7 @@
 #include "swift/config/AdminConfig.h"
 #include "swift/config/ConfigDefine.h"
 #include "swift/protocol/Common.pb.h"
+#include "swift/util/MultiProcessUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -43,6 +44,7 @@ using namespace autil::legacy::json;
 using namespace swift::config;
 using namespace swift::common;
 using namespace swift::protocol;
+using namespace swift::util;
 using namespace fslib::fs;
 
 namespace swift {
@@ -53,6 +55,7 @@ const string AppPlanMaker::SWIFT_WORKER_NAME = "swift_broker";
 const string AppPlanMaker::SWIFT_LOADER_NAME = "swift_broker_loader.sh";
 const string AppPlanMaker::SWIFT_BROKER_DEFAULT_RESOURCE_GROUP_NAME = "broker";
 const string AppPlanMaker::SWIFT_BROKER_ROLE_NAME_PREFIX = "broker_";
+const string AppPlanMaker::SWIFT_NET_PRIORITY_PREFIX = "NET_PRIORITY";
 
 AppPlanMaker::AppPlanMaker() : _adminConfig(NULL) {}
 
@@ -91,6 +94,7 @@ bool AppPlanMaker::init(const string &configPath, const string &roleVersion) {
 void AppPlanMaker::makeBrokerRolePlan(AppPlan &plan) const {
     vector<GroupRolePair> groupRoles;
     generateGroupRolePairs(groupRoles);
+    const auto &groupNetPriorityMap = _adminConfig->getGroupNetPriorityMap();
     for (size_t i = 0; i < groupRoles.size(); ++i) {
         const string &groupName = groupRoles[i].first;
         const string &roleName = groupRoles[i].second;
@@ -114,26 +118,27 @@ void AppPlanMaker::makeBrokerRolePlan(AppPlan &plan) const {
         }
         rolePlan.processInfos[0].args.push_back(PairType("-w", "${HIPPO_PROC_WORKDIR}"));
         // set args
-        for (size_t j = 0; j < rolePlan.processInfos.size(); j++) {
-            vector<PairType> &args = rolePlan.processInfos[j].args;
-            args.push_back(PairType("-r", roleName));
-            args.push_back(make_pair("-c", _configPath));
-            args.push_back(make_pair("-t", StringUtil::toString(_adminConfig->getThreadNum())));
-            args.push_back(make_pair("-q", StringUtil::toString(_adminConfig->getQueueSize())));
-            args.push_back(make_pair("-i", StringUtil::toString(_adminConfig->getIoThreadNum())));
-            if (_adminConfig->getAnetTimeoutLoopIntervalMs() > 0) {
-                args.push_back(make_pair("--anetTimeoutLoopIntervalMs",
-                                         StringUtil::toString(_adminConfig->getAnetTimeoutLoopIntervalMs())));
-            }
-            if (_adminConfig->getExclusiveListenThread()) {
-                args.push_back(make_pair("", "--exclusiveListenThread"));
-            }
-            args.push_back(make_pair("", "--recommendPort")); // recommend port
-            if (_adminConfig->getHeartbeatIntervalInUs() > 0) {
-                args.push_back(
-                    make_pair("--idleSleepTimeUs", StringUtil::toString(_adminConfig->getHeartbeatIntervalInUs())));
-            }
+        vector<PairType> &args = rolePlan.processInfos[0].args;
+        args.push_back(PairType("-r", roleName));
+        args.push_back(make_pair("-c", _configPath));
+        args.push_back(make_pair("-t", StringUtil::toString(_adminConfig->getThreadNum())));
+        args.push_back(make_pair("-q", StringUtil::toString(_adminConfig->getQueueSize())));
+        args.push_back(make_pair("-i", StringUtil::toString(_adminConfig->getIoThreadNum())));
+        if (_adminConfig->getAnetTimeoutLoopIntervalMs() > 0) {
+            args.push_back(make_pair("--anetTimeoutLoopIntervalMs",
+                                     StringUtil::toString(_adminConfig->getAnetTimeoutLoopIntervalMs())));
         }
+        if (_adminConfig->getExclusiveListenThread()) {
+            args.push_back(make_pair("", "--exclusiveListenThread"));
+        }
+        args.push_back(make_pair("", "--recommendPort")); // recommend port
+        args.push_back(make_pair("", "--enableANetMetric"));
+        args.push_back(make_pair("", "--enableARPCMetric"));
+        if (_adminConfig->getHeartbeatIntervalInUs() > 0) {
+            args.push_back(
+                make_pair("--idleSleepTimeUs", StringUtil::toString(_adminConfig->getHeartbeatIntervalInUs())));
+        }
+        MultiProcessUtil::generateLogSenderProcess(rolePlan.processInfos, ROLE_TYPE_BROKER);
         // fill role resource
         GroupResourceMap::const_iterator resourceIt = _groupResourceMap.find(groupName);
         if (resourceIt == _groupResourceMap.end()) {
@@ -162,7 +167,7 @@ void AppPlanMaker::makeBrokerRolePlan(AppPlan &plan) const {
             slotResource.resources.push_back(resource);
         }
         rolePlan.slotResources.push_back(slotResource);
-
+        setGroupNetPriority(groupNetPriorityMap, groupName, rolePlan);
         plan.rolePlans[roleName] = rolePlan;
     }
 }
@@ -196,6 +201,26 @@ void AppPlanMaker::generateRoleName() {
             oss << iter->first << "##" << SWIFT_BROKER_ROLE_NAME_PREFIX << i << "_" << getRoleVersion();
             _brokerRoleNames.push_back(oss.str());
             oss.str("");
+        }
+    }
+}
+
+void AppPlanMaker::setGroupNetPriority(const std::map<std::string, uint32_t> &groupNetPriorityMap,
+                                       const std::string &groupName,
+                                       RolePlan &rolePlan) const {
+    auto iter = groupNetPriorityMap.find(groupName);
+    if (iter != groupNetPriorityMap.end()) {
+        auto &containerConfigs = rolePlan.containerConfigs;
+        bool hasNetPriorityConfig = false;
+        std::string netPriorityStr = SWIFT_NET_PRIORITY_PREFIX + "=" + StringUtil::toString(iter->second);
+        for (auto &config : containerConfigs) {
+            if (StringUtil::startsWith(config, SWIFT_NET_PRIORITY_PREFIX)) {
+                config = netPriorityStr;
+                hasNetPriorityConfig = true;
+            }
+        }
+        if (!hasNetPriorityConfig) {
+            containerConfigs.push_back(netPriorityStr);
         }
     }
 }

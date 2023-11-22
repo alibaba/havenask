@@ -26,8 +26,11 @@ static const std::string DISTANCE_TYPE = "distance_type";
 static const std::string INNER_PRODUCT = "InnerProduct";
 static const std::string SQUARED_EUCLIDEAN = "SquaredEuclidean";
 static const std::string MIPS_SQUARED_EUCLIDEAN = "MipsSquaredEuclidean";
-
+static const std::string HAMMING = "Hamming";
 // build config
+static const std::string DISTRIBUTED_BUILD = "distributed_build";
+static const std::string CENTROID_COUNT = "kmeans_centroid_count";
+static const std::string PARALLEL_NUM = "parallel_num";
 static const std::string INDEX_BUILDER_NAME = "builder_name";
 static const std::string LINEAR_BUILDER = "LinearBuilder";
 static const std::string QC_BUILDER = "QcBuilder";
@@ -37,7 +40,7 @@ static const std::string QGRAPH_BUILDER = "QGraphBuilder";
 static const std::string INDEX_BUILD_IN_FULL_BUILD_PHASE = "is_alter_index";
 static const std::string INDEX_BUILD_THRESHOLD = "linear_build_threshold";
 static const std::string IGNORE_FIELD_COUNT_MISMATCH = "ignore_field_count_error";
-static const std::string IGNORE_BUILD_ERROR = "ignore_build_error";
+static const std::string IGNORE_INVALID_DOC = "ignore_invalid_doc";
 static const std::string INDEX_BUILD_PARAMETERS = "build_index_params";
 static const std::string STORE_PRIMARY_KEY = "is_pk_saved";
 static const std::string STORE_ORIGINAL_EMBEDDING = "is_embedding_saved";

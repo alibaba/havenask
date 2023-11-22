@@ -4,6 +4,7 @@
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
+#include "indexlib/config/single_field_index_config.h"
 #include "indexlib/index/inverted_index/format/ComplexDocid.h"
 #include "indexlib/index/inverted_index/patch/IndexPatchFileReader.h"
 #include "indexlib/index/normal/inverted_index/accessor/patch_index_segment_updater.h"
@@ -15,7 +16,6 @@ using namespace autil;
 using namespace autil::mem_pool;
 
 using namespace indexlib::config;
-using namespace indexlib::common;
 using namespace indexlib::util;
 
 namespace indexlib { namespace index {

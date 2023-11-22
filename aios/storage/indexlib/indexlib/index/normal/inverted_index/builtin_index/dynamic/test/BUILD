@@ -5,7 +5,7 @@ cc_fast_test(
         'dynamic_index_writer_unittest.cpp', 'dynamic_index_unittest.cpp',
         'dynamic_index_reader_unittest.cpp'
     ]),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     deps=[
         '//aios/storage/indexlib/indexlib:indexlib_testbase',

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DOCUMENTSYNCQUEUE_H
-#define ISEARCH_BS_DOCUMENTSYNCQUEUE_H
+#pragma once
 
 #include "autil/SynchronizedQueue.h"
 #include "build_service/common_define.h"
@@ -28,5 +27,3 @@ BS_TYPEDEF_PTR(DocumentSyncQueue);
 typedef std::map<std::string, DocumentSyncQueuePtr> ClusterDocSyncQueues;
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_DOCUMENTSYNCQUEUE_H

@@ -13,23 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_PLAN_H
-#define __INDEXLIB_MERGE_PLAN_H
+#pragma once
 
+#include <assert.h>
 #include <memory>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
 #include <vector>
 
+#include "autil/StringUtil.h"
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
 #include "indexlib/index_base/index_meta/segment_temperature_meta.h"
 #include "indexlib/index_base/index_meta/segment_topology_info.h"
 #include "indexlib/index_base/index_meta/version.h"
-#include "indexlib/index_define.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/merge_define.h"
-
-DECLARE_REFERENCE_CLASS(file_system, Directory);
+#include "indexlib/misc/common.h"
 
 namespace indexlib { namespace merger {
 
@@ -271,5 +279,3 @@ private:
 
 DEFINE_SHARED_PTR(MergePlan);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_PLAN_H

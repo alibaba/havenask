@@ -108,7 +108,10 @@ public:
         assert(false);
         return Status::OK();
     }
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override { return 0; }
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override
+    {
+        return {Status::OK(), 0};
+    }
     size_t EvaluateCurrentMemUsed() override { return 0; }
 };
 

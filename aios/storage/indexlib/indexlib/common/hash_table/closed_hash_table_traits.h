@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CLOSED_HASH_TABLE_TRAITS_H
-#define __INDEXLIB_CLOSED_HASH_TABLE_TRAITS_H
+#pragma once
 
 #include "indexlib/common/hash_table/compact_special_key_bucket.h"
 #include "indexlib/common/hash_table/special_key_bucket.h"
@@ -71,5 +70,3 @@ struct ClosedHashTableTraits<_KT, OffsetValue<_RealVT>, false> {
     typedef SpecialValueBucket<_KT, _VT> Bucket;
 };
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CLOSED_HASH_TABLE_TRAITS_H

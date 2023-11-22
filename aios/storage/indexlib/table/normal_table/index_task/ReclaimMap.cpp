@@ -180,21 +180,19 @@ void ReclaimMap::CollectSrcSegments(const SegmentMergePlan& segMergePlan,
     }
 }
 
-int64_t ReclaimMap::GetTargetSegmentDocCount(int32_t idx) const
+int64_t ReclaimMap::GetTargetSegmentDocCount(segmentid_t segmentId) const
 {
     assert(_targetSegmentBaseDocIds.size() == _targetSegmentIds.size());
-    assert(idx < _targetSegmentBaseDocIds.size());
-    if (idx == _targetSegmentBaseDocIds.size() - 1) {
-        return _totalDocCount - _targetSegmentBaseDocIds[idx];
+    for (size_t i = 0; i < _targetSegmentIds.size(); ++i) {
+        if (_targetSegmentIds[i] == segmentId) {
+            if (i == _targetSegmentBaseDocIds.size() - 1) {
+                return _totalDocCount - _targetSegmentBaseDocIds[i];
+            }
+            return _targetSegmentBaseDocIds[i + 1] - _targetSegmentBaseDocIds[i];
+        }
     }
-    return _targetSegmentBaseDocIds[idx + 1] - _targetSegmentBaseDocIds[idx];
-}
-
-void ReclaimMap::GetOldDocIdAndSegId(docid_t newDocId, docid_t& oldDocId, segmentid_t& oldSegId) const
-{
-    assert(newDocId < _totalDocCount);
-    oldDocId = _newDocIdToOldDocid[newDocId].second;
-    oldSegId = _newDocIdToOldDocid[newDocId].first;
+    assert(false);
+    return 0;
 }
 
 std::pair<docid_t, std::shared_ptr<framework::Segment>>
@@ -211,7 +209,7 @@ ReclaimMap::GetSourceSegment(segmentid_t srcSegmentId, const std::shared_ptr<fra
     return std::make_pair(INVALID_DOCID, nullptr);
 }
 
-std::pair<segmentid_t, docid_t> ReclaimMap::Map(docid_t globalOldDocId) const
+std::pair<segmentid_t, docid32_t> ReclaimMap::Map(docid64_t globalOldDocId) const
 {
     assert(globalOldDocId < _oldDocIdToNewDocId.size());
     auto newDocId = _oldDocIdToNewDocId[globalOldDocId];
@@ -227,7 +225,7 @@ std::pair<segmentid_t, docid_t> ReclaimMap::Map(docid_t globalOldDocId) const
     return std::make_pair(_targetSegmentIds[lastSegmentIdx], newDocId - _targetSegmentBaseDocIds[lastSegmentIdx]);
 }
 
-segmentid_t ReclaimMap::GetLocalId(docid_t newId) const
+segmentid_t ReclaimMap::GetLocalId(docid64_t newId) const
 {
     if (newId == INVALID_DOCID) {
         return INVALID_SEGMENTID;
@@ -275,7 +273,7 @@ Status ReclaimMap::Store(const std::shared_ptr<indexlib::file_system::Directory>
     return Status::OK();
 }
 
-std::pair<segmentid_t, docid_t> ReclaimMap::ReverseMap(docid_t newDocId) const
+std::pair<segmentid_t, docid32_t> ReclaimMap::ReverseMap(docid64_t newDocId) const
 {
     assert(newDocId < _newDocIdToOldDocid.size());
     return _newDocIdToOldDocid[newDocId];

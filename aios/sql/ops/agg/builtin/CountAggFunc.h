@@ -60,10 +60,7 @@ private:
     CountAggFunc &operator=(const CountAggFunc &);
 
 public:
-    DEF_CREATE_ACCUMULATOR_FUNC(CountAccumulator)
-    bool needDependInputTablePools() const override {
-        return false;
-    }
+    DEF_CREATE_ACCUMULATOR_FUNC(CountAccumulator);
 
 private:
     // local

@@ -46,4 +46,27 @@ TEST_F(RemoteTableWriterTest, testWrite) {
     delete searchParam.closure;
 }
 
+TEST_F(RemoteTableWriterTest, testFollowWrite) {
+    MockSearchService searchService;
+    RemoteTableWriter writer("zone", &searchService, true);
+    multi_call::SearchParam searchParam;
+    auto replyPtr = make_shared<Reply>();
+    EXPECT_CALL(searchService, search(_, _)).WillOnce(DoAll(SaveArg<0>(&searchParam), SetArgReferee<1>(replyPtr)));
+    MessageWriteParam writeParam;
+    writeParam.cb = [](Result<WriteCallbackParam> result) { ASSERT_TRUE(false); };
+    writeParam.timeoutUs = 1000;
+    writer.write("table1", "ha3", std::move(writeParam));
+    ASSERT_EQ(1, searchParam.generatorVec.size());
+    auto *generator = dynamic_cast<RemoteTableWriterRequestGenerator *>(searchParam.generatorVec[0].get());
+    ASSERT_NE(nullptr, generator);
+    auto &tagMap = *generator->_tags;
+    auto iter = tagMap.find(GeneratorDef::LEADER_TAG);
+    ASSERT_NE(tagMap.end(), iter);
+    ASSERT_EQ(multi_call::TMT_PREFER, iter->second.type);
+    auto *closure = dynamic_cast<RemoteTableWriterClosure *>(searchParam.closure);
+    ASSERT_NE(nullptr, closure);
+    ASSERT_EQ(closure->getReplyPtr(), replyPtr);
+    delete searchParam.closure;
+}
+
 } // namespace suez

@@ -1,0 +1,42 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+   if (Graph.parameter["resetVersions"] == nil)
+   then
+      Log.log("ERROR", "does not include resetVersions")
+      return false
+   end
+
+   local resetVersionKv = Tool.jsonToMap(Graph.parameter["resetVersions"])
+   local count = 0
+   for _, __ in pairs(resetVersionKv)
+   do
+      count = count + 1
+   end
+   
+   if (count == 0)
+   then
+      Log.log("ERROR", "resetVersionKv does not have invalid clusterName and versionId")
+      return false
+   end
+   
+   for clusterName, resetVersionId in pairs(resetVersionKv)
+   do
+      local clusterParam = {}
+      clusterParam["buildId"] = Graph.parameter["buildId"]
+      clusterParam["clusterName"] = clusterName
+      taskParam = {}
+      
+      taskParam["buildId"] = clusterParam["buildId"]
+      taskParam["clusterName"] = clusterName
+      taskParam["versionId"] = resetVersionId
+      clusterParam["taskParam"] = Tool.mapToJson(taskParam)
+
+      local resetVersionTask = Graph.loadSimpleFlow("reset_version_task", "resetVersion", clusterParam)
+      resetVersionTask:addTag(clusterName..":ResetVersion")
+      resetVersionTask:addTag("BSResetVersionV2")
+   end
+   Log.log("", "resetVersionTask has loaded")
+   return true
+end

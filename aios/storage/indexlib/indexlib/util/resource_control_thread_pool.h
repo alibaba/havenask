@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_RESOURCE_CONTROL_THREAD_POOL_H
-#define __INDEXLIB_RESOURCE_CONTROL_THREAD_POOL_H
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -52,7 +51,7 @@ private:
     std::function<void()> mOnThreadNormalExit;
     mutable autil::ThreadMutex mMutex;
     util::ExceptionBase mException;
-    volatile bool mHasException;
+    std::atomic_bool mHasException;
 
 private:
     IE_LOG_DECLARE();
@@ -60,5 +59,3 @@ private:
 
 DEFINE_SHARED_PTR(ResourceControlThreadPool);
 }} // namespace indexlib::util
-
-#endif //__INDEXLIB_RESOURCE_CONTROL_THREAD_POOL_H

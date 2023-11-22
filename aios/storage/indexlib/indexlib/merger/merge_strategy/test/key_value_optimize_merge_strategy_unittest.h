@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KEYVALUEOPTIMIZEMERGESTRATEGYTEST_H
-#define __INDEXLIB_KEYVALUEOPTIMIZEMERGESTRATEGYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/merge_strategy/key_value_optimize_merge_strategy.h"
@@ -31,5 +30,3 @@ INDEXLIB_UNIT_TEST_CASE(KeyValueOptimizeMergeStrategyTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(KeyValueOptimizeMergeStrategyTest, TestInvalidSegmentId);
 INDEXLIB_UNIT_TEST_CASE(KeyValueOptimizeMergeStrategyTest, TestExceptions);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_KEYVALUEOPTIMIZEMERGESTRATEGYTEST_H

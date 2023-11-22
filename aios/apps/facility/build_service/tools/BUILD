@@ -34,6 +34,9 @@ py_library(
 )
 py_library(
     name='bs_tools_include',
-    srcs=glob(['bs_tools/include/*.py']),
+    srcs=[
+        'bs_tools/include/__init__.py', 'bs_tools/include/json_wrapper.py',
+        'bs_tools/include/protobuf_json.py'
+    ],
     visibility=['//visibility:public']
 )

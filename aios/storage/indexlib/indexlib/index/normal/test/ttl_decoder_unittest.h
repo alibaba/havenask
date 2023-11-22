@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TTLDECODERTEST_H
-#define __INDEXLIB_TTLDECODERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document.h"
@@ -28,5 +27,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(TtlDecoderTest, TestSetDocumentTTL);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TTLDECODERTEST_H

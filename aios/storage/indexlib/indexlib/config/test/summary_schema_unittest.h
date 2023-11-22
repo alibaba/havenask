@@ -1,10 +1,8 @@
-#ifndef __INDEXLIB_SUMMARYSCHEMATEST_H
-#define __INDEXLIB_SUMMARYSCHEMATEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/index_partition_schema.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -32,7 +30,7 @@ private:
     std::string mJsonStringTail;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(SummarySchemaTest, TestSimpleProcess);
@@ -42,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE(SummarySchemaTest, TestSummaryException);
 INDEXLIB_UNIT_TEST_CASE(SummarySchemaTest, TestSummaryGroupWithParameter);
 INDEXLIB_UNIT_TEST_CASE(SummarySchemaTest, TestJsonize);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_SUMMARYSCHEMATEST_H

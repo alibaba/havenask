@@ -15,10 +15,14 @@
  */
 #include "build_service/plugin/Module.h"
 
-#include <cassert>
+#include <cstddef>
 #include <dlfcn.h>
+#include <vector>
 
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/plugin/ModuleFactory.h"
 #include "fslib/util/FileUtil.h"

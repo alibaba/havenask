@@ -66,6 +66,9 @@ public:
     SearchCache(size_t cacheSize, const MemoryQuotaControllerPtr& memoryQuotaController,
                 const std::shared_ptr<TaskScheduler>& taskScheduler, util::MetricProviderPtr metricProvider,
                 int numShardBits, float highPriorityRatio = 0.0f);
+    SearchCache(size_t cacheSize, const MemoryQuotaControllerPtr& memoryQuotaController,
+                const std::shared_ptr<TaskScheduler>& taskScheduler, util::MetricProviderPtr metricProvider,
+                int numShardBits, float highPriorityRatio, float lowPriorityRatio);
     ~SearchCache();
 
 public:

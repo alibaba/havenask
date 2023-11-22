@@ -1,13 +1,13 @@
 #include "indexlib/index/kkv/test/built_kkv_segment_reader_unittest.h"
 
 #include "indexlib/config/kkv_index_config.h"
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_rewriter/pack_attribute_rewriter.h"
 #include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/index/common/KeyHasherWrapper.h"
 #include "indexlib/index/kkv/kkv_built_segment_doc_iterator.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

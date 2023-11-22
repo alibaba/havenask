@@ -4,7 +4,7 @@ cc_library(
     hdrs=['index_partition_reader.h', 'partition_version.h'],
     copts=['-Werror'],
     include_prefix='indexlib/partition',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/indexlib/index_base']
 )
 cc_library(
@@ -13,7 +13,7 @@ cc_library(
     hdrs=['table_reader_container.h', 'table_reader_container_updater.h'],
     copts=['-Werror'],
     include_prefix='indexlib/partition',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':partition_reader',
         '//aios/storage/indexlib/indexlib/partition/join_cache:base',
@@ -26,7 +26,7 @@ cc_library(
     hdrs=['index_roll_back_util.h'],
     copts=['-Werror'],
     include_prefix='indexlib/partition',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=['//aios/storage/indexlib/indexlib/index_base'],
     alwayslink=True
 )
@@ -36,7 +36,7 @@ cc_library(
     hdrs=['partition_info_holder.h'],
     copts=['-Werror'],
     include_prefix='indexlib/partition',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib/index:index_external',
         '//aios/storage/indexlib/indexlib/index/normal/deletionmap',
@@ -50,7 +50,7 @@ cc_library(
     hdrs=['on_disk_partition_data.h'],
     copts=['-Werror'],
     include_prefix='indexlib/partition',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':partition-info-holder',
         '//aios/storage/indexlib/indexlib/index:index_external',
@@ -79,7 +79,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/partition',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':partition_reader',
         '//aios/storage/indexlib/indexlib/index:index_external',
@@ -98,7 +98,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/partition',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         ':partition_interface', ':table_reader_container',
         '//aios/storage/indexlib/framework:ITablet',
@@ -119,7 +119,7 @@ cc_library(
     hdrs=['main_sub_util.h'],
     copts=['-Werror'],
     include_prefix='indexlib/partition',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib/index',
         '//aios/storage/indexlib/indexlib/partition/modifier',
@@ -168,7 +168,7 @@ cc_library(
     ),
     copts=['-Werror'],
     include_prefix='indexlib/partition',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         ':main-sub-util', ':metrics', ':on-disk-partition-data',
         ':partition-info-holder', ':partition_interface', ':partition_reader',

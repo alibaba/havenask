@@ -126,7 +126,7 @@ bool CompressFloatAttributeConvertor::DecodeLiteralField(const autil::StringView
     if (ret != (int32_t)tmp.size()) {
         return false;
     }
-    value = autil::StringUtil::toString(tmp, "");
+    value = autil::StringUtil::toString(tmp, _separator);
     return true;
 }
 } // namespace indexlibv2::index

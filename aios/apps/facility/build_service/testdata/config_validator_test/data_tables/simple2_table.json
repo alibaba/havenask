@@ -1,0 +1,55 @@
+{
+    "data_descriptions" : [
+        {
+            "src" : "file",
+            "type" : "file"
+        },
+        {
+            "reader_config" : "reader_config",
+            "src" : "swift",
+            "swift_root" : "zfs://root",
+            "topic_name" : "",
+            "type" : "swift"
+        }
+    ],
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "simple2"
+            ],
+            "document_processor_chain" : [
+                {
+                    "class_name" : "TokenizeDocumentProcessor",
+                    "module_name" : "",
+                    "parameters" : {
+                    }
+                },
+                {
+                    "class_name" : "SlowProcessDocumentProcessor",
+                    "module_name" : "slow_process_document_processor",
+                    "parameters" : {
+                        "checkpoint_path" : "pangu://AT-HA27/doranbin.zhu/grp_recover/sut_processor_recover/index/test.checkpoint",
+                        "pk_field" : "company_id",
+                        "sleep_per_document" : "5",
+                        "suicide_on_pk" : "4"
+                    }
+                }
+            ],
+            "modules" : [
+                {
+                    "module_name" : "slow_process_document_processor",
+                    "module_path" : "libslow_process_document_processor.so",
+                    "parameters" : {
+                    }
+                }
+            ]
+        }
+    ],
+    "processor_config" : {
+        "_bs_checkpoint_interval" : 2,
+        "processor_thread_num" : 1
+    },
+    "processor_rule_config" : {
+        "partition_count" : 1
+    }
+}

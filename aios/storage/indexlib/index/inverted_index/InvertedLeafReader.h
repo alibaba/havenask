@@ -18,7 +18,7 @@
 #include "autil/Log.h"
 #include "future_lite/coro/Lazy.h"
 #include "indexlib/file_system/file/ReadOption.h"
-#include "indexlib/index/IndexerParameter.h"
+// #include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/index/inverted_index/IndexSegmentReader.h"
 #include "indexlib/index/inverted_index/format/IndexFormatOption.h"
@@ -42,11 +42,11 @@ public:
 
     std::shared_ptr<DictionaryReader> GetDictionaryReader() const override { return _dictReader; }
 
-    bool GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+    bool GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                            autil::mem_pool::Pool* sessionPool, file_system::ReadOption option,
                            InvertedIndexSearchTracer* tracer) const override;
     future_lite::coro::Lazy<index::Result<bool>>
-    GetSegmentPostingAsync(const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+    GetSegmentPostingAsync(const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                            autil::mem_pool::Pool* sessionPool, file_system::ReadOption option,
                            InvertedIndexSearchTracer* tracer) const noexcept;
 
@@ -62,9 +62,9 @@ public:
     size_t EvaluateCurrentMemUsed() const;
 
 protected:
-    void InnerGetSegmentPosting(dictvalue_t value, docid_t baseDocId, SegmentPosting& segPosting,
+    void InnerGetSegmentPosting(dictvalue_t value, docid64_t baseDocId, SegmentPosting& segPosting,
                                 autil::mem_pool::Pool* sessionPool) const;
-    future_lite::coro::Lazy<index::ErrorCode> GetSegmentPostingAsync(dictvalue_t value, docid_t baseDocId,
+    future_lite::coro::Lazy<index::ErrorCode> GetSegmentPostingAsync(dictvalue_t value, docid64_t baseDocId,
                                                                      SegmentPosting& segPosting,
                                                                      autil::mem_pool::Pool* sessionPool,
                                                                      file_system::ReadOption option,

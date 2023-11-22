@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONINFOTEST_H
-#define __INDEXLIB_PARTITIONINFOTEST_H
+#pragma once
 #include "indexlib/common_define.h"
 #include "indexlib/index/partition_info.h"
 #include "indexlib/index/test/partition_info_creator.h"
@@ -52,5 +51,3 @@ INDEXLIB_UNIT_TEST_CASE(PartitionInfoTest, TestKVKKVTable);
 INDEXLIB_UNIT_TEST_CASE(PartitionInfoTest, TestPartitionInfoWithTemperature);
 
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PARTITIONINFOTEST_H

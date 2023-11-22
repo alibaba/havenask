@@ -13,29 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDFLOW_H
-#define ISEARCH_BS_BUILDFLOW_H
+#pragma once
+
+#include <deque>
+#include <memory>
+#include <stdint.h>
+#include <vector>
 
 #include "autil/Lock.h"
-#include "autil/Thread.h"
 #include "build_service/builder/Builder.h"
 #include "build_service/builder/BuilderV2.h"
+#include "build_service/common/ExceedTsAction.h"
+#include "build_service/common/Locator.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/SourceEnd2EndLatencyReporter.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/processor/Processor.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/reader/RawDocumentReader.h"
-#include "build_service/util/Log.h"
 #include "build_service/workflow/AsyncStarter.h"
 #include "build_service/workflow/BuildFlowMode.h"
-#include "build_service/workflow/DataFlowFactory.h"
 #include "build_service/workflow/FlowFactory.h"
 #include "build_service/workflow/RealtimeBuilderDefine.h"
 #include "build_service/workflow/StopOption.h"
+#include "build_service/workflow/SwiftProcessedDocConsumer.h"
 #include "build_service/workflow/Workflow.h"
-#include "indexlib/util/counter/CounterMap.h"
+#include "build_service/workflow/WorkflowItem.h"
+#include "build_service/workflow/WorkflowThreadPool.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace util {
-class MetricProvider;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 }} // namespace indexlib::util
 
@@ -44,12 +55,10 @@ namespace build_service { namespace workflow {
 class BuildFlow : public proto::ErrorCollector
 {
 public:
-    BuildFlow(const util::SwiftClientCreatorPtr& swiftClientCreator = nullptr,
-              const indexlib::config::IndexPartitionSchemaPtr& schema = nullptr,
+    BuildFlow(const indexlib::config::IndexPartitionSchemaPtr& schema = nullptr,
               const BuildFlowThreadResource& threadResource = BuildFlowThreadResource());
 
-    BuildFlow(const util::SwiftClientCreatorPtr& swiftClientCreator,
-              std::shared_ptr<indexlibv2::config::ITabletSchema> schema, const BuildFlowThreadResource& threadResource);
+    BuildFlow(std::shared_ptr<indexlibv2::config::ITabletSchema> schema, const BuildFlowThreadResource& threadResource);
 
     virtual ~BuildFlow();
 
@@ -113,6 +122,11 @@ private:
                                    const proto::PartitionId& partitionId, WorkflowMode workflowMode,
                                    indexlib::util::MetricProviderPtr metricProvider, KeyValueMap& kvMap,
                                    FlowFactory::RoleInitParam& param);
+    bool initDataLinkParameters(const config::ResourceReaderPtr& resourceReader, const proto::PartitionId& partitionId,
+                                KeyValueMap& kvMap);
+
+    bool initReaderParameters(const config::ResourceReaderPtr& resourceReader, const std::string& clusterName,
+                              WorkflowMode workflowMode, KeyValueMap& kvMap);
 
     bool initCounterMap(BuildFlowMode mode, FlowFactory* factory, FlowFactory::RoleInitParam& param);
 
@@ -138,7 +152,6 @@ private:
     AsyncStarter _starter;
     indexlib::config::IndexPartitionSchemaPtr _schema;
     std::shared_ptr<indexlibv2::config::ITabletSchema> _schemav2;
-    util::SwiftClientCreatorPtr _swiftClientCreator;
     std::vector<std::unique_ptr<Workflow>> _dataFlows;
     FlowFactory* _factory;
     BuildFlowMode _mode;
@@ -156,5 +169,3 @@ private:
 };
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_BUILDFLOW_H

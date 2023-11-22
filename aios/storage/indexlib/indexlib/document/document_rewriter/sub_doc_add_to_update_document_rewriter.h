@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SUB_DOC_ADD_TO_UPDATE_DOCUMENT_REWRITER_H
-#define __INDEXLIB_SUB_DOC_ADD_TO_UPDATE_DOCUMENT_REWRITER_H
+#pragma once
 
 #include <memory>
 
@@ -56,5 +55,3 @@ private:
 
 DEFINE_SHARED_PTR(SubDocAddToUpdateDocumentRewriter);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_SUB_DOC_ADD_TO_UPDATE_DOCUMENT_REWRITER_H

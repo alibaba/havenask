@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONTROL_FLOW_TASK_FLOW_H
-#define ISEARCH_BS_CONTROL_FLOW_TASK_FLOW_H
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+extern "C" {
+#include "lua.h"
+}
 
 #include <map>
-#include <memory>
 #include <set>
 
 #include "autil/Lock.h"
 #include "autil/legacy/jsonizable.h"
-#include "build_service/admin/controlflow/Eluna.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
 
 BS_DECLARE_REFERENCE_CLASS(admin, FlowContainer);
 BS_DECLARE_REFERENCE_CLASS(admin, TaskResourceManager);
@@ -258,5 +264,3 @@ private:
 BS_TYPEDEF_PTR(TaskFlow);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CONTROL_FLOW_TASK_FLOW_H

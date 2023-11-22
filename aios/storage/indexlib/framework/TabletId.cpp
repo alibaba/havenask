@@ -15,7 +15,7 @@
  */
 #include "indexlib/framework/TabletId.h"
 
-#include <bits/stdint-uintn.h>
+#include <cstdint>
 
 namespace indexlib::framework {
 TabletId::TabletId(const std::string& tableName) : _tableName(tableName) {}

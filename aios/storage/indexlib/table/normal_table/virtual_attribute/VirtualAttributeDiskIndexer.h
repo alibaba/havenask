@@ -16,6 +16,7 @@
 #pragma once
 
 #include "autil/Log.h"
+#include "autil/Span.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/index/IDiskIndexer.h"
 

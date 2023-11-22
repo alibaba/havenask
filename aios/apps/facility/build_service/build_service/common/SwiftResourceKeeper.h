@@ -13,17 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SWIFTRESOURCEKEEPER_H
-#define ISEARCH_BS_SWIFTRESOURCEKEEPER_H
+#pragma once
 
+#include <string>
+#include <utility>
+
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common/BrokerTopicAccessor.h"
+#include "build_service/common/BrokerTopicKeeper.h"
 #include "build_service/common/ResourceContainer.h"
 #include "build_service/common/ResourceKeeper.h"
 #include "build_service/common/SwiftParam.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/SwiftConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/DataDescription.h"
-#include "build_service/util/Log.h"
-#include "build_service/util/SwiftClientCreator.h"
+#include "build_service/proto/WorkerNode.h"
+#include "swift/client/SwiftClient.h"
+#include "swift/client/SwiftWriter.h"
 
 namespace build_service { namespace common {
 
@@ -68,6 +76,18 @@ public:
                                                           const config::ResourceReaderPtr& configReader);
 
 private:
+    common::SwiftParam createSwiftReaderForNormalMode(const util::SwiftClientCreatorPtr& swiftClientCreator,
+                                                      const KeyValueMap& params,
+                                                      const config::ResourceReaderPtr& configReader,
+                                                      const proto::Range& range);
+
+    common::SwiftParam createSwiftReaderForNPCMode(const util::SwiftClientCreatorPtr& swiftClientCreator,
+                                                   const KeyValueMap& params,
+                                                   const config::ResourceReaderPtr& configReader,
+                                                   const proto::Range& range);
+
+    std::string getSwiftReaderConfigForNPCMode(const config::SwiftConfig& swiftConfig, const proto::Range& range) const;
+
     std::string getTopicClusterName(const std::string& clusterName, const KeyValueMap& kvMap);
     std::pair<std::string, std::string> getLegacyTopicName(const std::string& clusterName,
                                                            const proto::PartitionId& pid,
@@ -93,5 +113,3 @@ private:
 BS_TYPEDEF_PTR(SwiftResourceKeeper);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_SWIFTRESOURCEKEEPER_H

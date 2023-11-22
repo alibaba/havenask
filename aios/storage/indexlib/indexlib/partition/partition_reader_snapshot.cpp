@@ -333,52 +333,31 @@ bool PartitionReaderSnapshot::GetPackAttributeReaderInfo(const string& packAttrN
         }
     }
     if (readerId >= mIndexPartReaderInfos.size()) {
-        IE_LOG(ERROR, "invalid idx, packAttr [%s], table [%s], idx[%u], size[%lu]", packAttrName.c_str(),
-               tableName.c_str(), readerId, mIndexPartReaderInfos.size());
-        return false;
-    }
-    IndexPartitionReaderInfo readerInfo = mIndexPartReaderInfos[readerId];
-    attrReaderInfo.packAttrReader = readerInfo.indexPartReader->GetPackAttributeReader(packAttrName);
-    attrReaderInfo.indexPartReader = readerInfo.indexPartReader;
-    attrReaderInfo.indexPartReaderType = readerInfo.readerType;
-    return true;
-}
-
-bool PartitionReaderSnapshot::GetPackAttributeReaderInfo(const string& packAttrName, const string& tableName,
-                                                         PackAttributeReaderInfoV2& attrReaderInfo) const
-{
-    uint32_t readerId = 0;
-    if (tableName.empty()) {
-        if (!GetIdxByName(packAttrName, mPackAttributeName2Idx, readerId)) {
-            IE_LOG(ERROR, "can not find pack attribute reader [%s] in table [%s]", packAttrName.c_str(),
-                   tableName.c_str());
+        // v2
+        readerId = readerId - mIndexPartReaderInfos.size();
+        assert(readerId < _tabletReaderInfos.size());
+        TabletReaderInfo readerInfo = _tabletReaderInfos[readerId];
+        auto normalTabletReader =
+            std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(readerInfo.tabletReader);
+        assert(normalTabletReader != nullptr);
+        attrReaderInfo.packAttrReaderV2 = normalTabletReader->GetPackAttributeReader(packAttrName);
+        if (!attrReaderInfo.packAttrReaderV2) {
+            IE_LOG(ERROR, "pack attribute reader [%s] in table [%s] is null", packAttrName.c_str(), tableName.c_str());
             return false;
         }
+        attrReaderInfo.packAttrReader = nullptr;
+        attrReaderInfo.indexPartReader = nullptr;
+        attrReaderInfo.tabletReader = readerInfo.tabletReader;
+        attrReaderInfo.indexPartReaderType = readerInfo.readerType;
     } else {
-        if (!mPackAttribute2IdMap->Find(tableName, packAttrName, readerId)) {
-            IE_LOG(ERROR, "can not find pack attribute reader [%s] in table [%s]", packAttrName.c_str(),
-                   tableName.c_str());
-            return false;
-        }
+        // v1
+        IndexPartitionReaderInfo readerInfo = mIndexPartReaderInfos[readerId];
+        attrReaderInfo.packAttrReader = readerInfo.indexPartReader->GetPackAttributeReader(packAttrName);
+        attrReaderInfo.packAttrReaderV2 = nullptr;
+        attrReaderInfo.tabletReader = nullptr;
+        attrReaderInfo.indexPartReader = readerInfo.indexPartReader;
+        attrReaderInfo.indexPartReaderType = readerInfo.readerType;
     }
-    if (readerId < mIndexPartReaderInfos.size()) {
-        IE_LOG(ERROR, "invalid idx, packAttr [%s], table [%s], idx[%u], size[%lu]", packAttrName.c_str(),
-               tableName.c_str(), readerId, mIndexPartReaderInfos.size());
-        return false;
-    }
-    readerId = readerId - mIndexPartReaderInfos.size();
-    assert(readerId < _tabletReaderInfos.size());
-    TabletReaderInfo readerInfo = _tabletReaderInfos[readerId];
-    auto normalTabletReader =
-        std::dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(readerInfo.tabletReader);
-    assert(normalTabletReader != nullptr);
-    attrReaderInfo.packAttrReader = normalTabletReader->GetPackAttributeReader(packAttrName);
-    if (!attrReaderInfo.packAttrReader) {
-        IE_LOG(ERROR, "pack attribute reader [%s] in table [%s] is null", packAttrName.c_str(), tableName.c_str());
-        return false;
-    }
-    attrReaderInfo.tabletReader = readerInfo.tabletReader;
-    attrReaderInfo.indexPartReaderType = readerInfo.readerType;
     return true;
 }
 

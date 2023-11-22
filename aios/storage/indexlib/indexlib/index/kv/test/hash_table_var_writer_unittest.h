@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_HASHTABLEVARWRITERTEST_H
-#define __INDEXLIB_HASHTABLEVARWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kv/hash_table_var_writer.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(HashTableVarWriterTest, TestCalculateMemoryRatio);
 INDEXLIB_UNIT_TEST_CASE(HashTableVarWriterTest, TestValueThresholdWithShortenOffset);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASHTABLEVARWRITERTEST_H

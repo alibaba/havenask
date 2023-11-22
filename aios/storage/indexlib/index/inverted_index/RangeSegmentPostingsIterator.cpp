@@ -69,8 +69,8 @@ RangeSegmentPostingsIterator::~RangeSegmentPostingsIterator()
     IE_POOL_COMPATIBLE_DELETE_VECTOR(_sessionPool, _docBuffer, MAX_DOC_PER_RECORD * _bufferLength);
 }
 
-void RangeSegmentPostingsIterator::Init(const std::shared_ptr<SegmentPostings>& segPostings, docid_t startDocId,
-                                        docid_t nextSegmentDocId)
+void RangeSegmentPostingsIterator::Init(const std::shared_ptr<SegmentPostings>& segPostings, docid64_t startDocId,
+                                        docid64_t nextSegmentDocId)
 {
     std::vector<SegmentPosting>& postingVec = segPostings->GetSegmentPostings();
     size_t bufferLength = postingVec.size();
@@ -80,7 +80,7 @@ void RangeSegmentPostingsIterator::Init(const std::shared_ptr<SegmentPostings>& 
         _docBuffer = NULL;
     }
     if (!_docBuffer) {
-        _docBuffer = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, docid_t, MAX_DOC_PER_RECORD * bufferLength);
+        _docBuffer = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, docid32_t, MAX_DOC_PER_RECORD * bufferLength);
     }
     _bufferLength = bufferLength;
     _segPostings = segPostings;
@@ -98,10 +98,10 @@ void RangeSegmentPostingsIterator::Init(const std::shared_ptr<SegmentPostings>& 
     _segmentDecoders.resize(postingVec.size(), NULL);
     _baseDocId = _segPostings->GetBaseDocId();
     _nextSegmentDocId = nextSegmentDocId;
-    docid_t curSegDocId = std::max(docid_t(0), startDocId - _baseDocId);
+    docid32_t curSegDocId = std::max(docid64_t(0), startDocId - _baseDocId);
     ttf_t currentTTF = 0;
-    docid_t firstDocId = INVALID_DOCID;
-    docid_t lastDocId = INVALID_DOCID;
+    docid32_t firstDocId = INVALID_DOCID;
+    docid32_t lastDocId = INVALID_DOCID;
     std::vector<PostingItem> postingItems;
     postingItems.reserve(postingVec.size());
     for (size_t i = 0; i < postingVec.size(); i++) {
@@ -142,19 +142,19 @@ RangeSegmentPostingsIterator::CreateSegmentDecoder(const SegmentPosting& curSegP
     util::ByteSlice* singleSlice = curSegPosting.GetSingleSlice();
     util::ByteSliceList* postingList = curSegPosting.GetSliceListPtr().get();
     if (singleSlice) {
-        docListReader.Open(singleSlice);
-        docListReaderPtr->Open(singleSlice);
+        docListReader.Open(singleSlice).GetOrThrow();
+        docListReaderPtr->Open(singleSlice).GetOrThrow();
     } else {
-        docListReader.Open(postingList);
+        docListReader.Open(postingList).GetOrThrow();
         // do not use doclist reader to read, because reader can't seek back.
-        docListReaderPtr->Open(postingList);
+        docListReaderPtr->Open(postingList).GetOrThrow();
     }
 
     TermMeta termMeta;
     TermMetaLoader tmLoader(curSegPostingFormatOption);
     tmLoader.Load(&docListReader, termMeta);
-    uint32_t docSkipListSize = docListReader.ReadVUInt32();
-    docListReader.ReadVUInt32(); // move doc list size
+    uint32_t docSkipListSize = docListReader.ReadVUInt32().GetOrThrow();
+    docListReader.ReadVUInt32().GetOrThrow(); // move doc list size
     uint32_t docListBeginPos = docListReader.Tell() + docSkipListSize;
     segmentDecoder =
         CreateNormalSegmentDecoder(docListReaderPtr, docCompressMode, docListBeginPos, curSegPostingFormatOption);

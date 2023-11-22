@@ -15,13 +15,20 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
 #include <queue>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 #include <utility>
+#include <vector>
 
+#include "autil/Lock.h"
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "autil/ThreadPool.h"
+#include "autil/WorkItem.h"
 #include "indexlib/base/Status.h"
 
 namespace indexlib::util {

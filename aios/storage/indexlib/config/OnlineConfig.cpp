@@ -15,8 +15,12 @@
  */
 #include "indexlib/config/OnlineConfig.h"
 
+#include <iosfwd>
+
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/file_system/LifecycleConfig.h"
+#include "indexlib/file_system/load_config/LoadConfig.h"
 #include "indexlib/file_system/load_config/LoadConfigList.h"
 
 using namespace std;

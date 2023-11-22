@@ -1,11 +1,17 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
-import com.taobao.search.iquan.core.rel.convention.IquanConvention;
 import com.taobao.search.iquan.core.common.ConstantDefine;
+import com.taobao.search.iquan.core.rel.convention.IquanConvention;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import com.taobao.search.iquan.core.utils.RelDistributionUtil;
@@ -20,8 +26,6 @@ import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.util.ImmutableBitSet;
-
-import java.util.*;
 
 public class IquanMatchOp extends Match implements IquanRelNode {
     private int parallelNum = -1;
@@ -200,7 +204,7 @@ public class IquanMatchOp extends Match implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         IquanRelNode input = RelDistributionUtil.checkIquanRelType(inputs.get(0));
         return simpleRelDerive(input);
     }

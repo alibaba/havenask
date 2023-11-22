@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TEST_SIMPLETOKENIZER_H
-#define __INDEXLIB_TEST_SIMPLETOKENIZER_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/extend_document/tokenize/analyzer_token.h"
@@ -34,5 +33,3 @@ private:
 
 DEFINE_SHARED_PTR(SimpleTokenizer);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_TEST_SIMPLETOKENIZER_H

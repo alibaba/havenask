@@ -1,5 +1,14 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
@@ -25,20 +34,10 @@ import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rex.RexCall;
-import org.apache.calcite.rex.RexInputRef;
-import org.apache.calcite.rex.RexLiteral;
-import org.apache.calcite.rex.RexLocalRef;
-import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexProgram;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
-import org.apache.calcite.sql.SqlOperator;
-import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.sql.validate.SqlValidatorUtil;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.taobao.search.iquan.core.rel.plan.PlanWriteUtils.formatLayerTableInfos;
 
@@ -175,7 +174,7 @@ public class IquanTableScanBase extends TableScan implements IquanRelNode {
         int count = 0;
         for (int i = 0; i < pushDownOps.size(); ++i) {
             IquanRelNode node = pushDownOps.get(i);
-            if(node instanceof IquanCalcOp) {
+            if (node instanceof IquanCalcOp) {
                 ++count;
                 lastPushDownCalcIndex = i;
             }
@@ -222,23 +221,41 @@ public class IquanTableScanBase extends TableScan implements IquanRelNode {
         this.aggOutputType = type;
     }
 
-    public void setAggIndexName(String aggIndexName) { this.aggIndexName = aggIndexName;    }
+    public String getAggIndexName() {
+        return this.aggIndexName;
+    }
 
-    public String getAggIndexName() { return this.aggIndexName; }
+    public void setAggIndexName(String aggIndexName) {
+        this.aggIndexName = aggIndexName;
+    }
 
-    public void setAggIndexFields(List<String> aggIndexFields) { this.aggIndexFields = aggIndexFields; }
+    public List<String> getAggIndexFields() {
+        return this.aggIndexFields;
+    }
 
-    public List<String> getAggIndexFields() { return this.aggIndexFields; }
+    public void setAggIndexFields(List<String> aggIndexFields) {
+        this.aggIndexFields = aggIndexFields;
+    }
 
-    public void setAggKeys(List<String> aggKeys) { this.aggKeys = aggKeys; }
+    public List<String> getAggKeys() {
+        return this.aggKeys;
+    }
 
-    public List<String> getAggKeys() {return this.aggKeys; }
+    public void setAggKeys(List<String> aggKeys) {
+        this.aggKeys = aggKeys;
+    }
 
-    public void setAggValueField(String aggValueField) { this.aggValueField = aggValueField; }
+    public void setAggValueField(String aggValueField) {
+        this.aggValueField = aggValueField;
+    }
 
-    public void setAggType(String aggType) { this.aggType = aggType; }
+    public void setAggType(String aggType) {
+        this.aggType = aggType;
+    }
 
-    public void setDistinct(Boolean distinct) { this.distinct = distinct; }
+    public void setDistinct(Boolean distinct) {
+        this.distinct = distinct;
+    }
 
     public void setAggRangeMap(List<Map.Entry<String, String>> fromList, List<Map.Entry<String, String>> toList) {
         Map<String, String> fromConditions = fromList.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -248,8 +265,7 @@ public class IquanTableScanBase extends TableScan implements IquanRelNode {
     }
 
     public void setAggArgs(String aggIndexName, List<String> aggIndexFields, List<String> aggKeys, String aggType, String aggValueField, Boolean distinct,
-        List<Map.Entry<String, String>> fromConditions, List<Map.Entry<String, String>> toConditions)
-    {
+                           List<Map.Entry<String, String>> fromConditions, List<Map.Entry<String, String>> toConditions) {
         setAggIndexName(aggIndexName);
         setAggIndexFields(aggIndexFields);
         setAggKeys(aggKeys);
@@ -395,7 +411,7 @@ public class IquanTableScanBase extends TableScan implements IquanRelNode {
         }
         if (isRemoteScan && !Objects.isNull(location)) {
             Map<String, Object> locationMeta = new TreeMap<>();
-            locationMeta.put(ConstantDefine.TABLE_GROUP_NAME, location.getTableGroupName());
+            locationMeta.put(ConstantDefine.NODE_NAME, location.getNodeName());
             locationMeta.put(ConstantDefine.PARTITION_CNT, location.getPartitionCnt());
             IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.LOCATION, locationMeta);
         }
@@ -501,7 +517,7 @@ public class IquanTableScanBase extends TableScan implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         return null;
     }
 
@@ -525,69 +541,6 @@ public class IquanTableScanBase extends TableScan implements IquanRelNode {
         this.parallelIndex = parallelIndex;
     }
 
-    private Boolean analyzeConditions(RexNode rexNode, List<RexNode> exprs, RelDataType rowType, Map<String, List<Map.Entry<String, String>>> conditions,
-        int level) {
-        if (rexNode instanceof RexLocalRef) {
-            RexLocalRef localRef = (RexLocalRef) rexNode;
-            if (exprs == null || localRef.getIndex() >= exprs.size()) {
-                return Boolean.FALSE;
-            }
-            RexNode newRexNode = exprs.get(localRef.getIndex());
-            return analyzeConditions(newRexNode, exprs, rowType, conditions, level);
-        }
-
-        if (!(rexNode instanceof RexCall)) {
-            return Boolean.FALSE;
-        }
-
-        RexCall call = (RexCall) rexNode;
-        SqlOperator operator = call.getOperator();
-        String opName = operator.getName();
-        opName = opName.isEmpty() ? operator.getKind().name().toUpperCase() : opName.toUpperCase();
-
-        if (level < 1 && opName.equals(ConstantDefine.AND)) {
-            List<RexNode> operands = call.getOperands();
-            Boolean flag = Boolean.TRUE;
-            for (RexNode operand : operands) {
-                if (!analyzeConditions(operand, exprs, rowType, conditions, level + 1)) {
-                    flag = Boolean.FALSE;
-                }
-            }
-            return flag;
-        }
-
-        List<RexNode> operands = call.getOperands();
-        if (operands.size() != 2) {
-            return Boolean.FALSE;
-        }
-
-        String key, value;
-        RexNode node0 = operands.get(0);
-        if (!(node0 instanceof RexLocalRef)) {
-            return Boolean.FALSE;
-        }
-        RexNode operandExpr = exprs.get(((RexLocalRef) node0).getIndex());
-        if (!(operandExpr instanceof RexInputRef)) {
-            return Boolean.FALSE;
-        }
-        key = rowType.getFieldList().get(((RexInputRef) operandExpr).getIndex()).getName();
-
-        RexNode node1 = operands.get(1);
-        RexNode operandExpr1 = exprs.get(((RexLocalRef) node1).getIndex());
-        if (!(operandExpr1 instanceof RexLiteral)) {
-            return Boolean.FALSE;
-        }
-        RexLiteral rexLiteral = (RexLiteral)operandExpr1 ;
-        String valueStr;
-        if (rexLiteral.getTypeName() == SqlTypeName.CHAR) {
-            valueStr = rexLiteral.getValueAs(String.class);
-        } else {
-            valueStr = rexLiteral.getValue().toString();
-        }
-        conditions.computeIfAbsent(opName, k -> new ArrayList<>()).add(new AbstractMap.SimpleEntry<>(key, valueStr));
-        return Boolean.TRUE;
-    }
-
     public Boolean getConditions(Map<String, List<Map.Entry<String, String>>> conditions) {
         if (pushDownOps.size() != 1) {
             return Boolean.FALSE;
@@ -597,18 +550,9 @@ public class IquanTableScanBase extends TableScan implements IquanRelNode {
         if (!(pushDownOp instanceof IquanCalcOp)) {
             return Boolean.FALSE;
         }
-        IquanCalcOp calcOp = (IquanCalcOp)pushDownOp;
+        IquanCalcOp calcOp = (IquanCalcOp) pushDownOp;
 
-        RexProgram rexProgram = calcOp.getProgram();
-        RelDataType inputRowType = rexProgram.getInputRowType();
-        RexLocalRef condition = rexProgram.getCondition();
-        List<RexNode> exprs = rexProgram.getExprList();
-
-        if (condition == null || inputRowType == null) {
-            return Boolean.FALSE;
-        }
-
-        return analyzeConditions(condition, exprs, inputRowType, conditions, 0);
+        return calcOp.getConditions(conditions);
     }
 
     public IquanCatalogTable getIquanCatalogTable() {
@@ -616,7 +560,7 @@ public class IquanTableScanBase extends TableScan implements IquanRelNode {
         if (!(relOptTable instanceof RelOptTableImpl)) {
             return null;
         }
-        RelOptTableImpl optTableImpl = (RelOptTableImpl)relOptTable;
+        RelOptTableImpl optTableImpl = (RelOptTableImpl) relOptTable;
         IquanCatalogTable catalogTable = optTableImpl.unwrap(IquanCatalogTable.class);
         return catalogTable;
     }

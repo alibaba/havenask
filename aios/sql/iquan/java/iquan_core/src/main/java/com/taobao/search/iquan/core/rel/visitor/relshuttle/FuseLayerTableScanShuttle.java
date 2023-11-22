@@ -1,14 +1,21 @@
 package com.taobao.search.iquan.core.rel.visitor.relshuttle;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.taobao.search.iquan.core.rel.ops.logical.CTEProducer;
 import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LogicalFuseLayerTableScan;
 import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LogicalLayerTableScan;
 import org.apache.calcite.linq4j.Ord;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelShuttleImpl;
-import org.apache.calcite.rel.logical.*;
-
-import java.util.*;
+import org.apache.calcite.rel.logical.LogicalAggregate;
+import org.apache.calcite.rel.logical.LogicalCorrelate;
+import org.apache.calcite.rel.logical.LogicalIntersect;
+import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.calcite.rel.logical.LogicalSort;
+import org.apache.calcite.rel.logical.LogicalUnion;
 
 public class FuseLayerTableScanShuttle extends RelShuttleImpl {
     private boolean found = false;

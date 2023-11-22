@@ -15,18 +15,38 @@
  */
 #include "indexlib/merger/partition_merger_creator.h"
 
-#include "autil/EnvUtil.h"
-#include "indexlib/config/configurator_define.h"
-#include "indexlib/file_system/FenceDirectory.h"
-#include "indexlib/file_system/FileSystemCreator.h"
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <stdint.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/SortDescription.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/updateable_schema_standards.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FileSystemDefine.h"
+#include "indexlib/file_system/FileSystemMetricsReporter.h"
+#include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/file_system/load_config/CacheLoadStrategy.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/framework/LevelInfo.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index/normal/inverted_index/customized_index/index_plugin_resource.h"
 #include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/common_branch_hinter.h"
 #include "indexlib/index_base/index_meta/index_format_version.h"
 #include "indexlib/index_base/index_meta/partition_meta.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
-#include "indexlib/index_base/meta_cache_preloader.h"
+#include "indexlib/index_base/partition_data.h"
+#include "indexlib/index_base/patch/patch_file_info.h"
 #include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/merger/inc_parallel_partition_merger.h"
 #include "indexlib/merger/index_partition_merger.h"
@@ -37,9 +57,11 @@
 #include "indexlib/merger/sorted_index_partition_merger.h"
 #include "indexlib/plugin/index_plugin_loader.h"
 #include "indexlib/plugin/plugin_manager.h"
+#include "indexlib/table/merge_task_description.h"
 #include "indexlib/table/table_factory_wrapper.h"
 #include "indexlib/table/table_plugin_loader.h"
-#include "indexlib/util/PathUtil.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace indexlib::config;
@@ -71,7 +93,7 @@ PartitionMerger* PartitionMergerCreator::CreateSinglePartitionMerger(
         // but output path of full merge must be the root path, so we need mount the markedBranch of build output.
         string markedBranch = BranchFS::GetDefaultBranch(rootPath, nullptr);
         if (!markedBranch.empty()) {
-            fs->MountBranch(rootPath, markedBranch, INVALID_VERSION, FSMT_READ_ONLY);
+            fs->MountBranch(rootPath, markedBranch, INVALID_VERSIONID, FSMT_READ_ONLY);
         }
     }
 
@@ -80,7 +102,7 @@ PartitionMerger* PartitionMergerCreator::CreateSinglePartitionMerger(
         fs->GetFileSystem()->GetFileSystemMetricsReporter());
     Version version;
 
-    VersionLoader::GetVersion(rootDirectory, version, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDirectory, version, INVALID_VERSIONID);
     IndexPartitionSchemaPtr schema = SchemaAdapter::LoadSchema(rootDirectory, version.GetSchemaVersionId());
     if (!schema) {
         ERROR_COLLECTOR_LOG(ERROR, "load schema failed");
@@ -133,8 +155,8 @@ PartitionMerger* PartitionMergerCreator::CreateSinglePartitionMerger(
         return NULL;
     }
 
-    PluginResourcePtr pluginResource(
-        new IndexPluginResource(schema, optionsRewrite, util::CounterMapPtr(), partMeta, indexPluginPath));
+    PluginResourcePtr pluginResource(new IndexPluginResource(schema, optionsRewrite, util::CounterMapPtr(), partMeta,
+                                                             indexPluginPath, metricProvider));
 
     pluginManager->SetPluginResource(pluginResource);
     if (!needSort) {
@@ -160,15 +182,15 @@ PartitionMerger* PartitionMergerCreator::CreateIncParallelPartitionMerger(
         fs->GetRootDirectory(), fenceContext, fs->GetFileSystem()->GetFileSystemMetricsReporter());
 
     Version version;
-    VersionLoader::GetVersion(rootDirectory, version, INVALID_VERSION);
-    schemavid_t schemaId = version.GetVersionId() != INVALID_VERSION ? version.GetSchemaVersionId()
-                                                                     : GetSchemaId(rootDirectory, parallelInfo);
+    VersionLoader::GetVersion(rootDirectory, version, INVALID_VERSIONID);
+    schemaid_t schemaId = version.GetVersionId() != INVALID_VERSIONID ? version.GetSchemaVersionId()
+                                                                      : GetSchemaId(rootDirectory, parallelInfo);
     IndexPartitionSchemaPtr schema = SchemaAdapter::LoadAndRewritePartitionSchema(rootDirectory, options, schemaId);
     if (!schema) {
         ERROR_COLLECTOR_LOG(ERROR, "load schema failed");
         return NULL;
     }
-    if (version.GetVersionId() == INVALID_VERSION) {
+    if (version.GetVersionId() == INVALID_VERSIONID) {
         version.SyncSchemaVersionId(schema);
     }
 
@@ -211,8 +233,8 @@ PartitionMerger* PartitionMergerCreator::CreateIncParallelPartitionMerger(
             IE_LOG(ERROR, "load index plugin failed for schema [%s]", schema->GetSchemaName().c_str());
             return NULL;
         }
-        PluginResourcePtr pluginResource(
-            new IndexPluginResource(schema, optionsRewrite, util::CounterMapPtr(), partMeta, indexPluginPath));
+        PluginResourcePtr pluginResource(new IndexPluginResource(schema, optionsRewrite, util::CounterMapPtr(),
+                                                                 partMeta, indexPluginPath, metricProvider));
         pluginManager->SetPluginResource(pluginResource);
         if (!needSort) {
             merger.reset(new IndexPartitionMerger(segDir, schema, optionsRewrite, DumpStrategyPtr(), metricProvider,
@@ -268,7 +290,7 @@ PartitionMerger* PartitionMergerCreator::CreateFullParallelPartitionMerger(
         fs->GetFileSystem()->GetFileSystemMetricsReporter());
 
     Version firstVersion;
-    VersionLoader::GetVersion(mergeDirs[0], firstVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(mergeDirs[0], firstVersion, INVALID_VERSIONID);
     IndexPartitionSchemaPtr schema = SchemaAdapter::LoadSchema(mergeDirs[0], firstVersion.GetSchemaVersionId());
     if (schema == NULL) {
         INDEXLIB_FATAL_ERROR(BadParameter,
@@ -313,8 +335,8 @@ PartitionMerger* PartitionMergerCreator::CreateFullParallelPartitionMerger(
     IE_LOG(INFO, "segDir init done");
     Version destVersion;
     // TODO: if exist, right?
-    VersionLoader::GetVersion(destDirectory, destVersion, INVALID_VERSION);
-    if (destVersion == index_base::Version(INVALID_VERSION)) {
+    VersionLoader::GetVersion(destDirectory, destVersion, INVALID_VERSIONID);
+    if (destVersion == index_base::Version(INVALID_VERSIONID)) {
         const indexlibv2::framework::LevelInfo& srcLevelInfo = multiSegDir->GetVersion().GetLevelInfo();
         indexlibv2::framework::LevelInfo& levelInfo = destVersion.GetLevelInfo();
         levelInfo.Init(srcLevelInfo.GetTopology(), srcLevelInfo.GetLevelCount(), srcLevelInfo.GetShardCount());
@@ -337,8 +359,8 @@ PartitionMerger* PartitionMergerCreator::CreateFullParallelPartitionMerger(
     if (!pluginManager) {
         INDEXLIB_FATAL_ERROR(Runtime, "load index plugin failed for schema[%s]", schema->GetSchemaName().c_str());
     }
-    PluginResourcePtr resource(
-        new IndexPluginResource(schema, options, util::CounterMapPtr(), partitionMeta, indexPluginPath));
+    PluginResourcePtr resource(new IndexPluginResource(schema, options, util::CounterMapPtr(), partitionMeta,
+                                                       indexPluginPath, metricProvider));
     pluginManager->SetPluginResource(resource);
     IE_LOG(INFO, "prepare pluginManager done");
 
@@ -411,7 +433,7 @@ void PartitionMergerCreator::CheckSrcPath(const vector<file_system::DirectoryPtr
         if (i > 0) {
             CheckPartitionConsistence(mergeDirs[i], schema, options, partMeta);
         }
-        VersionLoader::GetVersion(mergeDirs[i], versions[i], INVALID_VERSION);
+        VersionLoader::GetVersion(mergeDirs[i], versions[i], INVALID_VERSIONID);
     }
 }
 
@@ -505,8 +527,8 @@ void PartitionMergerCreator::SortSubPartitions(vector<file_system::DirectoryPtr>
     }
 }
 
-schemavid_t PartitionMergerCreator::GetSchemaId(const file_system::DirectoryPtr& rootDirectory,
-                                                const ParallelBuildInfo& parallelInfo)
+schemaid_t PartitionMergerCreator::GetSchemaId(const file_system::DirectoryPtr& rootDirectory,
+                                               const ParallelBuildInfo& parallelInfo)
 {
     for (size_t i = 0; i < parallelInfo.parallelNum; i++) {
         ParallelBuildInfo info = parallelInfo;
@@ -517,8 +539,8 @@ schemavid_t PartitionMergerCreator::GetSchemaId(const file_system::DirectoryPtr&
         auto instDir = BranchFS::GetDirectoryFromDefaultBranch(
             info.GetParallelInstancePath(rootDirectory->GetFileSystem()->GetOutputRootPath()),
             GetDefaultFileSystemOptions(nullptr), nullptr, &branchName);
-        VersionLoader::GetVersion(instDir, instVersion, INVALID_VERSION);
-        if (instVersion.GetVersionId() != INVALID_VERSION) {
+        VersionLoader::GetVersion(instDir, instVersion, INVALID_VERSIONID);
+        if (instVersion.GetVersionId() != INVALID_VERSIONID) {
             return instVersion.GetSchemaVersionId();
         }
     }

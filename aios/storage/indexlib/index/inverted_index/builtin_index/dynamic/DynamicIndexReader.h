@@ -49,10 +49,10 @@ public:
 public:
     void
     Open(const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig,
-         std::vector<std::tuple</*baseDocId=*/docid_t, /*segmentDocCount=*/uint64_t,
+         std::vector<std::tuple</*baseDocId=*/docid64_t, /*segmentDocCount=*/uint64_t,
                                 /*dynamicPostingResourceFile=*/std::shared_ptr<indexlib::file_system::ResourceFile>>>
              dynamicPostingResources,
-         std::vector<std::pair<docid_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders);
+         std::vector<std::pair<docid64_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders);
 
     // default poolSize 1000, sessionPool null
     index::Result<DynamicPostingIterator*> Lookup(const index::Term& term, uint32_t statePoolSize,
@@ -67,12 +67,12 @@ public:
 
 private:
     void
-    LoadSegments(std::vector<std::tuple<docid_t, uint64_t, std::shared_ptr<indexlib::file_system::ResourceFile>>>
+    LoadSegments(std::vector<std::tuple<docid64_t, uint64_t, std::shared_ptr<indexlib::file_system::ResourceFile>>>
                      dynamicPostingResources,
-                 std::vector<std::pair<docid_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders);
+                 std::vector<std::pair<docid64_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders);
     DynamicPostingIterator* Lookup(const index::DictKeyInfo& key, const DocIdRangeVector& docIdRanges,
                                    uint32_t statePoolSize, autil::mem_pool::Pool* sessionPool) const;
-    void AddInMemSegmentReader(docid_t baseDocId, const std::shared_ptr<DynamicIndexSegmentReader>& inMemSegReader);
+    void AddInMemSegmentReader(docid64_t baseDocId, const std::shared_ptr<DynamicIndexSegmentReader>& inMemSegReader);
     void FillSegmentContexts(const index::DictKeyInfo& key, autil::mem_pool::Pool* sessionPool,
                              std::vector<DynamicPostingIterator::SegmentContext>& segmentContexts) const;
     void FillSegmentContextsByRanges(const index::DictKeyInfo& key, const DocIdRangeVector& ranges,
@@ -86,7 +86,7 @@ private:
     // built segment
     std::vector<std::shared_ptr<indexlib::file_system::ResourceFile>> _postingResources;
     std::vector<uint64_t> _segmentDocCount;
-    std::vector<docid_t> _baseDocIds;
+    std::vector<docid64_t> _baseDocIds;
     // building segment
     std::shared_ptr<BuildingIndexReader> _buildingIndexReader;
 

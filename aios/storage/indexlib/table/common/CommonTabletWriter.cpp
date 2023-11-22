@@ -20,6 +20,7 @@
 #include "autil/TimeUtility.h"
 #include "autil/UnitUtil.h"
 #include "future_lite/Future.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/base/MemoryQuotaController.h"
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/TabletOptions.h"
@@ -138,6 +139,7 @@ Status CommonTabletWriter::DoOpen(const std::shared_ptr<framework::TabletData>& 
 
 Status CommonTabletWriter::DoBuild(const std::shared_ptr<document::IDocumentBatch>& batch)
 {
+    _buildingSegment->ValidateDocumentBatch(batch.get());
     return _buildingSegment->Build(batch.get());
 }
 
@@ -151,7 +153,13 @@ Status CommonTabletWriter::DoBuildAndReportMetrics(const std::shared_ptr<documen
 Status CommonTabletWriter::Build(const std::shared_ptr<document::IDocumentBatch>& batch)
 {
     if (unlikely(_startBuildTime == -1)) {
-        _startBuildTime = autil::TimeUtility::currentTimeInSeconds();
+        const std::shared_ptr<SegmentInfo>& segmentInfo = _buildingSegment->GetSegmentInfo();
+        std::string segInitTs;
+        if (segmentInfo && segmentInfo->GetDescription(indexlib::SEGMENT_INIT_TIMESTAMP, segInitTs)) {
+            _startBuildTime = autil::TimeUtility::us2sec(autil::StringUtil::fromString<int64_t>(segInitTs));
+        } else {
+            _startBuildTime = autil::TimeUtility::currentTimeInSeconds();
+        }
     }
     auto status = CheckMemStatus();
     if (!status.IsOK()) {

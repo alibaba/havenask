@@ -17,8 +17,8 @@
 
 namespace indexlibv2::document {
 
-void ExtendDocument::setRawDocument(const std::shared_ptr<RawDocument>& rawDoc) { _rawDocument = rawDoc; }
+void ExtendDocument::SetRawDocument(const std::shared_ptr<RawDocument>& rawDoc) { _rawDocument = rawDoc; }
 
-const std::shared_ptr<RawDocument>& ExtendDocument::getRawDocument() const { return _rawDocument; }
+const std::shared_ptr<RawDocument>& ExtendDocument::GetRawDocument() const { return _rawDocument; }
 
 } // namespace indexlibv2::document

@@ -169,6 +169,12 @@ const char *CommonUtil::getErrorString(ErrorCode ec) {
         return "EC_ADD_NAMED_DATA";
     case EC_NEED_REPLACE:
         return "EC_NEED_REPLACE";
+    case EC_SERIALIZE_OVERRIDE_DATA:
+        return "EC_SERIALIZE_OVERRIDE_DATA";
+    case EC_SERIALIZE_NAMED_DATA:
+        return "EC_SERIALIZE_NAMED_DATA";
+    case EC_ARPC_RESULT:
+        return "EC_ARPC_RESULT";
     case EC_UNKNOWN:
         return "EC_UNKNOWN";
     default:
@@ -263,15 +269,15 @@ std::string CommonUtil::formatInstanceId(InstanceId instance) {
     return std::string(buffer);
 }
 
-std::string CommonUtil::formatSessionId(SessionId id, InstanceId thisInstance) {
+std::string CommonUtil::formatSessionId(SessionId id) {
     constexpr uint32_t maxLength = 40;
     char buffer[maxLength];
-    if (id.instance == thisInstance) {
+    if (id.instance == id.currentInstance) {
         snprintf(buffer, maxLength, "%x-%d", (uint32_t)id.instance,
                  id.queryId);
     } else {
         snprintf(buffer, maxLength, "%x-%d-%x", (uint32_t)id.instance,
-                 id.queryId, thisInstance);
+                 id.queryId, id.currentInstance);
     }
     return std::string(buffer);
 }

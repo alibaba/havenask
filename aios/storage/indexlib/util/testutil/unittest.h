@@ -41,7 +41,10 @@ public:
     {
         return TESTBASE_BASE::GET_TEMP_DATA_PATH() + relativePath;
     }
-    std::string GET_NON_RAMDISK_PATH() const { return "/tmp/" + GET_TEMP_DATA_PATH(); }
+    std::string GET_NON_RAMDISK_PATH() const
+    {
+        return GET_TEMP_DATA_PATH();
+    }
 
 private:
     // derived from TESTBASE_BASE, call by testing::Test::SetUp & testing::Test::TearDown

@@ -22,7 +22,7 @@
 #include "autil/mem_pool/pool_allocator.h"
 #include "autil/memory.h"
 #include "indexlib/document/normal/ModifiedTokens.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/inverted_index/IInvertedMemIndexer.h"
 #include "indexlib/index/inverted_index/InvertedIndexMetrics.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
@@ -33,6 +33,7 @@
 namespace indexlibv2::index {
 struct DocMapDumpParams;
 class PatchFileInfo;
+class InvertedIndexFields;
 } // namespace indexlibv2::index
 
 namespace indexlib::util {
@@ -69,7 +70,7 @@ public:
     using PostingVector = std::vector<PostingPair, autil::mem_pool::pool_allocator<PostingPair>>;
     static constexpr double HASHMAP_INIT_SIZE_FACTOR = 1.3;
 
-    InvertedMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam,
+    InvertedMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam,
                        const std::shared_ptr<InvertedIndexMetrics>& metrics);
     ~InvertedMemIndexer();
 
@@ -77,7 +78,7 @@ public:
                 indexlibv2::document::extractor::IDocumentInfoExtractorFactory* docInfoExtractorFactory) override;
     Status Build(indexlibv2::document::IDocumentBatch* docBatch) override;
     Status Build(const indexlibv2::document::IIndexFields* indexFields, size_t n) override;
-    Status AddDocument(document::IndexDocument* doc);
+    Status AddDocument(document::IndexDocument* doc) override;
     Status Dump(autil::mem_pool::PoolBase* dumpPool, const std::shared_ptr<file_system::Directory>& indexDirectory,
                 const std::shared_ptr<indexlibv2::framework::DumpParams>& dumpParams) override;
     void ValidateDocumentBatch(indexlibv2::document::IDocumentBatch* docBatch) override;
@@ -87,6 +88,10 @@ public:
     void UpdateMemUse(indexlibv2::index::BuildingIndexMemoryUseUpdater* memUpdater) override;
     std::string GetIndexName() const override { return _indexConfig->GetIndexName(); }
     autil::StringView GetIndexType() const override { return INVERTED_INDEX_TYPE_STR; }
+    const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& GetIndexConfig() const override
+    {
+        return _indexConfig;
+    }
     void Seal() override;
 
     void UpdateTokens(docid_t docId, const document::ModifiedTokens& modifiedTokens) override;
@@ -109,6 +114,7 @@ public:
     indexlibv2::document::extractor::IDocumentInfoExtractor* GetDocInfoExtractor() const override;
 
 protected:
+    virtual void EndDocument(const indexlibv2::index::InvertedIndexFields* indexFields, docid64_t docId);
     virtual Status DoDump(autil::mem_pool::PoolBase* dumpPool,
                           const std::shared_ptr<file_system::Directory>& indexDirectory,
                           const std::shared_ptr<indexlibv2::framework::DumpParams>& dumpParams);
@@ -135,7 +141,7 @@ private:
                                const std::shared_ptr<file_system::Directory>& outputIndexDir);
     std::pair<Status, dictvalue_t> DumpPosting(PostingWriter* writer,
                                                const std::shared_ptr<file_system::FileWriter>& fileWriter,
-                                               const std::vector<docid_t>* old2NewDocId,
+                                               const std::vector<docid32_t>* old2NewDocId,
                                                PostingWriterResource* resource,
                                                InvertedIndexMetrics::SortDumpMetrics* metrics);
     std::pair<Status, dictvalue_t> DumpNormalPosting(PostingWriter* writer,
@@ -150,7 +156,7 @@ private:
 protected:
     std::vector<fieldid_t> _fieldIds; // field ids related to this indexer
     pos_t _basePos = 0;
-    indexlibv2::index::IndexerParameter _indexerParam;
+    indexlibv2::index::MemIndexerParameter _indexerParam;
 
 private:
     util::SimplePool _simplePool;

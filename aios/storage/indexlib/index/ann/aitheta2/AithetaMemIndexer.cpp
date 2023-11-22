@@ -27,8 +27,8 @@
 #include "indexlib/index/ann/aitheta2/impl/NormalSegmentBuilder.h"
 #include "indexlib/index/ann/aitheta2/impl/RealtimeSegmentBuilder.h"
 #include "indexlib/index/ann/aitheta2/impl/SegmentMeta.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingFieldData.h"
 #include "indexlib/index/ann/aitheta2/util/IndexFieldParser.h"
+#include "indexlib/index/ann/aitheta2/util/IndexFields.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;
@@ -39,7 +39,7 @@ using namespace indexlib::file_system;
 namespace indexlibv2::index::ann {
 AUTIL_LOG_SETUP(indexlib.index, AithetaMemIndexer);
 
-AithetaMemIndexer::AithetaMemIndexer(const IndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
+AithetaMemIndexer::AithetaMemIndexer(const MemIndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
 
 AithetaMemIndexer::~AithetaMemIndexer() {}
 
@@ -53,6 +53,7 @@ Status AithetaMemIndexer::Init(const std::shared_ptr<config::IIndexConfig>& inde
         RETURN_STATUS_ERROR(InvalidArgs, "index [%s] cast to ANNIndexConfig failed",
                             indexConfig->GetIndexName().c_str());
     }
+    _annIndexConfig = annIndexConfig;
     _indexName = annIndexConfig->GetIndexName();
     _aithetaIndexConfig = AithetaIndexConfig(annIndexConfig->GetParameters());
     _fieldParser = std::make_unique<IndexFieldParser>();
@@ -80,13 +81,9 @@ Status AithetaMemIndexer::Init(const std::shared_ptr<config::IIndexConfig>& inde
 
     if (_indexerParam.isOnline) {
         return InitRealtimeSegmentBuilder();
-    } else {
-        if (IsFullBuild()) {
-            return InitNormalSegmentBuilder(/*isFullBuildPhase=*/true);
-        } else {
-            return InitNormalSegmentBuilder(/*isFullBuildPhase=*/false);
-        }
     }
+
+    return InitNormalSegmentBuilder();
 }
 
 bool AithetaMemIndexer::ShouldSkipBuild() const
@@ -218,7 +215,7 @@ bool AithetaMemIndexer::IsDirty() const
     return true;
 }
 
-bool AithetaMemIndexer::IsFullBuild()
+bool AithetaMemIndexer::IsFullBuildPhase()
 {
     assert(nullptr != _indexerParam.indexerDirectories);
     auto iter = _indexerParam.indexerDirectories->CreateIndexerDirectoryIterator();
@@ -257,39 +254,42 @@ Status AithetaMemIndexer::InitRealtimeSegmentBuilder()
     if (_indexerParam.isOnline && !_aithetaIndexConfig.realtimeConfig.enable) {
         return Status::OK();
     }
-    auto resource = CreateRealtimeBuildResource();
     _segmentBuilder = make_shared<RealtimeSegmentBuilder>(_aithetaIndexConfig, _indexName, _metricReporter);
 
-    // NOT hold resource, it may be removed by framework later
-    if (!_segmentBuilder->Init(resource)) {
-        return Status::InternalError("init realtime segment builder failed.");
+    auto resource = CreateRealtimeBuildResource();
+    bool suc = _segmentBuilder->Init(resource);
+    if (resource != nullptr) {
+        // NOT hold resource, may cause memory leak
+        resource->Release();
     }
-    return Status::OK();
+
+    if (suc) {
+        return Status::OK();
+    }
+    return Status::InternalError("init realtime segment builder failed.");
 }
 
-Status AithetaMemIndexer::InitNormalSegmentBuilder(bool isFullBuildPhase)
+Status AithetaMemIndexer::InitNormalSegmentBuilder()
 {
     AithetaIndexConfig aithetaIndexConfig = _aithetaIndexConfig;
-    if (isFullBuildPhase && !_aithetaIndexConfig.buildConfig.buildInFullBuildPhase) {
+    if (IsFullBuildPhase() && !_aithetaIndexConfig.buildConfig.buildInFullBuildPhase) {
         // not build index in full-builder except that it is o2o.
         aithetaIndexConfig.searchConfig.searcherName = LINEAR_SEARCHER;
         aithetaIndexConfig.buildConfig.builderName = LINEAR_BUILDER;
     }
 
-    _segmentBuilder = make_shared<NormalSegmentBuilder>(aithetaIndexConfig, _indexName, false, _metricReporter);
+    bool isMergedSegment = false;
+    _segmentBuilder =
+        make_shared<NormalSegmentBuilder>(aithetaIndexConfig, _indexName, isMergedSegment, _metricReporter);
     if (!_segmentBuilder->Init(SegmentBuildResourcePtr())) {
         return Status::InternalError("init realtime segment builder failed.");
     }
     return Status::OK();
 }
 
-Status AithetaMemIndexer::BuildSingleDoc(document::IDocument* doc)
+Status AithetaMemIndexer::AddDocument(indexlib::document::IndexDocument* indexDoc)
 {
-    indexlib::document::IndexDocument* indexDoc = nullptr;
-    Status s = _docInfoExtractor->ExtractField(doc, (void**)&indexDoc);
-    RETURN_STATUS_DIRECTLY_IF_ERROR(s);
-
-    EmbeddingFieldData fieldData;
+    IndexFields fieldData;
     IndexFieldParser::ParseStatus parseStatus = _fieldParser->Parse(indexDoc, fieldData);
     Status status = Status::OK();
     if (IndexFieldParser::ParseStatus::PS_OK == parseStatus) {
@@ -302,12 +302,18 @@ Status AithetaMemIndexer::BuildSingleDoc(document::IDocument* doc)
 
     if (status.IsOK()) {
         _docCount++;
-    } else if (_aithetaIndexConfig.buildConfig.ignoreBuildError) {
+    } else if (_aithetaIndexConfig.buildConfig.ignoreInvalidDoc) {
         _invalidDocCount++;
         status = Status::OK();
     }
-
     return status;
+}
+Status AithetaMemIndexer::BuildSingleDoc(document::IDocument* doc)
+{
+    indexlib::document::IndexDocument* indexDoc = nullptr;
+    Status s = _docInfoExtractor->ExtractField(doc, (void**)&indexDoc);
+    RETURN_STATUS_DIRECTLY_IF_ERROR(s);
+    return AddDocument(indexDoc);
 }
 
 } // namespace indexlibv2::index::ann

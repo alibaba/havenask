@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 #pragma once
+#include <string>
+
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
 
 namespace indexlibv2::framework {
 

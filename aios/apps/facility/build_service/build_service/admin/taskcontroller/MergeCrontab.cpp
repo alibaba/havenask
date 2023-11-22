@@ -15,10 +15,22 @@
  */
 #include "build_service/admin/taskcontroller/MergeCrontab.h"
 
+#include <assert.h>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/taskcontroller/MergeTrigger.h"
 #include "build_service/admin/taskcontroller/PeriodMergeTrigger.h"
 #include "build_service/config/OfflineIndexConfigMap.h"
-#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/config/OfflineMergeConfig.h"
+#include "build_service/config/ProcessorInfo.h"
+#include "build_service/proto/BasicDefs.pb.h"
 
 using namespace std;
 using namespace autil;

@@ -1,6 +1,8 @@
 package com.taobao.search.iquan.core.rel.rules.logical.layer.table;
 
-import com.taobao.search.iquan.core.rel.ops.logical.CTEProducer;
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LogicalFuseLayerTableScan;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
@@ -9,9 +11,6 @@ import org.apache.calcite.rel.core.Filter;
 import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.rules.TransformationRule;
 import org.immutables.value.Value;
-
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 @Value.Enclosing
 public class TakeInFuseLayerTableRule extends RelRule<RelRule.Config> implements TransformationRule {

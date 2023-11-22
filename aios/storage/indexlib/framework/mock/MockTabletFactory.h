@@ -22,6 +22,8 @@
 #include "indexlib/document/IDocumentFactory.h"
 #include "indexlib/framework/BuildResource.h"
 #include "indexlib/framework/DiskSegment.h"
+#include "indexlib/framework/EnvironmentVariablesProvider.h"
+#include "indexlib/framework/IMemoryControlStrategy.h"
 #include "indexlib/framework/ITabletExporter.h"
 #include "indexlib/framework/ITabletFactory.h"
 #include "indexlib/framework/ITabletImporter.h"
@@ -77,5 +79,9 @@ public:
     MOCK_METHOD(std::unique_ptr<indexlib::framework::ITabletExporter>, CreateTabletExporter, (), (override));
     MOCK_METHOD(std::unique_ptr<indexlib::framework::ITabletValidator>, CreateTabletValidator, (), (override));
     MOCK_METHOD(std::unique_ptr<ITabletImporter>, CreateTabletImporter, (const std::string& type), (override));
+    MOCK_METHOD(std::unique_ptr<IMemoryControlStrategy>, CreateMemoryControlStrategy,
+                (const std::shared_ptr<MemoryQuotaSynchronizer>& buildMemoryQuotaSynchronizer), (override));
+    MOCK_METHOD(std::unique_ptr<indexlibv2::framework::EnvironmentVariablesProvider>,
+                CreateEnvironmentVariablesProvider, (), (override));
 };
 } // namespace indexlibv2::framework

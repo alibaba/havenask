@@ -15,7 +15,13 @@
  */
 #include "build_service/admin/controlflow/FlowContainer.h"
 
-#include "autil/StringUtil.h"
+#include <algorithm>
+#include <cstddef>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
 
 using namespace std;
 using namespace autil;

@@ -30,6 +30,9 @@ public:
 public:
     static const std::string TYPE_ID;
 public:
+    const google::protobuf::Message *getResponse() const {
+        return _response;
+    }
     google::protobuf::Message *stealResponse();
 private:
     google::protobuf::Message *_response;
@@ -39,6 +42,9 @@ class NaviArpcResponseType : public Type {
 public:
     NaviArpcResponseType();
     ~NaviArpcResponseType();
+public:
+    navi::TypeErrorCode serialize(navi::TypeContext &ctx, const navi::DataPtr &data) const override;
+    navi::TypeErrorCode deserialize(navi::TypeContext &ctx, navi::DataPtr &data) const override;
 };
 
 }

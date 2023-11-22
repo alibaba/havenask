@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKERNODECREATOR_H
-#define ISEARCH_BS_WORKERNODECREATOR_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/proto/WorkerNode.h"
@@ -64,7 +63,12 @@ public:
         targetPid.set_backupid(backupId);
         WorkerNodeTypedPtr workerNode(new WorkerNodeTyped(targetPid));
         workerNode->setTargetStatus(srcNode->getTargetStatus());
-        workerNode->setSourceNodeId(srcNode->getNodeId());
+        if (srcNode->getBackupId() == uint32_t(-1)) { // main node
+            workerNode->setSourceNodeId(srcNode->getNodeId());
+        } else { // already backup node
+            workerNode->setSourceNodeId(srcNode->getSourceNodeId());
+        }
+
         return workerNode;
     }
 
@@ -121,5 +125,3 @@ private:
 };
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_WORKERNODECREATOR_H

@@ -9,11 +9,13 @@ ZOOKEEPER_KEY = 'zookeeper_root'
 VULCAN_AM_LEADER_ELECTION_BASE_NAME = "app_master/LeaderElection"
 BS_AM_LEADER_ELECTION_BASE_NAME = "admin/LeaderElection"
 
+
 def getAdminAddress(configPath, appMode, fsUtil, timeout=5):
     zkRoot = getBuildAppConfig(configPath, ZOOKEEPER_KEY, fsUtil)
     if not zkRoot:
         raise Exception('get zookeeper addr from [%s] build_app.json failed' % configPath)
     return getAdminAddressFromZk(zkRoot, appMode, timeout)
+
 
 def getAdminAddressFromZk(zkRoot, appMode, timeout=5):
     leaderElectorName = BS_AM_LEADER_ELECTION_BASE_NAME
@@ -25,12 +27,13 @@ def getAdminAddressFromZk(zkRoot, appMode, timeout=5):
         return None
     try:
         leaderAddress = json.read(leaderAddress)
-    except Exception, e:
+    except Exception as e:
         return "tcp:" + leaderAddress
     if 'address' in leaderAddress:
         return "tcp:" + leaderAddress['address']
     else:
         raise Exception('no address found in leader info %s' % str(leaderAddress))
+
 
 def getBuildAppConfig(configPath, key, fsUtil):
     buildAppFilePath = os.path.join(configPath, 'build_app.json')

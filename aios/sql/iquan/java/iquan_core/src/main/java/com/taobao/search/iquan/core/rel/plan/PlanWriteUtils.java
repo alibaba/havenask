@@ -1,21 +1,43 @@
 package com.taobao.search.iquan.core.rel.plan;
 
-import com.google.common.collect.Sets;
-import com.taobao.search.iquan.core.api.config.IquanConfigManager;
-import com.taobao.search.iquan.core.common.Range;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.client.common.json.function.JsonTvfDistribution;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
+import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
 import com.taobao.search.iquan.core.api.exception.PlanWriteException;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.*;
+import com.taobao.search.iquan.core.api.schema.Distribution;
+import com.taobao.search.iquan.core.api.schema.FieldMeta;
+import com.taobao.search.iquan.core.api.schema.FieldType;
+import com.taobao.search.iquan.core.api.schema.FunctionType;
+import com.taobao.search.iquan.core.api.schema.HashValues;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
+import com.taobao.search.iquan.core.api.schema.LayerFormat;
+import com.taobao.search.iquan.core.api.schema.LayerInfo;
 import com.taobao.search.iquan.core.catalog.LayerBaseTable;
+import com.taobao.search.iquan.core.catalog.function.internal.ScalarFunction;
 import com.taobao.search.iquan.core.catalog.function.internal.TableFunction;
 import com.taobao.search.iquan.core.catalog.function.internal.TableValueFunction;
 import com.taobao.search.iquan.core.common.ConstantDefine;
+import com.taobao.search.iquan.core.common.Range;
 import com.taobao.search.iquan.core.rel.hint.IquanHintCategory;
 import com.taobao.search.iquan.core.rel.hint.IquanHintOptUtils;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
+import com.taobao.search.iquan.core.rel.ops.physical.Scope;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexMatchTypeShuttle;
 import com.taobao.search.iquan.core.utils.FunctionUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
@@ -34,17 +56,33 @@ import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rel.type.RelRecordType;
-import org.apache.calcite.rex.*;
-import org.apache.calcite.sql.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexDynamicParam;
+import org.apache.calcite.rex.RexFieldAccess;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexLocalRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexPatternFieldRef;
+import org.apache.calcite.rex.RexProgram;
+import org.apache.calcite.rex.RexRangeRef;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.rex.RexUtil;
+import org.apache.calcite.rex.RexVariable;
+import org.apache.calcite.sql.SqlAggFunction;
+import org.apache.calcite.sql.SqlFunction;
+import org.apache.calcite.sql.SqlKind;
+import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
-import org.apache.calcite.sql.type.*;
+import org.apache.calcite.sql.type.ArraySqlType;
+import org.apache.calcite.sql.type.BasicSqlType;
+import org.apache.calcite.sql.type.MapSqlType;
+import org.apache.calcite.sql.type.MultisetSqlType;
+import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.util.NlsString;
 import org.apache.commons.lang3.StringUtils;
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.MutablePair;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class PlanWriteUtils {
 
@@ -85,8 +123,8 @@ public class PlanWriteUtils {
     }
 
     public static void formatTableInfo(Map<String, Object> attrMap, RelOptTable relOptTable, IquanConfigManager conf) {
-        Table table = IquanRelOptUtils.getIquanTable(relOptTable);
-        if (table == null) {
+        IquanTable iquanTable = IquanRelOptUtils.getIquanTable(relOptTable);
+        if (iquanTable == null) {
             return;
         }
 
@@ -99,10 +137,10 @@ public class PlanWriteUtils {
         IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.DB_NAME, path.get(1));
 
         String tableSummarySuffix = conf.getString(SqlConfigOptions.IQUAN_OPTIMIZER_TABLE_SUMMARY_SUFFIX);
-        if (isSummaryTable(table)) {
-            if (table.getOriginalName() != null) {
+        if (isSummaryTable(iquanTable)) {
+            if (iquanTable.getOriginalName() != null) {
                 IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.TABLE_NAME,
-                        formatSummaryTableName(table.getOriginalName(), tableSummarySuffix));
+                        formatSummaryTableName(iquanTable.getOriginalName(), tableSummarySuffix));
             } else {
                 IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.TABLE_NAME,
                         formatSummaryTableName(path.get(2), tableSummarySuffix));
@@ -114,12 +152,12 @@ public class PlanWriteUtils {
                 IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.TABLE_NAME, nameList.get(1));
                 IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.AUX_TABLE_NAME, nameList.get(2));
             } else {
-                mainAuxTableName = table.getOriginalName() != null ? table.getOriginalName() : mainAuxTableName;
+                mainAuxTableName = iquanTable.getOriginalName() != null ? iquanTable.getOriginalName() : mainAuxTableName;
                 IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.TABLE_NAME, mainAuxTableName);
             }
         }
 
-        attrMap.put(ConstantDefine.TABLE_TYPE, table.getTableType().getName());
+        attrMap.put(ConstantDefine.TABLE_TYPE, iquanTable.getTableType().getName());
     }
 
     public static void formatLayerTableInfos(Map<String, Object> attrMap, RelOptTable relOptTable) {
@@ -137,8 +175,8 @@ public class PlanWriteUtils {
         IquanRelOptUtils.addMapIfNotEmpty(attrMap, "layer_info", formatLayerInfo(layerInfos, layerFormats));
     }
 
-    private static boolean isSummaryTable(Table table) {
-        String value = table.getProperties().get("is_summary");
+    private static boolean isSummaryTable(IquanTable iquanTable) {
+        String value = iquanTable.getProperties().get("is_summary");
         if (StringUtils.isBlank(value)) {
             return false;
         } else {
@@ -312,7 +350,7 @@ public class PlanWriteUtils {
                 .collect(Collectors.toList());
         IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.KEYS, keys);
         if (distribution.getType() != RelDistribution.Type.SINGLETON && distribution instanceof Distribution) {
-            IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.HASH_MODE, formatTableHashMode((Distribution)distribution));
+            IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.HASH_MODE, formatTableHashMode((Distribution) distribution));
         }
         return map;
     }
@@ -344,7 +382,11 @@ public class PlanWriteUtils {
         IquanRelOptUtils.addMapIfNotEmpty(attrMap, ConstantDefine.DIRECTIONS, directions);
     }
 
-    public static Object formatOutputRowExpr(RexProgram rexProgram) {
+    public static Map<String, Object> formatOutputRowExpr(RexProgram rexProgram) {
+        return innerFormatOutputRowExpr(rexProgram, false);
+    }
+
+    public static Map<String, Object> innerFormatOutputRowExpr(RexProgram rexProgram, boolean judgeFuncProperty) {
         if (rexProgram == null) {
             return null;
         }
@@ -361,7 +403,7 @@ public class PlanWriteUtils {
         int index = 0;
         for (RelDataTypeField field : outputRowType.getFieldList()) {
             String fieldName = formatFieldName(field.getName());
-            Object fieldExpr = formatExprImpl(projections.get(index++), exprs, inputRowType);
+            Object fieldExpr = innerFormatExprImpl(projections.get(index++), exprs, inputRowType, judgeFuncProperty);
             if (fieldExpr instanceof String && fieldName.equals(fieldExpr)) {
                 continue;
             }
@@ -370,7 +412,7 @@ public class PlanWriteUtils {
         return map;
     }
 
-    public static Object formatUpdateExpr(RelDataType inputRowType, List<String> updateColumnList, List<RexNode> sourceExpressionList) {
+    public static Map<String, Object> formatUpdateExpr(RelDataType inputRowType, List<String> updateColumnList, List<RexNode> sourceExpressionList) {
         Map<String, Object> map = new TreeMap<>();
         for (int index = 0; index < updateColumnList.size(); index++) {
             String fieldName = formatFieldName(updateColumnList.get(index));
@@ -463,7 +505,7 @@ public class PlanWriteUtils {
         }
         if (operator instanceof TableFunction) {
             return FunctionType.FT_UDTF.getName();
-        }else if (operator instanceof SqlAggFunction) {
+        } else if (operator instanceof SqlAggFunction) {
             return FunctionType.FT_UDAF.getName();
         } else if (operator instanceof TableValueFunction) {
             return FunctionType.FT_TVF.getName();
@@ -474,10 +516,29 @@ public class PlanWriteUtils {
         }
     }
 
+    private static int getConstIdxInUDF(ScalarFunction scalarFunction) {
+        int idx = -1;
+        Map<String, Object> properties = scalarFunction.getUdxfFunction().getJsonUdxfFunction().getProperties();
+        if ((properties != null) && properties.containsKey(ConstantDefine.RETURN_CONST)) {
+            Object returnConstAttr = properties.get(ConstantDefine.RETURN_CONST);
+            Object inputIdx = ((Map<String, Object>) returnConstAttr).get(ConstantDefine.INPUT_IDX);
+            if (inputIdx instanceof Integer) {
+                idx = (Integer) inputIdx;
+            } else if (inputIdx instanceof String) {
+                idx = Integer.parseInt((String) inputIdx);
+            }
+        }
+        return idx;
+    }
+
+    public static Object formatExprImpl(RexNode rexNode, List<RexNode> exprs, RelDataType rowType) {
+        return innerFormatExprImpl(rexNode, exprs, rowType, false);
+    }
+
     /**
      * @return Object, support String, List, Map, ...
      */
-    public static Object formatExprImpl(RexNode rexNode, List<RexNode> exprs, RelDataType rowType) {
+    private static Object innerFormatExprImpl(RexNode rexNode, List<RexNode> exprs, RelDataType rowType, boolean judgeFuncProperty) {
         if (rexNode == null || rowType == null) {
             return null;
         }
@@ -488,13 +549,19 @@ public class PlanWriteUtils {
                 throw new PlanWriteException("RexLocalRef index greater than exprs size");
             }
             RexNode newRexNode = exprs.get(localRef.getIndex());
-            return formatExprImpl(newRexNode, exprs, rowType);
+            return innerFormatExprImpl(newRexNode, exprs, rowType, judgeFuncProperty);
         } else if (rexNode instanceof RexCall) {
             RexCall call = (RexCall) rexNode;
             SqlOperator operator = call.getOperator();
+            if (judgeFuncProperty && operator instanceof ScalarFunction) {
+                int idx = getConstIdxInUDF((ScalarFunction) operator);
+                if (idx >= 0) {
+                    return innerFormatExprImpl(call.getOperands().get(idx), exprs, rowType, judgeFuncProperty);
+                }
+            }
+
             String opName = operator.getName();
             String opKind = operator.getKind().name();
-
             Map<String, Object> attrMap = new TreeMap<>();
             attrMap.put(ConstantDefine.OP, opName.isEmpty() ? opKind : opName);
             attrMap.put(ConstantDefine.TYPE, formatSqlOperator(operator));
@@ -506,7 +573,7 @@ public class PlanWriteUtils {
             }
             List<Object> params = new ArrayList<>();
             for (RexNode operand : call.getOperands()) {
-                params.add(formatExprImpl(operand, exprs, rowType));
+                params.add(innerFormatExprImpl(operand, exprs, rowType, judgeFuncProperty));
             }
             attrMap.put(ConstantDefine.PARAMS, params);
             return attrMap;
@@ -535,7 +602,7 @@ public class PlanWriteUtils {
             attrMap.put(ConstantDefine.FIELD_TYPE, formatRelDataType(field.getType()));
             if (refExpr instanceof RexLocalRef) {
                 List<Object> params = new ArrayList<>(1);
-                params.add(formatExprImpl(refExpr, exprs, rowType));
+                params.add(innerFormatExprImpl(refExpr, exprs, rowType, judgeFuncProperty));
                 List<String> paramTypes = new ArrayList<>(1);
                 paramTypes.add(formatRelDataType(refExpr.getType()));
                 attrMap.put(ConstantDefine.PARAMS, params);
@@ -755,7 +822,7 @@ public class PlanWriteUtils {
             List<RexNode> andRexNodes = RelOptUtil.conjunctions(orSubRexNode);
             boolean hasPk = false;
             for (RexNode andSubRexNode : andRexNodes) {
-                if (! (andSubRexNode instanceof RexCall)) {
+                if (!(andSubRexNode instanceof RexCall)) {
                     continue;
                 }
                 RexCall rexCall = (RexCall) andSubRexNode;
@@ -794,8 +861,8 @@ public class PlanWriteUtils {
 
     private static void getConditionHashValues(Map<String, Set<String>> hashValuesMap,
                                                Map<String, String> hashValuesSepMap,
-                                             Distribution distribution,
-                                             RexProgram rexProgram) {
+                                               Distribution distribution,
+                                               RexProgram rexProgram) {
         if (rexProgram == null) {
             return;
         }
@@ -909,7 +976,7 @@ public class PlanWriteUtils {
     }
 
     private static void getExprHashValues(RexNode rexNode, List<RexNode> exprList, RelDataType rowType, Set<String> hashFields,
-                                           Map<String, Set<String>> hashValuesMap, Map<String, String> hashValuesSepMap, int level) {
+                                          Map<String, Set<String>> hashValuesMap, Map<String, String> hashValuesSepMap, int level) {
         if (rexNode == null || rowType == null || level >= 2) {
             return;
         }
@@ -1011,11 +1078,11 @@ public class PlanWriteUtils {
     }
 
     public static Map<String, Object> formatScanDistribution(TableScan scan) {
-        Table table = IquanRelOptUtils.getIquanTable(scan);
-        if (table == null) {
+        IquanTable iquanTable = IquanRelOptUtils.getIquanTable(scan);
+        if (iquanTable == null) {
             return null;
         }
-        Distribution distribution = table.getDistribution();
+        Distribution distribution = iquanTable.getDistribution();
         IquanTableScanBase iquanScanBase = (IquanTableScanBase) scan;
         RexProgram rexProgram = iquanScanBase.getNearestRexProgram();
         Map<String, Object> attrMap = new TreeMap<>();
@@ -1034,8 +1101,7 @@ public class PlanWriteUtils {
             Map<String, FieldMeta> primaryMap,
             RexProgram rexProgram,
             TableModify.Operation operation,
-            RexBuilder builder)
-    {
+            RexBuilder builder) {
         Map<String, Object> tableDistribution = new TreeMap<>();
         if (operation == TableModify.Operation.INSERT) {
             Set<String> hashFields = new HashSet<>(distribution.getHashFields());

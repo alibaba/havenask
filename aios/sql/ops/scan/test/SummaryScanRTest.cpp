@@ -86,7 +86,7 @@ public:
     MockSummaryScanRForFill() {}
 
 public:
-    MOCK_METHOD0(startLookupCtxs, void());
+    MOCK_METHOD0(startAsyncLookup, void());
     MOCK_METHOD1(getSummaryDocs, bool(SearchSummaryDocVecType &));
 };
 
@@ -365,15 +365,14 @@ TEST_F(SummaryScanRTest, testDoBatchScan) {
         CHECK_TRACE_COUNT(1, "fill attribute failed", traces);
     }
     table::TablePtr table(new Table(_poolPtr));
-    const std::vector<Row> rows(10);
-    table->appendRows(rows);
+    table->batchAllocateRow(10);
     {
         MockSummaryScanRForScan scanR;
         ASSERT_TRUE(naviRHelper->getOrCreateRes(scanR._scanInitParamR));
         ASSERT_TRUE(naviRHelper->getOrCreateRes(scanR._attributeExpressionCreatorR));
         ASSERT_TRUE(naviRHelper->getOrCreateRes(scanR._calcTableR));
 
-        scanR._seekCount = 0;
+        scanR._scanCount = 0;
         scanR._limit = 20;
         EXPECT_CALL(scanR, fillSummary(_)).WillOnce(Return(true));
         EXPECT_CALL(scanR, fillAttributes(_)).WillOnce(Return(true));
@@ -387,7 +386,7 @@ TEST_F(SummaryScanRTest, testDoBatchScan) {
         ASSERT_TRUE(naviRHelper->getOrCreateRes(scanR._attributeExpressionCreatorR));
         ASSERT_TRUE(naviRHelper->getOrCreateRes(scanR._calcTableR));
 
-        scanR._seekCount = 0;
+        scanR._scanCount = 0;
         scanR._limit = 8;
         EXPECT_CALL(scanR, fillSummary(_)).WillOnce(Return(true));
         EXPECT_CALL(scanR, fillAttributes(_)).WillOnce(Return(true));
@@ -418,7 +417,7 @@ TEST_F(SummaryScanRTest, testUpdateScanQuery) {
     ASSERT_EQ(0, docIds.size());
     {
         navi::NaviLoggerProvider provider("TRACE3");
-        EXPECT_CALL(scanR, startLookupCtxs()).WillOnce(Return());
+        EXPECT_CALL(scanR, startAsyncLookup()).WillOnce(Return());
         ASSERT_TRUE(scanR.updateScanQuery({}));
         auto traces = provider.getTrace("");
         CHECK_TRACE_COUNT(1, "raw pk is empty for null input query", traces);
@@ -426,7 +425,7 @@ TEST_F(SummaryScanRTest, testUpdateScanQuery) {
     {
         StreamQueryPtr inputQuery(new StreamQuery());
         inputQuery->primaryKeys = {"3", "4"};
-        EXPECT_CALL(scanR, startLookupCtxs()).WillOnce(Return());
+        EXPECT_CALL(scanR, startAsyncLookup()).WillOnce(Return());
         ASSERT_TRUE(scanR.updateScanQuery(inputQuery));
         ASSERT_EQ(2, docIds.size());
         ASSERT_EQ(2, docIds[0]);
@@ -783,7 +782,7 @@ TEST_F(SummaryScanRTest, testCreateTable) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(1, table->getRowCount());
         ASSERT_EQ(1, table->getColumnCount());
-        ASSERT_EQ("10", table->toString(0, 0));
+        ASSERT_EQ("10", table->getColumn(0)->toString(0));
     }
     { // copy allocator
         MatchDocAllocatorPtr allocator(new MatchDocAllocator(_poolPtr.get(), true));
@@ -798,7 +797,7 @@ TEST_F(SummaryScanRTest, testCreateTable) {
         ASSERT_TRUE(table != nullptr);
         ASSERT_EQ(1, table->getRowCount());
         ASSERT_EQ(1, table->getColumnCount());
-        ASSERT_EQ("10", table->toString(0, 0));
+        ASSERT_EQ("10", table->getColumn(0)->toString(0));
     }
 }
 
@@ -865,7 +864,7 @@ TEST_F(SummaryScanRTest, testPrepareLookupCtxs) {
     ASSERT_EQ(2, summaryScanR._lookupCtxs.size());
 }
 
-TEST_F(SummaryScanRTest, testStartLookupCtxs) {
+TEST_F(SummaryScanRTest, testStartAsyncLookup) {
     SummaryScanR scanR;
     auto *naviRHelper = getNaviRHelper();
     ASSERT_TRUE(naviRHelper->getOrCreateRes(scanR._timeoutTerminatorR));
@@ -886,7 +885,7 @@ TEST_F(SummaryScanRTest, testStartLookupCtxs) {
         .WillOnce(DoAll(SaveArg<0>(&docIds1), SaveArg<1>(&fieldCount1), SaveArg<2>(&timeout1)));
     EXPECT_CALL(*ctx2, start(_, _, _))
         .WillOnce(DoAll(SaveArg<0>(&docIds2), SaveArg<1>(&fieldCount2), SaveArg<2>(&timeout2)));
-    scanR.startLookupCtxs();
+    scanR.startAsyncLookup();
     ASSERT_EQ(100, scanR._countedPipe->_count);
     ASSERT_EQ(1, docIds1.size());
     ASSERT_EQ(1, docIds1[0]);

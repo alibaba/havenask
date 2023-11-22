@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "autil/Log.h"
+#include "autil/Span.h"
 #include "indexlib/base/Status.h"
 
 namespace autil::mem_pool {

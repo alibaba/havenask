@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_BITMAP_POSTING_MAKER_H
-#define __INDEXLIB_BITMAP_POSTING_MAKER_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -47,5 +46,3 @@ private:
 
 typedef std::shared_ptr<BitmapPostingMaker> BitmapPostingMakerPtr;
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_BITMAP_POSTING_MAKER_H

@@ -15,14 +15,19 @@
  */
 #include "build_service/processor/SourceFieldExtractorProcessor.h"
 
-#include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
-#include "build_service/document/RawDocument.h"
+#include <ext/alloc_traits.h>
+#include <stddef.h>
+#include <type_traits>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "build_service/document/ClassifiedDocument.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/FieldConfig.h"
 #include "indexlib/config/ITabletSchema.h"
-#include "indexlib/util/metrics/Metric.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "indexlib/document/RawDocument.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace build_service::document;
 

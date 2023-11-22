@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_MODIFIER_TASK_ITEM_H
-#define __INDEXLIB_PARTITION_MODIFIER_TASK_ITEM_H
+#pragma once
 
 #include <memory>
 
@@ -62,5 +61,3 @@ public:
 
 DEFINE_SHARED_PTR(PartitionModifierDumpTaskItem);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITION_MODIFIER_TASK_ITEM_H

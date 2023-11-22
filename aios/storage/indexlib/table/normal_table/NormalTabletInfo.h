@@ -85,6 +85,7 @@ public:
     size_t GetTotalDocCount() const { return _totalDocCount; }
     size_t GetSegmentCount() const { return _segmentCount; }
     size_t GetIncDocCount() const { return _incDocCount; }
+    size_t GetDelDocCount() const { return _delDocCount; }
     const std::vector<docid_t>& GetBaseDocIds() const { return _baseDocIds; }
 
     // for build

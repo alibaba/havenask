@@ -15,9 +15,14 @@
  */
 #pragma once
 
+#include <stddef.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/Span.h"
 #include "build_service/common_define.h"
 #include "build_service/document/RawDocument.h"
-#include "build_service/document/RawDocumentHashMapManager.h"
 #include "build_service/util/Log.h"
 #include "indexlib/config/index_partition_schema.h"
 

@@ -1,0 +1,52 @@
+{
+    "function_name": "udf1",
+    "function_type": "UDAF",
+    "is_deterministic": 1,
+    "function_content_version": "json_default_0.1",
+    "function_content": {
+        "prototypes": [
+            {
+                "params": [
+                    {
+                        "is_multi": true,
+                        "type": "string"
+                    }
+                ],
+                "returns": [
+                    {
+                        "is_multi": false,
+                        "type": "string"
+                    }
+                ]
+            },
+            {
+                "params": [
+                    {
+                        "is_multi": true,
+                        "type": "int32"
+                    }
+                ],
+                "returns": [
+                    {
+                        "is_multi": false,
+                        "type": "int32"
+                    }
+                ]
+            },
+            {
+                "params": [
+                    {
+                        "is_multi": true,
+                        "type": "int64"
+                    }
+                ],
+                "returns": [
+                    {
+                        "is_multi": false,
+                        "type": "int64"
+                    }
+                ]
+            }
+        ]
+    }
+}

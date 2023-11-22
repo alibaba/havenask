@@ -1,15 +1,13 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
-import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
-import org.apache.calcite.plan.RelTraitSet;
+import java.util.List;
+
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Calc;
 import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rex.RexProgram;
-
-import java.util.List;
 
 public class IquanTurboJetCalcOp extends IquanCalcOp {
 

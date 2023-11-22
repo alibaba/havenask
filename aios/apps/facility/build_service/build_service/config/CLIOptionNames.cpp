@@ -46,6 +46,7 @@ const std::string WORKER_PATH_VERSION = "worker_path_version";
 // realtime
 const std::string REALTIME_MODE = "realtime_mode";
 const std::string BS_SERVER_ADDRESS = "bs_server_address";
+const std::string APP_NAME = "app_name";
 const std::string REALTIME_SERVICE_MODE = "realtime_service_mode";
 const std::string REALTIME_JOB_MODE = "realtime_job_mode";
 const std::string REALTIME_SERVICE_RAWDOC_RT_BUILD_MODE = "realtime_service_rawdoc_rt_build_mode";
@@ -66,6 +67,10 @@ const std::string RAW_DOCUMENT_SCHEMA_NAME = "raw_doc_schema_name";
 const std::string SRC_BATCH_MODE = "batch_mode";
 const std::string CIPHER_FILE_READER_PARAM = "cipher_parameter";
 const std::string CIPHER_PARAMETER_ENABLE_BASE64 = "cipher_parameter_enable_base64";
+const std::string FILTER_READER = "filter_reader";
+const std::string FILTER_FIELD_NAME = "filter_field_name";
+const std::string FILTER_TYPE = "filter_type";
+const std::string FILTER_VALUE = "filter_value";
 
 const std::string FILE_READ_SRC = "file";
 const std::string INDEX_READ_SRC = "index";
@@ -105,6 +110,7 @@ const std::string NEED_FIELD_FILTER = "need_field_filter";
 const std::string HA_RESERVED_SOURCE = "ha_reserved_source";
 const std::string USE_FIELD_SCHEMA = "use_field_schema";
 const std::string NEED_PRINT_DOC_TAG = "need_print_doc_tag";
+const std::string KEEP_PARSER_ORDER = "keep_parser_order";
 
 const std::string SWIFT_ZOOKEEPER_ROOT = "swift_root";
 const std::string SWIFT_TOPIC_NAME = "topic_name";
@@ -153,12 +159,14 @@ const std::string INDEX_VERSION = "resource_index_version";
 const std::string INDEX_CLUSTER = "resource_index_cluster";
 const std::string RESOURCE_INDEX_ROOT = "resource_index_root";
 const std::string RESOURCE_BACKUP_INDEX_ROOT = "resource_backup_index_root";
+const std::string BS_RESOURCE_READER = "bs_resource_reader";
 
 // worker input & output
 const std::string INPUT_CONFIG = "InputConfig";
 const std::string INPUT_DOC_TYPE = "input_doc_type";
 const std::string INPUT_DOC_RAW = "input_doc_raw";
 const std::string INPUT_DOC_PROCESSED = "input_doc_processed";
+const std::string INPUT_DOC_BATCHDOC = "input_doc_batchdoc";
 const std::string WORKER_HAS_OUTPUT = "has_output";
 
 // processor
@@ -207,6 +215,8 @@ const std::string BUILD_MODE = "build_mode";
 const std::string BUILD_MODE_FULL = "full";
 const std::string BUILD_MODE_INCREMENTAL = "incremental";
 const std::string BUILD_MODE_DEFAULT = BUILD_MODE_FULL;
+const std::string BUILD_STEP_FULL_STR = "full";
+const std::string BUILD_STEP_INC_STR = "incremental";
 const std::string PARTITION_COUNT = "partition_count";
 const std::string BUILD_PARTITION_FROM = "build_partition_from";
 const std::string BUILD_PARTITION_COUNT = "build_partition_count";

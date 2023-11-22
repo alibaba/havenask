@@ -68,7 +68,7 @@ Status SegmentTermInfoQueue::Init(const std::vector<IIndexMerger::SourceSegment>
     return Status::OK();
 }
 
-Status SegmentTermInfoQueue::AddOnDiskTermInfo(docid_t baseDocId, uint64_t docCount, segmentid_t segmentId,
+Status SegmentTermInfoQueue::AddOnDiskTermInfo(docid64_t baseDocId, uint64_t docCount, segmentid_t segmentId,
                                                const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                                const std::shared_ptr<file_system::Directory>& segmentDir)
 {
@@ -128,7 +128,7 @@ SegmentTermInfoQueue::CreateForDefaultValueIter(const std::shared_ptr<indexlibv2
     return nullptr;
 }
 
-void SegmentTermInfoQueue::AddQueueItem(size_t baseDocid, segmentid_t& segmentId,
+void SegmentTermInfoQueue::AddQueueItem(docid64_t baseDocid, segmentid_t& segmentId,
                                         const std::shared_ptr<IndexIterator>& indexIt,
                                         const std::shared_ptr<SingleFieldIndexSegmentPatchIterator>& patchIter,
                                         SegmentTermInfo::TermIndexMode mode)

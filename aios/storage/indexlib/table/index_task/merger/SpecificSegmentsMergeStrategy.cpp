@@ -23,7 +23,6 @@
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/Segment.h"
-#include "indexlib/index/deletionmap/Common.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 
 namespace indexlibv2::table {

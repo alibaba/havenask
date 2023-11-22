@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ONLINE_JOIN_POLICY_H
-#define __INDEXLIB_ONLINE_JOIN_POLICY_H
+#pragma once
 
 #include <memory>
 
@@ -63,5 +62,3 @@ private:
 
 DEFINE_SHARED_PTR(OnlineJoinPolicy);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_ONLINE_JOIN_POLICY_H

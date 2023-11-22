@@ -1,7 +1,17 @@
 #include "build_service/config/OfflineIndexConfigMap.h"
 
+#include <cstddef>
+#include <stdint.h>
+#include <string>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/config/OfflineMergeConfig.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/config/build_config_base.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

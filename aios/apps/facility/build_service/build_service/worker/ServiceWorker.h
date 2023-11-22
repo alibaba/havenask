@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SERVICEWORKER_H
-#define ISEARCH_BS_SERVICEWORKER_H
+#pragma once
 
 #include <atomic>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
 
-#include "build_service/common_define.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/util/Log.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/worker/RpcWorkerHeartbeat.h"
 #include "build_service/worker/WorkerHeartbeatExecutor.h"
 #include "build_service/worker/WorkerStateHandler.h"
-#include "indexlib/util/metrics/MetricProvider.h"
-#include "kmonitor_adapter/Metric.h"
 #include "kmonitor_adapter/Monitor.h"
+#include "swift/client/SwiftClient.h"
 #include "worker_framework/LeaderedWorkerBase.h"
-#include "worker_framework/WorkerState.h"
 
 namespace build_service { namespace worker {
 
@@ -73,6 +74,7 @@ private:
 
 private:
     int64_t _hippoDeclareTime;
+    std::string _roleId;
     proto::PartitionId _partitionId;
     proto::LongAddress _addr;
     std::unique_ptr<WorkerHeartbeatExecutor> _workerHeartbeatExecutor;
@@ -100,5 +102,3 @@ private:
 };
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_SERVICEWORKER_H

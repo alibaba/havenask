@@ -7,6 +7,10 @@ cc_library(
         'SchemaReader.h', 'SchemaWriter.h'
     ],
     include_prefix='swift/common',
+    visibility=[
+        '//aios/apps/facility/dispatch_framework:__subpackages__',
+        '//aios/apps/facility/swift:__subpackages__'
+    ],
     deps=[
         '//aios/autil:dynamic_buf', '//aios/autil:singleton',
         '//aios/autil:span', '//aios/filesystem/fslib:fslib-framework'

@@ -1,6 +1,11 @@
+#include <string>
+#include <vector>
+
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
 #include "fslib/util/FileUtil.h"
+#include "worker_framework/WorkerState.h"
 #include "worker_framework/ZkState.h"
+#include "zookeeper/zookeeper.h"
 
 namespace cm_basic {
 

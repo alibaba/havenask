@@ -26,7 +26,7 @@ class MultiSliceAttributeDiskIndexer : public AttributeDiskIndexer
 {
 public:
     MultiSliceAttributeDiskIndexer(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                                   const IndexerParameter& indexerParam, AttributeDiskIndexerCreator* creator)
+                                   const DiskIndexerParameter& indexerParam, AttributeDiskIndexerCreator* creator)
         : AttributeDiskIndexer(attributeMetrics, indexerParam)
         , _creator(creator)
     {
@@ -37,6 +37,7 @@ public:
     };
 
 public:
+    void EnableGlobalReadContext() override;
     Status Open(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                 const std::shared_ptr<indexlib::file_system::IDirectory>& indexDirectory) override;
     bool IsInMemory() const override { return false; }
@@ -67,6 +68,7 @@ public:
 
     int64_t GetSliceDocCount(int32_t idx) const { return _sliceDocCounts[idx]; }
     bool Read(docid_t docId, std::string* value, autil::mem_pool::Pool* pool) override;
+    bool ReadBinaryValue(docid_t docId, autil::StringView* value, autil::mem_pool::Pool* pool) override;
 
     size_t EstimateMemUsed(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                            const std::shared_ptr<indexlib::file_system::IDirectory>& indexDirectory) override;

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONDISKINDEXCLEANERTEST_H
-#define __INDEXLIB_ONDISKINDEXCLEANERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/IFileSystem.h"
@@ -55,5 +54,3 @@ INDEXLIB_UNIT_TEST_CASE(OnDiskIndexCleanerTest, TestCleanWithUsingVersion);
 INDEXLIB_UNIT_TEST_CASE(OnDiskIndexCleanerTest, TestCleanWithUsingOldVersion);
 INDEXLIB_UNIT_TEST_CASE(OnDiskIndexCleanerTest, TestCleanWithRollbackVersion);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONDISKINDEXCLEANERTEST_H

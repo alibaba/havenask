@@ -16,12 +16,9 @@
 #pragma once
 
 #include <stdlib.h>
-#include <utility>
-#if __cplusplus >= 201103L
 #include <unordered_map>
-#else
-#include <tr1/unordered_map>
-#endif
+#include <utility>
+
 #include "autil/Log.h"
 #include "autil/mem_pool/Pool.h"
 
@@ -30,11 +27,8 @@ namespace mem_pool {
 
 class RecyclePool : public Pool {
 public:
-#if __cplusplus >= 201103L
     typedef std::unordered_map<size_t, void *> HashMap;
-#else
-    typedef std::tr1::unordered_map<size_t, void *> HashMap;
-#endif
+
 public:
     RecyclePool(ChunkAllocatorBase *allocator, size_t chunkSize, size_t alignSize = 1);
     RecyclePool(size_t chunkSize, size_t alignSize = 1);

@@ -55,13 +55,13 @@ public:
 public:
     virtual void AddPosition(pos_t pos, pospayload_t posPayload, fieldid_t fieldId) = 0;
 
-    virtual void EndDocument(docid_t docId, docpayload_t docPayload) = 0;
-    virtual void EndDocument(docid_t docId, docpayload_t docPayload, fieldmap_t fieldMap) = 0;
+    virtual void EndDocument(docid32_t docId, docpayload_t docPayload) = 0;
+    virtual void EndDocument(docid32_t docId, docpayload_t docPayload, fieldmap_t fieldMap) = 0;
 
     virtual void EndSegment() = 0;
 
     virtual void Dump(const std::shared_ptr<file_system::FileWriter>& file) = 0;
-    virtual bool CreateReorderPostingWriter(autil::mem_pool::Pool* pool, const std::vector<docid_t>* newOrder,
+    virtual bool CreateReorderPostingWriter(autil::mem_pool::Pool* pool, const std::vector<docid32_t>* newOrder,
                                             PostingWriter* output) const = 0;
 
     virtual uint32_t GetDumpLength() const = 0;
@@ -87,7 +87,7 @@ public:
 
     virtual InMemPostingDecoder* CreateInMemPostingDecoder(autil::mem_pool::Pool* sessionPool) const { return NULL; }
 
-    virtual docid_t GetLastDocId() const { return INVALID_DOCID; }
+    virtual docid32_t GetLastDocId() const { return INVALID_DOCID; }
 
     virtual bool GetDictInlinePostingValue(uint64_t& inlinePostingValue, bool& isDocList) const { return false; }
 

@@ -15,33 +15,51 @@
  */
 #include "build_service/merge/RemoteTabletMergeController.h"
 
+#include <arpc/ANetRPCController.h>
+#include <assert.h>
+#include <chrono>
+#include <exception>
+#include <functional>
+#include <google/protobuf/service.h>
+#include <google/protobuf/stubs/callback.h>
+#include <tuple>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ConfigDefine.h"
-#include "build_service/config/ConfigReaderAccessor.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/proto/GeneralTaskInfo.h"
 #include "build_service/proto/ProtoUtil.h"
-#include "fslib/util/FileUtil.h"
+#include "future_lite/coro/CoAwait.h"
 #include "future_lite/coro/Sleep.h"
+#include "future_lite/experimental/coroutine.h"
 #include "indexlib/base/PathUtil.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
-#include "indexlib/file_system/ErrorCode.h"
-#include "indexlib/file_system/FenceDirectory.h"
-#include "indexlib/file_system/FileSystemOptions.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/JsonUtil.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/framework/ITabletFactory.h"
+#include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/TabletFactoryCreator.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
+#include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionLoader.h"
+#include "indexlib/framework/index_task/IndexOperationDescription.h"
 #include "indexlib/framework/index_task/IndexTaskContext.h"
 #include "indexlib/framework/index_task/IndexTaskContextCreator.h"
 #include "indexlib/framework/index_task/IndexTaskPlan.h"
+#include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
-#include "indexlib/util/EpochIdUtil.h"
-#include "indexlib/util/PathUtil.h"
 
 using indexlib::Status;
 using indexlibv2::framework::IndexTaskContext;
@@ -142,7 +160,7 @@ RemoteTabletMergeController::CreateRpcChannelManager(const std::string& serviceA
 
 std::unique_ptr<IndexTaskContext>
 RemoteTabletMergeController::CreateTaskContext(indexlibv2::versionid_t baseVersionId, const std::string& taskType,
-                                               const std::string& taskName,
+                                               const std::string& taskName, const std::string& taskTraceId,
                                                const std::map<std::string, std::string>& params)
 {
     int32_t currentTime = autil::TimeUtility::currentTimeInSeconds();
@@ -160,6 +178,7 @@ RemoteTabletMergeController::CreateTaskContext(indexlibv2::versionid_t baseVersi
                           .SetTabletOptions(_initParam.options)
                           .SetTaskEpochId(epochId)
                           .SetExecuteEpochId(epochId)
+                          .SetTaskTraceId(taskTraceId)
                           .SetTabletFactory(_tabletFactory.get())
                           .SetDestDirectory(_initParam.remotePartitionIndexRoot)
                           .SetTaskParams(params)
@@ -169,7 +188,17 @@ RemoteTabletMergeController::CreateTaskContext(indexlibv2::versionid_t baseVersi
     if (!taskType.empty()) {
         ctxCreator.SetDesignateTask(taskType, taskName);
     }
-    return ctxCreator.CreateContext();
+    auto context = ctxCreator.CreateContext();
+    if (context) {
+        auto resourceManager = context->GetResourceManager();
+        for (auto extendResource : _initParam.extendResources) {
+            auto status = resourceManager->AddExtendResource(extendResource);
+            if (!status.IsOK()) {
+                return nullptr;
+            }
+        }
+    }
+    return context;
 }
 
 future_lite::coro::Lazy<indexlib::Status>
@@ -181,7 +210,8 @@ RemoteTabletMergeController::SubmitMergeTask(std::unique_ptr<IndexTaskPlan> plan
         co_return Status::InternalError();
     }
     int32_t taskEpochId = autil::StringUtil::numberFromString<int32_t>(context->GetTaskEpochId());
-    SetTaskDescription(taskId, taskEpochId, context->GetTabletData()->GetOnDiskVersion().GetVersionId());
+    std::string taskTraceId = context->GetTaskTraceId();
+    SetTaskDescription(taskTraceId, taskId, taskEpochId, context->GetTabletData()->GetOnDiskVersion().GetVersionId());
 
     for (;;) {
         if (_stopFlag.load()) {
@@ -204,7 +234,8 @@ RemoteTabletMergeController::SubmitMergeTask(std::unique_ptr<IndexTaskPlan> plan
         co_return Status::InternalError("submit task failed");
     }
 
-    BS_LOG(INFO, "new merge task, task id[%ld], task epoch[%d]", taskId, taskEpochId);
+    BS_LOG(INFO, "new merge task, task trace id[%s], task id[%ld], task epoch[%d]", taskTraceId.c_str(), taskId,
+           taskEpochId);
     co_return Status::OK();
 }
 
@@ -421,6 +452,7 @@ future_lite::coro::Lazy<bool> RemoteTabletMergeController::SubmitTask(std::uniqu
         co_return false;
     }
     request.set_clustername(_initParam.tableName);
+    request.set_tasktraceid(context->GetTaskTraceId());
     request.set_taskid(taskId);
     request.set_partitionindexroot(_initParam.remotePartitionIndexRoot);
     request.set_taskepochid(context->GetTaskEpochId());
@@ -590,7 +622,7 @@ RemoteTabletMergeController::GetRunningMergeTaskResult(proto::GenerationInfo gen
         if (generalTaskInfo.clusterName != _initParam.tableName) {
             continue;
         }
-        SetTaskDescription(taskId, taskEpochId, generalTaskInfo.baseVersionId);
+        SetTaskDescription(generalTaskInfo.taskTraceId, taskId, taskEpochId, generalTaskInfo.baseVersionId);
         UpdateTaskDescription(generalTaskInfo.finishedOpCount, generalTaskInfo.totalOpCount);
         auto [status, mergeTaskStatus] = co_await WaitMergeResult();
         if (!status.IsOK()) {
@@ -724,7 +756,7 @@ future_lite::coro::Lazy<Status> RemoteTabletMergeController::DoRecover()
         BS_LOG(ERROR, "generation has fatal error: %s", errorMsg.c_str());
         co_return Status::InternalError("recover failed");
     }
-    // TODO(hanyao): recover from iff MERGE task
+
     for (const auto& taskInfo : generationInfo.activetaskinfos()) {
         if (!taskInfo.has_taskname() || taskInfo.taskname() != config::BS_GENERAL_TASK) {
             continue;
@@ -762,10 +794,10 @@ future_lite::coro::Lazy<Status> RemoteTabletMergeController::DoRecover()
             BS_LOG(INFO, "end recover, drop last task");
             break;
         }
-        SetTaskDescription(taskId, taskEpochId, generalTaskInfo.baseVersionId);
+        SetTaskDescription(generalTaskInfo.taskTraceId, taskId, taskEpochId, generalTaskInfo.baseVersionId);
         UpdateTaskDescription(generalTaskInfo.finishedOpCount, generalTaskInfo.totalOpCount);
-        BS_LOG(INFO, "end recover, running task id[%ld], epoch[%d], baseVersionId[%d]", taskId, taskEpochId,
-               generalTaskInfo.baseVersionId);
+        BS_LOG(INFO, "end recover, running task trace id[%s], task id[%ld], epoch[%d], baseVersionId[%d]",
+               generalTaskInfo.taskTraceId.c_str(), taskId, taskEpochId, generalTaskInfo.baseVersionId);
         break;
     }
     BS_LOG(INFO, "end recover[%s/%d/%hu/%hu]", _initParam.tableName.c_str(), _initParam.generationId,
@@ -786,11 +818,12 @@ std::optional<RemoteTabletMergeController::TaskStat> RemoteTabletMergeController
     return stat;
 }
 
-void RemoteTabletMergeController::SetTaskDescription(int64_t taskId, int32_t taskEpochId,
-                                                     indexlibv2::versionid_t baseVersionId)
+void RemoteTabletMergeController::SetTaskDescription(const std::string& taskTraceId, int64_t taskId,
+                                                     int32_t taskEpochId, indexlibv2::versionid_t baseVersionId)
 {
     std::lock_guard<std::mutex> lock(_taskDescMutex);
     _submittedTaskDescription = std::make_unique<TaskDescription>();
+    _submittedTaskDescription->taskTraceId = taskTraceId;
     _submittedTaskDescription->taskId = taskId;
     _submittedTaskDescription->taskEpochId = taskEpochId;
     _submittedTaskDescription->baseVersionId = baseVersionId;
@@ -824,8 +857,15 @@ void RemoteTabletMergeController::FillBuildId(proto::BuildId* buildId) const
         buildId->set_datatable(_initParam.dataTable);
     }
     buildId->set_generationid(_initParam.generationId);
-    std::string appName = proto::ProtoUtil::getGeneralTaskAppName(_initParam.appName, _initParam.tableName,
-                                                                  _initParam.rangeFrom, _initParam.rangeTo);
+    std::string appName;
+    if (_initParam.appName.empty()) {
+        // to be compatible with legacy code
+        appName = _initParam.tableName + "_" + std::to_string(_initParam.rangeFrom) + "_" +
+                  std::to_string(_initParam.rangeTo);
+    } else {
+        appName = proto::ProtoUtil::getGeneralTaskAppName(_initParam.appName, _initParam.tableName,
+                                                          _initParam.rangeFrom, _initParam.rangeTo);
+    }
     buildId->set_appname(appName);
 }
 

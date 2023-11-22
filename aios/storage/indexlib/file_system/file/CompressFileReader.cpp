@@ -110,32 +110,34 @@ FSResult<size_t> CompressFileReader::Read(void* buffer, size_t length, size_t of
     return Read(buffer, length, option);
 }
 
-future_lite::Future<uint32_t> CompressFileReader::ReadUInt32Async(size_t offset, ReadOption option) noexcept(false)
+future_lite::Future<FSResult<uint32_t>> CompressFileReader::ReadUInt32Async(size_t offset, ReadOption option) noexcept
 {
     auto bufferPtr = std::make_unique<uint32_t>(0);
     auto buffer = static_cast<void*>(bufferPtr.get());
     size_t bufferSize = std::min(sizeof(uint32_t), GetUncompressedFileLength() - offset);
-    return ReadAsync(buffer, bufferSize, offset, option).thenValue([ptr = std::move(bufferPtr)](size_t readSize) {
-        return *static_cast<uint32_t*>(ptr.get());
-    });
+    return ReadAsync(buffer, bufferSize, offset, option)
+        .thenValue([ptr = std::move(bufferPtr)](FSResult<size_t>&& ret) {
+            return FSResult<uint32_t>(ret.Code(), *static_cast<uint32_t*>(ptr.get()));
+        });
 }
 
-future_lite::Future<uint32_t> CompressFileReader::ReadVUInt32Async(size_t offset, ReadOption option) noexcept(false)
+future_lite::Future<FSResult<uint32_t>> CompressFileReader::ReadVUInt32Async(size_t offset, ReadOption option) noexcept
 {
     auto bufferPtr = std::make_unique<uint64_t>(0);
     auto buffer = static_cast<void*>(bufferPtr.get());
     size_t bufferSize = std::min(sizeof(uint64_t), GetUncompressedFileLength() - offset);
-    return ReadAsync(buffer, bufferSize, offset, option).thenValue([ptr = std::move(bufferPtr)](size_t readSize) {
-        uint8_t* byte = reinterpret_cast<uint8_t*>(ptr.get());
-        uint32_t value = (*byte) & 0x7f;
-        int shift = 7;
-        while ((*byte) & 0x80) {
-            ++byte;
-            value |= ((*byte & 0x7F) << shift);
-            shift += 7;
-        }
-        return value;
-    });
+    return ReadAsync(buffer, bufferSize, offset, option)
+        .thenValue([ptr = std::move(bufferPtr)](FSResult<size_t>&& ret) {
+            uint8_t* byte = reinterpret_cast<uint8_t*>(ptr.get());
+            uint32_t value = (*byte) & 0x7f;
+            int shift = 7;
+            while ((*byte) & 0x80) {
+                ++byte;
+                value |= ((*byte & 0x7F) << shift);
+                shift += 7;
+            }
+            return FSResult<uint32_t> {ret.Code(), value};
+        });
 }
 
 bool CompressFileReader::CheckPrefetchHit(size_t offset,
@@ -157,17 +159,16 @@ bool CompressFileReader::CheckPrefetchHit(size_t offset,
     return true;
 }
 
-future_lite::Future<size_t> CompressFileReader::ReadAsync(void* buffer, size_t length, size_t offset,
-                                                          ReadOption option) noexcept(false)
+future_lite::Future<FSResult<size_t>> CompressFileReader::ReadAsync(void* buffer, size_t length, size_t offset,
+                                                                    ReadOption option) noexcept
 {
     assert(_compressAddrMapper);
     if (offset >= GetUncompressedFileLength()) {
-        return future_lite::makeReadyFuture<size_t>(0);
+        return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, 0});
     }
     _offset = offset;
     return PrefetchDataAsync(length, _offset, option)
-        .thenValue([this, length, offset, buffer,
-                    option](future_lite::Try<future_lite::Unit>&& unit) mutable -> future_lite::Future<size_t> {
+        .thenValue([this, length, offset, buffer, option](future_lite::Try<future_lite::Unit>&& unit) mutable {
             int64_t leftLen = length;
             uint8_t* cursor = (uint8_t*)buffer;
             try {
@@ -202,17 +203,18 @@ future_lite::Future<size_t> CompressFileReader::ReadAsync(void* buffer, size_t l
 
                     if (leftLen <= 0) {
                         assert(leftLen == 0);
-                        return future_lite::makeReadyFuture<size_t>(length);
+                        return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, length});
                     }
 
                     if (_offset >= GetUncompressedFileLength()) {
-                        return future_lite::makeReadyFuture<size_t>(cursor - (uint8_t*)buffer);
+                        return future_lite::makeReadyFuture<FSResult<size_t>>(
+                            {FSEC_OK, size_t(cursor - (uint8_t*)buffer)});
                     }
                 }
             } catch (...) {
-                return future_lite::makeReadyFuture<size_t>(std::current_exception());
+                return future_lite::makeReadyFuture<FSResult<size_t>>(std::current_exception());
             }
-            return future_lite::makeReadyFuture<size_t>(0);
+            return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, 0});
         });
 }
 
@@ -337,7 +339,7 @@ future_lite::Future<future_lite::Unit> CompressFileReader::PrefetchDataAsync(siz
     }
     return _dataFileReader->PrefetchAsync(endOffset - beginOffset, beginOffset, option)
         .thenValue(
-            [](future_lite::Try<size_t>&& readLen) { return future_lite::makeReadyFuture(future_lite::Unit()); });
+            [](future_lite::Try<FSResult<size_t>>&& ret) { return future_lite::makeReadyFuture(future_lite::Unit()); });
 }
 
 FL_LAZY(FSResult<void>)

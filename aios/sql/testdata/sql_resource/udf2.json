@@ -1,0 +1,52 @@
+{
+    "function_name": "matchscore2",
+    "function_type": "UDF",
+    "is_deterministic": 1,
+    "function_content_version": "json_default_0.1",
+    "function_content": {
+        "prototypes": [
+            {
+                "params": [
+                    {
+                        "type": "array",
+                        "value_type": {
+                            "type": "int32"
+                        }
+                    },
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "double"
+                    }
+                ],
+                "returns": [
+                    {
+                        "type": "double"
+                    }
+                ]
+            },
+            {
+                "params": [
+                    {
+                        "type": "array",
+                        "value_type": {
+                            "type": "int64"
+                        }
+                    },
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "double"
+                    }
+                ],
+                "returns": [
+                    {
+                        "type": "double"
+                    }
+                ]
+            }
+        ]
+    }
+}

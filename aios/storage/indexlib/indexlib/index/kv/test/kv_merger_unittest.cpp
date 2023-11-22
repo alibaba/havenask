@@ -1,13 +1,13 @@
 #include "indexlib/index/kv/test/kv_merger_unittest.h"
 
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/kv/config/KVIndexPreference.h"
 #include "indexlib/index/kv/kv_merger.h"
 #include "indexlib/index_base/index_meta/segment_metrics_util.h"
 #include "indexlib/index_base/index_meta/segment_topology_info.h"
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

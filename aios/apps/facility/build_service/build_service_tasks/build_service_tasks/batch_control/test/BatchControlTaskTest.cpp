@@ -1,12 +1,15 @@
-#include "build_service_tasks/batch_control/BatchControlTask.h"
+#include <cstdint>
+#include <iosfwd>
 
-#include "autil/StringUtil.h"
-#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "build_service_tasks/batch_control/BatchControlWorker.h"
 #include "build_service_tasks/batch_control/test/MockBatchControlWorker.h"
 #include "build_service_tasks/test/unittest.h"
-#include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

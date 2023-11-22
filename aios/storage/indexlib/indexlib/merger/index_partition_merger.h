@@ -13,46 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_PARTITION_MERGER_H
-#define __INDEXLIB_INDEX_PARTITION_MERGER_H
+#pragma once
 
 #include <assert.h>
+#include <map>
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "autil/LoopThread.h"
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/merge_config.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FileSystemOptions.h"
+#include "indexlib/framework/LevelInfo.h"
 #include "indexlib/framework/SegmentMetrics.h"
-#include "indexlib/index/normal/attribute/accessor/attribute_merger.h"
-#include "indexlib/index/normal/deletionmap/deletion_map_merger.h"
-#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/index/segment_metrics_updater/segment_metrics_updater.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/branch_fs.h"
 #include "indexlib/index_base/common_branch_hinter.h"
-#include "indexlib/index_base/deploy_index_wrapper.h"
-#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
-#include "indexlib/index_base/index_meta/version_loader.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/dump_strategy.h"
 #include "indexlib/merger/index_merge_meta.h"
 #include "indexlib/merger/index_partition_merger_metrics.h"
-#include "indexlib/merger/merge_file_system.h"
+#include "indexlib/merger/merge_meta.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/merge_scheduler.h"
 #include "indexlib/merger/merge_task.h"
 #include "indexlib/merger/partition_merger.h"
 #include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 DECLARE_REFERENCE_CLASS(merger, MergeWorkItemCreator);
 DECLARE_REFERENCE_CLASS(index, ReclaimMapCreator);
-DECLARE_REFERENCE_CLASS(index, OfflineAttributeSegmentReaderContainer);
-DECLARE_REFERENCE_CLASS(util, CounterMap);
-DECLARE_REFERENCE_CLASS(plugin, PluginManager);
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 
 namespace indexlib { namespace merger {
 class IndexPartitionMerger : public PartitionMerger
@@ -93,7 +95,7 @@ public:
     virtual void PrepareMerge(int64_t currentTs);
     virtual void DoMerge(bool optimize, const MergeMetaPtr& mergeMeta, uint32_t instanceId);
 
-    virtual void EndMerge(const MergeMetaPtr& mergeMeta, versionid_t alignVersionId = INVALID_VERSION);
+    virtual void EndMerge(const MergeMetaPtr& mergeMeta, versionid_t alignVersionId = INVALID_VERSIONID);
 
     virtual std::string GetMergeIndexRoot() const;
     virtual file_system::DirectoryPtr GetMergeIndexRootDirectory() const;
@@ -218,5 +220,3 @@ inline index_base::Version IndexPartitionMerger::GetMergedVersion() const
     return mDumpStrategy->GetVersion();
 }
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_INDEX_PARTITION_MERGER_H

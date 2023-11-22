@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RESOURCEREADERMANAGER_H
-#define ISEARCH_BS_RESOURCEREADERMANAGER_H
+#pragma once
 
 #include <atomic>
+#include <cstdint>
+#include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
@@ -60,5 +62,3 @@ private:
 BS_TYPEDEF_PTR(ResourceReaderManager);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_RESOURCEREADERMANAGER_H

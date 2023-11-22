@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_REPARTITIONDOCFILTERCREATOR_H
-#define ISEARCH_BS_REPARTITIONDOCFILTERCREATOR_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/config/HashModeConfig.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/merger/doc_filter.h"
 #include "indexlib/merger/doc_filter_creator.h"
+#include "indexlib/merger/segment_directory.h"
 
 namespace build_service { namespace task_base {
 
@@ -50,5 +53,3 @@ private:
 BS_TYPEDEF_PTR(RepartitionDocFilterCreator);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_REPARTITIONDOCFILTERCREATOR_H

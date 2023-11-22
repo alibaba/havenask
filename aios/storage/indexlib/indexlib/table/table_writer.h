@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_WRITER_H
-#define __INDEXLIB_TABLE_WRITER_H
+#pragma once
 
-#include <memory>
+#include <stddef.h>
 
-#include "fslib/fslib.h"
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/document/document.h"
+#include "indexlib/file_system/Directory.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/table/table_common.h"
 #include "indexlib/util/memory_control/SimpleMemoryQuotaController.h"
 
-DECLARE_REFERENCE_CLASS(file_system, Directory);
-DECLARE_REFERENCE_CLASS(index_base, SegmentDataBase);
-DECLARE_REFERENCE_CLASS(table, TableResource);
 DECLARE_REFERENCE_CLASS(table, BuildingSegmentReader);
 DECLARE_REFERENCE_CLASS(plugin, PluginManager);
-DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
 
 namespace indexlib { namespace table {
 
@@ -91,5 +88,3 @@ private:
 
 DEFINE_SHARED_PTR(TableWriter);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_WRITER_H

@@ -20,6 +20,8 @@
 #include "indexlib/document/normal/NormalDocumentFactory.h"
 #include "indexlib/framework/BuildResource.h"
 #include "indexlib/framework/DiskSegment.h"
+#include "indexlib/framework/EnvironmentVariablesProvider.h"
+#include "indexlib/framework/IMemoryControlStrategy.h"
 #include "indexlib/framework/ITabletReader.h"
 #include "indexlib/framework/MemSegment.h"
 #include "indexlib/framework/SegmentInfo.h"
@@ -185,6 +187,17 @@ std::unique_ptr<indexlib::framework::ITabletValidator> NormalTableFactory::Creat
 std::unique_ptr<framework::ITabletImporter> NormalTableFactory::CreateTabletImporter(const std::string& type)
 {
     return std::make_unique<table::CommonVersionImporter>();
+}
+
+std::unique_ptr<framework::IMemoryControlStrategy> NormalTableFactory::CreateMemoryControlStrategy(
+    const std::shared_ptr<MemoryQuotaSynchronizer>& buildMemoryQuotaSynchronizer)
+{
+    return nullptr;
+}
+
+std::unique_ptr<framework::EnvironmentVariablesProvider> NormalTableFactory::CreateEnvironmentVariablesProvider()
+{
+    return nullptr;
 }
 
 REGISTER_TABLET_FACTORY(normal, NormalTableFactory);

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SCHEMAREWRITERTEST_H
-#define __INDEXLIB_SCHEMAREWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/schema_rewriter.h"
@@ -45,5 +44,3 @@ INDEXLIB_UNIT_TEST_CASE(SchemaRewriterTest, TestEnableBloomFilterForIndexDiction
 INDEXLIB_UNIT_TEST_CASE(SchemaRewriterTest, TestRewriteBuildParallelLookupPK);
 
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SCHEMAREWRITERTEST_H

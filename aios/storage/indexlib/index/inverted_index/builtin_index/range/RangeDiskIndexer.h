@@ -25,7 +25,7 @@ class RangeLeafReader;
 class RangeDiskIndexer : public InvertedDiskIndexer
 {
 public:
-    explicit RangeDiskIndexer(const indexlibv2::index::IndexerParameter& indexerParam);
+    explicit RangeDiskIndexer(const indexlibv2::index::DiskIndexerParameter& indexerParam);
     ~RangeDiskIndexer();
 
     Status Open(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,

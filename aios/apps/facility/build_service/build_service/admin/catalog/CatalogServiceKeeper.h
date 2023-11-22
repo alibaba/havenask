@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 #pragma once
-#include "autil/Lock.h"
+#include <CatalogEntity.pb.h>
+#include <map>
+#include <memory>
+#include <string>
+
+#include "aios/autil/autil/Lock.h"
+#include "autil/LoopThread.h"
+#include "autil/ThreadAnnotations.h"
+#include "build_service/admin/GenerationKeeper.h"
 #include "build_service/admin/ServiceKeeper.h"
-#include "catalog/proto/CatalogEntity.pb.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/proto/BasicDefs.pb.h"
 
 namespace catalog::proto {
 class ListBuildResponse;

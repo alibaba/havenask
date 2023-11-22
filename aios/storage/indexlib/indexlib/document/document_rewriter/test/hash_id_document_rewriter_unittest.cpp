@@ -1,8 +1,8 @@
 #include "indexlib/common_define.h"
 #include "indexlib/config/attribute_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_rewriter/hash_id_document_rewriter.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/test.h"
 #include "indexlib/test/unittest.h"
 

@@ -15,12 +15,20 @@
  */
 #pragma once
 
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+
+#include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 #include "indexlib/util/metrics/Metric.h"
 #include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace indexlib::config {
 class IndexPartitionSchema;
+
 typedef std::shared_ptr<IndexPartitionSchema> IndexPartitionSchemaPtr;
 } // namespace indexlib::config
 

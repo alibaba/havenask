@@ -25,6 +25,7 @@
 #include "suez/table/Commit.h"
 #include "suez/table/LeaderElectionManager.h"
 #include "suez/table/SyncVersion.h"
+#include "suez/table/TableInfoPublishWrapper.h"
 #include "suez/table/TodoRunner.h"
 #include "suez/table/VersionManager.h"
 #include "suez/table/VersionPublisher.h"
@@ -78,7 +79,9 @@ void ReadWriteTableManager::setVersionManager(VersionManager *versionMgr) { _ver
 
 void ReadWriteTableManager::setVersionSynchronizer(VersionSynchronizer *versionSync) { _versionSync = versionSync; }
 
-void ReadWriteTableManager::setGigRpcServer(multi_call::GigRpcServer *gigRpcServer) { _gigRpcServer = gigRpcServer; }
+void ReadWriteTableManager::setGigRpcServer(multi_call::GigRpcServer *gigRpcServer) {
+    _tableInfoPublishWrapper = std::make_unique<TableInfoPublishWrapper>(gigRpcServer);
+}
 
 void ReadWriteTableManager::setZoneName(string zoneName) { _zoneName = zoneName; }
 
@@ -99,13 +102,13 @@ void ReadWriteTableManager::generateSyncVersionOperations(const TableMetas &tabl
 
         // check is rollback
         const auto &current = table->getPartitionMeta();
-        IncVersion headVersionId = INVALID_VERSION;
+        IncVersion headVersionId = indexlib::INVALID_VERSIONID;
         TableVersion headTableVersion;
         if (_versionManager->getHeadVersion(pid, headTableVersion)) {
             headVersionId = headTableVersion.getVersionId();
         }
         if (table->getTableStatus() == TS_LOADED && headVersionId > current.getIncVersion() &&
-            current.getIncVersion() != INVALID_VERSION) {
+            current.getIncVersion() != indexlib::INVALID_VERSIONID) {
             event = event | SyncVersion::SE_ROLLBACK;
         }
 
@@ -148,17 +151,18 @@ TablePtr ReadWriteTableManager::createTable(const PartitionId &pid, const Partit
             return TablePtr();
         }
 
-        if (leaderVersion.getVersionId() != INVALID_VERSION) {
+        if (leaderVersion.getVersionId() != indexlib::INVALID_VERSIONID) {
             _versionManager->updateLeaderVersion(pid, leaderVersion);
         }
-        if (publishedVersion.getVersionId() != INVALID_VERSION) {
+        if (publishedVersion.getVersionId() != indexlib::INVALID_VERSIONID) {
             _versionManager->updatePublishedVersion(pid, publishedVersion);
         }
     }
 
     auto t = TableManager::createTable(pid, meta);
     t->setLeaderElectionManager(_leaderElectionMgr);
-    auto leaderInfoPublisher = make_shared<TableLeaderInfoPublisher>(pid, _zoneName, _gigRpcServer, _leaderElectionMgr);
+    auto leaderInfoPublisher =
+        make_shared<TableLeaderInfoPublisher>(pid, _zoneName, _tableInfoPublishWrapper.get(), _leaderElectionMgr);
     t->setLeaderInfoPublisher(leaderInfoPublisher);
     return t;
 }

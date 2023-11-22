@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 #pragma once
+#include <CatalogEntity.pb.h>
+#include <map>
+#include <memory>
+#include <stdint.h>
+
 #include "build_service/admin/catalog/CatalogPartitionIdentifier.h"
 #include "build_service/util/Log.h"
-#include "catalog/proto/CatalogEntity.pb.h"
 
 namespace catalog::proto {
 class UpdateBuildRequest;

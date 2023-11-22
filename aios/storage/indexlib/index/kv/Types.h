@@ -34,7 +34,6 @@ enum class KVIndexType : int8_t { KIT_DENSE_HASH, KIT_CUCKOO_HASH, KIT_UNKOWN };
 } // namespace indexlib::index::enum_namespace
 
 namespace indexlib::index {
-typedef int32_t regionid_t;
 typedef uint32_t compact_keytype_t;
 typedef uint64_t keytype_t;
 } // namespace indexlib::index
@@ -54,7 +53,6 @@ using namespace ::indexlib::enum_namespace;
 namespace indexlibv2::index {
 using indexlib::index::compact_keytype_t;
 using indexlib::index::keytype_t;
-using indexlib::index::regionid_t;
 using namespace ::indexlib::index::enum_namespace;
 } // namespace indexlibv2::index
 

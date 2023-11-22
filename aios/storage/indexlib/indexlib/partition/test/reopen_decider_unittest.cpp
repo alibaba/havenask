@@ -1,6 +1,7 @@
 #include "indexlib/partition/test/reopen_decider_unittest.h"
 
 #include "indexlib/config/impl/online_config_impl.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/index_base/schema_rewriter.h"
@@ -11,7 +12,6 @@
 #include "indexlib/partition/test/mock_partition_resource_calculator.h"
 #include "indexlib/test/partition_data_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/version_maker.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 
@@ -124,7 +124,7 @@ void ReopenDeciderTest::TestNeedSwitchFlushRtSegments()
     MockBuildingPartitionData* mockPartData = new MockBuildingPartitionData(
         options, mSchema, util::MemoryQuotaControllerCreator::CreatePartitionMemoryController());
 
-    EXPECT_CALL(*mockPartData, GetOnDiskVersion()).WillRepeatedly(Return(index_base::Version(INVALID_VERSION)));
+    EXPECT_CALL(*mockPartData, GetOnDiskVersion()).WillRepeatedly(Return(index_base::Version(INVALID_VERSIONID)));
     PartitionDataPtr partData(mockPartData);
 
     std::set<segmentid_t> dumpingSegmentIds;
@@ -139,19 +139,19 @@ void ReopenDeciderTest::TestNeedSwitchFlushRtSegments()
 
     {
         EXPECT_CALL(*mockPartData, GetLastValidRtSegmentInLinkDirectory()).WillOnce(Return(INVALID_SEGMENTID));
-        rd.Init(partData, "", &attrMetrics, std::numeric_limits<int64_t>::max(), INVALID_VERSION, onlineReader);
+        rd.Init(partData, "", &attrMetrics, std::numeric_limits<int64_t>::max(), INVALID_VERSIONID, onlineReader);
         ASSERT_EQ(ReopenDecider::NO_NEED_REOPEN, rd.GetReopenType());
     }
 
     {
         EXPECT_CALL(*mockPartData, GetLastValidRtSegmentInLinkDirectory()).WillOnce(Return(100));
-        rd.Init(partData, "", &attrMetrics, std::numeric_limits<int64_t>::max(), INVALID_VERSION, onlineReader);
+        rd.Init(partData, "", &attrMetrics, std::numeric_limits<int64_t>::max(), INVALID_VERSIONID, onlineReader);
         ASSERT_EQ(ReopenDecider::NO_NEED_REOPEN, rd.GetReopenType());
     }
 
     {
         EXPECT_CALL(*mockPartData, GetLastValidRtSegmentInLinkDirectory()).WillOnce(Return(101));
-        rd.Init(partData, "", &attrMetrics, std::numeric_limits<int64_t>::max(), INVALID_VERSION, onlineReader);
+        rd.Init(partData, "", &attrMetrics, std::numeric_limits<int64_t>::max(), INVALID_VERSIONID, onlineReader);
         ASSERT_EQ(ReopenDecider::SWITCH_RT_SEGMENT_REOPEN, rd.GetReopenType());
     }
 }
@@ -193,7 +193,7 @@ void ReopenDeciderTest::InnerTestForNoNewIncVersion(const OnlineConfig& onlineCo
                                                     const AttributeMetrics& attrMetrics, bool forceReopen,
                                                     ReopenDecider::ReopenType expectType)
 {
-    Version expectIncReopenVersion = index_base::Version(INVALID_VERSION);
+    Version expectIncReopenVersion = index_base::Version(INVALID_VERSIONID);
     IndexPartitionOptions options;
     options.SetOnlineConfig(onlineConfig);
     DumpSegmentContainerPtr dumpContainer(new DumpSegmentContainer);

@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"

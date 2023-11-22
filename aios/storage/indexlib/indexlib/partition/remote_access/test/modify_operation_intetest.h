@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MODIFYOPERATIONINTETEST_H
-#define __INDEXLIB_MODIFYOPERATIONINTETEST_H
+#pragma once
 
 #include <cmath>
 
@@ -34,7 +33,7 @@ public:
     void TestModifyOperationForTimeAttribute();
 
 private:
-    void CheckLatestVersion(const indexlib::file_system::DirectoryPtr& rootDir, schemavid_t expectSchemaId,
+    void CheckLatestVersion(const indexlib::file_system::DirectoryPtr& rootDir, schemaid_t expectSchemaId,
                             const std::vector<schema_opid_t>& ongoingOpIds);
 
     void CheckQuery(const indexlib::file_system::DirectoryPtr& rootDir, const std::string& query,
@@ -58,5 +57,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MODIFYOPERATIONINTETEST_H

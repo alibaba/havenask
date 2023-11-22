@@ -15,9 +15,16 @@
  */
 #include "build_service/common/CounterSynchronizer.h"
 
+#include <functional>
+#include <iosfwd>
+#include <vector>
+
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "build_service/common/PathDefine.h"
 #include "build_service/proto/ProtoUtil.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;

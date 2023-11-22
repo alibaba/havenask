@@ -1,20 +1,21 @@
 package com.taobao.search.iquan.core.utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import com.taobao.search.iquan.core.api.schema.Distribution;
-import com.taobao.search.iquan.core.api.schema.Table;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.api.schema.TableType;
 import com.taobao.search.iquan.core.catalog.function.internal.AggregateFunction;
 import com.taobao.search.iquan.core.common.ConstantDefine;
-
 import com.taobao.search.iquan.core.planner.functions.AggFunctionFactory;
 import com.taobao.search.iquan.core.planner.functions.DeclarativeAggregateFunction;
 import com.taobao.search.iquan.core.rel.hint.IquanNormalAggHint;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
-import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.AggregateCall;
 import org.apache.calcite.rel.core.Calc;
@@ -23,6 +24,7 @@ import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
+import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 
 public class IquanAggregateUtils {
     private static final String defaultAccNamePrefix = "__acc";
@@ -68,11 +70,11 @@ public class IquanAggregateUtils {
             return false;
         }
 
-        Table table = IquanRelOptUtils.getIquanTable(tableScan.getTable());
-        if (table == null) {
+        IquanTable iquanTable = IquanRelOptUtils.getIquanTable(tableScan.getTable());
+        if (iquanTable == null) {
             return false;
         }
-        Distribution distribution = table.getDistribution();
+        Distribution distribution = iquanTable.getDistribution();
         if (distribution.getPartitionCnt() == 1) {
             return true;
         }
@@ -87,11 +89,11 @@ public class IquanAggregateUtils {
                 break;
             relNode = IquanRelOptUtils.toRel(inputs.get(0));
         }
-        Table table = IquanRelOptUtils.getIquanTable(relNode);
-        if (table == null) {
+        IquanTable iquanTable = IquanRelOptUtils.getIquanTable(relNode);
+        if (iquanTable == null) {
             return false;
         }
-        List<String> pkList = table.getPrimaryMap().keySet().stream()
+        List<String> pkList = iquanTable.getPrimaryMap().keySet().stream()
                 .map(PlanWriteUtils::unFormatFieldName)
                 .collect(Collectors.toList());
         return !exactGroupKeyNames.isEmpty() && exactGroupKeyNames.stream().anyMatch(pkList::contains);

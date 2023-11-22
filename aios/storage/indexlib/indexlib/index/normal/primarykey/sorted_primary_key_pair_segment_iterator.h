@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SORTED_PRIMARY_KEY_PAIR_SEGMENT_ITERATOR_H
-#define __INDEXLIB_SORTED_PRIMARY_KEY_PAIR_SEGMENT_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -104,5 +103,3 @@ uint64_t SortedPrimaryKeyPairSegmentIterator<Key>::GetPkCount() const
     return mFileReader->GetLength() / sizeof(PKPair);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SORTED_PRIMARY_KEY_PAIR_SEGMENT_ITERATOR_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_COMMON_H
-#define __INDEXLIB_KV_COMMON_H
+#pragma once
 
 #include "indexlib/common/hash_table/cuckoo_hash_table_traits.h"
 #include "indexlib/common/hash_table/dense_hash_table_traits.h"
@@ -101,5 +100,3 @@ DECLARE_OFFSET_FORMATTER_IMPL(MultiRegionTimestampValue<offset_t>);
 
 #undef DECLARE_OFFSET_FORMATTER_IMPL
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_COMMON_H

@@ -27,7 +27,6 @@
 #include "autil/mem_pool/Pool.h"
 #include "sql/common/Log.h"
 #include "sql/ops/condition/ExprUtil.h"
-#include "sql/ops/join/JoinInfoCollector.h"
 #include "sql/ops/util/KernelUtil.h"
 #include "table/Column.h"
 #include "table/ColumnData.h"
@@ -41,7 +40,7 @@ using namespace autil;
 
 namespace sql {
 
-JoinBase::JoinBase(const JoinBaseParam &joinBaseParam)
+JoinBase::JoinBase(const JoinBaseParamR &joinBaseParam)
     : _joinBaseParam(joinBaseParam) {}
 
 bool JoinBase::initJoinedTable(const table::TablePtr &leftTable,
@@ -64,7 +63,6 @@ bool JoinBase::initJoinedTable(const table::TablePtr &leftTable,
         }
     }
 
-    outputTable->endGroup();
     return true;
 }
 
@@ -78,7 +76,7 @@ bool JoinBase::declareTableColumn(const table::TablePtr &inputTable,
         SQL_LOG(ERROR, "get column info failed");
         return false;
     }
-    Column *column = outputTable->declareColumn(outputField, vt, false);
+    Column *column = outputTable->declareColumn(outputField, vt);
     if (column == NULL) {
         SQL_LOG(ERROR, "declare column [%s] failed", outputField.c_str());
         return false;
@@ -115,7 +113,6 @@ bool JoinBase::appendColumns(const table::TablePtr &inputTable,
             return false;
         }
     }
-    outputTable->endGroup();
     return true;
 }
 
@@ -132,7 +129,7 @@ bool JoinBase::evaluateJoinedTable(const std::vector<size_t> &leftTableIndexes,
         return false;
     }
 
-    JoinInfoCollector::incJoinCount(_joinBaseParam._joinInfo, leftTableIndexes.size());
+    _joinBaseParam._joinInfoR->incJoinCount(leftTableIndexes.size());
     size_t joinIndexStart = outputTable->getRowCount();
     outputTable->batchAllocateRow(leftTableIndexes.size());
 
@@ -224,35 +221,37 @@ bool JoinBase::evaluateEmptyColumns(size_t fieldIndex,
     size_t index = fieldIndex;
     auto func = [&](auto a) {
         typedef typename decltype(a)::value_type T;
-        const std::string &type = ExprUtil::transVariableTypeToSqlType(vt.getBuiltinType());
-        auto iter = _joinBaseParam._defaultValue.find(type);
-        T val;
-        InitializeIfNeeded<T>()(val);
-        if (!type.empty() && iter != _joinBaseParam._defaultValue.end()) {
-            if (!StringUtil::fromString<T>(iter->second, val)) {
-                SQL_LOG(ERROR,
-                        "field [%s] type [%s] cast default value [%s] failed",
-                        _joinBaseParam._outputFields[index].c_str(),
-                        type.c_str(),
-                        iter->second.c_str());
-                return false;
+        if constexpr (std::is_same_v<T, autil::HllCtx>) {
+            return false;
+        } else {
+            const std::string &type = ExprUtil::transVariableTypeToSqlType(vt.getBuiltinType());
+            auto iter = _joinBaseParam._defaultValue.find(type);
+            T val;
+            InitializeIfNeeded<T>()(val);
+            if (!type.empty() && iter != _joinBaseParam._defaultValue.end()) {
+                if (!StringUtil::fromString<T>(iter->second, val)) {
+                    SQL_LOG(ERROR,
+                            "field [%s] type [%s] cast default value [%s] failed",
+                            _joinBaseParam._outputFields[index].c_str(),
+                            type.c_str(),
+                            iter->second.c_str());
+                    return false;
+                }
             }
+            auto outputColumnData = outputColumn->getColumnData<T>();
+            for (size_t i = joinIndex; i < outputTable->getRowCount(); ++i) {
+                outputColumnData->set(i, val);
+            }
+            return true;
         }
-        auto outputColumnData = outputColumn->getColumnData<T>();
-        for (size_t i = joinIndex; i < outputTable->getRowCount(); ++i) {
-            outputColumnData->set(i, val);
-        }
-        return true;
     };
     auto strFunc = [&]() {
         const std::string &type = ExprUtil::transVariableTypeToSqlType(vt.getBuiltinType());
         auto iter = _joinBaseParam._defaultValue.find(type);
         if (!type.empty() && iter != _joinBaseParam._defaultValue.end()) {
-            MultiChar val(MultiValueCreator::createMultiValueBuffer(
-                iter->second.data(), iter->second.size(), _joinBaseParam._pool));
             auto outputColumnData = outputColumn->getColumnData<MultiChar>();
             for (size_t i = joinIndex; i < outputTable->getRowCount(); ++i) {
-                outputColumnData->set(i, val);
+                outputColumnData->set(i, iter->second.data(), iter->second.size());
             }
         }
         return true;

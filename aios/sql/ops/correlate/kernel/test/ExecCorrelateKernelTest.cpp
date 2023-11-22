@@ -67,7 +67,7 @@ private:
             _allocator, docs, "arr2", {{1}, {}}));
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<string>(
             _allocator, docs, "arr3", {{"ab", "abc"}, {"bcd"}}));
-        _table.reset(new Table(docs, _allocator));
+        _table = Table::fromMatchDocs(docs, _allocator);
     }
     KernelTesterPtr buildTester(KernelTesterBuilder &builder) {
         setResource(builder);

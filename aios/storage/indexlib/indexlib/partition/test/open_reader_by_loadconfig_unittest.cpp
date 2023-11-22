@@ -1,12 +1,12 @@
 #include "indexlib/partition/test/open_reader_by_loadconfig_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
 #include "indexlib/index/test/partition_schema_maker.h"
 #include "indexlib/index_base/partition_data.h"
 #include "indexlib/partition/online_partition.h"
 #include "indexlib/partition/partition_data_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/cache/BlockCache.h"
 

@@ -171,7 +171,7 @@ TEST_F(TableReaderTest, testGetDataTimestamp) {
     std::shared_ptr<indexlibv2::framework::ITablet> tabletPtr(mockTablet);
     indexlibv2::framework::TabletInfos tabletInfo;
     int64_t offset = 0;
-    ASSERT_TRUE(build_service::util::LocatorUtil::EncodeOffset(0, 500, &offset));
+    ASSERT_TRUE(build_service::util::LocatorUtil::encodeOffset(0, 500, &offset));
     indexlibv2::framework::Locator locator(0, offset);
     tabletInfo.SetBuildLocator(locator);
     ON_CALL(*mockTablet, GetTabletInfos()).WillByDefault(Return(&tabletInfo));

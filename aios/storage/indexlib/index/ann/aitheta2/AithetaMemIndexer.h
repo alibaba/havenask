@@ -19,7 +19,7 @@
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/extractor/plain/DocumentInfoExtractorFactory.h"
 #include "indexlib/index/IMemIndexer.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/ann/aitheta2/impl/RealtimeSegmentBuildResource.h"
 #include "indexlib/index/ann/aitheta2/impl/RealtimeSegmentSearcher.h"
 #include "indexlib/index/ann/aitheta2/impl/SegmentBuilder.h"
@@ -36,7 +36,7 @@ namespace indexlibv2::index::ann {
 class AithetaMemIndexer : public IMemIndexer
 {
 public:
-    AithetaMemIndexer(const IndexerParameter& indexerParam);
+    AithetaMemIndexer(const MemIndexerParameter& indexerParam);
     virtual ~AithetaMemIndexer();
 
     Status Init(const std::shared_ptr<config::IIndexConfig>& indexConfig,
@@ -53,18 +53,20 @@ public:
     void UpdateMemUse(BuildingIndexMemoryUseUpdater* memUpdater) override;
     std::string GetIndexName() const override { return _indexName; }
     autil::StringView GetIndexType() const override { return ANN_INDEX_TYPE_STR; }
+    const std::shared_ptr<config::ANNIndexConfig> GetIndexConfig() const { return _annIndexConfig; }
     void Seal() override;
     bool IsDirty() const override;
 
     void SetBaseDocId(docid_t baseDocId) { _baseDocId = baseDocId; }
     std::pair<Status, std::shared_ptr<RealtimeSegmentSearcher>>
     CreateSearcher(docid_t segmentBaseDocId, const std::shared_ptr<AithetaFilterCreator>& creator);
+    Status AddDocument(indexlib::document::IndexDocument* doc);
 
 private:
-    bool IsFullBuild();
+    bool IsFullBuildPhase();
     std::shared_ptr<RealtimeSegmentBuildResource> CreateRealtimeBuildResource();
     Status InitRealtimeSegmentBuilder();
-    Status InitNormalSegmentBuilder(bool isFullBuildPhase);
+    Status InitNormalSegmentBuilder();
 
 private:
     Status BuildSingleDoc(document::IDocument* doc);
@@ -74,7 +76,8 @@ private:
 private:
     std::string _indexName;
     AithetaIndexConfig _aithetaIndexConfig;
-    IndexerParameter _indexerParam;
+    MemIndexerParameter _indexerParam;
+    std::shared_ptr<config::ANNIndexConfig> _annIndexConfig;
     int32_t _docCount = 0;
     int32_t _invalidDocCount = 0;
 

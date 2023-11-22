@@ -16,6 +16,7 @@
 #pragma once
 
 #include "autil/Log.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/document/IDocument.h"
 
 namespace autil {
@@ -53,8 +54,8 @@ public:
 public:
     const framework::Locator& GetLocatorV2() const override;
     void SetLocator(const framework::Locator& locator) override;
-    DocInfo GetDocInfo() const override { return _docInfo; }
-    void SetDocInfo(const DocInfo& docInfo) override { _docInfo = docInfo; }
+    framework::Locator::DocInfo GetDocInfo() const override { return _docInfo; }
+    void SetDocInfo(const framework::Locator::DocInfo& docInfo) override { _docInfo = docInfo; }
     uint32_t GetTTL() const override { return _ttl; }
     docid_t GetDocId() const override;
     size_t EstimateMemory() const override;
@@ -65,6 +66,7 @@ public:
     autil::StringView GetTraceId() const override;
     autil::StringView GetSource() const override;
     int64_t GetIngestionTimestamp() const override;
+    schemaid_t GetSchemaId() const override;
 
 public:
     void SetPKeyHash(uint64_t key) noexcept { _pkeyHash = key; }
@@ -105,7 +107,6 @@ public:
     uint64_t GetIndexNameHash() const { return _indexNameHash; }
     void SetIndexNameHash(uint64_t indexNameHash) { _indexNameHash = indexNameHash; }
 
-    schemaid_t GetSchemaId() const;
     void SetSchemaId(schemaid_t schemaId);
 
 private:
@@ -127,7 +128,7 @@ private:
     autil::StringView _pkFieldValue;
     indexlibv2::framework::Locator _locator;
 
-    DocInfo _docInfo;
+    framework::Locator::DocInfo _docInfo;
     bool _hasFormatError = false;
     bool _trace = false; // used for doc trace
 

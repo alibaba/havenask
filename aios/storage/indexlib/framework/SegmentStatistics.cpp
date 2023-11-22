@@ -15,7 +15,10 @@
  */
 #include "indexlib/framework/SegmentStatistics.h"
 
-#include "autil/legacy/json.h"
+#include <algorithm>
+#include <iosfwd>
+
+#include "autil/legacy/exception.h"
 
 using namespace std;
 using namespace autil::legacy;

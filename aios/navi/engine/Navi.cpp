@@ -25,15 +25,17 @@
 #include "navi/engine/NaviMetricsGroup.h"
 #include "navi/engine/NaviSnapshot.h"
 #include "navi/engine/NaviStat.h"
+#include "navi/engine/NaviHostInfo.h"
 #include "navi/resource/MemoryPoolR.h"
 #include "navi/util/CommonUtil.h"
+#include "navi/util/EnvParam.h"
 
 namespace navi {
 
 Navi::Navi(const std::string &name)
     : _name(name)
     , _gigRpcServer(nullptr)
-    , _testMode(TM_NOT_TEST)
+    , _testMode(TM_NONE)
 {
     initInstanceId();
 }
@@ -49,6 +51,9 @@ bool Navi::init(const std::string &initConfigPath,
     NAVI_LOG(INFO, "start init with gigRpcServer [%p], config [%s]",
              gigRpcServer,
              initConfigPath.c_str());
+    if (!initHostInfo(initConfigPath, gigRpcServer)) {
+        return false;
+    }
     if (!initRpc(gigRpcServer)) {
         return false;
     }
@@ -146,24 +151,19 @@ bool Navi::update(const std::string &configStr,
     if (config->sleepBeforeUpdateUs > 0) {
         usleep(config->sleepBeforeUpdateUs);
     }
-    auto snapshot = std::make_shared<NaviSnapshot>(_name);
+    auto snapshot = std::make_shared<NaviSnapshot>(_hostInfo);
     snapshot->setTestMode(_testMode);
     if (_metricsReporter) {
         snapshot->initMetrics(*_metricsReporter);
     }
-    auto oldSnapshot = getSnapshot();
     if (!snapshot->init(_initConfigPath, _instanceId, _gigRpcServer,
-                        moduleManager, oldSnapshot, config,
+                        moduleManager, getSnapshot(), config,
                         rootResourceMap))
     {
         snapshot->stop();
         return false;
     }
     NaviLoggerScope scope(snapshot->_logger);
-    if (snapshot) {
-        snapshot->start(oldSnapshot);
-    }
-    oldSnapshot.reset();
     updateSnapshot(snapshot);
     cleanupModule();
     logSnapshotSummary();
@@ -192,7 +192,17 @@ bool Navi::update(const std::string &configLoader,
 }
 
 void Navi::updateSnapshot(const NaviSnapshotPtr &newSnapshot) {
-    NAVI_KERNEL_LOG(INFO, "start update snapshot, new [%p]", newSnapshot.get());
+    NAVI_KERNEL_LOG(INFO, "begin update snapshot, new [%p]", newSnapshot.get());
+    if (_gigRpcServer) {
+        NAVI_KERNEL_LOG(INFO, "stop gig agent");
+        _gigRpcServer->stopAgent();
+        if (getSnapshot() && _waitNoQuery) {
+            waitUntilNoQuery();
+        }
+    }
+    if (newSnapshot) {
+        newSnapshot->start(getSnapshot());
+    }
     NaviSnapshotPtr oldSnapshot;
     {
         autil::ScopedWriteLock scope(_snapshotLock);
@@ -209,6 +219,10 @@ void Navi::updateSnapshot(const NaviSnapshotPtr &newSnapshot) {
         CommonUtil::waitUseCount(oldSnapshot, 1);
         oldSnapshot->stop();
     }
+    if (newSnapshot && _gigRpcServer) {
+        _gigRpcServer->startAgent();
+    }
+    NAVI_KERNEL_LOG(INFO, "end update snapshot, new [%p]", _snapshot.get());
 }
 
 NaviSnapshotPtr Navi::getSnapshot() const {
@@ -355,6 +369,12 @@ bool Navi::initMemoryPoolR() {
     return true;
 }
 
+bool Navi::initHostInfo(const std::string &installRoot, multi_call::GigRpcServer *gigRpcServer) {
+    _hostInfo = std::make_shared<NaviHostInfo>();
+    _hostInfo->init(_name, installRoot, gigRpcServer);
+    return true;
+}
+
 void Navi::initInstanceId() {
     _instanceId = 0;
     while (0 == _instanceId) {
@@ -368,6 +388,10 @@ InstanceId Navi::getInstanceId() const {
 
 void Navi::setTestMode(TestMode testMode) {
     _testMode = testMode;
+}
+
+void Navi::setWaitNoQuery(bool needWait) {
+    _waitNoQuery = needWait;
 }
 
 bool Navi::createResource(const std::string &bizName,
@@ -401,6 +425,17 @@ void Navi::reportMetricsLoop() {
     if (snapshot) {
         snapshot->reportStat(*_metricsReporter);
     }
+}
+
+void Navi::waitUntilNoQuery() {
+    int64_t forceWaitNoQueryTime = EnvParam::inst().forceWaitNoQueryTime;
+    NAVI_KERNEL_LOG(INFO, "begin wait until no query, force wait [%ld]s",
+                    forceWaitNoQueryTime);
+    usleep(forceWaitNoQueryTime * 1000 * 1000);
+    if (_gigRpcServer) {
+        _gigRpcServer->waitUntilNoQuery(10);
+    }
+    NAVI_KERNEL_LOG(INFO, "end wait until no query");
 }
 
 }

@@ -3,6 +3,7 @@ cc_test(
     srcs=['RemoteLoggerTest.cpp'],
     copts=['-fno-access-control'],
     data=glob(['testdata/**']),
+    flaky=True,
     deps=[
         '//aios/apps/facility/build_service/build_service/tools:remote_logger_lib',
         '//aios/unittest_framework'

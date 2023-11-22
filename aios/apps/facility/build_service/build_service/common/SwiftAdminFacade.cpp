@@ -15,19 +15,26 @@
  */
 #include "build_service/common/SwiftAdminFacade.h"
 
+#include <assert.h>
+#include <google/protobuf/message_lite.h>
+#include <google/protobuf/stubs/port.h>
+#include <iosfwd>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/config/BuildServiceConfig.h"
-#include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/config/SwiftConfig.h"
 #include "build_service/proto/ProtoUtil.h"
-#include "fslib/fs/FileSystem.h"
-#include "google/protobuf/io/zero_copy_stream_impl_lite.h"
-#include "indexlib/config/TabletSchema.h"
-#include "swift/common/PathDefine.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "swift/client/SwiftClient.h"
+#include "swift/client/SwiftClientConfig.h"
+#include "swift/protocol/Common.pb.h"
+#include "swift/protocol/ErrCode.pb.h"
 
 using namespace std;
 using namespace autil;
@@ -124,10 +131,6 @@ std::string SwiftAdminFacade::getRealtimeTopicName(const std::string& applicatio
                                                    const indexlib::config::IndexPartitionSchemaPtr& schema)
 {
     string topicTag;
-    auto schemaVersionId = schema->GetSchemaVersionId();
-    if (schemaVersionId > 0 && !schema->HasModifyOperations()) {
-        topicTag = StringUtil::toString(schemaVersionId);
-    }
     string suffix = applicationId;
     suffix = topicTag.empty() ? suffix : suffix + "_" + topicTag;
     return ProtoUtil::getProcessedDocTopicName(suffix, buildId, clusterName);
@@ -135,12 +138,7 @@ std::string SwiftAdminFacade::getRealtimeTopicName(const std::string& applicatio
 
 std::string SwiftAdminFacade::getTopicId(const std::string& swiftTopicConfigName, std::string userDefineTag)
 {
-    std::string topicId;
-    if (_schema->GetLegacySchema() && _schema->GetLegacySchema()->HasModifyOperations()) {
-        topicId = "0";
-    } else {
-        topicId = StringUtil::toString(_schema->GetSchemaId());
-    }
+    std::string topicId = "0";
     if (!userDefineTag.empty()) {
         topicId = topicId.empty() ? userDefineTag : topicId + "_" + userDefineTag;
     }
@@ -158,17 +156,6 @@ std::string SwiftAdminFacade::getTopicTag(const std::string& swiftTopicConfigNam
             topicTag = swiftTopicConfigName;
         }
     }
-
-    auto schemaVersionId = _schema->GetSchemaId();
-    if (schemaVersionId > 0 && swiftTopicConfigName != BS_TOPIC_FULL &&
-        (!_schema->GetLegacySchema() || !_schema->GetLegacySchema()->HasModifyOperations())) {
-        if (topicTag.empty()) {
-            topicTag = StringUtil::toString(schemaVersionId);
-        } else {
-            topicTag = topicTag + "_" + StringUtil::toString(schemaVersionId);
-        }
-    }
-
     if (!userDefineTag.empty()) {
         if (topicTag.empty()) {
             topicTag = userDefineTag;

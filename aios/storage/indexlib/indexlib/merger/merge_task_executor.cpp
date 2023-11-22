@@ -15,15 +15,32 @@
  */
 #include "indexlib/merger/merge_task_executor.h"
 
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include <algorithm>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/merge_config.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_base/segment/segment_data_base.h"
 #include "indexlib/merger/index_partition_merger_metrics.h"
+#include "indexlib/merger/merge_file_system.h"
 #include "indexlib/merger/merge_work_item.h"
 #include "indexlib/merger/table_merge_meta.h"
 #include "indexlib/merger/table_merge_work_item.h"
 #include "indexlib/table/segment_meta.h"
 #include "indexlib/table/table_factory_wrapper.h"
+#include "indexlib/table/table_merge_plan.h"
 #include "indexlib/table/table_merger.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/counter/CounterMap.h"
 

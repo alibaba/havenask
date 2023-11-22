@@ -27,6 +27,7 @@ public:
     MOCK_CONST_METHOD1(
         createBuilder,
         std::unique_ptr<build_service::builder::BuilderV2Impl>(const build_service::config::ResourceReaderPtr &));
+    MOCK_CONST_METHOD0(createRawDocRewriter, std::unique_ptr<build_service::workflow::RawDocumentRewriter>());
 };
 using NiceMockDirectBuilder = ::testing::NiceMock<MockDirectBuilder>;
 

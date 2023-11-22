@@ -15,10 +15,16 @@
  */
 #pragma once
 
+#include <stdint.h>
+
+#include "alog/Logger.h"
 #include "build_service/builder/BuilderV2.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 #include "build_service/workflow/Consumer.h"
+#include "build_service/workflow/FlowError.h"
+#include "build_service/workflow/StopOption.h"
 
 namespace build_service { namespace workflow {
 

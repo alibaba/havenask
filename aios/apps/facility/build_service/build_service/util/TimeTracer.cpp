@@ -15,6 +15,13 @@
  */
 #include "build_service/util/TimeTracer.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <ostream>
+#include <stddef.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/TimeUtility.h"
 
 namespace build_service::util {

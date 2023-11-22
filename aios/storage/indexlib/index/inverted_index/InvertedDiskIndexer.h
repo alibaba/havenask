@@ -19,7 +19,7 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/document/normal/IndexDocument.h"
 #include "indexlib/document/normal/ModifiedTokens.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/inverted_index/IInvertedDiskIndexer.h"
 #include "indexlib/index/inverted_index/InvertedLeafReader.h"
 #include "indexlib/index/inverted_index/builtin_index/dynamic/DynamicMemIndexer.h"
@@ -39,7 +39,7 @@ class DynamicPostingTable;
 class InvertedDiskIndexer : public IInvertedDiskIndexer
 {
 public:
-    explicit InvertedDiskIndexer(const indexlibv2::index::IndexerParameter& indexerParam);
+    explicit InvertedDiskIndexer(const indexlibv2::index::DiskIndexerParameter& indexerParam);
     ~InvertedDiskIndexer() = default;
 
     Status Open(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
@@ -78,7 +78,7 @@ private:
                                    const std::shared_ptr<file_system::IDirectory>& indexDirectory) const;
 
 protected:
-    indexlibv2::index::IndexerParameter _indexerParam;
+    indexlibv2::index::DiskIndexerParameter _indexerParam;
 
 private:
     IndexFormatOption _indexFormatOption;

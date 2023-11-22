@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_UPDATAVLE_VAR_NUM_ATTRIBUTE_MERGER_TEST_UTIL_H
-#define __INDEXLIB_UPDATAVLE_VAR_NUM_ATTRIBUTE_MERGER_TEST_UTIL_H
+#pragma once
 
 #include <memory>
 
@@ -262,5 +261,3 @@ void VarNumAttributeTestUtil<T>::CreateExpectMergedDataAndOffset(const std::stri
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_UPDATAVLE_VAR_NUM_ATTRIBUTE_MERGER_TEST_UTIL_H

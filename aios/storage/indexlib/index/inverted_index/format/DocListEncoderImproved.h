@@ -43,7 +43,7 @@ public:
     ~DocListEncoderImproved();
 
     void AddPosition(int32_t fieldIdxInPack);
-    void EndDocument(docid_t docId, docpayload_t docPayload);
+    void EndDocument(docid32_t docId, docpayload_t docPayload);
     void Dump(const std::shared_ptr<file_system::FileWriter>& file);
     uint32_t GetDumpLength() const;
     void Flush();
@@ -54,7 +54,7 @@ public:
     uint32_t GetDF() const { return _df; }
 
     fieldmap_t GetFieldMap() const { return _fieldMap; }
-    docid_t GetLastDocId() const { return _lastDocId; }
+    docid32_t GetLastDocId() const { return _lastDocId; }
     docpayload_t GetLastDocPayload() const { return _lastDocPayload; }
     fieldmap_t GetLastFieldMap() const { return _lastFieldMap; }
 
@@ -72,7 +72,7 @@ public:
     bool IsDocIdContinuous() const { return _isDocIdContinuous; }
 
 private:
-    void AddDocument(docid_t docId, docpayload_t docPayload, tf_t tf, fieldmap_t fieldMap);
+    void AddDocument(docid32_t docId, docpayload_t docPayload, tf_t tf, fieldmap_t fieldMap);
     void CreateDocSkipListWriter();
     void AddSkipListItem(uint32_t itemSize);
 
@@ -96,7 +96,7 @@ private:
     tf_t _totalTF;                            // 4byte
     df_t volatile _df;                        // 4byte
 
-    docid_t _lastDocId;           // 4byte
+    docid32_t _lastDocId;         // 4byte
     docpayload_t _lastDocPayload; // 2byte
     fieldmap_t _lastFieldMap;     // 1byte
     CompressMode _compressMode;   // 1byte

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RESOURCECHECKPOINTFORMATTER_H
-#define ISEARCH_BS_RESOURCECHECKPOINTFORMATTER_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "build_service/common_define.h"
@@ -44,12 +43,10 @@ public:
 
     static versionid_t decodeResourceCheckpointName(const std::string& idStr)
     {
-        versionid_t ret = INVALID_VERSION;
+        versionid_t ret = indexlib::INVALID_VERSIONID;
         autil::StringUtil::fromString(idStr, ret);
         return ret;
     }
 };
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_RESOURCECHECKPOINTFORMATTER_H

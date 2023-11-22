@@ -360,6 +360,7 @@ std::string GigRpcServer::getTopoInfoStr() const {
 
 Spec GigRpcServer::getRpcSpec() {
     Spec spec;
+    spec.ip = autil::NetUtil::getBindIp();
     if (_arpcServer) {
         auto arpcPort = _arpcServer->GetListenPort();
         if (arpcPort < 0) {
@@ -382,7 +383,7 @@ Spec GigRpcServer::getRpcSpec() {
         if (rdmaArpcPort < 0) {
             rdmaArpcPort = INVALID_PORT;
         }
-        spec.ports[MC_PROTOCOL_RDMA_ARPC] = grpcPort;
+        spec.ports[MC_PROTOCOL_RDMA_ARPC] = rdmaArpcPort;
     }
     spec.ports[MC_PROTOCOL_TCP] = _tcpPort;
     return spec;
@@ -576,7 +577,7 @@ GigAgentPtr &GigRpcServer::getAgent() {
 void GigRpcServer::startAgent() {
     _agent->start();
     if (_heartbeatManager) {
-        _heartbeatManager->notify();
+        _heartbeatManager->startAllBiz();
     }
 }
 
@@ -588,8 +589,14 @@ void GigRpcServer::stopAgent() {
 }
 
 bool GigRpcServer::waitUntilNoQuery(int64_t noQueryTimeInSecond, int64_t timeoutInSecond) {
+    AUTIL_LOG(INFO, "begin wait until no query, noQueryTime[%ld]s timeout[%ld]s",
+              noQueryTimeInSecond, timeoutInSecond);
     int64_t waitTime = 0;
     while (waitTime < timeoutInSecond) {
+        if (_heartbeatManager && _heartbeatManager->isAllReplicaStopped()) {
+            AUTIL_LOG(WARN, "all replica stopped, ignore no query wait");
+            return true;
+        }
         if (_agent->longTimeNoQuery(noQueryTimeInSecond)) {
             break;
         }
@@ -600,6 +607,7 @@ bool GigRpcServer::waitUntilNoQuery(int64_t noQueryTimeInSecond, int64_t timeout
         AUTIL_LOG(WARN, "wait timeout %ld", timeoutInSecond);
         return false;
     }
+    AUTIL_LOG(INFO, "end wait until no query, wait[%ld]s", waitTime);
     return true;
 }
 

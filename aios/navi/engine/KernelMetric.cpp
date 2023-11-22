@@ -16,6 +16,7 @@
 #include "navi/engine/KernelMetric.h"
 #include "autil/StringUtil.h"
 #include "navi/proto/GraphVis.pb.h"
+#include "navi/util/CommonUtil.h"
 
 namespace navi {
 
@@ -52,11 +53,22 @@ KernelMetric::KernelMetric(GraphId graphId,
     , _queueLatencyNs(0)
     , _computeLatencyNs(0)
 {
+    _ec = EC_NONE;
 }
 
-KernelMetric::KernelMetric()
-    : KernelMetric(INVALID_GRAPH_ID, "", "")
-{
+KernelMetricPtr KernelMetric::cloneAndClearEvent() {
+    auto newMetricPtr = std::make_shared<KernelMetric>(_graphId, _node, _kernel);
+    auto &newMetric = *newMetricPtr;
+    newMetric._ec = _ec;
+    newMetric._scheduleCount = _scheduleCount;
+    newMetric._tryScheduleCount = _tryScheduleCount;
+    newMetric._queueLatencyNs = _queueLatencyNs;
+    newMetric._computeLatencyNs = _computeLatencyNs;
+    {
+        autil::ScopedLock lock(_mutex);
+        newMetric._eventList = std::move(_eventList);
+    }
+    return newMetricPtr;
 }
 
 KernelMetric::~KernelMetric() {
@@ -78,7 +90,8 @@ int64_t KernelMetric::tryScheduleCount() const {
     return _tryScheduleCount;
 }
 
-void KernelMetric::reportTime(int32_t type,
+void KernelMetric::reportTime(ErrorCode ec,
+                              int32_t type,
                               NaviPartId partId,
                               int64_t beginTime,
                               int64_t endTime,
@@ -89,6 +102,7 @@ void KernelMetric::reportTime(int32_t type,
                               size_t poolMallocCount,
                               size_t poolMallocSize)
 {
+    reportTime(ec, beginTime, endTime, schedInfo);
     KernelComputeEvent event;
     event.type = type;
     event.partId = partId;
@@ -107,9 +121,13 @@ void KernelMetric::reportTime(int32_t type,
     event.poolMallocCount = poolMallocCount;
     event.poolMallocSize = poolMallocSize;
     event.perfResult = perfResult;
-    _queueLatencyNs += event.queueTime();
-    _computeLatencyNs += event.computeTime();
-    _eventList.emplace_back(event);
+    autil::ScopedLock lock(_mutex);
+    if (!_eventList) {
+        _eventList = std::make_shared<std::list<KernelComputeEvent>>();
+        _eventList->emplace_back(event);
+    } else {
+        _eventList->emplace_back(event);
+    }
 }
 
 int64_t KernelMetric::queueLatencyUs() const {
@@ -126,46 +144,19 @@ void KernelMetric::fillProto(KernelMetricDef *metric,
     metric->set_graph_id(_graphId);
     metric->set_node(_node);
     metric->set_kernel(_kernel);
+    metric->set_ec(_ec);
+    metric->set_ec_str(CommonUtil::getErrorString(_ec));
     metric->set_schedule_count(_scheduleCount);
     metric->set_try_schedule_count(_tryScheduleCount);
     metric->set_queue_latency_us(queueLatencyUs());
     metric->set_compute_latency_us(totalLatencyUs());
 
-    for (const auto &event : _eventList) {
-        event.fillProto(metric->add_events(), addrMap);
-    }
-}
-
-void KernelMetric::serialize(autil::DataBuffer &dataBuffer) const {
-    dataBuffer.write(_graphId);
-    dataBuffer.write(_node);
-    dataBuffer.write(_kernel);
-    dataBuffer.write(_scheduleCount);
-    dataBuffer.write(_tryScheduleCount);
-    dataBuffer.write(_queueLatencyNs);
-    dataBuffer.write(_computeLatencyNs);
-
-    dataBuffer.write(_eventList.size());
-    for (const auto &event : _eventList) {
-        dataBuffer.write(event);
-    }
-}
-
-void KernelMetric::deserialize(autil::DataBuffer &dataBuffer) {
-    dataBuffer.read(_graphId);
-    dataBuffer.read(_node);
-    dataBuffer.read(_kernel);
-    dataBuffer.read(_scheduleCount);
-    dataBuffer.read(_tryScheduleCount);
-    dataBuffer.read(_queueLatencyNs);
-    dataBuffer.read(_computeLatencyNs);
-
-    size_t eventSize = 0;
-    dataBuffer.read(eventSize);
-    for (size_t i = 0; i < eventSize; ++i) {
-        KernelComputeEvent event;
-        dataBuffer.read(event);
-        _eventList.emplace_back(event);
+    autil::ScopedLock lock(_mutex);
+    if (_eventList) {
+        const auto &eventList = *_eventList;
+        for (const auto &event : eventList) {
+            event.fillProto(metric->add_events(), addrMap);
+        }
     }
 }
 
@@ -179,12 +170,16 @@ std::string KernelMetric::toString() const {
            + ", queueLatency: " + autil::StringUtil::toString(queueLatencyUs())
            + ", totalLatencyUs: " + autil::StringUtil::toString(totalLatencyUs());
     ret += "\ntimeline: \n";
-    for (const auto &event : _eventList) {
-        ret += "enqueue: " +
-               autil::StringUtil::toString(event.scheduleInfo.enqueueTime) +
-               ", begin: " + autil::StringUtil::toString(event.beginTime) +
-               ", end: " + autil::StringUtil::toString(event.endTime);
-        ret += "\n";
+    autil::ScopedLock lock(_mutex);
+    if (_eventList) {
+        const auto &eventList = *_eventList;
+        for (const auto &event : eventList) {
+            ret += "enqueue: " +
+                   autil::StringUtil::toString(event.scheduleInfo.enqueueTime) +
+                   ", begin: " + autil::StringUtil::toString(event.beginTime) +
+                   ", end: " + autil::StringUtil::toString(event.endTime);
+            ret += "\n";
+        }
     }
     return ret;
 }

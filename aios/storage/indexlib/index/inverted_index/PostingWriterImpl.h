@@ -81,7 +81,7 @@ public:
         }
 
         auto format = _writerResource->postingFormatOption;
-        _costPerDoc = sizeof(docid_t) + (format.HasTermFrequency() ? sizeof(tf_t) : 0) +
+        _costPerDoc = sizeof(docid32_t) + (format.HasTermFrequency() ? sizeof(tf_t) : 0) +
                       (format.HasDocPayload() ? sizeof(docpayload_t) : 0) +
                       (format.HasFieldMap() ? sizeof(fieldmap_t) : 0);
         _costPerPosition = sizeof(pos_t) + (format.HasPositionPayload() ? sizeof(pospayload_t) : 0);
@@ -106,7 +106,7 @@ public:
 public:
     void AddPosition(pos_t pos, pospayload_t posPayload, int32_t fieldIdxInPack) override;
 
-    void EndDocument(docid_t docId, docpayload_t docPayload) override
+    void EndDocument(docid32_t docId, docpayload_t docPayload) override
     {
         if (_docListType == DLT_SINGLE_DOC_INFO) {
             // encode singleDocInfo
@@ -144,7 +144,7 @@ public:
         _estimateDumpTempMemSize += _costPerDoc;
     }
 
-    void EndDocument(docid_t docId, docpayload_t docPayload, fieldmap_t fieldMap) override
+    void EndDocument(docid32_t docId, docpayload_t docPayload, fieldmap_t fieldMap) override
     {
         SetFieldMap(fieldMap);
         EndDocument(docId, docPayload);
@@ -160,7 +160,7 @@ public:
 
     void SetTermPayload(termpayload_t payload) override { _termPayload = payload; }
 
-    bool CreateReorderPostingWriter(autil::mem_pool::Pool* pool, const std::vector<docid_t>* newOrder,
+    bool CreateReorderPostingWriter(autil::mem_pool::Pool* pool, const std::vector<docid32_t>* newOrder,
                                     PostingWriter* output) const override;
 
     uint32_t GetDF() const override
@@ -272,7 +272,7 @@ public:
 
     InMemPostingDecoder* CreateInMemPostingDecoder(autil::mem_pool::Pool* sessionPool) const override;
 
-    docid_t GetLastDocId() const override
+    docid32_t GetLastDocId() const override
     {
         switch (_docListType) {
         case DLT_SINGLE_DOC_INFO:
@@ -328,19 +328,19 @@ public:
     index::PostingWriterResource* TEST_GetWriterResource() const { return _writerResource; }
 
 private:
-    void UseDocListEncoder(tf_t tf, fieldmap_t fieldmap, docid_t docId, docpayload_t docPayload);
+    void UseDocListEncoder(tf_t tf, fieldmap_t fieldmap, docid32_t docId, docpayload_t docPayload);
 
     void BuildReorderPostingWriterBySortDocIdOnly(autil::mem_pool::Pool* pool, PostingIterator* iter,
-                                                  const std::vector<docid_t>* newOrder,
+                                                  const std::vector<docid32_t>* newOrder,
                                                   PostingWriterImpl* writer) const;
 
     void BuildReorderPostingWriterBySort(autil::mem_pool::Pool* pool, PostingIterator* iter,
-                                         const std::vector<docid_t>* newOrder, PostingWriterImpl* writer) const;
+                                         const std::vector<docid32_t>* newOrder, PostingWriterImpl* writer) const;
 
     void BuildReorderPostingWriterByBitmap(autil::mem_pool::Pool* pool, PostingIterator* iter,
-                                           const std::vector<docid_t>* newOrder, PostingWriterImpl* writer) const;
+                                           const std::vector<docid32_t>* newOrder, PostingWriterImpl* writer) const;
 
-    void ReorderPostingWriterAddDoc(docid_t docId, TermMatchData* termMatchData, PostingWriterImpl* writer,
+    void ReorderPostingWriterAddDoc(docid32_t docId, TermMatchData* termMatchData, PostingWriterImpl* writer,
                                     bool isLastDoc) const;
     bool NeedBitmapSpeedUp(uint32_t bitmapCapacity) const;
     bool NeedTermMatchData() const;

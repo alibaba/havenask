@@ -26,6 +26,8 @@
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 #include "indexlib/index/inverted_index/config/TruncateIndexConfig.h"
 #include "indexlib/index/pack_attribute/PackAttributeConfig.h"
+#include "indexlib/index/source/Common.h"
+#include "indexlib/index/source/config/SourceIndexConfig.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
 #include "indexlib/util/ErrorLogCollector.h"
@@ -79,7 +81,10 @@ void AddToUpdateDocumentRewriter::AddUpdatableFields(const std::vector<config::S
 {
     auto fieldConfigs = _schema->GetFieldConfigs();
     auto summaryConfigs = _schema->GetIndexConfigs(index::SUMMARY_INDEX_TYPE_STR);
+    auto sourceConfig = std::dynamic_pointer_cast<config::SourceIndexConfig>(
+        _schema->GetIndexConfig(index::SOURCE_INDEX_TYPE_STR, index::SOURCE_INDEX_NAME));
     std::shared_ptr<config::SummaryIndexConfig> summaryIndexConfig;
+
     if (!summaryConfigs.empty()) {
         assert(summaryConfigs.size() == 1u);
         summaryIndexConfig = std::dynamic_pointer_cast<config::SummaryIndexConfig>(summaryConfigs[0]);
@@ -95,6 +100,20 @@ void AddToUpdateDocumentRewriter::AddUpdatableFields(const std::vector<config::S
         }
         if (IsSortField(fieldName, sortDescVec)) {
             continue;
+        }
+        if (sourceConfig) {
+            auto sourceFieldConfigs = sourceConfig->GetFieldConfigs();
+            bool inSource = false;
+            for (const auto& fieldConfig : sourceFieldConfigs) {
+                if (fieldConfig && fieldConfig->GetFieldName() == fieldName) {
+                    inSource = true;
+                    break;
+                }
+            }
+            if (inSource) {
+                AUTIL_LOG(INFO, "field [%s] is in source, not updatable", fieldName.c_str());
+                continue;
+            }
         }
         bool inSummary = summaryIndexConfig && summaryIndexConfig->IsInSummary(fieldId);
 

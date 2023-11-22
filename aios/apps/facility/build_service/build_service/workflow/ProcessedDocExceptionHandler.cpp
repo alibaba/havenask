@@ -15,7 +15,12 @@
  */
 #include "build_service/workflow/ProcessedDocExceptionHandler.h"
 
+#include <iosfwd>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "build_service/util/Monitor.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 

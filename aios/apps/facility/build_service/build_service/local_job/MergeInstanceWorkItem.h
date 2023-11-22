@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MERGEINSTANCEWORKITEM_H
-#define ISEARCH_BS_MERGEINSTANCEWORKITEM_H
+#pragma once
 
+#include <stdint.h>
+#include <string>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
 #include "autil/WorkItem.h"
 #include "build_service/task_base/MergeTask.h"
-
-DECLARE_REFERENCE_CLASS(util, CounterMap);
+#include "build_service/task_base/TaskBase.h"
+#include "build_service/util/Log.h"
+#include "indexlib/index_base/partition_data.h"
+#include "indexlib/misc/common.h"
 
 namespace build_service { namespace local_job {
 
@@ -64,5 +70,3 @@ private:
 };
 
 }} // namespace build_service::local_job
-
-#endif // ISEARCH_BS_MERGEINSTANCEWORKITEM_H

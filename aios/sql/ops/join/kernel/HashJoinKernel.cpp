@@ -35,7 +35,6 @@
 #include "sql/data/TableData.h"
 #include "sql/data/TableType.h"
 #include "sql/ops/join/JoinBase.h"
-#include "sql/ops/join/JoinInfoCollector.h"
 #include "sql/ops/join/JoinKernelBase.h"
 #include "sql/proto/SqlSearchInfo.pb.h"
 #include "sql/proto/SqlSearchInfoCollector.h"
@@ -69,23 +68,23 @@ void HashJoinKernel::def(navi::KernelDefBuilder &builder) const {
         .input("input0", TableType::TYPE_ID)
         .input("input1", TableType::TYPE_ID)
         .output("output0", TableType::TYPE_ID);
-    JoinKernelBase::addDepend(builder);
 }
 
-bool HashJoinKernel::config(navi::KernelConfigContext &ctx) {
-    if (!JoinKernelBase::config(ctx)) {
-        return false;
-    }
-    if (_conditionJson.empty()) {
-        SQL_LOG(ERROR, "hash join condition is empty");
-        return false;
-    }
+bool HashJoinKernel::doConfig(navi::KernelConfigContext &ctx) {
     NAVI_JSONIZE(ctx, "buffer_limit_size", _bufferLimitSize, _bufferLimitSize);
     return true;
 }
 
+bool HashJoinKernel::doInit() {
+    if (_joinParamR->_conditionJson.empty()) {
+        SQL_LOG(ERROR, "hash join condition is empty");
+        return false;
+    }
+    return true;
+}
+
 navi::ErrorCode HashJoinKernel::compute(navi::KernelComputeContext &runContext) {
-    JoinInfoCollector::incComputeTimes(&_joinInfo);
+    _joinInfoR->incComputeTimes();
     uint64_t beginTime = TimeUtility::currentTime();
     navi::PortIndex outPort(0, navi::INVALID_INDEX);
     navi::PortIndex portIndex0(0, navi::INVALID_INDEX);
@@ -114,7 +113,7 @@ navi::ErrorCode HashJoinKernel::compute(navi::KernelComputeContext &runContext) 
     }
     auto eof = false;
     uint64_t endTime = TimeUtility::currentTime();
-    JoinInfoCollector::incTotalTime(&_joinInfo, endTime - beginTime);
+    _joinInfoR->incTotalTime(endTime - beginTime);
     auto largeTable = _hashLeftTable ? _rightBuffer : _leftBuffer;
     if (outputTable) {
         _totalOutputRowCount += outputTable->getRowCount();
@@ -122,12 +121,10 @@ navi::ErrorCode HashJoinKernel::compute(navi::KernelComputeContext &runContext) 
     if ((_leftEof && _rightEof && largeTable->getRowCount() == 0)
         || (canTruncate(_totalOutputRowCount, _truncateThreshold))) {
         eof = true;
-        SQL_LOG(DEBUG, "join info: [%s]", _joinInfo.ShortDebugString().c_str());
+        SQL_LOG(TRACE1, "join info: [%s]", _joinInfoR->_joinInfo->ShortDebugString().c_str());
     }
-    _sqlSearchInfoCollectorR->getCollector()->overwriteJoinInfo(_joinInfo);
+    _sqlSearchInfoCollectorR->getCollector()->overwriteJoinInfo(*_joinInfoR->_joinInfo);
     if (outputTable || eof) {
-        outputTable->mergeDependentPools(_leftBuffer);
-        outputTable->mergeDependentPools(_rightBuffer);
         TableDataPtr tableData(new TableData(outputTable));
         runContext.setOutput(outPort, tableData, eof);
     }
@@ -141,23 +138,25 @@ bool HashJoinKernel::doCompute(table::TablePtr &outputTable) {
         return false;
     }
     auto largeTable = _hashLeftTable ? _rightBuffer : _leftBuffer;
-    if (_shouldClearTable) {
+    if (_hashJoinMapR->_shouldClearTable) {
         joinedRowCount = largeTable->getRowCount();
     }
-    const std::vector<size_t> &leftTableIndexs = _hashLeftTable ? _tableAIndexes : _tableBIndexes;
-    const std::vector<size_t> &rightTableIndexs = _hashLeftTable ? _tableBIndexes : _tableAIndexes;
+    const std::vector<size_t> &leftTableIndexs
+        = _hashLeftTable ? _joinParamR->_tableAIndexes : _joinParamR->_tableBIndexes;
+    const std::vector<size_t> &rightTableIndexs
+        = _hashLeftTable ? _joinParamR->_tableBIndexes : _joinParamR->_tableAIndexes;
     size_t leftTableSize = _hashLeftTable ? _leftBuffer->getRowCount() : joinedRowCount;
-    if (!_joinPtr->generateResultTable(leftTableIndexs,
-                                       rightTableIndexs,
-                                       _leftBuffer,
-                                       _rightBuffer,
-                                       leftTableSize,
-                                       outputTable)) {
+    if (!_joinParamR->_joinPtr->generateResultTable(leftTableIndexs,
+                                                    rightTableIndexs,
+                                                    _leftBuffer,
+                                                    _rightBuffer,
+                                                    leftTableSize,
+                                                    outputTable)) {
         SQL_LOG(ERROR, "generate result table failed");
         return false;
     }
-    _tableAIndexes.clear();
-    _tableBIndexes.clear();
+    _joinParamR->_tableAIndexes.clear();
+    _joinParamR->_tableBIndexes.clear();
 
     if (!outputTable) {
         SQL_LOG(ERROR, "generate join result table failed");
@@ -166,7 +165,7 @@ bool HashJoinKernel::doCompute(table::TablePtr &outputTable) {
     outputTable->deleteRows();
 
     if (!_hashLeftTable || (_rightEof && largeTable->getRowCount() == joinedRowCount)) {
-        if (!_joinPtr->finish(_leftBuffer, leftTableSize, outputTable)) {
+        if (!_joinParamR->_joinPtr->finish(_leftBuffer, leftTableSize, outputTable)) {
             SQL_LOG(ERROR, "left buffer finish fill table failed");
             return false;
         }
@@ -174,15 +173,15 @@ bool HashJoinKernel::doCompute(table::TablePtr &outputTable) {
     if (joinedRowCount > 0) {
         largeTable->clearFrontRows(joinedRowCount);
     }
-    SQL_LOG(DEBUG,
+    SQL_LOG(TRACE3,
             "joined row count [%zu], joined table remaining count [%zu],"
             " left eof [%d], right eof [%d]",
             joinedRowCount,
             largeTable->getRowCount(),
             _leftEof,
             _rightEof);
-    if (_joinInfo.totalhashtime() < 5) {
-        SQL_LOG(DEBUG,
+    if (_joinInfoR->_joinInfo->totalhashtime() < 5) {
+        SQL_LOG(TRACE2,
                 "hash join output table: [%s]",
                 table::TableUtil::toString(outputTable, 10).c_str());
     }
@@ -203,12 +202,12 @@ bool HashJoinKernel::tryCreateHashMap() {
             return false;
         }
         _hashMapCreated = true;
-        SQL_LOG(TRACE1,
+        SQL_LOG(TRACE3,
                 "create hash table with left buffer."
                 " left buffer size[%zu], right buffer size[%zu], hash map size[%zu]",
                 _leftBuffer->getRowCount(),
                 _rightBuffer->getRowCount(),
-                _hashJoinMap.size());
+                _hashJoinMapR->_hashJoinMap.size());
     } else if (_rightEof && _leftBuffer
                && _rightBuffer->getRowCount() <= _leftBuffer->getRowCount()) {
         _hashLeftTable = false;
@@ -217,12 +216,12 @@ bool HashJoinKernel::tryCreateHashMap() {
             return false;
         }
         _hashMapCreated = true;
-        SQL_LOG(TRACE1,
+        SQL_LOG(TRACE3,
                 "create hash table with right buffer."
                 " left buffer size[%zu], right buffer size[%zu], hash map size[%zu]",
                 _leftBuffer->getRowCount(),
                 _rightBuffer->getRowCount(),
-                _hashJoinMap.size());
+                _hashJoinMapR->_hashJoinMap.size());
     }
     return true;
 }
@@ -230,53 +229,55 @@ bool HashJoinKernel::tryCreateHashMap() {
 bool HashJoinKernel::joinTable(size_t &joinedRowCount) {
     uint64_t beginJoin = TimeUtility::currentTime();
     auto largeTable = _hashLeftTable ? _rightBuffer : _leftBuffer;
-    const auto &joinColumns = _hashLeftTable ? _rightJoinColumns : _leftJoinColumns;
-    HashValues largeTableValues;
-    if (!getHashValues(largeTable, 0, largeTable->getRowCount(), joinColumns, largeTableValues)) {
+    const auto &joinColumns
+        = _hashLeftTable ? _joinParamR->_rightJoinColumns : _joinParamR->_leftJoinColumns;
+    HashJoinMapR::HashValues largeTableValues;
+    if (!_hashJoinMapR->getHashValues(
+            largeTable, 0, largeTable->getRowCount(), joinColumns, largeTableValues)) {
         return false;
     }
     if (_hashLeftTable) {
-        JoinInfoCollector::incRightHashCount(&_joinInfo, largeTableValues.size());
+        _joinInfoR->incRightHashCount(largeTableValues.size());
     } else {
-        JoinInfoCollector::incLeftHashCount(&_joinInfo, largeTableValues.size());
+        _joinInfoR->incLeftHashCount(largeTableValues.size());
     }
     uint64_t afterHash = TimeUtility::currentTime();
-    JoinInfoCollector::incHashTime(&_joinInfo, afterHash - beginJoin);
+    _joinInfoR->incHashTime(afterHash - beginJoin);
     joinedRowCount = makeHashJoin(largeTableValues);
     uint64_t afterJoin = TimeUtility::currentTime();
-    JoinInfoCollector::incJoinTime(&_joinInfo, afterJoin - afterHash);
+    _joinInfoR->incJoinTime(afterJoin - afterHash);
     return true;
 }
 
-size_t HashJoinKernel::makeHashJoin(const HashValues &values) {
+size_t HashJoinKernel::makeHashJoin(const HashJoinMapR::HashValues &values) {
     if (values.empty()) {
         return 0;
     }
     size_t joinedCount = 0;
     size_t oriRow = values[0].first;
-    reserveJoinRow(values.size());
+    _joinParamR->reserveJoinRow(values.size());
     for (const auto &valuePair : values) {
         auto &largeRow = valuePair.first;
         // multi field joined same row
         if (largeRow > oriRow && joinedCount >= _batchSize) {
-            SQL_LOG(TRACE1,
+            SQL_LOG(TRACE3,
                     "joined count[%zu] over batch size[%zu], used large row[%zu]",
                     joinedCount,
                     _batchSize,
                     largeRow);
             return largeRow;
         }
-        auto iter = _hashJoinMap.find(valuePair.second);
-        if (iter != _hashJoinMap.end()) {
+        auto iter = _hashJoinMapR->_hashJoinMap.find(valuePair.second);
+        if (iter != _hashJoinMapR->_hashJoinMap.end()) {
             auto &joinedRows = iter->second;
             for (auto row : joinedRows) {
-                joinRow(row, largeRow);
+                _joinParamR->joinRow(row, largeRow);
             }
             joinedCount += joinedRows.size();
         }
         oriRow = largeRow;
     }
-    SQL_LOG(TRACE1, "joined count[%zu], used large row[%zu]", joinedCount, oriRow + 1);
+    SQL_LOG(TRACE3, "joined count[%zu], used large row[%zu]", joinedCount, oriRow + 1);
     return oriRow + 1;
 }
 

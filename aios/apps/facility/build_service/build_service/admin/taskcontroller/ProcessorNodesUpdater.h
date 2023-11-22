@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORNODESUPDATER_H
-#define ISEARCH_BS_PROCESSORNODESUPDATER_H
+#pragma once
 
-#include "autil/StringUtil.h"
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "build_service/admin/taskcontroller/NodeStatusManager.h"
 #include "build_service/admin/taskcontroller/ProcessorInput.h"
 #include "build_service/common/ProcessorOutput.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
-#include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/proto/DataDescriptions.h"
 #include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/WorkerNode.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
 
@@ -94,5 +94,3 @@ private:
 BS_TYPEDEF_PTR(ProcessorNodesUpdater);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_PROCESSORNODESUPDATER_H

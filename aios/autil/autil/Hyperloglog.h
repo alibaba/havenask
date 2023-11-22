@@ -30,34 +30,6 @@ class Pool;
 
 namespace autil {
 
-#define HLL_DENSE 0  /* 稠密编码方式，占用 16K 内存 */
-#define HLL_SPARSE 1 /* 稀疏编码方式, 创建时用 1.5K 内存，在元素不断加入后，自行决定何时转换为稠密编码方式 */
-#define HLL_P 14     /* The greater is P, the smaller the error. */
-#define HLL_Q                                                                                                          \
-    50                      /* (64-HLL_P) The number of bits of the hash value used for                                \
-                                determining the number of leading zeros. */
-#define HLL_REGISTERS 16384 /* (1<<HLL_P) With P=14, 16384 registers. */
-#define HLL_P_MASK 16383    /* (HLL_REGISTERS-1) Mask to index register. */
-
-#define HLL_BITS 6          /* Enough to count up to 63 leading zeroes. */
-#define HLL_REGISTER_MAX 63 /* ((1<<HLL_BITS)-1) */
-
-#define HLL_ALPHA_INF 0.721347520444481703680 /* constant for 0.5/ln(2) */
-
-#define HLL_SERIAL_SPARSE_MIN 3000
-#define HLL_SERIAL_SPARSE_BYTES 6144
-#define HLL_SERIAL_DENSE_BYTES HLL_REGISTERS /* HLL_REGISTERS * 6 / 8 = 12288 */
-
-#define HLL_MAGIC "HLL"
-#define HLL_MAGIC_BYTES 3
-
-#define VARINT32_MAX_BYTES 5
-
-#define HLL_REGI_MAX 512        /* 总共512个位置 */
-#define HLL_REGI_MAX_BYTES 1536 /* 总共 1.5K */
-#define HLL_REGI_AREA_NUM 16    /* 拆成16个子区域 */
-#define HLL_REGI_AREA_SIZE 32   /* 每个区域32个位置 */
-
 struct HllRegi {
     //桶号
     uint16_t index;
@@ -250,6 +222,31 @@ private:
             return 1;
         }
     }
+
+public:
+    static constexpr unsigned char HLL_DENSE = 0; /* 稠密编码方式，占用 16K 内存 */
+    static constexpr unsigned char HLL_SPARSE =
+        1; /* 稀疏编码方式, 创建时用 1.5K 内存，在元素不断加入后，自行决定何时转换为稠密编码方式 */
+    static constexpr int32_t HLL_REGISTERS = 16384; /* (1<<HLL_P) With P=14, 16384 registers. */
+    static constexpr uint64_t HLL_P = 14;           /* The greater is P, the smaller the error. */
+    static constexpr uint64_t HLL_Q = 50;
+    /* (64-HLL_P) The number of bits of the hash value used for             \
+       determining the number of leading zeros. */
+    static constexpr int32_t HLL_P_MASK = 16383; /* (HLL_REGISTERS-1) Mask to index register. */
+
+    static constexpr uint8_t HLL_BITS = 6;          /* Enough to count up to 63 leading zeroes. */
+    static constexpr uint8_t HLL_REGISTER_MAX = 63; /* ((1<<HLL_BITS)-1) */
+
+    static constexpr double HLL_ALPHA_INF = 0.721347520444481703680; /* constant for 0.5/ln(2) */
+
+    static constexpr int32_t HLL_SERIAL_SPARSE_MIN = 3000;
+
+    static constexpr uint32_t VARINT32_MAX_BYTES = 5;
+
+    static constexpr int32_t HLL_REGI_MAX = 512;        /* 总共512个位置 */
+    static constexpr int32_t HLL_REGI_MAX_BYTES = 1536; /* 总共 1.5K */
+    static constexpr int32_t HLL_REGI_AREA_NUM = 16;    /* 拆成16个子区域 */
+    static constexpr int32_t HLL_REGI_AREA_SIZE = 32;   /* 每个区域32个位置 */
 };
 
 } // namespace autil

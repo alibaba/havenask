@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SWIFTTOPICCONFIG_H
-#define ISEARCH_BS_SWIFTTOPICCONFIG_H
+#pragma once
+
+#include <map>
+#include <stdint.h>
+#include <string>
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
 #include "build_service/proto/JsonizableProtobuf.h"
 #include "build_service/util/Log.h"
 #include "swift/protocol/AdminRequestResponse.pb.h"
+#include "swift/protocol/Common.pb.h"
 
 namespace build_service { namespace config {
 
@@ -36,8 +40,8 @@ public:
     std::string getTopicMode() const;
     uint32_t getPartitionCount() const;
     bool hasPartitionRestrict() const;
-    static const uint64_t FULL_TOPIC_SRC_SIGNATURE = (uint64_t)1 << 63;
-    static const uint64_t INC_TOPIC_SRC_SIGNATURE = 1 + ((uint64_t)1 << 63);
+    static constexpr uint64_t FULL_TOPIC_SRC_SIGNATURE = (uint64_t)1 << 63;
+    static constexpr uint64_t INC_TOPIC_SRC_SIGNATURE = 1 + ((uint64_t)1 << 63);
 
 private:
     static std::string topicModeToStr(swift::protocol::TopicMode topicMode);
@@ -74,5 +78,3 @@ private:
 
 BS_TYPEDEF_PTR(SwiftTopicConfig);
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_SWIFTTOPICCONFIG_H

@@ -22,13 +22,12 @@
 
 namespace navi {
 
-NaviSession::NaviSession(const NaviLoggerPtr &logger,
-                         TaskQueue *taskQueue,
+NaviSession::NaviSession(TaskQueue *taskQueue,
                          BizManager *bizManager,
                          GraphDef *graphDef,
                          const ResourceMap *resourceMap,
                          NaviUserResultClosure *closure)
-    : NaviWorkerBase(logger, taskQueue, bizManager, closure)
+    : NaviWorkerBase(taskQueue, bizManager, closure)
     , _resourceMap(resourceMap)
     , _graphDef(graphDef)
     , _graph(nullptr)
@@ -59,28 +58,28 @@ void NaviSession::run() {
     NAVI_LOG(SCHEDULE1, "start");
     auto ec = _graph->init(_graphDef);
     if (EC_NONE != ec) {
-        _graph->notifyFinish(ec);
+        _graph->notifyFinishEc(ec);
         return;
     }
     if (!getUserResult()->hasOutput()) {
         NAVI_LOG(ERROR, "graph has no output");
-        _graph->notifyFinish(EC_NO_GRAPH_OUTPUT);
+        _graph->notifyFinishEc(EC_NO_GRAPH_OUTPUT);
         return;
     }
     ec = _graph->run();
     if (EC_NONE != ec) {
-        _graph->notifyFinish(ec);
+        _graph->notifyFinishEc(ec);
     }
 }
 
 void NaviSession::checkGraph() {
     auto ec = _graph->init(_graphDef);
     if (EC_NONE != ec) {
-        _graph->notifyFinish(ec);
+        _graph->notifyFinishEc(ec);
     }
     ec = _graph->run();
     if (EC_NONE != ec) {
-        _graph->notifyFinish(ec);
+        _graph->notifyFinishEc(ec);
     }
 }
 
@@ -90,7 +89,7 @@ void NaviSession::drop() {
     if (_graph->isTimeout()) {
         ec = EC_TIMEOUT;
     }
-    _graph->notifyFinish(ec);
+    _graph->notifyFinishEc(ec);
 
 }
 
@@ -107,7 +106,9 @@ bool NaviSession::isTimeout() const {
                  beginTime / FACTOR_MS_TO_US,
                  curTime / FACTOR_MS_TO_US);
         NAVI_LOG(SCHEDULE1, "timeout bt: %s",
-                 _logger.logger->firstErrorBackTrace().c_str());
+                 _logger.logger->firstErrorEvent()
+                     ? _logger.logger->firstErrorEvent()->bt.c_str()
+                     : "");
         return true;
     }
     return false;

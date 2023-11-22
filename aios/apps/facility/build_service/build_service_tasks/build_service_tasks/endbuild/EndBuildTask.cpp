@@ -15,18 +15,37 @@
  */
 #include "build_service_tasks/endbuild/EndBuildTask.h"
 
-#include "build_service/config/BuildRuleConfig.h"
+#include <map>
+#include <memory>
+#include <ostream>
+#include <stdint.h>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/file_system/FileSystemCreator.h"
-#include "indexlib/file_system/IFileSystem.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/config/module_info.h"
+#include "indexlib/config/updateable_schema_standards.h"
 #include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/parallel_partition_data_merger.h"
-#include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace build_service::util;
@@ -163,7 +182,7 @@ bool EndBuildTask::handleTarget(const config::TaskTarget& target)
         Version version = dataMerger.MergeSegmentData(mergeSrc);
         // TODO: admin should send target version timestamp to endBuild worker
         //       check final version ts is the equal to target version timestamp
-        if (version.GetVersionId() == INVALID_VERSION) {
+        if (version.GetVersionId() == indexlib::INVALID_VERSIONID) {
             BS_LOG(ERROR, "merge parallel data failed.");
             return false;
         }

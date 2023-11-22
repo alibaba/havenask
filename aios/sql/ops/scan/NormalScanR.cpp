@@ -260,23 +260,28 @@ bool NormalScanR::doBatchScan(table::TablePtr &table, bool &eof) {
     std::vector<matchdoc::MatchDoc> matchDocs;
     eof = false;
     const auto &matchDocAllocator = _attributeExpressionCreatorR->_matchDocAllocator;
-    if (_scanIter != NULL && _seekCount < _limit) {
+    if (_scanIter != NULL && _scanCount < _limit) {
         uint32_t batchSize = _batchSize;
-        if (_limit > _seekCount) {
-            batchSize = std::min(_limit - _seekCount, batchSize);
+        if (_limit > _scanCount) {
+            batchSize = std::min(_limit - _scanCount, batchSize);
         }
         matchDocs.reserve(batchSize);
-        uint32_t lastScanCount = _scanIter->getTotalScanCount();
         auto r = _scanIter->batchSeek(batchSize, matchDocs);
         if (r.is_ok()) {
             eof = r.get();
         } else if (r.as<isearch::common::TimeoutError>()) {
-            if (_enableScanTimeout) {
+            if (_enableScanTimeout && _queryConfig->resultallowsoftfailure()) {
                 SQL_LOG(WARN,
                         "scan table [%s] timeout, info: [%s]",
                         _scanInitParamR->tableName.c_str(),
                         _scanInitParamR->scanInfo.ShortDebugString().c_str());
                 eof = true;
+                DegradedInfo degradedInfo;
+                degradedInfo.add_degradederrorcodes(INCOMPLETE_DATA_ERROR);
+                if (_sqlSearchInfoCollectorR) {
+                    _sqlSearchInfoCollectorR->getCollector()->addDegradedInfo(
+                        std::move(degradedInfo));
+                }
             } else {
                 SQL_LOG(ERROR,
                         "scan table [%s] timeout, abort, info: [%s]",
@@ -292,17 +297,18 @@ bool NormalScanR::doBatchScan(table::TablePtr &table, bool &eof) {
             _scanIter.reset();
             return false;
         }
-        _seekCount += matchDocs.size();
-        _scanInitParamR->incTotalScanCount(_scanIter->getTotalScanCount() - lastScanCount);
-        if (_seekCount >= _limit) {
+        _scanCount += matchDocs.size();
+        if (_scanCount >= _limit) {
             eof = true;
-            uint32_t delCount = _seekCount - _limit;
+            uint32_t delCount = _scanCount - _limit;
             if (delCount > 0) {
                 uint32_t reserveCount = matchDocs.size() - delCount;
                 matchDocAllocator->deallocate(matchDocs.data() + reserveCount, delCount);
                 matchDocs.resize(reserveCount);
             }
         }
+        _scanInitParamR->setTotalSeekedCount(_scanIter->getTotalSeekedCount());
+        _scanInitParamR->setTotalWholeDocCount(_scanIter->getTotalWholeDocCount());
     } else {
         eof = true;
     }
@@ -313,15 +319,14 @@ bool NormalScanR::doBatchScan(table::TablePtr &table, bool &eof) {
     _scanInitParamR->incEvaluateTime(evaluteTimer.done_us());
 
     autil::ScopedTime2 outputTimer;
-    bool reuseMatchDocAllocator = _pushDownMode
-                                  || (eof && _scanOnce && !_scanIteratorCreatorR->useMatchData())
-                                  || (_scanInitParamR->sortDesc.topk != 0);
+    bool reuseMatchDocAllocator = !_scanIteratorCreatorR->useMatchData()
+                                  && ((eof && _scanOnce) || (_scanInitParamR->sortDesc.topk != 0));
     table = createTable(matchDocs, matchDocAllocator, reuseMatchDocAllocator);
     _scanInitParamR->incOutputTime(outputTimer.done_us());
 
     if (eof && _scanIter) {
         _innerScanInfo.set_totalseekdoccount(_innerScanInfo.totalseekdoccount()
-                                             + _scanIter->getTotalSeekDocCount());
+                                             + _scanIter->getTotalScanCount());
         _innerScanInfo.set_usetruncate(_scanIter->useTruncate());
         _scanIter.reset();
     }
@@ -624,13 +629,18 @@ NormalScanR::copyMatchDocAllocator(std::vector<matchdoc::MatchDoc> &matchDocVec,
                                    std::vector<matchdoc::MatchDoc> &copyMatchDocs) {
     auto outputAllocator = matchDocAllocator;
     if (!reuseMatchDocAllocator) {
-        outputAllocator.reset(matchDocAllocator->cloneAllocatorWithoutData());
+        outputAllocator.reset(
+            matchDocAllocator->cloneAllocatorWithoutData(_graphMemoryPoolR->getPool()));
         if (!matchDocAllocator->swapDocStorage(*outputAllocator, copyMatchDocs, matchDocVec)) {
             SQL_LOG(ERROR, "clone table data failed");
             return nullptr;
         }
         // drop useless field group
-        outputAllocator->reserveFields(SL_ATTRIBUTE);
+        if (_pushDownMode && _scanIteratorCreatorR->useMatchData()) {
+            outputAllocator->reserveFields(SL_ATTRIBUTE, {MATCH_DATA_REF, SIMPLE_MATCH_DATA_REF});
+        } else {
+            outputAllocator->reserveFields(SL_ATTRIBUTE);
+        }
     } else {
         copyMatchDocs.swap(matchDocVec);
     }
@@ -657,7 +667,15 @@ table::TablePtr NormalScanR::doCreateTable(matchdoc::MatchDocAllocatorPtr output
         }
         return table;
     } else {
-        table::TablePtr table(new table::Table(copyMatchDocs, outputAllocator));
+        table::TablePtr table;
+        if (_pushDownMode && _scanIteratorCreatorR->useMatchData()) {
+            table = table::Table::fromMatchDocs(copyMatchDocs,
+                                                outputAllocator,
+                                                SL_ATTRIBUTE,
+                                                {MATCH_DATA_REF, SIMPLE_MATCH_DATA_REF});
+        } else {
+            table = table::Table::fromMatchDocs(copyMatchDocs, outputAllocator);
+        }
         if (_scanInitParamR->sortDesc.topk != 0) {
             auto calcTableR
                 = CalcTableR::buildOne(_ctx,
@@ -710,7 +728,7 @@ void NormalScanR::flattenSub(matchdoc::MatchDocAllocatorPtr &outputAllocator,
             }
         }
     }
-    table.reset(new table::Table(outputMatchDocs, outputAllocator));
+    table = table::Table::fromMatchDocs(outputMatchDocs, outputAllocator);
 }
 
 void NormalScanR::getInvertedTracers(

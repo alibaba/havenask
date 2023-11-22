@@ -1,12 +1,14 @@
 package com.taobao.search.iquan.client.common.json.function;
 
-import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
-import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
+import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Getter
 public class JsonTvfNamedInputTable {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonTvfNamedInputTable.class);
@@ -16,14 +18,6 @@ public class JsonTvfNamedInputTable {
 
     @JsonProperty(value = "table_type", required = true)
     private JsonTvfInputTable tableType;
-
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    public JsonTvfInputTable getTableType() {
-        return tableType;
-    }
 
     @JsonIgnore
     public boolean isValid() {

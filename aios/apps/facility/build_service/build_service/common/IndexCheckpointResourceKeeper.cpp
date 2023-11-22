@@ -15,12 +15,23 @@
  */
 #include "build_service/common/IndexCheckpointResourceKeeper.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <set>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
-#include "build_service/common/ResourceKeeperGuard.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigReaderAccessor.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/proto/Admin.pb.h"
 
 using namespace std;
 using autil::StringUtil;
@@ -31,7 +42,7 @@ BS_LOG_SETUP(common, IndexCheckpointResourceKeeper);
 IndexCheckpointResourceKeeper::IndexCheckpointResourceKeeper(const std::string& name, const std::string& type,
                                                              const ResourceContainerPtr& resourceContainer)
     : ResourceKeeper(name, type)
-    , _targetVersion(INVALID_VERSION)
+    , _targetVersion(indexlib::INVALID_VERSIONID)
     , _resourceContainer(resourceContainer)
     , _needLatestVersion(false)
 {
@@ -59,7 +70,7 @@ bool IndexCheckpointResourceKeeper::init(const KeyValueMap& params)
     string version = getValueFromKeyValueMap(params, "version");
     if (version == "latest") {
         _needLatestVersion = true;
-        updateVersion(INVALID_VERSION);
+        updateVersion(indexlib::INVALID_VERSIONID);
     } else {
         if (!StringUtil::fromString(version, _targetVersion)) {
             BS_LOG(ERROR, "[%s] invalid version param: [%s].", _resourceName.c_str(), version.c_str());
@@ -184,13 +195,13 @@ void IndexCheckpointResourceKeeper::deleteApplyer(const std::string& applyer)
 void IndexCheckpointResourceKeeper::clearUselessCheckpoints(const std::string& applyer,
                                                             const proto::WorkerNodes& workerNodes)
 {
-    versionid_t smallestVersionid = INVALID_VERSION;
+    versionid_t smallestVersionid = indexlib::INVALID_VERSIONID;
     for (size_t i = 0; i < workerNodes.size(); i++) {
         proto::WorkerNodeBase::ResourceInfo* resourceInfo;
         if (!workerNodes[i]->getUsingResource(_resourceName, resourceInfo)) {
             return;
         }
-        versionid_t version = INVALID_VERSION;
+        versionid_t version = indexlib::INVALID_VERSIONID;
         if (!StringUtil::fromString(resourceInfo->resourceId, version)) {
             return;
         }
@@ -228,7 +239,7 @@ void IndexCheckpointResourceKeeper::syncResources(const std::string& applyer, co
             }
             node->addTargetDependResource(_resourceName, resourceStr, getResourceId());
         } else {
-            versionid_t version = INVALID_VERSION;
+            versionid_t version = indexlib::INVALID_VERSIONID;
             StringUtil::fromString(resourceInfo->resourceId, version);
             if (version != _targetVersion) {
                 if (resourceStr.empty()) {

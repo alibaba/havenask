@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TIMESTAMPDOCUMENTREWRITERTEST_H
-#define __INDEXLIB_TIMESTAMPDOCUMENTREWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_rewriter/timestamp_document_rewriter.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(TimestampDocumentRewriterTest, TestRewrite);
 INDEXLIB_UNIT_TEST_CASE(TimestampDocumentRewriterTest, TestRewriteDocAlreadyHasTimestampField);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_TIMESTAMPDOCUMENTREWRITERTEST_H

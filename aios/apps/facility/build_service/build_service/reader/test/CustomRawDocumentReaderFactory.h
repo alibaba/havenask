@@ -1,8 +1,11 @@
-#ifndef CUSTOMRAWDOCUMENT_READER_FACTORY_H
-#define CUSTOMRAWDOCUMENT_READER_FACTORY_H
+#pragma once
 
+#include <string>
+
+#include "build_service/common_define.h"
 #include "build_service/reader/RawDocumentReader.h"
 #include "build_service/reader/ReaderModuleFactory.h"
+#include "build_service/util/Log.h"
 
 namespace build_service { namespace reader {
 
@@ -22,5 +25,3 @@ private:
 };
 
 }} // namespace build_service::reader
-
-#endif // GENERATIONMETA_PROCESSOR_FACTORY_H

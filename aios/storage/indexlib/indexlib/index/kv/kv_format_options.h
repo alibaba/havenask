@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_FORMAT_OPTIONS_H
-#define __INDEXLIB_KV_FORMAT_OPTIONS_H
+#pragma once
 
 #include <memory>
 
@@ -58,5 +57,3 @@ private:
 
 DEFINE_SHARED_PTR(KVFormatOptions);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_FORMAT_OPTIONS_H

@@ -15,6 +15,10 @@
  */
 #pragma once
 
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "autil/legacy/jsonizable.h"
 
 namespace indexlibv2 { namespace config {
@@ -54,6 +58,7 @@ public:
 
 private:
     struct Impl;
+
     std::unique_ptr<Impl> _impl;
 };
 typedef std::vector<SortDescription> SortDescriptions;

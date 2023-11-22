@@ -6,6 +6,7 @@ strict_cc_fast_test(
         'BuildResourceMetricsTest.cpp', 'MemoryQuotaSynchronizerTest.cpp',
         'QuotaControlTest.cpp', 'WaitMemoryQuotaControllerTest.cpp'
     ],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/autil:thread', '//aios/storage/indexlib/util/memory_control',
         '//aios/storage/indexlib/util/testutil:unittest'

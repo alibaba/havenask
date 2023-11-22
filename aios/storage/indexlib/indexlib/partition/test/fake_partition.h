@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_PARTITION_H
-#define __INDEXLIB_FAKE_PARTITION_H
+#pragma once
 
 #include <memory>
 
@@ -40,5 +39,3 @@ public:
 };
 DEFINE_SHARED_PTR(FakePartition);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_FAKE_PARTITION_H

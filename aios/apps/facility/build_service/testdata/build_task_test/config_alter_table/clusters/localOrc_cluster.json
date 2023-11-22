@@ -1,0 +1,28 @@
+{
+    "build_option_config": {
+        "max_recover_time": 1
+    },
+    "merge_controller" : {
+        "mode" : "local"
+    },
+    "offline_index_config": {
+        "build_config": {
+            "max_doc_count": 2
+        }
+    },
+    "online_index_config": {
+        "build_config": {
+            "max_doc_count": 2
+        },
+        "need_read_remote_index": true,
+        "need_deploy_index": false
+    },
+    "cluster_config": {
+        "hash_mode": {
+            "hash_function": "HASH",
+            "hash_field": "id"
+        },
+        "table_name": "localOrc"
+    },
+    "realtime": true
+}

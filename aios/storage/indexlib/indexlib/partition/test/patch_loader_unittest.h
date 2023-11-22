@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PATCHLOADERTEST_H
-#define __INDEXLIB_PATCHLOADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/patch_loader.h"
@@ -53,5 +52,3 @@ INDEXLIB_UNIT_TEST_CASE(PatchLoaderTest, TestInitWithLoadPatchThreadNum);
 INDEXLIB_UNIT_TEST_CASE(PatchLoaderTest, TestMultiThreadLoadPatch);
 INDEXLIB_UNIT_TEST_CASE(PatchLoaderTest, TestPatchWorkItemProcessMultipleTimes);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PATCHLOADERTEST_H

@@ -15,6 +15,8 @@
  */
 #include "indexlib/framework/TabletInfos.h"
 
+#include <assert.h>
+
 #include "indexlib/framework/VersionDeployDescription.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"

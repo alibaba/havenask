@@ -28,7 +28,7 @@
 
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, LocalDiskSummaryDiskIndexer);
-LocalDiskSummaryDiskIndexer::LocalDiskSummaryDiskIndexer(const IndexerParameter& indexerParam)
+LocalDiskSummaryDiskIndexer::LocalDiskSummaryDiskIndexer(const DiskIndexerParameter& indexerParam)
     : _indexerParam(indexerParam)
 {
 }

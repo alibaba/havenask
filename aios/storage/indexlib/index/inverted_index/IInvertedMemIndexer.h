@@ -30,6 +30,10 @@ namespace indexlibv2::index {
 class AttributeMemReader;
 } // namespace indexlibv2::index
 
+namespace indexlibv2::config {
+class InvertedIndexConfig;
+}
+
 namespace indexlib::index {
 class InvertedIndexMetrics;
 
@@ -42,9 +46,11 @@ public:
     virtual void UpdateTokens(docid_t docId, const document::ModifiedTokens& modifiedTokens) = 0;
     virtual std::shared_ptr<InvertedIndexMetrics> GetMetrics() const = 0;
     virtual std::shared_ptr<indexlibv2::index::AttributeMemReader> CreateSectionAttributeMemReader() const = 0;
+    virtual Status AddDocument(document::IndexDocument* doc) = 0;
 
 public:
     virtual indexlibv2::document::extractor::IDocumentInfoExtractor* GetDocInfoExtractor() const = 0;
+    virtual const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& GetIndexConfig() const = 0;
 
 private:
     friend class SingleInvertedIndexBuilder;

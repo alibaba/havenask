@@ -25,63 +25,33 @@ namespace iquan {
 
 class TableModel : public autil::legacy::Jsonizable {
 public:
-    TableModel()
-        : tableVersion(-1) {}
-
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        json.Jsonize("catalog_name", catalogName);
-        json.Jsonize("database_name", databaseName);
-        json.Jsonize("table_name", tableName);
-        json.Jsonize("alias_names", aliasNames, aliasNames);
-        json.Jsonize("table_type", tableType);
-        json.Jsonize("table_version", tableVersion);
-        json.Jsonize("table_content_version", tableContentVersion);
+        json.Jsonize("table_content_type", tableContentType, tableContentType);
         json.Jsonize("table_content", tableContent);
     }
 
     bool isValid() const {
-        if (tableName.empty() || tableType.empty() || tableVersion < 0
-            || tableContentVersion.empty() || !tableContent.isValid()) {
+        if (!tableContent.isValid()) {
             return false;
         }
         return true;
     }
 
+    const std::string &tableName() const {
+        return tableContent.tableName;
+    }
+
+    const std::string &tableType() const {
+        return tableContent.tableType;
+    }
+
+    bool operator==(const TableModel &other) const {
+        return tableName() == other.tableName();
+    }
+
 public:
-    std::string catalogName;
-    std::string databaseName;
-    std::string tableName;
-    std::vector<std::string> aliasNames;
-    std::string tableType;
-    long tableVersion;
-    std::string tableContentVersion;
+    std::string tableContentType;
     TableDef tableContent;
-};
-
-class TableModels : public autil::legacy::Jsonizable {
-public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        json.Jsonize("tables", tables);
-    }
-
-    bool isValid() const {
-        for (const auto &table : tables) {
-            if (!table.isValid()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    void merge(const TableModels &other) {
-        tables.insert(tables.end(), other.tables.begin(), other.tables.end());
-    }
-    bool empty() const {
-        return tables.empty();
-    }
-
-public:
-    std::vector<TableModel> tables;
 };
 
 } // namespace iquan

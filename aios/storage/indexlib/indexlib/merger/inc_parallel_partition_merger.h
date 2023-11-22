@@ -13,18 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INC_PARALLEL_PARTITION_MERGER_H
-#define __INDEXLIB_INC_PARALLEL_PARTITION_MERGER_H
+#pragma once
 
 #include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/SortDescription.h"
-#include "indexlib/file_system/Directory.h"
-#include "indexlib/index_base/index_meta/parallel_build_info.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/index_partition_merger.h"
+#include "indexlib/merger/index_partition_merger_metrics.h"
 #include "indexlib/merger/merge_meta.h"
+#include "indexlib/merger/merge_scheduler.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace merger {
 
@@ -62,7 +72,7 @@ public:
         return mMerger->LoadMergeMeta(mergeMetaPath, onlyLoadBasicInfo);
     }
 
-    void EndMerge(const MergeMetaPtr& mergeMeta, versionid_t alignVersionId = INVALID_VERSION) override;
+    void EndMerge(const MergeMetaPtr& mergeMeta, versionid_t alignVersionId = INVALID_VERSIONID) override;
 
     file_system::DirectoryPtr GetMergeIndexRootDirectory() const override
     {
@@ -96,5 +106,3 @@ private:
 
 DEFINE_SHARED_PTR(IncParallelPartitionMerger);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_INC_PARALLEL_PARTITION_MERGER_H

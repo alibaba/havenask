@@ -20,7 +20,7 @@ cc_test(
     linkopts=['-Wl,--as-needed'],
     deps=[
         ':sql_ops_external_scan', '//aios/navi:navi_log_testlib',
-        '//aios/navi:navi_ops_testlib', '//aios/table/table/test:table_testlib',
+        '//aios/navi:navi_ops_testlib', '//aios/table/test:table_testlib',
         '//aios/unittest_framework'
     ]
 )

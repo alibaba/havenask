@@ -15,14 +15,31 @@
  */
 #include "build_service/admin/controlflow/TaskFlowManager.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/controlflow/ControlDefine.h"
 #include "build_service/admin/controlflow/FlowContainer.h"
 #include "build_service/admin/controlflow/FlowFactory.h"
 #include "build_service/admin/controlflow/FlowSerializer.h"
 #include "build_service/admin/controlflow/GraphBuilder.h"
+#include "build_service/admin/controlflow/TaskBase.h"
 #include "build_service/admin/controlflow/TaskContainer.h"
 #include "build_service/admin/controlflow/TaskSerializer.h"
 #include "build_service/admin/taskcontroller/BuildServiceTask.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/WorkerNode.h"
+#include "indexlib/misc/common.h"
+
 using namespace std;
 using namespace autil;
 using namespace autil::legacy;

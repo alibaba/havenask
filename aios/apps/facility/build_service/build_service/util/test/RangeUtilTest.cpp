@@ -1,7 +1,15 @@
 #include "build_service/util/RangeUtil.h"
 
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "autil/StringUtil.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 namespace build_service { namespace util {
 

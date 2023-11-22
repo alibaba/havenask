@@ -26,7 +26,6 @@ TEST_F(SourceGroupConfigTest, TestSimpleProcess)
         string configStr = R"(
         {
             "field_mode": "user_define",
-            "module":  "testmodule",
             "parameter" : {
                 "compress_type": "uniq|equal",
                 "doc_compressor": "zlib",
@@ -39,7 +38,6 @@ TEST_F(SourceGroupConfigTest, TestSimpleProcess)
         ASSERT_NO_THROW(FromJson(groupConfig, any));
 
         ASSERT_EQ(SourceGroupConfig::SourceFieldMode::USER_DEFINE, groupConfig.GetFieldMode());
-        ASSERT_EQ(string("testmodule"), groupConfig.GetModule());
         CompressTypeOption expectOption;
         ASSERT_TRUE(expectOption.Init("uniq|equal").IsOK());
 
@@ -63,7 +61,6 @@ TEST_F(SourceGroupConfigTest, TestSimpleProcess)
         ASSERT_NO_THROW(FromJson(groupConfig, any));
 
         ASSERT_EQ(SourceGroupConfig::SourceFieldMode::ALL_FIELD, groupConfig.GetFieldMode());
-        ASSERT_EQ(string(""), groupConfig.GetModule());
         auto parameter = groupConfig.GetParameter();
         ASSERT_TRUE(parameter.GetCompressTypeOption().HasUniqEncodeCompress());
         InnerCheckJsonize(groupConfig);
@@ -82,7 +79,6 @@ TEST_F(SourceGroupConfigTest, TestSimpleProcess)
         ASSERT_EQ(expectOptions, parameter.GetCompressTypeOption());
 
         ASSERT_EQ(SourceGroupConfig::SourceFieldMode::ALL_FIELD, groupConfig.GetFieldMode());
-        ASSERT_EQ(string(""), groupConfig.GetModule());
         InnerCheckJsonize(groupConfig);
     }
     {
@@ -113,46 +109,10 @@ TEST_F(SourceGroupConfigTest, TestExceptionCase)
         ASSERT_ANY_THROW(FromJson(groupConfig, any));
     }
     {
-        // not allow specified_field with module
-        string configStr = R"(
-        {
-            "field_mode": "specified_field",
-            "fields": ["ops_app_name", "ops_app_schema"],
-            "module": "a"
-        })";
-        SourceGroupConfig groupConfig;
-        Any any = ParseJson(configStr);
-        ASSERT_NO_THROW(FromJson(groupConfig, any));
-        ASSERT_FALSE(groupConfig.Check().IsOK());
-    }
-    {
         // not allow specified_field without fields
         string configStr = R"(
         {
             "field_mode": "specified_field"
-        })";
-        SourceGroupConfig groupConfig;
-        Any any = ParseJson(configStr);
-        ASSERT_NO_THROW(FromJson(groupConfig, any));
-        ASSERT_FALSE(groupConfig.Check().IsOK());
-    }
-    {
-        // not allow all_field with module
-        string configStr = R"(
-        {
-            "field_mode": "all_field",
-            "module": "a"
-        })";
-        SourceGroupConfig groupConfig;
-        Any any = ParseJson(configStr);
-        ASSERT_NO_THROW(FromJson(groupConfig, any));
-        ASSERT_FALSE(groupConfig.Check().IsOK());
-    }
-    {
-        // not allow user_defined without module
-        string configStr = R"(
-        {
-            "field_mode": "user_define"
         })";
         SourceGroupConfig groupConfig;
         Any any = ParseJson(configStr);

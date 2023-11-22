@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OFFLINERECOVERSTRATEGYTEST_H
-#define __INDEXLIB_OFFLINERECOVERSTRATEGYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -54,5 +53,3 @@ INDEXLIB_UNIT_TEST_CASE(OfflineRecoverStrategyTest, TestCaseForRecoverWithInvali
 INDEXLIB_UNIT_TEST_CASE(OfflineRecoverStrategyTest, TestCaseForRecoverWithInvalidTempDir);
 INDEXLIB_UNIT_TEST_CASE(OfflineRecoverStrategyTest, TestCaseForVersionLevelRecover);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_OFFLINERECOVERSTRATEGYTEST_H

@@ -15,6 +15,10 @@
  */
 #include "indexlib/framework/SegmentTopologyInfo.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
 #include "indexlib/framework/LevelInfo.h"
 
 using namespace std;

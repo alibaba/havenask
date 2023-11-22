@@ -15,13 +15,20 @@
  */
 #include "indexlib/util/FutureExecutor.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <string>
 #include <unistd.h>
 
 #include "autil/EnvUtil.h"
 #include "future_lite/ExecutorCreator.h"
 #include "indexlib/base/Constant.h"
+#include "indexlib/util/metrics/Metric.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 #include "indexlib/util/metrics/Monitor.h"
+#include "kmonitor/client/MetricType.h"
+
 using namespace std;
 
 // CHECK_FUTURE_LITE_EXECUTOR(async_io);

@@ -69,7 +69,7 @@ private:
     std::shared_ptr<AttributeConfig> _attrConfig;
     std::shared_ptr<Directory> _attrDir;
     std::shared_ptr<document::extractor::IDocumentInfoExtractorFactory> _docInfoExtractorFactory;
-    IndexerParameter _indexerParam;
+    DiskIndexerParameter _indexerParam;
     std::string _rootPath;
 
     static const uint32_t DOC_NUM = 100;
@@ -110,7 +110,7 @@ void SingleValueAttributeDiskIndexerTest::MakeOneAttribute(std::vector<T>& field
 {
     tearDown();
     setUp();
-    _indexerParam = IndexerParameter {};
+    _indexerParam = DiskIndexerParameter {};
     _attrConfig = AttributeTestUtil::CreateAttrConfig<T>(/*isMultiValue*/ false,
                                                          /*compressType*/ std::nullopt);
     if (needCompress) {
@@ -121,7 +121,7 @@ void SingleValueAttributeDiskIndexerTest::MakeOneAttribute(std::vector<T>& field
         _attrConfig->GetFieldConfig()->SetDefaultValue(std::to_string(defaultValue.value()));
         fieldValues = std::vector<T>(DOC_NUM, defaultValue.value());
         _indexerParam.docCount = DOC_NUM;
-        _indexerParam.readerOpenType = IndexerParameter::READER_DEFAULT_VALUE;
+        _indexerParam.readerOpenType = DiskIndexerParameter::READER_DEFAULT_VALUE;
         return;
     }
 
@@ -166,7 +166,7 @@ template <typename T>
 std::unique_ptr<SingleValueAttributeMemIndexer<T>>
 SingleValueAttributeDiskIndexerTest::PrepareMemIndexer(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
-    auto memIndexer = std::make_unique<SingleValueAttributeMemIndexer<T>>(_indexerParam);
+    auto memIndexer = std::make_unique<SingleValueAttributeMemIndexer<T>>(MemIndexerParameter {});
     if (memIndexer->Init(attrConfig, _docInfoExtractorFactory.get()).IsOK()) {
         return memIndexer;
     }

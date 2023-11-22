@@ -13,28 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CUSTOM_PARTITION_MERGER_H
-#define __INDEXLIB_CUSTOM_PARTITION_MERGER_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/merger/dump_strategy.h"
 #include "indexlib/merger/index_partition_merger.h"
+#include "indexlib/merger/merge_meta.h"
+#include "indexlib/merger/multi_part_segment_directory.h"
+#include "indexlib/merger/segment_directory.h"
 #include "indexlib/merger/table_merge_meta.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/table/merge_policy.h"
+#include "indexlib/table/merge_task_description.h"
+#include "indexlib/table/segment_meta.h"
 #include "indexlib/table/table_merge_plan.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
-DECLARE_REFERENCE_CLASS(util, CounterMap);
-DECLARE_REFERENCE_CLASS(plugin, PluginManager);
-DECLARE_REFERENCE_CLASS(table, SegmentMeta);
-DECLARE_REFERENCE_CLASS(table, MergePolicy);
-DECLARE_REFERENCE_CLASS(table, TableMergePlan);
-DECLARE_REFERENCE_CLASS(table, TableMergePlanMeta);
-DECLARE_REFERENCE_CLASS(table, TableMergePlanResource);
 DECLARE_REFERENCE_CLASS(table, TableFactoryWrapper);
-DECLARE_REFERENCE_CLASS(table, MergeTaskDescription);
-DECLARE_REFERENCE_CLASS(merger, MultiPartSegmentDirectory);
-DECLARE_REFERENCE_CLASS(merger, TableMergeMeta);
 
 namespace indexlib { namespace merger {
 
@@ -52,7 +59,7 @@ public:
     MergeMetaPtr CreateMergeMeta(bool optimize, uint32_t instanceCount, int64_t currentTs) override;
     MergeMetaPtr LoadMergeMeta(const std::string& mergeMetaPath, bool onlyLoadBasicInfo) override;
     void DoMerge(bool optimize, const MergeMetaPtr& mergeMeta, uint32_t instanceId) override;
-    void EndMerge(const MergeMetaPtr& mergeMeta, versionid_t alignVersionId = INVALID_VERSION) override;
+    void EndMerge(const MergeMetaPtr& mergeMeta, versionid_t alignVersionId = INVALID_VERSIONID) override;
 
 private:
     bool FilterEmptyTableMergePlan(std::vector<table::TableMergePlanPtr>& tableMergePlans);
@@ -97,5 +104,3 @@ private:
 
 DEFINE_SHARED_PTR(CustomPartitionMerger);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_CUSTOM_PARTITION_MERGER_H

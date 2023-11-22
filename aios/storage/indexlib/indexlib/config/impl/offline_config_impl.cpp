@@ -23,7 +23,7 @@ using namespace autil::legacy;
 using namespace autil;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, OfflineConfigImpl);
+AUTIL_LOG_SETUP(indexlib.config, OfflineConfigImpl);
 
 OfflineConfigImpl::OfflineConfigImpl() : mNeedRebuildAdaptiveBitmap(false), mNeedRebuildTruncateIndex(false) {}
 

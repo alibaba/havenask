@@ -3,6 +3,7 @@
 #include "autil/StringUtil.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/schema_configurator.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/file/SnappyCompressFileWriter.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_patch_work_item.h"
@@ -14,7 +15,6 @@
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/partition/patch_loader.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/version_maker.h"
 #include "indexlib/util/PathUtil.h"
 
@@ -288,7 +288,7 @@ void PatchLoaderTest::TestCalculatePackAttributeUpdateExpandSize()
             partData->GetSubPartitionData(),
             mSchema->GetSubIndexPartitionSchema()->GetAttributeSchema()->GetAttributeConfig("sub_price"));
     PatchLoader patchLoader(mSchema, options.GetOnlineConfig());
-    patchLoader.Init(partData, false, index_base::Version(INVALID_VERSION), 0, false);
+    patchLoader.Init(partData, false, index_base::Version(INVALID_VERSIONID), 0, false);
     ASSERT_EQ(expectUpdateDocSize, patchLoader.CalculatePatchLoadExpandSize());
 }
 

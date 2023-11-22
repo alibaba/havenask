@@ -13,17 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_KKVSORTDOCSORTER_H
-#define ISEARCH_BS_KKVSORTDOCSORTER_H
+#pragma once
 
+#include <assert.h>
+#include <cstdint>
+#include <functional>
+#include <memory>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "autil/mem_pool/Pool.h"
 #include "autil/mem_pool/PoolVector.h"
 #include "autil/mem_pool/pool_allocator.h"
+#include "build_service/builder/SortDocumentConverter.h"
 #include "build_service/builder/SortDocumentSorter.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/kv_document/kv_document.h"
+#include "indexlib/document/kv_document/kv_index_document.h"
 #include "indexlib/index/kkv/kkv_define.h"
 
 namespace build_service { namespace builder {
@@ -96,5 +104,3 @@ private:
 BS_TYPEDEF_PTR(KKVSortDocSorter);
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_KKVSORTDOCSORTER_H

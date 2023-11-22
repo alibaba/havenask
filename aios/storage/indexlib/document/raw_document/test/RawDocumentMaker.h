@@ -28,6 +28,7 @@ private:
     static const std::string KV_SEP;
     static constexpr char RD_MULTI_VALUE_SEP = ' ';
     static const std::string CONCURRENT_IDX;
+    static const std::string SOURCE_IDX;
 };
 
 } // namespace indexlibv2::document

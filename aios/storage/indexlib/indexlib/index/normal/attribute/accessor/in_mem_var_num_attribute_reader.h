@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_IN_MEM_VAR_NUM_ATTRIBUTE_READER_H
-#define __INDEXLIB_IN_MEM_VAR_NUM_ATTRIBUTE_READER_H
+#pragma once
 
 #include <memory>
 
@@ -178,5 +177,3 @@ inline bool InMemVarNumAttributeReader<T>::UpdateField(docid_t docId, uint8_t* b
     return mAccessor->UpdateValue(docId, autil::StringView(reinterpret_cast<char*>(buf), bufLen));
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_IN_MEM_VAR_NUM_ATTRIBUTE_READER_H

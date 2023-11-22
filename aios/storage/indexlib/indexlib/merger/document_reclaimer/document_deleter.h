@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_DELETER_H
-#define __INDEXLIB_DOCUMENT_DELETER_H
+#pragma once
 
 #include <memory>
+#include <stdint.h>
 
-#include "indexlib/common_define.h"
-#include "indexlib/config/index_partition_schema.h"
+#include "autil/mem_pool/Pool.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/index/normal/attribute/accessor/join_docid_attribute_reader.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_writer.h"
-#include "indexlib/index_base/partition_data.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -58,5 +60,3 @@ private:
 
 DEFINE_SHARED_PTR(DocumentDeleter);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_DOCUMENT_DELETER_H

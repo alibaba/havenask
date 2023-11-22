@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCUMENTPARSERTEST_H
-#define __INDEXLIB_DOCUMENTPARSERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/document_parser.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(DocumentParserTest, TestSimpleProcess);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_DOCUMENTPARSERTEST_H

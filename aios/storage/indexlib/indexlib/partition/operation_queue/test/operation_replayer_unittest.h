@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OPERATIONREPLAYERTEST_H
-#define __INDEXLIB_OPERATIONREPLAYERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -66,5 +65,3 @@ INDEXLIB_UNIT_TEST_CASE(OperationReplayerTest, TestRedoStrategyWithRemoveOperati
 INDEXLIB_UNIT_TEST_CASE(OperationReplayerTest, TestRedoRmOpWithIncInconsistentWithRt);
 INDEXLIB_UNIT_TEST_CASE(OperationReplayerTest, TestOpTargetSegIdUpdated);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPERATIONREPLAYERTEST_H

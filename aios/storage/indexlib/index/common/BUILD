@@ -219,3 +219,10 @@ strict_cc_library(
         '//aios/storage/indexlib/util:KeyHasherTyped'
     ]
 )
+strict_cc_library(
+    name='PlainDocMapper',
+    deps=[
+        ':Types', '//aios/autil:log', '//aios/storage/indexlib/index:DocMapper',
+        '//aios/storage/indexlib/index:IIndexMerger'
+    ]
+)

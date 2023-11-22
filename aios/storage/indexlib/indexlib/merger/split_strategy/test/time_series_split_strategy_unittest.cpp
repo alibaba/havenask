@@ -1,7 +1,7 @@
 #include "indexlib/merger/split_strategy/test/time_series_split_strategy_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 

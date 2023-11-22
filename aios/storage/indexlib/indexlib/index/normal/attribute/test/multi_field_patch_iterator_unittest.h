@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIFIELDPATCHITERATORTEST_H
-#define __INDEXLIB_MULTIFIELDPATCHITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/multi_field_patch_iterator.h"
@@ -44,5 +43,3 @@ INDEXLIB_UNIT_TEST_CASE(MultiFieldPatchIteratorTest, TestCreateIndependentPatchW
 INDEXLIB_UNIT_TEST_CASE(MultiFieldPatchIteratorTest, TestIncConsistentWithRealtime);
 INDEXLIB_UNIT_TEST_CASE(MultiFieldPatchIteratorTest, TestIterateWithPackAttributes);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_MULTIFIELDPATCHITERATORTEST_H

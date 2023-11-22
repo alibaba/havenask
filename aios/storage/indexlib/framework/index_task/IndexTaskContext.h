@@ -88,6 +88,7 @@ public:
     versionid_t GetMaxMergedVersionId() const;
     versionid_t GetBaseVersionId() const;
     const std::string& GetTaskEpochId() const { return _taskEpochId; }
+    const std::string& GetTaskTraceId() const { return _taskTraceId; }
     template <typename T>
     void AddParameter(std::string key, T value);
     template <typename T>
@@ -105,6 +106,7 @@ public:
     const std::string& GetSourceRoot() const { return _sourceRoot; }
     bool NeedSwitchIndexPath() const;
     void Log() const;
+    void SetTaskTraceId(const std::string& taskTraceId) const { _taskTraceId = taskTraceId; }
     void SetFinishedOpFences(std::map<IndexOperationId, std::shared_ptr<indexlib::file_system::IDirectory>> opFences);
 
     void SetGlobalRelocatableFolder(const std::shared_ptr<indexlib::file_system::RelocatableFolder>& folder) const;
@@ -161,6 +163,7 @@ protected:
     std::string _sourceRoot;
     mutable std::string _taskType;
     mutable std::string _taskName;
+    mutable std::string _taskTraceId;
     mutable std::shared_ptr<config::IndexTaskConfig> _designateTaskConfig;
 
 private:

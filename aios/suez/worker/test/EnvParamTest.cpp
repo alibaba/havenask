@@ -123,17 +123,35 @@ TEST_F(EnvParamTest, testTryExtractPosIntValueFromEnv) {
 }
 
 TEST_F(EnvParamTest, testInit) {
-    autil::EnvGuard guard1("HIPPO_DP2_SLAVE_PORT", "12345");
-    autil::EnvGuard guard4("debugMode", "true");
-    autil::EnvGuard guard5("localMode", "true");
-    EnvParam param;
-    ASSERT_FALSE(param.debugMode);
-    ASSERT_FALSE(param.localMode);
-    ASSERT_TRUE(param.init());
-    ASSERT_TRUE(param.debugMode);
-    ASSERT_TRUE(param.localMode);
-    ASSERT_EQ("12345", param.hippoDp2SlavePort);
-    // TODO: check other parameters
+    {
+        autil::EnvGuard guard1("HIPPO_DP2_SLAVE_PORT", "12345");
+        autil::EnvGuard guard4("debugMode", "true");
+        autil::EnvGuard guard5("localMode", "true");
+        EnvParam param;
+        ASSERT_FALSE(param.debugMode);
+        ASSERT_FALSE(param.localMode);
+        ASSERT_TRUE(param.init());
+        ASSERT_TRUE(param.debugMode);
+        ASSERT_TRUE(param.localMode);
+        ASSERT_EQ("12345", param.hippoDp2SlavePort);
+        // TODO: check other parameters
+    }
+    {
+        autil::EnvGuard guard("localMode", "true");
+        EnvParam param;
+        ASSERT_TRUE(param.init());
+        EXPECT_EQ(1, param.asyncInterExecutorThreadNum);
+        EXPECT_EQ(1, param.asyncIntraExecutorThreadNum);
+    }
+    {
+        autil::EnvGuard guard("localMode", "true");
+        autil::EnvGuard guard1("asyncInterExecutorThreadNum", "9");
+        autil::EnvGuard guard4("asyncIntraExecutorThreadNum", "3");
+        EnvParam param;
+        ASSERT_TRUE(param.init());
+        EXPECT_EQ(9, param.asyncInterExecutorThreadNum);
+        EXPECT_EQ(3, param.asyncIntraExecutorThreadNum);
+    }
 }
 
 TEST_F(EnvParamTest, testInitRdma) {

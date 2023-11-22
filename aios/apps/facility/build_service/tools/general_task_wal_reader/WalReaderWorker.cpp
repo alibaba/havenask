@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include "absl/flags/flag.h"
+#include "absl/strings/str_join.h"
 #include "autil/StringUtil.h"
 #include "indexlib/file_system/wal/Wal.h"
 
@@ -43,7 +44,7 @@ bool WalReaderWorker::run()
 {
     std::string walPath = absl::GetFlag(FLAGS_path);
     if (walPath.empty()) {
-        std::cerr << "wal path not specified" << std::endl;
+        std::cerr << "wal path not specified, see --helpfull" << std::endl;
         return false;
     }
     bool printRunLog = absl::GetFlag(FLAGS_printRun);
@@ -78,11 +79,11 @@ bool WalReaderWorker::run()
         }
         printWalRecord(record, printRunLog);
     }
-    std::cout << "finishedop: ";
-    for (auto op : _finishedOp) {
-        std::cout << op << ", ";
-    }
-    std::cout << std::endl;
+    std::cout << "finishedop: " << absl::StrJoin(_finishedOp, ",") << std::endl;
+    std::vector<int64_t> runningOp;
+    std::set_difference(_runOp.begin(), _runOp.end(), _finishedOp.begin(), _finishedOp.end(),
+                        std::inserter(runningOp, runningOp.begin()));
+    std::cout << "runingop: " << absl::StrJoin(runningOp, ",") << std::endl;
     return true;
 }
 
@@ -93,6 +94,9 @@ void WalReaderWorker::printWalRecord(const proto::GeneralTaskWalRecord& record, 
         ::printf("finish: op[%ld] on worker[%s], resultInfo[%s]\n", op.opid(), op.workerepochid().c_str(),
                  op.resultinfo().c_str());
         _finishedOp.insert(op.opid());
+    }
+    for (const auto& op : record.oprun()) {
+        _runOp.insert(op.opid());
     }
     if (printRunLog) {
         for (const auto& op : record.oprun()) {

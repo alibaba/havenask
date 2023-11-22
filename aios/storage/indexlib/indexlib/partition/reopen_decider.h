@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_REOPEN_DECIDER_H
-#define __INDEXLIB_REOPEN_DECIDER_H
+#pragma once
 
 #include <memory>
 
@@ -56,7 +55,7 @@ public:
 public:
     void Init(const index_base::PartitionDataPtr& partitionData, const std::string& indexSourceRoot,
               const index::AttributeMetrics* attributeMetrics, int64_t maxRecoverTs,
-              versionid_t reopenVersionId = INVALID_VERSION,
+              versionid_t reopenVersionId = INVALID_VERSIONID,
               const OnlinePartitionReaderPtr& onlineReader = OnlinePartitionReaderPtr());
 
     virtual ReopenType GetReopenType() const { return mReopenType; }
@@ -91,5 +90,3 @@ private:
 
 DEFINE_SHARED_PTR(ReopenDecider);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_REOPEN_DECIDER_H

@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SWIFTOUTPUT_H
-#define ISEARCH_BS_SWIFTOUTPUT_H
+#pragma once
 
+#include <memory>
+#include <stdint.h>
+#include <string>
+
+#include "autil/legacy/any.h"
 #include "build_service/common_define.h"
-#include "build_service/config/SwiftConfig.h"
 #include "build_service/config/TaskOutputConfig.h"
 #include "build_service/io/IODefine.h"
 #include "build_service/io/Output.h"
 #include "build_service/io/OutputCreator.h"
 #include "build_service/util/Log.h"
 #include "build_service/util/SwiftClientCreator.h"
+#include "swift/client/SwiftWriter.h"
 #include "swift/common/MessageInfo.h"
 
 namespace build_service { namespace io {
@@ -85,5 +89,3 @@ private:
 BS_TYPEDEF_PTR(SwiftOutputCreator);
 
 }} // namespace build_service::io
-
-#endif

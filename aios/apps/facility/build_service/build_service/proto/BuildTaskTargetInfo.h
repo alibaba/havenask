@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "autil/legacy/jsonizable.h"
+#include "build_service/common/IndexTaskRequestQueue.h"
 #include "build_service/common_define.h"
 #include "indexlib/base/Constant.h"
 
@@ -42,27 +43,29 @@ struct VersionProgress : public autil::legacy::Jsonizable {
     }
 };
 
-enum BuildMode { UNKOWN = 0x0, BUILD = 0x01, PUBLISH = 0x02, BUILD_PUBLISH = BUILD | PUBLISH };
+enum BuildMode { UNKNOWN = 0x0, BUILD = 0x01, PUBLISH = 0x02, BUILD_PUBLISH = BUILD | PUBLISH };
 
 struct BuildTaskTargetInfo : public autil::legacy::Jsonizable {
     bool finished = false;
     bool skipMerge = false;
     std::string specificMergeConfig;
     int32_t batchId = -1;
-    proto::BuildMode buildMode = UNKOWN;
+    proto::BuildMode buildMode = UNKNOWN;
     indexlibv2::versionid_t alignVersionId = indexlibv2::INVALID_VERSIONID;
     indexlibv2::versionid_t latestPublishedVersion = indexlibv2::INVALID_VERSIONID;
     uint64_t branchId = 0;
-    std::string indexRoot = "";
-    std::string buildStep = "";
+    std::string indexRoot;
+    std::string buildStep;
     std::vector<VersionProgress> slaveVersionProgress;
+    std::vector<indexlibv2::framework::IndexTaskMeta> requestQueue;
     bool operator==(const BuildTaskTargetInfo& other) const
     {
         return finished == other.finished && buildMode == other.buildMode && alignVersionId == other.alignVersionId &&
                latestPublishedVersion == other.latestPublishedVersion && branchId == other.branchId &&
                indexRoot == other.indexRoot && buildStep == other.buildStep &&
-               slaveVersionProgress == other.slaveVersionProgress && skipMerge == other.skipMerge &&
-               batchId == other.batchId && specificMergeConfig == other.specificMergeConfig;
+               slaveVersionProgress == other.slaveVersionProgress && requestQueue == other.requestQueue &&
+               skipMerge == other.skipMerge && batchId == other.batchId &&
+               specificMergeConfig == other.specificMergeConfig;
     }
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override
     {
@@ -74,6 +77,7 @@ struct BuildTaskTargetInfo : public autil::legacy::Jsonizable {
         json.Jsonize("branch_id", branchId, branchId);
         json.Jsonize("latest_published_version", latestPublishedVersion, latestPublishedVersion);
         json.Jsonize("slave_version_progress", slaveVersionProgress, slaveVersionProgress);
+        json.Jsonize("index_task_request_queue", requestQueue, requestQueue);
         json.Jsonize("skip_merge", skipMerge, skipMerge);
         json.Jsonize("batch_id", batchId, batchId);
         json.Jsonize("specific_merge_config", specificMergeConfig, specificMergeConfig);

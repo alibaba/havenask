@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_PARTITION_MERGER_METRICS_H
-#define __INDEXLIB_INDEX_PARTITION_MERGER_METRICS_H
+#pragma once
 
-#include <memory>
+#include <algorithm>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/Lock.h"
 #include "autil/Thread.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 #include "indexlib/util/metrics/Monitor.h"
 #include "indexlib/util/metrics/ProgressMetrics.h"
@@ -96,5 +98,3 @@ private:
 
 DEFINE_SHARED_PTR(IndexPartitionMergerMetrics);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_INDEX_PARTITION_MERGER_METRICS_H

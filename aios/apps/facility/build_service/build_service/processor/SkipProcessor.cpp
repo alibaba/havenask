@@ -15,8 +15,15 @@
  */
 #include "build_service/processor/SkipProcessor.h"
 
-#include "autil/StringUtil.h"
-#include "autil/TimeUtility.h"
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+
+#include "autil/Span.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/RawDocument.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
 
 using namespace std;
 using namespace autil;

@@ -37,6 +37,8 @@ private:
     CreateOperationForCommon(const framework::IndexOperationDescription& opDesc);
     std::unique_ptr<framework::IndexOperation>
     CreateOperationForMerge(const framework::IndexOperationDescription& opDesc);
+    std::unique_ptr<framework::IndexOperation>
+    CreateOperationForBulkload(const framework::IndexOperationDescription& opDesc);
 
 private:
     std::shared_ptr<config::ITabletSchema> _schema;

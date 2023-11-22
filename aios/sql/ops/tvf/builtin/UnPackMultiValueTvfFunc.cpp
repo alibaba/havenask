@@ -99,11 +99,6 @@ bool UnPackMultiValueTvfFunc::init(TvfFuncInitContext &context) {
         SQL_LOG(WARN, "unpack multi value tvf only support one param");
         return false;
     }
-    _queryPool = context.queryPool;
-    if (_queryPool == nullptr) {
-        SQL_LOG(WARN, "query pool is null");
-        return false;
-    }
     _unpackFields = StringUtil::split(context.params[0], ",");
     return true;
 }
@@ -119,8 +114,6 @@ bool UnPackMultiValueTvfFunc::compute(const TablePtr &input, bool eof, TablePtr 
     }
     set<string> needUnpackSet(_unpackFields.begin(), _unpackFields.end());
     size_t columnCount = input->getColumnCount();
-    size_t rawRowCount = input->getRowCount();
-    size_t poolUsedSize = _queryPool->getTotalBytes();
     for (size_t i = 0; i < columnCount; i++) {
         auto column = input->getColumn(i);
         if (column == nullptr) {
@@ -139,20 +132,8 @@ bool UnPackMultiValueTvfFunc::compute(const TablePtr &input, bool eof, TablePtr 
                 return false;
             }
         }
-        size_t curSize = _queryPool->getTotalBytes();
-        if (curSize >= MAX_SQL_POOL_SIZE) {
-            SQL_LOG(WARN, "query use size [%ld] larger than [%ld]", curSize, MAX_SQL_POOL_SIZE);
-            return false;
-        }
     }
     output = input;
-    if (output) {
-        SQL_LOG(DEBUG,
-                "before unpack row count [%ld], after unpack row count [%ld], pool used [%ld]",
-                rawRowCount,
-                output->getRowCount(),
-                _queryPool->getTotalBytes() - poolUsedSize);
-    }
     return true;
 }
 
@@ -287,8 +268,9 @@ bool UnPackMultiValueTvfFunc::copyUnpackCol(size_t rawRowCount,
                 } else {                                                                           \
                     valVec.clear();                                                                \
                     valVec.push_back(val);                                                         \
-                    auto p = autil::MultiValueCreator::createMultiValueBuffer(valVec, _queryPool); \
-                    columnData->set(allRow[i], T(p));                                              \
+                    auto p = autil::MultiValueCreator::createMultiValueBuffer(                     \
+                        valVec, columnData->getPool());                                            \
+                    columnData->setNoCopy(allRow[i], T(p));                                        \
                     mvValCache[val] = p;                                                           \
                 }                                                                                  \
             }                                                                                      \
@@ -328,9 +310,10 @@ bool UnPackMultiValueTvfFunc::copyUnpackCol(size_t rawRowCount,
                 } else {
                     valVec.clear();
                     valVec.emplace_back(constVal);
-                    auto p = autil::MultiValueCreator::createMultiValueBuffer(valVec, _queryPool);
+                    auto p = autil::MultiValueCreator::createMultiValueBuffer(
+                        valVec, columnData->getPool());
                     mvValCache[constVal] = p;
-                    columnData->set(allRow[i], autil::MultiString(p));
+                    columnData->setNoCopy(allRow[i], autil::MultiString(p));
                 }
             }
         }

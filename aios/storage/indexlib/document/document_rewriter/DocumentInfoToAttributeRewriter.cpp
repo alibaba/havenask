@@ -54,19 +54,15 @@ AUTIL_LOG_SETUP(indexlib.document, DocumentInfoToAttributeRewriter);
 
 DocumentInfoToAttributeRewriter::DocumentInfoToAttributeRewriter(
     const std::shared_ptr<index::AttributeConfig>& timestampAttrConfig,
-    const std::shared_ptr<index::AttributeConfig>& hashIdAttrConfig,
-    const std::shared_ptr<index::AttributeConfig>& concurrentIdxAttrConfig)
+    const std::shared_ptr<index::AttributeConfig>& docInfoAttrConfig)
     : IDocumentRewriter()
     , _timestampFieldId(timestampAttrConfig->GetFieldId())
-    , _hashIdFieldId(hashIdAttrConfig->GetFieldId())
-    , _concurrentFieldId(concurrentIdxAttrConfig->GetFieldId())
+    , _docInfoFieldId(docInfoAttrConfig->GetFieldId())
 {
     _timestampConvertor.reset(
         indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(timestampAttrConfig));
-    _hashIdConvertor.reset(
-        indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(hashIdAttrConfig));
-    _concurrentIdxConvertor.reset(
-        indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(concurrentIdxAttrConfig));
+    _docInfoConvertor.reset(
+        indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(docInfoAttrConfig));
 }
 
 DocumentInfoToAttributeRewriter::~DocumentInfoToAttributeRewriter() {}
@@ -90,16 +86,36 @@ indexlib::Status DocumentInfoToAttributeRewriter::Rewrite(document::IDocumentBat
         RETURN_IF_STATUS_ERROR(RewriteSingleField<int64_t>(docTs, _timestampFieldId, _timestampConvertor, normalDoc),
                                "rewrite doc ts [%ld] failed", docTs);
 
-        uint16_t hashId = docInfo.hashId;
-        RETURN_IF_STATUS_ERROR(RewriteSingleField<uint16_t>(hashId, _hashIdFieldId, _hashIdConvertor, normalDoc),
-                               "rewrite doc hash id [%u] failed", hashId);
-
-        uint16_t concurrentIdx = docInfo.concurrentIdx;
         RETURN_IF_STATUS_ERROR(
-            RewriteSingleField<uint16_t>(concurrentIdx, _concurrentFieldId, _concurrentIdxConvertor, normalDoc),
-            "rewrite doc concurrent idx [%u] failed", concurrentIdx);
+            RewriteSingleField<uint64_t>(EncodeDocInfo(docInfo), _docInfoFieldId, _docInfoConvertor, normalDoc),
+            "rewrite doc source idx [%u], doc hash id[%u] doc concurrent idx [%u] failed", docInfo.sourceIdx,
+            docInfo.hashId, docInfo.concurrentIdx);
     }
     return indexlib::Status::OK();
+}
+
+uint64_t DocumentInfoToAttributeRewriter::EncodeDocInfo(const framework::Locator::DocInfo& docInfo)
+{
+    uint64_t result = 0;
+    result |= (uint64_t)DOC_INFO_SERIALIZE_VERSION << 56;
+    result |= (uint64_t)docInfo.sourceIdx << 48;
+    result |= (uint64_t)docInfo.hashId << 32;
+    result |= (uint64_t)docInfo.concurrentIdx;
+    return result;
+}
+std::optional<framework::Locator::DocInfo> DocumentInfoToAttributeRewriter::DecodeDocInfo(uint64_t docInfoValue,
+                                                                                          int64_t timestamp)
+{
+    framework::Locator::DocInfo docInfo;
+    auto version = docInfoValue >> 56;
+    if (version > DOC_INFO_SERIALIZE_VERSION) {
+        return std::nullopt;
+    }
+    docInfo.sourceIdx = (docInfoValue & (0x00ff000000000000)) >> 48;
+    docInfo.hashId = (docInfoValue & (0x0000ffff00000000)) >> 32;
+    docInfo.concurrentIdx = docInfoValue & (0x00000000ffffffff);
+    docInfo.timestamp = timestamp;
+    return docInfo;
 }
 
 } // namespace indexlibv2::document

@@ -1,5 +1,10 @@
 #include "build_service_tasks/repartition/test/FakeRepartitionTask.h"
 
+#include <iosfwd>
+
+#include "autil/legacy/exception.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

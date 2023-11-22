@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIMARY_KEY_TEST_CASE_HELPER_H
-#define __INDEXLIB_PRIMARY_KEY_TEST_CASE_HELPER_H
+#pragma once
 
 #include <memory>
 
@@ -96,5 +95,3 @@ inline void PrimaryKeyTestCaseHelper::MakeFakePrimaryKeyDocStr(uint32_t urls[], 
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARY_KEY_TEST_CASE_HELPER_H

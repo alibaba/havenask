@@ -35,10 +35,13 @@ void AithetaBuildConfig::Parse(const indexlib::util::KeyValueMap& parameters)
     ParamUtil::ExtractValue(parameters, STORE_PRIMARY_KEY, &storePrimaryKey);
     ParamUtil::ExtractValue(parameters, STORE_ORIGINAL_EMBEDDING, &storeEmbedding);
     ParamUtil::ExtractValue(parameters, IGNORE_FIELD_COUNT_MISMATCH, &ignoreFieldCountMismatch);
-    ParamUtil::ExtractValue(parameters, IGNORE_BUILD_ERROR, &ignoreBuildError);
+    ParamUtil::ExtractValue(parameters, IGNORE_INVALID_DOC, &ignoreInvalidDoc);
     string key =
         parameters.find(INDEX_BUILD_PARAMETERS) != parameters.end() ? INDEX_BUILD_PARAMETERS : INDEX_PARAMETERS;
     ParamUtil::ExtractValue(parameters, key, &indexParams);
+    ParamUtil::ExtractValue(parameters, DISTRIBUTED_BUILD, &distributedBuild);
+    ParamUtil::ExtractValue(parameters, CENTROID_COUNT, &centroidCount);
+    ParamUtil::ExtractValue(parameters, PARALLEL_NUM, &parallelNum);
 }
 
 void AithetaSearchConfig::Parse(const indexlib::util::KeyValueMap& parameters)
@@ -54,7 +57,6 @@ void AithetaRealtimeConfig::Parse(const indexlib::util::KeyValueMap& parameters)
 {
     ParamUtil::ExtractValue(parameters, REALTIME_PARAMETERS, &indexParams);
     ParamUtil::ExtractValue(parameters, STORE_PRIMARY_KEY, &storePrimaryKey);
-    ParamUtil::ExtractValue(parameters, STORE_ORIGINAL_EMBEDDING, &storeEmbedding);
     ParamUtil::ExtractValue(parameters, INDEX_STREAMER_NAME, &streamerName);
     ParamUtil::ExtractValue(parameters, REALTIME_ENABLE, &enable);
     if (!streamerName.empty()) {

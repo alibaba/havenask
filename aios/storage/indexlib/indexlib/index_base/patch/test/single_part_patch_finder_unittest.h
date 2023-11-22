@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SINGLEPARTPATCHFINDERTEST_H
-#define __INDEXLIB_SINGLEPARTPATCHFINDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/patch/single_part_patch_finder.h"
@@ -56,5 +55,3 @@ INDEXLIB_UNIT_TEST_CASE(SinglePartPatchFinderTest, TestFindIndexPatchFilesForSeg
 INDEXLIB_UNIT_TEST_CASE(SinglePartPatchFinderTest, TestFindAttrPatchFilesForMergedSegment);
 INDEXLIB_UNIT_TEST_CASE(SinglePartPatchFinderTest, TestFindIndexPatchFilesForMergedSegment);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SINGLEPARTPATCHFINDERTEST_H

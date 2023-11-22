@@ -15,8 +15,13 @@
  */
 #pragma once
 
-#include <functional>
+#include <map>
+#include <memory>
 #include <mutex>
+#include <set>
+#include <stddef.h>
+#include <string>
+#include <utility>
 
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"

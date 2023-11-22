@@ -7,6 +7,7 @@
 #include "suez/common/GeneratorDef.h"
 #include "suez/common/test/TableMetaUtil.h"
 #include "suez/sdk/PathDefine.h"
+#include "suez/table/TableInfoPublishWrapper.h"
 #include "suez/table/TableLeaderInfoPublisher.h"
 #include "unittest/unittest.h"
 
@@ -266,7 +267,8 @@ void ZkLeaderElectionManagerTest::doTestUpdateLeaderInfo(bool publishZoneName, b
     pid1.partCount = 2;
     auto gigServer = createGigRpcServer();
     ASSERT_TRUE(gigServer);
-    auto publisher = std::make_unique<TableLeaderInfoPublisher>(pid1, "zone_name", gigServer.get(), &manager);
+    auto publishWrapper = std::make_shared<TableInfoPublishWrapper>(gigServer.get());
+    auto publisher = std::make_unique<TableLeaderInfoPublisher>(pid1, "zone_name", publishWrapper.get(), &manager);
     EXPECT_FALSE(publisher->signaturePublished());
     ASSERT_TRUE(publisher->publish());
 

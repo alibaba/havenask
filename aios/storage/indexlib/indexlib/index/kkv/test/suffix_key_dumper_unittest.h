@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SUFFIXKEYDUMPERTEST_H
-#define __INDEXLIB_SUFFIXKEYDUMPERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/suffix_key_dumper.h"
@@ -35,5 +34,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(SuffixKeyDumperTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SUFFIXKEYDUMPERTEST_H

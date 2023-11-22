@@ -1,12 +1,11 @@
-#ifndef __INDEXLIB_TEST_SCHEMA_LOADER_H
-#define __INDEXLIB_TEST_SCHEMA_LOADER_H
+#pragma once
 
 #include <memory>
 
+#include "autil/Log.h"
 #include "fslib/fslib.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -33,10 +32,8 @@ private:
     static void DoRewriteForRemoveTFBitmapFlag(const config::IndexPartitionSchemaPtr& schema);
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(SchemaLoader);
+typedef std::shared_ptr<SchemaLoader> SchemaLoaderPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_TEST_SCHEMA_LOADER_H

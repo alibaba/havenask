@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SWIFTPROCESSEDDOCPRODUCER_H
-#define ISEARCH_BS_SWIFTPROCESSEDDOCPRODUCER_H
+#pragma once
 
 #include "build_service/workflow/Producer.h"
 #include "swift/client/SwiftReader.h"
@@ -58,13 +57,13 @@ public:
     virtual bool updateCommittedCheckpoint(const indexlibv2::base::Progress::Offset& checkpoint) = 0;
 
     virtual bool getMaxTimestamp(int64_t& timestamp) = 0;
-    virtual bool getLastReadTimestamp(int64_t& timestamp) = 0;
+    virtual bool getLastReadTimestamp(int64_t& timestamp) const = 0;
     virtual uint64_t getLocatorSrc() const = 0;
     virtual void setRecovered(bool isServiceRecovered) = 0;
+    virtual schemaid_t getAlterTableSchemaId() const = 0;
+    virtual bool needAlterTable() const = 0;
 };
 
 BS_TYPEDEF_PTR(SwiftProcessedDocProducer);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_SWIFTPROCESSEDDOCPRODUCER_H

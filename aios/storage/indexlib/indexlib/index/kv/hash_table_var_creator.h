@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_HASH_TABLE_VAR_CREATOR_H
-#define __INDEXLIB_HASH_TABLE_VAR_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -64,5 +63,3 @@ private:
 
 DEFINE_SHARED_PTR(HashTableVarCreator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASH_TABLE_VAR_CREATOR_H

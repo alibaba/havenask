@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_MERGER_H
-#define __INDEXLIB_TABLE_MERGER_H
+#pragma once
 
-#include <memory>
+#include <stddef.h>
+#include <vector>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/table/merge_task_description.h"
 #include "indexlib/table/segment_meta.h"
 #include "indexlib/table/table_merge_plan_meta.h"
 #include "indexlib/table/table_merge_plan_resource.h"
-
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 
 namespace indexlib { namespace table {
 
@@ -55,5 +54,3 @@ private:
 
 DEFINE_SHARED_PTR(TableMerger);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_MERGER_H

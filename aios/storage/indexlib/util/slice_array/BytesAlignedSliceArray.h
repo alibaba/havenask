@@ -85,10 +85,10 @@ private:
 private:
     SliceArray _sliceArray;
     std::shared_ptr<SliceMemoryMetrics> _storageMetrics;
+    std::atomic<size_t> _usedBytes = 0;
     int32_t _maxSliceNum;
-    size_t _usedBytes;
     uint64_t _curCursor;
-    int64_t _curSliceIdx;
+    int64_t _curSliceIdx = -1;
     std::vector<uint64_t> _sliceUsedSizeVector;
     SimpleMemoryQuotaControllerPtr _memController;
 

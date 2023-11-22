@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_PLUGIN_LOADER_H
-#define __INDEXLIB_INDEX_PLUGIN_LOADER_H
+#pragma once
 
-#include <memory>
+#include <string>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/module_info.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 DECLARE_REFERENCE_CLASS(plugin, PluginManager);
 DECLARE_REFERENCE_CLASS(config, IndexSchema);
@@ -54,5 +53,3 @@ private:
 DEFINE_SHARED_PTR(IndexPluginLoader);
 
 }} // namespace indexlib::plugin
-
-#endif //__INDEXLIB_INDEX_PLUGIN_LOADER_H

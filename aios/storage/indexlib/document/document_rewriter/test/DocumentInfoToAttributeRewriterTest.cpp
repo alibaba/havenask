@@ -29,63 +29,46 @@ TEST_F(DocumentInfoToAttributeRewriterTest, TestSimpleProcess)
     ASSERT_TRUE(tsAttrConfig->Init(tsFieldConfig).IsOK());
     tsAttrConfig->SetAttrId(0);
 
-    std::shared_ptr<FieldConfig> hashIdFieldConfig(
-        new FieldConfig(DocumentInfoToAttributeRewriter::VIRTUAL_HASH_ID_FIELD_NAME,
-                        DocumentInfoToAttributeRewriter::VIRTUAL_HASH_ID_FIELD_TYPE,
+    std::shared_ptr<FieldConfig> docInfoFieldConfig(
+        new FieldConfig(DocumentInfoToAttributeRewriter::VIRTUAL_DOC_INFO_FIELD_NAME,
+                        DocumentInfoToAttributeRewriter::VIRTUAL_DOC_INFO_FIELD_TYPE,
                         /*multiValue = */ false));
-    std::shared_ptr<AttributeConfig> hashIdAttrConfig(new AttributeConfig);
-    ASSERT_TRUE(hashIdAttrConfig->Init(hashIdFieldConfig).IsOK());
-    hashIdAttrConfig->SetAttrId(0);
-
-    std::shared_ptr<FieldConfig> concurrentIdxFieldConfig(
-        new FieldConfig(DocumentInfoToAttributeRewriter::VIRTUAL_CONCURRENT_IDX_FIELD_NAME,
-                        DocumentInfoToAttributeRewriter::VIRTUAL_CONCURRENT_IDX_FIELD_TYPE,
-                        /*multiValue = */ false));
-    std::shared_ptr<AttributeConfig> concurrentIdxAttrConfig(new AttributeConfig);
-    ASSERT_TRUE(concurrentIdxAttrConfig->Init(concurrentIdxFieldConfig).IsOK());
-    concurrentIdxAttrConfig->SetAttrId(0);
+    std::shared_ptr<AttributeConfig> docInfoAttrConfig(new AttributeConfig);
+    ASSERT_TRUE(docInfoAttrConfig->Init(docInfoFieldConfig).IsOK());
+    docInfoAttrConfig->SetAttrId(0);
 
     fieldid_t tsFieldId = 1;
-    fieldid_t hashIdFieldId = 2;
-    fieldid_t concurrentIdxFieldId = 3;
+    fieldid_t docInfoFieldId = 2;
     tsFieldConfig->SetFieldId(tsFieldId);
-    hashIdFieldConfig->SetFieldId(hashIdFieldId);
-    concurrentIdxFieldConfig->SetFieldId(concurrentIdxFieldId);
-    std::shared_ptr<IDocumentRewriter> rewriter(
-        new DocumentInfoToAttributeRewriter(tsAttrConfig, hashIdAttrConfig, concurrentIdxAttrConfig));
+    docInfoFieldConfig->SetFieldId(docInfoFieldId);
+    std::shared_ptr<IDocumentRewriter> rewriter(new DocumentInfoToAttributeRewriter(tsAttrConfig, docInfoAttrConfig));
     auto normalDocument = new indexlibv2::document::NormalDocument;
     normalDocument->SetDocOperateType(ADD_DOC);
     std::shared_ptr<AttributeDocument> attrDoc(new AttributeDocument);
     std::shared_ptr<IDocument> doc(normalDocument);
     normalDocument->SetAttributeDocument(attrDoc);
-    normalDocument->SetDocInfo({200, 100, 15});
+    normalDocument->SetDocInfo({200, 100, 15, 42});
     std::shared_ptr<IDocumentBatch> documentBatch(new DocumentBatch);
     documentBatch->AddDocument(doc);
     ASSERT_TRUE(rewriter->Rewrite(documentBatch.get()).IsOK());
-    {
-        auto tsConvertor =
-            indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(tsAttrConfig);
-        auto valueMeta = tsConvertor->Decode(attrDoc->GetField(tsFieldId));
-        int64_t ts = *(int64_t*)valueMeta.data.data();
-        ASSERT_EQ(100, ts);
-        delete tsConvertor;
-    }
-    {
-        auto hashIdConvertor =
-            indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(hashIdAttrConfig);
-        auto valueMeta = hashIdConvertor->Decode(attrDoc->GetField(hashIdFieldId));
-        uint16_t hashId = *(uint16_t*)valueMeta.data.data();
-        ASSERT_EQ(200, hashId);
-        delete hashIdConvertor;
-    }
-    {
-        auto concurrentIdxConvertor =
-            indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(concurrentIdxAttrConfig);
-        auto valueMeta = concurrentIdxConvertor->Decode(attrDoc->GetField(concurrentIdxFieldId));
-        uint32_t concurrentIdx = *(uint32_t*)valueMeta.data.data();
-        ASSERT_EQ(15, concurrentIdx);
-        delete concurrentIdxConvertor;
-    }
+
+    auto tsConvertor = indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(tsAttrConfig);
+    auto valueMeta1 = tsConvertor->Decode(attrDoc->GetField(tsFieldId));
+    int64_t ts = *(int64_t*)valueMeta1.data.data();
+    ASSERT_EQ(100, ts);
+    delete tsConvertor;
+
+    auto docInfoConvertor =
+        indexlibv2::index::AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(docInfoAttrConfig);
+    auto valueMeta2 = docInfoConvertor->Decode(attrDoc->GetField(docInfoFieldId));
+    uint64_t docInfoValue = *(uint64_t*)valueMeta2.data.data();
+    auto docInfo = DocumentInfoToAttributeRewriter::DecodeDocInfo(docInfoValue, ts);
+    ASSERT_TRUE(docInfo.has_value());
+    ASSERT_EQ(200, docInfo.value().hashId);
+    ASSERT_EQ(15, docInfo.value().concurrentIdx);
+    ASSERT_EQ(42, docInfo.value().sourceIdx);
+    ASSERT_EQ(ts, docInfo.value().timestamp);
+    delete docInfoConvertor;
 }
 
 }} // namespace indexlibv2::document

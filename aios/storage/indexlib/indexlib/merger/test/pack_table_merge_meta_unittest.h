@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PACKTABLEMERGEMETATEST_H
-#define __INDEXLIB_PACKTABLEMERGEMETATEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/merge_meta.h"
@@ -26,5 +25,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PACKTABLEMERGEMETATEST_H

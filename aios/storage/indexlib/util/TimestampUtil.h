@@ -15,10 +15,11 @@
  */
 #pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
 
-#include "autil/ConstString.h"
 #include "autil/Log.h"
+#include "autil/Span.h"
 #include "indexlib/base/FieldType.h"
 #include "indexlib/util/TimestampUtilDefine.h"
 

@@ -15,7 +15,20 @@
  */
 #include "build_service/processor/DocTraceProcessor.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/RawDocumentDefine.h"
+#include "indexlib/document/normal/Field.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
 
 using namespace std;
 using namespace build_service::document;

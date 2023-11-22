@@ -24,14 +24,13 @@
 #include "sql/common/Log.h"
 #include "sql/ops/calc/CalcTableR.h"
 #include "sql/ops/join/JoinBase.h"
-#include "sql/ops/join/JoinInfoCollector.h"
 
 using namespace std;
 using namespace table;
 
 namespace sql {
 
-SemiJoin::SemiJoin(const JoinBaseParam &joinBaseParam)
+SemiJoin::SemiJoin(const JoinBaseParamR &joinBaseParam)
     : JoinBase(joinBaseParam) {}
 
 bool SemiJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
@@ -44,8 +43,6 @@ bool SemiJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
     _joinedFlag.resize(joinedRowCount);
     if (_joinedTable == nullptr) {
         _joinedTable.reset(new Table(_joinBaseParam._poolPtr));
-        _joinedTable->mergeDependentPools(leftTable);
-        _joinedTable->mergeDependentPools(rightTable);
         if (!JoinBase::initJoinedTable(leftTable, rightTable, _joinedTable)) {
             SQL_LOG(ERROR, "init join table failed");
             return false;
@@ -54,7 +51,7 @@ bool SemiJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
         _joinedTable->clearRows();
     }
     uint64_t afterInitTable = autil::TimeUtility::currentTime();
-    JoinInfoCollector::incInitTableTime(_joinBaseParam._joinInfo, afterInitTable - beginOutput);
+    _joinBaseParam._joinInfoR->incInitTableTime(afterInitTable - beginOutput);
     if (!evaluateJoinedTable(
             leftTableIndexes, rightTableIndexes, leftTable, rightTable, _joinedTable)) {
         SQL_LOG(ERROR, "evaluate join table failed");
@@ -80,14 +77,12 @@ bool SemiJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
 
     if (outputTable == nullptr) {
         outputTable.reset(new Table(_joinBaseParam._poolPtr));
-        outputTable->mergeDependentPools(leftTable);
-        outputTable->mergeDependentPools(rightTable);
         if (!initJoinedTable(leftTable, rightTable, outputTable)) {
             return false;
         }
     }
 
-    JoinInfoCollector::incJoinCount(_joinBaseParam._joinInfo, tableIndexes.size());
+    _joinBaseParam._joinInfoR->incJoinCount(tableIndexes.size());
     size_t joinIndexStart = outputTable->getRowCount();
     outputTable->batchAllocateRow(tableIndexes.size());
     if (!evaluateLeftTableColumns(tableIndexes, leftTable, joinIndexStart, outputTable)) {
@@ -96,7 +91,7 @@ bool SemiJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
     }
 
     uint64_t afterEvaluate = autil::TimeUtility::currentTime();
-    JoinInfoCollector::incEvaluateTime(_joinBaseParam._joinInfo, afterEvaluate - afterInitTable);
+    _joinBaseParam._joinInfoR->incEvaluateTime(afterEvaluate - afterInitTable);
 
     return true;
 }

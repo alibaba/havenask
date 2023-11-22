@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_IODEFINE_H
-#define ISEARCH_BS_IODEFINE_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
@@ -26,5 +25,3 @@ static const std::string SWIFT = "SWIFT";
 static const std::string FILE = "FILE";
 static const std::string MULTI_FILE = "MULTI_FILE";
 }} // namespace build_service::io
-
-#endif // ISEARCH_BS_IODEFINE_H

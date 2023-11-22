@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DELETIONMAPWRITERTEST_H
-#define __INDEXLIB_DELETIONMAPWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_writer.h"
@@ -31,5 +30,3 @@ INDEXLIB_UNIT_TEST_CASE(DeletionMapWriterTest, TestDeleteWithCachePool);
 INDEXLIB_UNIT_TEST_CASE(DeletionMapWriterTest, TestDeleteWithoutCachePool);
 INDEXLIB_UNIT_TEST_CASE(DeletionMapWriterTest, TestCopyOnDumpForAsyncFlushOperation);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DELETIONMAPWRITERTEST_H

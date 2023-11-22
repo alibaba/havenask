@@ -15,11 +15,14 @@
  */
 #pragma once
 
-#include <mutex>
-#include <random>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/common/RpcChannelManager.h"
 #include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
@@ -38,6 +41,7 @@ public:
     struct InitParam {
         int32_t generationId = -1;
         std::string dataTable;
+        std::string appName;
         std::string clusterName;
         uint16_t rangeFrom = 0;
         uint16_t rangeTo = 0;
@@ -62,7 +66,6 @@ private:
 
 private:
     InitParam _initParam;
-    std::string _appName;
     std::string _identifier;
     std::unique_ptr<common::RpcChannelManager> _rpcChannelManager;
 

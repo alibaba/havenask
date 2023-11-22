@@ -115,6 +115,7 @@ bool PartitionMetrics::init(MetricsGroupManager *manager) {
     SWIFT_REGISTER_GAUGE_METRIC(cacheFileCount, PARTITION_GROUP_METRIC);
     SWIFT_REGISTER_GAUGE_METRIC(cacheMetaBlockCount, PARTITION_GROUP_METRIC);
     SWIFT_REGISTER_GAUGE_METRIC(cacheDataBlockCount, PARTITION_GROUP_METRIC);
+    SWIFT_REGISTER_GAUGE_METRIC(partitionUsedDfsSize, PARTITION_DFS_GROUP_METRIC);
     return true;
 }
 
@@ -156,6 +157,7 @@ void PartitionMetrics::report(const MetricsTags *tags, PartitionMetricsCollector
     SWIFT_REPORT_MUTABLE_METRIC(cacheFileCount, collector->cacheFileCount);
     SWIFT_REPORT_MUTABLE_METRIC(cacheMetaBlockCount, collector->cacheMetaBlockCount);
     SWIFT_REPORT_MUTABLE_METRIC(cacheDataBlockCount, collector->cacheDataBlockCount);
+    SWIFT_REPORT_MUTABLE_METRIC(partitionUsedDfsSize, collector->usedDfsSize);
 }
 
 bool WorkerMetrics::init(MetricsGroupManager *manager) {
@@ -652,6 +654,11 @@ void BrokerMetricsReporter::reportLongPollingMetrics(const MetricsTagsPtr &tags,
     _metricsReporter->report<LongPollingMetrics, LongPollingMetricsCollector>(tags.get(), &collector);
 }
 
+void BrokerMetricsReporter::reportFileManagerMetrics(const MetricsTagsPtr &tags,
+                                                     FileManagerMetricsCollector &collector) {
+    _metricsReporter->report<FileManagerMetrics, FileManagerMetricsCollector>(tags.get(), &collector);
+}
+
 void BrokerMetricsReporter::incGetMinMessageIdByTimeQps(MetricsTags *tags) {
     static const string name = PARTITION_GROUP_METRIC + "getMinMessageIdByTimeQps";
     REPORT_USER_MUTABLE_QPS_TAGS(_metricsReporter, name, tags);
@@ -685,6 +692,15 @@ void BrokerMetricsReporter::incRecycleQps(MetricsTags *tags) {
 void BrokerMetricsReporter::reportLongPollingQps(const kmonitor::MetricsTagsPtr &tags) {
     static const string name = BROKER_WORKER_GROUP_STATUS_METRIC + "longPollingQps";
     REPORT_USER_MUTABLE_QPS_TAGS(_metricsReporter, name, tags.get());
+}
+void BrokerMetricsReporter::reportDeleteObsoleteFileQps(uint32_t deletedFileCount, const kmonitor::MetricsTags *tags) {
+    static const string name = PARTITION_GROUP_METRIC + "deleteObsoleteFileQps";
+    REPORT_USER_MUTABLE_QPSN_TAGS(_metricsReporter, name, deletedFileCount, tags);
+}
+
+void BrokerMetricsReporter::reportInitFileManagerLatency(int64_t latency, const kmonitor::MetricsTags *tags) {
+    static const string name = PARTITION_GROUP_METRIC + "initFileManagerLatency";
+    REPORT_USER_MUTABLE_METRIC_TAGS(_metricsReporter, name, latency, tags);
 }
 
 /////// worker metrics
@@ -849,6 +865,17 @@ kmonitor::MetricsTagsPtr BrokerMetricsReporter::getPartitionInfoMetricsTags(cons
         _partitionInfoTagsMap[hashKey] = tags;
     }
     return tags;
+}
+
+bool FileManagerMetrics::init(MetricsGroupManager *manager) {
+    SWIFT_REGISTER_GAUGE_METRIC(getPathMetaCount, BROKER_WORKER_GROUP_STATUS_METRIC);
+    SWIFT_REGISTER_GAUGE_METRIC(getPathMetaLatency, BROKER_WORKER_GROUP_STATUS_METRIC);
+    return true;
+}
+
+void FileManagerMetrics::report(const MetricsTags *tags, FileManagerMetricsCollector *collector) {
+    SWIFT_REPORT_MUTABLE_METRIC(getPathMetaCount, collector->getPathMetaCount);
+    SWIFT_REPORT_MUTABLE_METRIC(getPathMetaLatency, collector->getPathMetaLatency);
 }
 
 } // namespace monitor

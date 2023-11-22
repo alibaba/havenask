@@ -15,6 +15,9 @@
  */
 #include "build_service/admin/WorkerTable.h"
 
+#include <iosfwd>
+#include <vector>
+
 using namespace std;
 
 namespace build_service { namespace admin {

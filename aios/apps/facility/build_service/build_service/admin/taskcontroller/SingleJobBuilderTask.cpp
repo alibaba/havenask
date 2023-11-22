@@ -15,20 +15,40 @@
  */
 #include "build_service/admin/taskcontroller/SingleJobBuilderTask.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/CheckpointCreator.h"
+#include "build_service/admin/SlowNodeDetector.h"
 #include "build_service/common/BuilderCheckpointAccessor.h"
 #include "build_service/common/CheckpointAccessor.h"
+#include "build_service/common/IndexCheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
 #include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/ProtoComparator.h"
-#include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/WorkerNodeCreator.h"
 #include "build_service/util/DataSourceHelper.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/config/TabletSchema.h"
+#include "indexlib/misc/common.h"
 #include "indexlib/table/BuiltinDefine.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace autil;

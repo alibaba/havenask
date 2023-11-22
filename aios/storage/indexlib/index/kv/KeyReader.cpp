@@ -114,9 +114,6 @@ std::unique_ptr<KVKeyIterator> KeyReader::CreateIterator() const
     return std::make_unique<KVKeyIterator>(std::move(iterator), _valueUnpacker.get(), _typeId->isVarLen);
 }
 
-size_t KeyReader::EvaluateCurrentMemUsed()
-{
-    return _keyFileReader->EvaluateCurrentMemUsed();
-}
+size_t KeyReader::EvaluateCurrentMemUsed() { return _keyFileReader->EvaluateCurrentMemUsed(); }
 
 } // namespace indexlibv2::index

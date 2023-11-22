@@ -24,7 +24,8 @@ public class IquanFilterMergeRule extends FilterMergeRule {
         super(filterFactory);
     }
 
-    @Override public void onMatch(RelOptRuleCall call) {
+    @Override
+    public void onMatch(RelOptRuleCall call) {
         final Filter topFilter = call.rel(0);
         final Filter bottomFilter = call.rel(1);
 
@@ -44,7 +45,8 @@ public class IquanFilterMergeRule extends FilterMergeRule {
     public interface Config extends RelRule.Config {
         IquanFilterMergeRule.Config DEFAULT = ImmutableIquanFilterMergeRule.Config.builder().build();
 
-        @Override default IquanFilterMergeRule toRule() {
+        @Override
+        default IquanFilterMergeRule toRule() {
             return new IquanFilterMergeRule(this);
         }
     }

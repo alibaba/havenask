@@ -29,7 +29,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, SummaryDiskIndexer);
 
-SummaryDiskIndexer::SummaryDiskIndexer(const IndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
+SummaryDiskIndexer::SummaryDiskIndexer(const DiskIndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
 
 SummaryDiskIndexer::~SummaryDiskIndexer() {}
 
@@ -86,7 +86,7 @@ size_t SummaryDiskIndexer::EstimateMemUsed(const std::shared_ptr<config::IIndexC
     assert(indexDirectory);
     auto summaryIDir = indexDirectory;
     assert(summaryIDir);
-    IndexerParameter emptyIndexerParam;
+    DiskIndexerParameter emptyIndexerParam;
     for (summarygroupid_t groupId = 0; groupId < summaryIndexConfig->GetSummaryGroupConfigCount(); ++groupId) {
         const auto& summaryGroupConfig = summaryIndexConfig->GetSummaryGroupConfig(groupId);
         auto summaryGroupDiskIndexer = std::make_shared<LocalDiskSummaryDiskIndexer>(emptyIndexerParam);

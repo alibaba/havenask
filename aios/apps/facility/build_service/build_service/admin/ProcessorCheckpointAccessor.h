@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORCHECKPOINTKEEPER_H
-#define ISEARCH_BS_PROCESSORCHECKPOINTKEEPER_H
+#pragma once
+
+#include <algorithm>
+#include <deque>
+#include <map>
+#include <stdint.h>
+#include <string>
+#include <utility>
 
 #include "autil/TimeUtility.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/Locator.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
+#include "indexlib/framework/Locator.h"
 
 namespace build_service { namespace admin {
 
@@ -90,5 +97,3 @@ private:
 BS_TYPEDEF_PTR(ProcessorCheckpointAccessor);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_PROCESSORCHECKPOINTKEEPER_H

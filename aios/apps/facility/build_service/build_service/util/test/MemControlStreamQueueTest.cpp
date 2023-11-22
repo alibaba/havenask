@@ -1,9 +1,16 @@
 #include "build_service/util/MemControlStreamQueue.h"
 
+#include <cstdint>
 #include <functional>
+#include <iosfwd>
+#include <memory>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "autil/Thread.h"
+#include "autil/TimeUtility.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

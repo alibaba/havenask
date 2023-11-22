@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel;
 
+import java.util.Collections;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+
 import org.apache.calcite.plan.Context;
 import org.apache.calcite.plan.Contexts;
 import org.apache.calcite.plan.RelOptCluster;
@@ -13,21 +17,24 @@ import org.apache.calcite.runtime.Hook;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
-import org.apache.calcite.util.Util;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
 public class IquanRelBuilder extends RelBuilder {
+    public static final RelBuilderFactory LOGICAL_BUILDER =
+            IquanRelBuilder.proto(Contexts.EMPTY_CONTEXT);
     private final Context context;
+
     protected IquanRelBuilder(Context context, RelOptCluster cluster, RelOptSchema relOptSchema) {
         super(context, cluster, relOptSchema);
         this.context = context == null ? Contexts.EMPTY_CONTEXT : context;
+    }
+
+    public static RelBuilderFactory proto(Context context) {
+        return (cluster, schema) -> {
+            Context iquanContext = cluster.getPlanner().getContext();
+            return new IquanRelBuilder(Contexts.chain(context, iquanContext), cluster, schema);
+        };
     }
 
     @Override
@@ -39,7 +46,7 @@ public class IquanRelBuilder extends RelBuilder {
                 return false;
             }
             AggregateCall call = agg.getAggCallList().get(0);
-            return call.getAggregation().getKind() == SqlKind.COUNT &&call.filterArg == -1 && call.getArgList().isEmpty();
+            return call.getAggregation().getKind() == SqlKind.COUNT && call.filterArg == -1 && call.getArgList().isEmpty();
         };
 
         LogicalProject project = null;
@@ -74,14 +81,4 @@ public class IquanRelBuilder extends RelBuilder {
                 Contexts.of(newStruct, transform.apply(config));
         return new IquanRelBuilder(newContext, cluster, relOptSchema);
     }
-
-    public static RelBuilderFactory proto(Context context) {
-        return (cluster, schema) -> {
-            Context iquanContext = cluster.getPlanner().getContext();
-            return new IquanRelBuilder(Contexts.chain(context, iquanContext), cluster, schema);
-        };
-    }
-
-    public static final RelBuilderFactory LOGICAL_BUILDER =
-            IquanRelBuilder.proto(Contexts.EMPTY_CONTEXT);
 }

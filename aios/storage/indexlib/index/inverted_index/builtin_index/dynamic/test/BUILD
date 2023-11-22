@@ -2,6 +2,7 @@ load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 strict_cc_fast_test(
     name='DynamicSearchTreeNodeTest',
     srcs=['DynamicSearchTreeNodeTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/inverted_index/builtin_index/dynamic:DynamicSearchTreeNode',
         '//aios/unittest_framework'
@@ -10,6 +11,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='DynamicSearchTreeTest',
     srcs=['DynamicSearchTreeTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/inverted_index/builtin_index/dynamic:DynamicSearchTree',
         '//aios/unittest_framework'
@@ -18,6 +20,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='DynamicSearchTreeStressTest',
     srcs=['DynamicSearchTreeStressTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/inverted_index/builtin_index/dynamic:DynamicSearchTree',
         '//aios/unittest_framework'
@@ -26,6 +29,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='DynamicMemIndexerTest',
     srcs=['DynamicMemIndexerTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/inverted_index/builtin_index/dynamic:DynamicMemIndexer',
         '//aios/storage/indexlib/index/inverted_index/config/test:InvertedIndexConfigCreator',

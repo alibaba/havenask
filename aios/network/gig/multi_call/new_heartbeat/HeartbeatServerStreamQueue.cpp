@@ -144,4 +144,24 @@ void HeartbeatServerStreamQueue::removeStream(const std::vector<int64_t> &stream
     setStreamMap(newMap);
 }
 
+bool HeartbeatServerStreamQueue::isEmpty() const {
+    auto streamMapPtr = getStreamMap();
+    return (!streamMapPtr) || streamMapPtr->empty();
+}
+
+bool HeartbeatServerStreamQueue::isAllReplicaStopped(SignatureTy sig) const {
+    auto streamMapPtr = getStreamMap();
+    if (!streamMapPtr) {
+        return true;
+    }
+    const auto &streamMap = *streamMapPtr;
+    for (const auto &pair : streamMap) {
+        const auto &stream = pair.second;
+        if (!stream->isAllReplicaStopped(sig)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace multi_call

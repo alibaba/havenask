@@ -15,11 +15,22 @@
  */
 #include "build_service/admin/AppPlanMaker.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <ostream>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
 #include "autil/RangeUtil.h"
 #include "autil/Regex.h"
+#include "autil/Span.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/WorkerTable.h"
+#include "build_service/proto/RoleNameGenerator.h"
 #include "build_service/proto/WorkerNode.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;
@@ -417,11 +428,10 @@ vector<string> AppPlanMaker::getAllRoles(const vector<string>& clusters, const m
     for (size_t i = 0; i < clusters.size(); i++) {
         allRoles.push_back("builder." + clusters[i] + ".full");
         allRoles.push_back("builder." + clusters[i] + ".inc");
-        for (map<string, vector<string>>::const_iterator it = mergeNames.begin(); it != mergeNames.end(); it++) {
-            vector<string> clusterMergeNames = it->second;
-            for (size_t j = 0; j < clusterMergeNames.size(); j++) {
-                allRoles.push_back("merger." + clusters[i] + "." + clusterMergeNames[j]);
-            }
+    }
+    for (const auto& [clusterName, clusterMergeNames] : mergeNames) {
+        for (size_t i = 0; i < clusterMergeNames.size(); i++) {
+            allRoles.push_back("merger." + clusterName + "." + clusterMergeNames[i]);
         }
     }
     return allRoles;

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SECTIONATTRIBUTEAPPENDERTEST_H
-#define __INDEXLIB_SECTIONATTRIBUTEAPPENDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/package_index_config.h"
@@ -53,5 +52,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(SectionAttributeAppenderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(SectionAttributeAppenderTest, TestAppendSectionAttrWithDifferentParam);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_SECTIONATTRIBUTEAPPENDERTEST_H

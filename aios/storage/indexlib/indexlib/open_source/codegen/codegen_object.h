@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CODEGEN_OBJECT_H
-#define __INDEXLIB_CODEGEN_OBJECT_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -52,5 +51,3 @@ protected:
 #define COLLECT_TYPE_REDEFINE(typeName, targetType)
 #define INIT_CODEGEN_INFO(originClassName, needRename)
 #define PARTICIPATE_CODEGEN(className, codegenInfo)
-
-#endif //__INDEXLIB_CODEGEN_OBJECT_H

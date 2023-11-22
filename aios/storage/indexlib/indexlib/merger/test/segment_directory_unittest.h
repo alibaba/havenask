@@ -1,5 +1,4 @@
-#ifndef __SEGMENT_DIRECTORY_TEST_H
-#define __SEGMENT_DIRECTORY_TEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/segment_directory.h"
@@ -41,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE(SegmentDirectoryTest, TestGetBaseDocIdsForEmpty);
 INDEXLIB_UNIT_TEST_CASE(SegmentDirectoryTest, TestLoadSegmentInfo);
 INDEXLIB_UNIT_TEST_CASE(SegmentDirectoryTest, TestRemoveUselessSegment);
 }} // namespace indexlib::merger
-
-#endif // __SEGMENT_DIRECTORY_TEST_H

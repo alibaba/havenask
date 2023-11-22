@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SPATIALATTRIBUTETEST_H
-#define __INDEXLIB_SPATIALATTRIBUTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -35,5 +34,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(SpatialAttributeTest, TestLocation);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SPATIALATTRIBUTETEST_H

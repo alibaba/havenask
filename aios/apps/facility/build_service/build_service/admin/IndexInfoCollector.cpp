@@ -15,15 +15,34 @@
  */
 #include "build_service/admin/IndexInfoCollector.h"
 
+#include <algorithm>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <memory>
+#include <ostream>
+#include <unistd.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/PathDefine.h"
 #include "build_service/proto/ProtoComparator.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/Monitor.h"
 #include "fslib/util/FileUtil.h"
+#include "kmonitor/client/MetricLevel.h"
 #include "kmonitor_adapter/Monitor.h"
+#include "worker_framework/LeaderElector.h"
+#include "worker_framework/WorkerState.h"
 
 using namespace std;
 using namespace autil;

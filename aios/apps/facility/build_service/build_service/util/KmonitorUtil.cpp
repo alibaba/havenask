@@ -15,7 +15,12 @@
  */
 #include "build_service/util/KmonitorUtil.h"
 
+#include <iosfwd>
+#include <stdint.h>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/TaskIdentifier.h"

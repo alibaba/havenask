@@ -15,6 +15,10 @@
  */
 #include "build_service/admin/taskcontroller/BuildServiceTaskFactory.h"
 
+#include <iosfwd>
+
+#include "build_service/admin/controlflow/TaskBase.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/BuildServiceTask.h"
 #include "build_service/admin/taskcontroller/MergeCrontabTask.h"
 

@@ -44,6 +44,7 @@ public:
 public:
     SinkPtr GetSink(const std::string &name) const;
     void addCommonTags();
+    MetricsSystem *getMetricsSystem() { return system_; }
 
 private:
     void EscapeString(std::string &input);
@@ -51,7 +52,6 @@ private:
 private:
     KMonitorWorker(const KMonitorWorker &);
     KMonitorWorker &operator=(const KMonitorWorker &);
-    MetricsSystem *getMetricsSystem() { return system_; }
 
 private:
     std::string name_;

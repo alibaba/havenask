@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OUTPUT_SEGMENT_MERGE_INFO_H
-#define __INDEXLIB_OUTPUT_SEGMENT_MERGE_INFO_H
+#pragma once
 
 #include <memory>
 
@@ -42,5 +41,3 @@ DEFINE_SHARED_PTR(OutputSegmentMergeInfo);
 
 typedef std::vector<OutputSegmentMergeInfo> OutputSegmentMergeInfos;
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_OUTPUT_SEGMENT_MERGE_INFO_H

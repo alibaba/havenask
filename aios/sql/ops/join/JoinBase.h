@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "sql/ops/join/JoinBaseParamR.h"
 #include "table/Table.h"
 
 namespace autil {
@@ -39,33 +40,9 @@ class Column;
 namespace sql {
 class CalcTableR;
 
-struct JoinBaseParam {
-    JoinBaseParam() {};
-    JoinBaseParam(const std::vector<std::string> &leftInputFields,
-                  const std::vector<std::string> &rightInputFields,
-                  const std::vector<std::string> &outputFields,
-                  JoinInfo *joinInfo,
-                  std::shared_ptr<autil::mem_pool::Pool> poolPtr,
-                  autil::mem_pool::Pool *pool)
-        : _leftInputFields(leftInputFields)
-        , _rightInputFields(rightInputFields)
-        , _outputFields(outputFields)
-        , _joinInfo(joinInfo)
-        , _poolPtr(poolPtr)
-        , _pool(pool) {}
-    std::vector<std::string> _leftInputFields;
-    std::vector<std::string> _rightInputFields;
-    std::vector<std::string> _outputFields;
-    std::unordered_map<std::string, std::string> _defaultValue;
-    JoinInfo *_joinInfo;
-    std::shared_ptr<autil::mem_pool::Pool> _poolPtr;
-    autil::mem_pool::Pool *_pool;
-    std::shared_ptr<CalcTableR> _calcTableR;
-};
-
 class JoinBase {
 public:
-    JoinBase(const JoinBaseParam &joinBaseParam);
+    JoinBase(const JoinBaseParamR &joinBaseParam);
     virtual ~JoinBase() {}
     JoinBase(const JoinBase &) = delete;
     JoinBase &operator=(const JoinBase &) = delete;
@@ -121,7 +98,7 @@ private:
                                    table::TablePtr &outputTable);
 
 protected:
-    const JoinBaseParam &_joinBaseParam;
+    const JoinBaseParamR &_joinBaseParam;
 };
 
 typedef std::shared_ptr<JoinBase> JoinBasePtr;

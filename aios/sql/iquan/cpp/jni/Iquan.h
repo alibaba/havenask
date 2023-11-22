@@ -21,11 +21,10 @@
 
 #include "iquan/common/Common.h"
 #include "iquan/common/Status.h"
-#include "iquan/common/catalog/CatalogInfo.h"
+#include "iquan/common/catalog/CatalogDef.h"
 #include "iquan/common/catalog/FunctionModel.h"
 #include "iquan/common/catalog/LayerTableModel.h"
 #include "iquan/common/catalog/TableModel.h"
-#include "iquan/common/catalog/TvfFunctionModel.h"
 #include "iquan/config/ClientConfig.h"
 #include "iquan/config/ExecConfig.h"
 #include "iquan/config/JniConfig.h"
@@ -57,9 +56,6 @@ public:
     ~Iquan();
 
     Status init(const JniConfig &jniConfig, const ClientConfig &sqlConfig);
-    // TODO impl
-    // merge updateTables and updateFunctions
-    Status updateCatalog(const CatalogInfo &catalog);
     Status
     query(IquanDqlRequest &request, IquanDqlResponse &response, PlanCacheStatus &planCacheStatus);
     Status dumpCatalog(std::string &result);
@@ -69,22 +65,7 @@ public:
     void resetPlanCache();
     void resetPlanMetaCache();
 
-    // TODO delete
-    // 1. update tables
-    // table format example:
-    // xxxx://invalid/isearch/iquan/tree/iquan-0.3.0-dev/iquan_core/src/test/resources/catalogs/default/db1/tables
-    Status updateTables(const TableModels &tables);
-    Status updateTables(const std::string &tableContent);
-    Status updateLayerTables(const LayerTableModels &tables);
-    Status updateLayerTables(const std::string &tableContent);
-
-    // TODO delete
-    // 2. update functions
-    // fucntion format example:
-    // xxxx://invalid/isearch/iquan/tree/iquan-0.3.0-dev/iquan_core/src/test/resources/catalogs/default/db1/functions
-    Status updateFunctions(FunctionModels &functions);
-    Status updateFunctions(const TvfModels &functions);
-    Status updateFunctions(const std::string &functionContent);
+    Status registerCatalogs(const CatalogDefs &catalogs);
 
     // TODO delete, only for debugging
     // 5. catalog function

@@ -15,6 +15,11 @@
  */
 #include "build_service/builder/BuilderCreatorV2.h"
 
+#include <assert.h>
+#include <map>
+#include <utility>
+
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "build_service/builder/AsyncBuilderV2.h"
 #include "build_service/builder/BuilderV2Impl.h"
@@ -92,7 +97,12 @@ std::unique_ptr<BuilderV2> BuilderCreatorV2::create(const config::ResourceReader
     }
     // v2 build use asnyc build as default
     auto impl = std::move(builder);
-    builder = std::make_unique<AsyncBuilderV2>(std::move(impl));
+    bool regroup = true;
+    auto docTypeIter = kvMap.find(config::INPUT_DOC_TYPE);
+    if (docTypeIter != kvMap.end() && docTypeIter->second == config::INPUT_DOC_BATCHDOC) {
+        regroup = false;
+    }
+    builder = std::make_unique<AsyncBuilderV2>(std::move(impl), regroup);
     if (!builder->init(clusterConfig.builderConfig, metricProvider)) {
         TABLET_LOG(ERROR, "init builder failed");
         return nullptr;

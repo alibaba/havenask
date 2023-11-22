@@ -15,8 +15,9 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 #include "autil/Log.h"
-#include "autil/NoCopyable.h"
 #include "autil/Thread.h"
 #include "indexlib/framework/TabletPortalBase.h"
 #include "indexlib/util/KeyValueMap.h"

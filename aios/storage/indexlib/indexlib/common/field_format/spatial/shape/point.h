@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_POINT_H
-#define __INDEXLIB_POINT_H
+#pragma once
 
 #include "indexlib/index/common/field_format/spatial/shape/Point.h"
 
@@ -23,5 +22,3 @@ namespace indexlib { namespace common {
 using Point = index::Point;
 using PointPtr = std::shared_ptr<Point>;
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_POINT_H

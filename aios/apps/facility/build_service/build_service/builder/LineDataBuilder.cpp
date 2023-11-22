@@ -15,11 +15,36 @@
  */
 #include "build_service/builder/LineDataBuilder.h"
 
+#include <cstddef>
+#include <exception>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "build_service/builder/BuilderMetrics.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "fslib/fs/FileSystem.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/attribute_schema.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/schema_modify_operation.h"
+#include "indexlib/document/document.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/document/normal/AttributeDocument.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
 #include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/JsonMap.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 

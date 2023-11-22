@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_LUALOGGERWRAPPER_H
-#define ISEARCH_BS_LUALOGGERWRAPPER_H
+#pragma once
 
-#include "build_service/admin/controlflow/Eluna.h"
-#include "build_service/common_define.h"
+#include <stdint.h>
+#include <string>
+
+extern "C" {
+#include "lua.h"
+}
+
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
@@ -50,5 +54,3 @@ private:
 };
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_LUALOGGERWRAPPER_H

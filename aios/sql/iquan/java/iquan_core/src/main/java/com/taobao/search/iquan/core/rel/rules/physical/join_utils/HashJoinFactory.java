@@ -1,7 +1,6 @@
 package com.taobao.search.iquan.core.rel.rules.physical.join_utils;
 
-import com.taobao.search.iquan.core.api.schema.Distribution;
-import com.taobao.search.iquan.core.api.schema.Table;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanHashJoinOp;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
 import org.apache.calcite.rel.RelNode;
@@ -17,7 +16,7 @@ public class HashJoinFactory extends PhysicalJoinFactory {
     }
 
     @Override
-    public RelNode create(IquanJoinOp joinOp, Table leftTable, Table rightTable) {
+    public RelNode create(IquanJoinOp joinOp, IquanTable leftIquanTable, IquanTable rightIquanTable) {
         return new IquanHashJoinOp(
                 joinOp.getCluster(),
                 joinOp.getTraitSet(),

@@ -53,12 +53,12 @@ PostingIterator* SeekAndFilterIterator::Clone() const
     return iter;
 }
 
-docid_t SeekAndFilterIterator::SeekDoc(docid_t docid)
+docid64_t SeekAndFilterIterator::SeekDoc(docid64_t docid)
 {
     if (!_needInnerFilter || !_docFilter) {
         return _indexSeekIterator->SeekDoc(docid);
     }
-    docid_t curDocId = docid;
+    docid64_t curDocId = docid;
     while (true) {
         curDocId = _indexSeekIterator->SeekDoc(curDocId);
         if (curDocId == INVALID_DOCID) {
@@ -72,13 +72,13 @@ docid_t SeekAndFilterIterator::SeekDoc(docid_t docid)
     return INVALID_DOCID;
 }
 
-index::ErrorCode SeekAndFilterIterator::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+index::ErrorCode SeekAndFilterIterator::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
     {
         if (!_needInnerFilter || !_docFilter) {
             return _indexSeekIterator->SeekDocWithErrorCode(docId, result);
         }
-        docid_t curDocId = docId;
+        docid64_t curDocId = docId;
         while (true) {
             auto ec = _indexSeekIterator->SeekDocWithErrorCode(curDocId, curDocId);
             if (unlikely(ec != index::ErrorCode::OK)) {

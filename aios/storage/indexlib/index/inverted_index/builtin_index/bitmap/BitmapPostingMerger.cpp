@@ -63,7 +63,7 @@ public:
             }
         }
     }
-    docid_t GetDocId() const { return _orderDocId; }
+    std::pair<segmentid_t, docid_t> GetCurrent() const { return _current; }
     docid_t GetOldDocId() const { return _oldDocId; }
     const TermMeta* GetTermMeta() const { return _bitmapDecoder->GetTermMeta(); }
 
@@ -72,11 +72,9 @@ private:
     {
         while (_docCursor < (uint32_t)_decodedNum) {
             _oldDocId = _docBuffer[_docCursor] + _baseDocId;
+            _current = _docMapper->Map(_oldDocId);
             _docCursor++;
-            _newDocId = _docMapper->GetNewId(_oldDocId);
-            // TODO(makuo.mnb) use order id
-            _orderDocId = _docMapper->GetNewId(_oldDocId);
-            if (_newDocId != INVALID_DOCID) {
+            if (_current.second != INVALID_DOCID) {
                 return true;
             }
         }
@@ -89,9 +87,8 @@ private:
     BitmapPostingDecoder* _bitmapDecoder = nullptr;
     std::shared_ptr<DocMapper> _docMapper;
     docid_t _baseDocId = INVALID_DOCID;
-    docid_t _newDocId = INVALID_DOCID;
     docid_t _oldDocId = INVALID_DOCID;
-    docid_t _orderDocId = INVALID_DOCID;
+    std::pair<segmentid_t, docid_t> _current = {INVALID_SEGMENTID, INVALID_DOCID};
 
     docid_t _docBuffer[DEFAULT_BUFFER_SIZE];
     int32_t _decodedNum = 0;
@@ -102,7 +99,7 @@ private:
 struct BitmapIndexSortedQueueItemComparator {
     bool operator()(const BitmapIndexSortedQueueItem* item1, const BitmapIndexSortedQueueItem* item2)
     {
-        return (item1->GetDocId() > item2->GetDocId());
+        return (item1->GetCurrent() > item2->GetCurrent());
     }
 };
 
@@ -131,9 +128,8 @@ void BitmapPostingMerger::ApplyPatch(const SegmentTermInfo* segTermInfo, const s
         ComplexDocId doc;
         while (patchIter->Next(&doc)) {
             docid_t oldId = baseDocId + doc.DocId();
-            docid_t newId = docMapper->GetNewId(oldId);
-            if (newId != INVALID_DOCID) {
-                auto [newSegId, newLocalDocId] = docMapper->Map(oldId);
+            auto [newSegId, newLocalDocId] = docMapper->Map(oldId);
+            if (newLocalDocId != INVALID_DOCID) {
                 auto postingWriter = _writer.GetSegmentBitmapPostingWriterBySegId(newSegId);
                 static_cast<BitmapPostingWriter*>(postingWriter.get())->Update(newLocalDocId, doc.IsDelete());
             }

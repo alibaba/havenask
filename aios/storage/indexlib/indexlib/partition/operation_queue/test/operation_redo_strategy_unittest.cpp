@@ -1,11 +1,11 @@
 #include "indexlib/partition/operation_queue/test/operation_redo_strategy_unittest.h"
 
 #include "indexlib/config/online_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/building_partition_data.h"
 #include "indexlib/partition/operation_queue/test/mock_operation.h"
 #include "indexlib/test/partition_data_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

@@ -15,6 +15,8 @@
  */
 #include "suez/sdk/TableWriter.h"
 
+#include <future_lite/uthread/Latch.h>
+
 #include "RawDocument2SwiftFieldFilter.h"
 #include "autil/Log.h"
 #include "autil/StringUtil.h"
@@ -181,7 +183,8 @@ void TableWriter::setEnableWrite(bool flag) {
 
 void TableWriter::write(const std::string &format,
                         const WalDocVector &docs,
-                        const std::function<void(autil::Result<WriteResult>)> &done) {
+                        const std::function<void(autil::Result<WriteResult>)> &done,
+                        future_lite::Executor *executor) {
     if (!_enableWrite) {
         done(RuntimeError::make("%s is disabled, can not write", _pid->ShortDebugString().c_str()));
         return;
@@ -192,7 +195,8 @@ void TableWriter::write(const std::string &format,
             collector->writeEnd();
             if (_reporter) {
                 kmonitor::MetricsTags tags{{{"table_name", _pid->clusternames(0)}, {"role_type", _roleType}}};
-                _reporter->report<WriteMetrics>(&tags, collector);
+                auto reporter = _reporter->getSubReporter("", tags);
+                reporter->report<WriteMetrics>(nullptr, collector);
             }
             delete collector;
         }
@@ -235,13 +239,30 @@ void TableWriter::write(const std::string &format,
             done(result);
         };
 
+    if (executor != nullptr) {
+        autil::Result<std::vector<int64_t>> logResult;
+        future_lite::uthread::Latch latch(1);
+        auto latchDone = [&latch, &logResult](autil::Result<std::vector<int64_t>> ret) {
+            logResult = std::move(ret);
+            latch.downCount();
+        };
+        DoWrite(walDocs, latchDone);
+        latch.await(executor);
+        logDone(std::move(logResult));
+    } else {
+        DoWrite(walDocs, logDone);
+    }
+}
+
+void TableWriter::DoWrite(const WalDocVector &docs,
+                          const std::function<void(autil::Result<std::vector<int64_t>>)> &done) {
     autil::ScopedLock lock(_mutex);
     maybeInitWALLocked();
     if (!_wal) {
         done(RuntimeError::make("%s wal invalid", _pid->ShortDebugString().c_str()));
         return;
     }
-    _wal->log(walDocs, std::move(logDone));
+    _wal->log(docs, done);
 }
 
 void TableWriter::updateSchema(uint32_t version,
@@ -403,7 +424,7 @@ void TableWriter::fillWriteResult(WriteResult &result, const WriteMetricsCollect
     result.state = WriterState::ASYNC; // TODO: support sync
     auto locator = index->GetTabletInfos()->GetLatestLocator();
     if (locator.IsValid()) {
-        result.watermark.buildLocatorOffset = build_service::util::LocatorUtil::GetSwiftWatermark(locator);
+        result.watermark.buildLocatorOffset = build_service::util::LocatorUtil::getSwiftWatermark(locator);
     }
     if (result.watermark.maxCp > 0) {
         result.watermark.buildGap = result.watermark.maxCp - std::max(0L, result.watermark.buildLocatorOffset);

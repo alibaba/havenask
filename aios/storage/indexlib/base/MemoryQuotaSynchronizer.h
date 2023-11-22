@@ -16,6 +16,7 @@
 #pragma once
 #include <memory>
 #include <mutex>
+#include <stdint.h>
 
 #include "indexlib/base/MemoryQuotaController.h"
 

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_INDEX_SEGMENT_RETRIEVER_H
-#define __INDEXLIB_INDEX_INDEX_SEGMENT_RETRIEVER_H
+#pragma once
 
 #include <memory>
 
@@ -57,5 +56,3 @@ private:
 
 DEFINE_SHARED_PTR(IndexSegmentRetriever);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEX_SEGMENT_RETRIVER_H

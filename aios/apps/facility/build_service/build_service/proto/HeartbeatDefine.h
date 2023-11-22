@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_HEARTBEAT_DEFINE_H
-#define ISEARCH_BS_HEARTBEAT_DEFINE_H
+#pragma once
 
 #include <cstdint>
 
@@ -24,5 +23,3 @@ static const int64_t ADMIN_HEARTBEAT_INTERVAL = 1 * 1000 * 1000;
 static const int64_t WORKER_EXEC_HEARTBEAT_INTERVAL = 1 * 1000 * 1000;
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_HEARTBEAT_DEFINE_H

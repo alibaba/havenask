@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_JOBDEFINE_H
-#define ISEARCH_BS_JOBDEFINE_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
@@ -25,5 +24,3 @@ static const std::string JOB_PARAMETER_STRING = "JobParameterString";
 static const std::string JOB_LOG_FILE = "bs_alog.conf";
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_JOBDEFINE_H

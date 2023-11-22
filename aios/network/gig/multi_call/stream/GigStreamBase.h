@@ -36,6 +36,7 @@ private:
 
 public:
     bool nextMessage(GigStreamMessage &message, MultiCallErrorCode &ec);
+    bool peekMessage(GigStreamMessage &message, MultiCallErrorCode &ec);
     bool empty() const {
         return (0 == _count);
     }
@@ -99,7 +100,8 @@ public:
         return asyncReceive(partId);
     }
     bool asyncReceive(PartIdTy partId);
-
+    bool peekMessage(PartIdTy partId, GigStreamMessage &message,
+                     MultiCallErrorCode &ec);
 private:
     bool innerReceive(const GigStreamMessage &message, MultiCallErrorCode ec);
     friend class GigStreamHandlerBase;
@@ -108,11 +110,11 @@ private:
 private:
     bool appendMessage(const GigStreamMessage &message, MultiCallErrorCode ec);
     PartMessageQueue &getPartQueue(PartIdTy partId);
-    void tryNotify(PartIdTy partId);
+    bool tryNotify(PartIdTy partId);
     bool doReceive(PartMessageQueue &partQueue);
 
 private:
-    bool _asyncMode;
+    bool _asyncMode = true;
     mutable autil::ReadWriteLock _asyncQueueLock;
     std::unordered_map<PartIdTy, PartMessageQueue> _partAsyncQueues;
 };

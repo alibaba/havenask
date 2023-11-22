@@ -16,9 +16,13 @@
 #include "indexlib/index/kv/KVIndexFactory.h"
 
 #include "autil/Log.h"
+#include "indexlib/config/BuildConfig.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/framework/SegmentMetrics.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/kv/FixedLenKVMemIndexer.h"
 #include "indexlib/index/kv/FixedLenKVMerger.h"
 #include "indexlib/index/kv/KVCommonDefine.h"
@@ -42,7 +46,7 @@ KVIndexFactory::KVIndexFactory() : _memoryFactor(2) {}
 KVIndexFactory::~KVIndexFactory() {}
 
 std::shared_ptr<IMemIndexer> KVIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                              const IndexerParameter& indexerParam) const
+                                                              const MemIndexerParameter& indexerParam) const
 {
     auto kvIndexConfig = std::dynamic_pointer_cast<indexlibv2::config::KVIndexConfig>(indexConfig);
     if (!kvIndexConfig) {
@@ -59,7 +63,7 @@ std::shared_ptr<IMemIndexer> KVIndexFactory::CreateMemIndexer(const std::shared_
     if (typeId.isVarLen) {
         return CreateVarLenKVMemIndexer(kvIndexConfig, indexerParam);
     } else {
-        return std::make_shared<FixedLenKVMemIndexer>(maxBuildMemoryUse);
+        return std::make_shared<FixedLenKVMemIndexer>(indexerParam.isTolerateDocError, maxBuildMemoryUse);
     }
 }
 
@@ -67,7 +71,7 @@ string KVIndexFactory::GetIndexPath() const { return KV_INDEX_PATH; }
 
 std::shared_ptr<IMemIndexer>
 KVIndexFactory::CreateVarLenKVMemIndexer(const std::shared_ptr<indexlibv2::config::KVIndexConfig>& indexConfig,
-                                         const IndexerParameter& indexerParam) const
+                                         const MemIndexerParameter& indexerParam) const
 {
     float keyValueMemRatio = VarLenKVMemIndexer::DEFAULT_KEY_VALUE_MEM_RATIO;
     float valueCompressRatio = VarLenKVMemIndexer::DEFAULT_VALUE_COMPRESSION_RATIO;
@@ -81,23 +85,23 @@ KVIndexFactory::CreateVarLenKVMemIndexer(const std::shared_ptr<indexlibv2::confi
         }
     }
 
-    return std::make_shared<VarLenKVMemIndexer>(GetMaxBuildMemoryUse(indexerParam), keyValueMemRatio,
-                                                valueCompressRatio, indexerParam.sortDescriptions,
+    return std::make_shared<VarLenKVMemIndexer>(indexerParam.isTolerateDocError, GetMaxBuildMemoryUse(indexerParam),
+                                                keyValueMemRatio, valueCompressRatio, indexerParam.sortDescriptions,
                                                 indexerParam.indexMemoryReclaimer);
 }
 
 std::shared_ptr<IDiskIndexer>
 KVIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                  const IndexerParameter& indexerParam) const
+                                  const DiskIndexerParameter& indexerParam) const
 {
     return std::make_shared<KVDiskIndexer>();
 }
 
 std::unique_ptr<IIndexReader>
 KVIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                  const IndexerParameter& indexerParam) const
+                                  const IndexReaderParameter& indexReaderParam) const
 {
-    return std::make_unique<SingleShardKVIndexReader>(indexerParam.readerSchemaId);
+    return std::make_unique<SingleShardKVIndexReader>(indexReaderParam.readerSchemaId);
 }
 
 std::unique_ptr<IIndexMerger>
@@ -126,7 +130,7 @@ std::unique_ptr<document::IIndexFieldsParser> KVIndexFactory::CreateIndexFieldsP
     return std::make_unique<KVIndexFieldsParser>();
 }
 
-int64_t KVIndexFactory::GetMaxBuildMemoryUse(const IndexerParameter& indexerParam) const
+int64_t KVIndexFactory::GetMaxBuildMemoryUse(const MemIndexerParameter& indexerParam) const
 {
     uint32_t shardNum = (indexerParam.segmentInfo &&
                          indexerParam.segmentInfo->GetShardCount() != framework::SegmentInfo::INVALID_SHARDING_COUNT)

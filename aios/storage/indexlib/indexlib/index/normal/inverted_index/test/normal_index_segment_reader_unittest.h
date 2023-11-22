@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_NORMALINDEXSEGMENTREADERTEST_H
-#define __INDEXLIB_NORMALINDEXSEGMENTREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/inverted_index/accessor/normal_index_segment_reader.h"
@@ -42,5 +41,3 @@ INDEXLIB_UNIT_TEST_CASE(NormalIndexSegmentReaderTest, TestOpenWithoutDictionaryA
 INDEXLIB_UNIT_TEST_CASE(NormalIndexSegmentReaderTest, TestOpenWithoutIndexNameDir);
 INDEXLIB_UNIT_TEST_CASE(NormalIndexSegmentReaderTest, TestGetSegmentPosting);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_NORMALINDEXSEGMENTREADERTEST_H

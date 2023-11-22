@@ -15,14 +15,25 @@
  */
 #include "build_service_tasks/cloneIndex/CloneIndexTask.h"
 
+#include <google/protobuf/stubs/port.h>
+#include <google/protobuf/stubs/status.h>
+#include <iosfwd>
+#include <stdint.h>
+#include <unistd.h>
+
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "build_service/config/BuildRuleConfig.h"
+#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/proto/ErrorCollector.h"
-#include "build_service/proto/ProtoUtil.h"
-#include "build_service/util/IndexPathConstructor.h"
-#include "build_service/util/MemUtil.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RangeUtil.h"
+#include "build_service_tasks/channel/Master.pb.h"
 #include "fslib/util/FileUtil.h"
 #include "google/protobuf/util/json_util.h"
 
@@ -189,7 +200,7 @@ bool CloneIndexTask::initTargetInfo(const vector<pair<string, versionid_t>>& tar
         clusterDesc.targetIndexPath = getGenerationPath(_indexRoot, clusterInfo.first, _buildId.generationid());
         uint32_t versionId = 0;
         int64_t locator = -1;
-        if (clusterInfo.second != INVALID_VERSION) {
+        if (clusterInfo.second != indexlib::INVALID_VERSIONID) {
             hasSpecifiedVersion = true;
             if (!getSpecifiedVersionLocator(generationInfo, clusterInfo.first, (uint32_t)clusterInfo.second, locator)) {
                 BS_LOG(ERROR, "set versionId [%d] invalid for cluster:%s", clusterInfo.second,
@@ -363,7 +374,7 @@ bool CloneIndexTask::getParamFromTaskTarget(const config::TaskTarget& target,
     }
 
     for (size_t i = 0; i < clusters.size(); i++) {
-        versionid_t version = i >= versions.size() ? INVALID_VERSION : versions[i];
+        versionid_t version = i >= versions.size() ? indexlib::INVALID_VERSIONID : versions[i];
         targetClusterInfos.push_back(make_pair(clusters[i], version));
     }
 

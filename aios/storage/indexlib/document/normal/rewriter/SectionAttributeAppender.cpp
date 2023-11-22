@@ -78,21 +78,21 @@ bool SectionAttributeAppender::Init(const shared_ptr<ITabletSchema>& schema)
     return !_indexMetaVec.empty();
 }
 
-pair<Status, bool> SectionAttributeAppender::AppendSectionAttribute(const std::shared_ptr<IndexDocument>& indexDocument)
+Status SectionAttributeAppender::AppendSectionAttribute(const std::shared_ptr<IndexDocument>& indexDocument)
 {
     assert(indexDocument);
     if (indexDocument->GetMaxIndexIdInSectionAttribute() != INVALID_INDEXID) {
         // already append
-        return {Status::OK(), false};
+        return Status::OK();
     }
 
     for (size_t i = 0; i < _indexMetaVec.size(); ++i) {
         auto status = AppendSectionAttributeForOneIndex(_indexMetaVec[i], indexDocument);
-        RETURN2_IF_STATUS_ERROR(status, false, "append section attribute failed");
+        RETURN_IF_STATUS_ERROR(status, "append section attribute failed");
         status = EncodeSectionAttributeForOneIndex(_indexMetaVec[i], indexDocument);
-        RETURN2_IF_STATUS_ERROR(status, false, "encode section attribute failed");
+        RETURN_IF_STATUS_ERROR(status, "encode section attribute failed");
     }
-    return {Status::OK(), true};
+    return Status::OK();
 }
 
 Status SectionAttributeAppender::AppendSectionAttributeForOneIndex(const IndexMeta& indexMeta,

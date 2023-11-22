@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDERMETRICS_H
-#define ISEARCH_BS_BUILDERMETRICS_H
+#pragma once
+
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/base/Types.h"
 
 namespace indexlib { namespace util {
 class MetricProvider;
 class Metric;
+
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util
@@ -43,8 +47,8 @@ private:
 
 public:
     bool declareMetrics(indexlib::util::MetricProviderPtr metricProvider, bool isKVorKKV = false);
-    void reportMetrics(bool ret, DocOperateType op);
-    void reportMetrics(size_t totalMsgCount, size_t consumedMsgCount, DocOperateType op);
+    void reportMetrics(bool ret, indexlib::DocOperateType op);
+    void reportMetrics(size_t totalMsgCount, size_t consumedMsgCount, indexlib::DocOperateType op);
 
 public:
     uint32_t getTotalDocCount() const { return _totalDocCount; }
@@ -99,5 +103,3 @@ private:
 BS_TYPEDEF_PTR(BuilderMetrics);
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_BUILDERMETRICS_H

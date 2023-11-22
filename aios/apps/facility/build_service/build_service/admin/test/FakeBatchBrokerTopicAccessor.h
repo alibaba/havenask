@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_FAKEBATCHBROKERTOPICACCESSOR_H
-#define ISEARCH_BS_FAKEBATCHBROKERTOPICACCESSOR_H
+#pragma once
 
 #include "build_service/admin/BatchBrokerTopicAccessor.h"
 #include "build_service/admin/test/FakeSwiftAdminAdapter.h"
@@ -77,5 +76,3 @@ private:
 BS_TYPEDEF_PTR(FakeBatchBrokerTopicAccessor);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_FAKEBATCHBROKERTOPICACCESSOR_H

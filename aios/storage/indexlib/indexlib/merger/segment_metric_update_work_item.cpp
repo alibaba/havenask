@@ -15,6 +15,9 @@
  */
 #include "indexlib/merger/segment_metric_update_work_item.h"
 
+#include <iosfwd>
+#include <memory>
+
 using namespace std;
 
 namespace indexlib { namespace merger {

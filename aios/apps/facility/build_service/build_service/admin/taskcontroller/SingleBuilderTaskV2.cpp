@@ -15,23 +15,49 @@
  */
 #include "build_service/admin/taskcontroller/SingleBuilderTaskV2.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <google/protobuf/stubs/status.h>
 #include <google/protobuf/util/json_util.h>
 #include <memory>
 
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "build_service/admin/CheckpointCreator.h"
+#include "build_service/admin/CheckpointMetricReporter.h"
+#include "build_service/admin/ClusterCheckpointSynchronizer.h"
 #include "build_service/admin/DefaultBrokerTopicCreator.h"
+#include "build_service/common/BuilderCheckpointAccessor.h"
+#include "build_service/common/Checkpoint.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
+#include "build_service/common/IndexTaskRequestQueue.h"
 #include "build_service/common/SwiftResourceKeeper.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ControlConfig.h"
 #include "build_service/config/DataLinkModeUtil.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/SwiftConfig.h"
+#include "build_service/config/SwiftTopicConfig.h"
 #include "build_service/config/TaskConfig.h"
+#include "build_service/proto/ProtoComparator.h"
 #include "build_service/util/DataSourceHelper.h"
 #include "build_service/util/RangeUtil.h"
+#include "hippo/proto/Common.pb.h"
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/OfflineConfig.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/framework/Version.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 using namespace build_service::config;
@@ -47,6 +73,7 @@ SingleBuilderTaskV2::SingleBuilderTaskV2(const std::string& taskId, const std::s
     , _lastAlignVersionTimestamp(autil::TimeUtility::currentTimeInSeconds())
     , _indexCkpAccessor(CheckpointCreator::createIndexCheckpointAccessor(_resourceManager))
     , _builderCkpAccessor(CheckpointCreator::createBuilderCheckpointAccessor(_resourceManager))
+    , _schemaVersion(config::INVALID_SCHEMAVERSION)
 {
 }
 
@@ -66,6 +93,7 @@ SingleBuilderTaskV2::SingleBuilderTaskV2(const SingleBuilderTaskV2& other)
     , _builders(other._builders)
     , _indexCkpAccessor(other._indexCkpAccessor)
     , _builderCkpAccessor(other._builderCkpAccessor)
+    , _schemaVersion(other._schemaVersion)
 {
 }
 
@@ -75,11 +103,6 @@ bool SingleBuilderTaskV2::init(const std::string& clusterName, const std::string
                                const std::string& initParam)
 {
     _clusterName = clusterName;
-    // parse config
-    ConfigReaderAccessorPtr readerAccessor;
-    _resourceManager->getResource(readerAccessor);
-    ResourceReaderPtr resourceReader = readerAccessor->getLatestConfig();
-    _configPath = resourceReader->getOriginalConfigPath();
     return true;
 }
 
@@ -87,10 +110,46 @@ bool SingleBuilderTaskV2::start(const KeyValueMap& param)
 {
     std::string buildStep = getValueFromKeyValueMap(param, "buildStep");
     BS_LOG(INFO, "begin start [%s] builder for [%s]", buildStep.c_str(), _clusterName.c_str());
+    if (buildStep != "full") {
+        auto iter = param.find("hasRealtimeDataDesc");
+        if (iter != param.end()) {
+            if (!StringUtil::fromString(iter->second, _needBuildData)) {
+                BS_LOG(ERROR, "invalid needBuildRealtimeData [%s]", iter->second.c_str());
+                return false;
+            }
+        }
+    }
+    int64_t schemaId = config::INVALID_SCHEMAVERSION;
+    auto iter = param.find("schemaId");
+    if (iter != param.end()) {
+        if (!StringUtil::numberFromString(iter->second, schemaId)) {
+            BS_LOG(ERROR, "invalid schema id[%s]", iter->second.c_str());
+            return false;
+        }
+        if (schemaId < _schemaVersion) {
+            BS_LOG(ERROR, "invalid schema id[%s], last schema id[%ld] ", iter->second.c_str(), _schemaVersion);
+            return false;
+        }
+        _schemaVersion = schemaId;
+    }
+
     // parse config
     ConfigReaderAccessorPtr readerAccessor;
     _resourceManager->getResource(readerAccessor);
-    ResourceReaderPtr resourceReader = readerAccessor->getConfig(_configPath);
+    ResourceReaderPtr resourceReader;
+    if (_schemaVersion == config::INVALID_SCHEMAVERSION) {
+        resourceReader = readerAccessor->getLatestConfig();
+        auto tabletSchema = resourceReader->getTabletSchema(_clusterName);
+        if (!tabletSchema) {
+            BS_LOG(ERROR, "get schema failed[%s]", _clusterName.c_str());
+            return false;
+        }
+        _schemaVersion = tabletSchema->GetSchemaId();
+    } else {
+        resourceReader = readerAccessor->getConfig(_clusterName, _schemaVersion);
+    }
+    _configPath = resourceReader->getOriginalConfigPath();
+
     BuildRuleConfig buildRuleConfig;
     if (!resourceReader->getClusterConfigWithJsonPath(_clusterName, "cluster_config.builder_rule_config",
                                                       buildRuleConfig)) {
@@ -108,6 +167,9 @@ bool SingleBuilderTaskV2::start(const KeyValueMap& param)
         _buildStep = proto::BUILD_STEP_INC;
         _parallelNum = buildRuleConfig.incBuildParallelNum;
     }
+    if (!_needBuildData) {
+        _parallelNum = 1;
+    }
     if (!processRollback(param)) {
         return false;
     }
@@ -117,10 +179,12 @@ bool SingleBuilderTaskV2::start(const KeyValueMap& param)
     if (!updateKeepCheckpointCount(resourceReader)) {
         return false;
     }
-    if (!prepareBuilderDataDescription(param, _builderDataDesc)) {
-        return false;
+    if (_needBuildData) {
+        if (!prepareBuilderDataDescription(resourceReader, param, _builderDataDesc)) {
+            return false;
+        }
     }
-    prepareBuilders(_builders);
+    prepareBuilders(_builders, true);
     BS_LOG(INFO, "end start [%s] builder for [%s]", buildStep.c_str(), _clusterName.c_str());
     return true;
 }
@@ -194,7 +258,7 @@ bool SingleBuilderTaskV2::processRollback(const KeyValueMap& param)
            autil::legacy::ToJsonString(_rollbackInfo.rollbackVersionIdMapping, /*isCompact=*/true).c_str(),
            _clusterName.c_str(), _rollbackInfo.branchId);
     std::vector<BuilderGroup> builders;
-    prepareBuilders(builders);
+    prepareBuilders(builders, false);
     cleanBuilderCheckpoint(builders, /*keepMasterCheckpoint=*/false);
     return true;
 }
@@ -225,24 +289,27 @@ bool SingleBuilderTaskV2::finish(const KeyValueMap& kvMap)
     int64_t stopTimeInterval = autil::EnvUtil::getEnv("builder_sync_stoptime_interval", int64_t(5));
     int64_t finishTimeInSeconds = autil::TimeUtility::currentTimeInSeconds() + stopTimeInterval;
     uint64_t readAfterFinishTsInSeconds = 0;
-    auto iter = kvMap.find("finishTimeInSecond");
-    if (iter != kvMap.end()) {
-        // "finishTimeInSecond" tells finishTs (version stopTS)
-        // "readAfterFinishTsInSeconds" tells reader read time after finishedTs, default 0
-        if (!StringUtil::fromString(iter->second, finishTimeInSeconds)) {
-            BS_LOG(ERROR, "invalid stopTimestampInSecond [%s] from kvMap", iter->second.c_str());
-            return false;
-        }
+    if (_needBuildData) {
+        auto iter = kvMap.find("finishTimeInSecond");
+        if (iter != kvMap.end()) {
+            // "finishTimeInSecond" tells finishTs (version stopTS)
+            // "readAfterFinishTsInSeconds" tells reader read time after finishedTs, default 0
+            if (!StringUtil::fromString(iter->second, finishTimeInSeconds)) {
+                BS_LOG(ERROR, "invalid stopTimestampInSecond [%s] from kvMap", iter->second.c_str());
+                return false;
+            }
 
-        string readAfterFinishTsInSecondsStr = getValueFromKeyValueMap(kvMap, "readAfterFinishTsInSeconds", "0");
-        if (!StringUtil::fromString(readAfterFinishTsInSecondsStr, readAfterFinishTsInSeconds)) {
-            BS_LOG(ERROR, "invaild readAfterFinishTsInSeconds [%s] from kvMap", readAfterFinishTsInSecondsStr.c_str());
-            return false;
+            string readAfterFinishTsInSecondsStr = getValueFromKeyValueMap(kvMap, "readAfterFinishTsInSeconds", "0");
+            if (!StringUtil::fromString(readAfterFinishTsInSecondsStr, readAfterFinishTsInSeconds)) {
+                BS_LOG(ERROR, "invaild readAfterFinishTsInSeconds [%s] from kvMap",
+                       readAfterFinishTsInSecondsStr.c_str());
+                return false;
+            }
         }
+        _builderDataDesc["stopTimestamp"] =
+            StringUtil::toString(autil::TimeUtility::sec2us(finishTimeInSeconds + readAfterFinishTsInSeconds));
     }
-    _builderDataDesc["stopTimestamp"] =
-        StringUtil::toString(autil::TimeUtility::sec2us(finishTimeInSeconds + readAfterFinishTsInSeconds));
-    iter = kvMap.find("mergeConfig");
+    auto iter = kvMap.find("mergeConfig");
     if (iter != kvMap.end()) {
         _specificMergeConfig = iter->second;
         BS_LOG(INFO, "finish task with specific merge: [%s]", _specificMergeConfig.c_str());
@@ -268,7 +335,8 @@ config::ResourceReaderPtr SingleBuilderTaskV2::getConfigReader()
     return reader;
 }
 
-bool SingleBuilderTaskV2::prepareBuilderDataDescription(const KeyValueMap& kvMap, proto::DataDescription& ds)
+bool SingleBuilderTaskV2::prepareBuilderDataDescription(ResourceReaderPtr resourceReader, const KeyValueMap& kvMap,
+                                                        proto::DataDescription& ds)
 {
     auto iter = kvMap.find(DATA_DESCRIPTION_KEY);
     if (iter == kvMap.end()) {
@@ -312,6 +380,17 @@ bool SingleBuilderTaskV2::prepareBuilderDataDescription(const KeyValueMap& kvMap
         }
         iter = kvMap.find("useInnerBatchMaskFilter");
         if (iter != kvMap.end() && iter->second == "true") {
+            bool enableFastSlowQueue = false;
+            if (!resourceReader->getClusterConfigWithJsonPath(_clusterName, "cluster_config.enable_fast_slow_queue",
+                                                              enableFastSlowQueue)) {
+                BS_LOG(ERROR, "parse cluster_config.enable_fast_slow_queue for [%s] failed", _clusterName.c_str());
+                return false;
+            }
+            if (enableFastSlowQueue) {
+                BS_LOG(ERROR, "not support enable fast slow queue while useInnerBatchMaskFilter for [%s]",
+                       _clusterName.c_str());
+                return false;
+            }
             ds[USE_INNER_BATCH_MASK_FILTER] = "true";
         }
         iter = kvMap.find("batchId");
@@ -349,25 +428,59 @@ bool SingleBuilderTaskV2::prepareBuilderDataDescription(const KeyValueMap& kvMap
         ds[SRC_SIGNATURE] = iter->second;
     }
 
-    auto dataLinkModeIter = ds.find(config::DATA_LINK_MODE);
-    if (dataLinkModeIter != ds.end()) {
-        ControlConfig::DataLinkMode dataLinkMode = ControlConfig::DataLinkMode::NORMAL_MODE;
-        if (!ControlConfig::parseDataLinkStr(dataLinkModeIter->second, dataLinkMode)) {
-            AUTIL_LOG(ERROR, "invalid data link mode[%s]", dataLinkModeIter->second.c_str());
-            return false;
+    auto checkpointSynchronizer = getCheckpointSynchronizer();
+    if (checkpointSynchronizer == nullptr) {
+        BS_LOG(ERROR, "checkpoint synchronizer is uninitialized, clusterName[%s].", _clusterName.c_str());
+        return false;
+    }
+    const auto& buildId = checkpointSynchronizer->getBuildId();
+
+    config::ControlConfig controlConfig;
+    if (!resourceReader->getDataTableConfigWithJsonPath(buildId.datatable(), "control_config", controlConfig)) {
+        BS_LOG(ERROR, "get control_config.is_inc_processor_exist failed from dataTable[%s] failed",
+               buildId.datatable().c_str());
+        return false;
+    }
+
+    if (!DataLinkModeUtil::addDataLinkModeParamToBuilderTarget(controlConfig, _clusterName, &ds)) {
+        BS_LOG(ERROR, "addDataLinkModeParam failed");
+        return false;
+    }
+
+    BS_LOG(INFO, "data description for builder, ds [%s].", ToJsonString(ds, true).c_str());
+    return true;
+}
+
+bool SingleBuilderTaskV2::checkNoNeedBuildDataFinish()
+{
+    if (_lastAlignSchemaId != _schemaVersion) {
+        return false;
+    }
+    std::shared_ptr<common::IndexTaskRequestQueue> generationLevelRequestQueue;
+    _resourceManager->getResource(generationLevelRequestQueue);
+    if (generationLevelRequestQueue != nullptr && generationLevelRequestQueue->size() != 0) {
+        return false;
+    }
+    if (_alignVersionId != indexlibv2::INVALID_VERSIONID) {
+        return false;
+    }
+    for (auto& builderGroup : _builders) {
+        const auto& indexTaskQueue =
+            builderGroup.master.buildCheckpoint.commitedVersion.versionMeta.GetIndexTaskQueue();
+        if (indexTaskQueue.size() == 0) {
+            continue;
         }
-        if (dataLinkMode == ControlConfig::DataLinkMode::NPC_MODE) {
-            ds[config::SRC_SIGNATURE] = std::to_string(SwiftTopicConfig::INC_TOPIC_SRC_SIGNATURE);
-            auto topicIter = ds.find(config::SWIFT_TOPIC_NAME);
-            if (topicIter != ds.end()) {
-                ds["name"] = DataLinkModeUtil::generateNPCResourceName(topicIter->second);
-            } else {
-                AUTIL_LOG(ERROR, "npc mode need %s", config::SWIFT_TOPIC_NAME.c_str());
+        for (const auto& indexTaskMeta : indexTaskQueue) {
+            if (indexTaskMeta.GetState() != indexlibv2::framework::IndexTaskMeta::DONE &&
+                indexTaskMeta.GetState() != indexlibv2::framework::IndexTaskMeta::ABORTED) {
                 return false;
             }
         }
+        if (builderGroup.master.buildCheckpoint.commitedVersion.versionMeta.GetVersionId() !=
+            builderGroup.master.buildCheckpoint.lastAlignedVersion.versionMeta.GetVersionId()) {
+            return false;
+        }
     }
-    BS_LOG(INFO, "data description for builder, ds [%s].", ToJsonString(ds, true).c_str());
     return true;
 }
 
@@ -383,11 +496,15 @@ bool SingleBuilderTaskV2::operate(TaskController::Nodes& nodes)
 
     if (_builders.size() != _partitionCount) {
         _builders.clear();
-        prepareBuilders(_builders);
+        prepareBuilders(_builders, false);
         nodes.clear();
     }
+
     updateBuilderNodes(nodes);
     nodes.clear();
+
+    updateRequestQueue();
+
     bool isFinished = true;
     for (auto& builder : _builders) {
         builder.master.updateTargetDescription(_builderDataDesc, _specificMergeConfig);
@@ -416,8 +533,30 @@ bool SingleBuilderTaskV2::operate(TaskController::Nodes& nodes)
     }
 
     reportBuildFreshness();
+    if (!_needBuildData) {
+        if (checkNoNeedBuildDataFinish()) {
+            return true;
+        }
+        return false;
+    }
 
     return isFinished;
+}
+
+void SingleBuilderTaskV2::updateRequestQueue()
+{
+    std::shared_ptr<common::IndexTaskRequestQueue> generationLevelRequestQueue;
+    _resourceManager->getResource(generationLevelRequestQueue);
+    if (generationLevelRequestQueue == nullptr) {
+        return;
+    }
+
+    for (auto& builderGroup : _builders) {
+        auto& master = builderGroup.master;
+        auto key = common::IndexTaskRequestQueue::genPartitionLevelKey(_clusterName, master.range);
+        auto newRequestQueue = (*generationLevelRequestQueue)[key];
+        master.taskInfo.requestQueue.swap(newRequestQueue);
+    }
 }
 
 void SingleBuilderTaskV2::reportBuildFreshness()
@@ -496,6 +635,22 @@ bool SingleBuilderTaskV2::needTriggerAlignVersion()
     if (_buildStep == proto::BUILD_STEP_FULL || _batchId != -1) {
         return false;
     }
+    // if alter schema finished align verison
+    bool canAlignSchemaId = true;
+    bool alreadyAlignedSchemaId = true;
+    for (auto& builder : _builders) {
+        if (builder.master.buildCheckpoint.commitedVersion.versionMeta.GetReadSchemaId() != _schemaVersion) {
+            canAlignSchemaId = false;
+            break;
+        }
+
+        if (builder.master.buildCheckpoint.lastAlignedVersion.versionMeta.GetReadSchemaId() != _schemaVersion) {
+            alreadyAlignedSchemaId = false;
+        }
+    }
+    if (canAlignSchemaId && !alreadyAlignedSchemaId) {
+        return true;
+    }
     int64_t currentTime = autil::TimeUtility::currentTimeInSeconds();
     int64_t publishInterval = autil::EnvUtil::getEnv("bs_version_publish_interval_sec", 15 * 60);
     if (currentTime - _lastAlignVersionTimestamp >= publishInterval) // 15min
@@ -572,12 +727,19 @@ void SingleBuilderTaskV2::publishCheckpoint()
     ClusterCheckpointSynchronizer::IndexInfoParam indexInfoParam;
     indexInfoParam.startTimestamp = _lastAlignVersionTimestamp;
     indexInfoParam.finishTimestamp = currentTime;
+    int64_t alignSchemaId = config::INVALID_SCHEMAVERSION;
     for (const auto& builder : _builders) {
         std::string errMsg;
         const auto& alignedVersion = builder.master.buildCheckpoint.lastAlignedVersion;
         if (alignedVersion.versionMeta.GetVersionId() == indexlib::INVALID_VERSIONID) {
             BS_LOG(DEBUG, "aligned version meta is invalid, buildId[%s]", buildId.ShortDebugString().c_str());
             return;
+        }
+        if (alignSchemaId == config::INVALID_SCHEMAVERSION) {
+            alignSchemaId = alignedVersion.versionMeta.GetReadSchemaId();
+        } else {
+            auto tmpSchemaId = alignedVersion.versionMeta.GetReadSchemaId();
+            alignSchemaId = alignSchemaId > tmpSchemaId ? tmpSchemaId : alignSchemaId;
         }
         if (!checkpointSynchronizer->publishPartitionLevelCheckpoint(
                 _clusterName, builder.master.range,
@@ -611,6 +773,7 @@ void SingleBuilderTaskV2::publishCheckpoint()
     BS_LOG(INFO, "Publish checkpoint successfully: current aligned versionId[%d], cluster[%s], step[%s], buildId[%s].",
            _alignVersionId, _clusterName.c_str(), getBuildStepStr().c_str(), buildId.ShortDebugString().c_str());
     _alignVersionId = indexlibv2::INVALID_VERSIONID;
+    _lastAlignSchemaId = alignSchemaId;
     _lastAlignVersionTimestamp = currentTime;
 }
 
@@ -629,7 +792,7 @@ void SingleBuilderTaskV2::cleanBuilderCheckpoint(const std::vector<BuilderGroup>
 
 SingleBuilderTaskV2::BuilderNode SingleBuilderTaskV2::createBuilderNode(std::string roleName, uint32_t nodeId,
                                                                         uint32_t partitionCount, uint32_t parallelNum,
-                                                                        uint32_t instanceIdx) const
+                                                                        uint32_t instanceIdx, bool isStart) const
 {
     BuilderNode builder;
     builder.node.nodeId = nodeId;
@@ -643,7 +806,7 @@ SingleBuilderTaskV2::BuilderNode SingleBuilderTaskV2::createBuilderNode(std::str
     auto masterBuilderRange = util::RangeUtil::getRangeInfo(0, 65535, partitionCount, /*parallelNum=*/1,
                                                             instanceIdx / parallelNum, /*parallelIdx=*/0);
     if (roleName == "master") {
-        if (_parallelNum > 1) {
+        if (_parallelNum > 1 || !_needBuildData) {
             builder.taskInfo.buildMode = proto::BuildMode::PUBLISH;
         } else {
             builder.taskInfo.buildMode = proto::BuildMode::BUILD_PUBLISH;
@@ -684,12 +847,14 @@ SingleBuilderTaskV2::BuilderNode SingleBuilderTaskV2::createBuilderNode(std::str
         builder.taskInfo.batchId = _batchId;
         std::string checkpoint;
         if (_builderCkpAccessor->getSlaveCheckpoint(_clusterName, builder.range, checkpoint)) {
-            common::BuildCheckpoint buildCheckpoint;
-            FromJsonString(buildCheckpoint, checkpoint);
-            updateVersionProgress({buildCheckpoint.buildInfo}, builder);
-            builder.buildCheckpoint = buildCheckpoint.buildInfo;
-            if (buildCheckpoint.buildFinished && buildCheckpoint.buildStep == _buildStep) {
-                builder.node.reachedTarget = true;
+            if (!isStart) {
+                common::BuildCheckpoint buildCheckpoint;
+                FromJsonString(buildCheckpoint, checkpoint);
+                updateVersionProgress({buildCheckpoint.buildInfo}, builder);
+                builder.buildCheckpoint = buildCheckpoint.buildInfo;
+                if (buildCheckpoint.buildFinished && buildCheckpoint.buildStep == _buildStep) {
+                    builder.node.reachedTarget = true;
+                }
             }
         } else if (!_rollbackInfo.rollbackVersionIdMapping.empty()) {
             std::string rangeKey = common::PartitionLevelCheckpoint::genRangeKey(masterBuilderRange);
@@ -708,20 +873,21 @@ std::string SingleBuilderTaskV2::getBuildStepStr() const
     if (_buildStep == proto::BUILD_STEP_FULL) {
         return "full";
     }
-    return "incremental";
+    return config::BUILD_STEP_INC_STR;
 }
 
-void SingleBuilderTaskV2::prepareBuilders(std::vector<BuilderGroup>& builders) const
+void SingleBuilderTaskV2::prepareBuilders(std::vector<BuilderGroup>& builders, bool isStart) const
 {
     uint32_t nodeId = 0;
     for (size_t i = 0; i < _partitionCount; i++) {
         BuilderGroup builder;
-        builder.master = createBuilderNode("master", nodeId, _partitionCount, /*parallelNum=*/1, /*instanceIdx=*/i);
+        builder.master =
+            createBuilderNode("master", nodeId, _partitionCount, /*parallelNum=*/1, /*instanceIdx=*/i, isStart);
         nodeId++;
         if (_parallelNum > 1) {
             for (size_t j = 0; j < _parallelNum; j++) {
                 builder.slaves.push_back(
-                    createBuilderNode("slave", nodeId, _partitionCount, _parallelNum, i * _parallelNum + j));
+                    createBuilderNode("slave", nodeId, _partitionCount, _parallelNum, i * _parallelNum + j, isStart));
                 nodeId++;
             }
         }
@@ -937,10 +1103,25 @@ void SingleBuilderTaskV2::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("batch_id", _batchId, _batchId);
     json.Jsonize("imported_version_id", _importedVersionId, _importedVersionId);
     json.Jsonize("specific_merge_config", _specificMergeConfig, _specificMergeConfig);
+    json.Jsonize("schema_version", _schemaVersion, _schemaVersion);
+    json.Jsonize("last_align_schema_version", _lastAlignSchemaId, _lastAlignSchemaId);
+    json.Jsonize("need_build_data", _needBuildData, _needBuildData);
+    if (_schemaVersion == config::INVALID_SCHEMAVERSION) {
+        auto configReader = getConfigReader();
+        auto tabletSchema = configReader->getTabletSchema(_clusterName);
+        if (!tabletSchema) {
+            BS_LOG(ERROR, "get schema failed[%s]", _clusterName.c_str());
+            throw autil::legacy::ExceptionBase("get schema failed");
+        }
+        _schemaVersion = tabletSchema->GetSchemaId();
+    }
 }
 
 void SingleBuilderTaskV2::registBrokerTopic()
 {
+    if (!_needBuildData) {
+        return;
+    }
     if (_swiftResourceGuard) {
         return;
     }
@@ -958,9 +1139,14 @@ void SingleBuilderTaskV2::supplementLableInfo(KeyValueMap& info) const
     info["aligin_version"] = StringUtil::toString(_alignVersionId);
     info["last_align_version_timestamp"] = StringUtil::toString(_lastAlignVersionTimestamp);
     info["need_skip_merge"] = _needSkipMerge ? "true" : "false";
+    info["build_step"] =
+        (_buildStep == proto::BUILD_STEP_FULL) ? config::BUILD_STEP_FULL_STR : config::BUILD_STEP_INC_STR;
     info["batch_id"] = StringUtil::toString(_batchId);
     info["branch_id"] = StringUtil::toString(_rollbackInfo.branchId);
     info["data_description"] = autil::legacy::ToJsonString(_builderDataDesc, true);
+    if (_importedVersionId != indexlibv2::INVALID_VERSIONID) {
+        info["imported_version_id"] = StringUtil::toString(_importedVersionId);
+    }
     if (_rollbackInfo.rollbackCheckpointId != INVALID_CHECKPOINT_ID) {
         info["rollback_checkpoint_id"] = StringUtil::toString(_rollbackInfo.rollbackCheckpointId);
     }
@@ -1056,7 +1242,10 @@ bool SingleBuilderTaskV2::updateConfig()
 {
     ConfigReaderAccessorPtr readerAccessor;
     _resourceManager->getResource(readerAccessor);
-    ResourceReaderPtr resourceReader = readerAccessor->getLatestConfig();
+    ResourceReaderPtr resourceReader = readerAccessor->getConfig(_clusterName, _schemaVersion);
+    if (resourceReader->getConfigPath() == _configPath) {
+        return true;
+    }
     BuildRuleConfig buildRuleConfig;
     if (!resourceReader->getClusterConfigWithJsonPath(_clusterName, "cluster_config.builder_rule_config",
                                                       buildRuleConfig)) {

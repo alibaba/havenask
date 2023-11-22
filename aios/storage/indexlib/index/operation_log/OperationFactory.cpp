@@ -73,7 +73,7 @@ OperationFactory::CreateRemoveOperationCreator(const std::shared_ptr<OperationLo
 }
 
 OperationBase* OperationFactory::CreateUnInitializedOperation(OperationBase::SerializedOperationType opType,
-                                                              const indexlibv2::document::IDocument::DocInfo& docInfo,
+                                                              const indexlibv2::framework::Locator::DocInfo& docInfo,
                                                               autil::mem_pool::Pool* pool) const
 {
     OperationBase* operation = NULL;
@@ -101,7 +101,7 @@ OperationBase* OperationFactory::CreateUnInitializedOperation(OperationBase::Ser
 
 std::pair<Status, OperationBase*> OperationFactory::DeserializeOperation(const char* buffer,
                                                                          autil::mem_pool::Pool* pool, size_t& opSize,
-                                                                         bool hasConcurrentIdx) const
+                                                                         bool hasConcurrentIdx, bool hasSourceIdx) const
 {
     assert(buffer);
     char* baseAddr = const_cast<char*>(buffer);
@@ -113,11 +113,16 @@ std::pair<Status, OperationBase*> OperationFactory::DeserializeOperation(const c
     uint16_t hashId = *(uint16_t*)baseAddr;
     baseAddr += sizeof(hashId);
     uint32_t concurrentIdx = 0;
+    uint8_t sourceIdx = 0;
     if (hasConcurrentIdx) {
-        concurrentIdx = *(uint16_t*)baseAddr;
+        concurrentIdx = *(uint32_t*)baseAddr;
         baseAddr += sizeof(concurrentIdx);
     }
-    indexlibv2::document::IDocument::DocInfo docInfo = {hashId, timestamp, concurrentIdx};
+    if (hasSourceIdx) {
+        sourceIdx = *(uint8_t*)baseAddr;
+        baseAddr += sizeof(sourceIdx);
+    }
+    auto docInfo = indexlibv2::framework::Locator::DocInfo(hashId, timestamp, concurrentIdx, sourceIdx);
     OperationBase* operation = CreateUnInitializedOperation(opType, docInfo, pool);
     if (!operation) {
         AUTIL_LOG(ERROR, "deserialize operation type failed");

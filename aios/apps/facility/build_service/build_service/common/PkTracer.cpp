@@ -15,6 +15,11 @@
  */
 #include "build_service/common/PkTracer.h"
 
+#include <iosfwd>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+
 using namespace std;
 using namespace autil;
 

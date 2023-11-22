@@ -40,10 +40,10 @@ void FakeBufferedIndexDecoder::Init(const std::string &docIdStr, const std::stri
     StringUtil::fromString<fieldmap_t>(fieldStr, _fieldMaps, ",");
 }
 
-bool FakeBufferedIndexDecoder::DecodeDocBuffer(docid_t startDocId,
-                                               docid_t *docBuffer,
-                                               docid_t &firstDocId,
-                                               docid_t &lastDocId,
+bool FakeBufferedIndexDecoder::DecodeDocBuffer(docid64_t startDocId,
+                                               docid32_t *docBuffer,
+                                               docid64_t &firstDocId,
+                                               docid64_t &lastDocId,
                                                ttf_t &currentTTF) {
     uint32_t totalCount = _docIds.size();
     uint32_t totalBlockCount = (totalCount - 1) / 128 + 1;

@@ -5,6 +5,8 @@ import sql_envs
 
 
 def get_file_as_json(file_path):
+    if not os.path.exists(file_path):
+        return {}
     content = open(file_path).read()
     return json.loads(content, strict=False)
 
@@ -17,23 +19,29 @@ def get_ha3_cluster_map(config_path):
     for f in clusters:
         file_path = os.path.join(base_path, f)
         if not f.endswith(suffix):
-            # logging.info("file ignored: " + file_path)
             continue
         cluster_name = f[:-len(suffix)]
         info = get_file_as_json(os.path.join(base_path, f))
         cluster_map[cluster_name] = info
-        # logging.info("add cluster file: " + file_path + ": " + json.dumps(info))
     return cluster_map
 
 
 def get_zone_list(config_path):
     zones_path = os.path.join(config_path, "zones")
+    if not os.path.exists(zones_path):
+        return []
     return os.listdir(zones_path)
 
 
 def get_default_udf_function_models(binary_path):
     udf_file = os.path.join(binary_path, "usr/local/etc/sql/sql_function.json")
-    return get_file_as_json(udf_file)
+    info = get_file_as_json(udf_file)
+    return info.get("functions", [])
+
+
+def get_system_udf_function_models(config_path):
+    system_function = get_db_function(config_path, "system")
+    return system_function.get("functions", [])
 
 
 def zone_name_to_db_name(config_path, zone_name):
@@ -44,24 +52,19 @@ def zone_name_to_db_name(config_path, zone_name):
         return zone_name.split(".")[0]
 
 
-def get_zone_function(config_path, zone_name):
+def get_db_function(config_path, db_name):
     func_path = os.path.join(config_path, "sql")
-    func_file = os.path.join(func_path, zone_name + "_function.json")
-    if (os.path.exists(func_file)):
-        return get_file_as_json(func_file)
-    else:
-        return {}
+    func_file = os.path.join(func_path, db_name + "_function.json")
+    return get_file_as_json(func_file)
 
 
-def get_zone_function_map(config_path):
+def get_db_function_map(config_path):
     db_func = {}
     zone_list = get_zone_list(config_path)
     for zone_name in zone_list:
         db_name = zone_name_to_db_name(config_path, zone_name)
-        zone_function = get_zone_function(config_path, zone_name)
-        functions_array = []
-        if "functions" in zone_function:
-            functions_array = zone_function["functions"]
+        zone_function = get_db_function(config_path, db_name)
+        functions_array = zone_function.get("functions", [])
         db_func[db_name] = functions_array
     return db_func
 
@@ -86,15 +89,15 @@ def get_table_schema(config_path, table_name):
 
 def get_item_table_name(config_path, zone_name):
     zone_config = get_zone_config(config_path, zone_name)
-    cluster_config = zone_config["cluster_config"]
-    table_name_1 = cluster_config["table_name"]
+    cluster_config = zone_config.get("cluster_config", {})
+    table_name_1 = cluster_config.get("table_name", "")
     schema_config = get_table_schema(config_path, table_name_1)
-    return schema_config["table_name"]
+    return schema_config.get("table_name", "")
 
 
 def get_join_config(config_path, zone_name):
     zone_config = get_zone_config(config_path, zone_name)
-    cluster_config = zone_config["cluster_config"]
+    cluster_config = zone_config.get("cluster_config", {})
     return cluster_config.get("join_config", {})
 
 
@@ -125,42 +128,43 @@ def get_depend_tables(config_path, zone_name):
         return get_depend_tables_from_sql_config(config_path)
 
     turing_options = get_turing_options_config(config_path, zone_name)
-    if "dependency_table" in turing_options:
-        return turing_options["dependency_table"]
-    depend_tables = []
-    depend_tables.append(zone_name)
-    join_config = get_join_config(config_path, zone_name)
-    if "join_infos" in join_config:
-        join_info = join_config["join_infos"]
-        for info in join_info:
-            depend_tables.append(info["join_cluster"])
-    return depend_tables
+    return turing_options.get("dependency_table", [])
 
 
 def get_sql_config(config_path):
     sql_json_file = os.path.join(config_path, "sql.json")
     if (os.path.exists(sql_json_file)):
-        return get_file_as_json(sql_json_file)
+        d = get_file_as_json(sql_json_file)
+        lack_result_enable = d.pop('lack_result_enable', None)
+        result_allow_soft_failure = d.pop('result_allow_soft_failure', lack_result_enable)
+        if result_allow_soft_failure is not None:
+            d['result_allow_soft_failure'] = result_allow_soft_failure
+        return d
     else:
         return {}
+
+
+def get_iquan_jni_config(config_path):
+    sql_config = get_sql_config(config_path)
+    return sql_config.get("iquan_jni_config", {})
+
+
+def get_iquan_client_config(config_path):
+    sql_config = get_sql_config(config_path)
+    return sql_config.get("iquan_client_config", {})
+
+
+def get_iquan_warmup_config(config_path):
+    sql_config = get_sql_config(config_path)
+    warmup_config = sql_config.get("iquan_warmup_config", {})
+    if "warmup_file_path" in warmup_config and warmup_config["warmup_file_path"] != "":
+        warmup_config["warmup_file_path"] = os.path.join(config_path, warmup_config["warmup_file_path"])
+    return warmup_config
 
 
 def get_enable_inner_docid_optimize(config_path):
     sql_config = get_sql_config(config_path)
     return sql_config.get("inner_docid_optimize_enable", False)
-
-
-def get_summary_tables(config_path):
-    sql_config = get_sql_config(config_path)
-    return sql_config.get("summary_tables", [])
-
-
-def get_table_name_alias(config_path):
-    sql_config = get_sql_config(config_path)
-    if "table_name_alias" in sql_config:
-        return sql_config["table_name_alias"]
-    else:
-        return {}
 
 
 def get_db_name(config_path):
@@ -175,10 +179,7 @@ def get_db_name_alias(config_path):
 
 def get_format_type(config_path):
     sql_config = get_sql_config(config_path)
-    if "output_format" in sql_config:
-        return sql_config["output_format"]
-    else:
-        return ""
+    return sql_config.get("output_format", "")
 
 
 def get_swift_writer_config(config_path):
@@ -197,21 +198,46 @@ def get_table_writer_config(config_path):
         return {"zone_names": []}
 
 
+def get_one_function_config(config_path, f):
+    one_function_file = os.path.join(config_path, f)
+    one_function_map = get_file_as_json(one_function_file)
+    if "functions" in one_function_map:
+        return one_function_map["functions"]
+    else:
+        return []
+
+
 def get_function_config(config_path, zone_name):
     zone_config = get_zone_config(config_path, zone_name)
     if "function_config" in zone_config:
         function_config = zone_config["function_config"]
         if "cava_functions" in function_config:
             del function_config["cava_functions"]
+        function_config["config_path"] = config_path
+        if "modules" in function_config:
+            one_function_configs = []
+            for module in function_config["modules"]:
+                if "parameters" in module:
+                    parameters = module["parameters"]
+                    if "config_path" in parameters:
+                        one_function_configs += get_one_function_config(config_path, parameters["config_path"])
+            if "functions" in function_config:
+                function_config["functions"] += one_function_configs
+            else:
+                function_config["functions"] = one_function_configs
+            del function_config["modules"]
         return function_config
     else:
         return {}
 
 
-def get_function_plugins(config_path):
+def get_function_plugins(config_path, load_zone_name):
     so_list = []
     for zone_name in get_zone_list(config_path):
-        func_config = get_function_config(config_path, zone_name)
+        if load_zone_name != "" and zone_name != load_zone_name:
+            continue
+        zone_config = get_zone_config(config_path, zone_name)
+        func_config = zone_config.get("function_config", {})
         if "modules" not in func_config:
             continue
         modules = func_config["modules"]
@@ -227,26 +253,21 @@ def get_auth_config(config_path):
 
 def get_qrs_config(config_path):
     qrs_json_file = os.path.join(config_path, "qrs.json")
-    if (os.path.exists(qrs_json_file)):
-        return get_file_as_json(qrs_json_file)
-    else:
-        return {}
+    return get_file_as_json(qrs_json_file)
 
 
 def get_qrs_cava_function_infos(config_path):
     json_info = {}
     json_file = os.path.join(config_path, "qrs_func.json")
-    if (os.path.exists(json_file)):
-        json_info = get_file_as_json(json_file)
+    json_info = get_file_as_json(json_file)
     return json_info.get("cava_functions", [])
 
 
 def get_qrs_cava_config(config_path):
     biz_json_file = os.path.join(config_path, "biz.json")
-    if (os.path.exists(biz_json_file)):
-        biz_config = get_file_as_json(biz_json_file)
-        if "cava_config" in biz_config:
-            return biz_config["cava_config"]
+    biz_config = get_file_as_json(biz_json_file)
+    if "cava_config" in biz_config:
+        return biz_config["cava_config"]
     qrs_config = get_qrs_config(config_path)
     return qrs_config.get("cava_config", {})
 
@@ -303,42 +324,40 @@ def get_cava_config(config_path, zone_name, is_qrs):
 
 
 def get_logic_table_config(config_path):
-    tables = []
+    tables = {}
     base_path = os.path.join(config_path, "sql")
     if not os.path.exists(base_path):
-        return {"tables": []}
-    logic_files = os.listdir(base_path)
+        return tables
+    files = os.listdir(base_path)
     suffix = "_logictable.json"
-    for f in logic_files:
+    for f in files:
         file_path = os.path.join(base_path, f)
         if not f.endswith(suffix):
-            # logging.info("file ignored: " + file_path)
             continue
         db_name = f[:-len(suffix)]
         info = get_file_as_json(os.path.join(base_path, f))
         if "tables" in info:
-            tables += info["tables"]
-        # logging.info("add logic table file: " + file_path + ": " + json.dumps(info))
-    return {"tables": tables}
+            tables[db_name] = info["tables"]
+        logging.info("add logic table file: " + file_path + ", db: " + db_name + ": " + json.dumps(info))
+    return tables
 
 
 def get_layer_table_config(config_path):
-    tables = []
+    tables = {}
     base_path = os.path.join(config_path, "sql")
     if not os.path.exists(base_path):
-        return []
-    logic_files = os.listdir(base_path)
+        return tables
+    files = os.listdir(base_path)
     suffix = "_layer_table.json"
-    for f in logic_files:
+    for f in files:
         file_path = os.path.join(base_path, f)
         if not f.endswith(suffix):
-            # logging.info("file ignored: " + file_path)
             continue
         db_name = f[:-len(suffix)]
         info = get_file_as_json(os.path.join(base_path, f))
         if "layer_tables" in info:
-            tables += info["layer_tables"]
-        # logging.info("add layer table file: " + file_path + ": " + json.dumps(info))
+            tables[db_name] = info["layer_tables"]
+        logging.info("add layer table file: " + file_path + "db: " + db_name + ": " + json.dumps(info))
     return tables
 
 
@@ -417,10 +436,7 @@ def get_tvf_resource_config(config_path):
 
 def get_enable_turbojet(config_path):
     sql_config = get_sql_config(config_path)
-    if "enable_turbojet" in sql_config:
-        return sql_config["enable_turbojet"]
-    else:
-        return False
+    return sql_config.get("enable_turbojet", False)
 
 
 def get_enable_scan_timeout(config_path):
@@ -450,11 +466,9 @@ def get_flow_control_config_from_sql_config(config_path):
 
 def get_depend_tables_from_sql_config(config_path):
     sql_config = get_sql_config(config_path)
-    depend_tables = sql_config.get('depend_tables', [])
-    return depend_tables
+    return sql_config.get('depend_tables', [])
 
 
 def get_item_table_name_from_sql_config(config_path):
     sql_config = get_sql_config(config_path)
-    item_table_name = sql_config.get('item_table', '')
-    return item_table_name
+    return sql_config.get('item_table', '')

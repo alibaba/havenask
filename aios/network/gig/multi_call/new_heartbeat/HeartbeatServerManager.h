@@ -49,7 +49,9 @@ public:
     bool updateVolatileInfo(SignatureTy signature, const BizVolatileInfo &info);
     bool unpublish(SignatureTy signature);
     bool unpublish(const std::vector<SignatureTy> &signatureVec);
+    void startAllBiz();
     void stopAllBiz();
+    bool isAllReplicaStopped() const;
     std::vector<ServerBizTopoInfo> getPublishInfos() const;
     std::string getTopoInfoStr() const;
     void notify();
@@ -72,6 +74,7 @@ private:
     std::shared_ptr<BizStat> getBizStat(const std::string &bizName, PartIdTy partId);
     const std::shared_ptr<HeartbeatServerStreamQueue> &getQueue();
     void clearBiz();
+    bool hasStream() const;
 
 private:
     static constexpr size_t QUEUE_COUNT = 5;

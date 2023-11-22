@@ -42,6 +42,7 @@
 #include "sql/data/SqlGraphType.h"
 #include "sql/data/SqlPlanData.h"
 #include "sql/data/SqlPlanType.h"
+#include "sql/data/SqlQueryConfigData.h"
 #include "sql/data/SqlQueryRequest.h"
 #include "sql/data/SqlRequestData.h"
 #include "sql/data/SqlRequestType.h"
@@ -86,7 +87,8 @@ void PlanTransformKernel::def(navi::KernelDefBuilder &builder) const {
     builder.name("sql.PlanTransformKernel")
         .input("input0", SqlPlanType::TYPE_ID)
         .input("input1", SqlRequestType::TYPE_ID)
-        .output("output0", SqlGraphType::TYPE_ID);
+        .output("output0", SqlGraphType::TYPE_ID)
+        .output("output1", SqlQueryConfigType::TYPE_ID);
 }
 
 bool PlanTransformKernel::config(navi::KernelConfigContext &ctx) {
@@ -94,6 +96,7 @@ bool PlanTransformKernel::config(navi::KernelConfigContext &ctx) {
 }
 
 navi::ErrorCode PlanTransformKernel::init(navi::KernelInitContext &context) {
+    _thisBizName = context.getThisBizName();
     if (_iquanR == nullptr || _sqlConfigResource == nullptr) {
         return navi::EC_INIT_RESOURCE;
     }
@@ -126,10 +129,13 @@ navi::ErrorCode PlanTransformKernel::compute(navi::KernelComputeContext &ctx) {
         SQL_LOG(ERROR, "sql request data is nullptr");
         return navi::EC_ABORT;
     }
+    auto sqlQueryConfigData = createSqlQueryConfigData(*sqlRequestData->getSqlRequest());
 
     iquan::ExecConfig execConfig;
-    auto sqlConfig = _sqlConfigResource->getSqlConfig();
-    if (!initExecConfig(sqlRequestData->getSqlRequest().get(), sqlConfig, execConfig)) {
+    if (!initExecConfig(sqlRequestData->getSqlRequest().get(),
+                        _sqlConfigResource->getSqlConfig(),
+                        sqlQueryConfigData->getConfig(),
+                        execConfig)) {
         return navi::EC_ABORT;
     }
 
@@ -149,34 +155,34 @@ navi::ErrorCode PlanTransformKernel::compute(navi::KernelComputeContext &ctx) {
     }
 
     _metricsCollector.plan2GraphTime = timer.done_us();
-    SQL_LOG(DEBUG, "transform sql plan use [%ld] us", _metricsCollector.plan2GraphTime);
+    SQL_LOG(TRACE1, "transform sql plan use [%ld] us", _metricsCollector.plan2GraphTime);
     _sqlSearchInfoCollectorR->getCollector()->setSqlPlan2GraphTime(
         _metricsCollector.plan2GraphTime);
     reportMetrics();
 
-    SQL_LOG(DEBUG,
+    SQL_LOG(TRACE3,
             "transform sql graph success, graph def is: [%s]",
             graphDef->ShortDebugString().c_str());
     SqlGraphDataPtr sqlGraphData(new SqlGraphData(outputPorts, outputNodes, graphDef));
-    navi::PortIndex index(0, navi::INVALID_INDEX);
-    ctx.setOutput(index, sqlGraphData, true);
+    navi::PortIndex sqlGraphDataIdx(0, navi::INVALID_INDEX);
+    navi::PortIndex sqlQueryConfigDataIdx(1, navi::INVALID_INDEX);
+    ctx.setOutput(sqlGraphDataIdx, sqlGraphData, true);
+    ctx.setOutput(sqlQueryConfigDataIdx, sqlQueryConfigData, true);
     return navi::EC_NONE;
 }
 
 bool PlanTransformKernel::initExecConfig(const SqlQueryRequest *sqlQueryRequest,
                                          const SqlConfig &sqlConfig,
+                                         const SqlQueryConfig &sqlQueryConfig,
                                          iquan::ExecConfig &execConfig) {
     execConfig.parallelConfig.parallelNum = getParallelNum(sqlQueryRequest, sqlConfig);
     execConfig.parallelConfig.parallelTables = getParallelTalbes(sqlQueryRequest, sqlConfig);
     execConfig.naviConfig.runtimeConfig.threadLimit = sqlConfig.subGraphThreadLimit;
+    execConfig.resultAllowSoftFailure = sqlQueryConfig.resultallowsoftfailure();
+    execConfig.thisBizName = _thisBizName;
     // execConfig.naviConfig.runtimeConfig.timeout = subGraphTimeout;
     // execConfig.naviConfig.runtimeConfig.traceLevel = traceLevel;
-    bool lackResultEnable = sqlConfig.lackResultEnable;
-    string lackResultEnableStr;
-    if (sqlQueryRequest->getValue(SQL_LACK_RESULT_ENABLE, lackResultEnableStr)) {
-        lackResultEnable = autil::StringUtil::fromString<bool>(lackResultEnableStr);
-    }
-    execConfig.lackResultEnable = lackResultEnable;
+
     if (!execConfig.isValid()) {
         std::string errorMsg = "";
         SQL_LOG(ERROR, "invalid execConfig");
@@ -243,6 +249,15 @@ std::string PlanTransformKernel::ToSqlPlanString(const SqlPlan &sqlPlan,
         return "convert sql plan failed";
     }
     return autil::legacy::FastToJsonString(sqlPlanWrapper, true);
+}
+
+std::shared_ptr<SqlQueryConfigData>
+PlanTransformKernel::createSqlQueryConfigData(const SqlQueryRequest &request) const {
+    SqlQueryConfig config;
+    config.set_resultallowsoftfailure(request.isResultAllowSoftFailure(
+        _sqlConfigResource->getSqlConfig().resultAllowSoftFailure));
+    SQL_LOG(TRACE1, "sql query config[%s]", config.ShortDebugString().c_str());
+    return std::make_shared<SqlQueryConfigData>(std::move(config));
 }
 
 void PlanTransformKernel::reportMetrics() const {

@@ -1,13 +1,19 @@
 package com.taobao.search.iquan.core.catalog;
 
-import com.taobao.search.iquan.client.common.model.IquanLayerTableModel;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.taobao.search.iquan.core.api.schema.LayerTable;
 import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LogicalLayerTableScan;
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.rel.RelNode;
 
-import java.util.*;
-
+@Getter
+@Setter
 public class IquanLayerTable extends IquanCatalogTable {
     private final LayerTable layerTable;
     private Map<String, String> properties = new HashMap<>();
@@ -15,7 +21,7 @@ public class IquanLayerTable extends IquanCatalogTable {
 
     public IquanLayerTable(String catalogName,
                            String dbName, LayerTable layerTable) {
-        super(catalogName, dbName, layerTable.getLayerTableName(), layerTable.getFakeTable());
+        super(catalogName, dbName, layerTable.getLayerTableName(), layerTable.getFakeIquanTable());
         this.layerTable = layerTable;
     }
 
@@ -36,12 +42,12 @@ public class IquanLayerTable extends IquanCatalogTable {
         return table;
     }
 
-    public String getDetailInfo() {
-        IquanLayerTableModel model = layerTable.getLayerTableModel();
-        if (model == null) {
+    @Override
+    public String getDetailInfo(boolean debug) {
+        if (layerTable.getJsonLayerTableContent() == null) {
             return "{}";
         }
-        return layerTable.getLayerTableModel().getDetailInfo();
+        return IquanRelOptUtils.toJson(layerTable.getJsonLayerTableContent());
     }
 
     public String getDigest() {
@@ -83,7 +89,7 @@ public class IquanLayerTable extends IquanCatalogTable {
         return new LogicalLayerTableScan(
                 context.getCluster(),
                 context.getCluster().traitSet(),
-                names.get(names.size() -1),
+                names.get(names.size() - 1),
                 names,
                 relOptTable.getRowType(),
                 context.getTableHints(),

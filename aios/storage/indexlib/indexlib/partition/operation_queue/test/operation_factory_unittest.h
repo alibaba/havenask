@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OPERATIONFACTORYTEST_H
-#define __INDEXLIB_OPERATIONFACTORYTEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common_define.h"
@@ -65,5 +64,3 @@ INDEXLIB_UNIT_TEST_CASE(OperationFactoryTest, TestCreateOperationForAddDocument)
 INDEXLIB_UNIT_TEST_CASE(OperationFactoryTest, TestCreateOperationForDeleteDocument);
 INDEXLIB_UNIT_TEST_CASE(OperationFactoryTest, TestCreateOperationForUpdateDocument);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPERATIONFACTORYTEST_H

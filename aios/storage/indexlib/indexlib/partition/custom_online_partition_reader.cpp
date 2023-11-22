@@ -70,7 +70,7 @@ CustomOnlinePartitionReader::CustomOnlinePartitionReader(
 
 CustomOnlinePartitionReader::~CustomOnlinePartitionReader()
 {
-    auto onDiskVersionId = INVALID_VERSION;
+    auto onDiskVersionId = INVALID_VERSIONID;
     if (mPartitionData) {
         onDiskVersionId = mPartitionData->GetOnDiskVersion().GetVersionId();
     }

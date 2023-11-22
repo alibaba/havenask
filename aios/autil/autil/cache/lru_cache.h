@@ -56,18 +56,42 @@ struct LRUHandle {
     LRUHandle *prev;
     size_t charge; // TODO(opt): Only allow uint32_t?
     size_t key_length;
-    uint32_t refs; // a number of refs to this entry
-                   // cache itself is counted as 1
+    // The hash of key(). Used for fast sharding and comparisons.
+    uint32_t hash;
+    // The number of external refs to this entry. The cache itself is not counted.
+    uint32_t refs;
 
-    // Include the following flags:
-    //   in_cache:    whether this entry is referenced by the hash table.
-    //   is_high_pri: whether this entry is high priority entry.
-    //   in_high_pro_pool: whether this entry is in high-pri pool.
-    char flags;
+    // Mutable flags - access controlled by mutex
+    // The m_ and M_ prefixes (and im_ and IM_ later) are to hopefully avoid
+    // checking an M_ flag on im_flags or an IM_ flag on m_flags.
+    uint8_t m_flags;
+    enum MFlags : uint8_t {
+        // Whether this entry is referenced by the hash table.
+        M_IN_CACHE = (1 << 0),
+        // Whether this entry has had any lookups (hits).
+        // TODO(chenggua): M_HAS_HIT has not been applied in lru_cache.cpp
+        M_HAS_HIT = (1 << 1),
+        // Whether this entry is in high-pri pool.
+        M_IN_HIGH_PRI_POOL = (1 << 2),
+        // Whether this entry is in low-pri pool.
+        M_IN_LOW_PRI_POOL = (1 << 3),
+    };
 
-    uint32_t hash; // Hash of key(); used for fast sharding and comparisons
+    // "Immutable" flags - only set in single-threaded context and then
+    // can be accessed without mutex
+    uint8_t im_flags;
+    enum ImFlags : uint8_t {
+        // Whether this entry is high priority entry.
+        IM_IS_HIGH_PRI = (1 << 0),
+        // Whether this entry is low priority entry.
+        IM_IS_LOW_PRI = (1 << 1),
+        // Marks result handles that should not be inserted into cache
+        // TODO(chenggua): IM_IS_STANDALONE has not been applied in lru_cache.cpp
+        IM_IS_STANDALONE = (1 << 2),
+    };
 
-    char key_data[1]; // Beginning of key
+    // Beginning of the key (MUST BE THE LAST FIELD IN THIS STRUCT!)
+    char key_data[1];
 
     autil::StringView key() const {
         // For cheaper lookups, we allow a temporary Handle object
@@ -79,31 +103,61 @@ struct LRUHandle {
         }
     }
 
-    bool InCache() { return flags & 1; }
-    bool IsHighPri() { return flags & 2; }
-    bool InHighPriPool() { return flags & 4; }
+    // For HandleImpl concept
+    uint32_t GetHash() const { return hash; }
+
+    bool InCache() const { return m_flags & M_IN_CACHE; }
+    bool IsHighPri() const { return im_flags & IM_IS_HIGH_PRI; }
+    bool InHighPriPool() const { return m_flags & M_IN_HIGH_PRI_POOL; }
+    bool IsLowPri() const { return im_flags & IM_IS_LOW_PRI; }
+    bool InLowPriPool() const { return m_flags & M_IN_LOW_PRI_POOL; }
+    bool HasHit() const { return m_flags & M_HAS_HIT; }
+    bool IsStandalone() const { return im_flags & IM_IS_STANDALONE; }
 
     void SetInCache(bool in_cache) {
         if (in_cache) {
-            flags |= 1;
+            m_flags |= M_IN_CACHE;
         } else {
-            flags &= ~1;
+            m_flags &= ~M_IN_CACHE;
         }
     }
 
     void SetPriority(CacheBase::Priority priority) {
         if (priority == CacheBase::Priority::HIGH) {
-            flags |= 2;
+            im_flags |= IM_IS_HIGH_PRI;
+            im_flags &= ~IM_IS_LOW_PRI;
+        } else if (priority == CacheBase::Priority::LOW) {
+            im_flags &= ~IM_IS_HIGH_PRI;
+            im_flags |= IM_IS_LOW_PRI;
         } else {
-            flags &= ~2;
+            im_flags &= ~IM_IS_HIGH_PRI;
+            im_flags &= ~IM_IS_LOW_PRI;
         }
     }
 
     void SetInHighPriPool(bool in_high_pri_pool) {
         if (in_high_pri_pool) {
-            flags |= 4;
+            m_flags |= M_IN_HIGH_PRI_POOL;
         } else {
-            flags &= ~4;
+            m_flags &= ~M_IN_HIGH_PRI_POOL;
+        }
+    }
+
+    void SetInLowPriPool(bool in_low_pri_pool) {
+        if (in_low_pri_pool) {
+            m_flags |= M_IN_LOW_PRI_POOL;
+        } else {
+            m_flags &= ~M_IN_LOW_PRI_POOL;
+        }
+    }
+
+    void SetHit() { m_flags |= M_HAS_HIT; }
+
+    void SetIsStandalone(bool is_standalone) {
+        if (is_standalone) {
+            im_flags |= IM_IS_STANDALONE;
+        } else {
+            im_flags &= ~IM_IS_STANDALONE;
         }
     }
 
@@ -175,8 +229,14 @@ public:
     // Set the flag to reject insertion if cache if full.
     virtual void SetStrictCapacityLimit(bool strict_capacity_limit) override;
 
+    // Initialize percentage of capacity reveserved for different capacity.
+    void InitializePriorityPoolRatio(double high_pri_pool_ratio, double low_pri_pool_ratio);
+
     // Set percentage of capacity reserved for high-pri cache entries.
     void SetHighPriorityPoolRatio(double high_pri_pool_ratio);
+
+    // Set percentage of capacity reserved for low-pri cache entries.
+    void SetLowPriorityPoolRatio(double low_pri_pool_ratio);
 
     // Set allocatory
     void SetAllocator(const CacheAllocatorPtr &allocator);
@@ -201,13 +261,19 @@ public:
     virtual size_t GetUsage() const override;
     virtual size_t GetPinnedUsage() const override;
 
+    // Retrieves high pri pool ratio
+    double GetHighPriPoolRatio();
+
+    // Retrieves low pri pool ratio
+    double GetLowPriPoolRatio();
+
     virtual void ApplyToAllCacheEntries(void (*callback)(void *, size_t), bool thread_safe) override;
 
     virtual void EraseUnRefEntries() override;
 
     virtual std::string GetPrintableOptions() const override;
 
-    void TEST_GetLRUList(LRUHandle **lru, LRUHandle **lru_low_pri);
+    void TEST_GetLRUList(LRUHandle **lru, LRUHandle **lru_low_pri, LRUHandle **lru_bottom_pri);
 
 private:
     void LRU_Remove(LRUHandle *e);
@@ -239,15 +305,25 @@ private:
     // Memory size for entries in high-pri pool.
     size_t high_pri_pool_usage_;
 
+    // Memory size for entries in low-pri pool.
+    size_t low_pri_pool_usage_;
+
     // Whether to reject insertion if cache reaches its full capacity.
     bool strict_capacity_limit_;
 
     // Ratio of capacity reserved for high priority cache entries.
     double high_pri_pool_ratio_;
 
+    // Ratio of capacity reserved for high priority cache entries.
+    double low_pri_pool_ratio_;
+
     // High-pri pool size, equals to capacity * high_pri_pool_ratio.
     // Remember the value to avoid recomputing each time.
     double high_pri_pool_capacity_;
+
+    // Low-pri pool size, equals to capacity * low_pri_pool_ratio.
+    // Remember the value to avoid recomputing each time.
+    double low_pri_pool_capacity_;
 
     // mutex_ protects the following state.
     // We don't count mutex_ as the cache's internal state so semantically we
@@ -262,6 +338,9 @@ private:
     // Pointer to head of low-pri pool in LRU list.
     LRUHandle *lru_low_pri_;
 
+    // Pointer to head of bottom-pri pool in LRU list.
+    LRUHandle *lru_bottom_pri_;
+
     LRUHandleTable table_;
 
     CacheAllocatorPtr allocator_;
@@ -273,6 +352,7 @@ public:
              int num_shard_bits,
              bool strict_capacity_limit,
              double high_pri_pool_ratio,
+             double low_pri_pool_ratio,
              const CacheAllocatorPtr &allocator);
     virtual ~LRUCache();
     virtual const char *Name() const override { return "LRUCache"; }

@@ -15,7 +15,12 @@
  */
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <vector>
+
 #include "autil/StringUtil.h"
+#include "indexlib/util/KeyValueMap.h"
 #include "indexlib/util/TaskScheduler.h"
 
 using namespace std;

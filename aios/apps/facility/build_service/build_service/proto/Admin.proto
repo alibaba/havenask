@@ -327,7 +327,11 @@ message WorkerRoleInfo {
     required bool isFinish = 5;
     optional string agentNodeName = 6;
     optional string agentIdentifier = 7;
-    optional int64 workerStartTime = 8;    
+    optional int64 workerStartTime = 8;
+    optional string taskIdentifier = 9;
+    optional int64 cpuAmount = 10;
+    optional int64 memAmount = 11;
+    optional string workerStatus = 12;
 }
 
 message GenerationRoleInfo {
@@ -346,6 +350,7 @@ message WorkerNodeStatus {
     required PartitionId pid = 2;
     required string targetStatus = 3;
     required string currentStatus = 4;
+    required string slotInfos = 5;
 }
 
 message WorkerNodeStatusResponse {
@@ -367,8 +372,24 @@ message StartGeneralTaskRequest {
     required OperationPlan plan = 9;
     required int64 branchId = 10;
     optional Range range = 11;
+    optional string taskTraceId = 12;
 }
 // GeneralTask end
+
+message ExternalFiles {
+    required Range range = 1;
+    repeated string fileList = 2;
+    optional int64 eventTimeInSecs = 3 [ default = -1 ];
+}
+
+message BulkloadRequest {
+    required string bulkloadId = 1;
+    required string clusterName = 2;
+    required BuildId targetBuildId = 3;
+    repeated ExternalFiles externalFiles = 4;
+    optional string importExternalFileOptions = 5 [ default = ""];
+    optional string action = 6;
+}
 
 message BulkloadInfoRequest {
     required BuildId buildId = 1;
@@ -721,6 +742,9 @@ service AdminService
     }
     rpc getBulkloadInfo ( BulkloadInfoRequest ) returns ( InformResponse ) {
         option (arpc.local_method_id) = 36;
+    }
+    rpc bulkload ( BulkloadRequest ) returns ( InformResponse ) {
+        option (arpc.local_method_id) = 37;
     }
 }
 

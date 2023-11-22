@@ -15,6 +15,20 @@
  */
 #include "build_service/io/SwiftOutput.h"
 
+#include <iosfwd>
+#include <map>
+#include <stdexcept>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "swift/client/MessageInfo.h"
+#include "swift/client/SwiftClient.h"
+#include "swift/client/SwiftClientConfig.h"
+#include "swift/common/Common.h"
+#include "swift/protocol/Common.pb.h"
+#include "swift/protocol/ErrCode.pb.h"
+
 using namespace std;
 using namespace autil::legacy;
 using namespace build_service::util;

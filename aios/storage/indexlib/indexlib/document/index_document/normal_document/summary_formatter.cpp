@@ -33,7 +33,7 @@ IE_LOG_SETUP(document, SummaryFormatter);
 SummaryFormatter::SummaryFormatter(const SummarySchemaPtr& summarySchema) : mSummarySchema(summarySchema)
 {
     if (mSummarySchema && mSummarySchema->NeedStoreSummary()) {
-        for (summarygroupid_t groupId = 0; groupId < summarySchema->GetSummaryGroupConfigCount(); ++groupId) {
+        for (index::summarygroupid_t groupId = 0; groupId < summarySchema->GetSummaryGroupConfigCount(); ++groupId) {
             const SummaryGroupConfigPtr& summaryGroupConfig = summarySchema->GetSummaryGroupConfig(groupId);
             if (summaryGroupConfig->NeedStoreSummary()) {
                 mGroupFormatterVec.push_back(SummaryGroupFormatterPtr(new SummaryGroupFormatter(summaryGroupConfig)));

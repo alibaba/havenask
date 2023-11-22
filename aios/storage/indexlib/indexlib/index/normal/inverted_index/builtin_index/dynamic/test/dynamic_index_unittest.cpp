@@ -1,6 +1,7 @@
 #include "indexlib/common_define.h"
 #include "indexlib/config/disable_fields_config.h"
 #include "indexlib/config/index_partition_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/inverted_index/builtin_index/dynamic/DynamicPostingIterator.h"
 #include "indexlib/index/inverted_index/config/DictionaryConfig.h"
 #include "indexlib/index/normal/inverted_index/builtin_index/dynamic/dynamic_index_reader.h"
@@ -9,7 +10,6 @@
 #include "indexlib/index_base/index_meta/partition_meta.h"
 #include "indexlib/test/partition_data_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 #include "indexlib/util/test/build_test_util.h"
 

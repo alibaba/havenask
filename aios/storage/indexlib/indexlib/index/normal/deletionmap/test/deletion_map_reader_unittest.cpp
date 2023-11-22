@@ -3,6 +3,7 @@
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_writer.h"
@@ -13,7 +14,6 @@
 #include "indexlib/index_define.h"
 #include "indexlib/test/fake_partition_data_creator.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/test/build_test_util.h"
 
 using namespace std;

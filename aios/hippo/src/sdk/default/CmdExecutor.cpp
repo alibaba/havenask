@@ -136,9 +136,6 @@ bool CmdExecutor::startProcess(const string &address,
                                const string &processName,
                                string &errorMsg)
 {
-    if (checkProcessExist(address, containerName, processName, workDir)) {
-        return true;
-    }
     string cmd;
     string mkdirCmd = "mkdir -p " + workDir;
     generateCmd(address, mkdirCmd, cmd);
@@ -176,23 +173,50 @@ bool CmdExecutor::startProcess(const string &address,
     return errorMsg.empty();
 }
 
+bool CmdExecutor::stopProcess(const string &address,
+                              const string &containerName,
+                              const int32_t pid)
+{
+    if (pid < 1) {
+        return false;
+    }
+    string pidStr = to_string(pid);
+    string killProcesCmd = _dockerExeName + " exec";
+    if (!_userName.empty()) {
+        killProcesCmd += " -u " + _userName;
+    }
+    if (_cmdOneContainer) {
+        killProcesCmd ="kill -10 " + pidStr;
+    } else {
+        killProcesCmd += " -t " + containerName + " /bin/bash -c \"kill -10 " + pidStr + "\"";
+    }
+    string cmd;
+    generateCmd(address, killProcesCmd, cmd);
+    string msg;
+    if (!execute(cmd, msg)) {
+        return false;
+    }
+    autil::StringUtil::trim(msg);
+    HIPPO_LOG(INFO, "stop process, cmd[%s] msg[%s]", killProcesCmd.c_str(), msg.c_str());
+    return !msg.empty();
+}
+
 bool CmdExecutor::checkProcessExist(const string &address,
                                     const string &containerName,
                                     const string &processName,
-                                    const string &workDir)
+                                    const string &workDir,
+                                    int32_t &pid)
 {
+    pid = -1;
     string cmd;
     string checkProcesCmd = _dockerExeName + " exec";
     if (!_userName.empty()) {
         checkProcesCmd += " -u " + _userName;
     }
     if (_cmdOneContainer) {
-        checkProcesCmd = "ps uxwww |grep " + processName + "|grep "
-                         + workDir +"| grep -v grep";
+        checkProcesCmd = "pgrep " + processName.substr(0, 15) + "|xargs pwdx|grep " + workDir  + "|cut -d: -f1";
     } else {
-        checkProcesCmd += " -t " + containerName +
-                          " /bin/bash -c \"" + "ps uxwww |grep " +
-                          processName + "| grep -v grep\"";
+        checkProcesCmd += " -t " + containerName + " /bin/bash -c \"" + "pgrep " + processName.substr(0, 15) + "|xargs pwdx|grep " + workDir  + "|cut -d: -f1|tr -d \\\"\r\n\\\"" + "\"";
     }
     generateCmd(address, checkProcesCmd, cmd);
     string msg;
@@ -200,6 +224,11 @@ bool CmdExecutor::checkProcessExist(const string &address,
         return false;
     }
     autil::StringUtil::trim(msg);
+    if (!autil::StringUtil::fromString(msg, pid)) {
+        HIPPO_LOG(ERROR, "get pid from msg[%s] failed", msg.c_str());
+        return false;
+    }
+    HIPPO_LOG(INFO, "check process, cmd[%s] msg[%s]", checkProcesCmd.c_str(), msg.c_str());
     return !msg.empty();
 }
 

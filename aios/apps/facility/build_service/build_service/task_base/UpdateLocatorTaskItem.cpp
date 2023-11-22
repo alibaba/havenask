@@ -15,7 +15,11 @@
  */
 #include "build_service/task_base/UpdateLocatorTaskItem.h"
 
-#include "build_service/util/Monitor.h"
+#include <iosfwd>
+#include <string>
+
+#include "alog/Logger.h"
+#include "indexlib/framework/Locator.h"
 
 using namespace std;
 

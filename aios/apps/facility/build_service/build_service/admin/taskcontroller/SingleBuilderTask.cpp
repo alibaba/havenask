@@ -15,37 +15,61 @@
  */
 #include "build_service/admin/taskcontroller/SingleBuilderTask.h"
 
+#include <assert.h>
 #include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 #include <random>
+#include <set>
+#include <utility>
+#include <vector>
 
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "beeper/beeper.h"
 #include "build_service/admin/AlterFieldCKPAccessor.h"
 #include "build_service/admin/CheckpointCreator.h"
 #include "build_service/admin/CheckpointTools.h"
 #include "build_service/admin/DefaultBrokerTopicCreator.h"
 #include "build_service/admin/ProcessorCheckpointAccessor.h"
-#include "build_service/admin/ProcessorCheckpointFormatter.h"
+#include "build_service/admin/SlowNodeDetector.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/BrokerTopicAccessor.h"
+#include "build_service/common/BuilderCheckpointAccessor.h"
 #include "build_service/common/CheckpointAccessor.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
 #include "build_service/common/Locator.h"
 #include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/config/BuildRuleConfig.h"
-#include "build_service/config/BuilderClusterConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/config/ResourceReader.h"
-#include "build_service/proto/ProtoComparator.h"
+#include "build_service/proto/ErrorCollector.h"
 #include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/RoleNameGenerator.h"
 #include "build_service/proto/WorkerNode.h"
 #include "build_service/proto/WorkerNodeCreator.h"
 #include "build_service/util/DataSourceHelper.h"
-#include "build_service/util/IndexPathConstructor.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
 #include "indexlib/partition/index_roll_back_util.h"
-#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace autil;

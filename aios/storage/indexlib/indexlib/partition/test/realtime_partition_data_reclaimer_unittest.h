@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_REALTIMEPARTITIONDATARECLAIMERTEST_H
-#define __INDEXLIB_REALTIMEPARTITIONDATARECLAIMERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/IFileSystem.h"
@@ -44,5 +43,3 @@ INDEXLIB_UNIT_TEST_CASE(RealtimePartitionDataReclaimerTest, TestExtractSegmentsT
 INDEXLIB_UNIT_TEST_CASE(RealtimePartitionDataReclaimerTest, TestExtractSegmentsToReclaimForObsoleteTimestamp);
 INDEXLIB_UNIT_TEST_CASE(RealtimePartitionDataReclaimerTest, TestExtractSegmentsToReclaimForSegmentWithOperationQueue);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_REALTIMEPARTITIONDATARECLAIMERTEST_H

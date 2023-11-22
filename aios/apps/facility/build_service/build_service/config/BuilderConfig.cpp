@@ -15,6 +15,14 @@
  */
 #include "build_service/config/BuilderConfig.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <limits>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
+
 using namespace std;
 namespace build_service { namespace config {
 

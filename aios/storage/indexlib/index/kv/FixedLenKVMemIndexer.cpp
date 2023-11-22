@@ -29,7 +29,11 @@
 namespace indexlibv2::index {
 AUTIL_DECLARE_AND_SETUP_LOGGER(indexlib.index, FixedLenKVMemIndexer);
 
-FixedLenKVMemIndexer::FixedLenKVMemIndexer(int64_t maxMemoryUse) : _maxMemoryUse(maxMemoryUse) {}
+FixedLenKVMemIndexer::FixedLenKVMemIndexer(bool tolerateDocError, int64_t maxMemoryUse)
+    : KVMemIndexerBase(tolerateDocError)
+    , _maxMemoryUse(maxMemoryUse)
+{
+}
 
 FixedLenKVMemIndexer::~FixedLenKVMemIndexer() {}
 

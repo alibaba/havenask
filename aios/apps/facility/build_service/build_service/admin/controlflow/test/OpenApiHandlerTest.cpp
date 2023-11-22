@@ -1,10 +1,17 @@
 #include "build_service/admin/controlflow/OpenApiHandler.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <string>
+
 #include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/common/CheckpointAccessor.h"
-#include "build_service/common/ResourceContainer.h"
+#include "build_service/common_define.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

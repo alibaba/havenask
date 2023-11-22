@@ -109,8 +109,8 @@ public:
     void SetLocator(const framework::Locator& locator) override { _locator = locator; }
     void SetIngestionTimestamp(int64_t ingestionTimestamp) override;
     int64_t GetIngestionTimestamp() const override;
-    void SetDocInfo(const indexlibv2::document::IDocument::DocInfo& docInfo) override;
-    indexlibv2::document::IDocument::DocInfo GetDocInfo() const override;
+    void SetDocInfo(const indexlibv2::framework::Locator::DocInfo& docInfo) override;
+    indexlibv2::framework::Locator::DocInfo GetDocInfo() const override;
     size_t EstimateMemory() const override;
 
 public:
@@ -146,7 +146,7 @@ private:
     int64_t _timestamp = INVALID_TIMESTAMP;
     TagInfoMap _tagInfo; // legacy mSource
     framework::Locator _locator;
-    indexlibv2::document::IDocument::DocInfo _docInfo;
+    indexlibv2::framework::Locator::DocInfo _docInfo;
 
     static const autil::StringView EMPTY_STRING;
 

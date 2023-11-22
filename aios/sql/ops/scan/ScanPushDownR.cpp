@@ -29,6 +29,7 @@
 #include "sql/ops/calc/CalcWrapperR.h"
 #include "sql/ops/tvf/TvfWrapperR.h"
 #include "table/Table.h"
+#include "table/TableUtil.h"
 
 namespace indexlib {
 namespace index {
@@ -79,6 +80,7 @@ bool ScanPushDownR::initPushDownOp(navi::ResourceInitContext &ctx,
         auto opCtx = pushDownOpsCtx.enter(i);
         std::string opName;
         NAVI_JSONIZE(opCtx, "op_name", opName);
+        SQL_LOG(TRACE3, "the %d-th push down op is [%s]", (int)i, opName.c_str());
         auto attrs = opCtx.enter("attrs");
         if (opName == "CalcOp") {
             if (i == 0) {
@@ -155,6 +157,11 @@ void ScanPushDownR::setMatchInfo(
 
 bool ScanPushDownR::compute(table::TablePtr &table, bool &eof) const {
     for (size_t i = 0; i < _pushDownOps.size(); ++i) {
+        SQL_LOG(TRACE3,
+                "before the %d-th push down op [%s], table is: %s",
+                (int)i,
+                _pushDownOps[i]->getName().c_str(),
+                table::TableUtil::toString(table).c_str());
         if (!_pushDownOps[i]->compute(table, eof)) {
             SQL_LOG(ERROR,
                     "the no.%ld push down op: %s compute failed",
@@ -171,6 +178,12 @@ bool ScanPushDownR::compute(table::TablePtr &table, bool &eof) const {
                 return false;
             }
             break;
+        } else {
+            SQL_LOG(TRACE3,
+                    "after the %d-th push down op [%s], table is: %s",
+                    (int)i,
+                    _pushDownOps[i]->getName().c_str(),
+                    table::TableUtil::toString(table).c_str());
         }
     }
     return true;

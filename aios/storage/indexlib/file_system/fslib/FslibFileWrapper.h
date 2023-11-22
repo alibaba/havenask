@@ -58,10 +58,11 @@ public:
     virtual FSResult<void> Close() noexcept;
 
 public:
-    virtual future_lite::Future<size_t> PReadAsync(void* buffer, size_t length, off_t offset, int advice,
-                                                   future_lite::Executor* executor) noexcept;
-    virtual future_lite::Future<size_t> PReadVAsync(const iovec* iov, int iovcnt, off_t offset, int advice,
-                                                    future_lite::Executor* executor, int64_t timeout) noexcept;
+    virtual future_lite::Future<FSResult<size_t>> PReadAsync(void* buffer, size_t length, off_t offset, int advice,
+                                                             future_lite::Executor* executor) noexcept;
+    virtual future_lite::Future<FSResult<size_t>> PReadVAsync(const iovec* iov, int iovcnt, off_t offset, int advice,
+                                                              future_lite::Executor* executor,
+                                                              int64_t timeout) noexcept;
 
     /*will call PReadVAsync on default*/
     virtual future_lite::coro::Lazy<FSResult<size_t>> PReadAsync(void* buffer, size_t length, off_t offset, int advice,

@@ -22,7 +22,7 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/file_system/file/ReadOption.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/common/ErrorCode.h"
 
 namespace indexlib {
@@ -47,7 +47,7 @@ class VarLenDataReader;
 class LocalDiskSummaryDiskIndexer : private autil::NoCopyable
 {
 public:
-    LocalDiskSummaryDiskIndexer(const IndexerParameter& indexerParam);
+    LocalDiskSummaryDiskIndexer(const DiskIndexerParameter& indexerParam);
     ~LocalDiskSummaryDiskIndexer() = default;
     using SearchSummaryDocVec = std::vector<indexlib::document::SearchSummaryDocument*>;
 
@@ -79,7 +79,7 @@ private:
 protected:
     std::shared_ptr<VarLenDataReader> _dataReader;
     std::shared_ptr<indexlibv2::config::SummaryGroupConfig> _summaryGroupConfig;
-    IndexerParameter _indexerParam;
+    DiskIndexerParameter _indexerParam;
     static constexpr size_t DEFAULT_SEGMENT_POOL_SIZE = 512 * 1024;
 
 private:

@@ -6,6 +6,7 @@
 #include "navi/example/TestKernel.h"
 #include "navi/example/TestResource.h"
 #include "navi/log/NaviLoggerProvider.h"
+#include "navi/test_cluster/NaviFuncClosure.h"
 #include "navi/test_cluster/NaviGraphRunner.h"
 #include "navi/tester/KernelTesterBuilder.h"
 #include "navi/tester/TesterDef.h"
@@ -150,5 +151,45 @@ TEST_F(RunLocalGraphScheduleTest, testOneProcessingMaxMultiScheduleQueue) {
     th1->join();
     th2->join();
 }
+
+TEST_F(RunLocalGraphScheduleTest, testScheduleNextAfterTaskQueueStop) {
+    NaviGraphRunner naviGraphRunner;
+    ASSERT_TRUE(naviGraphRunner.init());
+
+    auto graphDef1 = std::make_unique<GraphDef>();
+    {
+        GraphBuilder builder(graphDef1.get());
+        builder.newSubGraph(naviGraphRunner.getBizName());
+        builder.node("node1")
+            .kernel("SourceKernel")
+            .jsonAttrs(R"json({"sleep_ms" : 1000})json")
+            .out("output1")
+            .asGraphOutput("o");
+        ASSERT_TRUE(builder.ok());
+    }
+    auto graphDef2 = std::make_unique<GraphDef>();
+    {
+        GraphBuilder builder(graphDef2.get());
+        builder.newSubGraph(naviGraphRunner.getBizName());
+        builder.node("node1")
+            .kernel("SourceKernel")
+            .jsonAttrs(R"json({"sleep_ms" : 1000})json")
+            .out("output1")
+            .asGraphOutput("o");
+        ASSERT_TRUE(builder.ok());
+    }
+
+    WaitClosure waitClosure1, waitClosure2;
+    NaviFuncClosure closure1([&waitClosure1](NaviUserResultPtr naviUserResult) { waitClosure1.notify(); });
+    NaviFuncClosure closure2([&waitClosure2](NaviUserResultPtr naviUserResult) { waitClosure2.notify(); });
+    naviGraphRunner.runLocalGraphAsync(graphDef1.release(), {}, &closure1, "slow_slow_queue");
+    naviGraphRunner.runLocalGraphAsync(graphDef2.release(), {}, &closure2, "slow_slow_queue");
+
+    naviGraphRunner._navi->stop();
+
+    waitClosure1.wait();
+    waitClosure2.wait();
+}
+
 
 } // namespace navi

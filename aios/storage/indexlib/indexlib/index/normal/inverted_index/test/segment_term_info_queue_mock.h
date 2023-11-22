@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEGMENT_TERM_INFO_QUEUE_MOCK_H
-#define __INDEXLIB_SEGMENT_TERM_INFO_QUEUE_MOCK_H
+#pragma once
 
 #include <memory>
 
@@ -44,5 +43,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentTermInfoQueueMock);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SEGMENT_TERM_INFO_QUEUE_MOCK_H

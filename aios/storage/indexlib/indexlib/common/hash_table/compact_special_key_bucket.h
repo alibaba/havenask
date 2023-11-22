@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_COMPACT_SPECIAL_KEY_BUCKET_H
-#define __INDEXLIB_COMPACT_SPECIAL_KEY_BUCKET_H
+#pragma once
 
 #include <cassert>
 
@@ -87,5 +86,3 @@ private:
 };
 #pragma pack(pop)
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_COMPACT_SPECIAL_KEY_BUCKET_H

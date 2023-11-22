@@ -94,8 +94,8 @@ public:
         , isRollbackVersion(false)
     {
         int8_t streamIdx = -1;
-        util::LocatorUtil::DecodeOffset(versionMeta.GetMaxLocatorTs(), &streamIdx, &maxTimestamp);
-        util::LocatorUtil::DecodeOffset(versionMeta.GetMinLocatorTs(), &streamIdx, &minTimestamp);
+        util::LocatorUtil::decodeOffset(versionMeta.GetMaxLocatorTs(), &streamIdx, &maxTimestamp);
+        util::LocatorUtil::decodeOffset(versionMeta.GetMinLocatorTs(), &streamIdx, &minTimestamp);
     }
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override

@@ -42,7 +42,7 @@ ANNPostingIterator::ANNPostingIterator(const std::vector<ANNMatchItem>& annMatch
     , _curDocId(INVALID_DOCID)
     , _curMatchValue(matchvalue_t())
 {
-    _docIds = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, docid_t, _matchCount);
+    _docIds = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, docid64_t, _matchCount);
     _matchValues = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, matchvalue_t, _matchCount);
     for (size_t i = 0; i < _matchCount; ++i) {
         _docIds[i] = annMatchItems[i].docid;
@@ -64,19 +64,19 @@ ANNPostingIterator::~ANNPostingIterator()
     }
 }
 
-docid_t ANNPostingIterator::SeekDoc(docid_t docId)
+docid64_t ANNPostingIterator::SeekDoc(docid64_t docId)
 {
     if (0 == _matchCount) {
         return INVALID_DOCID;
     }
-    docid_t ret = INVALID_DOCID;
+    docid64_t ret = INVALID_DOCID;
     if (SeekDocWithErrorCode(docId, ret) != indexlib::index::ErrorCode::OK) {
         return INVALID_DOCID;
     }
     return ret;
 }
 
-indexlib::index::ErrorCode ANNPostingIterator::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+indexlib::index::ErrorCode ANNPostingIterator::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
     if (0 == _matchCount) {
         result = INVALID_DOCID;
@@ -111,8 +111,8 @@ indexlib::index::ErrorCode ANNPostingIterator::SeekDocWithErrorCode(docid_t docI
 indexlib::index::PostingIterator* ANNPostingIterator::Clone() const
 {
     ANNPostingIterator* clonedItetator = IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, ANNPostingIterator, _sessionPool);
-    clonedItetator->_docIds = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, docid_t, _matchCount);
-    memcpy(clonedItetator->_docIds, _docIds, _matchCount * (sizeof(docid_t)));
+    clonedItetator->_docIds = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, docid64_t, _matchCount);
+    memcpy(clonedItetator->_docIds, _docIds, _matchCount * (sizeof(docid64_t)));
     clonedItetator->_matchValues = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, matchvalue_t, _matchCount);
     memcpy(clonedItetator->_matchValues, _matchValues, _matchCount * (sizeof(matchvalue_t)));
     clonedItetator->_matchCount = _matchCount;

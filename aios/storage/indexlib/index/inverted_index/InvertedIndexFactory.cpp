@@ -24,6 +24,7 @@
 #include "indexlib/index/IIndexReader.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/InvertedDiskIndexer.h"
+#include "indexlib/index/inverted_index/InvertedIndexFieldsParser.h"
 #include "indexlib/index/inverted_index/InvertedIndexMetrics.h"
 #include "indexlib/index/inverted_index/InvertedIndexReaderImpl.h"
 #include "indexlib/index/inverted_index/InvertedMemIndexer.h"
@@ -58,11 +59,11 @@ namespace indexlib::index {
 namespace {
 using indexlibv2::config::IIndexConfig;
 using indexlibv2::config::InvertedIndexConfig;
+using indexlibv2::index::DiskIndexerParameter;
 using indexlibv2::index::IDiskIndexer;
 using indexlibv2::index::IIndexMerger;
 using indexlibv2::index::IIndexReader;
 using indexlibv2::index::IMemIndexer;
-using indexlibv2::index::IndexerParameter;
 } // namespace
 
 AUTIL_LOG_SETUP(indexlib.index, InvertedIndexFactory);
@@ -94,7 +95,7 @@ bool InvertedIndexFactory::CheckSupport(InvertedIndexType indexType) const
 }
 
 std::shared_ptr<IDiskIndexer> InvertedIndexFactory::CreateDiskIndexer(const std::shared_ptr<IIndexConfig>& indexConfig,
-                                                                      const IndexerParameter& indexerParam) const
+                                                                      const DiskIndexerParameter& indexerParam) const
 {
     auto config = std::dynamic_pointer_cast<InvertedIndexConfig>(indexConfig);
     if (!config) {
@@ -129,8 +130,9 @@ std::shared_ptr<IDiskIndexer> InvertedIndexFactory::CreateDiskIndexer(const std:
     }
 }
 
-std::shared_ptr<IMemIndexer> InvertedIndexFactory::CreateMemIndexer(const std::shared_ptr<IIndexConfig>& indexConfig,
-                                                                    const IndexerParameter& indexerParam) const
+std::shared_ptr<IMemIndexer>
+InvertedIndexFactory::CreateMemIndexer(const std::shared_ptr<IIndexConfig>& indexConfig,
+                                       const indexlibv2::index::MemIndexerParameter& indexerParam) const
 {
     auto config = std::dynamic_pointer_cast<InvertedIndexConfig>(indexConfig);
     if (!config) {
@@ -146,7 +148,7 @@ std::shared_ptr<IMemIndexer> InvertedIndexFactory::CreateMemIndexer(const std::s
         return nullptr;
     }
     InvertedIndexConfig::IndexShardingType shardingType = config->GetShardingType();
-    auto invertedIndexMetrics = InvertedIndexMetrics::Create(indexConfig, indexerParam);
+    auto invertedIndexMetrics = InvertedIndexMetrics::Create(indexConfig, indexerParam.metricsManager);
     switch (shardingType) {
     case InvertedIndexConfig::IndexShardingType::IST_NO_SHARDING:
     case InvertedIndexConfig::IndexShardingType::IST_IS_SHARDING: {
@@ -165,8 +167,9 @@ std::shared_ptr<IMemIndexer> InvertedIndexFactory::CreateMemIndexer(const std::s
         return nullptr;
     }
 }
-std::unique_ptr<IIndexReader> InvertedIndexFactory::CreateIndexReader(const std::shared_ptr<IIndexConfig>& indexConfig,
-                                                                      const IndexerParameter& indexerParam) const
+std::unique_ptr<IIndexReader>
+InvertedIndexFactory::CreateIndexReader(const std::shared_ptr<IIndexConfig>& indexConfig,
+                                        const indexlibv2::index::IndexReaderParameter& indexReaderParam) const
 {
     auto config = std::dynamic_pointer_cast<InvertedIndexConfig>(indexConfig);
     if (!config) {
@@ -185,8 +188,9 @@ std::unique_ptr<IIndexReader> InvertedIndexFactory::CreateIndexReader(const std:
     switch (shardingType) {
     case InvertedIndexConfig::IndexShardingType::IST_NO_SHARDING:
     case InvertedIndexConfig::IndexShardingType::IST_IS_SHARDING: {
+        auto* metricsManager = indexReaderParam.metricsManager;
         auto invertedIndexMetrics =
-            indexerParam.metricsManager ? InvertedIndexMetrics::Create(indexConfig, indexerParam) : nullptr;
+            metricsManager ? InvertedIndexMetrics::Create(indexConfig, metricsManager) : nullptr;
         switch (indexType) {
         case it_spatial:
             return std::make_unique<SpatialIndexReader>(invertedIndexMetrics);
@@ -199,7 +203,7 @@ std::unique_ptr<IIndexReader> InvertedIndexFactory::CreateIndexReader(const std:
         }
     }
     case InvertedIndexConfig::IndexShardingType::IST_NEED_SHARDING:
-        return std::make_unique<MultiShardInvertedIndexReader>(indexerParam);
+        return std::make_unique<MultiShardInvertedIndexReader>(indexReaderParam);
     default:
         return nullptr;
     }
@@ -313,6 +317,11 @@ InvertedIndexFactory::CreateIndexConfig(const autil::legacy::Any& any) const
     }
     AUTIL_LOG(ERROR, "unsupported inverted index type[%d]", invertedIndexType);
     return nullptr;
+}
+
+std::unique_ptr<indexlibv2::document::IIndexFieldsParser> InvertedIndexFactory::CreateIndexFieldsParser()
+{
+    return std::make_unique<indexlibv2::index::InvertedIndexFieldsParser>();
 }
 
 std::string InvertedIndexFactory::GetIndexPath() const { return INVERTED_INDEX_PATH; }

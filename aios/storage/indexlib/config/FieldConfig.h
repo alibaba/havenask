@@ -15,6 +15,11 @@
  */
 #pragma once
 
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "autil/Log.h"
 #include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
@@ -109,6 +114,7 @@ public:
 
 private:
     struct Impl;
+
     std::unique_ptr<Impl> _impl;
 
 private:

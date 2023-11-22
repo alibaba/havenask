@@ -44,13 +44,13 @@ public:
         return nullptr;
     }
 
-    bool Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId,
+    bool Lookup(uint64_t leftTerm, uint64_t rightTerm, docid64_t baseDocId,
                 const std::shared_ptr<SegmentPostings>& segPosting, autil::mem_pool::Pool* sessionPool,
                 indexlib::index::InvertedIndexSearchTracer* tracer) const;
 
 private:
     void FillSegmentPostings(const std::shared_ptr<InvertedLeafMemReader>& reader,
-                             RangeFieldEncoder::Ranges& levelRanges, docid_t baseDocId,
+                             RangeFieldEncoder::Ranges& levelRanges, docid64_t baseDocId,
                              std::shared_ptr<SegmentPostings> segPostings, autil::mem_pool::Pool* sessionPool,
                              indexlib::index::InvertedIndexSearchTracer* tracer) const;
 

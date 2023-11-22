@@ -30,7 +30,12 @@ namespace testlib {
 AUTIL_LOG_SETUP(swift, MockSwiftReader);
 
 MockSwiftReader::MockSwiftReader()
-    : _cursor(0), _timestampLimit(-1), _noMoreMessageTimestamp(-1), _schemaReader(nullptr), _maxSchemaDocCount(0) {
+    : SwiftReaderImpl(nullptr, nullptr, protocol::TopicInfo())
+    , _cursor(0)
+    , _timestampLimit(-1)
+    , _noMoreMessageTimestamp(-1)
+    , _schemaReader(nullptr)
+    , _maxSchemaDocCount(0) {
     ON_CALL(*this, read(_, _, _))
         .WillByDefault(Invoke(std::bind(
             &MockSwiftReader::readForTest, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)));
@@ -76,6 +81,9 @@ ErrorCode MockSwiftReader::readForTest(int64_t &timestamp, Message &message, int
     usleep(200 * 1000);
     if (_cursor >= _messages.size()) {
         timestamp = TimeUtility::currentTimeInMicroSeconds();
+        if (_timestampLimit != -1 && timestamp > _timestampLimit) {
+            return ERROR_CLIENT_EXCEED_TIME_STAMP_LIMIT;
+        }
         return ERROR_CLIENT_NO_MORE_MESSAGE;
     }
     if (_timestampLimit != -1 && _messages[_cursor].second > _timestampLimit) {
@@ -170,7 +178,10 @@ protocol::ErrorCode MockSwiftReader::getReaderProgressForTest(protocol::ReaderPr
         }
         return ERROR_CLIENT_NO_MORE_MESSAGE;
     }
-    progress = _progress[_cursor];
+    for (const auto &topicProgress : _progress[_cursor].topicprogress()) {
+        TopicReaderProgress *retProgress = progress.add_topicprogress();
+        *retProgress = topicProgress;
+    }
     return ERROR_NONE;
 }
 
@@ -196,6 +207,7 @@ void MockSwiftReader::addMessage(const string &messageData,
     message.set_timestamp(timestamp);
     message.set_datatype(type);
     message.set_uint16payload(msgU16payload);
+    message.set_uint8maskpayload(_uint8MaskResult);
     message.set_offsetinrawmsg(offsetInRawMsg);
     _messages.push_back(make_pair(message, retTimestamp));
     _progress.push_back(createProgress(timestamp + 1));

@@ -1,11 +1,20 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanSortOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableFunctionScanOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
@@ -13,11 +22,15 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexLocalRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexProgram;
 import org.apache.calcite.tools.RelBuilderFactory;
 import org.apache.calcite.util.NlsString;
-
-import java.util.*;
 
 /**
  * This Rule is used to rewrite field names of push down ops, in order to reuse mathdocs in runtime
@@ -31,97 +44,6 @@ public class PushDownOpRewriteRule extends RelOptRule {
                 IquanTableScanOp.class,
                 none()
         ), relBuilderFactory, null);
-    }
-
-    @Override
-    public boolean matches(RelOptRuleCall call) {
-        final IquanTableScanOp scan = call.rel(0);
-        return scan.pushDownNeedRewrite();
-    }
-
-    @Override
-    public void onMatch(RelOptRuleCall call) {
-        final IquanTableScanOp scan = call.rel(0);
-        RelDataTypeFactory typeFactory = scan.getCluster().getTypeFactory();
-        RexBuilder rexBuilder = scan.getCluster().getRexBuilder();
-
-        List<IquanRelNode> pushDownOps = scan.getPushDownOps();
-        int pushDownOpNum = pushDownOps.size();
-        assert pushDownOpNum > 1;
-        List<IquanRelNode> newPushDownOps = new ArrayList<>(pushDownOpNum);
-
-        for (int i = 0; i < pushDownOps.size(); ++i) {
-            IquanRelNode node = pushDownOps.get(i);
-            // TODO: need to process multi inputs later
-            RelNode input = IquanRelOptUtils.toRel(node.getInput(0));
-            RelNode newInput = i > 0 ? newPushDownOps.get(i - 1) : input;
-
-            if (node instanceof IquanTableFunctionScanOp) {
-                IquanTableFunctionScanOp functionScan = (IquanTableFunctionScanOp) node;
-                if (input == newInput) {
-                    newPushDownOps.add(functionScan);
-                    continue;
-                }
-
-                RelDataType inputRowType = input.getRowType();
-                RelDataType newInputRowType = newInput.getRowType();
-                Map<String, String> inputFieldNameMap = calcFieldNameMap(inputRowType, newInputRowType);
-
-                RelDataType outputRowType = functionScan.getRowType();
-                outputRowType = rewriteFieldNames(outputRowType, inputFieldNameMap, typeFactory);
-
-                // TODO: compatible with old tvf signature, will remove later
-                RexCall rexCall = (RexCall) functionScan.getCall();
-                String callName = rexCall.getOperator().getName();
-                List<RexNode> operands = rexCall.getOperands();
-                if (ConstantDefine.SupportSortFunctionNames.contains(callName) && operands.size() > 0) {
-                    List<RexNode> newOperands = new ArrayList<>(operands.size());
-                    newOperands.add(rewriteLiteralOperand(operands.get(0), inputFieldNameMap, rexBuilder));
-                    for (int j = 1; j < operands.size(); ++j) {
-                        newOperands.add(operands.get(j));
-                    }
-                    operands = newOperands;
-                }
-                RexCall newRexCall = rexCall.clone(rexCall.getType(), operands);
-
-                IquanTableFunctionScanOp newFunctionScan = functionScan.copy(functionScan.getTraitSet(),
-                        ImmutableList.of(newInput), newRexCall, functionScan.getElementType(),
-                        outputRowType, functionScan.getColumnMappings());
-                newPushDownOps.add(newFunctionScan);
-                continue;
-            }
-
-            if (node instanceof IquanCalcOp) {
-                IquanCalcOp calc = (IquanCalcOp) node;
-                RelDataType inputRowType = newInput.getRowType();
-
-                RexProgram rexProgram = calc.getProgram();
-                RelDataType outputRowType = rexProgram.getOutputRowType();
-                if (i < scan.lastPushDownCalcIndex()) {
-                    outputRowType = rewriteFieldNames(inputRowType, rexProgram, ConstantDefine.FIELD_IDENTIFY + i, typeFactory);
-                }
-
-                RexProgram newRexProgram = new RexProgram(inputRowType, rexProgram.getExprList(),
-                        rexProgram.getProjectList(), rexProgram.getCondition(), outputRowType);
-                IquanCalcOp newCalc = (IquanCalcOp) calc.copy(calc.getTraitSet(), newInput, newRexProgram);
-                newPushDownOps.add(newCalc);
-                continue;
-            }
-
-            if (node instanceof IquanSortOp) {
-                IquanSortOp sort = (IquanSortOp) node;
-                IquanSortOp newSort = (IquanSortOp) sort.copy(sort.getTraitSet(), newInput, sort.getCollation(), sort.offset, sort.fetch);
-                newPushDownOps.add(newSort);
-                continue;
-            }
-
-            throw new SqlQueryException(IquanErrorCode.IQUAN_FAIL, String.format("%s: not support op %s",
-                    PushDownOpRewriteRule.class.getSimpleName(), node.getName()));
-        }
-
-        IquanTableScanOp newScan = (IquanTableScanOp) scan.copy(scan.getUncollectOps(), newPushDownOps, scan.getLimit(), false);
-        call.transformTo(newScan);
-        return;
     }
 
     private static Map<String, String> calcFieldNameMap(RelDataType oldType, RelDataType newType) {
@@ -230,5 +152,96 @@ public class PushDownOpRewriteRule extends RelOptRule {
             newType = typeFactory.createTypeWithNullability(newType, outputType.isNullable());
         }
         return newType;
+    }
+
+    @Override
+    public boolean matches(RelOptRuleCall call) {
+        final IquanTableScanOp scan = call.rel(0);
+        return scan.pushDownNeedRewrite();
+    }
+
+    @Override
+    public void onMatch(RelOptRuleCall call) {
+        final IquanTableScanOp scan = call.rel(0);
+        RelDataTypeFactory typeFactory = scan.getCluster().getTypeFactory();
+        RexBuilder rexBuilder = scan.getCluster().getRexBuilder();
+
+        List<IquanRelNode> pushDownOps = scan.getPushDownOps();
+        int pushDownOpNum = pushDownOps.size();
+        assert pushDownOpNum > 1;
+        List<IquanRelNode> newPushDownOps = new ArrayList<>(pushDownOpNum);
+
+        for (int i = 0; i < pushDownOps.size(); ++i) {
+            IquanRelNode node = pushDownOps.get(i);
+            // TODO: need to process multi inputs later
+            RelNode input = IquanRelOptUtils.toRel(node.getInput(0));
+            RelNode newInput = i > 0 ? newPushDownOps.get(i - 1) : input;
+
+            if (node instanceof IquanTableFunctionScanOp) {
+                IquanTableFunctionScanOp functionScan = (IquanTableFunctionScanOp) node;
+                if (input == newInput) {
+                    newPushDownOps.add(functionScan);
+                    continue;
+                }
+
+                RelDataType inputRowType = input.getRowType();
+                RelDataType newInputRowType = newInput.getRowType();
+                Map<String, String> inputFieldNameMap = calcFieldNameMap(inputRowType, newInputRowType);
+
+                RelDataType outputRowType = functionScan.getRowType();
+                outputRowType = rewriteFieldNames(outputRowType, inputFieldNameMap, typeFactory);
+
+                // TODO: compatible with old tvf signature, will remove later
+                RexCall rexCall = (RexCall) functionScan.getCall();
+                String callName = rexCall.getOperator().getName();
+                List<RexNode> operands = rexCall.getOperands();
+                if (ConstantDefine.SupportSortFunctionNames.contains(callName) && operands.size() > 0) {
+                    List<RexNode> newOperands = new ArrayList<>(operands.size());
+                    newOperands.add(rewriteLiteralOperand(operands.get(0), inputFieldNameMap, rexBuilder));
+                    for (int j = 1; j < operands.size(); ++j) {
+                        newOperands.add(operands.get(j));
+                    }
+                    operands = newOperands;
+                }
+                RexCall newRexCall = rexCall.clone(rexCall.getType(), operands);
+
+                IquanTableFunctionScanOp newFunctionScan = functionScan.copy(functionScan.getTraitSet(),
+                        ImmutableList.of(newInput), newRexCall, functionScan.getElementType(),
+                        outputRowType, functionScan.getColumnMappings());
+                newPushDownOps.add(newFunctionScan);
+                continue;
+            }
+
+            if (node instanceof IquanCalcOp) {
+                IquanCalcOp calc = (IquanCalcOp) node;
+                RelDataType inputRowType = newInput.getRowType();
+
+                RexProgram rexProgram = calc.getProgram();
+                RelDataType outputRowType = rexProgram.getOutputRowType();
+                if (i < scan.lastPushDownCalcIndex()) {
+                    outputRowType = rewriteFieldNames(inputRowType, rexProgram, ConstantDefine.FIELD_IDENTIFY + i, typeFactory);
+                }
+
+                RexProgram newRexProgram = new RexProgram(inputRowType, rexProgram.getExprList(),
+                        rexProgram.getProjectList(), rexProgram.getCondition(), outputRowType);
+                IquanCalcOp newCalc = (IquanCalcOp) calc.copy(calc.getTraitSet(), newInput, newRexProgram);
+                newPushDownOps.add(newCalc);
+                continue;
+            }
+
+            if (node instanceof IquanSortOp) {
+                IquanSortOp sort = (IquanSortOp) node;
+                IquanSortOp newSort = (IquanSortOp) sort.copy(sort.getTraitSet(), newInput, sort.getCollation(), sort.offset, sort.fetch);
+                newPushDownOps.add(newSort);
+                continue;
+            }
+
+            throw new SqlQueryException(IquanErrorCode.IQUAN_FAIL, String.format("%s: not support op %s",
+                    PushDownOpRewriteRule.class.getSimpleName(), node.getName()));
+        }
+
+        IquanTableScanOp newScan = (IquanTableScanOp) scan.copy(scan.getUncollectOps(), newPushDownOps, scan.getLimit(), false);
+        call.transformTo(newScan);
+        return;
     }
 }

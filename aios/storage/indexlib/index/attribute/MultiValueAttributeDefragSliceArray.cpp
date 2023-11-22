@@ -32,12 +32,27 @@ MultiValueAttributeDefragSliceArray::MultiValueAttributeDefragSliceArray(
 {
 }
 
+MultiValueAttributeDefragSliceArray::~MultiValueAttributeDefragSliceArray()
+{
+    std::lock_guard<std::recursive_mutex> guard(_dataMutex);
+    if (_indexMemoryReclaimer) {
+        auto iter = _uselessSliceIdxs.begin();
+        for (; iter != _uselessSliceIdxs.end(); iter++) {
+            _indexMemoryReclaimer->DropRetireItem(iter->first);
+        }
+    }
+}
+
 void MultiValueAttributeDefragSliceArray::Init(MultiValueAttributeOffsetReader* offsetReader,
                                                const MultiValueAttributeOffsetUpdatableFormatter& offsetFormatter,
                                                const MultiValueAttributeDataFormatter& dataFormatter,
                                                std::shared_ptr<AttributeMetrics> attributeMetrics)
 {
     _offsetReader = offsetReader;
+    auto fileReader = _offsetReader->GetFileReader();
+    if (fileReader) {
+        _filePath = fileReader->GetLogicalPath();
+    }
     _offsetFormatter = offsetFormatter;
     _dataFormatter = dataFormatter;
     _attributeMetrics = attributeMetrics;
@@ -46,8 +61,15 @@ void MultiValueAttributeDefragSliceArray::Init(MultiValueAttributeOffsetReader* 
 
 void MultiValueAttributeDefragSliceArray::memReclaim(void* addr)
 {
+    std::lock_guard<std::recursive_mutex> guard(_dataMutex);
     int64_t sliceIdx = (int64_t)addr;
-    auto iter = std::find(_uselessSliceIdxs.begin(), _uselessSliceIdxs.end(), sliceIdx);
+    AUTIL_LOG(INFO, "mem reclaim slice [%ld] path [%s]", sliceIdx, _filePath.c_str());
+    auto iter = _uselessSliceIdxs.begin();
+    for (; iter != _uselessSliceIdxs.end(); iter++) {
+        if (iter->second == sliceIdx) {
+            break;
+        }
+    }
     if (iter != _uselessSliceIdxs.end()) {
         ReleaseSlice(sliceIdx);
         _uselessSliceIdxs.erase(iter);
@@ -62,6 +84,7 @@ void MultiValueAttributeDefragSliceArray::memReclaim(void* addr)
 
 void MultiValueAttributeDefragSliceArray::DoFree(size_t size)
 {
+    std::lock_guard<std::recursive_mutex> guard(_dataMutex);
     if (_attributeMetrics) {
         _attributeMetrics->IncreasevarAttributeWastedBytesValue(size);
     }
@@ -69,13 +92,14 @@ void MultiValueAttributeDefragSliceArray::DoFree(size_t size)
 
 void MultiValueAttributeDefragSliceArray::Defrag(int64_t sliceIdx)
 {
+    std::lock_guard<std::recursive_mutex> guard(_dataMutex);
     AUTIL_LOG(DEBUG, "Begin defrag attribute [%s], sliceIdx [%ld]", _attrName.c_str(), sliceIdx);
 
     int64_t sliceLen = GetSliceLen();
     // [Begin, End)
     uint64_t offsetBegin = _offsetFormatter.EncodeSliceArrayOffset(SliceIdxToOffset(sliceIdx));
     uint64_t offsetEnd = offsetBegin + sliceLen;
-    docid_t docCount = _offsetReader->GetDocCount();
+    size_t docCount = _offsetReader->GetDocCount();
     std::map<docid_t, uint64_t> moveDataInfo;
 
     for (docid_t docId = 0; docId < docCount; docId++) {
@@ -99,12 +123,21 @@ void MultiValueAttributeDefragSliceArray::Defrag(int64_t sliceIdx)
     }
 
     SetWastedSize(sliceIdx, sliceLen);
-    _uselessSliceIdxs.push_back(sliceIdx);
+    int64_t retireItemId = 0;
     if (_indexMemoryReclaimer) {
-        _indexMemoryReclaimer->Retire((void*)sliceIdx, [this](void* addr) { this->memReclaim(addr); });
+        AUTIL_LOG(INFO, "retire slice [%ld] path [%s]", sliceIdx, _filePath.c_str());
+        retireItemId = _indexMemoryReclaimer->Retire((void*)sliceIdx, [this](void* addr) { this->memReclaim(addr); });
     }
-
+    _uselessSliceIdxs.push_back(std::make_pair(retireItemId, sliceIdx));
     AUTIL_LOG(DEBUG, "End defrag attribute [%s], sliceIdx [%ld]", _attrName.c_str(), sliceIdx);
+}
+
+void MultiValueAttributeDefragSliceArray::AllocateNewSlice()
+{
+    std::lock_guard<std::recursive_mutex> guard(_dataMutex);
+    _sliceArray->AllocateSlice();
+    SliceHeader header;
+    _sliceArray->Insert(&header, sizeof(header));
 }
 
 bool MultiValueAttributeDefragSliceArray::NeedDefrag(int64_t sliceIdx)

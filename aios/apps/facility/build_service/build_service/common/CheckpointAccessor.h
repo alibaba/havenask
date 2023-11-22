@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CHECKPOINTACCESSOR_H
-#define ISEARCH_BS_CHECKPOINTACCESSOR_H
+#pragma once
 
-#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include <map>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/Lock.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
-#include "build_service/proto/Admin.pb.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace common {
@@ -88,5 +92,3 @@ private:
 BS_TYPEDEF_PTR(CheckpointAccessor);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_CHECKPOINTACCESSOR_H

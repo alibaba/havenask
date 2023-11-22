@@ -42,8 +42,8 @@ public:
     virtual bool Init(const std::shared_ptr<SegmentPostingVector>& segPostings,
                       const SectionAttributeReader* sectionReader, const uint32_t statePoolSize);
 
-    docid_t SeekDoc(docid_t docId) override;
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    docid64_t SeekDoc(docid64_t docId) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
     void Unpack(TermMatchData& termMatchData) override;
 
     docpayload_t GetDocPayload() override { return InnerGetDocPayload(); }
@@ -53,19 +53,18 @@ public:
     BufferedPostingIterator* Clone() const override;
 
     bool HasPosition() const override { return _postingFormatOption.HasPositionList(); }
-    void AllocateBuffers();
 
 public:
     // for runtime inline.
-    docid_t InnerSeekDoc(docid_t docId);
-    index::ErrorCode InnerSeekDoc(docid_t docId, docid_t& result);
+    docid64_t InnerSeekDoc(docid64_t docId);
+    index::ErrorCode InnerSeekDoc(docid64_t docId, docid64_t& result);
     fieldmap_t GetFieldMap();
     index::ErrorCode GetFieldMap(fieldmap_t& fieldMap);
     void Reset() override;
 
 private:
-    index::ErrorCode SeekDocForNormal(docid_t docId, docid_t& result);
-    index::ErrorCode SeekDocForReference(docid_t docId, docid_t& result);
+    index::ErrorCode SeekDocForNormal(docid64_t docId, docid64_t& result);
+    index::ErrorCode SeekDocForReference(docid64_t docId, docid64_t& result);
 
 private:
     uint32_t GetCurrentSeekedDocCount() const;
@@ -85,11 +84,11 @@ private:
 
 protected:
     PostingFormatOption _postingFormatOption;
-    docid_t _lastDocIdInBuffer;
-    docid_t _currentDocId;
-    docid_t* _docBufferCursor;
-    docid_t _docBuffer[MAX_DOC_PER_RECORD];
-    docid_t* _docBufferBase;
+    docid64_t _lastDocIdInBuffer;
+    docid64_t _currentDocId;
+    docid32_t* _docBufferCursor;
+    docid32_t _docBuffer[MAX_DOC_PER_RECORD];
+    docid32_t* _docBufferBase;
     ttf_t _currentTTF;
     int32_t _tfBufferCursor;
     tf_t* _tfBuffer;
@@ -207,15 +206,15 @@ inline int32_t BufferedPostingIterator::GetDocOffsetInBuffer() const
 inline fieldmap_t BufferedPostingIterator::InnerGetFieldMap() const { return _fieldMapBuffer[GetDocOffsetInBuffer()]; }
 
 // TODO: opt with using ReferencePostingIterator instead of if
-inline docid_t BufferedPostingIterator::InnerSeekDoc(docid_t docId)
+inline docid64_t BufferedPostingIterator::InnerSeekDoc(docid64_t docId)
 {
-    docid_t ret = INVALID_DOCID;
+    docid64_t ret = INVALID_DOCID;
     auto ec = InnerSeekDoc(docId, ret);
     index::ThrowIfError(ec);
     return ret;
 }
 
-inline index::ErrorCode BufferedPostingIterator::InnerSeekDoc(docid_t docId, docid_t& result)
+inline index::ErrorCode BufferedPostingIterator::InnerSeekDoc(docid64_t docId, docid64_t& result)
 {
     if (_postingFormatOption.IsReferenceCompress()) {
         return SeekDocForReference(docId, result);
@@ -223,9 +222,9 @@ inline index::ErrorCode BufferedPostingIterator::InnerSeekDoc(docid_t docId, doc
     return SeekDocForNormal(docId, result);
 }
 
-inline index::ErrorCode BufferedPostingIterator::SeekDocForNormal(docid_t docId, docid_t& result)
+inline index::ErrorCode BufferedPostingIterator::SeekDocForNormal(docid64_t docId, docid64_t& result)
 {
-    docid_t curDocId = _currentDocId;
+    docid64_t curDocId = _currentDocId;
     docId = std::max(curDocId + 1, docId);
     if (unlikely(docId > _lastDocIdInBuffer)) {
         try {
@@ -239,7 +238,7 @@ inline index::ErrorCode BufferedPostingIterator::SeekDocForNormal(docid_t docId,
             return index::ErrorCode::FileIO;
         }
     }
-    docid_t* cursor = _docBufferCursor;
+    docid32_t* cursor = _docBufferCursor;
     while (curDocId < docId) {
         curDocId += *(cursor++);
     }
@@ -250,9 +249,9 @@ inline index::ErrorCode BufferedPostingIterator::SeekDocForNormal(docid_t docId,
     return index::ErrorCode::OK;
 }
 
-inline index::ErrorCode BufferedPostingIterator::SeekDocForReference(docid_t docId, docid_t& result)
+inline index::ErrorCode BufferedPostingIterator::SeekDocForReference(docid64_t docId, docid64_t& result)
 {
-    docid_t curDocId = _currentDocId;
+    docid64_t curDocId = _currentDocId;
     if (unlikely(curDocId + 1 > docId)) {
         docId = curDocId + 1;
     }
@@ -271,10 +270,12 @@ inline index::ErrorCode BufferedPostingIterator::SeekDocForReference(docid_t doc
     }
     // TODO: optimze
     if (curDocId < docId) {
-        docid_t baseDocId = _decoder->GetCurrentSegmentBaseDocId();
+        docid64_t baseDocId = _decoder->GetCurrentSegmentBaseDocId();
         assert(docId > baseDocId);
-        curDocId = _refCompressReader.Seek(docId - baseDocId);
-        curDocId += baseDocId;
+
+        docid32_t localDocId = _refCompressReader.Seek(docId - baseDocId);
+        ;
+        curDocId = baseDocId + localDocId;
     }
     _currentDocId = curDocId;
     _needMoveToCurrentDoc = true;
@@ -297,13 +298,6 @@ inline index::ErrorCode BufferedPostingIterator::GetFieldMap(fieldmap_t& fieldMa
     }
     fieldMap = fieldmap_t();
     return index::ErrorCode::OK;
-}
-
-inline void BufferedPostingIterator::AllocateBuffers()
-{
-    _tfBuffer = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, tf_t, MAX_DOC_PER_RECORD);
-    _docPayloadBuffer = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, docpayload_t, MAX_DOC_PER_RECORD);
-    _fieldMapBuffer = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, fieldmap_t, MAX_DOC_PER_RECORD);
 }
 
 inline uint32_t BufferedPostingIterator::GetCurrentSeekedDocCount() const

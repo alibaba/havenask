@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_HASH_TABLE_READER_H
-#define __INDEXLIB_HASH_TABLE_READER_H
+#pragma once
 
 #include <memory>
 
@@ -138,5 +137,3 @@ inline void HashTableReader<Key, Value>::DecodeMeta(const file_system::FileReade
     }
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_HASH_TABLE_READER_H

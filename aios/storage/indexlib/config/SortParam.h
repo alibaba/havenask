@@ -15,10 +15,16 @@
  */
 #pragma once
 
+#include <algorithm>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <string>
+#include <vector>
+
 #include "autil/Log.h"
 #include "autil/StringTokenizer.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/base/Constant.h"
 #include "indexlib/config/SortDescription.h"
 
 namespace indexlib::config {

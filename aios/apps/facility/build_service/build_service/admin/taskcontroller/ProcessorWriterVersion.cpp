@@ -15,7 +15,16 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorWriterVersion.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <type_traits>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/HippoProtoHelper.h"
+#include "build_service/proto/BasicDefs.pb.h"
 
 namespace build_service { namespace admin {
 BS_LOG_SETUP(admin, ProcessorWriterVersion);

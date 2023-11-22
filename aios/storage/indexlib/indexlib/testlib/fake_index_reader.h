@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_INDEX_READER_H
-#define __INDEXLIB_FAKE_INDEX_READER_H
+#pragma once
 
 #include <memory>
 
@@ -137,5 +136,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeIndexReader);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKE_INDEX_READER_H

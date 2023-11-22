@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEUPDATEBITMAPTEST_H
-#define __INDEXLIB_ATTRIBUTEUPDATEBITMAPTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/attribute_update_bitmap.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(AttributeUpdateBitmapTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTEUPDATEBITMAPTEST_H

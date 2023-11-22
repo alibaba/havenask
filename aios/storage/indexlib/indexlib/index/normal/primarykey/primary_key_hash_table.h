@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIMARY_KEY_HASH_TABLE_H
-#define __INDEXLIB_PRIMARY_KEY_HASH_TABLE_H
+#pragma once
 
 #include <cmath>
 #include <memory>
@@ -196,5 +195,3 @@ size_t PrimaryKeyHashTable<Key>::EstimatePkCount(size_t fileLength, uint32_t doc
     return std::min((size_t)std::ceil(bucketSize / BUCKET_COUNT_FACTOR), (size_t)docCount);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARY_KEY_HASH_TABLE_H

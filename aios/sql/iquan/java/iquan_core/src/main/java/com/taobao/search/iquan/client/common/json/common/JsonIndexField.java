@@ -1,11 +1,15 @@
 package com.taobao.search.iquan.client.common.json.common;
 
-import com.taobao.search.iquan.client.common.common.ConstantDefine;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.client.common.common.ConstantDefine;
+import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuperBuilder(toBuilder = true)
+@Getter
 public class JsonIndexField extends JsonField {
     private static final Logger logger = LoggerFactory.getLogger(JsonIndexField.class);
 
@@ -28,22 +32,6 @@ public class JsonIndexField extends JsonField {
 
     public JsonIndexField(String name, JsonType type, boolean isAttribute) {
         super(name, type, isAttribute);
-    }
-
-    public String getIndexType() {
-        return indexType;
-    }
-
-    public void setIndexType(String indexType) {
-        this.indexType = indexType;
-    }
-
-    public String getIndexName() {
-        return indexName;
-    }
-
-    public void setIndexName(String indexName) {
-        this.indexName = indexName;
     }
 
     @JsonIgnore

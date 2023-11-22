@@ -201,7 +201,6 @@ void LockFreeThreadPool::consumeItem(autil::WorkItem *item) {
     int64_t end, start;
     AtomicDecrement(&_curQueueSize);
     start = autil::TimeUtility::monotonicTimeUs();
-    _lastPopTime = start;
     ThreadPoolBase::consumeItem(item);
     end = autil::TimeUtility::monotonicTimeUs();
     if (end - start >= 2000000) {

@@ -37,7 +37,7 @@ BufferedTermQueryExecutor::BufferedTermQueryExecutor(PostingIterator *iter, cons
 BufferedTermQueryExecutor::~BufferedTermQueryExecutor() {}
 
 indexlib::index::ErrorCode BufferedTermQueryExecutor::doSeek(docid_t id, docid_t &result) {
-    docid_t tempDocId = INVALID_DOCID;
+    indexlib::docid64_t tempDocId = INVALID_DOCID;
     auto ec = _bufferedIter->InnerSeekDoc(id, tempDocId);
     IE_RETURN_CODE_IF_ERROR(ec);
     ++_seekDocCount;

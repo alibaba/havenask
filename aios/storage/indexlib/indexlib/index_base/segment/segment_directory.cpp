@@ -104,7 +104,7 @@ void SegmentDirectory::Init(const file_system::DirectoryPtr& directory, index_ba
     mRootDirectory = directory;
 
     mVersion = version;
-    if (mVersion.GetVersionId() == INVALID_VERSION) {
+    if (mVersion.GetVersionId() == INVALID_VERSIONID) {
         mVersion = GetLatestVersion(directory, mVersion);
     }
 
@@ -153,7 +153,7 @@ std::shared_ptr<LifecycleStrategy> SegmentDirectory::InitLifecycleStrategy()
 
 void SegmentDirectory::Reopen(const index_base::Version& version)
 {
-    assert(version.GetVersionId() != INVALID_VERSION);
+    assert(version.GetVersionId() != INVALID_VERSIONID);
     mVersion = version;
     mOnDiskVersion = mVersion;
     DoReopen();
@@ -198,7 +198,7 @@ void SegmentDirectory::AddSegmentTemperatureMeta(const SegmentTemperatureMeta& t
     mVersion.AddSegTemperatureMeta(temperatureMeta);
 }
 
-void SegmentDirectory::UpdateSchemaVersionId(schemavid_t id)
+void SegmentDirectory::UpdateSchemaVersionId(schemaid_t id)
 {
     autil::ScopedLock scopedLock(mLock);
     mVersion.SetSchemaVersionId(id);
@@ -550,7 +550,7 @@ void SegmentDirectory::UpdateCounterMap(const CounterMapPtr& counterMap) const
 Version SegmentDirectory::GetLatestVersion(const DirectoryPtr& directory, const Version& emptyVersion) const
 {
     Version version;
-    VersionLoader::GetVersion(directory, version, INVALID_VERSION);
-    return version.GetVersionId() == INVALID_VERSION ? emptyVersion : version;
+    VersionLoader::GetVersion(directory, version, INVALID_VERSIONID);
+    return version.GetVersionId() == INVALID_VERSIONID ? emptyVersion : version;
 }
 }} // namespace indexlib::index_base

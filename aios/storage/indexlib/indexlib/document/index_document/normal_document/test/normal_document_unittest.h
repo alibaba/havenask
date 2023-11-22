@@ -1,3 +1,4 @@
+#pragma once
 #include "indexlib/common_define.h"
 #include "indexlib/document/document.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"

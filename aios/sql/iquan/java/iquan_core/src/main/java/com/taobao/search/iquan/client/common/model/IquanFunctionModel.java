@@ -1,5 +1,7 @@
 package com.taobao.search.iquan.client.common.model;
 
+import java.util.Map;
+
 import com.taobao.search.iquan.client.common.common.ConstantDefine;
 import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
@@ -7,8 +9,6 @@ import com.taobao.search.iquan.core.api.schema.FunctionType;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 public abstract class IquanFunctionModel extends IquanModelBase {
     private static final Logger logger = LoggerFactory.getLogger(IquanFunctionModel.class);
@@ -19,6 +19,55 @@ public abstract class IquanFunctionModel extends IquanModelBase {
     protected int is_deterministic = 1;
     protected String function_content_version = ConstantDefine.EMPTY;
     protected String function_content = ConstantDefine.EMPTY;
+
+    // utils
+    @SuppressWarnings("unchecked")
+    public static IquanFunctionModel createFuncFromMap(Map<String, Object> map) {
+        String catalogName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.CATALOG_NAME, ConstantDefine.EMPTY);
+        String databaseName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.DATABASE_NAME, ConstantDefine.EMPTY);
+        Long functionVersion = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.FUNCTION_VERSION, (long) 1);
+        String functionName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.FUNCTION_NAME, ConstantDefine.EMPTY);
+        String functionType = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.FUNCTION_TYPE, FunctionType.FT_UDF.getName());
+        int isDeterministic = IquanRelOptUtils.<Integer>getValueFromMap(map, ConstantDefine.IS_DETERMINISTIC, 1);
+        String functionContentVersion = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.FUNCTION_CONTENT_VERSION, ConstantDefine.EMPTY);
+
+        String functionContent = ConstantDefine.EMPTY;
+        if (map.containsKey(ConstantDefine.FUNCTION_CONTENT)) {
+            Object functionContentObj = map.get(ConstantDefine.FUNCTION_CONTENT);
+            if (functionContentObj instanceof String) {
+                functionContent = (String) functionContentObj;
+            } else {
+                functionContent = IquanRelOptUtils.toJson(functionContentObj);
+            }
+        }
+
+        IquanFunctionModel functionModel;
+        FunctionType type = FunctionType.from(functionType);
+        switch (type) {
+            case FT_TVF:
+                functionModel = new IquanTvfModel();
+                break;
+            case FT_UDF:
+            case FT_UDAF:
+            case FT_UDTF:
+                functionModel = new IquanUdxfModel();
+                break;
+            default:
+                logger.error(String.format("create function model %s.%s.%s:%d fail: type %s is not valid",
+                        catalogName, databaseName, functionName, functionVersion, functionType));
+                return null;
+        }
+
+        functionModel.setCatalog_name(catalogName);
+        functionModel.setDatabase_name(databaseName);
+        functionModel.setFunction_version(functionVersion);
+        functionModel.setFunction_name(functionName);
+        functionModel.setFunction_type(type);
+        functionModel.setIs_deterministic(isDeterministic);
+        functionModel.setFunction_content_version(functionContentVersion);
+        functionModel.setFunction_content(functionContent);
+        return functionModel;
+    }
 
     public long getFunction_version() {
         return function_version;
@@ -109,9 +158,7 @@ public abstract class IquanFunctionModel extends IquanModelBase {
 
     // utils
     @SuppressWarnings("unchecked")
-    public static IquanFunctionModel createFuncFromMap(Map<String, Object> map) {
-        String catalogName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.CATALOG_NAME, ConstantDefine.EMPTY);
-        String databaseName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.DATABASE_NAME, ConstantDefine.EMPTY);
+    public static IquanFunctionModel createFuncFromMap(Map<String, Object> map, String catalogName, String databaseName) {
         Long functionVersion = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.FUNCTION_VERSION, (long) 1);
         String functionName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.FUNCTION_NAME, ConstantDefine.EMPTY);
         String functionType = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.FUNCTION_TYPE, FunctionType.FT_UDF.getName());

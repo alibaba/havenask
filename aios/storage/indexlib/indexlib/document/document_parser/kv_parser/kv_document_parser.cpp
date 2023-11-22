@@ -112,7 +112,7 @@ bool KvDocumentParser::InitFromDocumentParam()
 
 DocumentPtr KvDocumentParser::Parse(const IndexlibExtendDocumentPtr& document)
 {
-    const RawDocumentPtr& rawDoc = document->getRawDocument();
+    const RawDocumentPtr& rawDoc = document->GetRawDocument();
     if (!rawDoc) {
         IE_LOG(ERROR, "empty raw document!");
         return DocumentPtr();
@@ -130,7 +130,7 @@ DocumentPtr KvDocumentParser::Parse(const IndexlibExtendDocumentPtr& document)
 bool KvDocumentParser::Parse(const IndexlibExtendDocumentPtr& document, document::KVDocument* kvDoc)
 {
     kvDoc->SetNeedStorePKeyValue(mNeedStorePKeyValue);
-    const RawDocumentPtr& rawDoc = document->getRawDocument();
+    const RawDocumentPtr& rawDoc = document->GetRawDocument();
     if (!rawDoc) {
         IE_LOG(ERROR, "empty raw document!");
         return false;
@@ -246,7 +246,7 @@ bool KvDocumentParser::SetPrimaryKeyField(const IndexlibExtendDocumentPtr& docum
                                           document::KVIndexDocument* kvIndexDoc)
 {
     const string& pkFieldName = indexSchema->GetPrimaryKeyIndexFieldName();
-    const RawDocumentPtr& rawDoc = document->getRawDocument();
+    const RawDocumentPtr& rawDoc = document->GetRawDocument();
     if (pkFieldName.empty()) {
         ERROR_COLLECTOR_LOG(ERROR, "key field is empty!");
         IE_RAW_DOC_TRACE(rawDoc, "parse error: key field is empty");
@@ -285,7 +285,7 @@ bool KvDocumentParser::InitKeyExtractor()
 
 bool KvDocumentParser::CreateDocument(const IndexlibExtendDocumentPtr& document, document::KVDocument* kvDoc)
 {
-    const RawDocumentPtr& rawDoc = document->getRawDocument();
+    const RawDocumentPtr& rawDoc = document->GetRawDocument();
     const ClassifiedDocumentPtr& classifiedDoc = document->getClassifiedDocument();
     DocOperateType opType = rawDoc->getDocOperateType();
     if (opType == SKIP_DOC || opType == UNKNOWN_OP) {

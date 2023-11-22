@@ -39,9 +39,7 @@ TablePtr TvfFuncTest::prepareInputTable(vector<int32_t> value) {
     MatchDocAllocatorPtr allocator(new matchdoc::MatchDocAllocator(_poolPtr));
     vector<MatchDoc> docs = allocator->batchAllocate(value);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", value);
-    TablePtr table;
-    table.reset(new Table(docs, allocator));
-    return table;
+    return Table::fromMatchDocs(docs, allocator);
 }
 
 class MyTvfFunc : public OnePassTvfFunc {

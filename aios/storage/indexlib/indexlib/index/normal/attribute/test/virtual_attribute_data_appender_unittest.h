@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_VIRTUALATTRIBUTEDATAAPPENDERTEST_H
-#define __INDEXLIB_VIRTUALATTRIBUTEDATAAPPENDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/multi_field_attribute_reader.h"
@@ -42,5 +41,3 @@ INDEXLIB_UNIT_TEST_CASE(VirtualAttributeDataAppenderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(VirtualAttributeDataAppenderTest, TestCheckDataExist)
 INDEXLIB_UNIT_TEST_CASE(VirtualAttributeDataAppenderTest, TestAppendVirutalAttributeWithoutAttribute);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VIRTUALATTRIBUTEDATAAPPENDERTEST_H

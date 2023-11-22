@@ -49,7 +49,7 @@ OperationBlock::OperationBlock(const OperationBlock& other)
 OperationBlock::~OperationBlock() { Reset(); }
 
 Status OperationBlock::Dump(const file_system::FileWriterPtr& fileWriter, size_t maxOpSerializeSize,
-                            bool hasConcurrentIdx)
+                            bool hasConcurrentIdx, bool hasSourceIdx)
 {
     assert(fileWriter);
     std::vector<char> buffer;
@@ -57,7 +57,7 @@ Status OperationBlock::Dump(const file_system::FileWriterPtr& fileWriter, size_t
     for (size_t i = 0; i < Size(); ++i) {
         assert(_operations);
         OperationBase* op = (*_operations)[i];
-        size_t dumpSize = DumpSingleOperation(op, (char*)buffer.data(), buffer.size(), hasConcurrentIdx);
+        size_t dumpSize = DumpSingleOperation(op, (char*)buffer.data(), buffer.size(), hasConcurrentIdx, hasSourceIdx);
         auto [status, writeSize] = fileWriter->Write(buffer.data(), dumpSize).StatusWith();
         RETURN_IF_STATUS_ERROR(status, "write dump buffer failed");
     }
@@ -139,7 +139,7 @@ void OperationBlock::UpdateOffset(const indexlibv2::base::Progress::Offset& offs
 }
 
 std::pair<Status, std::shared_ptr<OperationBlock>>
-OperationBlock::CreateOperationBlockForRead(const OperationFactory& mOpFactory)
+OperationBlock::CreateOperationBlockForRead(const OperationFactory& opFactory)
 {
     return {Status::OK(), std::shared_ptr<OperationBlock>(new OperationBlock(*this))};
 }
@@ -148,7 +148,8 @@ autil::mem_pool::Pool* OperationBlock::GetPool() const { return _pool.get(); }
 const indexlibv2::base::Progress::Offset& OperationBlock::GetMinOffset() const { return _minOffset; }
 const indexlibv2::base::Progress::Offset& OperationBlock::GetMaxOffset() const { return _maxOffset; }
 
-size_t OperationBlock::DumpSingleOperation(OperationBase* op, char* buffer, size_t bufLen, bool hasConcurrentIdx)
+size_t OperationBlock::DumpSingleOperation(OperationBase* op, char* buffer, size_t bufLen, bool hasConcurrentIdx,
+                                           bool hasSourceIdx)
 {
     char* begin = buffer;
     char* cur = begin;
@@ -165,6 +166,10 @@ size_t OperationBlock::DumpSingleOperation(OperationBase* op, char* buffer, size
     if (hasConcurrentIdx) {
         *(uint32_t*)cur = op->GetDocInfo().concurrentIdx;
         cur += sizeof(op->GetDocInfo().concurrentIdx);
+    }
+    if (hasSourceIdx) {
+        *(uint8_t*)cur = op->GetDocInfo().sourceIdx;
+        cur += sizeof(op->GetDocInfo().sourceIdx);
     }
     size_t dataLen = op->Serialize(cur, bufLen - (cur - begin));
     return (cur - begin) + dataLen;

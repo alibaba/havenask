@@ -10,8 +10,8 @@
           "db_name": "t1", 
           "limit": 2147483647, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "t1"
+            "node_name": "t1", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -132,8 +132,8 @@
             "$d4"
           ], 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "t1"
+            "node_name": "t1", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -172,8 +172,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "t1"
+            "node_name": "t1", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -208,8 +208,8 @@
         "attrs": {
           "limit": 100, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "t1"
+            "node_name": "t1", 
+            "partition_cnt": 1
           }, 
           "offset": 0, 
           "op_scope": "default", 
@@ -248,6 +248,7 @@
             "INTEGER", 
             "BIGINT"
           ], 
+          "node_name": "t1", 
           "op_scope": "default", 
           "output_distribution": {
             "hash_mode": {
@@ -264,8 +265,7 @@
             }, 
             "partition_cnt": 1, 
             "type": "BROADCAST_DISTRIBUTED"
-          }, 
-          "table_group_name": "t1"
+          }
         }, 
         "id": 4, 
         "inputs": {
@@ -281,8 +281,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {

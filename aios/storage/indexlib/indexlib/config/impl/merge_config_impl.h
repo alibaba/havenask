@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_CONFIG_IMPL_H
-#define __INDEXLIB_MERGE_CONFIG_IMPL_H
+#pragma once
 
 #include <memory>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/module_class_config.h"
 #include "indexlib/file_system/package/PackageFileTagConfigList.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -53,10 +52,8 @@ private:
     static const uint32_t DEFAULT_CHECKPOINT_INTERVAL = 600; // 600s
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(MergeConfigImpl);
+typedef std::shared_ptr<MergeConfigImpl> MergeConfigImplPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_MERGE_CONFIG_IMPL_H

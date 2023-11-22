@@ -15,9 +15,19 @@
  */
 #pragma once
 
+#include <memory>
+#include <stdint.h>
+#include <string>
+
+#include "build_service/common/Locator.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/workflow/FlowFactory.h"
+#include "build_service/workflow/RealtimeBuilderDefine.h"
 #include "build_service/workflow/RealtimeBuilderImplV2.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/framework/ITablet.h"
 
 namespace build_service { namespace workflow {
 
@@ -47,6 +57,8 @@ protected:
 
 private:
     bool getBuilderAndProducer();
+    bool needAlterTable() const override { return false; }
+    schemaid_t getAlterTableSchemaId() const override { return indexlib::DEFAULT_SCHEMAID; }
 
 private:
     DocReaderProducer* _producer;

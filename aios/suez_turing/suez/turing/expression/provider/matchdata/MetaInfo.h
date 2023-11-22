@@ -36,9 +36,13 @@ public:
 
     void pushBack(const TermMetaInfo &termMetaInfo) { _termMetaInfos.push_back(termMetaInfo); }
 
+    void setPartTotalDocCount(int64_t docCount) { _partTotalDocCount = docCount; }
+    int64_t getPartTotalDocCount() { return _partTotalDocCount; }
+
 private:
     std::vector<TermMetaInfo> _termMetaInfos;
     static const uint32_t DEFAULT_RESERVE_SIZE = 4;
+    int64_t _partTotalDocCount;
 
 private:
     AUTIL_LOG_DECLARE();

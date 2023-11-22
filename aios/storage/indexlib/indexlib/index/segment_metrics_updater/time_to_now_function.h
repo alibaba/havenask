@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TIME_TO_NOW_FUNCTION_H
-#define __INDEXLIB_TIME_TO_NOW_FUNCTION_H
+#pragma once
 
 #include <cassert>
 #include <memory>
@@ -78,5 +77,3 @@ void TimeToNowFunction<T1, T2>::Execute(int8_t* inputValue, int8_t* outputValue)
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TIME_TO_NOW_FUNCTION_H

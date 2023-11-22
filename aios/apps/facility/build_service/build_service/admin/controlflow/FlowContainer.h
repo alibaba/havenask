@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONTROL_FLOW_FLOW_CONTAINER_H
-#define ISEARCH_BS_CONTROL_FLOW_FLOW_CONTAINER_H
+#pragma once
 
-#include <memory>
+#include <map>
+#include <string>
+#include <vector>
 
 #include "autil/Lock.h"
 #include "build_service/admin/controlflow/TaskFlow.h"
@@ -56,5 +57,3 @@ private:
 BS_TYPEDEF_PTR(FlowContainer);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CONTROL_FLOW_FLOW_CONTAINER_H

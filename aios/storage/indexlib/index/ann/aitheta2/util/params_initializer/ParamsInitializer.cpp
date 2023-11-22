@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 #include "indexlib/index/ann/aitheta2/util/params_initializer/ParamsInitializer.h"
+
+#include "indexlib/index/ann/aitheta2/util/EmbeddingUtil.h"
 using namespace std;
 using namespace autil;
 namespace indexlibv2::index::ann {
 
-// 双层聚类阈值
-static const std::string STRATIFIED_DOC_COUNT_THRESHOLD = "stratified.doc_count_threshold";
-// 每个中心点下平均的doc数量
-static const std::string PER_CENTRIOD_DOC_COUNT = "stratified.per_centroid_doc_count";
-static const std::string LEGACY_PER_CENTRIOD_DOC_COUNT = "proxima.general.cluster.per_centroid_doc_count";
-// 双层聚类的中心点数量比例
-static const std::string CENTROID_COUNT_SCALING_FACTOR = "stratified.centroid_count_scaling_factor";
-static const uint64_t kStratifiedDocCountThreshold = 500000;
-static const uint64_t kPerCentriodDocCount = 200;
-static const uint64_t kCentroidCountScalingFactor = 10;
-static const uint64_t kMaxCentriodCount = 1000000;
 static const uint64_t kMinScanCount = 1000;
 
 bool ParamsInitializer::InitAiThetaMeta(const AithetaIndexConfig& indexConfig, AiThetaMeta& meta)
 {
     ANN_CHECK(indexConfig.dimension > 0, "invalid dimension[%u]", indexConfig.dimension);
 
-    FeatureType featureType = FeatureType::FT_FP32;
-    meta.set_meta(featureType, indexConfig.dimension);
+    string distanceType = indexConfig.distanceType;
+    ANN_CHECK(distanceType == SQUARED_EUCLIDEAN || distanceType == INNER_PRODUCT ||
+                  distanceType == MIPS_SQUARED_EUCLIDEAN || distanceType == HAMMING,
+              "unknown distance type[%s]", distanceType.c_str());
+    meta.set_measure(distanceType, 0, AiThetaParams());
+
+    if (distanceType == HAMMING) {
+        uint32_t binaryDimension = EmbeddingUtil::GetBinaryDimension(indexConfig.dimension);
+        meta.set_meta(FeatureType::FT_BINARY32, binaryDimension);
+    } else {
+        meta.set_meta(FeatureType::FT_FP32, indexConfig.dimension);
+    }
 
     MajorOrder orderType = MajorOrder::MO_UNDEFINED;
     if (indexConfig.realtimeConfig.enable) {
@@ -44,32 +45,28 @@ bool ParamsInitializer::InitAiThetaMeta(const AithetaIndexConfig& indexConfig, A
     }
     meta.set_major_order(orderType);
 
-    string distanceType = indexConfig.distanceType;
-    ANN_CHECK(distanceType == SQUARED_EUCLIDEAN || distanceType == INNER_PRODUCT ||
-                  distanceType == MIPS_SQUARED_EUCLIDEAN,
-              "unknown distance type[%s]", distanceType.c_str());
-    meta.set_measure(distanceType, 0, AiThetaParams());
-
-    AUTIL_LOG(DEBUG, "init aitheta index meta[%s]", meta.debug_string().c_str());
+    AUTIL_LOG(DEBUG, "init aitheta meta[%s]", meta.debug_string().c_str());
     return true;
 }
 
-bool ParamsInitializer::InitSearchParams(const AithetaIndexConfig& config, AiThetaParams& params)
+bool ParamsInitializer::InitNormalSearchParams(const AithetaIndexConfig& config, AiThetaParams& params)
 {
-    string indexParamsStr = config.searchConfig.indexParams;
-    return ParseValue(indexParamsStr, params, false);
+    return ParseValue(config.searchConfig.indexParams, params, false);
 }
 
-bool ParamsInitializer::InitBuildParams(const AithetaIndexConfig& config, AiThetaParams& params)
+bool ParamsInitializer::InitNormalBuildParams(const AithetaIndexConfig& config, AiThetaParams& params)
 {
-    string indexParamsStr = config.buildConfig.indexParams;
-    return ParseValue(indexParamsStr, params, true);
+    return ParseValue(config.buildConfig.indexParams, params, true);
 }
 
-bool ParamsInitializer::InitRealtimeParams(const AithetaIndexConfig& config, AiThetaParams& params)
+bool ParamsInitializer::InitRealtimeBuildParams(const AithetaIndexConfig& config, AiThetaParams& params, bool)
 {
-    string paramsStr = config.realtimeConfig.indexParams;
-    return ParseValue(paramsStr, params, false);
+    return ParseValue(config.realtimeConfig.indexParams, params, false);
+}
+
+bool ParamsInitializer::InitRealtimeSearchParams(const AithetaIndexConfig& config, AiThetaParams& params)
+{
+    return ParseValue(config.realtimeConfig.indexParams, params, false);
 }
 
 bool ParamsInitializer::ParseValue(const std::string& value, AiThetaParams& params, bool isOffline)
@@ -77,9 +74,9 @@ bool ParamsInitializer::ParseValue(const std::string& value, AiThetaParams& para
     ANN_CHECK(AiThetaParams::ParseFromBuffer(value, &params), "parse[%s] failed", value.c_str());
     UpdateAiThetaParamsKey(params);
     if (isOffline) {
-        AUTIL_LOG(INFO, "init index params[%s]", params.debug_string().c_str());
+        AUTIL_LOG(INFO, "parse aitheta params[%s]", params.debug_string().c_str());
     } else {
-        AUTIL_LOG(DEBUG, "init index params[%s]", params.debug_string().c_str());
+        AUTIL_LOG(DEBUG, "parse aitheta params[%s]", params.debug_string().c_str());
     }
     return true;
 }
@@ -101,17 +98,9 @@ void ParamsInitializer::UpdateAiThetaParamsKey(AiThetaParams& params)
             updatedParams.insert(_paramKeyPrefix + key, value);
         }
     }
-    AUTIL_LOG(DEBUG, "update params from [%s] to [%s]", params.debug_string().c_str(),
+    AUTIL_LOG(DEBUG, "update aitheta params from[%s] to[%s]", params.debug_string().c_str(),
               updatedParams.debug_string().c_str());
     params = std::move(updatedParams);
-}
-
-void ParamsInitializer::UpdateCentriodCount(size_t docCount, const std::string& paramName, AiThetaParams& params)
-{
-    if (!params.has(paramName) && docCount > 0) {
-        std::string centriodCount = CalcCentriodCount(params, docCount);
-        params.set(paramName, centriodCount);
-    }
 }
 
 void ParamsInitializer::UpdateScanRatio(uint64_t docCount, const std::string& paramName, AiThetaParams& params,
@@ -134,32 +123,6 @@ void ParamsInitializer::UpdateScanRatio(uint64_t docCount, const std::string& pa
     }
     params.erase(paramName);
     params.set(paramName, retScanRatio);
-}
-
-string ParamsInitializer::CalcCentriodCount(const AiThetaParams& params, uint64_t docCount)
-{
-    uint64_t perCentriodDocCount = kPerCentriodDocCount;
-    if (params.has(PER_CENTRIOD_DOC_COUNT)) {
-        params.get(PER_CENTRIOD_DOC_COUNT, &perCentriodDocCount);
-    } else if (params.has(LEGACY_PER_CENTRIOD_DOC_COUNT)) {
-        params.get(LEGACY_PER_CENTRIOD_DOC_COUNT, &perCentriodDocCount);
-    }
-
-    uint64_t centroidCount = (uint64_t)ceil(docCount * 1.0 / perCentriodDocCount);
-    centroidCount = std::min(centroidCount, kMaxCentriodCount);
-
-    uint64_t stratifiedDocCountThreshold = kStratifiedDocCountThreshold;
-    params.get(STRATIFIED_DOC_COUNT_THRESHOLD, &stratifiedDocCountThreshold);
-
-    if (docCount <= stratifiedDocCountThreshold) {
-        return StringUtil::toString(centroidCount);
-    }
-
-    uint64_t centroidCountScalingFactor = kCentroidCountScalingFactor;
-    params.get(CENTROID_COUNT_SCALING_FACTOR, &centroidCountScalingFactor);
-    uint64_t l2CentroidCount = (uint64_t)ceil(sqrt(centroidCount * 1.0 / centroidCountScalingFactor));
-    uint64_t l1CentroidCount = centroidCountScalingFactor * l2CentroidCount;
-    return StringUtil::toString(l1CentroidCount) + "*" + StringUtil::toString(l2CentroidCount);
 }
 
 AUTIL_LOG_SETUP(indexlib.index, ParamsInitializer);

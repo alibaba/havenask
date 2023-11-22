@@ -38,6 +38,7 @@ strict_cc_fast_test(
     name='EquivalentCompressReaderPerfTest',
     srcs=['EquivalentCompressReaderPerfTest.cpp'],
     copts=['-fno-access-control'],
+    shard_count=4,
     deps=[
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/index/common:constants',

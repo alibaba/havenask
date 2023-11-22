@@ -15,7 +15,12 @@
  */
 #include "build_service/common/IndexCheckpointFormatter.h"
 
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 
 using namespace std;
 using namespace autil;

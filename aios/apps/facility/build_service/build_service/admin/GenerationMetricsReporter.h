@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_GENERATIONMETRICSREPORTER_H
-#define ISEARCH_BS_GENERATIONMETRICSREPORTER_H
+#pragma once
+
+#include <stdint.h>
 
 #include "build_service/common_define.h"
-#include "build_service/proto/ProtoComparator.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
-#include "indexlib/util/metrics/Metric.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor_adapter/Metric.h"
 #include "kmonitor_adapter/Monitor.h"
 
 namespace build_service { namespace admin {
@@ -40,6 +41,8 @@ public:
             waitSlotNodeCount = 0;
             totalReleaseSlowSlotCount = 0;
             finishNodeCount = 0;
+            totalCpuAmount = 0;
+            totalMemAmount = 0;
         }
 
     public:
@@ -48,6 +51,8 @@ public:
         uint32_t waitSlotNodeCount;
         uint32_t totalReleaseSlowSlotCount;
         uint32_t finishNodeCount;
+        int64_t totalCpuAmount;
+        int64_t totalMemAmount;
     };
 
 public:
@@ -88,5 +93,3 @@ private:
 BS_TYPEDEF_PTR(GenerationMetricsReporter);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_GENERATIONMETRICSREPORTER_H

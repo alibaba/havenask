@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDTASKVALIDATOR_H
-#define ISEARCH_BS_BUILDTASKVALIDATOR_H
+#pragma once
+
+#include <set>
+#include <stdint.h>
+#include <string>
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
@@ -88,5 +91,3 @@ private:
 BS_TYPEDEF_PTR(BuildTaskValidator);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_BUILDTASKVALIDATOR_H

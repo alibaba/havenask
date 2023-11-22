@@ -30,10 +30,10 @@ public:
                              bool isDocList, bool dfFirst);
     ~DictInlinePostingDecoder() = default;
 
-    bool DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
+    bool DecodeDocBuffer(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId, docid32_t& lastDocId,
                          ttf_t& currentTTF) override;
-    bool DecodeDocBufferMayCopy(docid_t startDocId, docid_t*& docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                ttf_t& currentTTF) override
+    bool DecodeDocBufferMayCopy(docid32_t startDocId, docid32_t*& docBuffer, docid32_t& firstDocId,
+                                docid32_t& lastDocId, ttf_t& currentTTF) override
     {
         return DecodeDocBuffer(startDocId, docBuffer, firstDocId, lastDocId, currentTTF);
     }
@@ -58,14 +58,14 @@ public:
     }
 
 private:
-    bool DecodeDocBufferForSingleDoc(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                     ttf_t& currentTTF);
+    bool DecodeDocBufferForSingleDoc(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId,
+                                     docid32_t& lastDocId, ttf_t& currentTTF);
 
-    bool DecodeDocBufferForDocList(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                   ttf_t& currentTTF);
+    bool DecodeDocBufferForDocList(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId,
+                                   docid32_t& lastDocId, ttf_t& currentTTF);
 
     DictInlineFormatter _dictInlineFormatter;
-    docid_t _beginDocId;
+    docid32_t _beginDocId;
     df_t _df;
     bool _isDocList;
     bool _isReferenceCompress;

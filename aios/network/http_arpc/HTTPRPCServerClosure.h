@@ -47,12 +47,16 @@ public:
                          bool keepAlive,
                          const std::string &encoding,
                          const ProtoJsonizerPtr &protoJsonizer,
-                         const EagleInfo &eagleInfo);
+                         const EagleInfo &eagleInfo,
+                         const std::string &aiosDebugType);
     ~HTTPRPCServerClosure();
 
 public:
     /* override */ void Run();
     HTTPRPCController *getController() { return &_httpController; }
+    const std::string &getAiosDebugType() const {
+        return _aiosDebugType;
+    }
     // for case
     void setProtoJsonizer(ProtoJsonizerPtr protoJsonizer);
     ProtoJsonizerPtr getProtoJsonizer() const;
@@ -84,6 +88,7 @@ private:
     ProtoJsonizerPtr _protoJsonizer;
     EagleInfo _eagleInfo;
     std::map<std::string, std::string> _responseHeader;
+    std::string _aiosDebugType;
 };
 
 } // namespace http_arpc

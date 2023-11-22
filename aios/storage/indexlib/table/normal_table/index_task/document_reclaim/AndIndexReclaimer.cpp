@@ -16,7 +16,6 @@
 #include "indexlib/table/normal_table/index_task/document_reclaim/AndIndexReclaimer.h"
 
 #include "autil/memory.h"
-#include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/common/Term.h"
 #include "indexlib/index/deletionmap/DeletionMapPatchWriter.h"
 #include "indexlib/index/inverted_index/AndPostingExecutor.h"

@@ -20,7 +20,7 @@ cc_library(
         '//aios/sql/resource/testlib:mock_tablet_manager_r',
         '//aios/storage/indexlib/indexlib:indexlib_testlib',
         '//aios/suez_turing/suez/turing/expression:turing_expression_syntax',
-        '//aios/table/table/test:table_testlib',
+        '//aios/table/test:table_testlib',
         '//aios/unittest_framework:unittest_lib'
     ],
     alwayslink=True

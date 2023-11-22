@@ -81,7 +81,7 @@ public:
         MatchDocAllocatorPtr allocator;
         const auto &docs = _util.createMatchDocs(allocator, 8);
         _util.extendMatchDocAllocator<int64_t>(allocator, docs, "id", {0, 1, 2, 3, 4, 5, 6, 7});
-        return TablePtr(new Table(docs, allocator));
+        return Table::fromMatchDocs(docs, allocator);
     }
 
     TablePtr fakeTable2() {
@@ -89,7 +89,7 @@ public:
         const auto &docs = _util.createMatchDocs(allocator, 8);
         _util.extendMatchDocAllocator<int64_t>(allocator, docs, "id", {0, 1, 2, 3, 4, 5, 6, 7});
         _util.extendMatchDocAllocator<int64_t>(allocator, docs, "batch", {0, 0, 1, 1, 2, 2, 3, 3});
-        return TablePtr(new Table(docs, allocator));
+        return Table::fromMatchDocs(docs, allocator);
     }
 
     TableDistribution bizOrderSellerDist() {
@@ -115,7 +115,7 @@ public:
         _util.extendMatchDocAllocator<int64_t>(
             allocator, docs, "biz_order_id", {3276173988120935717});
         _util.extendMatchDocAllocator<int64_t>(allocator, docs, "seller_id", {2680068332});
-        return TablePtr(new Table(docs, allocator));
+        return Table::fromMatchDocs(docs, allocator);
     }
 
     TableDistribution makeDist(const std::string &json) {
@@ -127,7 +127,7 @@ public:
     }
 
     TablePtr makePartTable(Table &table, const vector<Row> &rows) {
-        return TablePtr(new Table(rows, table.getMatchDocAllocatorPtr()));
+        return Table::fromMatchDocs(rows, table::Table::toMatchDocs(table));
     }
 
 protected:

@@ -27,8 +27,8 @@ namespace indexlibv2::table {
 
 AUTIL_LOG_SETUP(indexlib.table, KKVTabletReader);
 
-Status KKVTabletReader::Open(const std::shared_ptr<framework::TabletData>& tabletData,
-                             const framework::ReadResource& readResource)
+Status KKVTabletReader::DoOpen(const std::shared_ptr<framework::TabletData>& tabletData,
+                               const framework::ReadResource& readResource)
 {
     auto indexConfigs = _schema->GetIndexConfigs();
     for (auto indexConfig : indexConfigs) {

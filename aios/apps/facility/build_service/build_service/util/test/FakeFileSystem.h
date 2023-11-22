@@ -1,3 +1,4 @@
+#pragma once
 
 void setRemove(bool fail);
 void setCopy(bool fail);

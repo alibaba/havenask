@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SCHEMAREWRITERTEST_H
-#define __INDEXLIB_SCHEMAREWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/schema_rewriter.h"
@@ -42,5 +41,3 @@ INDEXLIB_UNIT_TEST_CASE(SchemaRewriterTest, TestForRewriteForKV);
 INDEXLIB_UNIT_TEST_CASE(SchemaRewriterTest, TestRewriteForMultiRegionKV);
 INDEXLIB_UNIT_TEST_CASE(SchemaRewriterTest, TestRewriteForMultiRegionKKV);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SCHEMAREWRITERTEST_H

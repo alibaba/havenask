@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEMO_INDEX_MODULE_FACTORY_H
-#define __INDEXLIB_DEMO_INDEX_MODULE_FACTORY_H
+#pragma once
 
 #include "indexlib/index/normal/inverted_index/customized_index/index_module_factory.h"
 
@@ -25,5 +24,3 @@ private:
 
 DEFINE_SHARED_PTR(DemoIndexModuleFactory);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DEMO_INDEX_MODULE_FACTORY_H

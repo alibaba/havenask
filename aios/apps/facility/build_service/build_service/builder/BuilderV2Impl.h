@@ -19,33 +19,29 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <stdint.h>
+#include <string>
+#include <utility>
 
 #include "build_service/builder/BuilderMetrics.h"
 #include "build_service/builder/BuilderV2.h"
 #include "build_service/config/BuilderConfig.h"
-#include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
-#include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/framework/CommitOptions.h"
-#include "indexlib/framework/VersionCoord.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionMeta.h"
 
 namespace indexlib::util {
-class MetricProvider;
-class Metric;
 class AccumulativeCounter;
 class StateCounter;
 } // namespace indexlib::util
 
 namespace indexlibv2::framework {
 class ITablet;
-class Locator;
 } // namespace indexlibv2::framework
-
-namespace indexlibv2::document {
-class IDocumentBatch;
-}
 
 namespace build_service::builder {
 

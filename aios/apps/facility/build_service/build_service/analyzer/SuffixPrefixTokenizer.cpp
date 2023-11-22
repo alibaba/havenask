@@ -15,8 +15,19 @@
  */
 #include "build_service/analyzer/SuffixPrefixTokenizer.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "build_service/analyzer/SuffixPrefixTokenizerImpl.h"
 
 using namespace std;
 using namespace autil;

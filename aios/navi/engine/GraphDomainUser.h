@@ -17,7 +17,6 @@
 #define NAVI_GRAPHDOMAINUSER_H
 
 #include "navi/engine/GraphDomain.h"
-#include "navi/engine/NaviResult.h"
 #include <multi_call/interface/SyncClosure.h>
 
 namespace navi {

@@ -129,6 +129,10 @@ public:
         _startTime = time;
     }
 
+    void setNeedEndStream(bool need) {
+        _needEndStream = need;
+    }
+
     void setClusterResponse(const std::string &bizName, const ClusterResponse &clusterRsp) {
         _clusterResponseMap[bizName] = clusterRsp;
     }
@@ -163,6 +167,7 @@ private:
     int64_t _startDetectionTime;
     int64_t _startTime;
     bool _singleRetryEnabled;
+    bool _needEndStream;
 
 private:
     AUTIL_LOG_DECLARE();

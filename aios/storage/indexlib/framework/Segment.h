@@ -69,7 +69,7 @@ public:
     }
     virtual void DeleteIndexer(const std::string& type, const std::string& indexName) { assert(false); }
 
-    virtual size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) = 0;
+    virtual std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) = 0;
     virtual size_t EvaluateCurrentMemUsed() = 0;
     virtual void CollectSegmentDescription(const std::shared_ptr<SegmentDescriptions>& segDescs) {}
 

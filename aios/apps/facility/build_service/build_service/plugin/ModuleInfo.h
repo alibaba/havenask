@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MODULEINFO_H
-#define ISEARCH_BS_MODULEINFO_H
+#pragma once
 
 #include "indexlib/config/module_info.h"
 
@@ -25,5 +24,3 @@ typedef indexlib::config::ModuleInfo ModuleInfo;
 typedef std::vector<indexlib::config::ModuleInfo> ModuleInfos;
 
 }} // namespace build_service::plugin
-
-#endif // ISEARCH_BS_MODULEINFO_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARALLELPARTITIONDATAMERGERTEST_H
-#define __INDEXLIB_PARALLELPARTITIONDATAMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/Directory.h"
@@ -54,5 +53,3 @@ INDEXLIB_UNIT_TEST_CASE(ParallelPartitionDataMergerTest, TestMergeVersionWithSeg
 INDEXLIB_UNIT_TEST_CASE(ParallelPartitionDataMergerTest, TestOldWorkerCannotMoveNewDir);
 INDEXLIB_UNIT_TEST_CASE(ParallelPartitionDataMergerTest, TestMultiWorkerToMoveData);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PARALLELPARTITIONDATAMERGERTEST_H

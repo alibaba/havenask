@@ -1,6 +1,7 @@
 #include "indexlib/partition/test/offline_partition_writer_unittest.h"
 
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/file/SliceFileWriter.h"
@@ -24,7 +25,6 @@
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_data_maker.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 #include "indexlib/util/test/build_test_util.h"
 
@@ -281,8 +281,8 @@ void OfflinePartitionWriterTest::TestEmptyData()
     writer.Close();
 
     Version latestVersion;
-    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), latestVersion, INVALID_VERSION);
-    ASSERT_EQ(INVALID_VERSION, latestVersion.GetVersionId());
+    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), latestVersion, INVALID_VERSIONID);
+    ASSERT_EQ(INVALID_VERSIONID, latestVersion.GetVersionId());
 }
 
 void OfflinePartitionWriterTest::TestDumpSegment()
@@ -309,7 +309,7 @@ void OfflinePartitionWriterTest::TestDumpSegment()
     string docString = "cmd=add,string1=hello";
     NormalDocumentPtr document = DocumentCreator::CreateNormalDocument(schema, docString);
     document->SetTimestamp(10);
-    document::Locator locator(indexlibv2::framework::Locator(0, 1000).Serialize());
+    auto locator = indexlibv2::framework::Locator(0, 1000);
     document->SetLocator(locator);
 
     ASSERT_TRUE(writer.BuildDocument(document));
@@ -326,7 +326,7 @@ void OfflinePartitionWriterTest::TestDumpSegment()
     SegmentInfo segInfo;
     segInfo.Load(rootDirectory->GetDirectory("segment_0_level_0", true));
     ASSERT_EQ((uint32_t)1, segInfo.docCount);
-    ASSERT_EQ(locator.ToString(), segInfo.GetLocator().Serialize());
+    ASSERT_EQ(locator.Serialize(), segInfo.GetLocator().Serialize());
     ASSERT_EQ(10, segInfo.timestamp);
 
     ASSERT_TRUE(oldModifier.get() != writer.mModifier.get());
@@ -364,7 +364,7 @@ void OfflinePartitionWriterTest::TestGetLastFlushedLocator()
     NormalDocumentPtr document = DocumentCreator::CreateNormalDocument(schema, docString);
     document->SetTimestamp(10);
     document::Locator locator(indexlibv2::framework::Locator(0, 1000).Serialize());
-    document->SetLocator(locator);
+    document->SetLocator(indexlibv2::framework::Locator(0, 1000));
 
     ASSERT_TRUE(writer.BuildDocument(document));
     EXPECT_FALSE(flushedLocatorContainer->GetLastFlushedLocator().IsValid());
@@ -378,7 +378,7 @@ void OfflinePartitionWriterTest::TestGetLastFlushedLocator()
     EXPECT_EQ(locator, flushedLocator);
 
     document::Locator newLocator(indexlibv2::framework::Locator(0, 2000).Serialize());
-    document->SetLocator(newLocator);
+    document->SetLocator(indexlibv2::framework::Locator(0, 2000));
     ASSERT_TRUE(writer.BuildDocument(document));
     EXPECT_EQ(locator, flushedLocatorContainer->GetLastFlushedLocator());
 
@@ -525,13 +525,12 @@ void OfflinePartitionWriterTest::TestAddDocument()
     string docString = "cmd=add,string1=hello";
 
     NormalDocumentPtr document = DocumentCreator::CreateNormalDocument(schema, docString);
-    document::Locator locator(indexlibv2::framework::Locator(0, 100).Serialize());
-    document->SetLocator(locator);
+    document->SetLocator(indexlibv2::framework::Locator(0, 100));
     document->SetTimestamp(10);
     ASSERT_TRUE(writer.BuildDocument(document));
 
-    locator.SetLocator(indexlibv2::framework::Locator(0, 1000).Serialize());
-    document->SetLocator(locator);
+    document::Locator locator(indexlibv2::framework::Locator(0, 1000).Serialize());
+    document->SetLocator(indexlibv2::framework::Locator(0, 1000));
     document->SetTimestamp(20);
     ASSERT_TRUE(writer.BuildDocument(document));
 
@@ -555,8 +554,7 @@ void OfflinePartitionWriterTest::TestBuildWithOperationWriter()
     IndexPartitionSchemaPtr schema = SchemaMaker::MakeSchema(field, index, "", "");
     string docString = "cmd=add,string1=hello";
     NormalDocumentPtr document = DocumentCreator::CreateNormalDocument(schema, docString);
-    document::Locator locator(indexlibv2::framework::Locator(0, 100).Serialize());
-    document->SetLocator(locator);
+    document->SetLocator(indexlibv2::framework::Locator(0, 100));
     document->SetTimestamp(10);
     config::IndexPartitionOptions options =
         util::BuildTestUtil::GetIndexPartitionOptionsForBuildMode(/*buildMode=*/GetParam());
@@ -612,7 +610,7 @@ void OfflinePartitionWriterTest::TestUpdateDocumentInBuildingSegment()
 
     vector<NormalDocumentPtr> docs = DocumentCreator::CreateNormalDocuments(schema, docString);
     document::Locator locator(indexlibv2::framework::Locator(0, 100).Serialize());
-    docs[1]->SetLocator(locator);
+    docs[1]->SetLocator(indexlibv2::framework::Locator(0, 100));
 
     ASSERT_TRUE(writer.BuildDocument(docs[0]));
     ASSERT_TRUE(writer.BuildDocument(docs[1]));
@@ -752,9 +750,8 @@ void OfflinePartitionWriterTest::TestDeleteDocumentInBuildingSegment()
     string docString = "cmd=add,string1=hello,price=10,ts=10;"
                        "cmd=delete,string1=hello,ts=20";
     vector<NormalDocumentPtr> docs = DocumentCreator::CreateNormalDocuments(schema, docString);
-    document::Locator locator;
-    locator.SetLocator(indexlibv2::framework::Locator(0, 100).Serialize());
-    docs[1]->SetLocator(locator);
+    document::Locator locator(indexlibv2::framework::Locator(0, 100).Serialize());
+    docs[1]->SetLocator(indexlibv2::framework::Locator(0, 100));
 
     ASSERT_TRUE(writer.BuildDocument(docs[0]));
     ASSERT_TRUE(writer.BuildDocument(docs[1]));

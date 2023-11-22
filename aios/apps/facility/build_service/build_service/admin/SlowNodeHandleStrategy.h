@@ -13,15 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SLOWNODEHANDLESTRATEGY_H
-#define ISEARCH_BS_SLOWNODEHANDLESTRATEGY_H
+#pragma once
 
+#include <algorithm>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/SlowNodeDetectStrategy.h"
 #include "build_service/admin/SlowNodeMetricReporter.h"
+#include "build_service/admin/taskcontroller/NodeStatusManager.h"
 #include "build_service/common_define.h"
+#include "build_service/config/SlowNodeDetectConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/proto/WorkerNodeCreator.h"
 #include "build_service/util/Log.h"
 #include "indexlib/index_base/branch_fs.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace build_service { namespace admin {
 
@@ -360,5 +375,3 @@ bool SlowNodeHandleStrategy::MigrateNode(const SlowNodeMetricReporterPtr& report
 }
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_SLOWNODEHANDLESTRATEGY_H

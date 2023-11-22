@@ -3,11 +3,9 @@
 #include "autil/legacy/any.h"
 #include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/schema_configurator.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 using namespace std;

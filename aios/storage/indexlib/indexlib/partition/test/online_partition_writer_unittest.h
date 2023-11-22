@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONLINEPARTITIONWRITERTEST_H
-#define __INDEXLIB_ONLINEPARTITIONWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/online_partition_writer.h"
@@ -51,5 +50,3 @@ INDEXLIB_UNIT_TEST_CASE(OnlinePartitionWriterTest, TestRemoveDocument);
 INDEXLIB_UNIT_TEST_CASE(OnlinePartitionWriterTest, TestDumpSegment);
 INDEXLIB_UNIT_TEST_CASE(OnlinePartitionWriterTest, TestNeedDump);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINEPARTITIONWRITERTEST_H

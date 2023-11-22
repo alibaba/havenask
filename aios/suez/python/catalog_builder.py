@@ -47,6 +47,13 @@ class TableStructureConfigBuilder(BaseBuilder):
 
         self.msg.ttl_option.CopyFrom(value)
         return self
+    
+    def set_table_meta(self, value):
+        if not isinstance(value, TableStructureConfig.TableMetaOption):
+            raise ValueError('Invalid type for field table_meta_option, expected TtlOption')
+
+        self.msg.table_meta_option.CopyFrom(value)
+        return self
 
     def set_sort_option(self, value):
         if not isinstance(value, SortOption):
@@ -500,12 +507,12 @@ class LoadStrategyConfigBuilder(BaseBuilder):
         self.msg.status = value
         return self
 
-    def set_key_load_mode(self, value):
-        self.msg.key_load_mode = value
+    def set_load_mode(self, value):
+        self.msg.load_mode = value
         return self
 
-    def set_value_load_mode(self, value):
-        self.msg.value_load_mode = value
+    def set_online_index_config(self, value):
+        self.msg.online_index_config = value
         return self
 
 

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_UPDATABLE_VAR_NUM_ATTRIBUTE_OFFSET_FORMATTER_H
-#define __INDEXLIB_UPDATABLE_VAR_NUM_ATTRIBUTE_OFFSET_FORMATTER_H
+#pragma once
 
 #include <memory>
 
@@ -61,5 +60,3 @@ inline uint64_t UpdatableVarNumAttributeOffsetFormatter::DecodeToSliceArrayOffse
     return offset - mDataSize;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_UPDATABLE_VAR_NUM_ATTRIBUTE_OFFSET_FORMATTER_H

@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DOCREADERPRODUCER_H
-#define ISEARCH_BS_DOCREADERPRODUCER_H
+#pragma once
 
-#include "build_service/common_define.h"
+#include <atomic>
+#include <memory>
+#include <stdint.h>
+
+#include "build_service/common/ExceedTsAction.h"
+#include "build_service/common/Locator.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/document/RawDocument.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/reader/RawDocumentReader.h"
 #include "build_service/util/Log.h"
+#include "build_service/workflow/FlowError.h"
 #include "build_service/workflow/Producer.h"
+#include "build_service/workflow/StopOption.h"
 
 namespace build_service { namespace workflow {
 class RawDocChecksumer;
@@ -64,5 +73,3 @@ private:
 };
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_DOCREADERPRODUCER_H

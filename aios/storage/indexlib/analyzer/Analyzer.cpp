@@ -15,7 +15,14 @@
  */
 #include "indexlib/analyzer/Analyzer.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <map>
+#include <stdint.h>
+#include <string>
+
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "autil/codec/Normalizer.h"
 #include "indexlib/analyzer/AnalyzerInfo.h"
 #include "indexlib/analyzer/ITokenizer.h"

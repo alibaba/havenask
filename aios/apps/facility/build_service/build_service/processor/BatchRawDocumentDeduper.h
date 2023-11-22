@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#include <memory>
+#include <string>
+
 #include "build_service/common_define.h"
 #include "build_service/document/RawDocument.h"
 #include "build_service/util/Log.h"
@@ -22,6 +25,7 @@
 namespace indexlib { namespace util {
 class MetricProvider;
 class Metric;
+
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util

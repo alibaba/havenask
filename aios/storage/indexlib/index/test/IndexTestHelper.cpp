@@ -11,9 +11,11 @@
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/framework/mock/FakeDiskSegment.h"
 #include "indexlib/framework/mock/FakeMemSegment.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IDiskIndexer.h"
 #include "indexlib/index/IMemIndexer.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 
 namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, IndexTestHelper);
@@ -25,7 +27,9 @@ struct IndexTestHelper::Impl {
     std::shared_ptr<file_system::IDirectory> rootDirectory;
     std::shared_ptr<indexlibv2::config::FakeTabletSchema> schema;
     std::shared_ptr<indexlibv2::framework::FakeMemSegment> buildingMemSegment;
-    std::shared_ptr<indexlibv2::index::IndexerParameter> indexerParameter;
+    std::shared_ptr<indexlibv2::index::MemIndexerParameter> memIndexerParameter;
+    std::shared_ptr<indexlibv2::index::DiskIndexerParameter> indexerParameter;
+    std::shared_ptr<indexlibv2::index::IndexReaderParameter> indexReaderParameter;
     std::map<segmentid_t, std::shared_ptr<indexlibv2::framework::FakeMemSegment>> memSegments;   // holder
     std::map<segmentid_t, std::shared_ptr<indexlibv2::framework::FakeDiskSegment>> diskSegments; // holder
     std::vector<segmentid_t> builtDiskSegmentIds;
@@ -36,7 +40,9 @@ struct IndexTestHelper::Impl {
 IndexTestHelper::IndexTestHelper() : _impl(std::make_unique<IndexTestHelper::Impl>())
 {
     _impl->schema = std::make_shared<indexlibv2::config::FakeTabletSchema>();
-    _impl->indexerParameter = std::make_shared<indexlibv2::index::IndexerParameter>();
+    _impl->memIndexerParameter = std::make_shared<indexlibv2::index::MemIndexerParameter>();
+    _impl->indexerParameter = std::make_shared<indexlibv2::index::DiskIndexerParameter>();
+    _impl->indexReaderParameter = std::make_shared<indexlibv2::index::IndexReaderParameter>();
 }
 
 IndexTestHelper::~IndexTestHelper() { Close(); }
@@ -423,9 +429,18 @@ const indexlibv2::config::MutableJson& IndexTestHelper::GetRuntimeSettings() con
 {
     return _impl->schema->GetRuntimeSettings();
 }
-const std::shared_ptr<indexlibv2::index::IndexerParameter>& IndexTestHelper::GetIndexerParameter() const
+const std::shared_ptr<indexlibv2::index::MemIndexerParameter>& IndexTestHelper::GetMemIndexerParameter() const
+{
+    return _impl->memIndexerParameter;
+}
+
+const std::shared_ptr<indexlibv2::index::DiskIndexerParameter>& IndexTestHelper::GetIndexerParameter() const
 {
     return _impl->indexerParameter;
+}
+const std::shared_ptr<indexlibv2::index::IndexReaderParameter>& IndexTestHelper::GetIndexReaderParameter() const
+{
+    return _impl->indexReaderParameter;
 }
 
 std::vector<std::shared_ptr<indexlibv2::config::IIndexConfig>>& IndexTestHelper::MutableIndexConfigs()
@@ -441,7 +456,7 @@ indexlibv2::config::MutableJson& IndexTestHelper::MutableRuntimeSettings()
 {
     return _impl->schema->MutableRuntimeSettings();
 }
-const std::shared_ptr<indexlibv2::index::IndexerParameter>& IndexTestHelper::MutableIndexerParameter()
+const std::shared_ptr<indexlibv2::index::DiskIndexerParameter>& IndexTestHelper::MutableIndexerParameter()
 {
     return _impl->indexerParameter;
 }

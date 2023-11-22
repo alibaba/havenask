@@ -37,8 +37,9 @@ strict_cc_library(
     name='IIndexFactory',
     srcs=[],
     deps=[
-        ':IIndexMerger', ':IIndexReader', ':IndexFactoryCreator',
-        ':IndexerParameter', '//aios/storage/indexlib/base:Status',
+        ':DiskIndexerParameter', ':IIndexMerger', ':IIndexReader',
+        ':IndexFactoryCreator', ':IndexReaderParameter', ':MemIndexerParameter',
+        '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/config:IIndexConfig',
         '//aios/storage/indexlib/document:IIndexFieldsParser',
         '//aios/storage/indexlib/framework:MetricsManager',
@@ -68,10 +69,27 @@ strict_cc_library(
     ]
 )
 strict_cc_library(
-    name='IndexerParameter',
+    name='DiskIndexerParameter',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/base:constants',
+        '//aios/storage/indexlib/framework:MetricsManager'
+    ]
+)
+strict_cc_library(
+    name='MemIndexerParameter',
     srcs=[],
     deps=[
         ':IndexerDirectories', '//aios/storage/indexlib/base:constants',
+        '//aios/storage/indexlib/config:SortDescription',
+        '//aios/storage/indexlib/framework:MetricsManager'
+    ]
+)
+strict_cc_library(
+    name='IndexReaderParameter',
+    srcs=[],
+    deps=[
+        '//aios/storage/indexlib/base:constants',
         '//aios/storage/indexlib/config:SortDescription',
         '//aios/storage/indexlib/framework:MetricsManager'
     ]

@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_REUSEATTRIBUTEALTERFIELDMERGER_H
-#define ISEARCH_BS_REUSEATTRIBUTEALTERFIELDMERGER_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/custom_merger/AlterDefaultFieldMerger.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/partition/remote_access/attribute_data_patcher.h"
+#include "indexlib/partition/remote_access/partition_iterator.h"
 
 namespace build_service { namespace custom_merger {
 
@@ -47,5 +53,3 @@ private:
 BS_TYPEDEF_PTR(ReuseAttributeAlterFieldMerger);
 
 }} // namespace build_service::custom_merger
-
-#endif // ISEARCH_BS_REUSEATTRIBUTEALTERFIELDMERGER_H

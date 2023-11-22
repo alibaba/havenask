@@ -15,10 +15,15 @@
  */
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "autil/Log.h"
+#include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/LocalDirectory.h"
+#include "indexlib/file_system/WriterOption.h"
 
 namespace indexlib { namespace file_system {
 

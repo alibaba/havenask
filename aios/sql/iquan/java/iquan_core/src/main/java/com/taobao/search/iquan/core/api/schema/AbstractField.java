@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 public abstract class AbstractField {
     private static final Logger logger = LoggerFactory.getLogger(AbstractField.class);
@@ -103,7 +103,7 @@ public abstract class AbstractField {
             ExceptionUtils.throwIfTrue(fieldType == null, "fieldType is null");
             ExceptionUtils.throwIfTrue(extendInfos == null, "fieldType is null");
             ExceptionUtils.throwIfTrue(!fieldType.isValid(),
-                                        "fieldType is not valid");
+                    "fieldType is not valid");
         } catch (IquanNotValidateException e) {
             logger.error(e.getMessage());
             isValid = false;

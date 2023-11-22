@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NAVI_GRAPHDOMAINCLIENT_H
-#define NAVI_GRAPHDOMAINCLIENT_H
+#pragma once
 
 #include "navi/engine/GraphDomainRemoteBase.h"
 #include <multi_call/interface/SearchService.h>
@@ -47,22 +46,29 @@ public:
     multi_call::GigStreamRpcInfoVec stealStreamRpcInfo();
 private:
     void finishPart(NaviPartId gigPartId, const multi_call::GigStreamBasePtr &stream);
-    void collectRpcInfo(NaviPartId partId);
+    void addResult(NaviPartId partId, NaviMessage *naviMessage,
+                   bool withRpcInfo, NaviErrorPtr error);
+    bool collectRpcInfo(NaviPartId partId, multi_call::GigStreamRpcInfo &info);
     void receiveCallBack(NaviPartId gigPartId, bool forceStop);
+    bool initTimeout();
     bool initGigStream(const LocationDef &location);
     void addTags(const std::shared_ptr<NaviClientStream> &stream, const GigInfoDef &gigInfo) const;
-    bool fillInitMessage(NaviPartId partId, NaviMessage &naviMessage) const;
+    ErrorCode fillInitMessage(NaviPartId partId, NaviMessage &naviMessage) const;
     bool sendEof(NaviPartId partId) const;
     bool receiveEof() const;
     void notifyFinishAsync(ErrorCode ec);
     std::shared_ptr<NaviClientStream> createClientStream();
+    bool clientReceive(const multi_call::GigStreamMessage &message);
+    bool clientReceive(NaviMessage *naviMessage);
+    void receivePartResult(NaviMessage *naviMessage);
 private:
     std::string _bizName;
     PartInfo _partInfo;
     std::string _subGraphStr;
     NaviCompressType _compressType = CT_NONE;
+    RpcGraphResultPtr _rpcResult;
+    int64_t _rpcTimeoutMs = 0;
+    int64_t _subGraphTimeoutMs = 0;
 };
 
 }
-
-#endif //NAVI_GRAPHDOMAINCLIENT_H

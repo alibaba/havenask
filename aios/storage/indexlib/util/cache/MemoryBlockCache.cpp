@@ -47,7 +47,8 @@ bool MemoryBlockCache::DoInit(const BlockCacheOption& cacheOption)
     }
     int32_t shardBitsNum = BlockCache::DEFAULT_SHARED_BITS_NUM;
     float lruHighPriorityRatio = 0.0f;
-    if (!ExtractCacheParam(cacheOption, shardBitsNum, lruHighPriorityRatio)) {
+    float lruLowPriorityRatio = 0.0f;
+    if (!ExtractCacheParam(cacheOption, shardBitsNum, lruHighPriorityRatio, lruLowPriorityRatio)) {
         return false;
     }
 
@@ -62,10 +63,13 @@ bool MemoryBlockCache::DoInit(const BlockCacheOption& cacheOption)
         return false;
     }
     assert(cacheType == LRU);
-    _cache = NewLRUCache(_memorySize, shardBitsNum, false, lruHighPriorityRatio, GetBlockAllocator());
+    _cache =
+        NewLRUCache(_memorySize, shardBitsNum, false, lruHighPriorityRatio, lruLowPriorityRatio, GetBlockAllocator());
     if (!_cache) {
-        AUTIL_LOG(ERROR, "create new lru cache fail, memorySize [%lu], shardBitsNum [%d], lruHighPriorityRatio [%f]",
-                  _memorySize, shardBitsNum, lruHighPriorityRatio);
+        AUTIL_LOG(ERROR,
+                  "create new lru cache fail, memorySize [%lu], shardBitsNum [%d], lruHighPriorityRatio [%f] "
+                  "lruLowPriorityRatio [%f]",
+                  _memorySize, shardBitsNum, lruHighPriorityRatio, lruLowPriorityRatio);
         return false;
     }
     return true;

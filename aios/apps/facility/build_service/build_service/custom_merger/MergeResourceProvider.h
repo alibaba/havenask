@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MERGERESOURCEPROVIDER_H
-#define ISEARCH_BS_MERGERESOURCEPROVIDER_H
+#pragma once
+
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/common_define.h"
 #include "build_service/custom_merger/TaskItemDispatcher.h"
 #include "build_service/util/Log.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/partition/remote_access/partition_resource_provider.h"
 
 namespace build_service { namespace custom_merger {
@@ -73,5 +80,3 @@ private:
 BS_TYPEDEF_PTR(MergeResourceProvider);
 
 }} // namespace build_service::custom_merger
-
-#endif // ISEARCH_BS_MERGERESOURCEPROVIDER_H

@@ -1,10 +1,10 @@
 package(default_visibility=['//aios/autil:__subpackages__'])
 cc_library(
     name='json_testlib',
-    hdrs=['JsonTestUtil.h'],
+    testonly=True,
     srcs=['JsonTestUtil.cpp'],
-    deps=['//aios/autil:json_helper', '//aios/unittest_framework:unittest_lib'],
+    hdrs=['JsonTestUtil.h'],
     include_prefix='autil/legacy/test',
     visibility=['//visibility:public'],
-    testonly=True
+    deps=['//aios/autil:json_helper', '//aios/unittest_framework:unittest_lib']
 )

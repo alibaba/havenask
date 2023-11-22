@@ -1,13 +1,36 @@
 #include "build_service/common/SwiftResourceKeeper.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/EnvUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/BrokerTopicAccessor.h"
 #include "build_service/common/CheckpointAccessor.h"
-#include "build_service/common/test/FakeBrokerTopicAccessor.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/SwiftAdminFacade.h"
+#include "build_service/common/SwiftParam.h"
+#include "build_service/common_define.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/SwiftConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/test/FakeSwiftClientCreator.h"
 #include "build_service/util/test/FakeSwiftWriter.h"
+#include "swift/client/SwiftClient.h"
+#include "swift/client/SwiftReader.h"
+#include "swift/client/SwiftWriter.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;
@@ -359,6 +382,92 @@ TEST_F(SwiftResourceKeeperTest, testWriterVersion)
               "minorVersion=123",
               fakeWriter->getWriterConfig());
     delete (swiftWriter);
+}
+
+TEST_F(SwiftResourceKeeperTest, testNPCMode)
+{
+    {
+        KeyValueMap params;
+        params["topicConfigName"] = "topic_raw";
+        params["clusterName"] = "cluster1";
+        params[config::SWIFT_TOPIC_NAME] = "fake-swift-topic";
+
+        /* add some distraction keys for testing */
+        params[config::SWIFT_FILTER_MASK] = "1";
+        params[config::SWIFT_FILTER_RESULT] = "1";
+        params["tag"] = "tag1";
+        params["name"] = "resource1";
+        params[PROCESSED_DOC_SWIFT_ROOT] = "default_root";
+
+        SwiftResourceKeeperPtr keeper(new SwiftResourceKeeper("name", "swift", _container));
+        ASSERT_TRUE(keeper->init(params));
+        ASSERT_EQ(params["clusterName"], keeper->_clusterName);
+        ASSERT_EQ(params["topicConfigName"], keeper->_topicConfigName);
+        ASSERT_EQ(string("fake-swift-topic"), keeper->_topicName);
+    }
+    {
+        KeyValueMap params;
+        params["topicConfigName"] = "topic_raw";
+        params["clusterName"] = "cluster1";
+        params[config::SWIFT_TOPIC_NAME] = "fake-swift-topic";
+        params[config::REALTIME_MODE] = config::REALTIME_SERVICE_NPC_MODE;
+
+        /* add some distraction keys for testing */
+        params[config::SWIFT_FILTER_MASK] = "1";
+        params[config::SWIFT_FILTER_RESULT] = "1";
+        params["tag"] = "tag1";
+        params["name"] = "resource1";
+        params[PROCESSED_DOC_SWIFT_ROOT] = "default_root";
+        SwiftResourceKeeperPtr keeper(new SwiftResourceKeeper("name", "swift", _container));
+        ASSERT_TRUE(keeper->init(params));
+
+        ResourceReaderPtr reader(new ResourceReader(_configPath + "/npc_config"));
+        config::SwiftConfig swiftConfig;
+        ASSERT_TRUE(keeper->getSwiftConfig(reader, swiftConfig));
+        auto readerConfig = keeper->getSwiftReaderConfigForNPCMode(swiftConfig, _pid.range());
+        EXPECT_EQ(string("topicName=fake-swift-topic;uint8FilterMask=2;uint8MaskResult=2;from=0;to=32767;"),
+                  readerConfig);
+    }
+    {
+        autil::EnvGuard guard("raw_topic_swift_reader_config", "oneRequestReadCount=200000;readBufferSize=300000");
+        KeyValueMap params;
+        params["topicConfigName"] = "topic_raw";
+        params["clusterName"] = "cluster1";
+        params[config::SWIFT_TOPIC_NAME] = "fake-swift-topic";
+        params[config::REALTIME_MODE] = config::REALTIME_SERVICE_NPC_MODE;
+        /* add some distraction keys for testing */
+        params[config::SWIFT_FILTER_MASK] = "1";
+        params[config::SWIFT_FILTER_RESULT] = "1";
+        params["tag"] = "tag1";
+        params["name"] = "resource1";
+        params[PROCESSED_DOC_SWIFT_ROOT] = "default_root";
+        SwiftResourceKeeperPtr keeper(new SwiftResourceKeeper("name", "swift", _container));
+        ASSERT_TRUE(keeper->init(params));
+
+        ResourceReaderPtr configReader(new ResourceReader(_configPath + "/npc_config"));
+        config::SwiftConfig swiftConfig;
+        ASSERT_TRUE(keeper->getSwiftConfig(configReader, swiftConfig));
+        auto readerConfigStr = keeper->getSwiftReaderConfigForNPCMode(swiftConfig, _pid.range());
+        EXPECT_EQ(string("topicName=fake-swift-topic;uint8FilterMask=2;uint8MaskResult=2;oneRequestReadCount=200000;"
+                         "readBufferSize=300000;from=0;to=32767;"),
+                  readerConfigStr);
+
+        FakeSwiftClientCreatorPtr creator(new FakeSwiftClientCreator(true, true));
+        SwiftParam swiftParam = keeper->createSwiftReader(creator, params, configReader, _pid.range());
+        std::unique_ptr<swift::client::SwiftReader> swiftReader(swiftParam.reader);
+        ASSERT_NE(nullptr, swiftParam.swiftClient);
+        ASSERT_NE(nullptr, swiftReader);
+        EXPECT_EQ(string("fake-swift-topic"), swiftParam.topicName);
+        EXPECT_EQ(false, swiftParam.isMultiTopic);
+        EXPECT_EQ(false, swiftParam.disableSwiftMaskFilter);
+
+        const auto& maskPairs = swiftParam.maskFilterPairs;
+        ASSERT_EQ(1, maskPairs.size());
+        ASSERT_EQ(2, maskPairs[0].first);
+        ASSERT_EQ(2, maskPairs[0].second);
+        EXPECT_EQ(0, swiftParam.from);
+        EXPECT_EQ(32767, swiftParam.to);
+    }
 }
 
 }} // namespace build_service::common

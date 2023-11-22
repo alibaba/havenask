@@ -95,7 +95,7 @@ void DictInlineFormatter::FromVector(uint32_t* buffer, size_t size)
         cursor++;
     }
 
-    _docId = (docid_t)CheckAndGetValue(cursor, buffer, size);
+    _docId = (docid32_t)CheckAndGetValue(cursor, buffer, size);
     cursor++;
 
     if (_postingFormatOption.HasDocPayload()) {

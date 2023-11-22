@@ -1,34 +1,6 @@
 load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
 strict_cc_library(
-    name='all',
-    srcs=[],
-    hdrs=[],
-    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
-    deps=[
-        ':Algorithm', ':Avl', ':Base62', ':Bitmap', ':BlockFpEncoder',
-        ':ByteSimilarityHasher', ':ClassTypedFactory', ':Clock', ':ColumnUtil',
-        ':Comparable', ':CoroutineConfig', ':DeVirtual', ':DebugingUtil',
-        ':DocTracer', ':ErrorLogCollector', ':ExpandableBitmap',
-        ':FloatInt8Encoder', ':FloatUint64Encoder', ':Fp16Encoder',
-        ':GroupedThreadPool', ':Half', ':HashBucket', ':HashMap', ':HashString',
-        ':HashUtil', ':IpConvertor', ':KeyHasherTyped', ':MMapVector',
-        ':MathUtil', ':MemBuffer', ':MmapPool', ':ObjectPool', ':PathUtil',
-        ':PoolUtil', ':PooledUniquePtr', ':PrimeNumberTable', ':Random',
-        ':RegularExpression', ':RetryUtil', ':ShardUtil', ':SimplePool',
-        ':Status', ':TimestampUtil', ':ValueWriter', ':epochid_util',
-        ':future_executor', ':httplib', ':task',
-        '//aios/storage/indexlib/util/buffer_compressor',
-        '//aios/storage/indexlib/util/byte_slice_list',
-        '//aios/storage/indexlib/util/cache',
-        '//aios/storage/indexlib/util/counter',
-        '//aios/storage/indexlib/util/memory_control',
-        '//aios/storage/indexlib/util/metrics:metric_reporter',
-        '//aios/storage/indexlib/util/metrics:monitor',
-        '//aios/storage/indexlib/util/slice_array'
-    ]
-)
-strict_cc_library(
     name='headers',
     srcs=glob([
         '*.h', 'counter/*.h', 'byte_slice_list/*.h', 'cache/*.h',
@@ -48,6 +20,10 @@ strict_cc_library(
     srcs=[],
     export_name='key_value_map',
     deps=['//aios/autil:json', '//aios/autil:string_helper']
+)
+strict_cc_library(
+    name='JsonUtil',
+    deps=['//aios/autil:json', '//aios/storage/indexlib/base:Status']
 )
 strict_cc_library(
     name='JsonMap',
@@ -272,7 +248,7 @@ strict_cc_library(
     name='EpochBasedReclaimManager',
     deps=['//aios/autil:log', '//aios/autil:thread']
 )
-strict_cc_library(name='DocTracer', srcs=[], deps=['//aios/aios/common/beeper'])
+strict_cc_library(name='DocTracer', srcs=[], deps=['//aios/common/beeper'])
 strict_cc_library(name='Algorithm', srcs=[], deps=['//aios/alog'])
 strict_cc_library(
     name='ClassTypedFactory',

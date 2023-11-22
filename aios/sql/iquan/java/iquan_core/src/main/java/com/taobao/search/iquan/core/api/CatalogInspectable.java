@@ -11,9 +11,11 @@ public interface CatalogInspectable {
 
     List<String> getFunctionNames(String catalogName, String dbName);
 
-    String getTableDetailInfo(String catalogName, String dbName, String tableName);
+    String getTableDetailInfo(String catalogName, String dbName, String tableName, boolean debug);
 
     String getFunctionDetailInfo(String catalogName, String dbName, String functionName);
+
+    public String getLoctionsDetailInfo(String catalogName);
 
     interface Factory {
         CatalogInspectable create(SqlTranslator sqlTranslator);

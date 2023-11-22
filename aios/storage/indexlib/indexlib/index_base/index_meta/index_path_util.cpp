@@ -57,7 +57,7 @@ bool IndexPathUtil::GetPatchMetaId(const std::string& path, versionid_t& version
            StringUtil::fromString<versionid_t>(path.substr(prefix.length()), versionId);
 }
 
-bool IndexPathUtil::GetSchemaId(const std::string& path, schemavid_t& schemaId) noexcept
+bool IndexPathUtil::GetSchemaId(const std::string& path, schemaid_t& schemaId) noexcept
 {
     if (path == SCHEMA_FILE_NAME) {
         schemaId = DEFAULT_SCHEMAID;
@@ -65,13 +65,13 @@ bool IndexPathUtil::GetSchemaId(const std::string& path, schemavid_t& schemaId) 
     }
     string prefix = SCHEMA_FILE_NAME + ".";
     return StringUtil::startsWith(path, prefix) &&
-           StringUtil::fromString<schemavid_t>(path.substr(prefix.length()), schemaId);
+           StringUtil::fromString<schemaid_t>(path.substr(prefix.length()), schemaId);
 }
 
-bool IndexPathUtil::GetPatchIndexId(const std::string& path, schemavid_t& schemaId) noexcept
+bool IndexPathUtil::GetPatchIndexId(const std::string& path, schemaid_t& schemaId) noexcept
 {
     return StringUtil::startsWith(path, PATCH_INDEX_DIR_PREFIX) &&
-           StringUtil::fromString<schemavid_t>(path.substr(PATCH_INDEX_DIR_PREFIX.length()), schemaId);
+           StringUtil::fromString<schemaid_t>(path.substr(PATCH_INDEX_DIR_PREFIX.length()), schemaId);
 }
 
 bool IndexPathUtil::IsValidSegmentName(const std::string& path) noexcept

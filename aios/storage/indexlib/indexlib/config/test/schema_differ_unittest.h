@@ -1,10 +1,8 @@
-#ifndef __INDEXLIB_SCHEMADIFFERTEST_H
-#define __INDEXLIB_SCHEMADIFFERTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/schema_differ.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -34,7 +32,7 @@ public:
     void TestUpdateFieldInModifySchemaWithSubSchema();
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(SchemaDifferTest, TestSimpleProcess);
@@ -51,5 +49,3 @@ INDEXLIB_UNIT_TEST_CASE(SchemaDifferTest, TestModifySchemaOperation);
 INDEXLIB_UNIT_TEST_CASE(SchemaDifferTest, TestUpdateFieldInModifySchema);
 INDEXLIB_UNIT_TEST_CASE(SchemaDifferTest, TestUpdateFieldInModifySchemaWithSubSchema);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_SCHEMADIFFERTEST_H

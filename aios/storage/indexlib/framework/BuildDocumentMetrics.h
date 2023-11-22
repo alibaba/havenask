@@ -16,9 +16,12 @@
 #pragma once
 
 #include <memory>
+#include <stdint.h>
 #include <string>
 
-#include "indexlib/framework/MetricsWrapper.h"
+#include "autil/Log.h"
+//#include "indexlib/util/metrics/Metric.h"
+#include "kmonitor/client/MetricsReporter.h"
 
 namespace indexlibv2::document {
 class IDocumentBatch;
@@ -31,8 +34,6 @@ namespace indexlibv2::framework {
 // doc/s的速率下)。
 class BuildDocumentMetrics
 {
-    enum DocOperateResult { SUCCESS = 0, FAIL = 1 };
-
 public:
     BuildDocumentMetrics(const std::string& tabletName,
                          const std::shared_ptr<kmonitor::MetricsReporter>& metricsReporter);
@@ -41,38 +42,59 @@ public:
 public:
     void RegisterMetrics();
     void ReportBuildDocumentMetrics(document::IDocumentBatch* doc);
-
-    uint32_t GetSuccessDocCount() const { return _successDocCount; }
-    uint32_t GetTotalDocCount() const { return _totalDocCount; }
-
-private:
-    void ReportAddSuccessMetrics(uint32_t msgCount, bool shouldReport);
-    void ReportAddFailedMetrics(uint32_t msgCount, bool shouldReport);
+    uint64_t GetTotalDocCount() const { return _totalDocCountMetric.GetCount(); }
 
 private:
     std::string _tabletName;
     std::shared_ptr<kmonitor::MetricsReporter> _metricsReporter;
+    int64_t _periodicReportIntervalUS = DEFAULT_REPORT_INTERVAL_US;
+    uint64_t _lastBuildDocumentMetricsReportTimeUS = 0;
+    uint64_t _successDocCount = 0;
 
-    int64_t _periodicReportIntervalUS;
-    uint64_t _lastBuildDocumentMetricsReportTimeUS;
-    uint32_t _totalDocCount;
-    uint32_t _successDocCount;
-    uint32_t _addDocCount;
-    uint32_t _addFailedDocCount;
+public:
+    class Metric
+    {
+    public:
+        void Increase(uint64_t count) { _count += count; }
+        void Report()
+        {
+            assert(_metric);
+            _metric->Report(&_tags, _count);
+        }
+        void ReportAndClear()
+        {
+            Report();
+            _count = 0;
+        }
+        void Init(const kmonitor::MetricsTags& tags, kmonitor::MutableMetric* metric)
+        {
+            _tags = tags;
+            _metric = metric;
+        }
+        uint64_t GetCount() const { return _count; }
 
-    uint32_t _totalDocAccumulator;
-    uint32_t _addDocAccumulator;
-    uint32_t _addFailedDocAccumulator;
+    private:
+        uint64_t _count = 0;
+        kmonitor::MetricsTags _tags;
+        kmonitor::MutableMetric* _metric = nullptr;
+    };
+
+private:
+    enum { ADD = 0, DELETE, UPDATE, OTHER, DOC_TYPE_SIZE };
+    enum BuildStatus { SUCCESS = 0, FAILED, BUILD_STATUS_SIZE };
+    enum { COUNT = 0, QPS, METRIC_TYPE_SIZE };
 
 private:
     // general metrics
-    std::shared_ptr<indexlib::util::Metric> _buildQpsMetric;
-    std::shared_ptr<indexlib::util::Metric> _totalDocCountMetric;
+    Metric _totalBuildQpsMetric;
+    Metric _totalDocCountMetric;
     // metrics of different doc types
-    std::shared_ptr<indexlib::util::Metric> _addQpsMetric;
-    std::shared_ptr<indexlib::util::Metric> _addDocCountMetric;
-    std::shared_ptr<indexlib::util::Metric> _addFailedQpsMetric;
-    std::shared_ptr<indexlib::util::Metric> _addFailedDocCountMetric;
+    Metric _metrics[DOC_TYPE_SIZE][BUILD_STATUS_SIZE][METRIC_TYPE_SIZE] {};
+    // detailed metrics
+    // util::MetricPtr _addToUpdateQpsMetric;
+    // util::MetricPtr _addToUpdateDocCountMetric;
+    // util::MetricPtr _indexAddToUpdateQpsMetric;
+    // util::MetricPtr _indexAddToUpdateDocCountMetric;
 
 private:
     static const uint32_t DEFAULT_REPORT_INTERVAL_US = 50'000;

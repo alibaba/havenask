@@ -66,6 +66,8 @@ public:
 
     AttributeExpression *createAttributeExpression(const SyntaxExpr *syntaxExpr, bool needValidate = false) override;
 
+    matchdoc::MatchDocAllocator *getAllocator() { return _allocator; }
+
 private:
     void fillAttributeInfos();
 

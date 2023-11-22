@@ -469,7 +469,7 @@ bool SearchServiceProvider::isHealth() const {
 }
 
 bool SearchServiceProvider::isStarted() const {
-    return _controllerChain.targetWeight > MIN_WEIGHT;
+    return getTargetWeight() > MIN_WEIGHT;
 }
 
 void SearchServiceProvider::updateTagsFromMap(const TagMap &tags) {

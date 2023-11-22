@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_WORK_ITEM_TYPED_H
-#define __INDEXLIB_MERGE_WORK_ITEM_TYPED_H
+#pragma once
 
 #include <memory>
 
@@ -177,5 +176,3 @@ void MergeWorkItemTyped<MergerPtr, MergerResource>::SetMergeItemMetrics(const ut
     // mMerger->SetMergeItemMetrics(itemMetrics);
 }
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_WORK_ITEM_TYPED_H

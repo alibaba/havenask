@@ -2,8 +2,8 @@
 
 #include "indexlib/common/field_format/attribute/string_attribute_convertor.h"
 #include "indexlib/config/test/schema_loader.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

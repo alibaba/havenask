@@ -17,17 +17,19 @@
 
 #include <algorithm>
 #include <assert.h>
-#include <ext/alloc_traits.h>
+#include <map>
+#include <mutex>
 #include <ostream>
 #include <unordered_set>
+#include <utility>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "fslib/common/common_type.h"
 #include "indexlib/file_system/DirectoryOption.h"
 #include "indexlib/file_system/EntryTable.h"
+#include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/FileInfo.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/FileSystemOptions.h"
@@ -36,8 +38,8 @@
 #include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/RemoveOption.h"
 #include "indexlib/file_system/Storage.h"
+#include "indexlib/file_system/StorageMetrics.h"
 #include "indexlib/file_system/WriterOption.h"
-#include "indexlib/file_system/file/BufferedFileWriter.h"
 #include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/ResourceFile.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
@@ -52,8 +54,6 @@ using namespace indexlib::util;
 
 namespace indexlib { namespace file_system {
 AUTIL_LOG_SETUP(indexlib.file_system, LogicalFileSystem);
-
-class StorageMetrics;
 
 LogicalFileSystem::LogicalFileSystem(const std::string& name, const std::string& outputRoot,
                                      util::MetricProviderPtr metricProvider) noexcept
@@ -259,7 +259,12 @@ LogicalFileSystem::MountVersion(const std::string& rawPhysicalRoot, versionid_t 
     if (lifecycleTable != nullptr) {
         AUTIL_LOG(INFO, "mount version[%d] with lifecycleTable[size=%zu]", versionId, lifecycleTable->Size());
         for (auto it = lifecycleTable->Begin(); it != lifecycleTable->End(); it++) {
-            SetDirLifecycle(it->first, it->second);
+            const auto& dirPath = it->first;
+            const auto& dirLifecycle = it->second;
+            if (!dirLifecycle.empty()) {
+                AUTIL_LOG(INFO, "add path [%s] lifecycle [%s] to lfs", dirPath.c_str(), dirLifecycle.c_str());
+            }
+            SetDirLifecycle(dirPath, dirLifecycle);
         }
     }
     auto ec = _entryTableBuilder->MountVersion(physicalRoot, versionId, logicalPath, mountOption);

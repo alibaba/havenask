@@ -1,0 +1,34 @@
+#!/usr/bin/python2
+# -*- coding: utf-8 -*-
+
+import sys
+import os
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+sys.path = [os.path.join(HERE, "usr/local/lib/python/site-packages")] + sys.path
+
+import click
+
+from hape_libs.utils.logger import Logger
+from hape_libs.commands import start_cmd, restart_cmd, stop_cmd, delete_cmd, status_cmd, validate_cmd, update_cmd, get_cmd
+
+
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+@click.group(context_settings=CONTEXT_SETTINGS)
+def cli():
+    pass
+
+cli.add_command(start_cmd.start)
+cli.add_command(start_cmd.create)
+cli.add_command(restart_cmd.restart)
+cli.add_command(stop_cmd.stop)
+cli.add_command(delete_cmd.delete)
+cli.add_command(status_cmd.gs)
+cli.add_command(validate_cmd.validate)
+cli.add_command(update_cmd.update)
+cli.add_command(get_cmd.get)
+
+
+if __name__ == "__main__":
+    cli()

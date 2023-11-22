@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_TASK_DISPATCHER_H
-#define __INDEXLIB_MERGE_TASK_DISPATCHER_H
+#pragma once
 
 #include <memory>
+#include <stdint.h>
+#include <vector>
 
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/table/merge_task_description.h"
 #include "indexlib/table/task_execute_meta.h"
 
@@ -67,5 +68,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeTaskDispatcher);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_MERGE_TASK_DISPATCHER_H

@@ -15,6 +15,10 @@
  */
 #include "build_service/workflow/AsyncStarter.h"
 
+#include <iosfwd>
+#include <memory>
+#include <unistd.h>
+
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 

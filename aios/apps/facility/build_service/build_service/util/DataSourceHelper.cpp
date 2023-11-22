@@ -16,6 +16,9 @@
 #include "build_service/util/DataSourceHelper.h"
 
 #include <autil/StringUtil.h>
+#include <map>
+#include <string>
+#include <utility>
 
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/proto/DataDescription.h"

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_ONLINE_PARTITION_H
-#define __INDEXLIB_FAKE_ONLINE_PARTITION_H
+#pragma once
 
 #include <memory>
 
@@ -36,7 +35,7 @@ public:
     }
     OpenStatus Open(const std::string& dir, const std::string& secondaryDir,
                     const config::IndexPartitionSchemaPtr& schema, const config::IndexPartitionOptions& options,
-                    versionid_t version = INVALID_VERSION) override
+                    versionid_t version = INVALID_VERSIONID) override
     {
         // TODO(panghai.hj): Try all UT to see if static is needed here.
         util::MemoryQuotaControllerPtr memoryQuotaController(new util::MemoryQuotaController(10000000));
@@ -44,7 +43,7 @@ public:
         mMemController.reset(new util::BlockMemoryQuotaController(mPartitionMemController, "file_system"));
         return OS_OK;
     }
-    OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSION) override { return OS_OK; }
+    OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSIONID) override { return OS_OK; }
     void ReOpenNewSegment() override {}
 
     void AddVirtualAttributes(const config::AttributeConfigVector& mainVirtualAttrConfigs,
@@ -88,5 +87,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeOnlinePartition);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MOCK_INDEX_PARTITION_H

@@ -17,13 +17,16 @@
 
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/framework/Segment.h"
+#include "indexlib/framework/index_task/BasicDefs.h"
 #include "indexlib/table/index_task/SimpleIndexTaskPlanCreator.h"
 
 namespace indexlibv2::framework {
 class Version;
-}
+class IndexOperationDescription;
+} // namespace indexlibv2::framework
 namespace indexlibv2::config {
 class InvertedIndexConfig;
 }
@@ -33,12 +36,21 @@ namespace indexlibv2::table {
 class NormalTableAlterTablePlanCreator : public SimpleIndexTaskPlanCreator
 {
 public:
-    NormalTableAlterTablePlanCreator(const std::string& taskName, const std::map<std::string, std::string>& params);
+    NormalTableAlterTablePlanCreator(const std::string& taskName, const std::string& taskTraceId,
+                                     const std::map<std::string, std::string>& params);
     ~NormalTableAlterTablePlanCreator();
 
 public:
     std::pair<Status, std::unique_ptr<framework::IndexTaskPlan>>
     CreateTaskPlan(const framework::IndexTaskContext* taskContext) override;
+
+protected:
+    virtual Status CreateIndexOperationDescs(framework::IndexOperationId& startOpId, segmentid_t targetSegmentId,
+                                             schemaid_t targetSchemaId,
+                                             const std::vector<std::shared_ptr<config::IIndexConfig>>& addIndexConfigs,
+                                             const framework::IndexTaskContext* taskContext,
+                                             std::vector<framework::IndexOperationDescription>& opDescs);
+    virtual bool SupportAlterTableWithDefaultValue(const std::shared_ptr<config::TabletOptions>& tabletOptions);
 
 private:
     std::string ConstructLogTaskType() const override;
@@ -51,7 +63,8 @@ private:
                                     std::vector<std::shared_ptr<config::IIndexConfig>>& deleteIndexConfigs) const;
     bool UseDefaultValueStrategy(schemaid_t baseSchemaId, schemaid_t targetSchemaId,
                                  const std::shared_ptr<framework::TabletData>& tabletData) const;
-
+    bool ValidateSchema(schemaid_t baseSchemaId, schemaid_t targetSchemaId,
+                        const std::shared_ptr<framework::TabletData>& tabletData) const;
     std::pair<Status, std::unique_ptr<framework::IndexTaskPlan>>
     CreateDefaultValueTaskPlan(const framework::Version& targetVersion);
 

@@ -15,7 +15,21 @@
  */
 #include "build_service/admin/taskcontroller/DocReclaimTaskController.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/config/TaskTarget.h"
 
 using namespace std;
 using namespace autil;

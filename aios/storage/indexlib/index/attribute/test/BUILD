@@ -35,7 +35,7 @@ strict_cc_fast_test(
         '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/index:BuildingIndexMemoryUseUpdater',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/index/attribute:AttributeDiskIndexer',
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format'
@@ -47,7 +47,7 @@ strict_cc_fast_test(
     copts=['-fno-access-control'],
     deps=[
         ':AttributeTestUtil', '//aios/autil:log',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/index/attribute:AttributeIndexFactory',
         '//aios/storage/indexlib/index/attribute/merger:AttributeMerger'
@@ -64,7 +64,7 @@ strict_cc_fast_test(
         '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/index:BuildingIndexMemoryUseUpdater',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/index/attribute:AttributeDiskIndexer',
         '//aios/storage/indexlib/index/common:AttributeValueTypeTraits',
@@ -81,7 +81,7 @@ strict_cc_fast_test(
         '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
         '//aios/storage/indexlib/file_system',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/index/attribute:MultiValueAttributeMemReader',
         '//aios/storage/indexlib/index/common/field_format:attribute_field_format',
@@ -197,6 +197,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='AttributeIndexFileTest',
     srcs=['AttributeIndexFileTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/index/attribute:constants',

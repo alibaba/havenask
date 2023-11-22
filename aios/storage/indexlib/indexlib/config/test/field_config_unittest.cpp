@@ -12,7 +12,7 @@ using namespace autil::legacy::json;
 using namespace indexlib::util;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, FieldConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, FieldConfigTest);
 
 FieldConfigTest::FieldConfigTest() {}
 

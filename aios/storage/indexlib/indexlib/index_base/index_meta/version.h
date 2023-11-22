@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VERSION2_H
-#define __INDEXLIB_VERSION2_H
+#pragma once
 
 #include <memory>
 
@@ -132,12 +131,12 @@ public:
 public:
     static bool IsValidSegmentDirName(const std::string& segDirName, bool isLegacy);
     static segmentid_t GetSegmentIdByDirName(const std::string& segDirName);
-    static std::string GetSchemaFileName(schemavid_t schemaId);
+    static std::string GetSchemaFileName(schemaid_t schemaId);
     static std::string GetVersionFileName(versionid_t versionId);
-    static bool ExtractSchemaIdBySchemaFile(const std::string& schemaFileName, schemavid_t& schemaId);
+    static bool ExtractSchemaIdBySchemaFile(const std::string& schemaFileName, schemaid_t& schemaId);
 
-    void SetSchemaVersionId(schemavid_t schemaId) { mSchemaVersionId = schemaId; }
-    schemavid_t GetSchemaVersionId() const { return mSchemaVersionId; }
+    void SetSchemaVersionId(schemaid_t schemaId) { mSchemaVersionId = schemaId; }
+    schemaid_t GetSchemaVersionId() const { return mSchemaVersionId; }
     void SyncSchemaVersionId(const config::IndexPartitionSchemaPtr& schema);
 
     void AddDescription(const std::string& key, const std::string& value);
@@ -179,7 +178,7 @@ private:
     SegmentIdVec mSegmentIds;
     indexlibv2::framework::LevelInfo mLevelInfo;
     uint32_t mFormatVersion;
-    schemavid_t mSchemaVersionId;
+    schemaid_t mSchemaVersionId;
     ModifyOpIdVec mOngoingModifyOpIds;
     std::map<std::string, std::string> mDesc;
     SegTemperatureVec mSegTemperatureMetas;
@@ -285,5 +284,3 @@ inline bool Version::operator<(const Version& other) const { return mVersionId <
 inline bool Version::operator>(const Version& other) const { return mVersionId > other.mVersionId; }
 
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_VERSION2_H

@@ -15,25 +15,46 @@
  */
 #include "build_service/build_task/SingleBuilder.h"
 
+#include <map>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "beeper/beeper.h"
 #include "build_service/build_task/UpdateLocatorTaskItemV2.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/ExceedTsAction.h"
 #include "build_service/common/ResourceKeeper.h"
 #include "build_service/common/ResourceKeeperCreator.h"
 #include "build_service/common/SwiftResourceKeeper.h"
 #include "build_service/common_define.h"
+#include "build_service/config/BuildServiceConfig.h"
+#include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/DataLinkModeUtil.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/config/SwiftConfig.h"
 #include "build_service/config/SwiftTopicConfig.h"
 #include "build_service/config/TaskInputConfig.h"
 #include "build_service/proto/BuildTaskTargetInfo.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/RangeUtil.h"
 #include "build_service/util/SwiftClientCreator.h"
+#include "build_service/workflow/BuildFlowMode.h"
+#include "build_service/workflow/Producer.h"
+#include "build_service/workflow/RealtimeBuilderDefine.h"
 #include "build_service/workflow/SwiftProcessedDocProducer.h"
+#include "build_service/workflow/Workflow.h"
+#include "build_service/workflow/WorkflowItem.h"
 #include "indexlib/file_system/IDirectory.h"
-#include "indexlib/file_system/JsonUtil.h"
-#include "indexlib/framework/ITablet.h"
-#include "indexlib/util/TaskItem.h"
 
 namespace build_service::build_task {
 
@@ -67,17 +88,24 @@ bool SingleBuilder::parseTargetDescription(const config::TaskTarget& target, Key
     for (auto it = ds.begin(); it != ds.end(); ++it) {
         kvMap[it->first] = it->second;
     }
-    if (isProcessedDocDataDesc(kvMap) || config::DataLinkModeUtil::isDataLinkNPCMode(kvMap)) {
+
+    if (isProcessedDocDataDesc(kvMap)) {
         if (_buildStep == "full") {
             kvMap["topicConfigName"] = config::FULL_SWIFT_BROKER_TOPIC_CONFIG;
         } else {
             kvMap["topicConfigName"] = config::INC_SWIFT_BROKER_TOPIC_CONFIG;
         }
-
         // for start build with stopTimestamp, avoid swift actual stop timestamp > expected
         int64_t stopTimestamp = 0;
         if (getTimestamp(kvMap, "stopTimestamp", stopTimestamp)) {
             kvMap[config::PROCESSED_DOC_SWIFT_STOP_TIMESTAMP] = autil::StringUtil::toString(stopTimestamp);
+        }
+    } else if (config::DataLinkModeUtil::isDataLinkNPCMode(kvMap)) {
+        kvMap["topicConfigName"] = config::RAW_SWIFT_TOPIC_CONFIG;
+        // for start build with stopTimestamp, avoid swift actual stop timestamp > expected
+        int64_t stopTimestamp = 0;
+        if (getTimestamp(kvMap, "stopTimestamp", stopTimestamp)) {
+            kvMap[config::SWIFT_STOP_TIMESTAMP] = autil::StringUtil::toString(stopTimestamp);
         }
     }
     kvMap["clusterName"] = _taskInitParam.clusterName;
@@ -239,7 +267,7 @@ bool SingleBuilder::startBuildFlow(KeyValueMap& kvMap)
         mode = workflow::BuildFlowMode::BUILDER;
     }
     _buildFlow = std::make_unique<workflow::BuildFlow>(
-        /*swiftClientCreator=*/nullptr, _taskInitParam.resourceReader->getTabletSchema(_taskInitParam.clusterName),
+        _taskInitParam.resourceReader->getTabletSchema(_taskInitParam.clusterName),
         workflow::BuildFlowThreadResource());
 
     _brokerFactory = std::make_unique<workflow::FlowFactory>(

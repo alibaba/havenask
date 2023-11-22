@@ -15,22 +15,43 @@
  */
 #include "build_service/worker/BuildJobImpl.h"
 
+#include <cstddef>
+#include <map>
+#include <utility>
+
+#include "autil/CommonMacros.h"
+#include "autil/Log.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
-#include "build_service/builder/BuilderMetrics.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "beeper/beeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CounterSynchronizer.h"
 #include "build_service/common/CounterSynchronizerCreator.h"
+#include "build_service/common/CpuSpeedEstimater.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReaderManager.h"
 #include "build_service/proto/DataDescription.h"
 #include "build_service/proto/ProtoComparator.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/task_base/BuildTask.h"
-#include "build_service/util/Monitor.h"
-#include "build_service/worker/ServiceWorker.h"
+#include "build_service/task_base/RestartIntervalController.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "build_service/workflow/AsyncStarter.h"
+#include "build_service/workflow/BuildFlowMode.h"
 #include "build_service/workflow/FlowFactory.h"
-#include "fslib/fs/FileSystem.h"
-#include "fslib/util/FileUtil.h"
+#include "build_service/workflow/WorkflowItem.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/FileLock.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/index_base/branch_fs.h"
 #include "indexlib/table/BuiltinDefine.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace autil;

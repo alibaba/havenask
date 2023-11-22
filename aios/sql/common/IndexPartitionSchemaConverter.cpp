@@ -154,7 +154,7 @@ bool IndexPartitionSchemaConverter::convertNormalTable(const IndexPartitionSchem
     auto &summarySchema = schema->GetSummarySchema();
 
     // fill fields
-    convertFields(fieldSchema, indexSchema, attrSchema, nullptr, tableType, tableDef.fields);
+    convertFields(fieldSchema, indexSchema, attrSchema, summarySchema, tableType, tableDef.fields);
 
     // fill summary fields
     if (summarySchema && summarySchema->GetSummaryCount() > 0) {
@@ -379,28 +379,30 @@ bool IndexPartitionSchemaConverter::convertFields(const FieldSchemaPtr &fieldSch
         // 2. store the field index info
         convertIndexFieldConfig(indexSchema, tableType, fieldDef);
 
-        // 3. check attribute
+        // 3. check attribute and summary
         bool hasAttribute = attrSchema && attrSchema->IsInAttribute(fieldId);
         fieldDef.isAttr = hasAttribute;
+
+        bool isSummaryField = false;
+        if (isNormalPkIndex(fieldDef.indexType)) {
+            isSummaryField = true;
+        } else if (hasAttribute) {
+            isSummaryField = true;
+        } else {
+            if (summarySchema && summarySchema->GetSummaryConfig(fieldDef.fieldName)) {
+                isSummaryField = true;
+            }
+        }
 
         // 4. check fields
         if (tableType == IQUAN_TABLE_TYPE_NORMAL || tableType == IQUAN_TABLE_TYPE_KKV
             || tableType == IQUAN_TABLE_TYPE_KV || tableType == IQUAN_TABLE_TYPE_ORC) {
-            if (fieldDef.indexType.empty() && !hasAttribute) {
+            if (fieldDef.indexType.empty() && !hasAttribute && !isSummaryField) {
                 continue;
             }
         }
+
         if (tableType == IQUAN_TABLE_TYPE_SUMMARY) {
-            bool isSummaryField = false;
-            if (isNormalPkIndex(fieldDef.indexType)) {
-                isSummaryField = true;
-            } else if (hasAttribute) {
-                isSummaryField = true;
-            } else {
-                if (summarySchema && summarySchema->GetSummaryConfig(fieldDef.fieldName)) {
-                    isSummaryField = true;
-                }
-            }
             if (!isSummaryField) {
                 continue;
             }
@@ -465,37 +467,39 @@ bool IndexPartitionSchemaConverter::convertFields(
         // 2. store the field index info
         convertIndexFieldConfig(schema, tableType, fieldDef);
 
-        // 3. check attribute
+        // 3. check attribute and summary
         bool hasAttribute = isAttrField(fieldName);
         fieldDef.isAttr = hasAttribute;
+
+        bool isSummaryField = false;
+        if (isNormalPkIndex(fieldDef.indexType)) {
+            isSummaryField = true;
+        } else if (hasAttribute) {
+            isSummaryField = true;
+        } else {
+            const auto &indexConfigs
+                = schema->GetIndexConfigs(indexlibv2::index::SUMMARY_INDEX_TYPE_STR);
+            if (!indexConfigs.empty()) {
+                assert(indexConfigs.size() == 1u);
+                const auto &summaryConfig
+                    = std::dynamic_pointer_cast<indexlibv2::config::SummaryIndexConfig>(
+                        indexConfigs[0]);
+                assert(summaryConfig);
+                if (summaryConfig->GetSummaryConfig(fieldName)) {
+                    isSummaryField = true;
+                }
+            }
+        }
 
         // 4. check fields
         if (tableType == IQUAN_TABLE_TYPE_NORMAL || tableType == IQUAN_TABLE_TYPE_KKV
             || tableType == IQUAN_TABLE_TYPE_KV || tableType == IQUAN_TABLE_TYPE_ORC) {
-            if (fieldDef.indexType.empty() && !hasAttribute) {
+            if (fieldDef.indexType.empty() && !hasAttribute && !isSummaryField) {
                 continue;
             }
         }
+
         if (tableType == IQUAN_TABLE_TYPE_SUMMARY) {
-            bool isSummaryField = false;
-            if (isNormalPkIndex(fieldDef.indexType)) {
-                isSummaryField = true;
-            } else if (hasAttribute) {
-                isSummaryField = true;
-            } else {
-                const auto &indexConfigs
-                    = schema->GetIndexConfigs(indexlibv2::index::SUMMARY_INDEX_TYPE_STR);
-                if (!indexConfigs.empty()) {
-                    assert(indexConfigs.size() == 1u);
-                    const auto &summaryConfig
-                        = std::dynamic_pointer_cast<indexlibv2::config::SummaryIndexConfig>(
-                            indexConfigs[0]);
-                    assert(summaryConfig);
-                    if (summaryConfig->GetSummaryConfig(fieldName)) {
-                        isSummaryField = true;
-                    }
-                }
-            }
             if (!isSummaryField) {
                 continue;
             }

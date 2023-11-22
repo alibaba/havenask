@@ -26,7 +26,7 @@ def navi_config(loader, config_path, loader_param):
         else:
             import navi_default_loader
             config = navi_default_loader.load(config_path, loader_param)
-        ret = json.dumps(config, indent=4)
+        ret = json.dumps(config, sort_keys=True, indent=4)
         if not isinstance(config, dict):
             raise Exception("invalid config value, not a dict: %s" % ret)
         logging.info("result: " + ret)

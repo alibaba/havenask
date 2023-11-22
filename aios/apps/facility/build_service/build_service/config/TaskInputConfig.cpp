@@ -15,6 +15,11 @@
  */
 #include "build_service/config/TaskInputConfig.h"
 
+#include <iosfwd>
+#include <utility>
+
+#include "autil/legacy/exception.h"
+
 using namespace std;
 using namespace autil::legacy;
 

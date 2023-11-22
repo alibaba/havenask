@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_SUMMARY_READER_H
-#define __INDEXLIB_FAKE_SUMMARY_READER_H
+#pragma once
 
 #include <memory>
 
@@ -51,5 +50,3 @@ public:
 
 DEFINE_SHARED_PTR(FakeSummaryReader);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_FAKE_SUMMARY_READER_H

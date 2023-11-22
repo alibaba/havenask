@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVDOCREADERTEST_H
-#define __INDEXLIB_KVDOCREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -61,5 +60,3 @@ INDEXLIB_UNIT_TEST_CASE(KVDocReaderTest, TestPackValue);
 INDEXLIB_UNIT_TEST_CASE(KVDocReaderTest, TestKVMerge);
 
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KVDOCREADERTEST_H

@@ -83,4 +83,3 @@ void GigMetaR::log() const {
 REGISTER_RESOURCE(GigMetaR);
 
 }
-

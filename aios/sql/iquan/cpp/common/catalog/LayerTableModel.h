@@ -28,50 +28,25 @@ public:
     LayerTableModel() {}
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        json.Jsonize("catalog_name", catalogName);
-        json.Jsonize("database_name", databaseName);
-        json.Jsonize("layer_table_name", tableName);
+        json.Jsonize("layer_table_name", layerTableName);
         json.Jsonize("content", tableContent);
     }
 
     bool isValid() const {
-        if (tableName.empty() || !tableContent.isValid()) {
+        if (!tableContent.isValid() || layerTableName.empty()) {
             return false;
         }
         return true;
     }
 
+    const std::string &tableName() const {
+        return layerTableName;
+    }
+
 public:
-    std::string catalogName;
-    std::string databaseName;
-    std::string tableName;
+    std::string layerTableName;
     LayerTableDef tableContent;
 };
 
-class LayerTableModels : public autil::legacy::Jsonizable {
-public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        json.Jsonize("layer_tables", tables);
-    }
-
-    bool isValid() const {
-        for (const auto &table : tables) {
-            if (!table.isValid()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    void merge(const LayerTableModels &other) {
-        tables.insert(tables.end(), other.tables.begin(), other.tables.end());
-    }
-    bool empty() const {
-        return tables.empty();
-    }
-
-public:
-    std::vector<LayerTableModel> tables;
-};
-
+using LayerTableModels = std::vector<LayerTableModel>;
 } // namespace iquan

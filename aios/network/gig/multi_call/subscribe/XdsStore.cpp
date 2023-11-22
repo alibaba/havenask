@@ -249,6 +249,7 @@ void XdsStore::fillTopoNode(const std::string &hostname, const LbEndpoint &lbe,
     topoNode->supportHeartbeat = extractValue(metadata, kKeySupportHearbeat, false);
     int32_t grpcPort = extractValue(metadata, kKeyGrpcPort, INVALID_PORT);
     topoNode->spec.ports[MC_PROTOCOL_GRPC] = grpcPort;
+    topoNode->spec.ports[MC_PROTOCOL_GRPC_STREAM] = grpcPort;
     std::string protocol = extractValue(metadata, kKeyProtocol, std::string());
     if (protocol == "PT_TCP") {
         topoNode->spec.ports[MC_PROTOCOL_TCP] = port;
@@ -359,7 +360,8 @@ bool XdsStore::updateEDS(bool isFull, std::shared_ptr<envoy::api::v2::DiscoveryR
 }
 
 // The output should be *append* to topoNodeVecToAppend
-bool XdsStore::getClusterInfoMap(TopoNodeVec *topoNodeVecToAppend) {
+bool XdsStore::getClusterInfoMap(TopoNodeVec *topoNodeVecToAppend,
+                                 HeartbeatSpecVec &heartbeatSpecs) {
     if (topoNodeVecToAppend == NULL) {
         AUTIL_LOG(ERROR, "Error getClusterInfoMap passed a null pointer.");
         return false;
@@ -374,7 +376,14 @@ bool XdsStore::getClusterInfoMap(TopoNodeVec *topoNodeVecToAppend) {
     }
     for (const auto &ns : topoNodesMap) {
         for (const auto &n : ns.second) {
-            topoNodeVecToAppend->push_back(*(n.second));
+            const auto &topoNode = *(n.second);
+            if (INVALID_PORT != topoNode.spec.ports[MC_PROTOCOL_GRPC_STREAM]) {
+                HeartbeatSpec spec;
+                spec.spec = topoNode.spec;
+                heartbeatSpecs.push_back(spec);
+            } else {
+                topoNodeVecToAppend->push_back(topoNode);
+            }
         }
     }
     return true;

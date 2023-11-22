@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SPATIALINDEXREADERTEST_H
-#define __INDEXLIB_SPATIALINDEXREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/inverted_index/builtin_index/spatial/spatial_index_reader.h"
@@ -31,5 +30,3 @@ INDEXLIB_UNIT_TEST_CASE(SpatialIndexReaderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(SpatialIndexReaderTest, TestParseShape);
 INDEXLIB_UNIT_TEST_CASE(SpatialIndexReaderTest, TestParseShapeFail);
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_SPATIALINDEXREADERTEST_H

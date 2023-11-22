@@ -27,9 +27,9 @@ namespace iquan {
 class Layer : public autil::legacy::Jsonizable {
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        json.Jsonize("database_name", dbName);
-        json.Jsonize("table_name", tableName);
-        json.Jsonize("layer_info", layerInfo);
+        json.Jsonize("database_name", dbName, dbName);
+        json.Jsonize("table_name", tableName, tableName);
+        json.Jsonize("layer_info", layerInfo, layerInfo);
     }
 
     bool isValid() const {
@@ -45,9 +45,9 @@ public:
 class LayerFormat : public autil::legacy::Jsonizable {
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        json.Jsonize("field_name", fieldName);
-        json.Jsonize("layer_method", layerMethod);
-        json.Jsonize("value_type", valueType);
+        json.Jsonize("field_name", fieldName, fieldName);
+        json.Jsonize("layer_method", layerMethod, layerMethod);
+        json.Jsonize("value_type", valueType, valueType);
     }
 
     bool isValid() const {
@@ -63,18 +63,16 @@ public:
 class LayerTableDef : public autil::legacy::Jsonizable {
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        json.Jsonize("layer_table_name", layerTableName);
-        json.Jsonize("layer_format", layerFormats);
-        json.Jsonize("layers", layers);
+        json.Jsonize("layer_format", layerFormats, layerFormats);
+        json.Jsonize("layers", layers, layers);
         json.Jsonize("properties", properties, properties);
     }
 
     bool isValid() const {
-        return true;
+        return !layers.empty();
     }
 
 public:
-    std::string layerTableName;
     std::vector<Layer> layers;
     std::vector<LayerFormat> layerFormats;
     std::map<std::string, autil::legacy::Any> properties;

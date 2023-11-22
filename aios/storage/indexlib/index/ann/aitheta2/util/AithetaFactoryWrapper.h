@@ -35,6 +35,7 @@ public:
     static bool CreateStreamer(const AithetaIndexConfig& indexConfig,
                                const std::shared_ptr<RealtimeIndexBuildResource>& resource,
                                AiThetaStreamerPtr& streamer);
+    static bool CreateReducer(const AithetaIndexConfig& config, AiThetaReducerPtr& reducer);
 
 private:
     static bool CreateStorage(const std::string& name, const AiThetaParams& params, AiThetaStoragePtr& storage);

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_LOCAL_DISK_SUMMARY_READER_H
-#define __INDEXLIB_LOCAL_DISK_SUMMARY_READER_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -97,5 +96,3 @@ private:
 };
 DEFINE_SHARED_PTR(LocalDiskSummaryReader);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_LOCAL_DISK_SUMMARY_READER_H

@@ -30,7 +30,17 @@ public:
     FunctionFactoryBaseR &operator=(const FunctionFactoryBaseR &) = delete;
 
 public:
-    virtual suez::turing::SyntaxExpressionFactory *getFactory() = 0;
+    suez::turing::SyntaxExpressionFactory *getFactory() const {
+        return _factory.get();
+    }
+protected:
+    bool config(navi::ResourceConfigContext &ctx) override;
+    navi::ErrorCode init(navi::ResourceInitContext &ctx) override;
+protected:
+    virtual std::shared_ptr<suez::turing::SyntaxExpressionFactory> createFactory() = 0;
+protected:
+    std::string _configPath;
+    std::shared_ptr<suez::turing::SyntaxExpressionFactory> _factory;
 };
 
 NAVI_TYPEDEF_PTR(FunctionFactoryBaseR);

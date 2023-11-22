@@ -88,10 +88,27 @@
 #define AUTIL_HAVE_ADDRESS_SANITIZER 1
 #endif
 
+// ThreadSanitizer (TSan) is a fast data race detector.
+#ifdef AUTIL_HAVE_THREAD_SANITIZER
+#error "AUTIL_HAVE_THREAD_SANITIZER cannot be directly set."
+#elif defined(__SANITIZE_THREAD__)
+#define AUTIL_HAVE_THREAD_SANITIZER 1
+#elif AUTIL_HAVE_FEATURE(thread_sanitizer)
+#define AUTIL_HAVE_THREAD_SANITIZER 1
+#endif
+
 // MemorySanitizer (MSan) is a detector of uninitialized reads. It consists of
 // a compiler instrumentation module and a run-time library.
 #ifdef AUTIL_HAVE_MEMORY_SANITIZER
 #error "AUTIL_HAVE_MEMORY_SANITIZER cannot be directly set."
 #elif !defined(__native_client__) && AUTIL_HAVE_FEATURE(memory_sanitizer)
 #define AUTIL_HAVE_MEMORY_SANITIZER 1
+#endif
+
+#ifdef AUTIL_HAVE_THREAD_SANITIZER
+#define RETURN_IF_ENABLE_TSAN() return
+#else
+#define RETURN_IF_ENABLE_TSAN()                                                                                        \
+    do {                                                                                                               \
+    } while (0)
 #endif

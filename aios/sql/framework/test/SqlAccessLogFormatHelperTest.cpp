@@ -70,9 +70,24 @@ TEST_F(SqlAccessLogFormatHelperTest, testParseSoftFailure) {
 
     {
         SqlAccessLog accessLog;
-        auto *scanInfo = accessLog._info.searchInfo.add_scaninfos();
-        scanInfo->set_degradeddocscount(1);
+        auto *degradedInfo = accessLog._info.searchInfo.add_degradedinfos();
+        degradedInfo->add_degradederrorcodes(IO_ERROR);
         ASSERT_TRUE(SqlAccessLogFormatHelper::parseSoftFailure(accessLog));
+    }
+}
+
+TEST_F(SqlAccessLogFormatHelperTest, testParseSoftFailureCodes) {
+    {
+        SqlAccessLog accessLog;
+        ASSERT_EQ(SqlAccessLogFormatHelper::parseSoftFailureCodes(accessLog).size(), 0);
+    }
+    {
+        SqlAccessLog accessLog;
+        auto *degradedInfo = accessLog._info.searchInfo.add_degradedinfos();
+        degradedInfo->add_degradederrorcodes(IO_ERROR);
+        degradedInfo->add_degradederrorcodes(RPC_ERROR);
+        EXPECT_THAT(SqlAccessLogFormatHelper::parseSoftFailureCodes(accessLog),
+                    ElementsAre(IO_ERROR, RPC_ERROR));
     }
 }
 

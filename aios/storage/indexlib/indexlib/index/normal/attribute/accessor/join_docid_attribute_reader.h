@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_JOIN_DOCID_ATTRIBUTE_READER_H
-#define __INDEXLIB_JOIN_DOCID_ATTRIBUTE_READER_H
+#pragma once
 
 #include <memory>
 
@@ -87,5 +86,3 @@ inline docid_t JoinDocidAttributeReader::GetJoinDocId(docid_t docId) const
 
 DEFINE_SHARED_PTR(JoinDocidAttributeReader);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_JOIN_DOCID_ATTRIBUTE_READER_H

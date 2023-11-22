@@ -1,11 +1,15 @@
 #include "catalog/tools/BSConfigMaker.h"
 
 #include "fslib/fs/FileSystem.h"
+#include "google/protobuf/util/json_util.h"
 #include "unittest/unittest.h"
 
 using namespace std;
 
 namespace catalog {
+
+using google::protobuf::util::JsonParseOptions;
+using google::protobuf::util::JsonStringToMessage;
 
 class BSConfigMakerTest : public TESTBASE {
 private:
@@ -109,6 +113,36 @@ private:
         ASSERT_EQ(content1, content2);
     }
     void assertExist(const string &path) { ASSERT_EQ(fslib::EC_TRUE, fslib::fs::FileSystem::isExist(path)); }
+    void assertContainString(const string &str, const string &substr) {
+        auto it = str.find(substr);
+        ASSERT_TRUE(it != std::string::npos);
+    }
+    void generateBsConfig(string &configPath) {
+        auto part = createPartition();
+        Partition partition;
+        auto status = partition.fromProto(part);
+        ASSERT_TRUE(isOk(status)) << status.message();
+
+        auto rootDir = GET_TEMP_DATA_PATH();
+        rootDir.pop_back();
+        string templatePath = GET_TEST_DATA_PATH() + "bs_template";
+        status = BSConfigMaker::Make(partition, templatePath, rootDir, &configPath);
+        ASSERT_TRUE(isOk(status)) << status.message();
+    }
+    void fillLoadStrategy(catalog::LoadStrategy &loadStrategy,
+                          string online_index_config,
+                          proto::LoadStrategyConfig::LoadMode load_mode) {
+        proto::LoadStrategy loadStrategyProto;
+        loadStrategyProto.set_table_name("tb1");
+        loadStrategyProto.set_table_group_name("tg1");
+        loadStrategyProto.set_database_name("db1");
+        loadStrategyProto.set_catalog_name("ct1");
+        proto::LoadStrategyConfig loadStrategyConfig;
+        loadStrategyConfig.set_online_index_config(online_index_config);
+        loadStrategyConfig.set_load_mode(load_mode);
+        *loadStrategyProto.mutable_load_strategy_config() = loadStrategyConfig;
+        loadStrategy.fromProto(loadStrategyProto);
+    }
 };
 
 TEST_F(BSConfigMakerTest, testSimple) {
@@ -132,6 +166,136 @@ TEST_F(BSConfigMakerTest, testSimple) {
     assertFileEqual(bsConfig + "/clusters/tb1_cluster.json", configPath + "/clusters/tb1_cluster.json");
     assertFileEqual(bsConfig + "/data_tables/tb1_table.json", configPath + "/data_tables/tb1_table.json");
     assertFileEqual(bsConfig + "/schemas/tb1_schema.json", configPath + "/schemas/tb1_schema.json");
+}
+
+TEST_F(BSConfigMakerTest, testValidateSchema) {
+    {
+        proto::Table table;
+        Status status = BSConfigMaker::validateSchema(table);
+        ASSERT_EQ(Status::UNSUPPORTED, status.code());
+        ASSERT_EQ("table_structure for table:[..] is not specified", status.message());
+    }
+    {
+        proto::Table table;
+        JsonParseOptions options;
+        options.ignore_unknown_fields = true;
+        auto tableSchemaPath = GET_TEST_DATA_PATH() + "catalog_config/table_invalid_timestamp_index_param.json";
+        std::string jsonStr;
+        auto ec = fslib::fs::FileSystem::readFile(tableSchemaPath, jsonStr);
+        ASSERT_EQ(fslib::EC_OK, ec);
+        {
+            const auto &status = JsonStringToMessage(jsonStr, &table, options);
+            ASSERT_TRUE(status.ok());
+        }
+        Status status = BSConfigMaker::validateSchema(table);
+        ASSERT_EQ(Status::INTERNAL_ERROR, status.code());
+        ASSERT_EQ("table schema config init failed, [catalog.database.simple]", status.message());
+    }
+    {
+        proto::Table table;
+        JsonParseOptions options;
+        options.ignore_unknown_fields = true;
+        auto tableSchemaPath = GET_TEST_DATA_PATH() + "catalog_config/table.json";
+        std::string jsonStr;
+        auto ec = fslib::fs::FileSystem::readFile(tableSchemaPath, jsonStr);
+        ASSERT_EQ(fslib::EC_OK, ec);
+        {
+            const auto &status = JsonStringToMessage(jsonStr, &table, options);
+            ASSERT_TRUE(status.ok());
+        }
+        Status status = BSConfigMaker::validateSchema(table);
+        ASSERT_EQ(Status::OK, status.code());
+    }
+}
+
+TEST_F(BSConfigMakerTest, testMergeClusterJson) {
+    string configPath;
+    generateBsConfig(configPath);
+    {
+        LoadStrategy loadStrategy;
+        auto status = BSConfigMaker::mergeClusterJson(configPath, loadStrategy);
+        cout << status.message() << endl;
+        ASSERT_EQ(Status::INTERNAL_ERROR, status.code());
+    }
+    {
+        catalog::LoadStrategy loadStrategy;
+        fillLoadStrategy(loadStrategy, R"json({"invalid json string})json", proto::LoadStrategyConfig::USER_DEFINED);
+        auto status = BSConfigMaker::mergeClusterJson(configPath, loadStrategy);
+        ASSERT_EQ(Status::INTERNAL_ERROR, status.code());
+    }
+    {
+        catalog::LoadStrategy loadStrategy;
+        fillLoadStrategy(loadStrategy, R"json({"invalid json string})json", proto::LoadStrategyConfig::USER_DEFINED);
+        auto status = BSConfigMaker::mergeClusterJson(configPath, loadStrategy);
+        ASSERT_EQ(Status::INTERNAL_ERROR, status.code());
+    }
+    {
+        catalog::LoadStrategy loadStrategy;
+        fillLoadStrategy(
+            loadStrategy, R"json({"max_realtime_memory_use":4096})json", proto::LoadStrategyConfig::USER_DEFINED);
+        auto status = BSConfigMaker::mergeClusterJson(configPath, loadStrategy);
+        ASSERT_EQ(Status::OK, status.code());
+        string clusterJsonPath = configPath + "/clusters/tb1_cluster.json";
+        std::string jsonStr;
+        auto ec = fslib::fs::FileSystem::readFile(clusterJsonPath, jsonStr);
+        ASSERT_EQ(fslib::EC_OK, ec);
+        assertContainString(jsonStr, R"("online_index_config":{"max_realtime_memory_use":4096})");
+    }
+    {
+        catalog::LoadStrategy loadStrategy;
+        fillLoadStrategy(loadStrategy, "", proto::LoadStrategyConfig::NONE);
+        auto status = BSConfigMaker::mergeClusterJson(configPath, loadStrategy);
+        ASSERT_EQ(Status::OK, status.code());
+        string clusterJsonPath = configPath + "/clusters/tb1_cluster.json";
+        std::string jsonStr;
+        auto ec = fslib::fs::FileSystem::readFile(clusterJsonPath, jsonStr);
+        ASSERT_EQ(fslib::EC_OK, ec);
+        assertContainString(jsonStr, R"("online_index_config":{})");
+    }
+    {
+        catalog::LoadStrategy loadStrategy;
+        fillLoadStrategy(loadStrategy, "", proto::LoadStrategyConfig::ALL_MMAP_LOCK);
+        auto status = BSConfigMaker::mergeClusterJson(configPath, loadStrategy);
+        ASSERT_EQ(Status::OK, status.code());
+        string clusterJsonPath = configPath + "/clusters/tb1_cluster.json";
+        std::string jsonStr;
+        auto ec = fslib::fs::FileSystem::readFile(clusterJsonPath, jsonStr);
+        ASSERT_EQ(fslib::EC_OK, ec);
+        cout << jsonStr << endl;
+        assertContainString(
+            jsonStr,
+            R"("online_index_config":{"load_config":{"file_patterns":[".*"],"load_strategy":"mmap","load_strategy_param":{"lock":true},"name":"__all_mmap_lock_value__"}})");
+    }
+}
+
+TEST_F(BSConfigMakerTest, testMergeOnlineConfig) {
+    auto rootDir = GET_TEMP_DATA_PATH();
+    rootDir.pop_back();
+
+    string configPath;
+    string mergedConfigPath;
+    generateBsConfig(configPath);
+    catalog::LoadStrategy loadStrategy;
+    fillLoadStrategy(
+        loadStrategy, R"json({"max_realtime_memory_use":4096})json", proto::LoadStrategyConfig::USER_DEFINED);
+    {
+        auto status = BSConfigMaker::mergeOnlineConfig(string(), &loadStrategy, &mergedConfigPath);
+        ASSERT_EQ(Status::INVALID_ARGUMENTS, status.code());
+    }
+    {
+        auto status = BSConfigMaker::mergeOnlineConfig(configPath, nullptr, &mergedConfigPath);
+        ASSERT_TRUE(isOk(status)) << status.message();
+        string expectedConfigPath =
+            rootDir + "/ct1/db1/tb1/part1/ef8fdaa083cba26a73380fec9b762207/config.d41d8cd98f00b204e9800998ecf8427e";
+        ASSERT_EQ(expectedConfigPath, mergedConfigPath);
+    }
+    {
+        auto status = BSConfigMaker::mergeOnlineConfig(configPath, &loadStrategy, &mergedConfigPath);
+        ASSERT_TRUE(isOk(status)) << status.message();
+        string expectedConfigPath =
+            rootDir + "/ct1/db1/tb1/part1/ef8fdaa083cba26a73380fec9b762207/config.4749a36fded2e49a514d65b8f7ff25db";
+        ASSERT_EQ(expectedConfigPath, mergedConfigPath);
+    }
 }
 
 } // namespace catalog

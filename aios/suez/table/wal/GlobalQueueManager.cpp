@@ -26,6 +26,7 @@ AUTIL_DECLARE_AND_SETUP_LOGGER(suez, GlobalQueueManager);
 
 namespace suez {
 
+
 GlobalQueueManager queueManager;
 
 GlobalQueueManager::GlobalQueueManager() {}
@@ -38,7 +39,7 @@ RawDocQueue GlobalQueueManager::createQueue(const std::string &queueName) {
     if (it != _docQueueMap.end()) {
         return it->second;
     }
-    RawDocQueue docQueuePtr(new LockFreeQueue<std::string>());
+    RawDocQueue docQueuePtr(new LockFreeQueue<RawDoc>());
     _docQueueMap[queueName] = docQueuePtr;
     return docQueuePtr;
 }

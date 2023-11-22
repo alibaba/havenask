@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ERRORCOLLECTOR_H
-#define ISEARCH_BS_ERRORCOLLECTOR_H
+#pragma once
 
 #include <deque>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/Lock.h"
-#include "build_service/common/BeeperCollectorDefine.h"
-#include "build_service/common_define.h"
+#include "beeper/common/common_type.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/util/Log.h"
 
 namespace beeper {
-class EventTags;
 // BS_TYPEDEF_PTR(EventTags);
 typedef std::shared_ptr<EventTags> EventTagsPtr;
 } // namespace beeper
@@ -102,5 +105,3 @@ private:
 };
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_ERRORCOLLECTOR_H

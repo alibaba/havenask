@@ -38,15 +38,20 @@ public:
     double coveredPercent() const {
         return _coveredPercent;
     }
+    const std::vector<int64_t> &getSoftFailureCodes() const {
+        return _softFailureCodes;
+    }
 
 private:
     static bool parseSoftFailure(const SqlAccessLog &accessLog);
     static double parseCoveredPercent(const multi_call::GigStreamRpcInfoMap &rpcInfoMap);
+    static std::vector<int64_t> parseSoftFailureCodes(const SqlAccessLog &accessLog);
 
 private:
     const SqlAccessLog &_accessLog;
     bool _hasSoftFailure;
     double _coveredPercent;
+    std::vector<int64_t> _softFailureCodes;
 };
 
 } // namespace sql

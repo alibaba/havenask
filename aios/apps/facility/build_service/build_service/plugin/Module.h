@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MODULE_H
-#define ISEARCH_BS_MODULE_H
+#pragma once
 
+#include <memory>
 #include <mutex>
+#include <string>
 
 #include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/plugin/DllWrapper.h"
 #include "build_service/plugin/ModuleFactory.h"
 #include "build_service/util/Log.h"
-
-namespace build_service { namespace config {
-class ResourceReader;
-}} // namespace build_service::config
 
 namespace build_service { namespace plugin {
 
@@ -78,5 +76,3 @@ private:
 };
 
 }} // namespace build_service::plugin
-
-#endif // ISEARCH_BS_MODULE_H

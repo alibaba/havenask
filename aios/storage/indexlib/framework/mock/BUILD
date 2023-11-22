@@ -52,8 +52,8 @@ strict_cc_library(
     deps=[
         '//aios/storage/indexlib/config:ITabletSchema',
         '//aios/storage/indexlib/framework:DiskSegment',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:IndexFactoryCreator',
-        '//aios/storage/indexlib/index:IndexerParameter',
         '//aios/storage/indexlib/index:interface'
     ]
 )
@@ -104,6 +104,8 @@ strict_cc_library(
         ':MockSchemaResolver', '//aios/storage/indexlib/document:interface',
         '//aios/storage/indexlib/framework:BuildResource',
         '//aios/storage/indexlib/framework:DiskSegment',
+        '//aios/storage/indexlib/framework:EnvironmentVariablesProvider',
+        '//aios/storage/indexlib/framework:IMemoryControlStrategy',
         '//aios/storage/indexlib/framework:ITabletExporter',
         '//aios/storage/indexlib/framework:ITabletFactory',
         '//aios/storage/indexlib/framework:ITabletImporter',

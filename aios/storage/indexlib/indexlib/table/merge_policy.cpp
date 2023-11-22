@@ -15,6 +15,13 @@
  */
 #include "indexlib/table/merge_policy.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <memory>
+
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/index_base/segment/segment_data_base.h"
+
 using namespace std;
 
 using namespace indexlib::config;

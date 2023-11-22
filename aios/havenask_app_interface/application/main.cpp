@@ -128,7 +128,6 @@ int main(int argc, char * argv[])
         ret = true;
         server->run();
     }
-
     delete server;
     AUTIL_LOG_SHUTDOWN();
     return ret ? 0 : -1;

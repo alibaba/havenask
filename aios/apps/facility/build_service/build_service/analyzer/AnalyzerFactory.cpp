@@ -15,14 +15,26 @@
  */
 #include "build_service/analyzer/AnalyzerFactory.h"
 
-#include "autil/StringUtil.h"
+#include <cstddef>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/Span.h"
+#include "autil/codec/NormalizeOptions.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/analyzer/AnalyzerInfos.h"
-#include "build_service/analyzer/IdleTokenizer.h"
-#include "build_service/analyzer/SimpleTokenizer.h"
-#include "build_service/analyzer/SingleWSTokenizer.h"
 #include "build_service/analyzer/TokenizerManager.h"
-#include "fslib/util/FileUtil.h"
+#include "build_service/config/AgentGroupConfig.h"
+#include "fslib/fs/FileSystem.h"
 #include "indexlib/analyzer/Analyzer.h"
+#include "indexlib/analyzer/AnalyzerDefine.h"
+#include "indexlib/analyzer/AnalyzerInfo.h"
+#include "indexlib/analyzer/ITokenizer.h"
+#include "indexlib/analyzer/TraditionalTables.h"
+
 using namespace std;
 using namespace autil;
 

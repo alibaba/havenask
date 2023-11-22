@@ -15,6 +15,12 @@
  */
 #pragma once
 
+#include <algorithm>
+#include <functional>
+#include <optional>
+#include <stdint.h>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "build_service/common/Locator.h"
@@ -27,25 +33,43 @@ namespace build_service::util {
 class LocatorUtil
 {
 public:
-    static std::pair<bool, std::vector<indexlibv2::base::Progress>>
+    static std::pair<bool, indexlibv2::base::ProgressVector>
     convertSwiftProgress(const swift::protocol::ReaderProgress& swiftProgress, bool isMultiTopic);
+
+    static std::pair<bool, indexlibv2::base::MultiProgress>
+    convertSwiftMultiProgress(const swift::protocol::ReaderProgress& swiftProgress);
+
     static swift::protocol::ReaderProgress
-    convertLocatorProgress(const std::vector<indexlibv2::base::Progress>& progress, const std::string& topicName,
+    convertLocatorProgress(const indexlibv2::base::ProgressVector& progress, const std::string& topicName,
                            const std::vector<std::pair<uint8_t, uint8_t>>& maskFilterPairs, bool useBSInnerMaskFilter);
-    static std::vector<indexlibv2::base::Progress>
-    ComputeProgress(const std::vector<indexlibv2::base::Progress>& lastProgress,
-                    const std::vector<indexlibv2::base::Progress>& progress,
+
+    static swift::protocol::ReaderProgress
+    convertLocatorMultiProgress(const indexlibv2::base::MultiProgress& multiProgress, const std::string& topicName,
+                                const std::vector<std::pair<uint8_t, uint8_t>>& maskFilterPairs,
+                                bool useBSInnerMaskFilter);
+
+    static std::optional<indexlibv2::base::MultiProgress>
+    computeMultiProgress(const indexlibv2::base::MultiProgress& lastProgress,
+                         const indexlibv2::base::MultiProgress& progress,
+                         std::function<indexlibv2::base::Progress::Offset(indexlibv2::base::Progress::Offset,
+                                                                          indexlibv2::base::Progress::Offset)>
+                             compareFunc);
+
+    static indexlibv2::base::ProgressVector
+    computeProgress(const indexlibv2::base::ProgressVector& lastProgress,
+                    const indexlibv2::base::ProgressVector& progress,
                     std::function<indexlibv2::base::Progress::Offset(indexlibv2::base::Progress::Offset,
                                                                      indexlibv2::base::Progress::Offset)>
                         compareFunc);
 
-    static std::string progress2DebugString(const std::vector<indexlibv2::base::Progress> progress);
+    static std::string progress2DebugString(const indexlibv2::base::MultiProgress& multiProgress);
+    static std::string progress2DebugString(const indexlibv2::base::ProgressVector& progress);
 
     // for stream topic mode
-    static bool EncodeOffset(int8_t streamIdx, int64_t timestamp, int64_t* offset);
-    static void DecodeOffset(int64_t encodedOffset, int8_t* streamIdx, int64_t* timestamp);
+    static bool encodeOffset(int8_t streamIdx, int64_t timestamp, int64_t* offset);
+    static void decodeOffset(int64_t encodedOffset, int8_t* streamIdx, int64_t* timestamp);
 
-    static int64_t GetSwiftWatermark(const common::Locator& locator);
+    static int64_t getSwiftWatermark(const common::Locator& locator);
 
     static indexlibv2::base::Progress::Offset minOffset(indexlibv2::base::Progress::Offset left,
                                                         indexlibv2::base::Progress::Offset right)

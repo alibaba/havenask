@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SUBDOCSEGMENTWRITERTEST_H
-#define __INDEXLIB_SUBDOCSEGMENTWRITERTEST_H
+#pragma once
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/segment/in_memory_segment.h"
@@ -38,5 +37,3 @@ INDEXLIB_UNIT_TEST_CASE(SubDocSegmentWriterTest, TestAddDocsFail);
 INDEXLIB_UNIT_TEST_CASE(SubDocSegmentWriterTest, TestAllocateBuildResourceMetricsNode);
 INDEXLIB_UNIT_TEST_CASE(SubDocSegmentWriterTest, TestEstimateInitMemUse);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SUBDOCSEGMENTWRITERTEST_H

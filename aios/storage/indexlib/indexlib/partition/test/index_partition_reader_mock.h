@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEX_PARTITION_READER_MOCK_H
-#define __INDEXLIB_INDEX_PARTITION_READER_MOCK_H
+#pragma once
 
 #include <memory>
 
@@ -94,5 +93,3 @@ typedef FakeSummaryReader FakeSummaryReaderForIPR;
 
 DEFINE_SHARED_PTR(FakeSummaryReaderForIPR);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INDEX_PARTITION_READER_MOCK_H

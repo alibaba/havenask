@@ -15,12 +15,10 @@
  */
 #pragma once
 
-#include <cstdint>
-#include <functional>
-#include <limits>
+#include <cstddef>
 #include <memory>
-#include <tuple>
 #include <type_traits>
+#include <vector>
 
 namespace indexlibv2 { namespace util {
 template <typename Alloc>

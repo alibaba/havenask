@@ -56,7 +56,9 @@ using namespace swift::heartbeat;
 namespace swift {
 namespace service {
 AUTIL_LOG_SETUP(swift, TopicPartitionSupervisor);
-static const int32_t DEL_FILE_PARTITION_BATCH_SIZE = 10; // del 10 partition for each
+static const int32_t DEL_FILE_PARTITION_BATCH_SIZE = 10;              // del 10 partition for each
+static const int32_t SYNC_DFS_SIZE_PARTITION_BATCH_SIZE = 5;          // sync 5 partition for each
+static const int64_t SYNC_DFS_SIZE_THREAD_INTEVAL = 60 * 1000 * 1000; // 1min
 const float FILE_CACHE_BLOCK_RESERVED_PERCENT = 0.01;
 
 TopicPartitionSupervisor::TopicPartitionSupervisor(config::BrokerConfig *brokerConfig,
@@ -70,6 +72,7 @@ TopicPartitionSupervisor::TopicPartitionSupervisor(config::BrokerConfig *brokerC
     , _permissionCenter(nullptr)
     , _isStop(true)
     , _delCount(0)
+    , _syncDfsCount(0)
     , _firstLoad(true)
     , _zkDataAccessor(nullptr) {}
 
@@ -87,6 +90,10 @@ void TopicPartitionSupervisor::setChannelManager(
 }
 
 void TopicPartitionSupervisor::start(util::ZkDataAccessorPtr zkDataAccessor) {
+    std::random_device rd;
+    _random.seed(rd());
+    _uniform = std::make_unique<std::uniform_int_distribution<int32_t>>(1, SYNC_DFS_SIZE_THREAD_INTEVAL);
+
     _zkDataAccessor = zkDataAccessor;
     int64_t bufferBlockSize = _brokerConfig->getBufferBlockSize();
     int64_t totalBufferSize = _brokerConfig->getTotalBufferSize();
@@ -131,6 +138,9 @@ void TopicPartitionSupervisor::start(util::ZkDataAccessorPtr zkDataAccessor) {
               fileCacheSize,
               bufferBlockSize);
     _isStop = false;
+    // create after _isStop changed to false
+    _syncDfsUsedSizeThread =
+        autil::Thread::createThread(std::bind(&TopicPartitionSupervisor::syncDfsUsedSize, this), "sync_dfs_size");
 }
 
 void TopicPartitionSupervisor::loadBrokerPartition(const vector<TaskInfo> &toLoad) {
@@ -309,6 +319,11 @@ void TopicPartitionSupervisor::stop() {
     _isStop = true;
     _recycleBufferThread.reset();
     _delExpiredFileThread.reset();
+    _syncNotifier.notify();
+    if (_syncDfsUsedSizeThread) {
+        _syncDfsUsedSizeThread->join();
+        _syncDfsUsedSizeThread.reset();
+    }
     _commitMessageThread.reset(); // reset before thread pool
     {
         autil::ScopedReadWriteLock lock(_commitThreadPoolMutex, 'w');
@@ -657,38 +672,59 @@ void TopicPartitionSupervisor::commitMessage() {
     }
 }
 
-vector<BrokerPartitionPtr> TopicPartitionSupervisor::getToDelFilePartition() {
-    vector<BrokerPartitionPtr> todelPartition;
+vector<BrokerPartitionPtr> TopicPartitionSupervisor::getBatchPartition(int32_t batchSize, int64_t &count) {
+    vector<BrokerPartitionPtr> partitions;
     {
         autil::ScopedReadLock lock(_brokerPartitionMapMutex);
         BrokerPartitionMap::iterator iter = _brokerPartitionMap.begin();
-        int32_t partCnt = (_brokerPartitionMap.size() + DEL_FILE_PARTITION_BATCH_SIZE) / DEL_FILE_PARTITION_BATCH_SIZE;
-        int rangeBeg = (_delCount % partCnt) * DEL_FILE_PARTITION_BATCH_SIZE;
-        int rangeEnd = (_delCount % partCnt + 1) * DEL_FILE_PARTITION_BATCH_SIZE;
-        todelPartition.reserve(DEL_FILE_PARTITION_BATCH_SIZE);
+        int32_t partCnt = (_brokerPartitionMap.size() + batchSize) / batchSize;
+        int rangeBeg = (count % partCnt) * batchSize;
+        int rangeEnd = (count % partCnt + 1) * batchSize;
+        partitions.reserve(batchSize);
         int32_t offset = 0;
         while (iter != _brokerPartitionMap.end()) {
             BrokerPartitionPtr brokerPartition = iter->second.second;
             if (offset >= rangeBeg && offset < rangeEnd && brokerPartition &&
                 brokerPartition->getPartitionStatus() == PARTITION_STATUS_RUNNING) {
-                todelPartition.push_back(brokerPartition);
+                partitions.push_back(brokerPartition);
             }
             offset++;
             iter++;
         }
     }
-    _delCount++;
-    return todelPartition;
+    count++;
+    return partitions;
 }
 
 void TopicPartitionSupervisor::delExpiredFile() {
-    vector<BrokerPartitionPtr> todelPartition = getToDelFilePartition();
+    vector<BrokerPartitionPtr> todelPartition = getBatchPartition(DEL_FILE_PARTITION_BATCH_SIZE, _delCount);
     for (size_t i = 0; i < todelPartition.size(); i++) {
-        todelPartition[i]->delExpiredFile();
-        todelPartition[i].reset();
         if (_isStop) {
             AUTIL_LOG(WARN, "system is stopping, break del expired file.");
             break;
+        }
+        todelPartition[i]->delExpiredFile();
+        todelPartition[i].reset();
+    }
+}
+
+void TopicPartitionSupervisor::syncDfsUsedSize() {
+    AUTIL_LOG(INFO, "thread syncDfsUsedSize start");
+    while (true) {
+        int32_t randomTimeout = (*_uniform)(_random);
+        _syncNotifier.waitNotification(randomTimeout);
+        if (_isStop) {
+            AUTIL_LOG(INFO, "thread syncDfsUsedSize stop");
+            return;
+        }
+        vector<BrokerPartitionPtr> syncPartition = getBatchPartition(SYNC_DFS_SIZE_PARTITION_BATCH_SIZE, _syncDfsCount);
+        for (size_t i = 0; i < syncPartition.size(); i++) {
+            if (_isStop) {
+                AUTIL_LOG(WARN, "system is stopping, break sync dfs size.");
+                break;
+            }
+            syncPartition[i]->syncDfsUsedSize();
+            syncPartition[i].reset();
         }
     }
 }

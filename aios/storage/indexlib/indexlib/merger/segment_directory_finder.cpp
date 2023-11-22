@@ -15,9 +15,21 @@
  */
 #include "indexlib/merger/segment_directory_finder.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/customized_config.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index/common/Constant.h"
 #include "indexlib/index_base/segment/segment_directory.h"
-#include "indexlib/util/PathUtil.h"
+#include "indexlib/index_define.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace autil;

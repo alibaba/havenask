@@ -15,6 +15,8 @@
  */
 #include "indexlib/table/table_merge_plan_resource.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace table {

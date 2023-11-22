@@ -184,7 +184,6 @@ protected:
     ThreadHook _threadStopHook;
     std::unique_ptr<WorkItemQueue> _queue;
     std::vector<ThreadPtr> _threads;
-    int64_t _lastPopTime;
     std::string _stopBackTrace;
 
 private:

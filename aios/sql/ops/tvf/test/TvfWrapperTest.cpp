@@ -48,7 +48,7 @@ private:
             _matchDocUtil.extendMatchDocAllocator<uint32_t>(_allocator, docs, "id", {1, 2}));
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<char>(
             _allocator, docs, "mc", {{'c', '1'}, {'2'}}));
-        _table.reset(new Table(docs, _allocator));
+        _table = Table::fromMatchDocs(docs, _allocator);
     }
 
 private:

@@ -1,6 +1,7 @@
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
+#include "indexlib/config/index_partition_options.h"
 #include "indexlib/merger/multi_part_segment_directory.h"
 #include "indexlib/merger/segment_directory_finder.h"
 #include "indexlib/test/unittest.h"

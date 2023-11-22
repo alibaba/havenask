@@ -1,4 +1,4 @@
-FROM registry.cn-hangzhou.aliyuncs.com/havenask/os_base:1.0.0
+FROM registry.cn-hangzhou.aliyuncs.com/havenask/os_base:1.1.0
 
 # ha3_install
 RUN mkdir -m 777 /ha3_install

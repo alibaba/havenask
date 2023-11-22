@@ -15,6 +15,9 @@
  */
 #include "build_service/config/OutputConvertorConfig.h"
 
+#include <iosfwd>
+#include <map>
+
 using namespace std;
 
 namespace build_service { namespace config {

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SORT_TRUNCATE_COLLECTOR_H
-#define __INDEXLIB_SORT_TRUNCATE_COLLECTOR_H
+#pragma once
 
 #include <memory>
 
@@ -170,5 +169,3 @@ private:
 
 DEFINE_SHARED_PTR(SortTruncateCollector);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_SORT_TRUNCATE_COLLECTOR_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_EQUAL_VALUE_COMPRESS_ADVISOR_H
-#define __INDEXLIB_EQUAL_VALUE_COMPRESS_ADVISOR_H
+#pragma once
 
 #include <memory>
 
@@ -137,5 +136,3 @@ EqualValueCompressAdvisor<T, Compressor>::EstimateOptimizeSlotItemCount(const Eq
     return option[i - 1];
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_EQUAL_VALUE_COMPRESS_ADVISOR_H

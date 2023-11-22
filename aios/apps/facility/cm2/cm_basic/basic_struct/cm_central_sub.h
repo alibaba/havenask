@@ -45,13 +45,6 @@ public:
      */
     int32_t updateClusterNodeStatus(const std::string& cluster_name, NodeStatusVec* status_vec);
     /*
-     * @brief   更新集群内部节点负载信息
-     * @param   [in]    集群名
-     * @param   [in]    节点负载信息数组
-     * @return  0:成功； -1:失败
-     */
-    int32_t updateClusterNodeLBInfo(const std::string& cluster_name, NodeLBInfoVec* lb_info);
-    /*
      * @brief   更新一个 CMCluster, 把更新后的CMCluster加入到_mapNameToCluster中管理
      * @param   [in]   集群指针，外边申请。
      * @return  RSP_SUCCESS:成功； 失败，外边需要删除p_cm_cluster
@@ -70,13 +63,6 @@ public:
      * @return  0:成功； -1:失败
      */
     int32_t getClusterNodeStatus(const std::string& cluster_name, NodeStatusVec*& status_vec);
-    /*
-     * @brief   获得集群内部节点负载信息，内部申请，外部释放
-     * @param   [in]    集群名
-     * @param   [out]   节点负载信息数组
-     * @return  0:成功； -1:失败
-     */
-    int32_t getClusterNodeLBInfo(const std::string& cluster_name, NodeLBInfoVec*& lb_info_vec);
     /*
      * @brief   获取节点的状态信息
      * @param   [in]    节点的spec

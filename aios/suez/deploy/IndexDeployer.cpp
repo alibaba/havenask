@@ -141,7 +141,7 @@ DeployStatus IndexDeployer::deploy(const IndexPathDetail &pathDetail,
                                    const indexlibv2::config::TabletOptions &baseTabletOptions,
                                    const indexlibv2::config::TabletOptions &targetTabletOptions) {
     if (oldVersionId < 0) {
-        oldVersionId = INVALID_VERSION;
+        oldVersionId = indexlib::INVALID_VERSIONID;
     }
     string rawPartitionPath = TablePathDefine::constructIndexPath(pathDetail.rawIndexRoot, _pid);
     string remotePartitionPath = TablePathDefine::constructIndexPath(pathDetail.indexRoot, _pid);

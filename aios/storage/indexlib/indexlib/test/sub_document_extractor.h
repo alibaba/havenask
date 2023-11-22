@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SUB_DOCUMENT_EXTRACTOR_H
-#define __INDEXLIB_SUB_DOCUMENT_EXTRACTOR_H
+#pragma once
 
 #include <memory>
 
@@ -32,5 +31,3 @@ private:
 
 DEFINE_SHARED_PTR(SubDocumentExtractor);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_SUB_DOCUMENT_EXTRACTOR_H

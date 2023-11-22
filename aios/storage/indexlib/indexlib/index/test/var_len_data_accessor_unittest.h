@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_VARLENDATAACCESSORTEST_H
-#define __INDEXLIB_VARLENDATAACCESSORTEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common_define.h"
@@ -42,5 +41,3 @@ INDEXLIB_UNIT_TEST_CASE(VarLenDataAccessorTest, TestAddNormalField);
 INDEXLIB_UNIT_TEST_CASE(VarLenDataAccessorTest, TestUpdateNormalField);
 INDEXLIB_UNIT_TEST_CASE(VarLenDataAccessorTest, TestReadData);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VARLENDATAACCESSORTEST_H

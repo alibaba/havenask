@@ -1,10 +1,11 @@
-#ifndef ISEARCH_BS_FAKEADMINTASKBASE_H
-#define ISEARCH_BS_FAKEADMINTASKBASE_H
+#pragma once
 
 #include "build_service/admin/AdminTaskBase.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/WorkerNode.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
 
@@ -30,5 +31,3 @@ private:
 BS_TYPEDEF_PTR(FakeAdminTaskBase);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_FAKEADMINTASKBASE_H

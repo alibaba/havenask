@@ -60,7 +60,6 @@ public:
 
     autil::StringView GetIndexType() const override;
     size_t EstimateMemory() const override;
-    bool HasFormatError() const override;
 
 public:
     const SingleField* GetSingleField(uint64_t indexNameHash) const;

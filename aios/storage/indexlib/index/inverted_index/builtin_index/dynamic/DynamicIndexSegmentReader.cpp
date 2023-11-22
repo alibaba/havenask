@@ -46,8 +46,9 @@ PostingWriter* DynamicIndexSegmentReader::GetPostingWriter(const DictKeyInfo& ke
     return nullptr;
 }
 
-bool DynamicIndexSegmentReader::GetSegmentPosting(const DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
-                                                  autil::mem_pool::Pool* sessionPool, indexlib::file_system::ReadOption,
+bool DynamicIndexSegmentReader::GetSegmentPosting(const DictKeyInfo& key, docid64_t baseDocId,
+                                                  SegmentPosting& segPosting, autil::mem_pool::Pool* sessionPool,
+                                                  indexlib::file_system::ReadOption,
                                                   InvertedIndexSearchTracer* tracer) const
 {
     assert(_dynamicPostingTable);

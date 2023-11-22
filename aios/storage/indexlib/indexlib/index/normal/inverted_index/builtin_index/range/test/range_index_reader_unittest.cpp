@@ -1,10 +1,10 @@
 #include "indexlib/index/normal/inverted_index/builtin_index/range/test/range_index_reader_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/index/common/NumberTerm.h"
 #include "indexlib/index/inverted_index/SeekAndFilterIterator.h"
 #include "indexlib/partition/index_partition.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/searcher.h"
 
 using namespace std;

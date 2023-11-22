@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_EXECUTOR_MANAGER_H
-#define __INDEXLIB_EXECUTOR_MANAGER_H
+#pragma once
 
+#include <map>
 #include <memory>
+#include <stddef.h>
+#include <string>
 
 #include "autil/Lock.h"
-#include "indexlib/common_define.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace future_lite {
 class Executor;
@@ -54,5 +57,3 @@ private:
 
 DEFINE_SHARED_PTR(ExecutorManager);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_EXECUTOR_MANAGER_H

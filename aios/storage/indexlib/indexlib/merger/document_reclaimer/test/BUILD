@@ -8,7 +8,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_document_reclaimer_unittest',
     srcs=glob(['*.cpp']),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     deps=[
         ':indexlib_document_reclaimer_test_helper',

@@ -54,7 +54,7 @@ const uint32_t Version::INVALID_VERSION_FORMAT_NUM = std::numeric_limits<uint32_
 static uint32_t DEFAULT_VERSION_FORMAT_NUM_FOR_TEST = Version::INVALID_VERSION_FORMAT_NUM;
 
 Version::Version()
-    : mVersionId(INVALID_VERSION)
+    : mVersionId(INVALID_VERSIONID)
     , mLastSegmentId(INVALID_SEGMENTID)
     , mTimestamp(INVALID_TIMESTAMP)
     , mSchemaVersionId(DEFAULT_SCHEMAID)
@@ -315,7 +315,7 @@ void Version::RemoveSegTemperatureMeta(segmentid_t segmentId)
 
 void Version::Store(const file_system::DirectoryPtr& directory, bool overwrite)
 {
-    if (mVersionId == INVALID_VERSION) {
+    if (mVersionId == INVALID_VERSIONID) {
         INDEXLIB_FATAL_ERROR(InvalidVersion, "not support store invalid version!");
     }
     std::string versionFileName = GetVersionFileName();
@@ -414,7 +414,7 @@ void Version::FillWishList(const DirectoryPtr& rootDir, std::vector<string>* wis
 
 void Version::TEST_Store(const std::string& path, bool overwrite)
 {
-    if (mVersionId == INVALID_VERSION) {
+    if (mVersionId == INVALID_VERSIONID) {
         INDEXLIB_FATAL_ERROR(InvalidVersion, "not support store invalid version!");
     }
     const std::string versionFilePath = PathUtil::JoinPath(path, GetVersionFileName());
@@ -548,9 +548,9 @@ void Version::SyncSchemaVersionId(const IndexPartitionSchemaPtr& schema)
     }
 }
 
-string Version::GetSchemaFileName(schemavid_t schemaId) { return IndexPartitionSchema::GetSchemaFileName(schemaId); }
+string Version::GetSchemaFileName(schemaid_t schemaId) { return IndexPartitionSchema::GetSchemaFileName(schemaId); }
 
-bool Version::ExtractSchemaIdBySchemaFile(const string& schemaFileName, schemavid_t& schemaId)
+bool Version::ExtractSchemaIdBySchemaFile(const string& schemaFileName, schemaid_t& schemaId)
 {
     if (schemaFileName == SCHEMA_FILE_NAME) {
         schemaId = DEFAULT_SCHEMAID;

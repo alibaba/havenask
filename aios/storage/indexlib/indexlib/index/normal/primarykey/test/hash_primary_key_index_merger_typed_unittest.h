@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_HASHPRIMARYKEYINDEXMERGERTYPEDTEST_H
-#define __INDEXLIB_HASHPRIMARYKEYINDEXMERGERTYPEDTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/primarykey/test/primary_key_index_merger_typed_unittest.h"
@@ -31,5 +30,3 @@ INDEXLIB_UNIT_TEST_CASE(HashPrimaryKeyIndexMergerTypedTest, TestCaseForMergeUInt
 INDEXLIB_UNIT_TEST_CASE(HashPrimaryKeyIndexMergerTypedTest, TestMergeFromIncontinuousSegments);
 INDEXLIB_UNIT_TEST_CASE(HashPrimaryKeyIndexMergerTypedTest, TestMergeToSegmentWithoutDoc);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASHPRIMARYKEYINDEXMERGERTYPEDTEST_H

@@ -84,7 +84,7 @@ void DocListEncoder::AddPosition(int32_t fieldIdxInPack)
     _totalTF++;
 }
 
-void DocListEncoder::EndDocument(docid_t docId, docpayload_t docPayload)
+void DocListEncoder::EndDocument(docid32_t docId, docpayload_t docPayload)
 {
     if (_isDocIdContinuous && _df > 0) {
         _isDocIdContinuous = ((_lastDocId + 1) == docId);
@@ -154,7 +154,7 @@ uint32_t DocListEncoder::GetDumpLength() const
            docSkipListSize + docListSize + tfBitmapLength;
 }
 
-void DocListEncoder::AddDocument(docid_t docId, docpayload_t docPayload, tf_t tf, fieldmap_t fieldMap)
+void DocListEncoder::AddDocument(docid32_t docId, docpayload_t docPayload, tf_t tf, fieldmap_t fieldMap)
 {
     if (!PostingFormatOption::IsReferenceCompress(_compressMode)) {
         _docListBuffer.PushBack(0, docId - _lastDocId);

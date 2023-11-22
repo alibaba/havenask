@@ -83,9 +83,12 @@ bool SerializeData::serializeToStr(const NaviObjectLogger *_logger,
         auto ec = dataType->serialize(ctx, data);
         if (ec != TEC_NONE) {
             if (ec == TEC_NOT_SUPPORT) {
-                NAVI_LOG(ERROR, "type [%s] do not support serialize", typeName.c_str());
+                NAVI_LOG(ERROR,
+                         "type [%s] do not support serialize, defined in [%s]",
+                         typeName.c_str(), dataType->getSourceFile());
             } else {
-                NAVI_LOG(ERROR, "serialize data failed, type [%s]", typeName.c_str());
+                NAVI_LOG(ERROR, "serialize data failed, type [%s], defined in [%s]",
+                         typeName.c_str(), dataType->getSourceFile());
             }
             return false;
         }

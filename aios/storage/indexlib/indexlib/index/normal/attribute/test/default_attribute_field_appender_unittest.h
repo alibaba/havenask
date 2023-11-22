@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DEFAULTATTRIBUTEFIELDAPPENDERTEST_H
-#define __INDEXLIB_DEFAULTATTRIBUTEFIELDAPPENDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/default_attribute_field_appender.h"
@@ -30,5 +29,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(DefaultAttributeFieldAppenderTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DEFAULTATTRIBUTEFIELDAPPENDERTEST_H

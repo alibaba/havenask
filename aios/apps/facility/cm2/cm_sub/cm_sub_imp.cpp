@@ -74,12 +74,11 @@ int32_t CMSubscriberImp::init(TopoClusterManager* topo_cluster, cm_basic::CMCent
     _reqMsg->set_cli_ver(SUBSCRIBER_MAJRO_VER | SUBSCRIBER_MINOR_VER);
     if (_cfgInfo->_subType == SubReqMsg::ST_PART) {
         // ST_PORT:订阅时需要指定集群，ST_ALL:第一次订阅时不需要指定
-        std::set<std::string>::iterator it = _cfgInfo->_subClusterSet.begin();
-        for (; it != _cfgInfo->_subClusterSet.end(); ++it) {
+        for (auto it : _cfgInfo->_subClusterSet) {
             ClusterVersion* c_version = _reqMsg->add_cluster_version_vec();
-            c_version->set_cluster_name(it->c_str());
+            c_version->set_cluster_name(it);
             c_version->set_cluster_version(0);
-            _mapClusterName2Version[it->c_str()] = 0;
+            setClusterVersion(it, 0);
         }
     } else if (_cfgInfo->_subType == SubReqMsg::ST_BELONG) {
         std::set<std::string>::iterator it = _cfgInfo->_subBelongSet.begin();
@@ -133,27 +132,19 @@ int32_t CMSubscriberImp::procSubRespMsg(SubRespMsg* resp_msg)
 
 void CMSubscriberImp::updateReqClusterVersion()
 {
+    autil::ScopedWriteLock lock(_rwlock);
     // 更新所有集群的版本号
     _reqMsg->clear_cluster_version_vec();
 
     MapClusterName2Version::iterator it = _mapClusterName2Version.begin();
     for (; it != _mapClusterName2Version.end(); ++it) {
         // 如果当前订阅的是所有集群，并且该集群已经被server删除，则不再请求该集群
-        if (_cfgInfo->_subType != SubReqMsg::ST_PART && it->second < 0)
+        if (_cfgInfo->_subType != SubReqMsg::ST_PART && it->second < 0) {
             continue;
+        }
         ClusterVersion* c_version = _reqMsg->add_cluster_version_vec();
         c_version->set_cluster_name(it->first);
         c_version->set_cluster_version(it->second);
-    }
-}
-
-void CMSubscriberImp::updateUsedClusters()
-{
-    _reqMsg->clear_used_clusters();
-    std::vector<std::string> names;
-    getTopoClusterManager()->getQueriedClusters(names);
-    for (size_t i = 0; i < names.size(); ++i) {
-        _reqMsg->add_used_clusters(names[i]);
     }
 }
 
@@ -162,10 +153,10 @@ int32_t CMSubscriberImp::update()
     arpc::ANetRPCController cntler; // rpc contral
     cntler.SetExpireTime(_expireTime);
 
-    updateUsedClusters();
     // 发送同步请求 , 指针在函数内部释放
+    cm_basic::SubReqMsg req_msg = getReqMsg();
     cm_basic::SubRespMsg resp_msg;
-    _stub->ProcSubMsg(&cntler, _reqMsg, &resp_msg, NULL);
+    _stub->ProcSubMsg(&cntler, &req_msg, &resp_msg, NULL);
 
     if (cntler.Failed() || resp_msg.status() == SubRespMsg::SRS_FAILED ||
         resp_msg.status() == SubRespMsg::SRS_INITING) {
@@ -261,8 +252,9 @@ int32_t CMSubscriberImp::connect()
         cntler.SetExpireTime(_expireTime);
 
         // 发送同步请求 , 指针在函数内部释放
+        cm_basic::SubReqMsg req_msg = getReqMsg();
         cm_basic::SubRespMsg resp_msg;
-        _stub->ProcSubMsg(&cntler, _reqMsg, &resp_msg, NULL);
+        _stub->ProcSubMsg(&cntler, &req_msg, &resp_msg, NULL);
 
         if (cntler.Failed() || resp_msg.status() == SubRespMsg::SRS_FAILED) {
             AUTIL_LOG(WARN, "ProcSubMsg failed, status(%d), ErrorText = %s, arpc=tcp:%s:%d", resp_msg.status(),
@@ -341,15 +333,15 @@ void CMSubscriberImp::doWriteCache()
     }
     if (!cm_basic::FileUtil::writeFile(_cfgInfo->_cacheFile, std::string(CLUSTERMAP_XML_HEADER) + content +
                                                                  std::string(CLUSTERMAP_XML_HEADER_END))) {
-        AUTIL_LOG(WARN, "write cache file <%s> failed", _cfgInfo->_cacheFile);
+        AUTIL_LOG(WARN, "write cache file <%s> failed", _cfgInfo->_cacheFile.c_str());
     }
 }
 
 int32_t CMSubscriberImp::readCache()
 {
-    AUTIL_LOG(INFO, "cm_sub : try load cluster cache from <%s>", _cfgInfo->_cacheFile);
+    AUTIL_LOG(INFO, "cm_sub : try load cluster cache from <%s>", _cfgInfo->_cacheFile.c_str());
     cm_basic::ClustermapConfig config;
-    if (config.parseFile(_cfgInfo->_cacheFile, -1, true) < 0 &&
+    if (config.parseFile(_cfgInfo->_cacheFile.c_str(), -1, true) < 0 &&
         config.parseFile((_cfgInfo->_cacheFile + std::string(".bak")).c_str(), -1, true) < 0) {
         AUTIL_LOG(ERROR, "cm_sub : load cache file failed");
         return -1;
@@ -361,6 +353,14 @@ int32_t CMSubscriberImp::readCache()
     }
     AUTIL_LOG(INFO, "cm_sub : reinit cluster from cache %s", ret == 0 ? "success" : "failed");
     return ret;
+}
+
+cm_basic::SubReqMsg CMSubscriberImp::getReqMsg()
+{
+    cm_basic::SubReqMsg msg;
+    autil::ScopedReadLock lock(_rwlock);
+    msg.CopyFrom(*_reqMsg);
+    return msg;
 }
 
 int32_t CMSubscriberImp::addSubCluster(std::string name)

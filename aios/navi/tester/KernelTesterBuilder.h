@@ -41,6 +41,7 @@ public:
     KernelTesterBuilder &logLevel(const std::string &level);
     KernelTesterBuilder &threadNum(size_t threadNum);
     KernelTesterBuilder &enableKernel(const std::string &kernelNameRegex);
+    KernelTesterBuilder &namedData(const std::string &name, DataPtr data);
     KernelTesterPtr build(const std::string &testerName = "");
     ResourceMapPtr buildResource(const std::set<std::string> &resources);
     KernelConfigContextPtr buildConfigContext();

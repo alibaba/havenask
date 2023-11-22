@@ -22,6 +22,9 @@ namespace arpc {
 AUTIL_LOG_SETUP(arpc, ClientMetricReporter);
 
 ClientMetricReporter::ClientMetricReporter(const MetricReporterConfig &config) : _config(config) {
+    if (_config.type.empty()) {
+        _config.type = "unknown";
+    }
     _enable = _config.enableArpcMetric || _config.enableSlowRequestLog;
 }
 

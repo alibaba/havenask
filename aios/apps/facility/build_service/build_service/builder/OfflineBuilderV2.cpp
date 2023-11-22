@@ -15,8 +15,16 @@
  */
 #include "build_service/builder/OfflineBuilderV2.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/MemUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/builder/BuilderV2Impl.h"
+#include "fslib/common/common_type.h"
 #include "fslib/fs/FileSystem.h"
 #include "future_lite/ExecutorCreator.h"
 #include "future_lite/TaskScheduler.h"
@@ -25,10 +33,13 @@
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/OfflineConfig.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
-#include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/framework/CommitOptions.h"
+#include "indexlib/framework/ITablet.h"
+#include "indexlib/framework/IndexRoot.h"
 #include "indexlib/framework/TabletCreator.h"
 #include "indexlib/framework/TabletId.h"
+#include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/table/index_task/LocalTabletMergeController.h"

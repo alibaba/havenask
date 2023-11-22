@@ -1,9 +1,9 @@
 #include "indexlib/partition/test/partition_reader_snapshot_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/index_application.h"
 #include "indexlib/partition/index_builder.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

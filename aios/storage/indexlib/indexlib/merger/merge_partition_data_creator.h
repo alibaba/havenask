@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_PARTITION_DATA_CREATOR_H
-#define __INDEXLIB_MERGE_PARTITION_DATA_CREATOR_H
+#pragma once
 
-#include <memory>
+#include <vector>
 
-#include "indexlib/common_define.h"
-#include "indexlib/file_system/Directory.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/partition_data.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/merge_partition_data.h"
-#include "indexlib/util/metrics/MetricProvider.h"
-
-DECLARE_REFERENCE_CLASS(util, CounterMap);
-DECLARE_REFERENCE_CLASS(plugin, PluginManager);
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -42,12 +37,12 @@ public:
     // use file system's root as partition root
     // use SegmentDirectory as default segment directory
     static MergePartitionDataPtr CreateMergePartitionData(
-        const file_system::DirectoryPtr& dir, index_base::Version version = index_base::Version(INVALID_VERSION),
+        const file_system::DirectoryPtr& dir, index_base::Version version = index_base::Version(INVALID_VERSIONID),
         bool hasSubSegment = false, const plugin::PluginManagerPtr& pluginManager = plugin::PluginManagerPtr());
 
     static MergePartitionDataPtr
     CreateMergePartitionData(const file_system::DirectoryPtr& dir, const config::IndexPartitionSchemaPtr& schema,
-                             index_base::Version version = index_base::Version(INVALID_VERSION),
+                             index_base::Version version = index_base::Version(INVALID_VERSIONID),
                              const plugin::PluginManagerPtr& pluginManager = plugin::PluginManagerPtr());
 
     static MergePartitionDataPtr
@@ -61,5 +56,3 @@ private:
 
 DEFINE_SHARED_PTR(MergePartitionDataCreator);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_PARTITION_DATA_CREATOR_H

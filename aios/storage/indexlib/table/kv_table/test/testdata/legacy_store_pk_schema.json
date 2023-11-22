@@ -1,0 +1,32 @@
+{
+    "table_name": "single_kv_table",
+    "table_type": "kv",
+    "indexs": [
+        {
+            "index_name": "index1",
+            "index_fields": "key",
+            "index_type": "PRIMARY_KEY",
+            "pk_hash_type": "number_hash"
+        }
+    ],
+    "fields": [
+        {
+            "field_type": "LONG",
+            "field_name": "key"
+        },
+        {
+            "field_type": "FLOAT",
+            "binary_field": false,
+            "field_name": "weights",
+            "multi_value": true,
+            "fixed_multi_value_count": 3
+        }
+    ],
+    "attributes": [
+        "weights"
+    ],
+    "user_defined_param":
+    {
+        "need_store_pk_value": true
+    }
+}

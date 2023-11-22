@@ -19,7 +19,7 @@ public:
 //     ASSERT_EQ(normalState.GetSectionReader(), &sectionReader);
 // }
 
-TEST_F(NormalInDocStateTest, testAlignSize) { ASSERT_EQ((size_t)64, sizeof(NormalInDocState)); }
+TEST_F(NormalInDocStateTest, testAlignSize) { ASSERT_EQ((size_t)72, sizeof(NormalInDocState)); }
 
 // TEST_F(NormalInDocStateTest, testCopy)
 // {

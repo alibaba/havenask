@@ -2,12 +2,12 @@
 
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/index_base/partition_data.h"
 #include "indexlib/index_base/schema_rewriter.h"
 #include "indexlib/index_base/segment/in_memory_segment.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 namespace indexlib { namespace partition {
 

@@ -105,7 +105,12 @@ bool MessageWriteBuffer::addWriteMessage(MessageInfo &messageInfo) {
         return false;
     }
     if (!_canAdd) {
-        AUTIL_INTERVAL_LOG(100, INFO, "[%s %d] wait for merge.", _topicName.c_str(), _partitionId);
+        AUTIL_INTERVAL_LOG(100,
+                           INFO,
+                           "[%s %d] wait for merge. left merge count [%ld]",
+                           _topicName.c_str(),
+                           _partitionId,
+                           getLeftToMergeCountSafe());
         return false;
     }
     if (_writeQueueSize >= _mergeThreshold) {
@@ -133,8 +138,8 @@ bool MessageWriteBuffer::addWriteMessage(MessageInfo &messageInfo) {
     ScopedLock lock(_writeQueueMutex);
     MessageInfo *msgInfo = new MessageInfo();
     msgInfo->initAndSwapData(messageInfo);
+    msgInfo->hashStr.clear();
     _writeQueue.push_back(msgInfo);
-    _writeQueue.back()->hashStr.clear();
     addDataSize(msgLen);
     _writeQueueSize = msgLen + _writeQueueSize;
     return true;
@@ -215,13 +220,15 @@ void MessageWriteBuffer::updateBuffer(int64_t acceptedMsgCount, int64_t &checkPo
     vector<int64_t> committedCp;
     checkPointId = popWriteMessage(acceptedMsgCount, committedCp);
     AUTIL_LOG(INFO,
-              "[%s %d] accepted message count[%ld], checkPointId [%ld], first committedCp [%ld], left [%ld]",
+              "[%s %d] accepted message count[%ld], checkPointId [%ld], first committedCp [%ld], sendQueue size [%ld], "
+              "has sended [%ld]",
               _topicName.c_str(),
               _partitionId,
               acceptedMsgCount,
               checkPointId,
               committedCp.size() > 0 ? committedCp[0] : 0,
-              _sendQueue.size());
+              _sendQueue.size(),
+              _unsendCursor);
 }
 
 void MessageWriteBuffer::updateBuffer(int64_t acceptedMsgCount,
@@ -253,13 +260,15 @@ void MessageWriteBuffer::updateBuffer(int64_t acceptedMsgCount,
         committedCpTs.emplace_back(make_pair(committedCp[i], hasCommittedTs ? committedTs[i] : -1));
     }
     AUTIL_LOG(INFO,
-              "[%s %d] accepted message count[%ld], checkPointId [%ld], first committedCp [%ld], left [%ld]",
+              "[%s %d] accepted message count[%ld], checkPointId [%ld], first committedCp [%ld], send queue size "
+              "[%ld], sended count [%ld]",
               _topicName.c_str(),
               _partitionId,
               acceptedMsgCount,
               checkPointId,
               committedCp.size() > 0 ? committedCp[0] : 0,
-              _sendQueue.size());
+              _sendQueue.size(),
+              _unsendCursor);
 }
 
 void MessageWriteBuffer::resetUnsendCursor() {
@@ -353,6 +362,18 @@ size_t MessageWriteBuffer::getUnsendCount() {
     ScopedReadLock lock(_rwLock);
     ScopedLock writeLock(_writeQueueMutex);
     return _writeQueue.size() + _sendQueue.size() + getLeftToMergeCount() - _unsendCursor;
+}
+
+void MessageWriteBuffer::getMsgInBufferInfo(size_t &inWriteCount,
+                                            size_t &toSendCount,
+                                            size_t &leftMergeCount,
+                                            size_t &uncommittedCount) {
+    ScopedReadLock lock(_rwLock);
+    ScopedLock writeLock(_writeQueueMutex);
+    inWriteCount = _writeQueue.size();
+    leftMergeCount = getLeftToMergeCount();
+    uncommittedCount = _unsendCursor;
+    toSendCount = _sendQueue.size() - _unsendCursor;
 }
 
 size_t MessageWriteBuffer::getUnsendSize() { return _dataSize - _uncommittedSize; }
@@ -506,6 +527,11 @@ size_t MessageWriteBuffer::getLeftToMergeCount() {
         size += iter->second.size();
     }
     return _toMergeQueue.size() + size;
+}
+
+size_t MessageWriteBuffer::getLeftToMergeCountSafe() {
+    ScopedReadLock lock(_rwLock);
+    return getLeftToMergeCount();
 }
 
 bool MessageWriteBuffer::doConvertMessage() {

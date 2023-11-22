@@ -1,5 +1,11 @@
 package com.taobao.search.iquan.core.rel.visitor.rexshuttle;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.taobao.search.iquan.client.common.json.function.JsonTvfFunction;
 import com.taobao.search.iquan.client.common.json.function.JsonUdxfFunction;
 import com.taobao.search.iquan.core.api.schema.MatchType;
@@ -14,8 +20,6 @@ import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 public class RexMatchTypeShuttle extends RexShuttle {
     private static final Logger logger = LoggerFactory.getLogger(RexMatchTypeShuttle.class);

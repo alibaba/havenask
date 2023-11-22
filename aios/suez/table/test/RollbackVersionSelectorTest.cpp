@@ -17,7 +17,8 @@ protected:
 };
 
 TEST_F(RollbackVersionSelectorTest, testSelect) {
-    auto pid = TableMetaUtil::makePid("table1", 1, 0, 32767);
+    auto pid = TableMetaUtil::makePid("table", 1, 0, 32767);
+    std::string configPath = GET_TEST_DATA_PATH() + "/table_test/empty_config";
     auto indexRoot = GET_TEMP_DATA_PATH();
     auto partitionRoot = TablePathDefine::constructIndexPath(indexRoot, pid);
     auto ec = fslib::fs::FileSystem::mkDir(partitionRoot, true);
@@ -66,8 +67,8 @@ TEST_F(RollbackVersionSelectorTest, testSelect) {
         TableVersion tableVersion(6, versionMeta, true);
         syncedVersions.push_back(tableVersion);
     }
-    EXPECT_CALL(mockVersionSynchronizer, getVersionList(_, _))
-        .WillRepeatedly(DoAll(SetArgReferee<1>(syncedVersions), Return(true)));
+    EXPECT_CALL(mockVersionSynchronizer, getVersionList(_, _, _, _))
+        .WillRepeatedly(DoAll(SetArgReferee<3>(syncedVersions), Return(true)));
 
     // index version                      published version      locator  branchid
     // version 0                                                 50       0
@@ -79,37 +80,37 @@ TEST_F(RollbackVersionSelectorTest, testSelect) {
     // version 6                          version6               250      1
     {
         //通过时间回滚，没有合适的版
-        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, indexRoot, pid);
+        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, configPath, indexRoot, pid);
         auto targetVersion = versionSelector.select(/*timestamp = */ 100, /*raw target version = */ 0);
         ASSERT_EQ(-1, targetVersion);
     }
     {
         //通过version回滚，但是索引不存在
-        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, indexRoot, pid);
+        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, configPath, indexRoot, pid);
         auto targetVersion = versionSelector.select(/*timestamp = */ 0, /*raw target version = */ 2);
         ASSERT_EQ(-1, targetVersion);
     }
     {
         // publish版本存在但是索引版本不存在
-        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, indexRoot, pid);
+        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, configPath, indexRoot, pid);
         auto targetVersion = versionSelector.select(/*timestamp = */ 150, /*raw target version = */ 0);
         ASSERT_EQ(-1, targetVersion);
     }
     {
         //正常选择版本
-        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, indexRoot, pid);
+        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, configPath, indexRoot, pid);
         auto targetVersion = versionSelector.select(/*timestamp = */ 200, /*raw target version = */ 0);
         ASSERT_EQ(3, targetVersion);
     }
     {
         //正常找版本
-        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, indexRoot, pid);
+        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, configPath, indexRoot, pid);
         auto targetVersion = versionSelector.select(/*timestamp = */ 245, /*raw target version = */ 0);
         ASSERT_EQ(5, targetVersion);
     }
     {
         //忽略version4
-        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, indexRoot, pid);
+        RollbackVersionSelector versionSelector(&mockVersionSynchronizer, configPath, indexRoot, pid);
         auto targetVersion = versionSelector.select(/*timestamp = */ 250, /*raw target version = */ 0);
         ASSERT_EQ(6, targetVersion);
     }

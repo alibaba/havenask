@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_OUTPUTCREATOR_H
-#define ISEARCH_BS_OUTPUTCREATOR_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/io/Output.h"
@@ -43,5 +42,3 @@ private:
 BS_TYPEDEF_PTR(OutputCreator);
 
 }} // namespace build_service::io
-
-#endif // ISEARCH_BS_OUTPUTCREATOR_H

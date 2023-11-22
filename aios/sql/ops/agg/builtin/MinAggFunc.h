@@ -66,7 +66,6 @@ private:
 
 public:
     DEF_CREATE_ACCUMULATOR_FUNC(MinAccumulator<InputType>)
-    bool needDependInputTablePools() const override;
 
 private:
     // local
@@ -79,11 +78,6 @@ private:
     table::ColumnData<InputType> *_inputColumn;
     table::ColumnData<InputType> *_minColumn;
 };
-
-template <typename InputType>
-bool MinAggFunc<InputType>::needDependInputTablePools() const {
-    return autil::IsMultiType<InputType>::type::value;
-}
 
 // local
 template <typename InputType>
@@ -99,8 +93,8 @@ bool MinAggFunc<InputType>::initCollectInput(const table::TablePtr &inputTable) 
 template <typename InputType>
 bool MinAggFunc<InputType>::initAccumulatorOutput(const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
-    _minColumn = table::TableUtil::declareAndGetColumnData<InputType>(
-        outputTable, _outputFields[0], false);
+    _minColumn
+        = table::TableUtil::declareAndGetColumnData<InputType>(outputTable, _outputFields[0]);
     if (_minColumn == nullptr) {
         return false;
     }

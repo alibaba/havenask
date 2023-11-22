@@ -228,6 +228,10 @@ void CatalogController::syncLoop() {
             dropBuild(partitionId);
             continue;
         }
+        if (isSchemaChanged(partition, iter->second)) {
+            createBuild(partition, getStoreRoot(curCatalog, partitionId));
+            continue;
+        }
         // update partition
         updateBuild(partition, getStoreRoot(curCatalog, partitionId), idIter->second);
     }
@@ -388,7 +392,12 @@ void CatalogController::getTable(const proto::GetTableRequest *request, proto::G
 }
 
 void CatalogController::createTable(const proto::CreateTableRequest *request, proto::CommonResponse *response) {
-    execute(request, response, [&](Catalog &catalog) { return catalog.createTable(request->table()); });
+    execute(request, response, [&](Catalog &catalog) {
+        if (request->validate_table_structure()) {
+            CATALOG_CHECK_OK(BSConfigMaker::validateSchema(request->table()));
+        }
+        return catalog.createTable(request->table());
+    });
 }
 
 void CatalogController::dropTable(const proto::DropTableRequest *request, proto::CommonResponse *response) {
@@ -1009,11 +1018,10 @@ Status CatalogController::getCatalog(Catalog *catalog) {
     return StatusBuilder::ok();
 }
 
-std::map<PartitionId, proto::Build> CatalogController::getCurrentBuilds() {
+std::map<PartitionId, std::map<uint32_t, proto::Build>> CatalogController::getCurrentBuilds() {
     autil::ScopedReadLock lock(_buildLock);
 
-    std::map<PartitionId, proto::Build> buildMap;
-
+    std::map<PartitionId, std::map<uint32_t, proto::Build>> buildMap;
     for (const auto &build : _builds) {
         const auto &buildId = build.build_id();
         PartitionId id = {buildId.partition_name(),
@@ -1021,10 +1029,36 @@ std::map<PartitionId, proto::Build> CatalogController::getCurrentBuilds() {
                           buildId.database_name(),
                           buildId.catalog_name(),
                           proto::PartitionType::TABLE_PARTITION};
-        buildMap.emplace(id, build);
+        auto iter = buildMap.find(id);
+        if (iter != buildMap.end()) {
+            iter->second.emplace(buildId.generation_id(), build);
+        } else {
+            buildMap.emplace(id, std::map<uint32_t, proto::Build>{{buildId.generation_id(), build}});
+        }
     }
-
     return buildMap;
+}
+
+bool CatalogController::isSchemaChanged(const Partition *newPart, const Partition *oldPart) {
+    // check table structure
+    const TableStructure *newTableStructure = newPart->getTableStructure();
+    const TableStructure *oldTableStructure = oldPart->getTableStructure();
+    if (newTableStructure && oldTableStructure) {
+        proto::TableStructure newProto;
+        proto::TableStructure oldProto;
+        newTableStructure->toProto(&newProto);
+        oldTableStructure->toProto(&oldProto);
+        bool noDiff = ProtoUtil::compareProto(newProto, oldProto);
+        if (!noDiff) {
+            return true;
+        }
+    }
+    // check data source
+    bool noDiff = ProtoUtil::compareProto(newPart->dataSource(), oldPart->dataSource());
+    if (!noDiff) {
+        return true;
+    }
+    return false;
 }
 
 } // namespace catalog

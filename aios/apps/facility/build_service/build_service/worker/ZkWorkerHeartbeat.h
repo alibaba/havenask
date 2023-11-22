@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ZKWORKERHEARTBEAT_H
-#define ISEARCH_BS_ZKWORKERHEARTBEAT_H
+#pragma once
+
+#include <string>
 
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
 #include "autil/LoopThread.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/util/Log.h"
 #include "build_service/worker/WorkerHeartbeat.h"
 #include "worker_framework/ZkState.h"
@@ -59,5 +61,3 @@ private:
 BS_TYPEDEF_PTR(ZkWorkerHeartbeat);
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_ZKWORKERHEARTBEAT_H

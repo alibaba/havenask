@@ -15,10 +15,21 @@
  */
 #include "indexlib/framework/SegmentMetrics.h"
 
+#include <algorithm>
+#include <cstddef>
+
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/ReaderOption.h"
+#include "indexlib/file_system/RemoveOption.h"
+#include "indexlib/file_system/WriterOption.h"
+#include "indexlib/file_system/fslib/FslibWrapper.h"
 
 using namespace std;
 using namespace autil;
@@ -100,6 +111,22 @@ Status SegmentMetrics::LoadSegmentMetrics(const std::shared_ptr<file_system::IDi
     string content;
     auto loadResult = directory->Load(SEGMETN_METRICS_FILE_NAME, readerOption, content);
     RETURN_IF_STATUS_ERROR(loadResult.Status(), "load segment metrics failed");
+    try {
+        FromString(content);
+    } catch (const autil::legacy::ExceptionBase& e) {
+        AUTIL_LOG(ERROR, "parse segment metrics failed [%s]", e.what());
+        return Status::Corruption();
+    }
+    return Status::OK();
+}
+
+Status SegmentMetrics::Load(const std::string& filePath)
+{
+    std::string content;
+    auto st = indexlib::file_system::FslibWrapper::AtomicLoad(filePath, content);
+    if (!st.OK()) {
+        return st.Status();
+    }
     try {
         FromString(content);
     } catch (const autil::legacy::ExceptionBase& e) {

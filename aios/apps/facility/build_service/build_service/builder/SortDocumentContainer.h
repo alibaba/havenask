@@ -13,15 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SORTDOCUMENTCONTAINER_H
-#define ISEARCH_BS_SORTDOCUMENTCONTAINER_H
+#pragma once
 
-#include "autil/mem_pool/Pool.h"
+#include <algorithm>
+#include <assert.h>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <utility>
+#include <vector>
+
+#include "autil/Span.h"
 #include "build_service/builder/SortDocumentConverter.h"
 #include "build_service/builder/SortDocumentSorter.h"
 #include "build_service/common/Locator.h"
-#include "build_service/common_define.h"
 #include "build_service/util/Log.h"
+#include "indexlib/config/SortDescription.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/document/document.h"
+#include "indexlib/document/locator.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace builder {
 
@@ -46,7 +57,7 @@ public:
     inline void pushDocument(const indexlib::document::DocumentPtr& doc)
     {
         updateLocator(doc->GetLocator().GetLocator());
-        doc->SetLocator(indexlib::document::Locator()); // set locator null, reduce memory
+        doc->ResetLocator(); // set locator null, reduce memory
         SortDocument sortDoc;
         if (!_converter->convert(doc, sortDoc)) {
             return;
@@ -125,5 +136,3 @@ private:
 };
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_SORTDOCUMENTCONTAINER_H

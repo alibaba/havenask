@@ -13,6 +13,7 @@ strict_cc_library(
 strict_cc_fast_test(
     name='FunctionConfigTest',
     srcs=['FunctionConfigTest.cpp'],
+    copts=['-fno-access-control'],
     data=['testdata/schema.json'],
     deps=[
         '//aios/storage/indexlib/config:TabletSchema',

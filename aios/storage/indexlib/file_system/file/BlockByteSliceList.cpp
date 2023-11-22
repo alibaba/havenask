@@ -104,30 +104,31 @@ void BlockByteSliceList::Clear(autil::mem_pool::Pool* pool) noexcept
     _totalSize = 0;
 }
 
-util::ByteSlice* BlockByteSliceList::GetNextSlice(util::ByteSlice* slice)
+FSResult<ByteSlice*> BlockByteSliceList::GetNextSlice(util::ByteSlice* slice) noexcept
 {
     if (!slice) {
-        return nullptr;
+        return {FSEC_OK, nullptr};
     }
     if (slice->dataSize == slice->size) {
-        return slice->next;
+        return {FSEC_OK, (ByteSlice*)slice->next};
     }
     return GetSlice(slice->offset + slice->dataSize, slice);
 }
 
-ByteSlice* BlockByteSliceList::GetSlice(size_t fileOffset, ByteSlice* slice)
+FSResult<ByteSlice*> BlockByteSliceList::GetSlice(size_t fileOffset, ByteSlice* slice) noexcept
 {
     if (!slice) {
-        return nullptr;
+        return {FSEC_OK, nullptr};
     }
-
     assert(fileOffset >= slice->offset && fileOffset < slice->offset + slice->size);
     assert(slice->dataSize <= slice->size);
     if (fileOffset >= slice->offset + slice->dataSize) {
         assert(_dataRetriever);
         size_t blockOffset;
         size_t blockDataSize;
-        uint8_t* blockData = _dataRetriever->RetrieveBlockData(fileOffset, blockOffset, blockDataSize);
+        FSResult<uint8_t*> blockDataRet = _dataRetriever->RetrieveBlockData(fileOffset, blockOffset, blockDataSize);
+        RETURN2_IF_FS_ERROR(blockDataRet.Code(), nullptr, "retrieve block failed");
+        uint8_t* blockData = blockDataRet.Value();
         assert(blockData);
         ByteSlice* retSlice = nullptr;
         if (blockOffset <= slice->offset) {
@@ -150,9 +151,9 @@ ByteSlice* BlockByteSliceList::GetSlice(size_t fileOffset, ByteSlice* slice)
             retSlice = newSlice;
         }
         retSlice->dataSize = std::min(static_cast<size_t>(retSlice->dataSize), static_cast<size_t>(retSlice->size));
-        return retSlice;
+        return {FSEC_OK, retSlice};
     }
-    return slice;
+    return {FSEC_OK, slice};
 }
 
 BlockDataRetriever* BlockByteSliceList::CreateCompressBlockDataRetriever(

@@ -15,10 +15,19 @@
  */
 #include "indexlib/framework/VersionLoader.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <stddef.h>
+#include <vector>
+
 #include "autil/StringUtil.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/PathUtil.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/ListOption.h"
+#include "indexlib/file_system/ReaderOption.h"
 
 namespace indexlibv2::framework {
 

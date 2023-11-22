@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel.rules.logical.calcite;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptRuleOperand;
 import org.apache.calcite.plan.RelRule;
@@ -14,10 +18,6 @@ import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.tools.RelBuilderFactory;
 import org.immutables.value.Value;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @Value.Enclosing
 public class IquanProjectFilterTransposeRule extends ProjectFilterTransposeRule {
@@ -38,6 +38,29 @@ public class IquanProjectFilterTransposeRule extends ProjectFilterTransposeRule 
                                               boolean wholeFilter,
                                               RelBuilderFactory relBuilderFactory) {
         super(operand, preserveExprCondition, wholeProject, wholeFilter, relBuilderFactory);
+    }
+
+    private static RelNode addAliaNames(Project origProject, RelNode targetNode, RelBuilder relBuilder) {
+        if (origProject == null || targetNode == null) {
+            return targetNode;
+        }
+        List<String> originNames = origProject.getRowType().getFieldNames();
+        List<String> targetNames = targetNode.getRowType().getFieldNames();
+        if (originNames.equals(targetNames)) {
+            return targetNode;
+        }
+        assert originNames.size() == targetNames.size();
+        List<RexNode> projects = new ArrayList<>();
+        for (RelDataTypeField field : origProject.getRowType().getFieldList()) {
+            projects.add(new RexInputRef(field.getIndex(), field.getType()));
+        }
+
+        if (!targetNode.getInputs().isEmpty()) {
+            RelNode newInput = relBuilder.pushAll(targetNode.getInputs()).projectNamed(projects, originNames, true).build();
+            return targetNode.copy(targetNode.getTraitSet(), Collections.singletonList(newInput));
+        } else {
+            return relBuilder.push(targetNode).projectNamed(projects, originNames, true).build();
+        }
     }
 
     @Override
@@ -84,29 +107,6 @@ public class IquanProjectFilterTransposeRule extends ProjectFilterTransposeRule 
 
         if (topProject != null) {
             call.transformTo(topProject);
-        }
-    }
-
-    private static RelNode addAliaNames(Project origProject, RelNode targetNode, RelBuilder relBuilder) {
-        if (origProject == null || targetNode == null) {
-            return targetNode;
-        }
-        List<String> originNames = origProject.getRowType().getFieldNames();
-        List<String> targetNames = targetNode.getRowType().getFieldNames();
-        if (originNames.equals(targetNames)) {
-            return targetNode;
-        }
-        assert originNames.size() == targetNames.size();
-        List<RexNode> projects = new ArrayList<>();
-        for (RelDataTypeField field : origProject.getRowType().getFieldList()) {
-            projects.add( new RexInputRef(field.getIndex(), field.getType()));
-        }
-
-        if (!targetNode.getInputs().isEmpty()) {
-            RelNode newInput = relBuilder.pushAll(targetNode.getInputs()).projectNamed(projects, originNames,true).build();
-            return targetNode.copy(targetNode.getTraitSet(), Collections.singletonList(newInput));
-        } else {
-            return relBuilder.push(targetNode).projectNamed(projects, originNames, true).build();
         }
     }
 

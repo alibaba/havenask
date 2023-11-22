@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONSEGMENTITERATORTEST_H
-#define __INDEXLIB_PARTITIONSEGMENTITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/segment/partition_segment_iterator.h"
@@ -31,5 +30,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(PartitionSegmentIteratorTest, TestSimpleProcess);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_PARTITIONSEGMENTITERATORTEST_H

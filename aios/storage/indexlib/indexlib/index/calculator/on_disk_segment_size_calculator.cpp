@@ -360,7 +360,7 @@ int64_t OnDiskSegmentSizeCalculator::GetSegmentSourceSize(const DirectoryPtr& se
     int64_t sourceSize =
         GetFileLength(segDir, metaDir, SOURCE_DATA_FILE_NAME) + GetFileLength(segDir, metaDir, SOURCE_OFFSET_FILE_NAME);
     for (auto iter = sourceSchema->Begin(); iter != sourceSchema->End(); iter++) {
-        groupid_t groupId = (*iter)->GetGroupId();
+        sourcegroupid_t groupId = (*iter)->GetGroupId();
         string groupDir = FslibWrapper::JoinPath(SOURCE_DIR_NAME, SourceDefine::GetDataDir(groupId));
         sourceSize = sourceSize + GetFileLength(segDir, groupDir, SOURCE_DATA_FILE_NAME) +
                      GetFileLength(segDir, groupDir, SOURCE_OFFSET_FILE_NAME);

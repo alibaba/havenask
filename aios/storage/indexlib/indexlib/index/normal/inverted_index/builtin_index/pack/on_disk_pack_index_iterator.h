@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ON_DISK_PACK_INDEX_ITERATOR_H
-#define __INDEXLIB_ON_DISK_PACK_INDEX_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -279,7 +278,7 @@ void OnDiskPackIndexIteratorTyped<DictKey>::DecodeDocList()
     ssize_t readLen = mPostingFile->Read(mDocListSlice->data, mDocListSlice->size, cursor).GetOrThrow();
     assert(readLen == (ssize_t)docListLen);
     (void)readLen;
-    mDocListReader->Open(mDocListSlice);
+    mDocListReader->Open(mDocListSlice).GetOrThrow();
 }
 
 template <typename DictKey>
@@ -309,10 +308,8 @@ void OnDiskPackIndexIteratorTyped<DictKey>::DecodePosList()
 
     int64_t cursor = mPostingFile->Tell() + posSkipListLen;
     mPostingFile->Read(mPosListSlice->data, mPosListSlice->size, cursor).GetOrThrow();
-    mPosListReader->Open(mPosListSlice);
+    mPosListReader->Open(mPosListSlice).GetOrThrow();
 }
 
 #undef DELETE_BYTE_SLICE
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_ON_DISK_PACK_INDEX_ITERATOR_H

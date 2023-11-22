@@ -68,7 +68,7 @@ const std::string &KernelInitContext::getConfigPath() const {
 }
 
 const std::string &KernelInitContext::getThisBizName() const {
-    return _node->getGraph()->getBizName();
+    return _node->getBizName();
 }
 
 NaviPartId KernelInitContext::getThisPartId() const {

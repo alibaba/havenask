@@ -15,6 +15,10 @@
  */
 #include "build_service/common/ResourceKeeperCreator.h"
 
+#include <assert.h>
+#include <iosfwd>
+
+#include "alog/Logger.h"
 #include "build_service/common/CheckpointResourceKeeper.h"
 #include "build_service/common/IndexCheckpointResourceKeeper.h"
 #include "build_service/common/SwiftResourceKeeper.h"

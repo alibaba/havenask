@@ -1,0 +1,46 @@
+{
+    "fields": [
+        {
+            "field_name": "string1",
+            "field_type": "STRING"
+        },
+        {
+            "field_name": "price",
+            "field_type": "UINT32"
+        }
+    ],
+    "indexes": {
+        "primarykey": [
+            {
+                "index_fields": "price",
+                "index_name": "price",
+                "index_type": "PRIMARYKEY64"
+            }
+        ],
+        "source": [
+            {
+                "group_configs": [
+                    {
+                        "field_mode": "all_field"
+                    }
+                ]
+            }
+        ],
+        "summary": [
+            {
+                "summary_fields": [
+                    "string1"
+                ],
+                "summary_groups": [
+                    {
+                        "group_name": "test",
+                        "summary_fields": [
+                            "price"
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "table_name": "noname"
+}

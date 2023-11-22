@@ -15,11 +15,18 @@
  */
 #include "build_service/common/RpcChannelManager.h"
 
-#include "aios/network/arpc/arpc/CommonMacros.h"
+#include <arpc/ANetRPCChannelManager.h>
+#include <assert.h>
+#include <exception>
+#include <string.h>
+#include <vector>
+
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "fslib/util/FileUtil.h"
-#include "worker_framework/LeaderLocator.h"
+#include "zookeeper/zookeeper.h"
 
 namespace build_service::common {
 

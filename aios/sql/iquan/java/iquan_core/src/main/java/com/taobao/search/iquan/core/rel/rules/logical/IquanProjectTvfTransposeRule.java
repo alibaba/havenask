@@ -1,5 +1,14 @@
 package com.taobao.search.iquan.core.rel.rules.logical;
 
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.IntStream;
+
 import com.taobao.search.iquan.core.api.schema.TvfInputTable;
 import com.taobao.search.iquan.core.api.schema.TvfOutputTable;
 import com.taobao.search.iquan.core.api.schema.TvfSignature;
@@ -13,15 +22,19 @@ import org.apache.calcite.rel.logical.LogicalProject;
 import org.apache.calcite.rel.logical.LogicalTableFunctionScan;
 import org.apache.calcite.rel.rules.TransformationRule;
 import org.apache.calcite.rel.type.RelRecordType;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexRangeRef;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.rex.RexVisitor;
+import org.apache.calcite.rex.RexVisitorImpl;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.util.BitSets;
 import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.stream.IntStream;
 
 @Value.Enclosing
 public class IquanProjectTvfTransposeRule
@@ -56,6 +69,19 @@ public class IquanProjectTvfTransposeRule
         }
     }
 
+    @Value.Immutable
+    public interface Config extends RelRule.Config {
+        Config DEFAULT = ImmutableIquanProjectTvfTransposeRule.Config.builder().operandSupplier(b0 ->
+                        b0.operand(LogicalProject.class).oneInput(b1 ->
+                                b1.operand(LogicalTableFunctionScan.class).anyInputs()))
+                .build();
+
+        @Override
+        default IquanProjectTvfTransposeRule toRule() {
+            return new IquanProjectTvfTransposeRule(this);
+        }
+    }
+
     public static class ProjectPushTvf {
 
         public static final String ENABLE_PUSH_PROJECT_KEY = "enable_project_push";
@@ -72,8 +98,7 @@ public class IquanProjectTvfTransposeRule
                 Project topProject,
                 TableFunctionScan tvfScan,
                 RelNode tvfInput,
-                RelBuilder relBuilder)
-        {
+                RelBuilder relBuilder) {
             this.topProject = topProject;
             this.tvfScan = tvfScan;
             this.tvfInput = tvfInput;
@@ -125,7 +150,7 @@ public class IquanProjectTvfTransposeRule
          * 2. tvf配置的check_fields
          * 3. tvf表达式中DESCRIPTOR描述的字段
          * 返回字段引用的BitSet
-         * */
+         */
         public BitSet locateInputReference() {
             final List<String> inputFieldNames = tvfInputType.getFieldNames();
             final int nInputFields = inputFieldNames.size();
@@ -179,7 +204,7 @@ public class IquanProjectTvfTransposeRule
 
         /**
          * 下推project，返回下推后的关系根节点
-         * */
+         */
         public RelNode pushProject(BitSet inputRefs) {
             /**
              * 新增一个Project节点，以tvfInput做为输入，只project被引用的字段。
@@ -242,19 +267,6 @@ public class IquanProjectTvfTransposeRule
             return relBuilder.push(newTvfScan)
                     .project(newTopProjectNodes, topProject.getRowType().getFieldNames(), true)
                     .build();
-        }
-    }
-
-    @Value.Immutable
-    public interface Config extends RelRule.Config {
-        Config DEFAULT = ImmutableIquanProjectTvfTransposeRule.Config.builder().operandSupplier(b0 ->
-                b0.operand(LogicalProject.class).oneInput(b1 ->
-                        b1.operand(LogicalTableFunctionScan.class).anyInputs()))
-                .build();
-
-        @Override
-        default IquanProjectTvfTransposeRule toRule() {
-            return new IquanProjectTvfTransposeRule(this);
         }
     }
 }

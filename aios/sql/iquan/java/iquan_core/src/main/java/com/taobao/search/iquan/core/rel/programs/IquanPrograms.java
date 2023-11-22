@@ -1,25 +1,93 @@
 package com.taobao.search.iquan.core.rel.programs;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.api.common.OptimizeLevel;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
-import com.taobao.search.iquan.core.rel.convert.physical.*;
-import com.taobao.search.iquan.core.rel.rules.logical.*;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanAggregateConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanCTEConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanCalcConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanCorrelateConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanGroupingSetsConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanJoinConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanMatchConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanMultiJoinConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanSortConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanTableFunctionScanConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanTableModifyConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanTableScanConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanUnionConverterRule;
+import com.taobao.search.iquan.core.rel.convert.physical.IquanValuesConverterRule;
+import com.taobao.search.iquan.core.rel.rules.logical.ExtractNotInRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanAggregateExpandDistinctAggregatesRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanDeSearchRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanMultiJoinErrorRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanMultiJoinRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanProjectSortTransposeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanProjectTvfTransposeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanPruneAggregateCallRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanSetOpTypeCoerceRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanSortPushUnion;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanToIquanInNotIquanInRule;
+import com.taobao.search.iquan.core.rel.rules.logical.IquanTvfModifyRule;
+import com.taobao.search.iquan.core.rel.rules.logical.LogicalUnionMergeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.SortCombineRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.FilterToSemiAntiJoinRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanCalcMergeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanFilterCalcMergeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanFilterJoinRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanFilterMergeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanFilterProjectTransposeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanJoinCondTypeCoerceRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanProjectCalcMergeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanProjectFilterTransposeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanProjectMergeRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.IquanProjectRemoveRule;
+import com.taobao.search.iquan.core.rel.rules.logical.calcite.ProjectJoinRule;
 import com.taobao.search.iquan.core.rel.rules.logical.calcite.ReduceExpressionsRule;
-import com.taobao.search.iquan.core.rel.rules.logical.calcite.*;
-import com.taobao.search.iquan.core.rel.rules.logical.layer.table.*;
-import com.taobao.search.iquan.core.rel.rules.physical.*;
+import com.taobao.search.iquan.core.rel.rules.logical.layer.table.ConvertFuseLayerTableRule;
+import com.taobao.search.iquan.core.rel.rules.logical.layer.table.FilterEliminateCteRule;
+import com.taobao.search.iquan.core.rel.rules.logical.layer.table.FuseLayerTableScanExpandRule;
+import com.taobao.search.iquan.core.rel.rules.logical.layer.table.IquanSortFuseLayerTableRule;
+import com.taobao.search.iquan.core.rel.rules.logical.layer.table.JoinEliminateCteRule;
+import com.taobao.search.iquan.core.rel.rules.logical.layer.table.JoinLayerTableRule;
+import com.taobao.search.iquan.core.rel.rules.logical.layer.table.TakeInFuseLayerTableRule;
+import com.taobao.search.iquan.core.rel.rules.physical.AggIndexPushDownRule;
+import com.taobao.search.iquan.core.rel.rules.physical.CalcScanMergeRule;
+import com.taobao.search.iquan.core.rel.rules.physical.CalcUncollectMergeRule;
+import com.taobao.search.iquan.core.rel.rules.physical.CorrelateUncollectMergeRule;
+import com.taobao.search.iquan.core.rel.rules.physical.DistinctAggIndexOptimizeRule;
+import com.taobao.search.iquan.core.rel.rules.physical.ExecEquiJoinRule;
+import com.taobao.search.iquan.core.rel.rules.physical.ExecLookupJoinMergeRule;
+import com.taobao.search.iquan.core.rel.rules.physical.ExecMultiLookupJoinRule;
+import com.taobao.search.iquan.core.rel.rules.physical.ExecNonEquiJoinRule;
+import com.taobao.search.iquan.core.rel.rules.physical.ExecSemiJoinRule;
+import com.taobao.search.iquan.core.rel.rules.physical.GlobalAggIndexOptimizeRule;
+import com.taobao.search.iquan.core.rel.rules.physical.MatchTypeRankScanMergeRule;
+import com.taobao.search.iquan.core.rel.rules.physical.PushDownOpRewriteRule;
+import com.taobao.search.iquan.core.rel.rules.physical.SortScanMergeRule;
+import com.taobao.search.iquan.core.rel.rules.physical.TurboJetCalcRewriteRule;
+import com.taobao.search.iquan.core.rel.rules.physical.UncollectMergeRule;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.hep.HepMatchOrder;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.plan.hep.HepProgramBuilder;
-import org.apache.calcite.rel.rules.*;
+import org.apache.calcite.rel.rules.AggregateUnionAggregateRule;
+import org.apache.calcite.rel.rules.FilterAggregateTransposeRule;
+import org.apache.calcite.rel.rules.FilterSetOpTransposeRule;
+import org.apache.calcite.rel.rules.FilterToCalcRule;
+import org.apache.calcite.rel.rules.JoinPushExpressionsRule;
+import org.apache.calcite.rel.rules.ProjectSetOpTransposeRule;
+import org.apache.calcite.rel.rules.ProjectToCalcRule;
+import org.apache.calcite.rel.rules.PruneEmptyRules;
+import org.apache.calcite.rel.rules.SortRemoveRule;
+import org.apache.calcite.rel.rules.SubQueryRemoveRule;
+import org.apache.calcite.rel.rules.UnionEliminatorRule;
 import org.apache.calcite.tools.RuleSet;
 import org.apache.calcite.tools.RuleSets;
 import org.apache.commons.collections4.IteratorUtils;
 import org.javatuples.Pair;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class IquanPrograms {
     public static final String FUSE_LAYER_TABLE_PREPARE = "fuse layer table prepare";
@@ -66,7 +134,7 @@ public class IquanPrograms {
                 FilterEliminateCteRule.Config.DEFAULT.withRelBuilderFactory(IquanRelBuilder.LOGICAL_BUILDER).toRule(),
                 JoinEliminateCteRule.Config.DEFAULT.withRelBuilderFactory(IquanRelBuilder.LOGICAL_BUILDER).toRule(),
                 IquanProjectMergeRule.Config.DEFAULT.withRelBuilderFactory(IquanRelBuilder.LOGICAL_BUILDER).toRule()
-                );
+        );
         ruleSetList.add(new Pair<>("fuse layer table prepare", buildHepProgram(rules, HepMatchOrder.BOTTOM_UP)));
 
         RuleSet fuseRules = RuleSets.ofList(
@@ -133,7 +201,6 @@ public class IquanPrograms {
                 IquanProjectRemoveRule.INSTANCE,
                 IquanProjectSortTransposeRule.INSTANCE,
                 SortCombineRule.INSTANCE,
-                AggregateProjectPullUpConstantsRule.Config.DEFAULT.withRelBuilderFactory(IquanRelBuilder.LOGICAL_BUILDER).toRule(),
 
                 PruneEmptyRules.RemoveEmptySingleRule.RemoveEmptySingleRuleConfig.AGGREGATE.withRelBuilderFactory(IquanRelBuilder.LOGICAL_BUILDER).toRule(),
                 PruneEmptyRules.RemoveEmptySingleRule.RemoveEmptySingleRuleConfig.FILTER.withRelBuilderFactory(IquanRelBuilder.LOGICAL_BUILDER).toRule(),

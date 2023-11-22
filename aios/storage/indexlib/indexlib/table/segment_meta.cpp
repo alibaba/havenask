@@ -15,6 +15,8 @@
  */
 #include "indexlib/table/segment_meta.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace table {

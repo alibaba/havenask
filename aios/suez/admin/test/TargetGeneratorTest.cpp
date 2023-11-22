@@ -115,7 +115,9 @@ TEST_F(TargetGeneratorTest, testSimple) {
     std::string content;
     auto ec = fslib::fs::FileSystem::readFile(fileName, content);
     ASSERT_TRUE(ec == fslib::EC_OK);
-    auto configPath = _testDataPath + "catalog/database/table/1234567/515d73b5f9d8d527fccad77970eebd6c/config";
+    auto configPath =
+        _testDataPath +
+        "catalog/database/table/1234567/515d73b5f9d8d527fccad77970eebd6c/config.d41d8cd98f00b204e9800998ecf8427e";
     autil::StringUtil::replaceAll(content, "$configPath", configPath);
     autil::StringUtil::replaceAll(content, "$indexRoot", _testDataPath + "table/index");
     AdminTarget expect;

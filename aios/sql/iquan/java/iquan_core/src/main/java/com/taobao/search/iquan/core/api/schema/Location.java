@@ -1,32 +1,36 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import com.taobao.search.iquan.client.common.json.catalog.IquanLocation;
+import lombok.Getter;
+
+@Getter
 public class Location {
-    private final String tableGroupName;
+    private final String nodeName;
     private final int partitionCnt;
 
     public static final Location DEFAULT_QRS = new Location( "qrs", 1);
     public static final Location UNKNOWN = new Location( "unknown", Integer.MAX_VALUE);
 
-    public Location(String tableGroupName, int partitionCnt) {
-        this.tableGroupName = tableGroupName;
+    public Location(String nodeName, int partitionCnt) {
+        this.nodeName = nodeName;
         this.partitionCnt = partitionCnt;
     }
 
-    public String getTableGroupName() {
-        return tableGroupName;
+    public Location(IquanLocation iquanLocation) {
+        this.nodeName = iquanLocation.getNodeName();
+        this.partitionCnt = iquanLocation.getPartitionCnt();
     }
 
-    @Deprecated //partitionCnt is to be corrected in future suez catalog
-    public int getPartitionCnt() {
-        return partitionCnt;
+    public boolean isSingle() {
+        return 1 == partitionCnt;
     }
 
     public boolean isValid() {
-        return !tableGroupName.isEmpty();
+        return !nodeName.isEmpty();
     }
 
     public String getDigest() {
-        return String.format("tableGroupName=%s, partitionCnt=%d", tableGroupName, partitionCnt);
+        return String.format("tableGroupName=%s, partitionCnt=%d", nodeName, partitionCnt);
     }
 
     @Override
@@ -38,12 +42,8 @@ public class Location {
         if (this == other) {
             return true;
         }
-        /*
-        return dbName.equals(other.dbName)
-                && tableGroupName.equals(other.tableGroupName)
-                && partitionCnt == other.partitionCnt;
-        */
-        return tableGroupName.equals(other.tableGroupName);
+
+        return nodeName.equals(other.nodeName) && partitionCnt == other.partitionCnt;
     }
 
     /*

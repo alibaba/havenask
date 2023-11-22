@@ -16,9 +16,20 @@
 #pragma once
 
 #include <map>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "autil/Log.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
@@ -31,15 +42,11 @@ class IIndexFactory;
 }
 
 namespace indexlib::config {
-class FieldSchema;
 class IndexPartitionSchema;
 } // namespace indexlib::config
 
 namespace indexlibv2::config {
 class IIndexConfig;
-class Field;
-class SummaryIndexConfig;
-class FieldConfig;
 
 class UnresolvedSchema
 {

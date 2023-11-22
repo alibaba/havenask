@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 #pragma once
+#include <map>
+#include <memory>
 #include <mutex>
+#include <string>
+#include <vector>
 
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
+
 namespace indexlib { namespace file_system {
 class IFileSystem;
 }} // namespace indexlib::file_system

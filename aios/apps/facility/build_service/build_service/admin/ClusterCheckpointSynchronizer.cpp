@@ -15,13 +15,31 @@
  */
 #include "build_service/admin/ClusterCheckpointSynchronizer.h"
 
+#include <algorithm>
+#include <assert.h>
 #include <cstdint>
+#include <exception>
+#include <limits>
+#include <type_traits>
+#include <unistd.h>
 
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/proto/ProtoComparator.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/VersionCoord.h"
+#include "indexlib/framework/VersionLine.h"
+#include "indexlib/indexlib.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace build_service { namespace admin {
 BS_LOG_SETUP(admin, ClusterCheckpointSynchronizer);
@@ -134,6 +152,7 @@ bool ClusterCheckpointSynchronizer::publishPartitionLevelCheckpoint(const proto:
         _metricsReporter->reportIndexVersion(checkpoint.versionId, tags);
         _metricsReporter->reportIndexSchemaVersion(checkpoint.readSchemaId, tags);
         _metricsReporter->calculateAndReportIndexTimestampFreshness(checkpoint.minTimestamp, tags);
+        _metricsReporter->reportIndexSize(checkpoint.indexSize, tags);
     }
     CS_LOG(INFO, "Publish partition checkpoint [%d_%d], version meta %s successfully.", range.from(), range.to(),
            versionMetaStr.c_str());
@@ -605,6 +624,20 @@ void ClusterCheckpointSynchronizer::addCheckpointToIndexInfo(
             indexInfo.set_totalremainindexsize(0);
         }
         indexInfo.set_schemaversion(schemaVersion);
+
+        // add index task meta
+        for (const auto& task : checkpoint.indexTaskQueue) {
+            auto indexTaskMeta = indexInfo.add_indextaskmetas();
+            indexTaskMeta->set_tasktype(task.GetTaskType());
+            indexTaskMeta->set_taskname(task.GetTaskName());
+            indexTaskMeta->set_tasktraceid(task.GetTaskTraceId());
+            indexTaskMeta->set_state(task.GetState());
+            indexTaskMeta->set_begintimeinsecs(task.GetBeginTimeInSecs());
+            indexTaskMeta->set_endtimeinsecs(task.GetEndTimeInSecs());
+            indexTaskMeta->set_eventtimeinsecs(task.GetEventTimeInSecs());
+            indexTaskMeta->set_comment(task.GetComment());
+        }
+        // TODO(lc & yonghao.fyh): add committed versionId to remove getBulkloadInfo api
         *indexInfos.Add() = indexInfo;
     }
     common::IndexCheckpointAccessor indexCheckpointAccessor(_checkpointAccessor);

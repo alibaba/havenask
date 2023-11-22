@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONFIGPARSER_H
-#define ISEARCH_BS_CONFIGPARSER_H
+#pragma once
 
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "autil/legacy/json.h"
-#include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace config {
-class ResourceReader;
 class ConfigParser
 {
 public:
@@ -71,5 +70,3 @@ private:
 };
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_CONFIGPARSER_H

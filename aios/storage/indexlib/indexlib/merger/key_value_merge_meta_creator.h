@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KEY_VALUE_MERGE_META_CREATOR_H
-#define __INDEXLIB_KEY_VALUE_MERGE_META_CREATOR_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/merge_config.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/index_base/index_meta/segment_merge_info.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/merger/index_merge_meta.h"
 #include "indexlib/merger/merge_meta_creator.h"
+#include "indexlib/merger/merge_plan.h"
+#include "indexlib/merger/merge_task.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -58,5 +63,3 @@ private:
 
 DEFINE_SHARED_PTR(KeyValueMergeMetaCreator);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_KEY_VALUE_MERGE_META_CREATOR_H

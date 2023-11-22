@@ -80,6 +80,9 @@ protected:
 
     void ReserveMemBuffers(const std::vector<DiskIndexerWithCtx>& diskIndexers);
 
+    virtual std::pair<Status, std::shared_ptr<indexlib::file_system::IDirectory>>
+    GetOutputDirectory(const std::shared_ptr<indexlib::file_system::IDirectory>& segDir) override;
+
 private:
     void ReleaseMemBuffers();
     Status DumpDataInfoFile();
@@ -198,16 +201,18 @@ Status MultiValueAttributeMerger<T>::PrepareOutputDatas(
 
         assert(segmentMeta.segmentDir != nullptr);
         auto segIDir = segmentMeta.segmentDir->GetIDirectory();
-        auto [status, attributeDir] =
-            segIDir->MakeDirectory(_attributeConfig->GetIndexCommonPath(), indexlib::file_system::DirectoryOption())
-                .StatusWith();
-        RETURN_IF_STATUS_ERROR(status, "make diretory fail. file: [%s], error: [%s]",
-                               index::ATTRIBUTE_INDEX_TYPE_STR.c_str(), status.ToString().c_str());
+        auto [status, attributeDir] = GetOutputDirectory(segIDir);
+
+        RETURN_IF_STATUS_ERROR(status, "get output diretory [%s] fail for index [%s]. error: [%s]",
+                               segIDir->DebugString().c_str(), _attributeConfig->GetAttrName().c_str(),
+                               status.ToString().c_str());
+
         std::string attrPath = _attributeConfig->GetAttrName() + "/" + _attributeConfig->GetSliceDir();
         auto [dirStatus, fieldDir] =
             attributeDir->MakeDirectory(attrPath, indexlib::file_system::DirectoryOption()).StatusWith();
         RETURN_IF_STATUS_ERROR(dirStatus, "make diretory fail. file: [%s], error: [%s]", attrPath.c_str(),
                                dirStatus.ToString().c_str());
+
         auto [writerStatus, fileWriter] =
             fieldDir->CreateFileWriter(ATTRIBUTE_DATA_INFO_FILE_NAME, indexlib::file_system::WriterOption())
                 .StatusWith();
@@ -274,7 +279,7 @@ inline Status MultiValueAttributeMerger<T>::MergeData(const std::shared_ptr<DocM
             AUTIL_LOG(ERROR, "not support attribute slice with merge to multi segment");
             return Status::Corruption();
         }
-        int64_t docCount = docMapper->GetTargetSegmentDocCount(0);
+        int64_t docCount = docMapper->GetTargetSegmentDocCount(segMergeInfos.targetSegments[0]->segmentId);
         sliceInfo.GetDocRange(docCount, beginDocId, endDocId);
     }
 
@@ -341,6 +346,14 @@ inline void MultiValueAttributeMerger<T>::EnsureReadCtx()
             ctx = diskIndexer->CreateReadContextPtr(&_readPool);
         }
     }
+}
+
+template <typename T>
+std::pair<Status, std::shared_ptr<indexlib::file_system::IDirectory>>
+MultiValueAttributeMerger<T>::GetOutputDirectory(const std::shared_ptr<indexlib::file_system::IDirectory>& segDir)
+{
+    return segDir->MakeDirectory(_attributeConfig->GetIndexCommonPath(), indexlib::file_system::DirectoryOption())
+        .StatusWith();
 }
 
 template <typename T>

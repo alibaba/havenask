@@ -1,10 +1,10 @@
 package com.taobao.search.iquan.core.api;
 
-import com.taobao.search.iquan.core.api.config.IquanConfigManager;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-
 import java.util.List;
 import java.util.Map;
+
+import com.taobao.search.iquan.core.api.config.IquanConfigManager;
+import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 
 public interface SqlQueryable {
     /**

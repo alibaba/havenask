@@ -66,7 +66,7 @@ private:
     void collectResult(const NaviUserResultPtr &result,
                        NaviDataResult &dataResult);
     std::string getConfigPath() const {
-        return GET_PRIVATE_TEST_DATA_PATH() + "config/" + _configName;
+        return NAVI_TEST_DATA_PATH + "config/" + _configName;
     }
     std::string getBizConfig() const {
         return getConfigPath() + "/" + _bizConfig;
@@ -77,11 +77,14 @@ protected:
     std::string _bizConfig;
     ResourceMapPtr _rootResourceMap;
     NaviTestCluster *_cluster;
+private:
+    std::unique_ptr<autil::EnvGuard> _naviPythonHome;
 };
 
 void RunGraphTest::setUp() {
-    autil::EnvUtil::setEnv("NAVI_PYTHON_HOME", TEST_ROOT_PATH() + "config_loader/python:/usr/lib64/python3.6/", true);
-    _loader = GET_PRIVATE_TEST_DATA_PATH() + "test_config_loader.py";
+    _naviPythonHome.reset(
+        new autil::EnvGuard("NAVI_PYTHON_HOME", NAVI_TEST_PYTHON_HOME));
+    _loader = NAVI_TEST_DATA_PATH + "test_config_loader.py";
     _configName = "run_graph_test";
     _bizConfig = "biz1.py";
     _rootResourceMap.reset(new ResourceMap());
@@ -150,8 +153,8 @@ TEST_F(RunGraphTest, testGraph_EmptyGraph) {
     NaviDataResult dataResult;
     NaviResultPtr result;
     ASSERT_NO_FATAL_FAILURE(runGraph("host_0", graphDef, dataResult, result));
-    ASSERT_EQ(EC_NO_GRAPH_OUTPUT, result->ec);
-    ASSERT_EQ("graph has no output", result->errorEvent.message);
+    ASSERT_EQ(EC_NO_GRAPH_OUTPUT, result->getErrorCode());
+    ASSERT_EQ("graph has no output", result->getErrorMessage());
     ASSERT_TRUE(dataResult._result.empty());
 }
 
@@ -168,8 +171,8 @@ TEST_F(RunGraphTest, testGraph_NoOutput) {
     NaviDataResult dataResult;
     NaviResultPtr result;
     ASSERT_NO_FATAL_FAILURE(runGraph("host_0", graphDef, dataResult, result));
-    EXPECT_EQ(EC_NO_GRAPH_OUTPUT, result->ec);
-    EXPECT_EQ("graph has no output", result->errorEvent.message);
+    ASSERT_EQ(EC_NO_GRAPH_OUTPUT, result->getErrorCode());
+    EXPECT_EQ("graph has no output", result->getErrorMessage());
     EXPECT_TRUE(dataResult._result.empty());
 }
 
@@ -186,9 +189,9 @@ TEST_F(RunGraphTest, testGraph_KernelNotExist) {
     NaviDataResult dataResult;
     NaviResultPtr result;
     ASSERT_NO_FATAL_FAILURE(runGraph("host_0", graphDef, dataResult, result));
-    EXPECT_EQ(EC_CREATE_KERNEL, result->ec);
+    ASSERT_EQ(EC_CREATE_KERNEL, result->getErrorCode());
     EXPECT_EQ("kernel [NotExistKernel] not registered",
-              result->errorEvent.message);
+              result->getErrorMessage());
     EXPECT_TRUE(dataResult._result.empty());
 }
 
@@ -204,8 +207,8 @@ TEST_F(RunGraphTest, testGraph_OpenKernelPort) {
     NaviDataResult dataResult;
     NaviResultPtr result;
     ASSERT_NO_FATAL_FAILURE(runGraph("host_0", graphDef, dataResult, result));
-    ASSERT_EQ(EC_INIT_GRAPH, result->ec);
-    ASSERT_EQ("input port[input1] not connected", result->errorEvent.message);
+    ASSERT_EQ(EC_INIT_GRAPH, result->getErrorCode());
+    ASSERT_EQ("input port[input1] not connected", result->getErrorMessage());
     ASSERT_TRUE(dataResult._result.empty());
 }
 
@@ -228,12 +231,12 @@ TEST_F(RunGraphTest, testGraph_PortNotExist) {
         NaviDataResult dataResult;
         NaviResultPtr result;
         ASSERT_NO_FATAL_FAILURE(runGraph("host_0", graphDef, dataResult, result));
-        EXPECT_EQ(EC_INIT_GRAPH, result->ec);
+        ASSERT_EQ(EC_INIT_GRAPH, result->getErrorCode());
         EXPECT_EQ(
-            "no output port named [out], kernel def[kernel_name: \"SourceKernel\"\noutputs {\n  name: \"output1\"\n  "
+            "no output port named [out], kernel def[version: 196608\nkernel_name: \"SourceKernel\"\noutputs {\n  name: \"output1\"\n  "
             "data_type {\n    name: \"CharArrayType\"\n  }\n}\nresource_depend_info {\n  depend_resources {\n    name: "
             "\"navi.buildin.resource.graph_mem_pool\"\n    require: true\n  }\n}\n]",
-            result->errorEvent.message);
+            result->getErrorMessage());
         EXPECT_EQ(0u, dataResult._result.size());
     }
     {
@@ -249,14 +252,14 @@ TEST_F(RunGraphTest, testGraph_PortNotExist) {
         NaviDataResult dataResult;
         NaviResultPtr result;
         ASSERT_NO_FATAL_FAILURE(runGraph("host_0", graphDef, dataResult, result));
-        EXPECT_EQ(EC_INIT_GRAPH, result->ec);
-        EXPECT_EQ("no input port named [in], check port name or group index, kernel def[kernel_name: "
+        ASSERT_EQ(EC_INIT_GRAPH, result->getErrorCode());
+        EXPECT_EQ("no input port named [in], check port name or group index, kernel def[version: 196608\nkernel_name: "
                   "\"HelloKernel\"\ninputs {\n  name: \"input1\"\n  data_type {\n    name: \"CharArrayType\"\n  "
                   "}\n}\noutputs {\n  name: \"output1\"\n  data_type {\n    name: \"CharArrayType\"\n  "
                   "}\n}\nresource_depend_info {\n  depend_resources {\n    name: \"A\"\n    require: true\n  }\n  "
                   "depend_resources {\n    name: \"External\"\n  }\n  depend_resources {\n    name: "
                   "\"navi.buildin.resource.graph_mem_pool\"\n    require: true\n  }\n}\n]",
-                  result->errorEvent.message);
+                  result->getErrorMessage());
         EXPECT_EQ(0u, dataResult._result.size());
     }
 }
@@ -308,11 +311,11 @@ TEST_F(RunGraphTest, testGraph_TypeNotRegistered) {
         NaviDataResult dataResult;
         NaviResultPtr result;
         ASSERT_NO_FATAL_FAILURE(runGraph("host_0", graphDef, dataResult, result));
-        ASSERT_TRUE(EC_NONE != result->ec);
+        ASSERT_TRUE(EC_NONE != result->getErrorCode());
         ASSERT_EQ(
             "port data type [not_exist_output_type] not registered, node "
             "[source] kernel [BadOutputTypeKernel], output port [output1]",
-            result->errorEvent.message);
+            result->getErrorMessage());
     }
 }
 
@@ -333,12 +336,12 @@ TEST_F(RunGraphTest, testGraph_TypeMismatch) {
         NaviDataResult dataResult;
         NaviResultPtr result;
         ASSERT_NO_FATAL_FAILURE(runGraph("host_0", graphDef, dataResult, result));
-        EXPECT_NE(EC_NONE, result->ec);
+        EXPECT_NE(EC_NONE, result->getErrorCode());
         EXPECT_EQ("edge data type mismatch, input kernel[BadOutputTypeKernel] "
                   "type[not_exist_output_type], output [node hello "
                   "kernel HelloKernel] port[input1] type[CharArrayType]",
-                  result->errorEvent.message);
-        EXPECT_EQ("edge source:output1", result->errorEvent.prefix);
+                  result->getErrorMessage());
+        EXPECT_EQ("edge source:output1", result->getErrorPrefix());
     }
     // {
     //     // cross SubGraph type mismatch
@@ -367,7 +370,7 @@ TEST_F(RunGraphTest, testGraph_TypeMismatch) {
     //               "kernel[BadOutputTypeKernel] port[output1] "
     //               "type[not_exist_output_type], output node[hello] "
     //               "kernel[HelloKernel] port[input1] type[CharArrayType]",
-    //               result->errorEvent.message);
+    //               result->getErrorMessage());
     // }
     {
         // distribute port type mismatch
@@ -389,9 +392,9 @@ TEST_F(RunGraphTest, testGig_BizNotExist) {
     NaviDataResult dataResult;
     NaviResultPtr result;
     ASSERT_NO_FATAL_FAILURE(runGraph("host_0", graphDef, dataResult, result));
-    EXPECT_TRUE(EC_NONE != result->ec);
-    EXPECT_EQ("init gig stream failed, biz: biz2", result->errorEvent.message);
-    EXPECT_EQ("domain GDT_CLIENT biz: biz2", result->errorEvent.prefix);
+    EXPECT_TRUE(EC_NONE != result->getErrorCode());
+    EXPECT_EQ("init gig stream failed, biz: biz2", result->getErrorMessage());
+    EXPECT_EQ("domain GDT_CLIENT biz: biz2", result->getErrorPrefix());
 }
 
 }

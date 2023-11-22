@@ -53,8 +53,7 @@
         "../binary/usr/local/share/cava/cava",
         "../binary/usr/local/share/cava/unsafe",
         "../binary/usr/local/share/cava/ha3",
-        "../binary/usr/local/share/cava/suez",
-        "../binary/usr/local/share/cava/builtin"
+        "../binary/usr/local/share/cava/suez"
     ],
     "bitCodeFile": "../binary/usr/local/share/bc/ha3_cava.bc",
     "jitCompileOptions": {

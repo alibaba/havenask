@@ -15,6 +15,13 @@
  */
 #include "build_service/processor/MultiThreadProcessorWorkItemExecutor.h"
 
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/ThreadPool.h"
+
 using namespace std;
 
 namespace build_service { namespace processor {

@@ -1,3 +1,4 @@
+#pragma once
 /* mz_crypt.h -- Crypto/hash functions
    Version 2.8.9, July 4, 2019
    part of the MiniZip project
@@ -8,9 +9,6 @@
    This program is distributed under the terms of the same license as zlib.
    See the accompanying LICENSE file for the full text of the license.
 */
-
-#ifndef MZ_CRYPT_H
-#define MZ_CRYPT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,6 +59,4 @@ int32_t mz_crypt_sign_verify(uint8_t* message, int32_t message_size, uint8_t* si
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

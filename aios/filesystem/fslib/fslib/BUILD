@@ -15,8 +15,8 @@ cc_library(
 cc_library(
     name='common',
     hdrs=[
-        'common.h', 'fslib.h', 'common/common_define.h', 'common/common_type.h'
+        'common.h', 'common/common_define.h', 'common/common_type.h', 'fslib.h'
     ],
-    deps=['//aios/filesystem/fslib/fslib/fs:header'],
-    include_prefix='fslib'
+    include_prefix='fslib',
+    deps=['//aios/filesystem/fslib/fslib/fs:header']
 )

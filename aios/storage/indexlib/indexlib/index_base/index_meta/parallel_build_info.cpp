@@ -31,13 +31,13 @@ IE_LOG_SETUP(index_base, ParallelBuildInfo);
 const std::string ParallelBuildInfo::PARALLEL_BUILD_INFO_FILE = "parallel_build_info_file";
 const std::string ParallelBuildInfo::PARALLEL_BUILD_PREFIX = "parallel_";
 const std::string ParallelBuildInfo::PARALLEL_BUILD_INSTANCE_PREFIX = "instance_";
-ParallelBuildInfo::ParallelBuildInfo() : parallelNum(0u), batchId(0u), instanceId(0u), baseVersion(INVALID_VERSION) {}
+ParallelBuildInfo::ParallelBuildInfo() : parallelNum(0u), batchId(0u), instanceId(0u), baseVersion(INVALID_VERSIONID) {}
 
 ParallelBuildInfo::ParallelBuildInfo(uint32_t _parallelNum, uint32_t _batchId, uint32_t _instanceId)
     : parallelNum(_parallelNum)
     , batchId(_batchId)
     , instanceId(_instanceId)
-    , baseVersion(INVALID_VERSION)
+    , baseVersion(INVALID_VERSIONID)
 {
 }
 

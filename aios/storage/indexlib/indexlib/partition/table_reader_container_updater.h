@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_READER_CONTAINER_UPDATER_H
-#define __INDEXLIB_TABLE_READER_CONTAINER_UPDATER_H
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -127,5 +126,3 @@ private:
 
 DEFINE_SHARED_PTR(TableReaderContainerUpdater);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_TABLE_READER_CONTAINER_UPDATER_H

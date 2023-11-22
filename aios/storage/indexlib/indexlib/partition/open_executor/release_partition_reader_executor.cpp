@@ -88,7 +88,7 @@ bool ReleasePartitionReaderExecutor::Execute(ExecutorResource& resource)
         param, resource.mFileSystem, resource.mLoadedIncVersion, "", orgInMemSegment));
     reader.reset();
     assert(resource.mReaderContainer->Size() == 0);
-    resource.mLoadedIncVersion = index_base::Version(INVALID_VERSION);
+    resource.mLoadedIncVersion = index_base::Version(INVALID_VERSIONID);
     IE_LOG(INFO, "release partition reader executor end");
     return true;
 }

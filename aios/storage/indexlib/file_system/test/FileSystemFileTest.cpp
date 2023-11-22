@@ -223,9 +223,10 @@ void FileSystemFileTest::TestCreateFileReader()
     if (OPEN_TYPE != FSOT_BUFFERED) {
         ByteSliceList* byteSliceList = fileReader->ReadToByteSliceList((size_t)3, 1, ReadOption());
         ASSERT_TRUE(byteSliceList != NULL);
-        ByteSliceReader sliceListReader(byteSliceList);
+        ByteSliceReader sliceListReader;
+        sliceListReader.Open(byteSliceList).GetOrThrow();
         void* data;
-        ASSERT_EQ(3u, sliceListReader.ReadMayCopy(data, 3));
+        ASSERT_EQ(3u, sliceListReader.ReadMayCopy(data, 3).GetOrThrow());
         ASSERT_EQ(0, memcmp(data, "ell", 3));
         delete byteSliceList;
     }
@@ -289,9 +290,10 @@ void FileSystemFileTest::CheckInnerFile(const string& fileContent, const std::sh
         if (openType != FSOT_BUFFERED) {
             // read with slicelist
             ByteSliceList* byteSliceList = fileReader->ReadToByteSliceList((size_t)remainLen, 3, ReadOption());
-            ByteSliceReader reader(byteSliceList);
+            ByteSliceReader reader;
+            reader.Open(byteSliceList).GetOrThrow();
             vector<char> data(' ', remainLen);
-            ASSERT_EQ(remainLen, reader.Read(data.data(), remainLen));
+            ASSERT_EQ(remainLen, reader.Read(data.data(), remainLen).GetOrThrow());
             ASSERT_EQ(expectValue, string(data.data(), remainLen));
             delete byteSliceList;
         }
@@ -339,8 +341,9 @@ void FileSystemFileTest::TestReadByteSliceForFileReader()
 
         ByteSliceList* byteSliceList = fileReader->ReadToByteSliceList(fileContext.size(), 0, ReadOption());
         ASSERT_TRUE(byteSliceList);
-        ByteSliceReader reader(byteSliceList);
-        ASSERT_EQ(fileContext.size(), reader.Read(buffer, fileContext.size()));
+        ByteSliceReader reader;
+        reader.Open(byteSliceList).GetOrThrow();
+        ASSERT_EQ(fileContext.size(), reader.Read(buffer, fileContext.size()).GetOrThrow());
         ASSERT_EQ(0, memcmp(fileContext.data(), buffer, fileContext.size()));
         delete byteSliceList;
     } else {

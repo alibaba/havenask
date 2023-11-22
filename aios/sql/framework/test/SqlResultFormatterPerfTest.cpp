@@ -42,7 +42,7 @@ private:
             string colName = string("col") + StringUtil::toString(i);
             _matchDocUtil.extendMatchDocAllocator(allocator, docs, colName, colValues);
         }
-        return TablePtr(new Table(docs, allocator));
+        return Table::fromMatchDocs(docs, allocator);
     }
 
     template <typename T>
@@ -54,7 +54,7 @@ private:
             string colName = string("col") + StringUtil::toString(i);
             _matchDocUtil.extendMultiValueMatchDocAllocator(allocator, docs, colName, colValues);
         }
-        return TablePtr(new Table(docs, allocator));
+        return Table::fromMatchDocs(docs, allocator);
     }
 
     TablePtr createStringTable(size_t rowCount, size_t colCount) {
@@ -65,7 +65,7 @@ private:
             string colName = string("col") + StringUtil::toString(i);
             _matchDocUtil.extendMatchDocAllocator(allocator, docs, colName, colValues);
         }
-        return TablePtr(new Table(docs, allocator));
+        return Table::fromMatchDocs(docs, allocator);
     }
 
     TablePtr createMultiStringTable(size_t rowCount, size_t colCount) {
@@ -77,7 +77,7 @@ private:
             string colName = string("col") + StringUtil::toString(i);
             _matchDocUtil.extendMultiValueMatchDocAllocator(allocator, docs, colName, colValues);
         }
-        return TablePtr(new Table(docs, allocator));
+        return Table::fromMatchDocs(docs, allocator);
     }
 
     template <typename T>

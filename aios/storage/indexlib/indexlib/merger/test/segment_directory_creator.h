@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEGMENT_DIRECTORY_CREATOR_H
-#define __INDEXLIB_SEGMENT_DIRECTORY_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -33,5 +32,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentDirectoryCreator);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_SEGMENT_DIRECTORY_CREATOR_H

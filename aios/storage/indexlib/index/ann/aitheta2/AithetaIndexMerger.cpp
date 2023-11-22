@@ -94,7 +94,7 @@ Status AithetaIndexMerger::DoMerge(const std::vector<SourceSegment>& srcSegments
                                    const std::shared_ptr<DocMapper>& docMapper)
 {
     vector<shared_ptr<NormalSegment>> normalSegments;
-    vector<shared_ptr<EmbeddingAttrSegmentBase>> embeddingAttrSegments;
+    vector<shared_ptr<EmbeddingAttrSegment>> embeddingAttrSegments;
     for (const SourceSegment& srcSegment : srcSegments) {
         segmentid_t segmentId = srcSegment.segment->GetSegmentId();
         auto segmentDir = srcSegment.segment->GetSegmentDirectory();
@@ -116,14 +116,13 @@ Status AithetaIndexMerger::DoMerge(const std::vector<SourceSegment>& srcSegments
         auto docMapWrapper = std::make_shared<DocMapperWrapper>(docMapper, srcSegment.baseDocid);
         normalSegment->SetDocMapWrapper(docMapWrapper);
         normalSegments.push_back(normalSegment);
-        // TODO(pekaer.lgf) support aitheta index dir not store embedding attribute
-        embeddingAttrSegments.push_back(nullptr);
     }
     NormalSegmentMerger segmentMerger(_aithetaIndexConfig, _indexName, _metricReporter);
     if (!segmentMerger.Init()) {
         return Status::InternalError("init normal segment merger failed");
     }
-    if (!segmentMerger.Merge(normalSegments, embeddingAttrSegments, targetDir)) {
+    // move segments to the segment merger to make sure the resources are freed properly
+    if (!segmentMerger.Merge(std::move(normalSegments), std::move(embeddingAttrSegments), nullptr, targetDir)) {
         return Status::InternalError("normal segment merge failed.");
     }
     return Status::OK();

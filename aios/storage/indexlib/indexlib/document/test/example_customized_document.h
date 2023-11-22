@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_EXAMPLE_CUSTOMIZED_DOCUMENT_H
-#define __INDEXLIB_EXAMPLE_CUSTOMIZED_DOCUMENT_H
+#pragma once
 
 #include <memory>
 
@@ -86,5 +85,3 @@ private:
 };
 
 } // namespace indexlib_example
-
-#endif //__INDEXLIB_EXAMPLE_CUSTOMIZED_DOCUMENT_H

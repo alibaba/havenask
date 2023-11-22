@@ -20,15 +20,13 @@
 #include <vector>
 
 #include "indexlib/partition/join_cache/join_field.h"
+#include "iquan/common/catalog/CatalogDef.h"
 #include "navi/common.h"
 #include "navi/engine/Resource.h"
 #include "navi/engine/ResourceConfigContext.h"
 #include "sql/resource/Ha3ClusterDefR.h"
 #include "suez/turing/navi/TableInfoR.h"
 
-namespace iquan {
-class TableDef;
-} // namespace iquan
 namespace navi {
 class ResourceDefBuilder;
 class ResourceInitContext;
@@ -55,15 +53,22 @@ public:
     }
 
 private:
-    bool generateMeta();
+    bool generateMeta(
+        const std::vector<std::shared_ptr<indexlibv2::config::ITabletSchema>> &tableSchemas);
+    bool
+    getTableSchemas(std::vector<std::shared_ptr<indexlibv2::config::ITabletSchema>> &tableSchemas);
 
 public:
     static void addInnerDocId(iquan::TableDef &tableDef);
+    static bool fillSummaryTable(iquan::TableModel &tableModel, iquan::TableModel &summaryTable);
 
 private:
-    static void addJoinInfo(const std::string &tableName,
+    static bool addJoinInfo(const std::string &catalogName,
+                            const std::string &dbName,
+                            const iquan::LocationSign &locationSign,
+                            const std::string &tableName,
                             const indexlib::partition::JoinRelationMap &joinRelations,
-                            iquan::TableDef &tableDef);
+                            iquan::CatalogDefs &catalogDefs);
 
 public:
     static const std::string RESOURCE_ID;
@@ -76,6 +81,7 @@ private:
     RESOURCE_DEPEND_ON(Ha3ClusterDefR, _ha3ClusterDefR);
     std::unordered_map<std::string, std::vector<suez::SortDescription>> _tableSortDescMap;
     std::string _zoneName;
+    uint32_t _partCount;
     bool _innerDocIdOptimizeEnable = false;
     std::string _metaStr;
 };

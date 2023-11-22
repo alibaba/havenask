@@ -1,10 +1,10 @@
 #include "indexlib/partition/operation_queue/test/sub_doc_operation_creator_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/test/document_maker.h"
 #include "indexlib/partition/operation_queue/operation_base.h"
 #include "indexlib/partition/operation_queue/sub_doc_operation.h"
 #include "indexlib/partition/operation_queue/sub_doc_operation_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/HashString.h"
 
 using namespace std;

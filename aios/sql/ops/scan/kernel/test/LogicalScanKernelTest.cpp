@@ -76,10 +76,10 @@ TEST_F(LogicalScanKernelTest, testSimple) {
     ASSERT_TRUE(eof);
     ASSERT_EQ(0, table->getRowCount());
     ASSERT_EQ(table->getColumnCount(), 2);
-    ASSERT_STREQ(table->getColumnName(0).c_str(), "attr1");
-    ASSERT_STREQ(table->getColumnName(1).c_str(), "attr2");
-    ASSERT_EQ(table->getColumnType(0).getBuiltinType(), matchdoc::bt_int64);
-    ASSERT_EQ(table->getColumnType(1).getBuiltinType(), matchdoc::bt_double);
+    ASSERT_EQ("attr1", table->getColumn(0)->getName());
+    ASSERT_EQ("attr2", table->getColumn(1)->getName());
+    ASSERT_EQ(matchdoc::bt_int64, table->getColumn(0)->getType().getBuiltinType());
+    ASSERT_EQ(matchdoc::bt_double, table->getColumn(1)->getType().getBuiltinType());
 }
 
 } // namespace sql

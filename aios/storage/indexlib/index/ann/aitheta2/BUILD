@@ -9,19 +9,13 @@ package(
 )
 selects.config_setting_group(name='ppu_mode', match_all=['//:ppu_mode'])
 selects.config_setting_group(
-    name='gpu_mode', match_all=['//:old_abi_mode', '//:gpu_mode', '//:cpu_without_avx512']
+    name='gpu_mode', match_all=['//:old_abi_mode', '//:gpu_mode']
 )
 selects.config_setting_group(
-    name='new_abi_gpu_mode', match_all=['//:new_abi_mode', '//:gpu_mode', '//:cpu_without_avx512']
+    name='cpu_mode', match_all=['//:old_abi_mode', '//:cpu_mode']
 )
 selects.config_setting_group(
-    name='cpu_mode', match_all=['//:old_abi_mode', '//:cpu_mode', '//:cpu_without_avx512']
-)
-selects.config_setting_group(
-    name='new_abi_cpu_mode', match_all=['//:new_abi_mode', '//:cpu_mode', '//:cpu_without_avx512']
-)
-selects.config_setting_group(
-    name='avx512_cpu_mode', match_all=['//:old_abi_mode', '//:cpu_mode', '//:cpu_with_avx512']
+    name='new_abi_cpu_mode', match_all=['//:new_abi_mode']
 )
 cc_proto(
     name='aitheta_query_proto',
@@ -55,7 +49,7 @@ strict_cc_library(
     srcs=['AithetaDiskIndexer.cpp'],
     hdrs=['AithetaDiskIndexer.h'],
     deps=[
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index/ann:config',
         '//aios/storage/indexlib/index/ann/aitheta2/impl:aitheta2_segment_searcher',
         '//aios/storage/indexlib/index/ann/aitheta2/impl:customized_aitheta_logger',
@@ -83,7 +77,7 @@ aitheta_cc_library(
     deps=[
         '//aios/storage/indexlib/config:IIndexConfig',
         '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/index/ann:config',
         '//aios/storage/indexlib/index/ann/aitheta2/impl:aitheta2_segment_builder',

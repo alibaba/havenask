@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.visitor.rexshuttle;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.client.common.json.function.JsonTvfFunction;
 import com.taobao.search.iquan.client.common.json.function.JsonUdxfFunction;
 import com.taobao.search.iquan.core.api.schema.FunctionPhysicalType;
@@ -19,18 +24,42 @@ import org.apache.calcite.util.NlsString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-
 public class RexOptimizeInfoCollectShuttle extends RexShuttle {
     private static final Logger logger = LoggerFactory.getLogger(RexOptimizeInfoCollectShuttle.class);
-
+    private final Map<String, List<Object>> optimizeInfos = new TreeMap<>();
     private int index = 0;
     private List<RexNode> exprs;
     private RelDataType inputRowType;
 
-    private final Map<String, List<Object>> optimizeInfos = new TreeMap<>();
-
     public RexOptimizeInfoCollectShuttle() {
+    }
+
+    public static boolean parseReplaceParam(String repalceParam, List<String> keys, List<String> types) {
+        int prefixStartIndex = repalceParam.indexOf(ConstantDefine.REPLACE_PARAMS_PREFIX);
+        if (prefixStartIndex != 0) {
+            return false;
+        }
+
+        int keyStartIndex = ConstantDefine.REPLACE_PARAMS_PREFIX.length();
+        int replaceSeparatorIndex = repalceParam.indexOf(ConstantDefine.REPLACE_PARAMS_SEPARATOR, keyStartIndex);
+        if (replaceSeparatorIndex < 0 || (keyStartIndex == replaceSeparatorIndex)) {
+            return false;
+        }
+
+        int typeStartIndex = replaceSeparatorIndex + ConstantDefine.REPLACE_PARAMS_SEPARATOR.length();
+        int suffixStartIndex = repalceParam.indexOf(ConstantDefine.REPLACE_PARAMS_SUFFIX, typeStartIndex);
+        if (suffixStartIndex < 0
+                || (typeStartIndex == suffixStartIndex)
+                || (suffixStartIndex + ConstantDefine.REPLACE_PARAMS_SUFFIX.length() != repalceParam.length())) {
+            return false;
+        }
+
+        String key = repalceParam.substring(keyStartIndex, replaceSeparatorIndex);
+        String type = repalceParam.substring(typeStartIndex, suffixStartIndex);
+
+        keys.add(key);
+        types.add(type);
+        return true;
     }
 
     public void setIndex(int index) {
@@ -131,33 +160,5 @@ public class RexOptimizeInfoCollectShuttle extends RexShuttle {
         optimizeInfos.get(strIndex).add(optimizeInfo);
 
         return newCall;
-    }
-
-    public static boolean parseReplaceParam(String repalceParam, List<String> keys, List<String> types) {
-        int prefixStartIndex = repalceParam.indexOf(ConstantDefine.REPLACE_PARAMS_PREFIX);
-        if (prefixStartIndex != 0) {
-            return false;
-        }
-
-        int keyStartIndex = ConstantDefine.REPLACE_PARAMS_PREFIX.length();
-        int replaceSeparatorIndex = repalceParam.indexOf(ConstantDefine.REPLACE_PARAMS_SEPARATOR, keyStartIndex);
-        if (replaceSeparatorIndex < 0 || (keyStartIndex == replaceSeparatorIndex)) {
-            return false;
-        }
-
-        int typeStartIndex = replaceSeparatorIndex + ConstantDefine.REPLACE_PARAMS_SEPARATOR.length();
-        int suffixStartIndex = repalceParam.indexOf(ConstantDefine.REPLACE_PARAMS_SUFFIX, typeStartIndex);
-        if (suffixStartIndex < 0
-                || (typeStartIndex == suffixStartIndex)
-                || (suffixStartIndex + ConstantDefine.REPLACE_PARAMS_SUFFIX.length() != repalceParam.length())) {
-            return false;
-        }
-
-        String key = repalceParam.substring(keyStartIndex, replaceSeparatorIndex);
-        String type = repalceParam.substring(typeStartIndex, suffixStartIndex);
-
-        keys.add(key);
-        types.add(type);
-        return true;
     }
 }

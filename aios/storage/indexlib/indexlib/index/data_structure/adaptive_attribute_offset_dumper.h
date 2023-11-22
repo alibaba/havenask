@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ADAPTIVE_ATTRIBUTE_OFFSET_DUMPER_H
-#define __INDEXLIB_ADAPTIVE_ATTRIBUTE_OFFSET_DUMPER_H
+#pragma once
 
 #include <memory>
 
@@ -172,5 +171,3 @@ inline void AdaptiveAttributeOffsetDumper::Reserve(size_t reserveCount)
     mU32Offsets.reserve(reserveCount);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ADAPTIVE_ATTRIBUTE_OFFSET_DUMPER_H

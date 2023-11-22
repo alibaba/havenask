@@ -15,6 +15,11 @@
  */
 #include "build_service/processor/SingleThreadProcessorWorkItemExecutor.h"
 
+#include <cstddef>
+#include <string>
+
+#include "alog/Logger.h"
+
 using namespace std;
 
 namespace build_service { namespace processor {

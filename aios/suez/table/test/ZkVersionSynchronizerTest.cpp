@@ -36,15 +36,15 @@ TEST_F(ZkVersionSynchronizerTest, testSimple) {
     meta.TEST_Set(1, {}, {});
     TableVersion version(1, meta, "testSimple");
     version.setBranchId(1);
-    ASSERT_TRUE(synchronizer.persistVersion(pid, "", version));
+    ASSERT_TRUE(synchronizer.persistVersion(pid, "", "", "", version));
 
     TableVersion version2;
     // using the same ZkState, zkState->read will returns EC_OK instead of EC_UPDATE
-    ASSERT_TRUE(synchronizer.syncFromPersist(pid, "", version2));
-    ASSERT_EQ(INVALID_VERSION, version2.getVersionId());
+    ASSERT_TRUE(synchronizer.syncFromPersist(pid, "", "", "", version2));
+    ASSERT_EQ(indexlib::INVALID_VERSIONID, version2.getVersionId());
 
     synchronizer._states.clear();
-    ASSERT_TRUE(synchronizer.syncFromPersist(pid, "", version2));
+    ASSERT_TRUE(synchronizer.syncFromPersist(pid, "", "", "", version2));
     ASSERT_TRUE(version == version2);
 }
 
@@ -60,8 +60,8 @@ TEST_F(ZkVersionSynchronizerTest, testAutoReconnect) {
     meta.TEST_Set(1, {}, {});
     TableVersion version(1, meta, "testSimple");
     version.setBranchId(1);
-    ASSERT_TRUE(synchronizer.persistVersion(pid, "", version));
-    ASSERT_TRUE(synchronizer.updateVersionList(pid, {version}));
+    ASSERT_TRUE(synchronizer.persistVersion(pid, "", "", "", version));
+    ASSERT_TRUE(synchronizer.updateVersionList(pid, "", "", {version}));
 
     ASSERT_TRUE(synchronizer._zkWrapper.get() != nullptr);
     ASSERT_EQ(2, synchronizer._states.size());
@@ -70,12 +70,12 @@ TEST_F(ZkVersionSynchronizerTest, testAutoReconnect) {
     auto state2 = synchronizer._states[make_pair(pid, ZkVersionSynchronizer::VST_VERSION_LIST)];
     synchronizer._zkWrapper->close();
 
-    ASSERT_TRUE(synchronizer.persistVersion(pid, "", version));
+    ASSERT_TRUE(synchronizer.persistVersion(pid, "", "", "", version));
     ASSERT_EQ(1, synchronizer._states.size());
     ASSERT_NE(zk1.get(), synchronizer._zkWrapper.get());
     ASSERT_NE(state1.get(), synchronizer._states[make_pair(pid, ZkVersionSynchronizer::VST_VERSION)].get());
 
-    ASSERT_TRUE(synchronizer.updateVersionList(pid, {version}));
+    ASSERT_TRUE(synchronizer.updateVersionList(pid, "", "", {version}));
     ASSERT_EQ(2, synchronizer._states.size());
     ASSERT_NE(state2.get(), synchronizer._states[make_pair(pid, ZkVersionSynchronizer::VST_VERSION_LIST)].get());
 }
@@ -92,7 +92,7 @@ TEST_F(ZkVersionSynchronizerTest, testVersionList) {
     meta.TEST_Set(1, {}, {});
 
     std::vector<TableVersion> readedVersions;
-    ASSERT_TRUE(synchronizer.getVersionList(pid, readedVersions));
+    ASSERT_TRUE(synchronizer.getVersionList(pid, "", "", readedVersions));
     ASSERT_EQ(0, readedVersions.size());
 
     std::vector<TableVersion> versions;
@@ -100,9 +100,9 @@ TEST_F(ZkVersionSynchronizerTest, testVersionList) {
     version.setBranchId(1);
     versions.push_back(version);
 
-    ASSERT_TRUE(synchronizer.updateVersionList(pid, versions));
+    ASSERT_TRUE(synchronizer.updateVersionList(pid, "", "", versions));
 
-    ASSERT_TRUE(synchronizer.getVersionList(pid, readedVersions));
+    ASSERT_TRUE(synchronizer.getVersionList(pid, "", "", readedVersions));
     ASSERT_EQ(versions, readedVersions);
 }
 

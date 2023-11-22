@@ -15,21 +15,48 @@
  */
 #include "build_service/processor/DocumentProcessorChainCreator.h"
 
-#include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/analyzer/AnalyzerFactory.h"
+#include "build_service/common_define.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/BuilderClusterConfig.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/plugin/Module.h"
+#include "build_service/plugin/ModuleFactory.h"
+#include "build_service/plugin/ModuleInfo.h"
 #include "build_service/processor/BuildInDocProcessorFactory.h"
 #include "build_service/processor/DocumentProcessor.h"
+#include "build_service/processor/DocumentProcessorFactory.h"
 #include "build_service/processor/HashDocumentProcessor.h"
 #include "build_service/processor/MainSubDocProcessorChain.h"
 #include "build_service/processor/RegionDocumentProcessor.h"
-#include "build_service/util/Monitor.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/configurator_define.h"
+#include "indexlib/config/customized_config.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/legacy_schema_adapter.h"
+#include "indexlib/config/merge_config.h"
+#include "indexlib/config/truncate_option_config.h"
+#include "indexlib/document/document_factory_wrapper.h"
 #include "indexlib/document/document_rewriter/document_rewriter_creator.h"
+#include "indexlib/document/normal/Field.h"
+#include "indexlib/index_base/index_meta/partition_meta.h"
 #include "indexlib/index_base/schema_adapter.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/counter/CounterMap.h"
 
 using namespace std;
 using namespace autil;
@@ -182,15 +209,8 @@ bool DocumentProcessorChainCreator::initDocumentProcessorChain(const DocProcesso
         BS_LOG(ERROR, "create builtin init param fail!");
         return false;
     }
-    const SourceSchemaPtr& sourceSchema = schema->GetSourceSchema();
-    SourceSchemaParserFactoryGroupPtr parserFactoryGroup(new SourceSchemaParserFactoryGroup);
-    if (sourceSchema) {
-        if (!parserFactoryGroup->Init(schema, _resourceReaderPtr->getPluginPath())) {
-            BS_LOG(ERROR, "init source schema parser factory group failed.");
-            return false;
-        }
-    }
-    if (!retChain->init(docFactoryWrapper, docInitParam, parserFactoryGroup, docProcessorChainConfig.useRawDocAsDoc,
+
+    if (!retChain->init(docFactoryWrapper, docInitParam, docProcessorChainConfig.useRawDocAsDoc,
                         docProcessorChainConfig.serializeRawDoc)) {
         BS_LOG(ERROR, "init document parser fail!");
         return false;

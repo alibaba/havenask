@@ -15,18 +15,43 @@
  */
 #include "build_service/task_base/NewFieldMergeTask.h"
 
+#include <assert.h>
 #include <beeper/beeper.h>
+#include <iosfwd>
+#include <memory>
+#include <vector>
 
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/MergePluginConfig.h"
+#include "build_service/config/ProcessorInfo.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/custom_merger/CustomMergeMeta.h"
+#include "build_service/custom_merger/CustomMergerTaskItem.h"
 #include "build_service/custom_merger/MergeResourceProvider.h"
 #include "build_service/custom_merger/TaskItemDispatcher.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/task_base/JobConfig.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "fslib/util/FileUtil.h"
-#include "indexlib/file_system/FenceDirectory.h"
-#include "indexlib/index_base/branch_fs.h"
-#include "indexlib/index_base/schema_adapter.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
+#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/file_system/fslib/IoConfig.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_base/patch/patch_file_info.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/parallel_partition_data_merger.h"
 
 using namespace std;

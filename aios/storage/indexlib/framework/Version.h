@@ -15,9 +15,14 @@
  */
 #pragma once
 
-#include <optional>
+#include <map>
+#include <memory>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "autil/Log.h"
@@ -26,61 +31,13 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/framework/Locator.h"
+#include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionLine.h"
 #include "indexlib/framework/index_task/IndexTaskHistory.h"
 
 namespace indexlibv2::framework {
 
-struct IndexTaskMeta : public autil::legacy::Jsonizable {
-public:
-    static const std::string READY;
-    static const std::string SUSPENDED;
-    static const std::string ABORTED;
-    static const std::string DONE;
-    static const std::string UNKNOWN;
-
-    IndexTaskMeta() = default;
-    IndexTaskMeta(const std::string& taskType, const std::string& taskName,
-                  const std::map<std::string, std::string>& params)
-        : taskType(taskType)
-        , taskName(taskName)
-        , params(params)
-    {
-    }
-    bool operator==(const IndexTaskMeta& other) const
-    {
-        return taskType == other.taskType && taskName == other.taskName && state == other.state &&
-               params == other.params && comment == other.comment && beginTimeInSecs == other.beginTimeInSecs &&
-               endTimeInSecs == other.endTimeInSecs && committedVersionId == other.committedVersionId;
-    }
-    void Jsonize(JsonWrapper& json) override
-    {
-        json.Jsonize("task_type", taskType, taskType);
-        json.Jsonize("task_name", taskName, taskName);
-        json.Jsonize("state", state, state);
-        json.Jsonize("begin_time_in_secs", beginTimeInSecs, beginTimeInSecs);
-        json.Jsonize("end_time_in_secs", endTimeInSecs, endTimeInSecs);
-        json.Jsonize("comment", comment, comment);
-        json.Jsonize("committed_version_id", committedVersionId, committedVersionId);
-        if (json.GetMode() == TO_JSON) {
-            if (!params.empty()) {
-                json.Jsonize("params", params, params);
-            }
-        } else {
-            json.Jsonize("params", params, params);
-        }
-    }
-
-    std::string taskType;
-    std::string taskName;
-    std::string state = READY;
-    int64_t beginTimeInSecs = indexlib::INVALID_TIMESTAMP;
-    int64_t endTimeInSecs = indexlib::INVALID_TIMESTAMP;
-    std::map<std::string, std::string> params;
-    std::string comment;
-    versionid_t committedVersionId = INVALID_VERSIONID;
-};
-
+class IndexTaskQueue;
 class SegmentDescriptions;
 
 class Version : public autil::legacy::Jsonizable
@@ -166,19 +123,6 @@ public:
     void SetIndexTaskHistory(const IndexTaskHistory& his);
     void AddIndexTaskLog(const std::string& taskType, const std::shared_ptr<IndexTaskLog>& logItem);
 
-    // TODO(yonghao.fyh) : refactor index task queue and index task history.
-    void SetIndexTasks(const std::vector<std::shared_ptr<IndexTaskMeta>>& indexTasks);
-    void AddIndexTask(const std::string& taskType, const std::string& taskName,
-                      const std::map<std::string, std::string>& params, const std::string& state = IndexTaskMeta::READY,
-                      const std::string& comment = "");
-    void UpdateIndexTaskState(const std::string& taskType, const std::string& taskName, const std::string& state,
-                              const std::string& comment = "");
-    void OverwriteIndexTask(const std::string& taskType, const std::string& taskName,
-                            const std::map<std::string, std::string>& params);
-
-    std::shared_ptr<IndexTaskMeta> GetIndexTask(const std::string& taskType, const std::string& taskName) const;
-    std::vector<std::shared_ptr<IndexTaskMeta>> GetIndexTasks() const;
-
     bool IsInSchemaVersionRoadMap(schemaid_t schemaId) const;
 
     void AddDescription(const std::string& key, const std::string& value);
@@ -186,6 +130,9 @@ public:
 
     const VersionLine& GetVersionLine() const;
     void SetVersionLine(const VersionLine& versionLine);
+
+    std::shared_ptr<IndexTaskQueue> GetIndexTaskQueue() const;
+
     void SetDescriptions(const std::map<std::string, std::string>& descs);
     void MergeDescriptions(const Version& version);
 
@@ -204,7 +151,6 @@ private:
 private:
     void UpdateVersionFormate2To3();
     bool Validate() const;
-    bool ValidateStateTransfer(const std::string& srcState, const std::string& dstState) const;
     void LegacyFromJson(JsonWrapper& json);
     void SortSegments();
     bool IsLegacySegmentDirName() const { return _formatVersion == 0; }
@@ -231,9 +177,7 @@ private:
     std::map<std::string, std::string> _description;
     VersionLine _versionLine;
 
-    std::vector<std::shared_ptr<IndexTaskMeta>> _indexTaskQueue;
-    // <taskType, taskName>
-    std::set<std::pair<std::string, std::string>> _indexTaskSet;
+    std::shared_ptr<IndexTaskQueue> _indexTaskQueue;
 
 private:
     AUTIL_LOG_DECLARE();

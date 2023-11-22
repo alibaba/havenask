@@ -6,7 +6,6 @@ import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.RelFactories;
 import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rel.logical.LogicalTableFunctionScan;
 import org.apache.calcite.rex.RexCall;
@@ -20,6 +19,14 @@ public class IquanMultiJoinRule extends RelOptRule {
                 LogicalJoin.class,
                 any()
         ), relBuilderFactory, null);
+    }
+
+    private static boolean isToArrayTvf(RelNode node) {
+        if (node instanceof LogicalTableFunctionScan) {
+            LogicalTableFunctionScan tvf = (LogicalTableFunctionScan) node;
+            return "to_array".equals(((RexCall) tvf.getCall()).getOperator().getName());
+        }
+        return false;
     }
 
     @Override
@@ -42,14 +49,6 @@ public class IquanMultiJoinRule extends RelOptRule {
         }
         RelNode ha3 = new Ha3LogicalMultiJoinOp(join.getCluster(), join.getTraitSet(), join.getHints(), left, right, join.getRowType(), join.getCondition());
         call.transformTo(ha3);
-    }
-
-    private static boolean isToArrayTvf(RelNode node) {
-        if (node instanceof LogicalTableFunctionScan) {
-            LogicalTableFunctionScan tvf = (LogicalTableFunctionScan) node;
-            return "to_array".equals(((RexCall) tvf.getCall()).getOperator().getName());
-        }
-        return false;
     }
 
 }

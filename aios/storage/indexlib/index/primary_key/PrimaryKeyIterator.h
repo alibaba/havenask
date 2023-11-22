@@ -41,7 +41,8 @@ public:
     virtual ~PrimaryKeyIterator() {}
 
 public:
-    using PKPairTyped = PKPair<Key, docid_t>;
+    using PKPairTyped = PKPair<Key, docid64_t>;
+    using SegmentPKPairTyped = PKPair<Key, docid_t>;
 
 public:
     [[nodiscard]] bool Init(const std::shared_ptr<indexlibv2::index::PrimaryKeyIndexConfig>& indexConfig,
@@ -89,11 +90,13 @@ public:
             ++_subIteratorCursor;
             _baseDocId = _subIteratorPairs[_subIteratorCursor].second;
         }
-        if (!_subIteratorPairs[_subIteratorCursor].first->Next(_currentPKPair).IsOK()) {
+        SegmentPKPairTyped segmentPair;
+        if (!_subIteratorPairs[_subIteratorCursor].first->Next(segmentPair).IsOK()) {
             AUTIL_LOG(ERROR, "PrimaryKeyIterator do next failed!");
             return false;
         }
-        _currentPKPair.docid += _baseDocId;
+        _currentPKPair.key = segmentPair.key;
+        _currentPKPair.docid = segmentPair.docid + _baseDocId;
         ++_pkCursor;
         return true;
     }
@@ -101,7 +104,7 @@ public:
     uint64_t GetDocCount() const { return _totalDocCount; }
 
 protected:
-    virtual std::pair<std::unique_ptr<PrimaryKeyLeafIterator<Key>>, docid_t>
+    virtual std::pair<std::unique_ptr<PrimaryKeyLeafIterator<Key>>, docid64_t>
     GenerateSubIteratorPair(const SegmentDataAdapter::SegmentDataType& segment,
                             std::unique_ptr<PrimaryKeyLeafIterator<Key>> leafIterator) const
     {
@@ -113,10 +116,10 @@ private:
     uint64_t _totalDocCount;
     uint64_t _subIteratorCursor;
     uint64_t _pkCursor;
-    docid_t _baseDocId;
+    docid64_t _baseDocId;
     bool _isDone;
     PKPairTyped _currentPKPair;
-    std::vector<std::pair<std::unique_ptr<PrimaryKeyLeafIterator<Key>>, docid_t>> _subIteratorPairs;
+    std::vector<std::pair<std::unique_ptr<PrimaryKeyLeafIterator<Key>>, docid64_t>> _subIteratorPairs;
 
     AUTIL_LOG_DECLARE();
 };

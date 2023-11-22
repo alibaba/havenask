@@ -38,6 +38,7 @@ public:
     std::vector<std::string> kernelNameRegexVec;
     bool disablePerf;
     bool disableSymbolTable;
+    std::vector<NamedData> namedDataVec;
 };
 
 class KernelTesterBuilder;
@@ -66,7 +67,7 @@ public:
     ErrorCode getErrorCode() const;
     bool hasError() const;
     std::string getErrorMessage() const;
-    LoggingEvent getErrorEvent() const;
+    LoggingEventPtr getErrorEvent() const;
     Node *getNode() const;
 private:
     bool init();

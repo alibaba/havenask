@@ -101,6 +101,10 @@ public:
      *@brief flush all logger's message.
      */
     static void flushAll();
+    /**
+     *@brief flush cache value after `fork`
+     */
+    static void flushCachedPidTid();
 
     /**
      *@brief set trash directory.

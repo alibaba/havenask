@@ -27,6 +27,7 @@ public:
     static Status mvPath(const std::string &srcPath, const std::string &targetPath);
     static Status mkDir(const std::string &path, bool recursive = false);
     static Status readFile(const std::string &filePath, std::string *content);
+    static Status copyDir(const std::string &srcPath, const std::string &targetPath);
 };
 
 } // namespace catalog

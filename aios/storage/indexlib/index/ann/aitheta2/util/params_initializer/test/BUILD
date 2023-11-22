@@ -5,6 +5,7 @@ aitheta_cc_test(
         'HnswParamsInitializerTest.cpp', 'ParamsInitializerFactoryTest.cpp',
         'ParamsInitializerTest.cpp', 'QcParamsInitializerTest.cpp'
     ],
+    copts=['-fno-access-control'],
     data=[],
     deps=[
         '//aios/storage/indexlib/file_system',

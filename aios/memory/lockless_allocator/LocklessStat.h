@@ -36,9 +36,9 @@ struct address_range {
 #define SB_MAX			((NUM_SB - 1) * 16)
 
 #define BLOCK_GROUP_SIZE 4
-// 0 - 8k, 8k - 4M, step 64k
-// 4M-32M, step 1M
-// 32M - 128M, step 4M
+// 2k - 8k, 8k - 1M, step 64k
+// 1M-33M, step 2M
+// 33M - 128M, step 16M
 #define BLOCK_GROUP_STEP (64 * 1024)
 #define BLOCK_GROUP_STEP_1 (2lu * 1024 * 1024)
 #define BLOCK_GROUP_STEP_2 (16lu * 1024 * 1024)

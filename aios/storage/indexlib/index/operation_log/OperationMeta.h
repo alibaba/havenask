@@ -40,6 +40,7 @@ public:
         uint32_t operationCount = 0;
         bool operationCompress = false;
         bool hasConcurrentIdx = false;
+        bool hasSourceIdx = false;
     };
     typedef std::vector<BlockMeta> BlockMetaVec;
 
@@ -91,7 +92,12 @@ inline void OperationMeta::BlockMeta::Jsonize(autil::legacy::Jsonizable::JsonWra
     json.Jsonize("block_dump_size", dumpSize, dumpSize);
     json.Jsonize("operation_count", operationCount, operationCount);
     json.Jsonize("operation_compress", operationCompress, operationCompress);
-    json.Jsonize("has_concurrent_idx", hasConcurrentIdx, hasConcurrentIdx);
+    if (json.GetMode() == FROM_JSON || hasConcurrentIdx) {
+        json.Jsonize("has_concurrent_idx", hasConcurrentIdx, hasConcurrentIdx);
+    }
+    if (json.GetMode() == FROM_JSON || hasSourceIdx) {
+        json.Jsonize("has_source_idx", hasSourceIdx, hasSourceIdx);
+    }
 }
 
 inline void OperationMeta::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
@@ -127,8 +133,17 @@ inline void OperationMeta::Update(OperationBase* op)
         blockMeta->maxOperationSerializeSize += sizeof(uint32_t);
         blockMeta->hasConcurrentIdx = true;
     }
+    if (op->GetDocInfo().sourceIdx && !blockMeta->hasSourceIdx) {
+        blockMeta->serializeSize += sizeof(uint8_t) * blockMeta->operationCount;
+        _totalSerializeSize += sizeof(uint8_t) * blockMeta->operationCount;
+        blockMeta->maxOperationSerializeSize += sizeof(uint8_t);
+        blockMeta->hasSourceIdx = true;
+    }
     if (blockMeta->hasConcurrentIdx) {
-        opSerializeSize += sizeof(uint32_t);
+        opSerializeSize += sizeof(uint32_t); // 4byte for concurrent idx
+    }
+    if (blockMeta->hasSourceIdx) {
+        opSerializeSize += sizeof(uint8_t); // 1byte for source idx
     }
 
     blockMeta->operationCount++;

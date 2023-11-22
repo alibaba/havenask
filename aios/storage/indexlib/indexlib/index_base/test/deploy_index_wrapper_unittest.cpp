@@ -137,7 +137,7 @@ public:
     bool GetDeployFiles(const std::string& remotePath, const std::string& localPath,
                         const config::OnlineConfig& onlineConfig, fslib::FileList& localFileList,
                         fslib::FileList& remoteFileList, const versionid_t targetVersionId,
-                        const versionid_t baseVersionId = INVALID_VERSION)
+                        const versionid_t baseVersionId = INVALID_VERSIONID)
     {
         SCOPED_TRACE("GetDeployFiles");
         DeployIndexWrapper::GetDeployIndexMetaInputParams params;
@@ -720,7 +720,7 @@ public:
         ASSERT_FALSE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlinePath, localPath, 3, 2,
                                         targetOnlineConfig, baseOnlineConfig));
 
-        ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlinePath, localPath, 2, INVALID_VERSION,
+        ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlinePath, localPath, 2, INVALID_VERSIONID,
                                        targetOnlineConfig, baseOnlineConfig));
 
         ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlinePath, localPath, 2, 0,
@@ -758,7 +758,7 @@ public:
         } )");
 
         ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlineDir->GetOutputPath(),
-                                       localDir->GetOutputPath(), 2, INVALID_VERSION, onlineConfig, onlineConfig));
+                                       localDir->GetOutputPath(), 2, INVALID_VERSIONID, onlineConfig, onlineConfig));
         CheckDeployMeta(remoteDeployMeta, {"remote_1_deploy_1", "remote_1_deploy_0"}, {}, __FILE__, __LINE__);
         CheckDeployMeta(localDeployMeta, {"remote_1_deploy_1", "remote_0_deploy_1", "deploy_meta.2"}, {"version.2"},
                         __FILE__, __LINE__);
@@ -962,7 +962,7 @@ public:
                 "need_read_remote_index": true
             } )");
             ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlinePath, localPath, 2,
-                                           INVALID_VERSION, targetOnlineConfig, baseOnlineConfig));
+                                           INVALID_VERSIONID, targetOnlineConfig, baseOnlineConfig));
             CheckDeployMeta(remoteDeployMeta, {}, {"version.2"}, __FILE__, __LINE__);
             CheckDeployMeta(localDeployMeta, {"deploy_meta.2"}, {"version.2"}, __FILE__, __LINE__);
         }
@@ -976,7 +976,7 @@ public:
                 "need_read_remote_index": true
             } )");
             ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlinePath, localPath, 2,
-                                           INVALID_VERSION, targetOnlineConfig, baseOnlineConfig));
+                                           INVALID_VERSIONID, targetOnlineConfig, baseOnlineConfig));
             CheckDeployMeta(remoteDeployMeta, {}, {"version.2"}, __FILE__, __LINE__);
             CheckDeployMeta(localDeployMeta, {"deploy_meta.2"}, {}, __FILE__, __LINE__);
         }
@@ -990,7 +990,7 @@ public:
                 "need_read_remote_index": true
             } )");
             ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlinePath, localPath, 2,
-                                           INVALID_VERSION, targetOnlineConfig, baseOnlineConfig));
+                                           INVALID_VERSIONID, targetOnlineConfig, baseOnlineConfig));
             CheckDeployMeta(remoteDeployMeta, {}, {}, __FILE__, __LINE__);
             CheckDeployMeta(localDeployMeta, {"deploy_meta.2"}, {"version.2"}, __FILE__, __LINE__);
         }
@@ -1210,7 +1210,7 @@ public:
         } )");
 
         ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlineDir->GetOutputPath(),
-                                       localDir->GetOutputPath(), 2, INVALID_VERSION, onlineConfig, onlineConfig));
+                                       localDir->GetOutputPath(), 2, INVALID_VERSIONID, onlineConfig, onlineConfig));
         CheckDeployMeta(remoteDeployMeta, {}, {});
         CheckDeployMeta(localDeployMeta,
                         {"segment_1_level_0/", "segment_1_level_0/attribute/",
@@ -1247,7 +1247,7 @@ public:
         } )");
 
         ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlineDir->GetOutputPath(),
-                                       localDir->GetOutputPath(), 2, INVALID_VERSION, onlineConfig, onlineConfig));
+                                       localDir->GetOutputPath(), 2, INVALID_VERSIONID, onlineConfig, onlineConfig));
         CheckDeployMeta(remoteDeployMeta,
                         {//"segment_1_level_0/",
                          "segment_1_level_0/attribute/", "segment_1_level_0/attribute/norm_attr_1/",
@@ -1286,7 +1286,7 @@ public:
         } )");
 
         ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlineDir->GetOutputPath(),
-                                       localDir->GetOutputPath(), 2, INVALID_VERSION, onlineConfig, onlineConfig));
+                                       localDir->GetOutputPath(), 2, INVALID_VERSIONID, onlineConfig, onlineConfig));
         CheckDeployMeta(remoteDeployMeta, {}, {}, __FILE__, __LINE__);
         CheckDeployMeta(localDeployMeta, {"deploy_meta.2", "segment_1_level_0/"}, {"version.2"}, __FILE__, __LINE__);
     }
@@ -1317,7 +1317,7 @@ public:
         } )");
 
         ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlineDir->GetOutputPath(),
-                                       localDir->GetOutputPath(), 2, INVALID_VERSION, onlineConfig, onlineConfig));
+                                       localDir->GetOutputPath(), 2, INVALID_VERSIONID, onlineConfig, onlineConfig));
         CheckDeployMeta(remoteDeployMeta, {}, {}, __FILE__, __LINE__);
         CheckDeployMeta(localDeployMeta, {"deploy_meta.2", "segment_1_level_0/"}, {"version.2"}, __FILE__, __LINE__);
     }
@@ -1353,7 +1353,7 @@ public:
         } )");
 
         ASSERT_TRUE(GetDeployIndexMeta(remoteDeployMeta, localDeployMeta, offlineDir->GetOutputPath(),
-                                       localDir->GetOutputPath(), 2, INVALID_VERSION, onlineConfig, onlineConfig));
+                                       localDir->GetOutputPath(), 2, INVALID_VERSIONID, onlineConfig, onlineConfig));
         CheckDeployMeta(remoteDeployMeta, {}, {});
         CheckDeployMeta(localDeployMeta,
                         {"segment_1_level_0/", "segment_1_level_0/source/", "segment_1_level_0/source/group_1/",

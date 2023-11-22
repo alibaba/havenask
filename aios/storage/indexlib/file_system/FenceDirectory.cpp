@@ -15,13 +15,17 @@
  */
 #include "indexlib/file_system/FenceDirectory.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <utility>
+
+#include "autil/StringUtil.h"
+#include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/FileSystemMetricsReporter.h"
 #include "indexlib/file_system/TempDirectory.h"
 #include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/file_system/file/TempFileWriter.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/util/Exception.h"
 
 using namespace std;
 

@@ -42,7 +42,7 @@ public:
     const std::shared_ptr<HostHeartbeatStats> &getHostStats() const {
         return _hostStats;
     }
-    void update(const BizTopoDef &bizTopoDef, int64_t netLatencyUs);
+    bool update(const BizTopoDef &bizTopoDef, int64_t netLatencyUs);
     std::shared_ptr<SearchServiceProvider> getProvider() const;
     void bind(const std::shared_ptr<SearchServiceReplica> &replica,
               const std::shared_ptr<SearchServiceProvider> &provider);
@@ -89,7 +89,7 @@ public:
               const NewHeartbeatResponse &response);
     ClientTopoInfoPtr getInfo(SignatureTy topoSig) const;
     void addInfo(int64_t topoSig, const ClientTopoInfoPtr &info);
-    bool update(const NewHeartbeatResponse &response, int64_t netLatencyUs);
+    bool update(const NewHeartbeatResponse &response, int64_t netLatencyUs, bool &needNotify);
     void fillRequest(NewHeartbeatRequest &request) const;
     bool fillBizInfoMap(BizInfoMap &bizInfoMap) const;
     void disableAllProvider() const;

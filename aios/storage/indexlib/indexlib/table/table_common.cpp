@@ -15,6 +15,9 @@
  */
 #include "indexlib/table/table_common.h"
 
+#include <iosfwd>
+#include <vector>
+
 using namespace std;
 
 namespace indexlib { namespace table {

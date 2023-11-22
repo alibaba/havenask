@@ -4,40 +4,45 @@
 package com.taobao.search.iquan.client.common.pb;
 
 public interface AnyValueMapOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:iquan.pb.AnyValueMap)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:iquan.pb.AnyValueMap)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
-   */
-  int getValueCount();
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
-   */
-  boolean containsValue(
-      java.lang.String key);
-  /**
-   * Use {@link #getValueMap()} instead.
-   */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-  getValue();
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
-   */
-  java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
-  getValueMap();
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
-   */
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
+     */
+    int getValueCount();
 
-  com.taobao.search.iquan.client.common.pb.AnyValue getValueOrDefault(
-      java.lang.String key,
-      com.taobao.search.iquan.client.common.pb.AnyValue defaultValue);
-  /**
-   * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
-   */
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
+     */
+    boolean containsValue(
+            java.lang.String key);
 
-  com.taobao.search.iquan.client.common.pb.AnyValue getValueOrThrow(
-      java.lang.String key);
+    /**
+     * Use {@link #getValueMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+    getValue();
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
+     */
+    java.util.Map<java.lang.String, com.taobao.search.iquan.client.common.pb.AnyValue>
+    getValueMap();
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
+     */
+
+    com.taobao.search.iquan.client.common.pb.AnyValue getValueOrDefault(
+            java.lang.String key,
+            com.taobao.search.iquan.client.common.pb.AnyValue defaultValue);
+
+    /**
+     * <code>map&lt;string, .iquan.pb.AnyValue&gt; value = 1;</code>
+     */
+
+    com.taobao.search.iquan.client.common.pb.AnyValue getValueOrThrow(
+            java.lang.String key);
 }

@@ -15,11 +15,27 @@
  */
 #include "build_service/processor/SlowUpdateProcessor.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/ProcessedDocument.h"
+#include "build_service/document/RawDocument.h"
 #include "build_service/util/Monitor.h"
-#include "fslib/fslib.h"
-#include "indexlib/util/metrics/Metric.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
+#include "fslib/fs/FileSystem.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;

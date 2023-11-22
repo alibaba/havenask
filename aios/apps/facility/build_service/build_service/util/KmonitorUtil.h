@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_KMON_UTIL_H
-#define ISEARCH_BS_KMON_UTIL_H
+#pragma once
 
 #include <string>
-#include <vector>
 
 #include "build_service/common_define.h"
 #include "build_service/proto/BasicDefs.pb.h"
@@ -41,5 +39,3 @@ private:
     BS_LOG_DECLARE();
 };
 }} // namespace build_service::util
-
-#endif // ISEARCH_BS_KMON_UTIL_H

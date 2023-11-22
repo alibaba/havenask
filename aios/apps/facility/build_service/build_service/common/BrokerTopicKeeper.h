@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BROKERTOPICKEEPER_H
-#define ISEARCH_BS_BROKERTOPICKEEPER_H
+#pragma once
+
+#include <map>
+#include <set>
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
-#include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
 #include "build_service/util/Log.h"
+#include "build_service/util/SwiftClientCreator.h"
 
 namespace build_service { namespace util {
-class SwiftClientCreator;
 BS_TYPEDEF_PTR(SwiftClientCreator);
 }} // namespace build_service::util
 
@@ -102,5 +105,3 @@ private:
 BS_TYPEDEF_PTR(BrokerTopicKeeper);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_BROKERTOPICKEEPER_H

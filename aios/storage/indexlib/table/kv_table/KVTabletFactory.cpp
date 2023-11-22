@@ -20,6 +20,8 @@
 #include "indexlib/document/kv/KVDocumentFactory.h"
 #include "indexlib/framework/BuildResource.h"
 #include "indexlib/framework/DiskSegment.h"
+#include "indexlib/framework/EnvironmentVariablesProvider.h"
+#include "indexlib/framework/IMemoryControlStrategy.h"
 #include "indexlib/framework/ITabletDocIterator.h"
 #include "indexlib/framework/ITabletReader.h"
 #include "indexlib/framework/MemSegment.h"
@@ -177,6 +179,17 @@ std::unique_ptr<config::SchemaResolver> KVTabletFactory::CreateSchemaResolver() 
 std::unique_ptr<indexlib::framework::ITabletValidator> KVTabletFactory::CreateTabletValidator()
 {
     return std::make_unique<indexlib::table::CommonTabletValidator>();
+}
+
+std::unique_ptr<framework::IMemoryControlStrategy> KVTabletFactory::CreateMemoryControlStrategy(
+    const std::shared_ptr<MemoryQuotaSynchronizer>& buildMemoryQuotaSynchronizer)
+{
+    return nullptr;
+}
+
+std::unique_ptr<framework::EnvironmentVariablesProvider> KVTabletFactory::CreateEnvironmentVariablesProvider()
+{
+    return nullptr;
 }
 
 REGISTER_TABLET_FACTORY(kv, KVTabletFactory);

@@ -21,7 +21,6 @@
 #include <memory>
 #include <utility>
 
-#include "autil/MultiValueCreator.h"
 #include "autil/MultiValueType.h"
 #include "autil/Span.h"
 #include "autil/StringTokenizer.h"
@@ -231,7 +230,7 @@ bool InputTableTvfFunc::prepareInputTableInfo(const string &input,
 #define NUMERIC_SWITCH_CASE(fbType, fieldType)                                                     \
     case fieldType: {                                                                              \
         typedef MatchDocBuiltinType2CppType<fieldType, false>::CppType cppType;                    \
-        ColumnData<cppType> *columnData = output->getColumn(colIndex)->getColumnData<cppType>();   \
+        ColumnData<cppType> *columnData = outputColumn->getColumnData<cppType>();                  \
         if (!columnData) {                                                                         \
             break;                                                                                 \
         }                                                                                          \
@@ -247,7 +246,7 @@ bool InputTableTvfFunc::prepareInputTableInfo(const string &input,
 #define MULTINUMERIC_SWITCH_CASE(fbType, fieldType)                                                \
     case fieldType: {                                                                              \
         typedef MatchDocBuiltinType2CppType<fieldType, false>::CppType cppType;                    \
-        auto *columnData = output->getColumn(colIndex)->getColumnData<MultiValueType<cppType>>();  \
+        auto *columnData = outputColumn->getColumnData<MultiValueType<cppType>>();                 \
         if (!columnData) {                                                                         \
             break;                                                                                 \
         }                                                                                          \
@@ -259,10 +258,7 @@ bool InputTableTvfFunc::prepareInputTableInfo(const string &input,
                 StringUtil::strTo##fbType(strValue.c_str(), tempValue);                            \
                 colValues.push_back(tempValue);                                                    \
             }                                                                                      \
-            char *multiValueBuffer                                                                 \
-                = MultiValueCreator::createMultiValueBuffer(colValues, _queryPool);                \
-            MultiValueType<cppType> colValue(multiValueBuffer);                                    \
-            columnData->set(rowIndex, colValue);                                                   \
+            columnData->set(rowIndex, colValues.data(), colValues.size());                         \
         }                                                                                          \
         break;                                                                                     \
     }
@@ -292,41 +288,34 @@ bool InputTableTvfFunc::fillInputTable(vector<vector<vector<string>>> &input, Ta
     output->batchAllocateRow(input.size());
 
     for (size_t colIndex = 0; colIndex < input[0].size(); colIndex++) {
-        ValueType columnValueType = output->getColumnType(colIndex);
+        auto outputColumn = output->getColumn(colIndex);
+        ValueType columnValueType = outputColumn->getType();
         BuiltinType columnType = columnValueType.getBuiltinType();
         bool isMultiValue = columnValueType.isMultiValue();
         if (!isMultiValue) {
             switch (columnType) {
                 NUMERIC_SWITCH_CASE_HELPER(NUMERIC_SWITCH_CASE);
             default:
-                ColumnData<MultiChar> *columnData
-                    = output->getColumn(colIndex)->getColumnData<MultiChar>();
+                ColumnData<MultiChar> *columnData = outputColumn->getColumnData<MultiChar>();
                 if (!columnData) {
                     break;
                 }
                 for (size_t rowIndex = 0; rowIndex < input.size(); rowIndex++) {
                     const auto &value = input[rowIndex][colIndex];
-                    char *buf = MultiValueCreator::createMultiValueBuffer(
-                        value[0].data(), value[0].size(), _queryPool);
-                    MultiChar multiValue(buf);
-                    columnData->set(rowIndex, multiValue);
+                    columnData->set(rowIndex, value[0].data(), value[0].size());
                 }
             }
         } else {
             switch (columnType) {
                 NUMERIC_SWITCH_CASE_HELPER(MULTINUMERIC_SWITCH_CASE);
             default:
-                ColumnData<MultiString> *columnData
-                    = output->getColumn(colIndex)->getColumnData<MultiString>();
+                ColumnData<MultiString> *columnData = outputColumn->getColumnData<MultiString>();
                 if (!columnData) {
                     break;
                 }
                 for (size_t rowIndex = 0; rowIndex < input.size(); rowIndex++) {
                     const auto &value = input[rowIndex][colIndex];
-                    char *multiValueBuffer
-                        = MultiValueCreator::createMultiStringBuffer(value, _queryPool);
-                    MultiValueType<MultiChar> colValue(multiValueBuffer);
-                    columnData->set(rowIndex, colValue);
+                    columnData->set(rowIndex, value.data(), value.size());
                 }
             }
         }

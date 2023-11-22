@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEDATAITERATORTEST_H
-#define __INDEXLIB_ATTRIBUTEDATAITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -35,5 +34,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(AttributeDataIteratorTest, TestSingleValue);
 INDEXLIB_UNIT_TEST_CASE(AttributeDataIteratorTest, TestMultiValue);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTEDATAITERATORTEST_H

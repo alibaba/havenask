@@ -17,6 +17,7 @@
 
 #include <future>
 #include <memory>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -32,17 +33,15 @@
 namespace indexlib { namespace file_system {
 
 struct FileInfo;
-struct WriterOption;
 class ArchiveFolder;
 class CompressFileInfo;
-class Directory;
 class IDirectory;
-class LinkDirectory;
 class FileReader;
 class FileWriter;
 class ResourceFile;
 class IFileSystem;
 class FileSystemMetricsReporter;
+
 using FileList = std::vector<std::string>;
 
 class Directory

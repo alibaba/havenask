@@ -37,7 +37,7 @@ void RealtimeSegmentDirectory::DoInit(const file_system::DirectoryPtr& directory
 {
     if (mEnableRecover) {
         RemoveVersionFiles(directory);
-        mVersion = index_base::Version(INVALID_VERSION);
+        mVersion = index_base::Version(INVALID_VERSIONID);
         mVersion = OfflineRecoverStrategy::Recover(mVersion, directory);
         mVersion.SetVersionId(0);
         // realtime segment no need DumpDeployIndexMeta

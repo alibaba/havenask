@@ -15,6 +15,11 @@
  */
 #include "build_service/config/OfflineIndexConfigMap.h"
 
+#include <iosfwd>
+#include <utility>
+
+#include "indexlib/config/merge_config.h"
+
 using namespace std;
 
 namespace build_service { namespace config {

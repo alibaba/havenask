@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKWORKERHEARTBEAT_H
-#define ISEARCH_BS_MOCKWORKERHEARTBEAT_H
+#pragma once
 
 #include "build_service/test/test.h"
 #include "build_service/test/unittest.h"
@@ -23,5 +22,3 @@ typedef ::testing::StrictMock<MockWorkerHeartbeat> StrictMockWorkerHeartbeat;
 typedef ::testing::NiceMock<MockWorkerHeartbeat> NiceMockWorkerHeartbeat;
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_MOCKWORKERHEARTBEAT_H

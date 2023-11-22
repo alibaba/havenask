@@ -15,7 +15,14 @@
  */
 #include "build_service/config/ConfigReaderAccessor.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/TabletSchema.h"
 
 using namespace std;
 using namespace build_service::util;

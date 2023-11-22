@@ -66,8 +66,8 @@ MatchValuesFetcher::fillMatchValues(const SingleLayerExecutors &singleLayerExecu
     Ha3MatchValues &mValues = _ref->getReference(matchDoc);
     mValues.setMaxNumTerms(_termCount);
     for (uint32_t i = 0; i < _termCount; ++i) {
-        matchvalue_t &mvt = mValues.nextFreeMatchValue();
-        mvt = matchvalue_t();
+        indexlib::matchvalue_t &mvt = mValues.nextFreeMatchValue();
+        mvt = indexlib::matchvalue_t();
         int32_t idx = (int32_t)i - (int32_t)_accTermCount;
         if (idx >= 0 && (uint32_t)idx < singleLayerExecutors.size() && singleLayerExecutors[idx]
             && singleLayerExecutors[idx]->getDocId() == docId) {

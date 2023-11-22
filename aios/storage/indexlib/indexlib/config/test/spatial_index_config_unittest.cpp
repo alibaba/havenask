@@ -12,7 +12,7 @@ using namespace autil;
 using namespace autil::legacy::json;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, SpatialIndexConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, SpatialIndexConfigTest);
 
 SpatialIndexConfigTest::SpatialIndexConfigTest() {}
 
@@ -29,7 +29,7 @@ void SpatialIndexConfigTest::TestSimpleProcess()
 {
     IndexConfigPtr indexConfig = mSchema->GetIndexSchema()->GetIndexConfig("spatial_index");
     ASSERT_TRUE(indexConfig);
-    SpatialIndexConfigPtr spatialConfig = DYNAMIC_POINTER_CAST(SpatialIndexConfig, indexConfig);
+    SpatialIndexConfigPtr spatialConfig = std::dynamic_pointer_cast<SpatialIndexConfig>(indexConfig);
     ASSERT_TRUE(spatialConfig);
     ASSERT_EQ((double)10000, spatialConfig->GetMaxSearchDist());
     ASSERT_EQ((double)20, spatialConfig->GetMaxDistError());
@@ -49,7 +49,7 @@ void SpatialIndexConfigTest::TestDefault()
     mSchema = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "spatial_index_schema_default.json");
     IndexConfigPtr indexConfig = mSchema->GetIndexSchema()->GetIndexConfig("spatial_index");
     ASSERT_TRUE(indexConfig);
-    SpatialIndexConfigPtr spatialConfig = DYNAMIC_POINTER_CAST(SpatialIndexConfig, indexConfig);
+    SpatialIndexConfigPtr spatialConfig = std::dynamic_pointer_cast<SpatialIndexConfig>(indexConfig);
     ASSERT_TRUE(spatialConfig);
     ASSERT_EQ((double)40076000.0, spatialConfig->GetMaxSearchDist());
     ASSERT_EQ((double)0.05, spatialConfig->GetMaxDistError());

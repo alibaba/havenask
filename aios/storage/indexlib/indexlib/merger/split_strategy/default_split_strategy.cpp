@@ -15,7 +15,18 @@
  */
 #include "indexlib/merger/split_strategy/default_split_strategy.h"
 
+#include <cstddef>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/normal/attribute/accessor/offline_attribute_segment_reader_container.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace autil;

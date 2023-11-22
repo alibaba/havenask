@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILDING_SEGMENT_ITERATOR_H
-#define __INDEXLIB_BUILDING_SEGMENT_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -60,5 +59,3 @@ private:
 
 DEFINE_SHARED_PTR(BuildingSegmentIterator);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_BUILDING_SEGMENT_ITERATOR_H

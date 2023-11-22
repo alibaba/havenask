@@ -40,8 +40,9 @@ AUTIL_LOG_SETUP(indexlib.table, NormalTableAlterTablePlanCreator);
 const std::string NormalTableAlterTablePlanCreator::TASK_TYPE = framework::ALTER_TABLE_TASK_TYPE;
 
 NormalTableAlterTablePlanCreator::NormalTableAlterTablePlanCreator(const std::string& taskName,
+                                                                   const std::string& taskTraceId,
                                                                    const std::map<std::string, std::string>& params)
-    : SimpleIndexTaskPlanCreator(taskName, params)
+    : SimpleIndexTaskPlanCreator(taskName, taskTraceId, params)
 {
 }
 
@@ -88,6 +89,12 @@ void NormalTableAlterTablePlanCreator::CalculateAlterIndexConfigs(
     }
 }
 
+bool NormalTableAlterTablePlanCreator::SupportAlterTableWithDefaultValue(
+    const std::shared_ptr<config::TabletOptions>& tabletOptions)
+{
+    return tabletOptions->GetOnlineConfig().SupportAlterTableWithDefaultValue();
+}
+
 std::pair<Status, std::unique_ptr<framework::IndexTaskPlan>>
 NormalTableAlterTablePlanCreator::CreateTaskPlan(const framework::IndexTaskContext* taskContext)
 {
@@ -105,6 +112,11 @@ NormalTableAlterTablePlanCreator::CreateTaskPlan(const framework::IndexTaskConte
         return std::make_pair(Status::Corruption(), nullptr);
     }
 
+    auto tabletData = taskContext->GetTabletData();
+    if (!ValidateSchema(baseSchemaId, targetSchemaId, tabletData)) {
+        RETURN2_IF_STATUS_ERROR(Status::InvalidArgs(), nullptr, "validate schema failed");
+    }
+
     auto targetVersion = version;
     targetVersion.SetVersionId(taskContext->GetMaxMergedVersionId() + 1);
     targetVersion.SetSchemaId(targetSchemaId);
@@ -115,8 +127,7 @@ NormalTableAlterTablePlanCreator::CreateTaskPlan(const framework::IndexTaskConte
     RETURN2_IF_STATUS_ERROR(status, nullptr, "commit task log to version failed");
 
     auto tabletOptions = taskContext->GetTabletOptions();
-    auto tabletData = taskContext->GetTabletData();
-    if (tabletOptions->GetOnlineConfig().SupportAlterTableWithDefaultValue() &&
+    if (SupportAlterTableWithDefaultValue(tabletOptions) &&
         UseDefaultValueStrategy(baseSchemaId, targetSchemaId, tabletData)) {
         AUTIL_LOG(INFO, "Alter normal table [%s] will use default value strategy, schemaId[%d], versionId [%d]",
                   targetSchema->GetTableName().c_str(), targetSchemaId, targetVersion.GetVersionId());
@@ -134,12 +145,13 @@ NormalTableAlterTablePlanCreator::CreateTaskPlan(const framework::IndexTaskConte
         std::vector<std::shared_ptr<config::IIndexConfig>> deleteIndexConfigs;
         CalculateAlterIndexConfigs(segment, baseSchemaId, targetSchemaId, tabletData, addIndexConfigs,
                                    deleteIndexConfigs);
-        for (auto indexConfig : addIndexConfigs) {
-            auto desc =
-                NormalTableAddIndexOperation::CreateOperationDescription(id, targetSchemaId, segId, indexConfig);
-            indexTaskPlan->AddOperation(desc);
-            segmentMoveDependIds.push_back(id);
-            id++;
+        std::vector<framework::IndexOperationDescription> opDescs;
+        RETURN2_IF_STATUS_ERROR(
+            CreateIndexOperationDescs(id, segId, targetSchemaId, addIndexConfigs, taskContext, opDescs), nullptr,
+            "create add index op descs failed");
+        for (const auto& opDesc : opDescs) {
+            indexTaskPlan->AddOperation(opDesc);
+            segmentMoveDependIds.push_back(opDesc.GetId());
         }
 
         if (DropOpLogOperation::NeedDropOpLog(segId, baseSchema, targetSchema)) {
@@ -180,6 +192,46 @@ NormalTableAlterTablePlanCreator::CreateTaskPlan(const framework::IndexTaskConte
 
     indexTaskPlan->SetEndTaskOperation(EndMergeTaskOperation::CreateOperationDescription(id++, targetVersion));
     return std::make_pair(Status::OK(), std::move(indexTaskPlan));
+}
+
+Status NormalTableAlterTablePlanCreator::CreateIndexOperationDescs(
+    framework::IndexOperationId& startOpId, segmentid_t targetSegmentId, schemaid_t targetSchemaId,
+    const std::vector<std::shared_ptr<config::IIndexConfig>>& addIndexConfigs,
+    const framework::IndexTaskContext* taskContext, std::vector<framework::IndexOperationDescription>& opDescs)
+{
+    for (auto indexConfig : addIndexConfigs) {
+        auto desc = NormalTableAddIndexOperation::CreateOperationDescription(startOpId, targetSchemaId, targetSegmentId,
+                                                                             indexConfig);
+        opDescs.push_back(desc);
+        startOpId++;
+    }
+    return Status::OK();
+}
+
+bool NormalTableAlterTablePlanCreator::ValidateSchema(schemaid_t baseSchemaId, schemaid_t targetSchemaId,
+                                                      const std::shared_ptr<framework::TabletData>& tabletData) const
+{
+    std::vector<std::shared_ptr<config::IIndexConfig>> addIndexConfigs;
+    std::vector<std::shared_ptr<config::IIndexConfig>> deleteIndexConfigs;
+    CalculateAlterIndexConfigs(nullptr, baseSchemaId, targetSchemaId, tabletData, addIndexConfigs, deleteIndexConfigs);
+    for (auto config : addIndexConfigs) {
+        if (!std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(config) &&
+            !std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(config)) {
+            AUTIL_LOG(ERROR, "alter only allow add attribute or inverted, unexpected config [%s] with type [%s]",
+                      config->GetIndexName().c_str(), config->GetIndexType().c_str());
+            return false;
+        }
+    }
+
+    for (auto config : deleteIndexConfigs) {
+        if (!std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(config) &&
+            !std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(config)) {
+            AUTIL_LOG(ERROR, "alter only allow delete attribute or inverted, unexpected config [%s] with type [%s]",
+                      config->GetIndexName().c_str(), config->GetIndexType().c_str());
+            return false;
+        }
+    }
+    return true;
 }
 
 bool NormalTableAlterTablePlanCreator::UseDefaultValueStrategy(

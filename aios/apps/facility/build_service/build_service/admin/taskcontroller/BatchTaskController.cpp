@@ -15,13 +15,27 @@
  */
 #include "build_service/admin/taskcontroller/BatchTaskController.h"
 
+#include <assert.h>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <stdint.h>
+#include <tuple>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/AdminInfo.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/common/BrokerTopicAccessor.h"
-#include "build_service/common/SwiftAdminFacade.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/proto/DataDescriptions.h"
 #include "build_service/util/DataSourceHelper.h"
 

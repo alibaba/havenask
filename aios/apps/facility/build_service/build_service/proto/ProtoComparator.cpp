@@ -15,6 +15,9 @@
  */
 #include "build_service/proto/ProtoComparator.h"
 
+#include <iosfwd>
+#include <string>
+
 using namespace std;
 
 namespace build_service { namespace proto {

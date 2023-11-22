@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONLINEPARTITIONREADERINTETEST_H
-#define __INDEXLIB_ONLINEPARTITIONREADERINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/online_partition_reader.h"
@@ -82,5 +81,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OnlinePartitionReaderInteTest, TestDisableSub
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OnlinePartitionReaderInteTest, TestDisableSpatialIndexMode1);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OnlinePartitionReaderInteTest, TestDisableSpatialIndexMode2);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINEPARTITIONREADERINTETEST_H

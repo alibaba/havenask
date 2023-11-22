@@ -15,6 +15,8 @@
  */
 #include "build_service/common/PeriodDocCounter.h"
 
+#include <cstddef>
+
 using namespace std;
 
 namespace build_service { namespace common {

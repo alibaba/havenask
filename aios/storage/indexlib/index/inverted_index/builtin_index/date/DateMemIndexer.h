@@ -26,7 +26,7 @@ class InvertedIndexMetrics;
 class DateMemIndexer : public InvertedMemIndexer
 {
 public:
-    explicit DateMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam,
+    explicit DateMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam,
                             const std::shared_ptr<InvertedIndexMetrics>& metrics);
     ~DateMemIndexer();
     Status Init(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,

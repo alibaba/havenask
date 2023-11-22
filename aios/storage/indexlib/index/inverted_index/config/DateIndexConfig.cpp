@@ -73,14 +73,16 @@ void DateIndexConfig::Check() const
 {
     SingleFieldIndexConfig::Check();
     if (_impl->buildGranularity == DateLevelFormat::GU_UNKOWN) {
-        INDEXLIB_FATAL_ERROR(Schema, "unkown granularity");
+        INDEXLIB_FATAL_ERROR(Schema, "unkown granularity, index name [%s]", GetIndexName().c_str());
     }
     if (GetFieldConfig()->IsMultiValue()) {
-        INDEXLIB_FATAL_ERROR(Schema, "date field can not be multi value field");
+        INDEXLIB_FATAL_ERROR(Schema, "date field can not be multi value field, index name [%s]",
+                             GetIndexName().c_str());
     }
 
     if (IsHashTypedDictionary()) {
-        INDEXLIB_FATAL_ERROR(Schema, "date index should not set use_hash_typed_dictionary");
+        INDEXLIB_FATAL_ERROR(Schema, "date index should not set use_hash_typed_dictionary, index name [%s]",
+                             GetIndexName().c_str());
     }
 }
 
@@ -152,7 +154,8 @@ void DateIndexConfig::DoDeserialize(const autil::legacy::Any& any,
     json.Jsonize(BUILD_GRANULARITY, granularityStr, _impl->defaultGranularityStr);
     _impl->buildGranularity = StringToGranularity(granularityStr);
     if (_impl->buildGranularity == DateLevelFormat::GU_UNKOWN) {
-        INDEXLIB_FATAL_ERROR(Schema, "invalid granularity [%s]", granularityStr.c_str());
+        INDEXLIB_FATAL_ERROR(Schema, "invalid granularity [%s], index name [%s]", granularityStr.c_str(),
+                             GetIndexName().c_str());
     }
     _impl->dateLevelFormat.Init(_impl->buildGranularity);
 }

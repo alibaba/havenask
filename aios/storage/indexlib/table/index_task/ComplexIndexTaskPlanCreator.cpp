@@ -17,6 +17,7 @@
 
 #include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/config/TabletOptions.h"
+#include "indexlib/framework/IndexTaskQueue.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/index_task/IIndexOperationCreator.h"
 #include "indexlib/framework/index_task/IndexOperation.h"
@@ -52,12 +53,14 @@ ComplexIndexTaskPlanCreator::CreateTaskPlan(const framework::IndexTaskContext* t
             return {Status::Unknown(), nullptr};
         }
 
-        std::unique_ptr<SimpleIndexTaskPlanCreator> simpleCreator(iter->second(task.taskName, task.params));
+        std::unique_ptr<SimpleIndexTaskPlanCreator> simpleCreator(
+            iter->second(task.taskName, task.taskTraceId, task.params));
         if (!taskContext->SetDesignateTask(task.taskType, task.taskName)) {
             TABLET_LOG(INFO, "set designate task for task [type:%s, name:%s] failed.", task.taskType.c_str(),
                        task.taskName.c_str());
             continue;
         }
+        taskContext->SetTaskTraceId(task.taskTraceId);
         auto [status, taskPlan] = simpleCreator->CreateTaskPlan(taskContext);
         if (!status.IsOK()) {
             TABLET_LOG(ERROR, "task plan created failed for task [type:%s, name:%s] : %s.", task.taskType.c_str(),
@@ -85,23 +88,23 @@ Status ComplexIndexTaskPlanCreator::ScheduleSimpleTask(const framework::IndexTas
     // 0. TODO: check in full build phrase, only trigger full merge strategy
 
     // * inc task strategy below
-    // TODO(yonghao.fyh, lisizhuo.lsz): currently index task only used for bulkload task, will support other task
-    // (e.g. alter table) in the future
     auto tabletData = taskContext->GetTabletData();
     if (tabletData) {
         const auto& version = tabletData->GetOnDiskVersion();
         // 1. index task in index task queue always has top priority
-        auto indexTasks = version.GetIndexTasks();
+        auto indexTasks = version.GetIndexTaskQueue()->GetAllTasks();
         for (const auto& task : indexTasks) {
-            if (task->state == framework::IndexTaskMeta::SUSPENDED) {
+            if (task->GetState() == framework::IndexTaskMeta::SUSPENDED) {
                 TABLET_INTERVAL_LOG(120, WARN,
                                     "task is in [%s] state, stop schedule index task queue, "
-                                    "taskName[%s] taskType[%s]",
-                                    task->state.c_str(), task->taskName.c_str(), task->taskType.c_str());
+                                    "taskType[%s], taskTraceId[%s]",
+                                    task->GetState().c_str(), task->GetTaskType().c_str(),
+                                    task->GetTaskTraceId().c_str());
                 break;
             }
-            if (task->state == framework::IndexTaskMeta::READY) {
-                tasks->emplace_back(task->taskType, task->taskName, task->params);
+            if (task->GetState() == framework::IndexTaskMeta::PENDING) {
+                tasks->emplace_back(task->GetTaskType(), task->GetTaskName(), task->GetTaskTraceId(),
+                                    task->GetParams());
                 return Status::OK();
             }
         }
@@ -114,10 +117,11 @@ Status ComplexIndexTaskPlanCreator::ScheduleSimpleTask(const framework::IndexTas
         }
     }
 
-    // 3. user designate task goes third priority
+    // 3. user designate task goes third priority,
     auto designateTaskConfig = taskContext->GetDesignateTaskConfig();
     if (designateTaskConfig) {
-        tasks->emplace_back(designateTaskConfig->GetTaskType(), designateTaskConfig->GetTaskName());
+        tasks->emplace_back(designateTaskConfig->GetTaskType(), designateTaskConfig->GetTaskName(),
+                            designateTaskConfig->GetTaskName());
         return Status::OK();
     }
 
@@ -172,7 +176,7 @@ ComplexIndexTaskPlanCreator::GetCandidateTasks(const framework::IndexTaskContext
             TABLET_LOG(ERROR, "unknown task type [%s].", taskType.c_str());
             return Status::InvalidArgs("unknown task type [%s].", taskType.c_str());
         }
-        std::unique_ptr<SimpleIndexTaskPlanCreator> simpleCreator(iter->second(taskName, {}));
+        std::unique_ptr<SimpleIndexTaskPlanCreator> simpleCreator(iter->second(taskName, "", {}));
         auto [status, needTrigger] = simpleCreator->NeedTriggerTask(taskConfig, taskContext);
         RETURN_IF_STATUS_ERROR(status, "NeedTriggerTask with error status [%s] for [taskType:%s, taskName:%s]",
                                status.ToString().c_str(), taskType.c_str(), taskName.c_str());

@@ -1,15 +1,15 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
 import com.taobao.search.iquan.core.utils.IquanTypeFactory;
 import org.apache.calcite.rel.type.RelDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public abstract class UdxfSignature {
     protected static final Logger logger = LoggerFactory.getLogger(UdxfSignature.class);
@@ -26,6 +26,10 @@ public abstract class UdxfSignature {
     protected List<RelDataType> accRelTypes = null;
 
     protected UdxfSignature() {
+    }
+
+    public static Builder newBuilder(FunctionType type) {
+        return new Builder(type);
     }
 
     @Override
@@ -149,10 +153,6 @@ public abstract class UdxfSignature {
         }
 
         setDigest(sb.toString());
-    }
-
-    public static Builder newBuilder(FunctionType type) {
-        return new Builder(type);
     }
 
     public static class Builder {

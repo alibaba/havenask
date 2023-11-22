@@ -1,11 +1,11 @@
 #include "indexlib/index_base/index_meta/test/deploy_index_meta_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/FileInfo.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/load_config/LoadConfig.h"
 #include "indexlib/index_base/deploy_index_wrapper.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

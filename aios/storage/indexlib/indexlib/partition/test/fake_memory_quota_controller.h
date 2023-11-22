@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCK_MEMORY_QUOTA_CONTROLLER_H
-#define __INDEXLIB_MOCK_MEMORY_QUOTA_CONTROLLER_H
+#pragma once
 
 #include <memory>
 
@@ -50,5 +49,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeMemoryQuotaController);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MOCK_MEMORY_QUOTA_CONTROLLER_H

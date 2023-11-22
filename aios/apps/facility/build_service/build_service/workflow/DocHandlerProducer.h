@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DOCHANDLERPRODUCER_H
-#define ISEARCH_BS_DOCHANDLERPRODUCER_H
+#pragma once
 
+#include "build_service/common/Locator.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include "build_service/workflow/FlowError.h"
 #include "build_service/workflow/ProcessedDocHandler.h"
 #include "build_service/workflow/Producer.h"
+#include "build_service/workflow/StopOption.h"
 
 namespace build_service { namespace workflow {
 
@@ -49,5 +51,3 @@ private:
 BS_TYPEDEF_PTR(DocHandlerProducer);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_DOCHANDLERPRODUCER_H

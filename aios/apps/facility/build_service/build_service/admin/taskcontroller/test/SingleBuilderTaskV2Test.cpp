@@ -1,18 +1,49 @@
 #include "build_service/admin/taskcontroller/SingleBuilderTaskV2.h"
 
+#include <cstdint>
+#include <google/protobuf/stubs/status.h>
 #include <google/protobuf/util/json_util.h>
+#include <iosfwd>
+#include <iterator>
+#include <map>
 #include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/EnvUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/admin/CheckpointSynchronizer.h"
+#include "build_service/admin/ClusterCheckpointSynchronizer.h"
 #include "build_service/admin/ClusterCheckpointSynchronizerCreator.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/admin/taskcontroller/TaskController.h"
 #include "build_service/common/BrokerTopicAccessor.h"
 #include "build_service/common/CheckpointAccessor.h"
+#include "build_service/common/ResourceKeeperGuard.h"
+#include "build_service/common_define.h"
+#include "build_service/config/AgentGroupConfig.h"
+#include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ConfigReaderAccessor.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/SwiftTopicConfig.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/BuildTaskCurrentInfo.h"
+#include "build_service/proto/BuildTaskTargetInfo.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/proto/test/ProtoCreator.h"
 #include "build_service/test/unittest.h"
 #include "build_service/util/RangeUtil.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/Version.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/indexlib.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;
@@ -556,7 +587,7 @@ TEST_F(SingleBuilderTaskV2Test, testIncBuildAlignVersion)
     target.finished = false;
     target.buildMode = proto::BuildMode::BUILD_PUBLISH;
     target.alignVersionId = getPublishedVersion(13);
-    target.buildStep = "incremental";
+    target.buildStep = config::BUILD_STEP_INC_STR;
     target.latestPublishedVersion = getPublishedVersion(9);
     ASSERT_TRUE(checkTarget(nodes, 0, target));
     target.latestPublishedVersion = getPublishedVersion(8);
@@ -616,7 +647,7 @@ TEST_F(SingleBuilderTaskV2Test, testUpdateConfig)
     proto::BuildTaskTargetInfo initTarget;
     proto::BuildTaskTargetInfo target;
     initTarget.finished = false;
-    initTarget.buildMode = proto::BuildMode::UNKOWN;
+    initTarget.buildMode = proto::BuildMode::UNKNOWN;
     initTarget.alignVersionId = indexlibv2::INVALID_VERSIONID;
     initTarget.buildStep = "full";
     initTarget.latestPublishedVersion = indexlibv2::INVALID_VERSIONID;
@@ -726,7 +757,7 @@ TEST_F(SingleBuilderTaskV2Test, testFullBuildWithBuildPublishMode)
 
     proto::BuildTaskTargetInfo initTarget;
     initTarget.finished = false;
-    initTarget.buildMode = proto::BuildMode::UNKOWN;
+    initTarget.buildMode = proto::BuildMode::UNKNOWN;
     initTarget.alignVersionId = indexlibv2::INVALID_VERSIONID;
     initTarget.buildStep = "full";
     initTarget.latestPublishedVersion = indexlibv2::INVALID_VERSIONID;
@@ -1070,7 +1101,7 @@ TEST_F(SingleBuilderTaskV2Test, testRollingBack)
     target.finished = false;
     target.buildMode = proto::BuildMode::BUILD_PUBLISH;
     target.alignVersionId = indexlibv2::INVALID_VERSIONID;
-    target.buildStep = "incremental";
+    target.buildStep = config::BUILD_STEP_INC_STR;
     target.latestPublishedVersion = getPublishedVersion(1);
     target.indexRoot = "";
     target.slaveVersionProgress = {};
@@ -1116,7 +1147,7 @@ TEST_F(SingleBuilderTaskV2Test, testRollingBack)
     target.finished = false;
     target.buildMode = proto::BuildMode::BUILD_PUBLISH;
     target.alignVersionId = getPublishedVersion(8);
-    target.buildStep = "incremental";
+    target.buildStep = config::BUILD_STEP_INC_STR;
     target.latestPublishedVersion = getPublishedVersion(8);
     target.indexRoot = "";
     target.slaveVersionProgress = {};
@@ -1197,7 +1228,7 @@ TEST_F(SingleBuilderTaskV2Test, testRollingBackWithSlave)
     masterTarget.finished = false;
     masterTarget.buildMode = proto::BuildMode::PUBLISH;
     masterTarget.alignVersionId = indexlibv2::INVALID_VERSIONID;
-    masterTarget.buildStep = "incremental";
+    masterTarget.buildStep = config::BUILD_STEP_INC_STR;
     masterTarget.latestPublishedVersion = getPublishedVersion(1);
     masterTarget.indexRoot = "";
     masterTarget.branchId = 1;
@@ -1209,7 +1240,7 @@ TEST_F(SingleBuilderTaskV2Test, testRollingBackWithSlave)
     slaveTarget.finished = false;
     slaveTarget.buildMode = proto::BuildMode::BUILD;
     slaveTarget.alignVersionId = indexlibv2::INVALID_VERSIONID;
-    slaveTarget.buildStep = "incremental";
+    slaveTarget.buildStep = config::BUILD_STEP_INC_STR;
     slaveTarget.latestPublishedVersion = getPublishedVersion(1);
     slaveTarget.indexRoot = "";
     slaveTarget.branchId = 1;

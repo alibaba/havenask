@@ -15,11 +15,27 @@
  */
 #include "build_service/processor/BatchProcessor.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <functional>
+#include <limits>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "build_service/common/Locator.h"
+#include "build_service/config/ProcessorInfo.h"
+#include "build_service/document/DocumentDefine.h"
+#include "build_service/processor/ProcessorWorkItem.h"
+#include "build_service/processor/ProcessorWorkItemExecutor.h"
 #include "build_service/util/Monitor.h"
-#include "fslib/fslib.h"
-#include "indexlib/util/counter/AccumulativeCounter.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/FileSystem.h"
+#include "indexlib/misc/log.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;

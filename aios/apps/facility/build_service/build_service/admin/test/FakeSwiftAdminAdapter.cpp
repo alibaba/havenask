@@ -1,7 +1,15 @@
 #include "build_service/admin/test/FakeSwiftAdminAdapter.h"
 
+#include <iosfwd>
+
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "build_service/util/Log.h"
 #include "fslib/util/FileUtil.h"
 #include "swift/protocol/AdminRequestResponse.pb.h"
+#include "swift/protocol/Common.pb.h"
+
 using namespace std;
 using namespace autil;
 using namespace build_service::util;

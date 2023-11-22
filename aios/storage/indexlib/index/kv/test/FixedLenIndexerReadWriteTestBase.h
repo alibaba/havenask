@@ -1,3 +1,4 @@
+#pragma once
 #include "autil/mem_pool/Pool.h"
 #include "future_lite/CoroInterface.h"
 #include "future_lite/executors/SimpleExecutor.h"
@@ -188,7 +189,7 @@ protected:
         MakeSchema(fields, "key", "f1");
 
         // 16 byte is for hash table header, 24 byte hash bucket
-        FixedLenKVMemIndexer indexer(16 + 24);
+        FixedLenKVMemIndexer indexer(true, 16 + 24);
         ASSERT_TRUE(indexer.Init(_indexConfig, nullptr).IsOK());
 
         auto& kvIndexPreference = _indexConfig->GetIndexPreference();
@@ -216,7 +217,7 @@ protected:
         std::string fields = "key:uint32;f1:" + std::string(f1TypeStr) + ":false";
         MakeSchema(fields, "key", "f1" + compressFieldTypeStr, compressTypeStr);
 
-        FixedLenKVMemIndexer indexer(DEFAULT_MEMORY_USE_IN_BYTES);
+        FixedLenKVMemIndexer indexer(true, DEFAULT_MEMORY_USE_IN_BYTES);
         ASSERT_TRUE(indexer.Init(_indexConfig, nullptr).IsOK());
 
         // build

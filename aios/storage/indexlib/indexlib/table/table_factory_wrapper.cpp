@@ -15,10 +15,21 @@
  */
 #include "indexlib/table/table_factory_wrapper.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <string>
+#include <string_view>
+
+#include "alog/Logger.h"
 #include "indexlib/config/customized_table_config.h"
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/plugin/Module.h"
+#include "indexlib/plugin/ModuleFactory.h"
 #include "indexlib/plugin/plugin_manager.h"
 #include "indexlib/table/executor_provider.h"
 #include "indexlib/table/merge_policy.h"

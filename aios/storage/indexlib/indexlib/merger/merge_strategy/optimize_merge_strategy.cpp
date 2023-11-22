@@ -15,9 +15,26 @@
  */
 #include "indexlib/merger/merge_strategy/optimize_merge_strategy.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <limits>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+
+#include "alog/Logger.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "autil/TimeUtility.h"
+#include "indexlib/config/adaptive_dictionary_schema.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/truncate_profile_schema.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

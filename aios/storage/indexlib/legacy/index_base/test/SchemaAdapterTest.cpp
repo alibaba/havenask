@@ -1,11 +1,11 @@
 #include "indexlib/legacy/index_base/SchemaAdapter.h"
 
 #include "indexlib/base/Constant.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/test/PackageFileUtil.h"
 #include "indexlib/index/inverted_index/config/HighFrequencyVocabulary.h"
-#include "indexlib/test/schema_maker.h"
 #include "unittest/unittest.h"
 
 namespace indexlib::legacy::index_base {

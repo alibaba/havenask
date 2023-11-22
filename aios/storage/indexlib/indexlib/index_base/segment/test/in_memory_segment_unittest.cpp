@@ -1,6 +1,7 @@
 #include "indexlib/index_base/segment/test/in_memory_segment_unittest.h"
 
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/schema_rewriter.h"
 #include "indexlib/index_base/segment/segment_directory.h"
@@ -9,7 +10,6 @@
 #include "indexlib/partition/segment/in_memory_segment_creator.h"
 #include "indexlib/plugin/plugin_manager.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/Exception.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"

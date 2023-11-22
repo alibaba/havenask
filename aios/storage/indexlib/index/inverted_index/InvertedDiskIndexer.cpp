@@ -37,12 +37,12 @@
 namespace indexlib::index {
 namespace {
 using indexlibv2::config::IIndexConfig;
-using indexlibv2::index::IndexerParameter;
+using indexlibv2::index::DiskIndexerParameter;
 } // namespace
 
 AUTIL_LOG_SETUP(indexlib.index, InvertedDiskIndexer);
 
-InvertedDiskIndexer::InvertedDiskIndexer(const IndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
+InvertedDiskIndexer::InvertedDiskIndexer(const DiskIndexerParameter& indexerParam) : _indexerParam(indexerParam) {}
 
 Status InvertedDiskIndexer::Open(const std::shared_ptr<IIndexConfig>& indexConfig,
                                  const std::shared_ptr<file_system::IDirectory>& indexDirectory)
@@ -67,7 +67,7 @@ Status InvertedDiskIndexer::Open(const std::shared_ptr<IIndexConfig>& indexConfi
         RETURN_IF_STATUS_ERROR(status1, "IsExist [%s] failed",
                                indexDirectory->DebugString(_indexConfig->GetIndexName()).c_str());
         if (!isExist) {
-            if (_indexerParam.readerOpenType == IndexerParameter::READER_DEFAULT_VALUE) {
+            if (_indexerParam.readerOpenType == DiskIndexerParameter::READER_DEFAULT_VALUE) {
                 auto dictReader = std::make_shared<DefaultTermDictionaryReader>(_indexConfig, _indexerParam.docCount);
                 auto status = dictReader->Open(nullptr, "", false);
                 RETURN_IF_STATUS_ERROR(status, "dictionary reader open fail");
@@ -224,7 +224,7 @@ size_t InvertedDiskIndexer::EstimateMemUsed(const std::shared_ptr<IIndexConfig>&
     auto subDir = indexlib::file_system::IDirectory::ToLegacyDirectory(indexDirectory)
                       ->GetDirectory(indexConfig->GetIndexName(), /*throwExceptionIfNotExist=*/false);
     if (subDir == nullptr) {
-        if (_indexerParam.readerOpenType == IndexerParameter::READER_DEFAULT_VALUE) {
+        if (_indexerParam.readerOpenType == DiskIndexerParameter::READER_DEFAULT_VALUE) {
             return 0;
         }
         if (_indexerParam.docCount != 0) {

@@ -15,10 +15,29 @@
  */
 #include "build_service/admin/taskcontroller/SyncIndexTaskController.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <set>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/CheckpointCreator.h"
 #include "build_service/common/CheckpointResourceKeeper.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/Admin.pb.h"
+#include "indexlib/misc/common.h"
 
 using namespace std;
 using namespace autil::legacy;
@@ -33,7 +52,7 @@ SyncIndexTaskController::SyncIndexTaskController(const std::string& taskId, cons
     : DefaultTaskController(taskId, taskName, resMgr)
     , _totalTargetIdx(-1)
     , _keepVersionCount(1)
-    , _targetVersion(INVALID_VERSION)
+    , _targetVersion(indexlib::INVALID_VERSIONID)
     , _needNewTarget(true)
     , _preferSyncIndex(true)
 {
@@ -148,9 +167,9 @@ bool SyncIndexTaskController::createNewTarget(
     vector<versionid_t> versions;
     for (const auto& info : currentResourceInfo) {
         if (info.status == common::CheckpointResourceKeeper::CRS_SAVEPOINTED) {
-            versionid_t version = INVALID_VERSION;
+            versionid_t version = indexlib::INVALID_VERSIONID;
             if (StringUtil::fromString(getValueFromKeyValueMap(info.param, INDEX_VERSION), version) &&
-                version != INVALID_VERSION) {
+                version != indexlib::INVALID_VERSIONID) {
                 versionsSet.insert(version);
             }
         }
@@ -247,13 +266,13 @@ bool SyncIndexTaskController::operate(TaskController::Nodes& taskNodes)
     map<versionid_t, versionid_t> allResourceMap;
     for (const auto& it : currentResourcesInfo) {
         string versionStr = getValueFromKeyValueMap(it.param, INDEX_VERSION);
-        versionid_t indexVersion = INVALID_VERSION;
+        versionid_t indexVersion = indexlib::INVALID_VERSIONID;
         if (!versionStr.empty()) {
             if (!StringUtil::fromString(versionStr, indexVersion)) {
                 continue;
             }
         }
-        if (indexVersion == INVALID_VERSION) {
+        if (indexVersion == indexlib::INVALID_VERSIONID) {
             continue;
         }
         allResourceMap[it.version] = indexVersion;
@@ -299,9 +318,9 @@ bool SyncIndexTaskController::operate(TaskController::Nodes& taskNodes)
                 SetProperty("hasIndex", "true");
             }
             versionid_t maxSyncedVersion =
-                syncedVersions.empty() ? INVALID_VERSION : syncedVersions[syncedVersions.size() - 1];
+                syncedVersions.empty() ? indexlib::INVALID_VERSIONID : syncedVersions[syncedVersions.size() - 1];
             versionid_t maxAvailableVersion =
-                usingIndex2resourceMap.empty() ? INVALID_VERSION : usingIndex2resourceMap.rbegin()->second;
+                usingIndex2resourceMap.empty() ? indexlib::INVALID_VERSIONID : usingIndex2resourceMap.rbegin()->second;
             if (maxSyncedVersion > maxAvailableVersion) {
                 BS_LOG(INFO, "add latest index version [%d]", maxSyncedVersion);
                 KeyValueMap kvMap;

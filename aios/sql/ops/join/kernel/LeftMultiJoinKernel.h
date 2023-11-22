@@ -33,7 +33,6 @@
 namespace navi {
 class KernelComputeContext;
 class KernelDefBuilder;
-class KernelInitContext;
 } // namespace navi
 namespace table {
 class Column;
@@ -49,11 +48,11 @@ public:
 
 public:
     void def(navi::KernelDefBuilder &builder) const override;
-    bool config(navi::KernelConfigContext &ctx) override;
-    navi::ErrorCode init(navi::KernelInitContext &initContext) override;
     navi::ErrorCode compute(navi::KernelComputeContext &runContext) override;
 
 private:
+    bool doInit() override;
+    bool doConfig(navi::KernelConfigContext &ctx) override;
     bool doMultiJoin(const table::TablePtr &inputTable, table::TablePtr &output);
     StreamQueryPtr genStreamQuery(const table::TablePtr &input, const std::string &joinColumnName);
     bool joinAndGather(const table::TablePtr &inputTable,
@@ -62,7 +61,7 @@ private:
     bool initJoinedTable(const table::TablePtr &leftTable,
                          const table::TablePtr &rightTable,
                          table::TablePtr &output);
-    bool declearTableColumn(const table::TablePtr &inputTable,
+    bool declairTableColumn(const table::TablePtr &inputTable,
                             table::TablePtr &outputTable,
                             const std::string &inputField,
                             const std::string &outputField,

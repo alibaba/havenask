@@ -33,7 +33,6 @@
 #include "sql/data/TableData.h"
 #include "sql/data/TableType.h"
 #include "sql/ops/join/JoinBase.h"
-#include "sql/ops/join/JoinInfoCollector.h"
 #include "sql/ops/join/JoinKernelBase.h"
 #include "sql/proto/SqlSearchInfo.pb.h"
 #include "sql/proto/SqlSearchInfoCollector.h"
@@ -66,23 +65,23 @@ void NestedLoopJoinKernel::def(navi::KernelDefBuilder &builder) const {
         .input("input0", TableType::TYPE_ID)
         .input("input1", TableType::TYPE_ID)
         .output("output0", TableType::TYPE_ID);
-    JoinKernelBase::addDepend(builder);
 }
 
-bool NestedLoopJoinKernel::config(navi::KernelConfigContext &ctx) {
-    if (!JoinKernelBase::config(ctx)) {
-        return false;
-    }
-    if (_conditionJson.empty()) {
-        SQL_LOG(ERROR, "nest loop join condition is empty");
-        return false;
-    }
+bool NestedLoopJoinKernel::doConfig(navi::KernelConfigContext &ctx) {
     NAVI_JSONIZE(ctx, "buffer_limit_size", _bufferLimitSize, _bufferLimitSize);
     return true;
 }
 
+bool NestedLoopJoinKernel::doInit() {
+    if (_joinParamR->_conditionJson.empty()) {
+        SQL_LOG(ERROR, "nest loop join condition is empty");
+        return false;
+    }
+    return true;
+}
+
 navi::ErrorCode NestedLoopJoinKernel::compute(navi::KernelComputeContext &runContext) {
-    JoinInfoCollector::incComputeTimes(&_joinInfo);
+    _joinInfoR->incComputeTimes();
     uint64_t beginTime = TimeUtility::currentTime();
     navi::PortIndex outPort(0, navi::INVALID_INDEX);
     navi::PortIndex portIndex0(0, navi::INVALID_INDEX);
@@ -114,16 +113,14 @@ navi::ErrorCode NestedLoopJoinKernel::compute(navi::KernelComputeContext &runCon
     }
     bool eof = false;
     uint64_t endTime = TimeUtility::currentTime();
-    JoinInfoCollector::incTotalTime(&_joinInfo, endTime - beginTime);
+    _joinInfoR->incTotalTime(endTime - beginTime);
     auto largeTable = _leftFullTable ? _rightBuffer : _leftBuffer;
     if (_leftEof && _rightEof && largeTable->getRowCount() == 0) {
         eof = true;
-        SQL_LOG(DEBUG, "join info: [%s]", _joinInfo.ShortDebugString().c_str());
+        SQL_LOG(TRACE1, "join info: [%s]", _joinInfoR->_joinInfo->ShortDebugString().c_str());
     }
-    _sqlSearchInfoCollectorR->getCollector()->overwriteJoinInfo(_joinInfo);
+    _sqlSearchInfoCollectorR->getCollector()->overwriteJoinInfo(*_joinInfoR->_joinInfo);
     if (outputTable || eof) {
-        outputTable->mergeDependentPools(_leftBuffer);
-        outputTable->mergeDependentPools(_rightBuffer);
         TableDataPtr tableData(new TableData(outputTable));
         runContext.setOutput(outPort, tableData, eof);
     }
@@ -136,13 +133,13 @@ bool NestedLoopJoinKernel::doCompute(table::TablePtr &outputTable) {
     const std::vector<size_t> *largeTableIndexs = nullptr;
     const std::vector<size_t> *fullTableIndexs = nullptr;
     if (_leftFullTable) {
-        largeTableIndexs = &_tableBIndexes;
-        fullTableIndexs = &_tableAIndexes;
+        largeTableIndexs = &_joinParamR->_tableBIndexes;
+        fullTableIndexs = &_joinParamR->_tableAIndexes;
         largeTable = _rightBuffer;
         fullTable = _leftBuffer;
     } else {
-        largeTableIndexs = &_tableAIndexes;
-        fullTableIndexs = &_tableBIndexes;
+        largeTableIndexs = &_joinParamR->_tableAIndexes;
+        fullTableIndexs = &_joinParamR->_tableBIndexes;
         largeTable = _leftBuffer;
         fullTable = _rightBuffer;
     }
@@ -150,17 +147,17 @@ bool NestedLoopJoinKernel::doCompute(table::TablePtr &outputTable) {
     while (true) {
         size_t joinedRowCount = joinTable(largeTable, fullTable);
         size_t leftTableSize = _leftFullTable ? _leftBuffer->getRowCount() : joinedRowCount;
-        if (!_joinPtr->generateResultTable(*largeTableIndexs,
-                                           *fullTableIndexs,
-                                           _leftBuffer,
-                                           _rightBuffer,
-                                           leftTableSize,
-                                           outputTable)) {
+        if (!_joinParamR->_joinPtr->generateResultTable(*largeTableIndexs,
+                                                        *fullTableIndexs,
+                                                        _leftBuffer,
+                                                        _rightBuffer,
+                                                        leftTableSize,
+                                                        outputTable)) {
             SQL_LOG(ERROR, "generate result table failed");
             return false;
         }
-        _tableAIndexes.clear();
-        _tableBIndexes.clear();
+        _joinParamR->_tableAIndexes.clear();
+        _joinParamR->_tableBIndexes.clear();
         if (!outputTable) {
             SQL_LOG(ERROR, "generate join result table failed");
             return false;
@@ -168,7 +165,7 @@ bool NestedLoopJoinKernel::doCompute(table::TablePtr &outputTable) {
         outputTable->deleteRows();
 
         if (!_leftFullTable || (_rightEof && largeTable->getRowCount() == joinedRowCount)) {
-            if (!_joinPtr->finish(_leftBuffer, leftTableSize, outputTable)) {
+            if (!_joinParamR->_joinPtr->finish(_leftBuffer, leftTableSize, outputTable)) {
                 SQL_LOG(ERROR, "left buffer finish fill table failed");
                 return false;
             }
@@ -176,7 +173,7 @@ bool NestedLoopJoinKernel::doCompute(table::TablePtr &outputTable) {
 
         if (joinedRowCount > 0) {
             largeTable->clearFrontRows(joinedRowCount);
-        } else if (_shouldClearTable) {
+        } else if (_hashJoinMapR->_shouldClearTable) {
             largeTable->clearRows();
         }
         if (largeTable->getRowCount() == 0 || outputTable->getRowCount() >= _batchSize) {
@@ -184,15 +181,15 @@ bool NestedLoopJoinKernel::doCompute(table::TablePtr &outputTable) {
         }
     }
 
-    SQL_LOG(DEBUG,
+    SQL_LOG(TRACE2,
             "joined row count [%zu], joined table remaining count [%zu],"
             " left eof [%d], right eof [%d]",
             beforeJoinedRowCount - largeTable->getRowCount(),
             largeTable->getRowCount(),
             _leftEof,
             _rightEof);
-    if (_joinInfo.totalhashtime() < 5) {
-        SQL_LOG(DEBUG,
+    if (_joinInfoR->_joinInfo->totalhashtime() < 5) {
+        SQL_LOG(TRACE2,
                 "nest loop join output table: [%s]",
                 TableUtil::toString(outputTable, 10).c_str());
     }
@@ -209,14 +206,14 @@ bool NestedLoopJoinKernel::waitFullTable() {
     if (_leftEof) {
         _leftFullTable = true;
         _fullTableCreated = true;
-        SQL_LOG(DEBUG,
+        SQL_LOG(TRACE3,
                 " left buffer size[%zu], right buffer size[%zu]",
                 _leftBuffer->getRowCount(),
                 _rightBuffer->getRowCount());
     } else if (_rightEof) {
         _leftFullTable = false;
         _fullTableCreated = true;
-        SQL_LOG(DEBUG,
+        SQL_LOG(TRACE3,
                 " left buffer size[%zu], right buffer size[%zu]",
                 _leftBuffer->getRowCount(),
                 _rightBuffer->getRowCount());
@@ -233,13 +230,13 @@ size_t NestedLoopJoinKernel::joinTable(const table::TablePtr &largeTable,
     size_t fullRowCount = fullTable->getRowCount();
     for (size_t i = 0; i < largeRowCount && joinedCount < _batchSize; i++) {
         for (size_t j = 0; j < fullRowCount; j++) {
-            joinRow(i, j);
+            _joinParamR->joinRow(i, j);
         }
         joinedCount += fullRowCount;
         joinedRowCount = i + 1;
     }
     uint64_t afterJoin = TimeUtility::currentTime();
-    JoinInfoCollector::incJoinTime(&_joinInfo, afterJoin - beginJoin);
+    _joinInfoR->incJoinTime(afterJoin - beginJoin);
     return joinedRowCount;
 }
 

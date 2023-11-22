@@ -1,8 +1,12 @@
-#ifndef ISEARCH_BS_FAKESWIFTADMINFACADE_H
-#define ISEARCH_BS_FAKESWIFTADMINFACADE_H
+#pragma once
+
+#include <string>
 
 #include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/common_define.h"
+#include "build_service/config/SwiftTopicConfig.h"
+#include "build_service/util/Log.h"
+#include "swift/network/SwiftAdminAdapter.h"
 
 namespace build_service { namespace common {
 
@@ -53,5 +57,3 @@ private:
 BS_TYPEDEF_PTR(FakeSwiftAdminFacade);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_FAKESWIFTADMINFACADE_H

@@ -41,7 +41,7 @@ TEST_F(NormalTableSplitPlanCreatorTest, TestNeedTriggerTask)
     std::shared_ptr<framework::TabletData> tabletData(new framework::TabletData("demo"));
     framework::Version version(0);
     ASSERT_TRUE(tabletData->Init(version, {}, resourceMap).IsOK());
-    NormalTableSplitPlanCreator creator(/*taskName=*/"split1", /*params=*/ {});
+    NormalTableSplitPlanCreator creator(/*taskName=*/"split1", /*taskTraceId=*/"", /*params=*/ {});
     config::IndexTaskConfig config("split1", NormalTableSplitPlanCreator::TASK_TYPE, "period=1");
     framework::IndexTaskContext context;
     context.TEST_SetTabletData(tabletData);

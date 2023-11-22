@@ -46,7 +46,7 @@ TEST_F(RunLocalGraphAsyncTest, testRunLocalGraph_AbortCompute) {
         autil::ScopeGuard guard([&waitClosure]() { waitClosure.notify(); });
         ASSERT_NE(nullptr, naviUserResult);
         auto naviResult = naviUserResult->getNaviResult();
-        ASSERT_EQ(EC_ABORT, naviResult->ec) << naviResult->errorEvent.message;
+        ASSERT_EQ(EC_ABORT, naviResult->getErrorCode()) << naviResult->getErrorMessage();
     });
     naviGraphRunner.runLocalGraphAsync(graphDef.release(), {}, &closure);
     waitClosure.wait();
@@ -65,7 +65,7 @@ TEST_F(RunLocalGraphAsyncTest, testRunLocalGraph_InitAbortCompute) {
         autil::ScopeGuard guard([&waitClosure]() { waitClosure.notify(); });
         ASSERT_NE(nullptr, naviUserResult);
         auto naviResult = naviUserResult->getNaviResult();
-        ASSERT_EQ(EC_ABORT, naviResult->ec) << naviResult->errorEvent.message;
+        ASSERT_EQ(EC_ABORT, naviResult->getErrorCode()) << naviResult->getErrorMessage();
     });
     naviGraphRunner.runLocalGraphAsync(graphDef.release(), {}, &closure);
     waitClosure.wait();
@@ -89,7 +89,7 @@ TEST_F(RunLocalGraphAsyncTest, testRunLocalGraph_MultipleOutput) {
         ASSERT_NE(nullptr, naviUserResult);
         auto naviResult = naviUserResult->getNaviResult();
         ASSERT_NE(nullptr, naviUserResult);
-        ASSERT_EQ(EC_NONE, naviResult->ec) << naviResult->errorEvent.message;
+        ASSERT_EQ(EC_NONE, naviResult->getErrorCode()) << naviResult->getErrorMessage();
 
         for (size_t i = 0; i < 10; ++i) {
             NaviUserData data;
@@ -128,7 +128,7 @@ TEST_F(RunLocalGraphAsyncTest, testRunLocalGraph_MultipleSourceKernel) {
         ASSERT_NE(nullptr, naviUserResult);
         auto naviResult = naviUserResult->getNaviResult();
         ASSERT_NE(nullptr, naviUserResult);
-        ASSERT_EQ(EC_NONE, naviResult->ec) << naviResult->errorEvent.message;
+        ASSERT_EQ(EC_NONE, naviResult->getErrorCode()) << naviResult->getErrorMessage();
 
         for (size_t i = 0; i < 10; ++i) {
             NaviUserData data;

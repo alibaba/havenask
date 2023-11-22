@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEXLIBEXTEND_DOCUMENT_H
-#define __INDEXLIB_INDEXLIBEXTEND_DOCUMENT_H
+#pragma once
 
 #include <memory>
 
@@ -134,5 +133,3 @@ inline void IndexlibExtendDocument::clearModifiedFieldSet()
     _subModifiedFields.clear();
 }
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_INDEXLIBEXTEND_DOCUMENT_H

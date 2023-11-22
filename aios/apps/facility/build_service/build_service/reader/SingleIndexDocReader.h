@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_INDEXDOCREADER_H
-#define ISEARCH_BS_INDEXDOCREADER_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/document/RawDocument.h"
@@ -48,7 +47,7 @@ public:
         }
         ReaderInitParam() {}
         std::string indexRootPath;
-        versionid_t indexVersion = INVALID_VERSION;
+        versionid_t indexVersion = indexlib::INVALID_VERSIONID;
         bool preferSourceIndex = true;
         bool ignoreReadError = false;
         std::pair<uint32_t, uint32_t> readRange;
@@ -107,5 +106,3 @@ private:
 BS_TYPEDEF_PTR(SingleIndexDocReader);
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_INDEXDOCREADER_H

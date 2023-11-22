@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "navi/log/LoggingEvent.h"
+#include "navi/engine/StringHashTable.h"
 #include "navi/proto/GraphVis.pb.h"
 
 namespace navi {
@@ -76,63 +77,73 @@ const char *LoggingEvent::levelStrByLevel(LogLevel level_) {
     return LEVEL_NAME_ARRAY[level_];
 }
 
-void LoggingEvent::fillProto(LoggingEventDef *eventDef) const {
-    eventDef->set_name(name);
+void LoggingEvent::toProto(LoggingEventDef *eventDef,
+                           StringHashTable *stringHashTable) const
+{
+    if (stringHashTable) {
+        auto hashValue = eventDef->mutable_hash();
+        hashValue->set_prefix(stringHashTable->getHash(prefix));
+        hashValue->set_file(stringHashTable->getHash(file));
+        hashValue->set_func(stringHashTable->getHash(func));
+        hashValue->set_message(stringHashTable->getHash(message));
+        hashValue->set_bt(stringHashTable->getHash(bt));
+    } else {
+        auto strValue = eventDef->mutable_str();
+        strValue->set_name(name);
+        strValue->set_prefix(prefix);
+        strValue->set_file(file);
+        strValue->set_func(func);
+        strValue->set_message(message);
+        strValue->set_bt(bt);
+    }
     eventDef->set_object((uint64_t)object);
-    eventDef->set_prefix(prefix);
-    eventDef->set_message(message);
-    eventDef->set_bt(bt);
     eventDef->set_level(level);
-    eventDef->set_file(file);
     eventDef->set_line(line);
-    eventDef->set_func(func);
     eventDef->set_pid(pid);
     eventDef->set_tid(tid);
     eventDef->set_time_sec(time.tv_sec);
     eventDef->set_time_usec(time.tv_usec);
 }
 
-void LoggingEvent::serialize(autil::DataBuffer &dataBuffer) const {
-    dataBuffer.write(name);
-    dataBuffer.write((uint64_t)object);
-    dataBuffer.write(prefix);
-    dataBuffer.write(message);
-    dataBuffer.write(bt);
-    dataBuffer.write((int32_t)level);
-    dataBuffer.write(file);
-    dataBuffer.write(line);
-    dataBuffer.write(func);
-    dataBuffer.write(pid);
-    dataBuffer.write(tid);
-    dataBuffer.write((int64_t)time.tv_sec);
-    dataBuffer.write((int64_t)time.tv_usec);
+std::string LoggingEvent::getStrFromHash(
+    ::google::protobuf::uint64 hash,
+    const ::google::protobuf::Map<::google::protobuf::uint64, std::string>
+        &strTableMap)
+{
+    auto it = strTableMap.find(hash);
+    if (strTableMap.end() == it) {
+        return std::string();
+    } else {
+        return it->second;
+    }
 }
 
-void LoggingEvent::deserialize(autil::DataBuffer &dataBuffer) {
-    dataBuffer.read(name);
-    uint64_t objectInt = 0;
-    dataBuffer.read(objectInt);
-    object = (void *)objectInt;
-    dataBuffer.read(prefix);
-    dataBuffer.read(message);
-    dataBuffer.read(bt);
-
-    int32_t levelInt = 0;
-    dataBuffer.read(levelInt);
-    level = (LogLevel)levelInt;
-
-    dataBuffer.read(file);
-    dataBuffer.read(line);
-    dataBuffer.read(func);
-    dataBuffer.read(pid);
-    dataBuffer.read(tid);
-
-    int64_t sec = 0;
-    int64_t usec = 0;
-    dataBuffer.read(sec);
-    dataBuffer.read(usec);
-    time.tv_sec = sec;
-    time.tv_usec = usec;
+void LoggingEvent::fromProto(const LoggingEventDef &eventDef,
+                             const SymbolTableDef *symbolTableDef)
+{
+    if (eventDef.has_str()) {
+        const auto &strValue = eventDef.str();
+        name = strValue.name();
+        prefix = strValue.prefix();
+        file = strValue.file();
+        func = strValue.func();
+        message = strValue.message();
+        bt = strValue.bt();
+    } else if (eventDef.has_hash() && symbolTableDef) {
+        const auto &strTableMap = symbolTableDef->table();
+        const auto &hashValue = eventDef.hash();
+        prefix = getStrFromHash(hashValue.prefix(), strTableMap);
+        file = getStrFromHash(hashValue.file(), strTableMap);
+        func = getStrFromHash(hashValue.func(), strTableMap);
+        message = getStrFromHash(hashValue.message(), strTableMap);
+        bt = getStrFromHash(hashValue.bt(), strTableMap);
+    }
+    object = (void *)eventDef.object();
+    level = (LogLevel)eventDef.level();
+    line = eventDef.line();
+    pid = eventDef.pid();
+    tid = eventDef.tid();
+    time.tv_sec = eventDef.time_sec();
+    time.tv_usec = eventDef.time_usec();
 }
-
 }

@@ -16,9 +16,12 @@
 
 #include "indexlib/file_system/FileSystemOptions.h"
 
-#include "indexlib/base/MemoryQuotaController.h"
+#include "autil/EnvUtil.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/load_config/CacheLoadStrategy.h"
+#include "indexlib/file_system/load_config/LoadConfig.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace file_system {
 
@@ -28,8 +31,10 @@ FileSystemOptions FileSystemOptions::OfflineWithBlockCache(util::MetricProviderP
     fsOptions.isOffline = true;
     fsOptions.useCache = false;
     std::shared_ptr<FileBlockCacheContainer> fileBlockCacheContainer(new FileBlockCacheContainer);
-    fileBlockCacheContainer->Init("memory_size_in_mb=512;block_size=2097152;io_batch_size=1;num_shard_bits=0", nullptr,
-                                  nullptr,
+    std::string memory_size_in_mb = autil::EnvUtil::getEnv("INDEXLIB_COMPRESS_READ_BATCH_SIZE", "512");
+    fileBlockCacheContainer->Init("memory_size_in_mb=" + memory_size_in_mb +
+                                      ";block_size=2097152;io_batch_size=1;num_shard_bits=0",
+                                  nullptr, nullptr,
                                   metricProvider); // block size = 2MB, cache size = 512M
     fsOptions.fileBlockCacheContainer = fileBlockCacheContainer;
 

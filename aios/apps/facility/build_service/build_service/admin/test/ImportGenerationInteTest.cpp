@@ -1,34 +1,64 @@
-#include "autil/legacy/jsonizable.h"
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <stdlib.h>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/CommonMacros.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/BuildTaskValidator.h"
-#include "build_service/admin/CounterFileCollector.h"
-#include "build_service/admin/CounterRedisCollector.h"
+#include "build_service/admin/ClusterCheckpointSynchronizerCreator.h"
+#include "build_service/admin/GenerationKeeper.h"
 #include "build_service/admin/GenerationTask.h"
-#include "build_service/admin/ProcessorCheckpointFormatter.h"
+#include "build_service/admin/GenerationTaskBase.h"
+#include "build_service/admin/GraphGenerationTask.h"
 #include "build_service/admin/ProhibitedIpsTable.h"
-#include "build_service/admin/taskcontroller/BuildServiceTask.h"
-#include "build_service/admin/test/FakeGenerationTask.h"
+#include "build_service/admin/WorkerTable.h"
+#include "build_service/admin/controlflow/TaskFlow.h"
 #include "build_service/admin/test/FileUtilForTest.h"
 #include "build_service/admin/test/GenerationTaskStateMachine.h"
 #include "build_service/admin/test/MockGenerationKeeper.h"
-#include "build_service/common/CounterFileSynchronizer.h"
-#include "build_service/common/CounterRedisSynchronizer.h"
-#include "build_service/common/CounterSynchronizer.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/common_define.h"
+#include "build_service/config/AgentGroupConfig.h"
+#include "build_service/config/CheckpointList.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/BuildTaskTargetInfo.h"
-#include "build_service/proto/TaskIdentifier.h"
-#include "build_service/proto/WorkerNodeCreator.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/WorkerNode.h"
+#include "build_service/proto/test/ProtoCreator.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
-#include "build_service/util/RedisClient.h"
 #include "fslib/util/FileUtil.h"
-#include "hippo/proto/Common.pb.h"
-#include "indexlib/index_base/deploy_index_wrapper.h"
+#include "hippo/DriverCommon.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/file/FileWriter.h"
+#include "indexlib/index_base/branch_fs.h"
 #include "indexlib/index_base/index_meta/segment_file_list_wrapper.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
-#include "indexlib/index_base/version_committer.h"
-#include "indexlib/util/counter/AccumulativeCounter.h"
-#include "indexlib/util/counter/CounterMap.h"
-#include "indexlib/util/counter/StateCounter.h"
+#include "indexlib/index_base/schema_adapter.h"
+#include "indexlib/indexlib.h"
+#include "unittest/unittest.h"
+#include "worker_framework/LeaderElector.h"
+
 using namespace std;
 using namespace testing;
 using namespace autil;
@@ -53,8 +83,8 @@ public:
         setenv("control_flow_config_path", filePath.c_str(), true);
 
         _zkRoot = GET_TEMP_DATA_PATH();
-        _indexRoot = GET_TEMP_DATA_PATH();
-        setenv("BUILD_SERVICE_TEST_INDEX_PATH_PREFIX", _indexRoot.c_str(), true);
+        _indexRoot = fslib::util::FileUtil::joinFilePath(GET_TEMP_DATA_PATH(), "/index/root/");
+        setenv("BUILD_SERVICE_TEST_INDEX_PATH_PREFIX", GET_TEMP_DATA_PATH().c_str(), true);
 
         _configPath = GET_TEST_DATA_PATH() + "admin_test/config_with_control_config_partition_count_2";
         _buildId.set_appname("app");
@@ -62,9 +92,9 @@ public:
         _buildId.set_datatable("simple");
         _adminServiceName = "bsImportGenerationTestApp";
         _zkWrapper = new cm_basic::ZkWrapper();
-        _importedVersionId = 54321;
-        // _generationKeeper.reset(new MockGenerationKeeper(_buildId, _zkRoot, "", "10086",
-        //                 _zkWrapper, _table.createCollector(), true));
+        _clusterName = "cluster1";
+        _extendParamStr = "{\"importedVersions\":{\"cluster1\":20}}";
+        _importedVersionId = 20;
     }
     void tearDown()
     {
@@ -76,11 +106,11 @@ public:
 protected:
     MockGenerationKeeperPtr PrepareGenerationKeeper(const string& zkRoot, const BuildId& buildId,
                                                     const string& configPath, const string& fakeIndexRoot,
-                                                    const string& buildMode,
-                                                    indexlib::versionid_t versionId = indexlibv2::INVALID_VERSIONID)
+                                                    const string& buildMode, bool useFakeGenerationTask = true,
+                                                    const std::string& extendParamStr = "")
     {
-        MockGenerationKeeperPtr keeper(
-            new MockGenerationKeeper(buildId, zkRoot, "", "10086", _zkWrapper, _table.createCollector(), true));
+        MockGenerationKeeperPtr keeper(new MockGenerationKeeper(buildId, zkRoot, "", "10086", _zkWrapper,
+                                                                _table.createCollector(), useFakeGenerationTask));
 
         keeper->setFakeIndexRoot(fakeIndexRoot);
         StartBuildRequest request;
@@ -93,12 +123,9 @@ protected:
         request.set_buildmode(buildMode);
         request.set_debugmode("step");
         *request.mutable_buildid() = buildId;
-        if (versionId != indexlibv2::INVALID_VERSIONID) {
-            KeyValueMap kvMap;
-            kvMap["importedVersionId"] = std::to_string(versionId);
-            request.set_extendparameters(ToJsonString(kvMap));
+        if (!extendParamStr.empty()) {
+            request.set_extendparameters(extendParamStr);
         }
-
         StartBuildResponse response;
         keeper->startBuild(&request, &response);
         if (response.errormessage_size() == 0) {
@@ -108,24 +135,28 @@ protected:
         return nullptr;
     }
 
-    void CheckLatestPublishedVersion(const MockGenerationKeeperPtr& keeper, size_t expectNodeSize,
-                                     indexlib::versionid_t expectPublishedVersionId)
+    void CheckLatestPublishedVersion(const MockGenerationKeeperPtr& keeper,
+                                     const std::map<std::string, vector<int32_t>> expectTargetInfos)
     {
         ASSERT_TRUE(keeper);
         auto task = dynamic_cast<GenerationTask*>(keeper->_generationTask);
         ASSERT_TRUE(task);
         GenerationTaskStateMachine machine("simple", keeper->_workerTable, task);
         machine.makeDecision(2);
-        auto nodes = machine.getWorkerNodes("cluster1", ROLE_TASK);
-        ASSERT_EQ(expectNodeSize, nodes.size());
-
-        config::TaskTarget target;
-        FromJsonString(target, ((proto::TaskNode*)nodes[0].get())->getTargetStatus().targetdescription());
-        proto::BuildTaskTargetInfo targetInfo;
-        std::string targetInfoStr;
-        target.getTargetDescription(BS_BUILD_TASK_TARGET, targetInfoStr);
-        FromJsonString(targetInfo, targetInfoStr);
-        ASSERT_EQ(expectPublishedVersionId, targetInfo.latestPublishedVersion);
+        for (const auto& [clusterName, info] : expectTargetInfos) {
+            ASSERT_EQ(2, info.size());
+            auto nodes = machine.getWorkerNodes(clusterName, ROLE_TASK);
+            auto expectNodeSize = info[0];
+            auto importedVersionId = info[1];
+            ASSERT_EQ(expectNodeSize, nodes.size());
+            config::TaskTarget target;
+            FromJsonString(target, ((proto::TaskNode*)nodes[0].get())->getTargetStatus().targetdescription());
+            proto::BuildTaskTargetInfo targetInfo;
+            std::string targetInfoStr;
+            target.getTargetDescription(BS_BUILD_TASK_TARGET, targetInfoStr);
+            FromJsonString(targetInfo, targetInfoStr);
+            ASSERT_EQ(importedVersionId, targetInfo.latestPublishedVersion);
+        }
     }
 
     void checkVersion(const std::string& partIndexRoot, versionid_t sourceVersionId, versionid_t targetVersionId,
@@ -243,6 +274,8 @@ protected:
     string _adminServiceName;
     ProhibitedIpsTable _table;
     indexlib::versionid_t _importedVersionId;
+    std::string _extendParamStr;
+    std::string _clusterName;
 };
 
 TEST_F(ImportGenerationInteTest, testImportBuild)
@@ -270,7 +303,7 @@ TEST_F(ImportGenerationInteTest, testImportBuild)
 
     string indexRoot = generationTask->_indexRoot;
     string clusterIndexRoot =
-        IndexPathConstructor::constructGenerationPath(indexRoot, "cluster1", _buildId.generationid());
+        IndexPathConstructor::constructGenerationPath(indexRoot, _clusterName, _buildId.generationid());
     string signatureFilePath =
         fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
     bool existFlag = false;
@@ -281,8 +314,8 @@ TEST_F(ImportGenerationInteTest, testImportBuild)
         // test import failed if generation is not stopped
         string importedZkRoot = GET_TEMP_DATA_PATH() + "/importedZk";
         ;
-        auto keeper1 =
-            PrepareGenerationKeeper(importedZkRoot, _buildId, _configPath, _indexRoot, "import", _importedVersionId);
+        auto keeper1 = PrepareGenerationKeeper(importedZkRoot, _buildId, _configPath, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
         ASSERT_FALSE(keeper1);
     }
     keeper0->stopBuild();
@@ -292,8 +325,8 @@ TEST_F(ImportGenerationInteTest, testImportBuild)
     {
         string importedZkRoot = GET_TEMP_DATA_PATH() + "/importedZk";
         ;
-        auto keeper1 =
-            PrepareGenerationKeeper(importedZkRoot, _buildId, _configPath, _indexRoot, "import", _importedVersionId);
+        auto keeper1 = PrepareGenerationKeeper(importedZkRoot, _buildId, _configPath, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
         ASSERT_TRUE(keeper1);
         {
             ASSERT_TRUE(fslib::util::FileUtil::removeIfExist(signatureFilePath));
@@ -337,21 +370,21 @@ TEST_F(ImportGenerationInteTest, testStopAndImport)
     string stopFile = generationStatusFile + ".stopped";
     ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
     {
-        auto keeper1 =
-            PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import", _importedVersionId);
+        auto keeper1 = PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
         ASSERT_TRUE(keeper1);
 
         auto task = dynamic_cast<GenerationTask*>(keeper1->_generationTask);
         string indexRoot = task->_indexRoot;
         string clusterIndexRoot =
-            IndexPathConstructor::constructGenerationPath(indexRoot, "cluster1", _buildId.generationid());
+            IndexPathConstructor::constructGenerationPath(indexRoot, _clusterName, _buildId.generationid());
         string signatureFilePath =
             fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
         ASSERT_TRUE(FileUtilForTest::checkPathExist(signatureFilePath));
 
         GenerationTaskStateMachine machine("simple", keeper1->_workerTable, task);
         machine.makeDecision(2);
-        auto nodes = machine.getWorkerNodes("cluster1", ROLE_TASK);
+        auto nodes = machine.getWorkerNodes(_clusterName, ROLE_TASK);
         ASSERT_EQ(2u, nodes.size());
         string targetStr, host;
         nodes[0]->getTargetStatusStr(targetStr, host);
@@ -374,7 +407,7 @@ TEST_F(ImportGenerationInteTest, testValidateSignatureFile)
     auto generationTask = dynamic_cast<GenerationTask*>(keeper0->_generationTask);
     string indexRoot = generationTask->_indexRoot;
     string clusterIndexRoot =
-        IndexPathConstructor::constructGenerationPath(indexRoot, "cluster1", _buildId.generationid());
+        IndexPathConstructor::constructGenerationPath(indexRoot, _clusterName, _buildId.generationid());
     string signatureFilePath =
         fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
 
@@ -395,8 +428,8 @@ TEST_F(ImportGenerationInteTest, testValidateSignatureFile)
         BuildTaskValidator::BuildTaskSignature badSignature;
         badSignature.zkRoot = "zfs://some-one-else";
         ASSERT_TRUE(fslib::util::FileUtil::writeFile(signatureFilePath, ToJsonString(badSignature)));
-        auto keeper1 =
-            PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import", _importedVersionId);
+        auto keeper1 = PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
         ASSERT_FALSE(keeper1);
     }
     {
@@ -404,8 +437,8 @@ TEST_F(ImportGenerationInteTest, testValidateSignatureFile)
         string realtimeInfoPath = fslib::util::FileUtil::joinFilePath(clusterIndexRoot, "realtime_info.json");
         EXPECT_TRUE(FileUtilForTest::checkPathExist(realtimeInfoPath))
             << "realtime_info path not existed:" << realtimeInfoPath;
-        auto keeper1 =
-            PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import", _importedVersionId);
+        auto keeper1 = PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
         ASSERT_TRUE(keeper1);
         ASSERT_TRUE(FileUtilForTest::checkPathExist(signatureFilePath));
         string content;
@@ -432,8 +465,8 @@ TEST_F(ImportGenerationInteTest, testImportFailIfSourceIndexIsEmpty)
     ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
     {
         // empty index: import failed
-        auto keeper1 =
-            PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import", _importedVersionId);
+        auto keeper1 = PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
         ASSERT_FALSE(keeper1);
     }
     // restart and make fake index
@@ -447,67 +480,66 @@ TEST_F(ImportGenerationInteTest, testImportFailIfSourceIndexIsEmpty)
     keeper0->run(2);
 
     {
-        auto keeper1 =
-            PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import", _importedVersionId);
+        auto keeper1 = PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
         ASSERT_TRUE(keeper1);
 
         auto task = dynamic_cast<GenerationTask*>(keeper1->_generationTask);
         string indexRoot = task->_indexRoot;
         string clusterIndexRoot =
-            IndexPathConstructor::constructGenerationPath(indexRoot, "cluster1", _buildId.generationid());
+            IndexPathConstructor::constructGenerationPath(indexRoot, _clusterName, _buildId.generationid());
         string signatureFilePath =
             fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
         ASSERT_TRUE(FileUtilForTest::checkPathExist(signatureFilePath));
     }
 }
 
-// npc mode do not support multiple cluster
-//  TEST_F(ImportGenerationInteTest, testImportWithOneCluster)
-//  {
-//      // simple2 has two clusters: "cluster1" and "cluster2"
-//      BuildId buildId;
-//      buildId.set_appname("app");
-//      buildId.set_generationid(1);
-//      buildId.set_datatable("simple2");
+TEST_F(ImportGenerationInteTest, testImportWithOneCluster)
+{
+    // simple2 has two clusters: "cluster1" and "cluster2"
+    BuildId buildId;
+    buildId.set_appname("app");
+    buildId.set_generationid(1);
+    buildId.set_datatable("simple2");
 
-//     string configPath = GET_TEST_DATA_PATH() + "admin_test/config_with_control_config_partition_count_2";
-//     auto keeper0 = PrepareGenerationKeeper(_zkRoot, buildId, configPath, _indexRoot, "full");
-//     ASSERT_TRUE(keeper0);
-//     auto generationTask = dynamic_cast<GenerationTask*>(keeper0->_generationTask);
-//     ASSERT_TRUE(generationTask->TEST_prepareFakeIndex());
+    string configPath = GET_TEST_DATA_PATH() + "admin_test/config_with_control_config_partition_count_2";
+    auto keeper0 = PrepareGenerationKeeper(_zkRoot, buildId, configPath, _indexRoot, "full");
+    ASSERT_TRUE(keeper0);
+    auto generationTask = dynamic_cast<GenerationTask*>(keeper0->_generationTask);
+    ASSERT_TRUE(generationTask->TEST_prepareFakeIndex());
 
-//     keeper0->stopBuild();
-//     keeper0->run(2);
-
-//     {
-//         // simple has only one cluster: "cluster1"
-//         BuildId buildId1;
-//         buildId1.set_appname("app");
-//         buildId1.set_generationid(1);
-//         buildId1.set_datatable("simple");
-//         string singleClusterConfigPath = GET_TEST_DATA_PATH() +
-//         "admin_test/config_with_control_config_partition_count_2"; string importedZkRoot = GET_TEMP_DATA_PATH() +
-//         "/importedZk";
-//         ;
-//         auto keeper1 = PrepareGenerationKeeper(importedZkRoot, buildId1, singleClusterConfigPath, _indexRoot,
-//         "import"); ASSERT_TRUE(keeper1); auto task = dynamic_cast<GenerationTask*>(keeper1->_generationTask); string
-//         indexRoot = task->_indexRoot;
-//         {
-//             string clusterIndexRoot =
-//                 IndexPathConstructor::constructGenerationPath(indexRoot, "cluster1", _buildId.generationid());
-//             string signatureFilePath =
-//                 fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
-//             ASSERT_TRUE(FileUtilForTest::checkPathExist(signatureFilePath));
-//         }
-//         {
-//             string clusterIndexRoot =
-//                 IndexPathConstructor::constructGenerationPath(indexRoot, "cluster2", _buildId.generationid());
-//             string signatureFilePath =
-//                 fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
-//             ASSERT_FALSE(FileUtilForTest::checkPathExist(signatureFilePath));
-//         }
-//     }
-// }
+    keeper0->stopBuild();
+    keeper0->run(2);
+    {
+        // simple has only one cluster: "cluster1"
+        BuildId buildId1;
+        buildId1.set_appname("app");
+        buildId1.set_generationid(1);
+        buildId1.set_datatable("simple");
+        string singleClusterConfigPath =
+            GET_TEST_DATA_PATH() + "admin_test/config_with_control_config_partition_count_2";
+        string importedZkRoot = GET_TEMP_DATA_PATH() + "/importedZk";
+        auto keeper1 = PrepareGenerationKeeper(importedZkRoot, buildId1, singleClusterConfigPath, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
+        ASSERT_TRUE(keeper1);
+        auto task = dynamic_cast<GenerationTask*>(keeper1->_generationTask);
+        string indexRoot = task->_indexRoot;
+        {
+            string clusterIndexRoot =
+                IndexPathConstructor::constructGenerationPath(indexRoot, "cluster1", _buildId.generationid());
+            string signatureFilePath =
+                fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
+            ASSERT_TRUE(FileUtilForTest::checkPathExist(signatureFilePath));
+        }
+        {
+            string clusterIndexRoot =
+                IndexPathConstructor::constructGenerationPath(indexRoot, "cluster2", _buildId.generationid());
+            string signatureFilePath =
+                fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
+            ASSERT_FALSE(FileUtilForTest::checkPathExist(signatureFilePath));
+        }
+    }
+}
 
 TEST_F(ImportGenerationInteTest, testImportFailIfIncProcessorExists)
 {
@@ -535,7 +567,8 @@ TEST_F(ImportGenerationInteTest, testImportFailIfIncProcessorExists)
     keeper0->stopBuild();
     keeper0->run(2);
     {
-        auto keeper1 = PrepareGenerationKeeper(_zkRoot, buildId, configPath, _indexRoot, "import", _importedVersionId);
+        auto keeper1 = PrepareGenerationKeeper(_zkRoot, buildId, configPath, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
         ASSERT_TRUE(keeper1);
     }
 }
@@ -565,8 +598,8 @@ TEST_F(ImportGenerationInteTest, testImportFailIfPartitionCountMismatch)
         string newConfig = GET_TEST_DATA_PATH() + "admin_test/config_with_control_config_partition_count_4";
         string importedZkRoot = GET_TEMP_DATA_PATH() + "/importedZk";
         ;
-        auto keeper1 =
-            PrepareGenerationKeeper(importedZkRoot, buildId1, newConfig, _indexRoot, "import", _importedVersionId);
+        auto keeper1 = PrepareGenerationKeeper(importedZkRoot, buildId1, newConfig, _indexRoot, "import",
+                                               /*useFakeGenerationTask*/ true, _extendParamStr);
         ASSERT_FALSE(keeper1);
     }
 }
@@ -626,7 +659,7 @@ TEST_F(ImportGenerationInteTest, testImportFromCheckpointVersion)
 
     auto keeper0 = PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "full");
     ASSERT_TRUE(keeper0);
-    CheckLatestPublishedVersion(keeper0, 8, indexlibv2::INVALID_VERSIONID);
+    CheckLatestPublishedVersion(keeper0, {{_clusterName, {/*nodeCount*/ 8, indexlibv2::INVALID_VERSIONID}}});
 
     auto generationTask = dynamic_cast<GenerationTask*>(keeper0->_generationTask);
     ASSERT_TRUE(generationTask->TEST_prepareFakeIndex());
@@ -634,18 +667,71 @@ TEST_F(ImportGenerationInteTest, testImportFromCheckpointVersion)
     keeper0->run(2);
     string stopFile = generationStatusFile + ".stopped";
     ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
-    auto keeper1 = PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import", _importedVersionId);
+
+    string importedZkRoot = GET_TEMP_DATA_PATH() + "/importedZk";
+    auto keeper1 = PrepareGenerationKeeper(importedZkRoot, _buildId, _configPath, _indexRoot, "import",
+                                           /*useFakeGenerationTask*/ true, _extendParamStr);
     ASSERT_TRUE(keeper1);
 
     auto task = dynamic_cast<GenerationTask*>(keeper1->_generationTask);
     string indexRoot = task->_indexRoot;
     string clusterIndexRoot =
-        IndexPathConstructor::constructGenerationPath(indexRoot, "cluster1", _buildId.generationid());
+        IndexPathConstructor::constructGenerationPath(indexRoot, _clusterName, _buildId.generationid());
     string signatureFilePath =
         fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
     ASSERT_TRUE(FileUtilForTest::checkPathExist(signatureFilePath));
 
-    CheckLatestPublishedVersion(keeper1, 2, _importedVersionId);
+    CheckLatestPublishedVersion(keeper1, {{_clusterName, {/*nodeCount*/ 2, _importedVersionId}}});
+}
+
+TEST_F(ImportGenerationInteTest, testImportMultiClusterFromCheckpointVersion)
+{
+    // simple2 has two clusters: "cluster1" and "cluster2"
+    BuildId buildId;
+    buildId.set_appname("app");
+    buildId.set_generationid(1);
+    buildId.set_datatable("simple2");
+
+    string generationDir = PathDefine::getGenerationZkRoot(_zkRoot, buildId);
+    fslib::util::FileUtil::mkDir(generationDir, true);
+    string generationStatusFile = PathDefine::getGenerationStatusFile(_zkRoot, buildId);
+
+    auto keeper0 = PrepareGenerationKeeper(_zkRoot, buildId, _configPath, _indexRoot, "full");
+    ASSERT_TRUE(keeper0);
+    CheckLatestPublishedVersion(keeper0, {{"cluster1", {/*nodeCount*/ 8, indexlibv2::INVALID_VERSIONID}},
+                                          {"cluster2", {/*nodeCount*/ 6, indexlibv2::INVALID_VERSIONID}}});
+
+    auto generationTask = dynamic_cast<GenerationTask*>(keeper0->_generationTask);
+    ASSERT_TRUE(generationTask->TEST_prepareFakeIndex());
+    keeper0->stopBuild();
+    keeper0->run(2);
+    string stopFile = generationStatusFile + ".stopped";
+    ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
+
+    string importedZkRoot = GET_TEMP_DATA_PATH() + "/importedZk";
+    auto keeper1 = PrepareGenerationKeeper(importedZkRoot, buildId, _configPath, _indexRoot, "import",
+                                           /*useFakeGenerationTask*/ true,
+                                           "{\"importedVersions\":{\"cluster1\":10,\"cluster2\":11}}");
+    ASSERT_TRUE(keeper1);
+
+    auto task = dynamic_cast<GenerationTask*>(keeper1->_generationTask);
+    string indexRoot = task->_indexRoot;
+    {
+        string clusterIndexRoot =
+            IndexPathConstructor::constructGenerationPath(indexRoot, "cluster1", buildId.generationid());
+        string signatureFilePath =
+            fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
+        ASSERT_TRUE(FileUtilForTest::checkPathExist(signatureFilePath));
+    }
+    {
+        string clusterIndexRoot =
+            IndexPathConstructor::constructGenerationPath(indexRoot, "cluster2", buildId.generationid());
+        string signatureFilePath =
+            fslib::util::FileUtil::joinFilePath(clusterIndexRoot, BuildTaskValidator::BUILD_TASK_SIGNATURE_FILE);
+        ASSERT_TRUE(FileUtilForTest::checkPathExist(signatureFilePath));
+    }
+    CheckLatestPublishedVersion(keeper1,
+                                {{"cluster1", {/*nodeCount*/ 2, /*importedVersionId*/ 10}}, {"cluster2", {10, 11}}});
 }
 
 TEST_F(ImportGenerationInteTest, testImportWithInvalidVersionId)
@@ -656,32 +742,7 @@ TEST_F(ImportGenerationInteTest, testImportWithInvalidVersionId)
 
     auto keeper0 = PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "full");
     ASSERT_TRUE(keeper0);
-    CheckLatestPublishedVersion(keeper0, 8, indexlibv2::INVALID_VERSIONID);
-
-    auto generationTask = dynamic_cast<GenerationTask*>(keeper0->_generationTask);
-    ASSERT_TRUE(generationTask->TEST_prepareFakeIndex());
-    keeper0->stopBuild();
-    keeper0->run(2);
-    string stopFile = generationStatusFile + ".stopped";
-    ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
-    auto keeper1 =
-        PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import", indexlibv2::INVALID_VERSIONID);
-    ASSERT_FALSE(keeper1);
-
-    auto keeper2 =
-        PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "import", /*invalid version*/ -2);
-    ASSERT_FALSE(keeper2);
-}
-
-TEST_F(ImportGenerationInteTest, testImportEncounterRecover)
-{
-    string generationDir = PathDefine::getGenerationZkRoot(_zkRoot, _buildId);
-    fslib::util::FileUtil::mkDir(generationDir, true);
-    string generationStatusFile = PathDefine::getGenerationStatusFile(_zkRoot, _buildId);
-
-    auto keeper0 = PrepareGenerationKeeper(_zkRoot, _buildId, _configPath, _indexRoot, "full");
-    ASSERT_TRUE(keeper0);
-    CheckLatestPublishedVersion(keeper0, 8, indexlibv2::INVALID_VERSIONID);
+    CheckLatestPublishedVersion(keeper0, {{_clusterName, {/*nodeCount*/ 8, indexlibv2::INVALID_VERSIONID}}});
 
     auto generationTask = dynamic_cast<GenerationTask*>(keeper0->_generationTask);
     ASSERT_TRUE(generationTask->TEST_prepareFakeIndex());
@@ -691,19 +752,185 @@ TEST_F(ImportGenerationInteTest, testImportEncounterRecover)
     ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
 
     string importedZkRoot = GET_TEMP_DATA_PATH() + "/importedZk";
-    auto keeper1 =
-        PrepareGenerationKeeper(importedZkRoot, _buildId, _configPath, _indexRoot, "import", _importedVersionId);
+    auto keeper1 = PrepareGenerationKeeper(importedZkRoot, _buildId, _configPath, _indexRoot, "import",
+                                           /*useFakeGenerationTask*/ true, "");
+    ASSERT_FALSE(keeper1);
+
+    auto keeper2 = PrepareGenerationKeeper(importedZkRoot, _buildId, _configPath, _indexRoot, "import",
+                                           /*useFakeGenerationTask*/ true, "{\"importedVersions\":{\"cluster1\":-2}}");
+    ASSERT_FALSE(keeper2);
+
+    auto keeper3 = PrepareGenerationKeeper(importedZkRoot, _buildId, _configPath, _indexRoot, "import",
+                                           /*useFakeGenerationTask*/ true,
+                                           "{\"importedVersions\":{\"cluster1\":10,\"cluster2\":11}}");
+    ASSERT_FALSE(keeper3);
+}
+
+TEST_F(ImportGenerationInteTest, testGetImportedVersionFromRequest)
+{
+    {
+        proto::StartBuildRequest request;
+        request.set_extendparameters("{\"importedVersions\":{\"cluster1\":10,\"cluster2\":11}}");
+        GenerationTaskBase::ImportedVersionIdMap importedVersionIdMap;
+        ASSERT_TRUE(GenerationKeeper::getImportedVersionFromRequest(&request, &importedVersionIdMap));
+        ASSERT_EQ(2, importedVersionIdMap.size());
+        ASSERT_EQ(10, importedVersionIdMap["cluster1"]);
+        ASSERT_EQ(11, importedVersionIdMap["cluster2"]);
+    }
+
+    {
+        proto::StartBuildRequest request;
+        request.set_extendparameters("{\"importedVersions\":{\"cluster1\":10}}");
+        GenerationTaskBase::ImportedVersionIdMap importedVersionIdMap;
+        ASSERT_TRUE(GenerationKeeper::getImportedVersionFromRequest(&request, &importedVersionIdMap));
+        ASSERT_EQ(1, importedVersionIdMap.size());
+        ASSERT_EQ(10, importedVersionIdMap["cluster1"]);
+    }
+
+    {
+        proto::StartBuildRequest request;
+        GenerationTaskBase::ImportedVersionIdMap importedVersionIdMap;
+        ASSERT_FALSE(GenerationKeeper::getImportedVersionFromRequest(&request, &importedVersionIdMap));
+    }
+
+    {
+        proto::StartBuildRequest request;
+        request.set_extendparameters("{\"wrongKey\":{\"cluster1\":10,\"cluster2\":11}}");
+        GenerationTaskBase::ImportedVersionIdMap importedVersionIdMap;
+        ASSERT_FALSE(GenerationKeeper::getImportedVersionFromRequest(&request, &importedVersionIdMap));
+    }
+
+    {
+        proto::StartBuildRequest request;
+        request.set_extendparameters("{\"importedVersions\":{\"cluster1\":10,\"cluster2\":-2}}");
+        GenerationTaskBase::ImportedVersionIdMap importedVersionIdMap;
+        ASSERT_FALSE(GenerationKeeper::getImportedVersionFromRequest(&request, &importedVersionIdMap));
+    }
+}
+
+TEST_F(ImportGenerationInteTest, testImportEncounterRecover)
+{
+    // simple2 has two clusters: "cluster1" and "cluster2"
+    BuildId buildId;
+    buildId.set_appname("app");
+    buildId.set_generationid(1);
+    buildId.set_datatable("simple2");
+
+    string generationDir = PathDefine::getGenerationZkRoot(_zkRoot, buildId);
+    fslib::util::FileUtil::mkDir(generationDir, true);
+    string generationStatusFile = PathDefine::getGenerationStatusFile(_zkRoot, buildId);
+
+    auto keeper0 = PrepareGenerationKeeper(_zkRoot, buildId, _configPath, _indexRoot, "full");
+    ASSERT_TRUE(keeper0);
+    CheckLatestPublishedVersion(keeper0, {{"cluster1", {/*nodeCount*/ 8, indexlibv2::INVALID_VERSIONID}},
+                                          {"cluster2", {/*nodeCount*/ 6, indexlibv2::INVALID_VERSIONID}}});
+
+    auto generationTask = dynamic_cast<GenerationTask*>(keeper0->_generationTask);
+    ASSERT_TRUE(generationTask->TEST_prepareFakeIndex());
+    keeper0->stopBuild();
+    keeper0->run(2);
+    string stopFile = generationStatusFile + ".stopped";
+    ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
+
+    string importedZkRoot = GET_TEMP_DATA_PATH() + "/importedZk";
+    auto keeper1 = PrepareGenerationKeeper(importedZkRoot, buildId, _configPath, _indexRoot, "import",
+                                           /*useFakeGenerationTask*/ true,
+                                           "{\"importedVersions\":{\"cluster1\":10,\"cluster2\":11}}");
     ASSERT_TRUE(keeper1);
-    CheckLatestPublishedVersion(keeper1, 2, _importedVersionId);
+    CheckLatestPublishedVersion(keeper1,
+                                {{"cluster1", {/*nodeCount*/ 2, /*importedVersionId*/ 10}}, {"cluster2", {10, 11}}});
     keeper1.reset();
 
     // keeper1 has published checkpoint, recoveredKeeper can continue with checkpoint
     MockGenerationKeeperPtr recoveredKeeper(
-        new MockGenerationKeeper(_buildId, importedZkRoot, "", "10086", _zkWrapper, _table.createCollector(), true));
+        new MockGenerationKeeper(buildId, importedZkRoot, "", "10086", _zkWrapper, _table.createCollector(), true));
     recoveredKeeper->setFakeIndexRoot(_indexRoot);
     ASSERT_TRUE(recoveredKeeper->recover());
     auto task = dynamic_cast<GenerationTask*>(recoveredKeeper->_generationTask);
     ASSERT_TRUE(task->_isImportedTask);
-    CheckLatestPublishedVersion(recoveredKeeper, 2, _importedVersionId);
+    CheckLatestPublishedVersion(recoveredKeeper,
+                                {{"cluster1", {/*nodeCount*/ 2, /*importedVersionId*/ 10}}, {"cluster2", {10, 11}}});
+}
+
+TEST_F(ImportGenerationInteTest, testRepeatedImport)
+{
+    BuildId buildId;
+    buildId.set_appname("app");
+    buildId.set_generationid(1);
+    buildId.set_datatable("simple2");
+
+    string generationDir = PathDefine::getGenerationZkRoot(_zkRoot, buildId);
+    fslib::util::FileUtil::mkDir(generationDir, true);
+    string generationStatusFile = PathDefine::getGenerationStatusFile(_zkRoot, buildId);
+
+    auto keeper0 = PrepareGenerationKeeper(_zkRoot, buildId, _configPath, _indexRoot, "full");
+    ASSERT_TRUE(keeper0);
+    CheckLatestPublishedVersion(keeper0, {{"cluster1", {/*nodeCount*/ 8, indexlibv2::INVALID_VERSIONID}}});
+
+    auto generationTask = dynamic_cast<GenerationTask*>(keeper0->_generationTask);
+    ASSERT_TRUE(generationTask->TEST_prepareFakeIndex());
+    keeper0->stopBuild();
+    keeper0->run(2);
+    string stopFile = generationStatusFile + ".stopped";
+    ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
+    keeper0.reset();
+
+    // import on importedZkRoot for the first time
+    string importedZkRoot = GET_TEMP_DATA_PATH() + "/importedZk";
+    auto keeper1 = PrepareGenerationKeeper(importedZkRoot, buildId, _configPath, _indexRoot, "import",
+                                           /*useFakeGenerationTask*/ true,
+                                           "{\"importedVersions\":{\"cluster1\":10,\"cluster2\":11}}");
+    ASSERT_TRUE(keeper1);
+    CheckLatestPublishedVersion(keeper1, {{"cluster1", {/*nodeCount*/ 2, /*importedVersion*/ 10}}});
+    keeper1->stopBuild();
+    keeper1->run(2);
+    generationStatusFile = PathDefine::getGenerationStatusFile(importedZkRoot, buildId);
+    stopFile = generationStatusFile + ".stopped";
+    ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
+    keeper1.reset();
+
+    // reset version with a new buildId
+    auto CheckResetVersionTargetAndFinish = [](const MockGenerationKeeperPtr& keeper, const std::string clusterName,
+                                               const KeyValueMap& expectKvMap) {
+        ASSERT_TRUE(keeper);
+        auto task = dynamic_cast<GraphGenerationTask*>(keeper->_generationTask);
+        ASSERT_TRUE(task);
+        keeper->run(5);
+        auto nodes = GenerationTaskStateMachine::getWorkerNodes(clusterName, proto::ROLE_TASK, keeper->_workerTable);
+        ASSERT_EQ(1, nodes.size());
+        ASSERT_EQ(1, nodes.size());
+        config::TaskTarget target;
+        FromJsonString(target, ((proto::TaskNode*)nodes[0].get())->getTargetStatus().targetdescription());
+        for (const auto& [key, value] : expectKvMap) {
+            std::string result;
+            target.getTargetDescription(key, result);
+            ASSERT_EQ(value, result);
+        }
+        auto workerNodes = keeper->_workerTable->getActiveNodes();
+        ASSERT_EQ(2, workerNodes.size());
+        GenerationTaskStateMachine::finishTasks(workerNodes);
+    };
+
+    std::string resetVersionConfig = GET_TEST_DATA_PATH() + "/graph_reset_version_config";
+    auto resetVersionBuildId = proto::ProtoCreator::createBuildId("simple2", 1, "app-reset-version");
+    auto resetVersionKeeper = PrepareGenerationKeeper(importedZkRoot, resetVersionBuildId, resetVersionConfig,
+                                                      _indexRoot, "customized", /*useFakeGenerationTask*/ false);
+    CheckResetVersionTargetAndFinish(resetVersionKeeper, "cluster1",
+                                     {{"versionId", "10"},
+                                      {"clusterName", "cluster1"},
+                                      {"indexRoot", _indexRoot},
+                                      {"buildId", proto::ProtoUtil::buildIdToStr(resetVersionBuildId)},
+                                      {"partitionCount", "2"}});
+    resetVersionKeeper->run(5);
+    generationStatusFile = PathDefine::getGenerationStatusFile(importedZkRoot, resetVersionBuildId);
+    stopFile = generationStatusFile + ".stopped";
+    ASSERT_TRUE(FileUtilForTest::checkPathExist(stopFile));
+
+    // import on importedZkRoot for the second time
+    auto keeper2 = PrepareGenerationKeeper(importedZkRoot, buildId, _configPath, _indexRoot, "import",
+                                           /*useFakeGenerationTask*/ true,
+                                           "{\"importedVersions\":{\"cluster1\":40,\"cluster2\":41}}");
+    ASSERT_TRUE(keeper2);
+    CheckLatestPublishedVersion(keeper2, {{"cluster1", {/*nodeCount*/ 2, /*importedVersion*/ 40}}});
 }
 }} // namespace build_service::admin

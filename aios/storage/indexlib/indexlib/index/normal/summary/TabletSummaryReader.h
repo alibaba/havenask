@@ -34,7 +34,7 @@ public:
 
 public:
     future_lite::coro::Lazy<indexlib::index::ErrorCodeVec>
-    GetDocument(const std::vector<docid_t>& docIds, const SummaryGroupIdVec& groupVec,
+    GetDocument(const std::vector<docid_t>& docIds, const indexlib::index::SummaryGroupIdVec& groupVec,
                 autil::mem_pool::Pool* sessionPool, indexlib::file_system::ReadOption option,
                 const indexlib::index::SearchSummaryDocVec* docs) const noexcept override;
 
@@ -46,7 +46,7 @@ public:
     bool GetDocument(docid_t docId, indexlib::document::SearchSummaryDocument* summaryDoc) const override;
 
     bool GetDocument(docid_t docId, indexlib::document::SearchSummaryDocument* summaryDoc,
-                     const SummaryGroupIdVec& groupVec) const override;
+                     const indexlib::index::SummaryGroupIdVec& groupVec) const override;
 
     void AddAttrReader(fieldid_t fieldId, const std::shared_ptr<indexlib::index::AttributeReader>& attrReader) override;
     void AddAttrReader(fieldid_t fieldId, AttributeReader* attrReader);

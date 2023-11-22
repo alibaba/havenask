@@ -15,9 +15,12 @@
  */
 #include "indexlib/index/kkv/KKVIndexFactory.h"
 
+#include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/framework/SegmentInfo.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/common/FieldTypeTraits.h"
 #include "indexlib/index/kkv/building/KKVMemIndexer.h"
 #include "indexlib/index/kkv/built/KKVDiskIndexer.h"
@@ -31,7 +34,7 @@ AUTIL_LOG_SETUP(indexlib.index, KKVIndexFactory);
 
 std::shared_ptr<IDiskIndexer>
 KKVIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                   const IndexerParameter& indexerParam) const
+                                   const DiskIndexerParameter& indexerParam) const
 {
     assert(indexerParam.segmentInfo);
 
@@ -61,10 +64,9 @@ KKVIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& 
 }
 
 std::shared_ptr<IMemIndexer> KKVIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                               const IndexerParameter& indexerParam) const
+                                                               const MemIndexerParameter& indexerParam) const
 {
-    assert(indexerParam.tabletOptions);
-    const std::string& tabletName = indexerParam.tabletOptions->GetTabletName();
+    std::string tabletName = indexerParam.tabletName;
 
     auto kkvIndexConfig = std::dynamic_pointer_cast<config::KKVIndexConfig>(indexConfig);
     if (!kkvIndexConfig) {
@@ -72,6 +74,7 @@ std::shared_ptr<IMemIndexer> KKVIndexFactory::CreateMemIndexer(const std::shared
         return nullptr;
     }
     bool isOnline = indexerParam.isOnline;
+    bool tolerateDocError = indexerParam.isTolerateDocError;
     int64_t maxBuildMemoryUse = GetMaxBuildMemoryUse(indexerParam);
     if (maxBuildMemoryUse <= 0) {
         AUTIL_LOG(ERROR, "invalid maxMemoryUse: %ld", indexerParam.maxMemoryUseInBytes);
@@ -109,7 +112,8 @@ std::shared_ptr<IMemIndexer> KKVIndexFactory::CreateMemIndexer(const std::shared
     case type: {                                                                                                       \
         using SKeyType = indexlib::index::FieldTypeTraits<type>::AttrItemType;                                         \
         return std::make_shared<KKVMemIndexer<SKeyType>>(tabletName, pkeyMemUse, skeyMemUse, valueMemUse,              \
-                                                         skeyCompressRatio, valueCompressRatio, isOnline);             \
+                                                         skeyCompressRatio, valueCompressRatio, isOnline,              \
+                                                         tolerateDocError);                                            \
     }
         KKV_SKEY_DICT_TYPE_MACRO_HELPER(CASE_MACRO);
 #undef CASE_MACRO
@@ -122,7 +126,7 @@ std::shared_ptr<IMemIndexer> KKVIndexFactory::CreateMemIndexer(const std::shared
 
 std::unique_ptr<IIndexReader>
 KKVIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                   const IndexerParameter& indexerParam) const
+                                   const IndexReaderParameter&) const
 {
     // TODO(chekong.ygm): need impl
     return std::make_unique<KKVIndexReader>();
@@ -179,7 +183,7 @@ void KKVIndexFactory::CalculateMemIndexerSKeyMemRatio(double& skeyMemRatio, cons
               prevSKeyMemUse, prevValueMemUse, prevSKeyMemoryRatio, skeyMemRatio);
 }
 
-int64_t KKVIndexFactory::GetMaxBuildMemoryUse(const IndexerParameter& indexerParam) const
+int64_t KKVIndexFactory::GetMaxBuildMemoryUse(const MemIndexerParameter& indexerParam) const
 {
     uint32_t shardNum = (indexerParam.segmentInfo &&
                          indexerParam.segmentInfo->GetShardCount() != framework::SegmentInfo::INVALID_SHARDING_COUNT)

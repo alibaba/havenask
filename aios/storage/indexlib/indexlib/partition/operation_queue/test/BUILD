@@ -4,7 +4,7 @@ cc_library(
     hdrs=glob(['*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/partition/operation_queue/test',
-    visibility=['//aios/storage/indexlib:__subpackages__']
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__']
 )
 cc_fast_test(
     name='indexlib_operation_queue_unittest',
@@ -13,13 +13,13 @@ cc_fast_test(
         'operation_block_unittest.cpp', 'operation_factory_unittest.cpp',
         'operation_iterator_unittest.cpp',
         'operation_redo_strategy_unittest.cpp', 'operation_writer_unittest.cpp',
+        'optimized_reopen_redo_strategy_unittest.cpp',
         'remove_operation_creator_unittest.cpp',
         'remove_operation_unittest.cpp',
         'sub_doc_operation_creator_unittest.cpp',
         'sub_doc_operation_unittest.cpp',
         'update_field_operation_creator_unittest.cpp',
-        'update_field_operation_unittest.cpp',
-        'optimized_reopen_redo_strategy_unittest.cpp'
+        'update_field_operation_unittest.cpp'
     ],
     copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
@@ -33,7 +33,7 @@ cc_fast_test(
 cc_fast_test(
     name='todo',
     srcs=[],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     deps=[
         ':indexlib_operation_queue_test_helper',

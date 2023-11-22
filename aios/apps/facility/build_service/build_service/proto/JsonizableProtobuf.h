@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_JSONIZABLEPROTOBUF_H
-#define ISEARCH_BS_JSONIZABLEPROTOBUF_H
+#pragma once
 
 #include "aios/network/http_arpc/ProtoJsonizer.h"
 #include "autil/legacy/jsonizable.h"
@@ -51,5 +50,3 @@ private:
 };
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_JSONIZABLEPROTOBUF_H

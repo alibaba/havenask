@@ -17,18 +17,23 @@
 
 #include "autil/NoCopyable.h"
 #include "indexlib/index/ann/aitheta2/CommonDefine.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingDataExtractor.h"
+#include "indexlib/index/ann/aitheta2/impl/DocMapWrapperBase.h"
+#include "indexlib/index/ann/aitheta2/util/EmbeddingHolder.h"
 
 namespace indexlibv2::index::ann {
 
-class EmbeddingAttrSegmentBase: public autil::NoCopyable {
+class EmbeddingAttrSegment : public autil::NoCopyable
+{
 public:
-    EmbeddingAttrSegmentBase() = default;
-    virtual ~EmbeddingAttrSegmentBase() = default;
+    EmbeddingAttrSegment() = default;
+    virtual ~EmbeddingAttrSegment() = default;
 
 public:
-    virtual std::shared_ptr<EmbeddingDataExtractor> CreateEmbeddingExtractor(const AithetaIndexConfig& indexConfig, const MergeTask& mergeTask) {
-        return std::make_shared<EmbeddingDataExtractor>(indexConfig, mergeTask);
+    virtual bool Extract(const std::map<docid_t, index_id_t>& oldDocIds,
+                         const std::shared_ptr<DocMapWrapperBase>& docIdMap, bool compactIndex, EmbeddingHolder& result)
+    {
+        assert(false);
+        return false;
     }
 };
 

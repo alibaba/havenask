@@ -15,6 +15,10 @@
  */
 #pragma once
 
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "autil/Log.h"
 #include "indexlib/config/SingleFileCompressConfig.h"
 

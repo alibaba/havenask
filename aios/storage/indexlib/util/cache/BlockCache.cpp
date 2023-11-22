@@ -130,7 +130,7 @@ BlockCache::TaggedMetricReporter BlockCache::DeclareTaggedMetricReporter(const m
 }
 
 bool BlockCache::ExtractCacheParam(const BlockCacheOption& cacheOption, int32_t& shardBitsNum,
-                                   float& lruHighPriorityRatio) const
+                                   float& lruHighPriorityRatio, float& lruLowPriorityRatio) const
 {
     string shardBitsNumStr =
         GetValueFromKeyValueMap(cacheOption.cacheParams, "num_shard_bits", to_string(DEFAULT_SHARED_BITS_NUM));
@@ -149,6 +149,27 @@ bool BlockCache::ExtractCacheParam(const BlockCacheOption& cacheOption, int32_t&
                   highPriorityRatioStr.c_str());
         return false;
     }
+
+    float defaultLowPriorityRatio = 1.0 - lruHighPriorityRatio;
+    string lowPriorityRatioStr =
+        GetValueFromKeyValueMap(cacheOption.cacheParams, "lru_low_priority_ratio", to_string(defaultLowPriorityRatio));
+    if (!autil::StringUtil::fromString(lowPriorityRatioStr, lruLowPriorityRatio) || lruLowPriorityRatio < 0.0 ||
+        lruLowPriorityRatio > 1.0) {
+        AUTIL_LOG(ERROR,
+                  "parse block cache param failed,  lru_low_priority_ratio [%s] should be float between [0.0, 1.0]",
+                  lowPriorityRatioStr.c_str());
+        return false;
+    }
+    // add a very small bias to avoid accuracy error
+    if (lruLowPriorityRatio + lruHighPriorityRatio > 1.0 + 0.000001) {
+        AUTIL_LOG(
+            ERROR,
+            "parse block cache param failed,  lru_low_priority_ratio [%s] + lru_lru_high_priority_ratio [%s] should be float between [0.0, 1.0]\
+                    \n If addition of the two numbers exactly equal to 1.0 from human view, this problem may be caused by accuracy error.",
+            lowPriorityRatioStr.c_str(), highPriorityRatioStr.c_str());
+        return false;
+    }
+
     return true;
 }
 

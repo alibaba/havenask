@@ -90,11 +90,32 @@ GraphDomainClient::~GraphDomainClient() {
 
 ErrorCode GraphDomainClient::doPreInit() {
     assert(_subGraphDef);
+    if (!initTimeout()) {
+        NAVI_LOG(
+            ERROR,
+            "domain timeout, rpc timeout [%ld] ms, sub graph timeout [%ld] ms",
+            _rpcTimeoutMs, _subGraphTimeoutMs);
+        return EC_TIMEOUT;
+    }
     if (!initGigStream(_subGraphDef->location())) {
         NAVI_LOG(ERROR, "init gig stream failed, biz: %s", _bizName.c_str());
         return EC_UNKNOWN;
     }
+    _rpcResult = std::make_shared<RpcGraphResult>();
+    _rpcResult->init(_graph->getLocalBizName(), _graph->getLocalPartId(),
+                     _bizName, _partInfo, _subGraphDef->graph_id());
+    _graphResult->addSubResult(_rpcResult);
     return EC_NONE;
+}
+
+bool GraphDomainClient::initTimeout() {
+    auto remainTimeMs = _graph->getRemainTimeMs();
+    _subGraphTimeoutMs = RPC_TIMEOUT_DECAY_FACTOR * remainTimeMs;
+    _rpcTimeoutMs =
+        std::min(_subGraphTimeoutMs + SUBGRAPH_TIMEOUT_DECAY_MS, remainTimeMs);
+    NAVI_LOG(SCHEDULE1, "rpc timeout [%ld] ms, sub graph timeout [%ld] ms",
+             _rpcTimeoutMs, _subGraphTimeoutMs);
+    return _subGraphTimeoutMs > 0 && _rpcTimeoutMs > 0;
 }
 
 bool GraphDomainClient::initGigStream(const LocationDef &location) {
@@ -114,8 +135,10 @@ bool GraphDomainClient::initGigStream(const LocationDef &location) {
         stream->enablePartId(partId);
     }
     stream->setDisableProbe(!location.gig_info().enable_probe());
+    bool allowLack = (EHS_ERROR_AS_EOF == getErrorStrategy());
+    stream->setAllowLack(allowLack);
     addTags(stream, location.gig_info());
-    stream->setTimeout(_graph->getRemainTimeMs());
+    stream->setTimeout(_rpcTimeoutMs);
     auto gigStream =
         std::dynamic_pointer_cast<multi_call::GigClientStream>(stream);
     if (!querySession->bind(gigStream)) {
@@ -125,7 +148,10 @@ bool GraphDomainClient::initGigStream(const LocationDef &location) {
     auto partCount = std::max(1, stream->getPartCount());
     _partInfo.init(partCount, partInfoDef);
     _streamState.setPartCount(_partInfo.getFullPartCount());
-
+    if (!_streamState.init()) {
+        NAVI_LOG(ERROR, "init domain part state failed");
+        return false;
+    }
     setStream(gigStream);
     NAVI_LOG(SCHEDULE1, "init gig stream success [%p]", stream.get());
     return true;
@@ -152,15 +178,15 @@ bool GraphDomainClient::postInit() {
         NAVI_LOG(ERROR, "empty sub graph");
         return false;
     }
-    {
-        std::string compressedResult;
-        auto compressed =
-            autil::CompressionUtil::compress(_subGraphStr, autil::CompressType::LZ4, compressedResult, nullptr);
-        if (compressed) {
-            _compressType = CT_LZ4;
-            std::swap(_subGraphStr, compressedResult);
-        }
-    }
+    // {
+    //     std::string compressedResult;
+    //     auto compressed =
+    //         autil::CompressionUtil::compress(_subGraphStr, autil::CompressType::LZ4, compressedResult, nullptr);
+    //     if (compressed) {
+    //         _compressType = CT_LZ4;
+    //         std::swap(_subGraphStr, compressedResult);
+    //     }
+    // }
     return true;
 }
 
@@ -168,7 +194,6 @@ bool GraphDomainClient::run() {
     if (finished()) {
         return true;
     }
-
     for (auto partId : _partInfo) {
         notifySend(partId);
     }
@@ -178,9 +203,11 @@ bool GraphDomainClient::run() {
 bool GraphDomainClient::doSend(NaviPartId gigPartId, NaviMessage &naviMessage) {
     if (!_streamState.inited(gigPartId)) {
         NAVI_LOG(SCHEDULE2, "domain client init gigPartId[%d]", gigPartId);
-        if (!fillInitMessage(gigPartId, naviMessage)) {
+        auto ec = fillInitMessage(gigPartId, naviMessage);
+        if (EC_NONE != ec) {
             NAVI_LOG(ERROR, "fill init message failed! gig partId: %d",
                      gigPartId);
+            notifyFinish(ec, true);
             return false;
         }
         _streamState.setInited(gigPartId);
@@ -200,9 +227,6 @@ bool GraphDomainClient::doSend(NaviPartId gigPartId, NaviMessage &naviMessage) {
         return false;
     }
     bool eof = sendEof(gigPartId);
-    if (eof) {
-        _streamState.setSendEof(gigPartId);
-    }
     naviMessage.set_msg_id(CommonUtil::random64());
     NAVI_LOG(SCHEDULE2, "message data send [%08x] toPartId: %d, msg len: %d, eof: %d",
              naviMessage.msg_id(), gigPartId,
@@ -217,11 +241,14 @@ bool GraphDomainClient::doSend(NaviPartId gigPartId, NaviMessage &naviMessage) {
                  StringUtil::toString(clientStream->getStreamRpcInfo(gigPartId)).c_str());
         return false;
     }
+    if (eof) {
+        _streamState.setSendEof(gigPartId);
+    }
     return true;
 }
 
-bool GraphDomainClient::fillInitMessage(NaviPartId partId,
-                                        NaviMessage &naviMessage) const
+ErrorCode GraphDomainClient::fillInitMessage(NaviPartId partId,
+                                             NaviMessage &naviMessage) const
 {
     assert(partId < _partInfo.getFullPartCount());
     auto domainGraph = naviMessage.mutable_domain_graph();
@@ -231,7 +258,8 @@ bool GraphDomainClient::fillInitMessage(NaviPartId partId,
     if (_counterInfo) {
         domainGraph->mutable_counter_info()->CopyFrom(*_counterInfo);
     }
-    auto remainTimeMs = _graph->getRemainTimeMs();
+    auto remainTimeMs = _subGraphTimeoutMs;
+    NaviLoggerScope scope(_logger);
     return RunGraphParams::toProto(_param->runParams, _subGraphDef->graph_id(),
                                    _param->creatorManager,
                                    partId,
@@ -264,7 +292,7 @@ void GraphDomainClient::finishPart(NaviPartId gigPartId, const multi_call::GigSt
         stream->sendCancel(gigPartId, nullptr);
         _streamState.unlock(gigPartId);
     }
-    collectRpcInfo(gigPartId);
+    addResult(gigPartId, nullptr, true, nullptr);
     receiveCallBack(gigPartId, true);
 }
 
@@ -296,16 +324,20 @@ bool GraphDomainClient::receiveCancel(const multi_call::GigStreamMessage &messag
         NAVI_LOG(SCHEDULE2, "ignore cancel after stream state cancelled, partId [%d]", partId);
         return true;
     }
-    collectRpcInfo(partId);
     if (message.message) {
         NAVI_LOG(SCHEDULE2, "cancel msg len [%d]",
                  message.message->ByteSize());
         NAVI_LOG(SCHEDULE3, "cancel msg content [%s]",
                  message.message->DebugString().c_str());
-        if (!doReceive(message)) {
+        if (!clientReceive(message)) {
             notifyFinish(EC_STREAM_RPC, true);
             return false;
         }
+    } else {
+        auto cancelError = std::make_shared<NaviError>();
+        cancelError->id = _logger.logger->getLoggerId();
+        cancelError->ec = EC_PART_CANCEL;
+        addResult(partId, nullptr, true, cancelError);
     }
     receiveCallBack(partId, false);
     return true;
@@ -315,9 +347,8 @@ bool GraphDomainClient::receive(const multi_call::GigStreamMessage &message) {
     auto partId = message.partId;
     if (message.eof) {
         _streamState.setReceiveEof(partId);
-        collectRpcInfo(partId);
     }
-    if (!doReceive(message)) {
+    if (!clientReceive(message)) {
         NAVI_LOG(ERROR, "receive msg failed");
         notifyFinish(EC_STREAM_RECEIVE, true);
         return false;
@@ -326,34 +357,68 @@ bool GraphDomainClient::receive(const multi_call::GigStreamMessage &message) {
     return true;
 }
 
-void GraphDomainClient::collectRpcInfo(NaviPartId partId) {
+bool GraphDomainClient::clientReceive(const multi_call::GigStreamMessage &message) {
+    auto naviMessage = dynamic_cast<NaviMessage *>(message.message);
+    if (!naviMessage) {
+        NAVI_LOG(ERROR, "receive error, null msg, partId[%d], this type: %s",
+                 message.partId, typeid(*this).name());
+        return false;
+    }
+    addResult(message.partId, naviMessage, message.eof, nullptr);
+    return doReceive(message);
+}
+
+void GraphDomainClient::addResult(NaviPartId partId, NaviMessage *naviMessage,
+                                  bool withRpcInfo, NaviErrorPtr error)
+{
+    NaviErrorPtr resultError;
+    if (withRpcInfo) {
+        multi_call::GigStreamRpcInfo rpcInfo;
+        if (collectRpcInfo(partId, rpcInfo)) {
+            resultError = _rpcResult->addResult(partId, naviMessage, &rpcInfo, error);
+        } else {
+            if (naviMessage) {
+                resultError = _rpcResult->addResult(partId, naviMessage, nullptr, error);
+            }
+        }
+    } else if (naviMessage) {
+        resultError = _rpcResult->addResult(partId, naviMessage, nullptr, error);
+    }
+    if (resultError) {
+        if (EHS_ERROR_AS_FATAL == getErrorStrategy()) {
+            NAVI_LOG(SCHEDULE1, "result has error [%s], error as fatal",
+                     CommonUtil::getErrorString(resultError->ec));
+            notifyFinish(resultError, true);
+        } else {
+            NAVI_LOG(SCHEDULE1, "result has error [%s], error as eof",
+                     CommonUtil::getErrorString(resultError->ec));
+        }
+    }
+}
+
+bool GraphDomainClient::collectRpcInfo(NaviPartId partId, multi_call::GigStreamRpcInfo &info) {
     if (!_streamState.streamInited()) {
-        return;
+        return false;
     }
     if (!_streamState.setCollected(partId)) {
-        return;
+        return false;
     }
     NAVI_LOG(SCHEDULE2, "try collect stream rpc info part [%d]", partId);
     auto stream = getStream();
     if (!stream) {
         NAVI_LOG(SCHEDULE2, "collect rpc info failed, null stream, part [%d]", partId);
-        return;
+        return false;
     }
     auto *clientStream = (NaviClientStream *)stream.get();
-    auto rpcInfo = clientStream->getStreamRpcInfo(partId);
-    NAVI_LOG(SCHEDULE2, "stream rpc info collected part [%d]", partId);
-    auto *graphParam = _graph->getGraphParam();
-    char buf[256];
-    snprintf(buf, 256, "%s(%d)",
-             _graph->getLocalBizName().c_str(),
-             _graph->getLocalPartId());
-    graphParam->worker->getUserResult()->appendRpcInfo(
-            std::pair(buf, _bizName), std::move(rpcInfo));
+    info = clientStream->getStreamRpcInfo(partId);
+    NAVI_LOG(SCHEDULE2, "rpc info collect success, part [%d] biz [%s]", partId,
+             _bizName.c_str());
+    return true;
 }
 
 void GraphDomainClient::receiveCallBack(NaviPartId gigPartId, bool forceStop) {
     assert(_partInfo.isUsed(gigPartId));
-    NAVI_LOG(DEBUG,
+    NAVI_LOG(SCHEDULE1,
              "receive callback, partId [%d], part receiveEof[%d], part cancel [%d], total eof [%d], forceStop [%d]",
              gigPartId,
              _streamState.receiveEof(gigPartId),
@@ -395,6 +460,9 @@ bool GraphDomainClient::receiveEof() const {
 }
 
 void GraphDomainClient::notifyFinishAsync(ErrorCode ec) {
+    if (finished()) {
+        return;
+    }
     if (!acquire(GDHR_NOTIFY_FINISH_ASYNC)) {
         // TODO: assert
         NAVI_LOG(ERROR, "fatal: acquire failed");

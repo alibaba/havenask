@@ -15,10 +15,17 @@
  */
 #include "build_service/util/ZipFileUtil.h"
 
+#include <ostream>
+#include <stddef.h>
+#include <stdint.h>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/util/Exception.h"
 #include "mz.h"
-#include "mz_strm.h"
 #include "mz_strm_mem.h"
 #include "mz_zip.h"
 

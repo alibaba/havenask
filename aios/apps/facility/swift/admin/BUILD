@@ -58,7 +58,10 @@ cc_library(
     name='swift_admin_test_lib',
     testonly=True,
     srcs=glob(['test/MessageConstructor.cpp']),
-    hdrs=glob(['test/MockSysController.h', 'test/MessageConstructor.h']),
+    hdrs=glob([
+        'test/MockSysController.h', 'test/MessageConstructor.h',
+        'test/TopicInStatusTestHelper.h', 'modules/test/MockBaseModule.h'
+    ]),
     include_prefix='swift/admin',
     deps=[
         ':swift_admin_service', ':swift_admin_worker',
@@ -68,14 +71,11 @@ cc_library(
 cc_test(
     name='swift_admin_test',
     srcs=(
-        glob([
-            'test/TopicInStatusTestHelper.h',
-            'test/TopicInStatusTestHelper.cpp', 'test/*Test.cpp',
-            'modules/test/MockBaseModule.h'
-        ]) + glob(['modules/test/*Test.cpp'],
-                  exclude=['modules/test/MetaInfoReplicatorModuleTest.cpp'])
+        glob(['test/TopicInStatusTestHelper.cpp', 'test/*Test.cpp']) +
+        glob(['modules/test/*Test.cpp'],
+             exclude=['modules/test/MetaInfoReplicatorModuleTest.cpp'])
     ),
-    copts=['-fno-access-control', '-Iaios/apps/facility'],
+    copts=['-fno-access-control'],
     data=[
         '//aios/apps/facility/swift:swift_testdata',
         '//aios/filesystem/fslib:fslib_plugin_mock'
@@ -83,7 +83,8 @@ cc_test(
     flaky=True,
     shard_count=2,
     deps=[
-        ':swift_admin_test_lib', '//aios/apps/facility/swift:swift_test_h',
+        ':swift_admin_lib', ':swift_admin_test_lib',
+        '//aios/apps/facility/swift:swift_test_h',
         '//aios/apps/facility/swift/common:swift_common',
         '//aios/filesystem/fslib/fslib/fs/zookeeper:fslib_zookeeper_casehelper',
         '//aios/unittest_framework'

@@ -4,7 +4,7 @@ cc_library(
     hdrs=['join_field.h'],
     copts=['-Werror'],
     include_prefix='indexlib/partition/join_cache/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/autil:string_helper',
         '//aios/storage/indexlib/indexlib:indexlib_h'
@@ -19,12 +19,12 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/partition/join_cache',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
-        ':base', '//aios/storage/indexlib/indexlib/partition:partition_reader',
-        '//aios/storage/indexlib/index/primary_key:reader',
+        ':base', '//aios/storage/indexlib/index/primary_key:reader',
+        '//aios/storage/indexlib/indexlib/index/normal/attribute:reader_interface',
         '//aios/storage/indexlib/indexlib/index/normal/primarykey:reader',
-        '//aios/storage/indexlib/indexlib/index/normal/attribute:reader_interface'
+        '//aios/storage/indexlib/indexlib/partition:partition_reader'
     ]
 )
 cc_library(
@@ -33,7 +33,7 @@ cc_library(
     hdrs=['join_cache_initializer.h', 'join_cache_initializer_creator.h'],
     copts=['-Werror'],
     include_prefix='indexlib/partition/join_cache',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib/index/normal/attribute:reader_interface',
         '//aios/storage/indexlib/indexlib/index/normal/primarykey:reader',

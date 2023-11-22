@@ -52,8 +52,8 @@ FSResult<size_t> NormalFileReader::Read(void* buffer, size_t length, size_t offs
     return {ec, readSize};
 }
 
-future_lite::Future<size_t> NormalFileReader::ReadAsync(void* buffer, size_t length, size_t offset,
-                                                        ReadOption option) noexcept(false)
+future_lite::Future<FSResult<size_t>> NormalFileReader::ReadAsync(void* buffer, size_t length, size_t offset,
+                                                                  ReadOption option) noexcept
 {
     return _fileNode->ReadAsync(buffer, length, offset, option);
 }
@@ -89,13 +89,13 @@ FSResult<size_t> NormalFileReader::Prefetch(size_t length, size_t offset, ReadOp
     return _fileNode->Prefetch(length, offset, option);
 }
 
-future_lite::Future<size_t> NormalFileReader::PrefetchAsync(size_t length, size_t offset,
-                                                            ReadOption option) noexcept(false)
+future_lite::Future<FSResult<size_t>> NormalFileReader::PrefetchAsync(size_t length, size_t offset,
+                                                                      ReadOption option) noexcept
 {
     return _fileNode->PrefetchAsync(length, offset, option);
 }
 
-future_lite::Future<uint32_t> NormalFileReader::ReadVUInt32Async(size_t offset, ReadOption option) noexcept(false)
+future_lite::Future<FSResult<uint32_t>> NormalFileReader::ReadVUInt32Async(size_t offset, ReadOption option) noexcept
 {
     return _fileNode->ReadVUInt32Async(offset, option);
 }

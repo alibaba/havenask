@@ -15,10 +15,27 @@
  */
 #include "indexlib/merger/merge_strategy/temperature_merge_strategy.h"
 
+#include <assert.h>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/framework/SegmentGroupMetrics.h"
+#include "indexlib/framework/SegmentMetrics.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index/segment_metrics_updater/temperature_segment_metrics_updater.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/merge_strategy/optimize_merge_strategy.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace autil;

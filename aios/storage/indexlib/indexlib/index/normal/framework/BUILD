@@ -8,7 +8,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/framework',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/index/inverted_index:InDocPositionIterator',
         '//aios/storage/indexlib/index/inverted_index:InDocPositionState',
@@ -33,7 +33,7 @@ cc_library(
     hdrs=['index_writer.h'],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/framework',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/document:DocumentBatch',
@@ -51,7 +51,7 @@ cc_library(
     hdrs=['index_merger.h', 'index_merger_creator.h', 'merger_interface.h'],
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/framework',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib/config',
         '//aios/storage/indexlib/indexlib/index:util'
@@ -61,6 +61,6 @@ cc_library(
 cc_library(
     name='index_framework',
     copts=['-Werror'],
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':merger', ':reader', ':writer']
 )

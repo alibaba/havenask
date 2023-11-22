@@ -80,7 +80,6 @@ enum ProtocolType
     PT_UDP      = 1;
     PT_HTTP     = 2;
     PT_ANY      = 3; // 不指定协议类型
-    PT_RDMA     = 4;
 }
 
 // 集群或节点是否在线的状态
@@ -104,13 +103,13 @@ message NodeMetaInfo
 
 message NodeLBInfo 
 {
-    optional int32 cpu_busy = 1;
-    optional int32 load_one = 2;
-    optional int32 iowait   = 3;
+    optional int32 cpu_busy = 1 [deprecated = true];
+    optional int32 load_one = 2 [deprecated = true];
+    optional int32 iowait   = 3 [deprecated = true];
     optional int32 weight   = 4;
-    optional int32 latency  = 5;
-    optional int32 qps      = 6;
-    optional bytes custom_info=7;
+    optional int32 latency  = 5 [deprecated = true];
+    optional int32 qps      = 6 [deprecated = true];
+    optional bytes custom_info = 7 [deprecated = true];
 }
 
 message ProtocolPort

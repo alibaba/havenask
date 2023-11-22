@@ -35,7 +35,7 @@ public:
     void Init(uint64_t dictValue);
     void SetTermPayload(termpayload_t termPayload) { _termPayload = termPayload; }
 
-    void SetDocId(docid_t docid) { _docId = docid; }
+    void SetDocId(docid32_t docid) { _docId = docid; }
 
     void SetDocPayload(docpayload_t docPayload) { _docPayload = docPayload; }
 
@@ -45,7 +45,7 @@ public:
 
     termpayload_t GetTermPayload() const { return _termPayload; }
 
-    docid_t GetDocId() const { return _docId; }
+    docid32_t GetDocId() const { return _docId; }
 
     docpayload_t GetDocPayload() const { return _docPayload; }
 
@@ -65,7 +65,7 @@ private:
 
     PostingFormatOption _postingFormatOption;
     termpayload_t _termPayload;
-    docid_t _docId;
+    docid32_t _docId;
     docpayload_t _docPayload;
     tf_t _termFreq;
     fieldmap_t _fieldMap;

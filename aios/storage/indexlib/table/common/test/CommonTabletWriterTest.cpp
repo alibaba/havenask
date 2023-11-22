@@ -1,6 +1,7 @@
 #include "indexlib/table/common/CommonTabletWriter.h"
 
 #include "indexlib/base/MemoryQuotaController.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/framework/MetricsManager.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/mock/MockDocumentBatch.h"
@@ -36,6 +37,8 @@ public:
     }
     ~MockCommonTabletWriter() = default;
 
+    int64_t getStartBuildTime() const { return _startBuildTime; }
+
 public:
     MOCK_METHOD(int64_t, EstimateMaxMemoryUseOfCurrentSegment, (), (const, override));
 };
@@ -54,15 +57,18 @@ TEST_F(CommonTabletWriterTest, TestNeedDump)
     BuildResource buildResource;
     int64_t freeQuota = 1000;
     buildResource.buildingMemLimit = 5000;
+    auto metricsManager = std::make_shared<MetricsManager>("", nullptr);
     buildResource.memController = std::make_shared<MemoryQuotaController>(freeQuota);
-    buildResource.metricsManager = std::make_shared<MetricsManager>("", nullptr).get();
+    buildResource.metricsManager = metricsManager.get();
     OpenOptions openOptions;
     ASSERT_FALSE(writer->Open(nullptr, buildResource, openOptions).IsOK());
     ASSERT_TRUE(writer->Open(tabletData, buildResource, openOptions).IsOK());
 
     buildResource.memController->Allocate(freeQuota);
     auto batch = std::make_shared<MockDocumentBatch>();
+    sleep(2);
     ASSERT_TRUE(writer->Build(batch).IsNoMem());
+    ASSERT_GT(autil::TimeUtility::currentTimeInSeconds(), writer->getStartBuildTime());
     buildResource.memController->Free(freeQuota);
 
     EXPECT_CALL(*memSegment, IsDirty()).WillRepeatedly(Return(true));
@@ -88,8 +94,9 @@ TEST_F(CommonTabletWriterTest, TestCheckMemStatus)
     BuildResource buildResource;
     int64_t freeQuota = 1000;
     buildResource.buildingMemLimit = 1899;
+    auto metricsManager = std::make_shared<MetricsManager>("", nullptr);
     buildResource.memController = std::make_shared<MemoryQuotaController>(freeQuota);
-    buildResource.metricsManager = std::make_shared<MetricsManager>("", nullptr).get();
+    buildResource.metricsManager = metricsManager.get();
     OpenOptions openOptions;
     ASSERT_FALSE(writer->Open(nullptr, buildResource, openOptions).IsOK());
     ASSERT_TRUE(writer->Open(tabletData, buildResource, openOptions).IsOK());

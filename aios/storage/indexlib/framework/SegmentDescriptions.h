@@ -15,11 +15,18 @@
  */
 #pragma once
 
-#include <map>
+#include <algorithm>
+#include <memory>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/LevelInfo.h"
 #include "indexlib/framework/SegmentStatistics.h"
 

@@ -15,7 +15,9 @@
  */
 #pragma once
 
-#include "build_service/common_define.h"
+#include <stdint.h>
+#include <string>
+
 #include "build_service/config/ResourceReader.h"
 #include "build_service/document/RawDocument.h"
 #include "build_service/proto/BasicDefs.pb.h"

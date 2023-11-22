@@ -20,6 +20,10 @@
 #include "indexlib/index/IDiskIndexer.h"
 #include "indexlib/util/Bitmap.h"
 
+namespace autil::mem_pool {
+class Pool;
+}
+
 namespace indexlib::util {
 class MMapAllocator;
 }

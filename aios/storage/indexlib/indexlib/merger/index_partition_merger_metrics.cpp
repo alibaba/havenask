@@ -15,11 +15,24 @@
  */
 #include "indexlib/merger/index_partition_merger_metrics.h"
 
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <iosfwd>
+#include <map>
+#include <memory>
 #include <unistd.h>
 
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;

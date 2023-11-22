@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 #include "indexlib/table/normal_table/index_task/SegmentMapper.h"
 
 namespace indexlib::index_base {

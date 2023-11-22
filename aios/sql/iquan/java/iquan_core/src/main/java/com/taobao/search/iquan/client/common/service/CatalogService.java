@@ -1,81 +1,107 @@
 package com.taobao.search.iquan.client.common.service;
 
-import com.taobao.search.iquan.client.common.common.ConstantDefine;
-import com.taobao.search.iquan.client.common.response.SqlResponse;
-import com.taobao.search.iquan.client.common.utils.ErrorUtils;
-import com.taobao.search.iquan.client.common.utils.ModelUtils;
-import com.taobao.search.iquan.core.api.CatalogInspectable;
-import com.taobao.search.iquan.core.api.common.IquanErrorCode;
-import com.taobao.search.iquan.core.api.SqlTranslator;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.ComputeNode;
-import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.taobao.search.iquan.client.common.json.catalog.IquanLocation;
+import com.taobao.search.iquan.client.common.json.catalog.JsonCatalog;
+import com.taobao.search.iquan.client.common.json.catalog.JsonDatabase;
+import com.taobao.search.iquan.client.common.response.SqlResponse;
+import com.taobao.search.iquan.client.common.utils.ErrorUtils;
+import com.taobao.search.iquan.core.api.CatalogInspectable;
+import com.taobao.search.iquan.core.api.SqlTranslator;
+import com.taobao.search.iquan.core.api.common.IquanErrorCode;
+import com.taobao.search.iquan.core.api.exception.DatabaseAlreadyExistException;
+import com.taobao.search.iquan.core.api.exception.DatabaseNotExistException;
+import com.taobao.search.iquan.core.api.exception.SqlQueryException;
+import com.taobao.search.iquan.core.api.exception.TableAlreadyExistException;
+import com.taobao.search.iquan.core.api.exception.TableNotExistException;
+import com.taobao.search.iquan.core.catalog.GlobalCatalog;
+import com.taobao.search.iquan.core.catalog.IquanDatabase;
+import com.taobao.search.iquan.core.common.ConstantDefine;
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CatalogService {
     private static final Logger logger = LoggerFactory.getLogger(CatalogService.class);
 
-    public CatalogService() {
+    public static SqlResponse registerCatalogs(SqlTranslator sqlTranslator, List<Object> catalogObjs) {
+        SqlResponse response = new SqlResponse();
+
+        for (Object catalogObj : catalogObjs) {
+            String json = IquanRelOptUtils.toJson(catalogObj);
+            JsonCatalog jsonCatalog = IquanRelOptUtils.fromJson(json, JsonCatalog.class);
+            String catalogName = jsonCatalog.getCatalogName();
+            GlobalCatalog catalog = new GlobalCatalog(catalogName);
+            sqlTranslator.getCatalogManager().registerCatalog(catalogName, catalog);
+
+            response = registerDatabases(catalog, jsonCatalog.getDatabases());
+            if (!response.isOk()) {
+                return response;
+            }
+
+            response = registerLocations(catalog, jsonCatalog.getLocations());
+            if (!response.isOk()) {
+                return response;
+            }
+
+            if (!catalog.databaseExists(ConstantDefine.SYSTEM)) {
+                response.setErrorCode(IquanErrorCode.IQUAN_EC_CATALOG.getErrorCode());
+                response.setErrorMessage("no system database, make sure you have created system database in catalog");
+                return response;
+            }
+
+            try {
+                catalog.initLocationNodeManager();
+            } catch (TableAlreadyExistException | TableNotExistException | DatabaseNotExistException e) {
+                ErrorUtils.setException(e, response);
+                return response;
+            }
+
+            logger.debug(dumpDebugCatalog(sqlTranslator));
+        }
+        return response;
     }
 
-    // ****************************************
-    // Service For Catalog
-    // ****************************************
-    @SuppressWarnings("unchecked")
-    public static SqlResponse updateCatalog(SqlTranslator sqlTranslator, Map<String, Object> reqMap) {
+    public static SqlResponse registerLocations(GlobalCatalog catalog, List<IquanLocation> iquanLocations) {
+        return LocationService.registerLocations(catalog,iquanLocations);
+    }
+
+    public static SqlResponse registerDatabases(GlobalCatalog catalog, List<JsonDatabase> jsonDatabases) {
         SqlResponse response = new SqlResponse();
-        // TODO: Compatible with legacy, need to refactor and support multi-version
-        try {
-            String catalogName = ConstantDefine.EMPTY;
-            if (reqMap.containsKey(ConstantDefine.CATALOG_NAME)) {
-                catalogName = (String) reqMap.get(ConstantDefine.CATALOG_NAME);
-                SqlResponse resp = addCatalog(sqlTranslator, catalogName);
-                if (!resp.isOk()) {
-                    return resp;
-                }
+
+        for (JsonDatabase jsonDatabase : jsonDatabases) {
+            String dbName = jsonDatabase.getDatabaseName();
+            IquanDatabase dataBase = new IquanDatabase(dbName);
+            try {
+                catalog.createDatabase(dbName, dataBase, false);
+            } catch (DatabaseAlreadyExistException e) {
+                ErrorUtils.setException(e, response);
+                return response;
             }
 
-            if (reqMap.containsKey(ConstantDefine.COMPUTE_NODES) && !catalogName.isEmpty()) {
-                Object computeNodes = reqMap.get(ConstantDefine.COMPUTE_NODES);
-                SqlResponse resp = updateComputeNodes(sqlTranslator, catalogName, computeNodes);
-                if (!resp.isOk()) {
-                    return resp;
-                }
+            response = TableService.registerTables(catalog, dbName, jsonDatabase.getTables());
+            if (!response.isOk()) {
+                return response;
             }
 
-            if (reqMap.containsKey(ConstantDefine.TABLES)) {
-                Map<String, Object> tableReqMap = (Map<String, Object>) reqMap.get(ConstantDefine.TABLES);
-                SqlResponse resp = TableService.updateTables(sqlTranslator, tableReqMap);
-                if (!resp.isOk()) {
-                    return resp;
-                }
+            response = FunctionService.registerFunctions(catalog, dbName, jsonDatabase.getFunctions());
+            if (!response.isOk()) {
+                return response;
             }
-
-            if (reqMap.containsKey(ConstantDefine.FUNCTIONS)) {
-                Map<String, Object> functionReqMap = (Map<String, Object>) reqMap.get(ConstantDefine.FUNCTIONS);
-                SqlResponse resp = FunctionService.updateFunctions(sqlTranslator, functionReqMap);
-                if (!resp.isOk()) {
-                    return resp;
-                }
-            }
-
-            if (reqMap.containsKey(ConstantDefine.TVF_FUNCTIONS)) {
-                Map<String, Object> functionReqMap = (Map<String, Object>) reqMap.get(ConstantDefine.TVF_FUNCTIONS);
-                SqlResponse resp = FunctionService.updateFunctions(sqlTranslator, functionReqMap);
-                if (!resp.isOk()) {
-                    return resp;
-                }
-            }
-        } catch (SqlQueryException e) {
-            ErrorUtils.setSqlQueryException(e, response);
-        } catch (Exception e) {
-            ErrorUtils.setException(e, response);
         }
+
+        for (JsonDatabase jsonDatabase : jsonDatabases) {
+            String dbName = jsonDatabase.getDatabaseName();
+            response = TableService.registerLayerTables(catalog, dbName, jsonDatabase.getLayerTabls());
+            if (!response.isOk()) {
+                return response;
+            }
+        }
+
         return response;
     }
 
@@ -174,7 +200,7 @@ public class CatalogService {
             String catalogName = (String) reqMap.get(ConstantDefine.CATALOG_NAME);
             String databaseName = (String) reqMap.get(ConstantDefine.DATABASE_NAME);
             String tableName = (String) reqMap.get(ConstantDefine.TABLE_NAME);
-            String result = sqlTranslator.newCatalogInspectable().getTableDetailInfo(catalogName, databaseName, tableName);
+            String result = sqlTranslator.newCatalogInspectable().getTableDetailInfo(catalogName, databaseName, tableName, true);
             response.setResult(result);
         } catch (SqlQueryException e) {
             ErrorUtils.setSqlQueryException(e, response);
@@ -233,7 +259,7 @@ public class CatalogService {
                     databaseContent.put(ConstantDefine.TABLES, tablesContent);
                     List<String> tableNames = inspectable.getTableNames(catalogName, databaseName);
                     for (String tableName : tableNames) {
-                        String tableContent = inspectable.getTableDetailInfo(catalogName, databaseName, tableName);
+                        String tableContent = inspectable.getTableDetailInfo(catalogName, databaseName, tableName, false);
                         tablesContent.put(tableName, IquanRelOptUtils.fromJson(tableContent, Map.class));
                     }
 
@@ -257,36 +283,44 @@ public class CatalogService {
         return response;
     }
 
-    private static SqlResponse addCatalog(SqlTranslator sqlTranslator, String catalogName) {
-        SqlResponse response = new SqlResponse();
+    private static String dumpDebugCatalog(SqlTranslator sqlTranslator) {
+        Map<String, Object> map = new TreeMap<>();
+        CatalogInspectable inspectable = sqlTranslator.newCatalogInspectable();
 
-        try {
-            boolean ret = sqlTranslator.newCatalogUpdatable().addCatalog(catalogName);
-            if (!ret) {
-                throw new SqlQueryException(IquanErrorCode.IQUAN_EC_CATALOG_ADD_CATALOG_FAIL, "catalogName: " + catalogName);
+        List<String> catalogNames = inspectable.getCatalogNames();
+        for (String catalogName : catalogNames) {
+            Map<String, Object> catalogContent = new TreeMap<>();
+            map.put(catalogName, catalogContent);
+
+            List<Object> databases = new ArrayList<>();
+            catalogContent.put(ConstantDefine.DATABASES, databases);
+            List<String> databaseNames = inspectable.getDatabaseNames(catalogName);
+            for (String databaseName : databaseNames) {
+                Map<String, Object> databaseContent = new TreeMap<>();
+                databases.add(databaseContent);
+
+                databaseContent.put(ConstantDefine.DATABASE_NAME, databaseName);
+
+                Map<String, Object> tablesContent = new TreeMap<>();
+                databaseContent.put(ConstantDefine.TABLES, tablesContent);
+                List<String> tableNames = inspectable.getTableNames(catalogName, databaseName);
+                for (String tableName : tableNames) {
+                    String tableContent = inspectable.getTableDetailInfo(catalogName, databaseName, tableName, true);
+                    tablesContent.put(tableName, IquanRelOptUtils.fromJson(tableContent, Map.class));
+                }
+
+                Map<String, Object> functionsContent = new TreeMap<>();
+                databaseContent.put(ConstantDefine.FUNCTIONS, functionsContent);
+                List<String> functionNames = inspectable.getFunctionNames(catalogName, databaseName);
+                for (String functionName : functionNames) {
+                    String functionContent = inspectable.getFunctionDetailInfo(catalogName, databaseName, functionName);
+                    functionsContent.put(functionName, IquanRelOptUtils.fromJson(functionContent, Map.class));
+                }
             }
-        } catch (SqlQueryException e) {
-            ErrorUtils.setSqlQueryException(e, response);
-        } catch (Exception e) {
-            ErrorUtils.setException(e, response);
-        }
-        return response;
-    }
 
-    public static SqlResponse updateComputeNodes(SqlTranslator sqlTranslator, String catalogName, Object reqObj) {
-        SqlResponse response = new SqlResponse();
-
-        try {
-            List<ComputeNode> computeNodes = ModelUtils.parseComputeNodes(reqObj);
-            boolean ret = sqlTranslator.newCatalogUpdatable().updateComputeNodes(catalogName, computeNodes);
-            if (!ret) {
-                throw new SqlQueryException(IquanErrorCode.IQUAN_EC_CATALOG_COMPUTE_NODES_UPDATE_FAIL, "catalogName: " + catalogName);
-            }
-        } catch (SqlQueryException e) {
-            ErrorUtils.setSqlQueryException(e, response);
-        } catch (Exception e) {
-            ErrorUtils.setException(e, response);
+            catalogContent.put(ConstantDefine.LOCATIONS, IquanRelOptUtils.fromJson(inspectable.getLoctionsDetailInfo(catalogName), Map.class));
         }
-        return response;
+
+        return IquanRelOptUtils.toPrettyJson(map);
     }
 }

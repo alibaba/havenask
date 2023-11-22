@@ -27,10 +27,6 @@ public:
     KVTableTaskPlanCreator();
     ~KVTableTaskPlanCreator();
 
-protected:
-    std::shared_ptr<framework::IIndexOperationCreator>
-    CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& tabletSchema) override;
-
 private:
     AUTIL_LOG_DECLARE();
 };

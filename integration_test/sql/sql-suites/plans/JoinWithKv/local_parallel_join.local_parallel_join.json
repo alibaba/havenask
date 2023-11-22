@@ -16,8 +16,8 @@
           }, 
           "limit": 2147483647, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "normal"
+            "node_name": "normal", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -227,8 +227,8 @@
             ]
           }, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "normal"
+            "node_name": "normal", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -298,8 +298,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "normal"
+            "node_name": "normal", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -352,8 +352,8 @@
           }, 
           "limit": 2147483647, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "normal"
+            "node_name": "normal", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -563,8 +563,8 @@
             ]
           }, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "normal"
+            "node_name": "normal", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -634,8 +634,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "normal"
+            "node_name": "normal", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -681,8 +681,8 @@
           "all": true, 
           "block": false, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "normal"
+            "node_name": "normal", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -716,8 +716,8 @@
         "attrs": {
           "limit": 100, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "normal"
+            "node_name": "normal", 
+            "partition_cnt": 1
           }, 
           "offset": 0, 
           "op_scope": "default", 
@@ -764,6 +764,7 @@
             "INTEGER", 
             "VARCHAR"
           ], 
+          "node_name": "normal", 
           "op_scope": "default", 
           "output_distribution": {
             "hash_mode": {
@@ -786,8 +787,7 @@
             }, 
             "partition_cnt": 1, 
             "type": "BROADCAST_DISTRIBUTED"
-          }, 
-          "table_group_name": "normal"
+          }
         }, 
         "id": 8, 
         "inputs": {
@@ -803,8 +803,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {

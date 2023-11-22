@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DATE_FIELD_ENCODER_H
-#define __INDEXLIB_DATE_FIELD_ENCODER_H
+#pragma once
 
 #include <ctime>
 #include <memory>
@@ -79,5 +78,3 @@ inline void DateFieldEncoder::Encode(fieldid_t fieldId, const std::string& field
 }
 
 } // namespace indexlib::common
-
-#endif //__INDEXLIB_DATE_FIELD_ENCODER_H

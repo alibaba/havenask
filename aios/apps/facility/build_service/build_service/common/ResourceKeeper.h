@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RESOURCEKEEPER_H
-#define ISEARCH_BS_RESOURCEKEEPER_H
+#pragma once
+
+#include <assert.h>
+#include <string>
+#include <unordered_map>
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/proto/WorkerNode.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace common {
 
 class ResourceKeeper;
+
 BS_TYPEDEF_PTR(ResourceKeeper);
 
 class ResourceKeeper : public autil::legacy::Jsonizable
@@ -86,5 +89,3 @@ BS_TYPEDEF_PTR(ResourceKeeper);
 typedef std::unordered_map<std::string, ResourceKeeperPtr> ResourceKeeperMap;
 BS_TYPEDEF_PTR(ResourceKeeperMap);
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_RESOURCEKEEPER_H

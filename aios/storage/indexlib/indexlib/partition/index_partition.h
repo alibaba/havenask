@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_INDEX_PARTITION_H
-#define __INDEXLIB_PARTITION_INDEX_PARTITION_H
+#pragma once
 
 #include <memory>
 
@@ -102,10 +101,10 @@ public:
 public:
     virtual OpenStatus Open(const std::string& primaryDir, const std::string& secondaryDir,
                             const config::IndexPartitionSchemaPtr& schema, const config::IndexPartitionOptions& options,
-                            versionid_t versionId = INVALID_VERSION);
+                            versionid_t versionId = INVALID_VERSIONID);
 
-    // reopenVersionId = INVALID_VERSION, will use ondisk newest version
-    virtual OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSION) = 0;
+    // reopenVersionId = INVALID_VERSIONID, will use ondisk newest version
+    virtual OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSIONID) = 0;
 
     virtual void ReOpenNewSegment() = 0;
 
@@ -281,5 +280,3 @@ private:
 
 DEFINE_SHARED_PTR(IndexPartition);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITION_INDEX_PARTITION_H

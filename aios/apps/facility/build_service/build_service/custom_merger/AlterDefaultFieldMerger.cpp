@@ -15,12 +15,30 @@
  */
 #include "build_service/custom_merger/AlterDefaultFieldMerger.h"
 
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <unistd.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "build_service/custom_merger/CustomMerger.h"
 #include "build_service/custom_merger/MergeResourceProvider.h"
-#include "fslib/util/FileUtil.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_config.h"
 #include "indexlib/config/schema_differ.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/index/normal/attribute/accessor/attribute_data_iterator.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/partition/remote_access/attribute_data_seeker.h"
+#include "indexlib/partition/remote_access/index_data_patcher.h"
+#include "indexlib/partition/remote_access/partition_patcher.h"
 
 using namespace std;
 using namespace autil;

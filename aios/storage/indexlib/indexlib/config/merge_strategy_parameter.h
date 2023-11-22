@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_STRATEGY_PARAMETER_H
-#define __INDEXLIB_MERGE_STRATEGY_PARAMETER_H
+#pragma once
 
 #include <memory>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -43,10 +42,8 @@ public:
     std::string outputLimitParam;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(MergeStrategyParameter);
+typedef std::shared_ptr<MergeStrategyParameter> MergeStrategyParameterPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_MERGE_STRATEGY_PARAMETER_H

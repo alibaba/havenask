@@ -15,8 +15,15 @@
  */
 #include "indexlib/merger/merge_task_item.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
-#include "indexlib/util/Exception.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
 
 using namespace std;
 using namespace autil;

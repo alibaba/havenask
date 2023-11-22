@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCKMERGETASKITEMCREATOR_H
-#define __INDEXLIB_MOCKMERGETASKITEMCREATOR_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_merger.h"
@@ -48,5 +47,3 @@ public:
     index::IndexMergerPtr fakeIndexMerger;
 };
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MOCKMERGETASKITEMCREATOR_H

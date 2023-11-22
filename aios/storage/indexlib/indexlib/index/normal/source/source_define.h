@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SOURCE_DEFINE_H
-#define __INDEXLIB_SOURCE_DEFINE_H
+#pragma once
 
 #include <memory>
 
@@ -30,11 +29,9 @@ public:
     ~SourceDefine();
 
 public:
-    static std::string GetDataDir(groupid_t groupId);
+    static std::string GetDataDir(sourcegroupid_t groupId);
 
 private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SOURCE_DEFINE_H

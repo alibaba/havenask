@@ -53,7 +53,7 @@
         {
         "partition_cnt":
           4,
-        "table_group_name":
+        "node_name":
           "biz_order_buyer"
         },
       "op_id":
@@ -277,7 +277,7 @@
         {
         "partition_cnt":
           4,
-        "table_group_name":
+        "node_name":
           "biz_order_buyer"
         },
       "offset":
@@ -429,7 +429,7 @@
             "default.biz_order_buyer.biz_order_buyer.biz_order_id"
           }
         },
-      "table_group_name":
+      "node_name":
         "biz_order_buyer"
       },
     "id":
@@ -459,7 +459,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "offset":
@@ -534,7 +534,7 @@
         {
         "partition_cnt":
           4,
-        "table_group_name":
+        "node_name":
           "biz_order_buyer_his"
         },
       "op_id":
@@ -758,7 +758,7 @@
         {
         "partition_cnt":
           4,
-        "table_group_name":
+        "node_name":
           "biz_order_buyer_his"
         },
       "offset":
@@ -910,7 +910,7 @@
             "default.biz_order_buyer_his.biz_order_buyer_his.biz_order_id"
           }
         },
-      "table_group_name":
+      "node_name":
         "biz_order_buyer_his"
       },
     "id":
@@ -940,7 +940,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "offset":
@@ -995,7 +995,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "op_id":
@@ -1106,7 +1106,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "op_id":
@@ -1173,7 +1173,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "offset":
@@ -1224,7 +1224,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "op_id":
@@ -1339,7 +1339,7 @@
         "type":
           "SINGLETON"
         },
-      "table_group_name":
+      "node_name":
         "qrs"
       },
     "id":
@@ -2366,7 +2366,7 @@
         {
         "partition_cnt":
           4,
-        "table_group_name":
+        "node_name":
           "biz_order_buyer"
         },
       "op_id":
@@ -2869,7 +2869,7 @@
         "type":
           "HASH_DISTRIBUTED"
         },
-      "table_group_name":
+      "node_name":
         "biz_order_buyer"
       },
     "id":
@@ -3892,7 +3892,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "op_id":
@@ -4216,7 +4216,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "op_id":
@@ -5427,7 +5427,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "op_id":
@@ -5596,7 +5596,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "op_id":
@@ -5770,7 +5770,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "offset":
@@ -5815,7 +5815,7 @@
         {
         "partition_cnt":
           1,
-        "table_group_name":
+        "node_name":
           "qrs"
         },
       "op_id":

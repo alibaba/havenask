@@ -75,13 +75,15 @@ WriteDone::~WriteDone() {
                                          _metricsReporter);
     } else if (_metricsReporter) {
         MetricsTags baseTags = {{{kQueryType, kWrite}, {kTableName, _request->tablename()}}};
+        auto reporter = _metricsReporter->getSubReporter("", baseTags);
         int64_t latency = TimeUtility::currentTime() - _startTime;
-        _metricsReporter->report(latency, kLatency, kmonitor::GAUGE, &baseTags);
-        _metricsReporter->report(1, kQps, kmonitor::QPS, &baseTags);
+        reporter->report(latency, kLatency, kmonitor::GAUGE, nullptr);
+        reporter->report(1, kQps, kmonitor::QPS, nullptr);
     }
     _accessLog->collectResponse(_response);
     _rpcDone->Run();
 }
+
 void WriteDone::run(Result<WriteResult> result, vector<int> docList) {
     unique_lock<mutex> lock(_mu);
     if (result.is_ok()) {

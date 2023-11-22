@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCUMENTRECLAIMERTEST_H
-#define __INDEXLIB_DOCUMENTRECLAIMERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/deploy_index_wrapper.h"
@@ -71,5 +70,3 @@ INDEXLIB_UNIT_TEST_CASE(DocumentReclaimerTest, TestReopenReclaimSegment);
 INDEXLIB_UNIT_TEST_CASE(DocumentReclaimerTest, testReclaimOldTTLDoc);
 INDEXLIB_UNIT_TEST_CASE(DocumentReclaimerTest, testSearchTermFailInAndQuery);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_DOCUMENTRECLAIMERTEST_H

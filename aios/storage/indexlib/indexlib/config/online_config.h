@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ONLINE_CONFIG_H
-#define __INDEXLIB_ONLINE_CONFIG_H
+#pragma once
 
 #include <memory>
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/index_dictionary_bloom_filter_param.h"
 #include "indexlib/config/online_config_base.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
-DECLARE_REFERENCE_CLASS(config, DisableFieldsConfig);
-DECLARE_REFERENCE_CLASS(config, OnlineConfigImpl);
-DECLARE_REFERENCE_CLASS(file_system, LoadConfig);
+namespace indexlib::config {
+class DisableFieldsConfig;
+typedef std::shared_ptr<DisableFieldsConfig> DisableFieldsConfigPtr;
+} // namespace indexlib::config
+namespace indexlib::config {
+class OnlineConfigImpl;
+typedef std::shared_ptr<OnlineConfigImpl> OnlineConfigImplPtr;
+} // namespace indexlib::config
+namespace indexlib::file_system {
+class LoadConfig;
+typedef std::shared_ptr<LoadConfig> LoadConfigPtr;
+} // namespace indexlib::file_system
 
 namespace indexlib::file_system {
 class LifecycleConfig;
@@ -105,14 +113,14 @@ public:
                                               const std::vector<std::string>& packAttrs,
                                               const bool disableSummaryField = false,
                                               const bool disableSourceField = false,
-                                              const std::vector<index::groupid_t>& disableSourceGroupIds = {});
+                                              const std::vector<index::sourcegroupid_t>& disableSourceGroupIds = {});
 
     static LoadConfig CreateDisableLoadConfig(const std::string& name, const std::set<std::string>& indexes,
                                               const std::set<std::string>& attributes,
                                               const std::set<std::string>& packAttrs,
                                               const bool disableSummaryField = false,
                                               const bool disableSourceField = false,
-                                              const std::vector<index::groupid_t>& disableSourceGroupIds = {});
+                                              const std::vector<index::sourcegroupid_t>& disableSourceGroupIds = {});
 
 public:
     // interface for test
@@ -125,10 +133,8 @@ private:
     OnlineConfigImplPtr mImpl;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(OnlineConfig);
+typedef std::shared_ptr<OnlineConfig> OnlineConfigPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_ONLINE_CONFIG_H

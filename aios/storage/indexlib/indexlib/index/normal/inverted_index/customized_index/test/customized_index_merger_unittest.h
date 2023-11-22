@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CUSTOMIZEDINDEXMERGERTEST_H
-#define __INDEXLIB_CUSTOMIZEDINDEXMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/inverted_index/customized_index/customized_index_merger.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(CustomizedIndexMergerTest, TestMultiOutputSegment);
 INDEXLIB_UNIT_TEST_CASE(CustomizedIndexMergerTest, TestParallelReduceMeta);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_CUSTOMIZEDINDEXMERGERTEST_H

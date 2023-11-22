@@ -15,13 +15,19 @@
  */
 #pragma once
 
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
 #include "autil/Lock.h"
 #include "build_service/admin/CheckpointMetricReporter.h"
 #include "build_service/admin/CheckpointSynchronizer.h"
+#include "build_service/admin/ClusterCheckpointSynchronizer.h"
 #include "build_service/common/Checkpoint.h"
 #include "build_service/common/CheckpointAccessor.h"
-#include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 #include "indexlib/framework/VersionMeta.h"
 

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_METRICS_RESULT_H
-#define __INDEXLIB_METRICS_RESULT_H
+#pragma once
 
 #include <memory>
 
@@ -42,5 +41,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionMetrics);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_METRICS_RESULT_H

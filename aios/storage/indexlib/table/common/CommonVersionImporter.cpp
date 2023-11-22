@@ -53,6 +53,14 @@ Status CommonVersionImporter::Check(const std::vector<framework::Version>& versi
             return Status::InvalidArgs();
         }
     }
+    for (const auto& version : versions) {
+        if (baseVersion->GetSchemaId() != version.GetSchemaId()) {
+            AUTIL_LOG(WARN, "version [%d] schema id [%u] more than base version [%d] schema id [%u]",
+                      version.GetVersionId(), version.GetSchemaId(), baseVersion->GetVersionId(),
+                      baseVersion->GetSchemaId());
+            return Status::OK();
+        }
+    }
 
     for (const auto& version : versions) {
         bool allSegmentImported = true;

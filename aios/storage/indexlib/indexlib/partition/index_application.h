@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_APPLICATION_H
-#define __INDEXLIB_INDEX_APPLICATION_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -134,5 +133,3 @@ private:
 
 DEFINE_SHARED_PTR(IndexApplication);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INDEX_APPLICATION_H

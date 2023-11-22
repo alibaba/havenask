@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TOKENIZERCONFIG_H
-#define ISEARCH_BS_TOKENIZERCONFIG_H
+#pragma once
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/plugin/ModuleInfo.h"
@@ -91,5 +90,3 @@ private:
 BS_TYPEDEF_PTR(TokenizerConfig);
 
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_TOKENIZERCONFIG_H

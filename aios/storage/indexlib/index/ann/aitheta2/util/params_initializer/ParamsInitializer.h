@@ -30,18 +30,15 @@ public:
     static bool InitAiThetaMeta(const AithetaIndexConfig& config, AiThetaMeta& meta);
 
 public:
-    virtual bool InitSearchParams(const AithetaIndexConfig& config, AiThetaParams& params);
-    virtual bool InitBuildParams(const AithetaIndexConfig& config, AiThetaParams& params);
-    virtual bool InitRealtimeParams(const AithetaIndexConfig& config, AiThetaParams& params);
+    virtual bool InitNormalSearchParams(const AithetaIndexConfig& config, AiThetaParams& params);
+    virtual bool InitNormalBuildParams(const AithetaIndexConfig& config, AiThetaParams& params);
+    virtual bool InitRealtimeBuildParams(const AithetaIndexConfig& config, AiThetaParams& params, bool hasMultiIndex);
+    virtual bool InitRealtimeSearchParams(const AithetaIndexConfig& config, AiThetaParams& params);
 
 protected:
-    static bool ParseValue(const std::string& value, AiThetaParams& params, bool isOffline);
-    static void UpdateCentriodCount(uint64_t docCount, const std::string& paramName, AiThetaParams& params);
+    static bool ParseValue(const std::string& value, AiThetaParams& params, bool isOffline = false);
     static void UpdateScanRatio(uint64_t docCount, const std::string& paramName, AiThetaParams& params,
                                 uint64_t scanCount);
-
-protected:
-    static std::string CalcCentriodCount(const AiThetaParams& params, uint64_t count);
     static void UpdateAiThetaParamsKey(AiThetaParams& params);
 
 private:

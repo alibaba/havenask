@@ -82,6 +82,7 @@ public:
     int64_t GetSliceCount() const;
     int64_t GetSliceIdx() const;
     std::string GetSliceDir() const;
+    size_t GetSliceLen() const;
 
 public:
     // Write
@@ -92,6 +93,7 @@ public:
     void SetFileCompressConfigV2(const std::shared_ptr<config::FileCompressConfigV2>& fileCompressConfigV2);
     void SetU32OffsetThreshold(uint64_t offsetThreshold);
     void SetDefragSlicePercent(uint64_t percent);
+    void TEST_SetSliceLen(size_t sliceLen);
     void Disable();
     Status Delete();
     std::vector<std::shared_ptr<AttributeConfig>> CreateSliceAttributeConfigs(int64_t sliceCount);

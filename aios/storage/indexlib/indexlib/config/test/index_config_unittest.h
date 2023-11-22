@@ -1,10 +1,9 @@
-#ifndef __INDEXLIB_INDEXCONFIGTEST_H
-#define __INDEXLIB_INDEXCONFIGTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/index_config.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/file_system/IDirectory.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -31,7 +30,8 @@ private:
     void GenerateTruncateMetaFile(uint32_t lineNum, std::string fileName, uint32_t repeatNum = 1);
 
 private:
-    IE_LOG_DECLARE();
+    std::shared_ptr<file_system::IDirectory> mRootDir;
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(IndexConfigTest, TestCaseForIsTruncateTerm);
@@ -42,5 +42,3 @@ INDEXLIB_UNIT_TEST_CASE(IndexConfigTest, TestCaseForReferenceCompressFail);
 INDEXLIB_UNIT_TEST_CASE(IndexConfigTest, TestGetIndexNameFromShardingIndexName);
 INDEXLIB_UNIT_TEST_CASE(IndexConfigTest, TestCaseForUpdatableIndex);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_INDEXCONFIGTEST_H

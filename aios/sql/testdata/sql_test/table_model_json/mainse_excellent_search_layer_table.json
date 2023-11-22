@@ -1,0 +1,28 @@
+{
+  "layer_tables": [
+    {
+      "catalog_name": "default",
+      "database_name": "mainse_excellent_search",
+      "layer_table_name": "mainse_excellent_item_feature",
+      "content": {
+        "layer_table_name": "mainse_excellent_item_feature",
+        "layer_format": [
+          {
+            "field_name":"is_online",
+            "layer_method":"grouping",
+            "value_type": "int"
+          }
+        ],
+        "layers": [
+          {
+            "database_name": "mainse_excellent_item_feature",
+            "table_name": "mainse_excellent_item_feature",
+            "layer_info": {
+              "is_online": [1]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

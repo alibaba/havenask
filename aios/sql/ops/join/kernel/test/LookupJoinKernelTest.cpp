@@ -34,9 +34,9 @@
 #include "navi/log/NaviLoggerProvider.h"
 #include "navi/tester/KernelTester.h"
 #include "navi/tester/KernelTesterBuilder.h"
-#include "sql/common/IndexInfo.h"
 #include "sql/data/TableData.h"
-#include "sql/framework/PushDownOp.h"
+#include "sql/ops/join/LookupNormalR.h"
+#include "sql/ops/join/LookupR.h"
 #include "sql/ops/test/OpTestBase.h"
 #include "suez/turing/navi/QueryMemPoolR.h"
 #include "table/Column.h"
@@ -402,8 +402,7 @@ private:
             _allocator, leftDocs, "ids", {multiIds}));
         IF_FAILURE_RET_NULL(
             _matchDocUtil.extendMatchDocAllocator<int32_t>(_allocator, leftDocs, "docid", {2}));
-        TablePtr table(new Table(leftDocs, _allocator));
-        return table;
+        return Table::fromMatchDocs(leftDocs, _allocator);
     }
 
     void checkOutput(const vector<string> &expect, DataPtr data, const string &field) {
@@ -660,7 +659,6 @@ void LookupJoinKernelTest::testSingleValJoinRightInputIsEmptyFunc(const string &
     ASSERT_TRUE(outputTable != NULL);
     TablePtr leftInputTable = getTable(leftTable);
     ASSERT_TRUE(leftInputTable);
-    checkDependentTable(leftInputTable, outputTable);
     ASSERT_EQ(5, outputTable->getColumnCount());
     ASSERT_EQ(0, outputTable->getRowCount());
     checkOutput({}, odata, "fid");
@@ -710,7 +708,6 @@ void LookupJoinKernelTest::testSingleValJoinRightScanIsEmptyFunc(const string &h
     ASSERT_EQ(0, outputTable->getRowCount());
     TablePtr leftInputTable = getTable(leftTable);
     ASSERT_TRUE(leftInputTable);
-    checkDependentTable(leftInputTable, outputTable);
 
     checkOutput({}, odata, "fid");
     checkOutput({}, odata, "path");
@@ -853,7 +850,6 @@ void LookupJoinKernelTest::testSingleValJoinLeftWithBatchLimit1Func(const string
     }
     TablePtr inputTable = getTable(rightTable);
     ASSERT_TRUE(inputTable);
-    checkDependentTable(inputTable, outputTable);
 }
 
 TEST_F(LookupJoinKernelTest, testSingleValJoinLeftWithBatchLimit1) {
@@ -948,7 +944,6 @@ void LookupJoinKernelTest::testSingleValJoinLeftWithLimit1Func(const string &hin
     }
     TablePtr inputTable = getTable(rightTable);
     ASSERT_TRUE(inputTable);
-    checkDependentTable(inputTable, outputTable);
 }
 
 TEST_F(LookupJoinKernelTest, testSingleValJoinLeftWithLimit1) {
@@ -1024,9 +1019,11 @@ void LookupJoinKernelTest::testCacheDisableHintsFunc(const string &hint) {
     auto rightTable = createTable(_allocator, docs);
     auto tablePtr = dynamic_pointer_cast<TableData>(rightTable)->getTable();
     auto lookupJoinKernel = dynamic_cast<LookupJoinKernel *>(testerPtr->getKernel());
-    ASSERT_TRUE(lookupJoinKernel->_useMatchedRow);
+    auto *lookupNormalR = dynamic_cast<LookupNormalR *>(lookupJoinKernel->_lookupR);
+    ASSERT_TRUE(lookupNormalR != nullptr);
+    ASSERT_TRUE(lookupNormalR->_useMatchedRow);
     auto tableQueryPtr = dynamic_pointer_cast<isearch::common::TableQuery>(
-        lookupJoinKernel->genTableQuery({tablePtr, 0, 2}));
+        lookupNormalR->genTableQuery({tablePtr, 0, 2}));
     ASSERT_TRUE(tableQueryPtr.get());
     auto colVec = tableQueryPtr->getTermArray();
     ASSERT_EQ(colVec.size(), 2);
@@ -1059,9 +1056,11 @@ void LookupJoinKernelTest::testCacheDisableHints2Func(const string &hint) {
     auto rightTable = createTable(_allocator, docs);
     auto tablePtr = dynamic_pointer_cast<TableData>(rightTable)->getTable();
     auto lookupJoinKernel = dynamic_cast<LookupJoinKernel *>(testerPtr->getKernel());
-    ASSERT_TRUE(lookupJoinKernel->_useMatchedRow);
+    auto *lookupNormalR = dynamic_cast<LookupNormalR *>(lookupJoinKernel->_lookupR);
+    ASSERT_TRUE(lookupNormalR != nullptr);
+    ASSERT_TRUE(lookupNormalR->_useMatchedRow);
     auto tableQueryPtr = dynamic_pointer_cast<isearch::common::TableQuery>(
-        lookupJoinKernel->genTableQuery({tablePtr, 0, 2}));
+        lookupNormalR->genTableQuery({tablePtr, 0, 2}));
     ASSERT_TRUE(tableQueryPtr.get());
     auto colVec = tableQueryPtr->getTermArray();
     ASSERT_EQ(colVec.size(), 2);
@@ -1094,9 +1093,11 @@ void LookupJoinKernelTest::testSingleValueRowDeduplicateHintsFunc(const string &
     auto rightTable = createTable(_allocator, docs);
     auto tablePtr = dynamic_pointer_cast<TableData>(rightTable)->getTable();
     auto lookupJoinKernel = dynamic_cast<LookupJoinKernel *>(testerPtr->getKernel());
-    ASSERT_TRUE(lookupJoinKernel->_useMatchedRow);
+    auto *lookupNormalR = dynamic_cast<LookupNormalR *>(lookupJoinKernel->_lookupR);
+    ASSERT_TRUE(lookupNormalR != nullptr);
+    ASSERT_TRUE(lookupNormalR->_useMatchedRow);
     auto tableQueryPtr = dynamic_pointer_cast<isearch::common::TableQuery>(
-        lookupJoinKernel->genTableQuery({tablePtr, 0, 6}));
+        lookupNormalR->genTableQuery({tablePtr, 0, 6}));
     ASSERT_TRUE(tableQueryPtr.get());
     auto colVec = tableQueryPtr->getTermArray();
     ASSERT_EQ(colVec.size(), 2);
@@ -1147,9 +1148,11 @@ void LookupJoinKernelTest::testMulitiValueRowDeduplicateHintsFunc(const string &
     auto rightTable = createTable(_allocator, leftDocs);
     auto tablePtr = dynamic_pointer_cast<TableData>(rightTable)->getTable();
     auto lookupJoinKernel = dynamic_cast<LookupJoinKernel *>(testerPtr->getKernel());
-    ASSERT_TRUE(lookupJoinKernel->_useMatchedRow);
+    auto *lookupNormalR = dynamic_cast<LookupNormalR *>(lookupJoinKernel->_lookupR);
+    ASSERT_TRUE(lookupNormalR != nullptr);
+    ASSERT_TRUE(lookupNormalR->_useMatchedRow);
     auto tableQueryPtr = dynamic_pointer_cast<isearch::common::TableQuery>(
-        lookupJoinKernel->genTableQuery({tablePtr, 0, 3}));
+        lookupNormalR->genTableQuery({tablePtr, 0, 3}));
     ASSERT_TRUE(tableQueryPtr.get());
     auto colVec = tableQueryPtr->getTermArray();
     ASSERT_EQ(colVec.size(), 3);
@@ -1197,9 +1200,11 @@ void LookupJoinKernelTest::testSingleValueRowDeduplicateHintsForSingleColumnFunc
     auto rightTable = createTable(_allocator, docs);
     auto tablePtr = dynamic_pointer_cast<TableData>(rightTable)->getTable();
     auto lookupJoinKernel = dynamic_cast<LookupJoinKernel *>(testerPtr->getKernel());
-    ASSERT_TRUE(lookupJoinKernel->_useMatchedRow);
+    auto *lookupNormalR = dynamic_cast<LookupNormalR *>(lookupJoinKernel->_lookupR);
+    ASSERT_TRUE(lookupNormalR != nullptr);
+    ASSERT_TRUE(lookupNormalR->_useMatchedRow);
     auto tableQueryPtr = dynamic_pointer_cast<isearch::common::TableQuery>(
-        lookupJoinKernel->genTableQuery({tablePtr, 0, 6}));
+        lookupNormalR->genTableQuery({tablePtr, 0, 6}));
     ASSERT_TRUE(tableQueryPtr.get());
     auto colVec = tableQueryPtr->getTermArray();
     ASSERT_EQ(colVec.size(), 1);
@@ -1235,9 +1240,11 @@ void LookupJoinKernelTest::testMulitiValueRowDeduplicateHintsForSingleColumnFunc
     auto rightTable = createTable(_allocator, leftDocs);
     auto tablePtr = dynamic_pointer_cast<TableData>(rightTable)->getTable();
     auto lookupJoinKernel = dynamic_cast<LookupJoinKernel *>(testerPtr->getKernel());
-    ASSERT_TRUE(lookupJoinKernel->_useMatchedRow);
+    auto *lookupNormalR = dynamic_cast<LookupNormalR *>(lookupJoinKernel->_lookupR);
+    ASSERT_TRUE(lookupNormalR != nullptr);
+    ASSERT_TRUE(lookupNormalR->_useMatchedRow);
     auto tableQueryPtr = dynamic_pointer_cast<isearch::common::TableQuery>(
-        lookupJoinKernel->genTableQuery({tablePtr, 0, 3}));
+        lookupNormalR->genTableQuery({tablePtr, 0, 3}));
     ASSERT_TRUE(tableQueryPtr.get());
     auto colVec = tableQueryPtr->getTermArray();
     ASSERT_EQ(colVec.size(), 1);
@@ -1803,7 +1810,6 @@ void LookupJoinKernelTest::testLeftJoinFunc(const string &hint) {
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn(outputTable, "group", {"groupA", "groupB", ""}));
     TablePtr inputTable = getTable(leftTable);
     ASSERT_TRUE(inputTable);
-    checkDependentTable(inputTable, outputTable);
 }
 
 TEST_F(LookupJoinKernelTest, testLeftJoin) {
@@ -2169,77 +2175,6 @@ TEST_F(LookupJoinKernelTest, testNumberJoinRightIsBuild) {
     }
 }
 
-TEST_F(LookupJoinKernelTest, testGetDocidField_fieldSizeError) {
-    string ret;
-    ASSERT_FALSE(LookupJoinKernel::getDocIdField({}, {}, ret));
-}
-
-TEST_F(LookupJoinKernelTest, testGetDocidField_FieldNotInnerDocId) {
-    string ret;
-    ASSERT_FALSE(LookupJoinKernel::getDocIdField({"a"}, {"b"}, ret));
-}
-
-TEST_F(LookupJoinKernelTest, testGetDocidField) {
-    string ret;
-    ASSERT_TRUE(LookupJoinKernel::getDocIdField({"a"}, {string(INNER_DOCID_FIELD_NAME)}, ret));
-    ASSERT_EQ("a", ret);
-
-    LookupJoinKernel kernel;
-    kernel._leftJoinColumns = {INNER_DOCID_FIELD_NAME};
-    kernel._rightJoinColumns = {"a"};
-    kernel._leftTableIndexed = true;
-    ASSERT_TRUE(kernel.getDocIdField(kernel._rightJoinColumns, kernel._leftJoinColumns, ret));
-    ASSERT_EQ("a", ret);
-    kernel._leftTableIndexed = false;
-    ASSERT_FALSE(kernel.getDocIdField(kernel._leftJoinColumns, kernel._rightJoinColumns, ret));
-
-    kernel._leftJoinColumns = {"a"};
-    kernel._rightJoinColumns = {INNER_DOCID_FIELD_NAME};
-    ASSERT_TRUE(kernel.getDocIdField(kernel._leftJoinColumns, kernel._rightJoinColumns, ret));
-    ASSERT_EQ("a", ret);
-}
-
-TEST_F(LookupJoinKernelTest, testGenDocids_ColumnNotFound) {
-    navi::NaviLoggerProvider provider("WARN");
-    TablePtr input = prepareTable();
-    vector<docid_t> docIds;
-    ASSERT_FALSE(LookupJoinKernel::genDocIds({input, 2, 3}, "a", docIds));
-    CHECK_TRACE_COUNT(1, "invalid join column name [a]", provider.getTrace(""));
-}
-
-TEST_F(LookupJoinKernelTest, testGenDocids_joinTypeNotSupport) {
-    navi::NaviLoggerProvider provider("WARN");
-    TablePtr input = prepareTable();
-    vector<docid_t> docIds;
-    ASSERT_FALSE(LookupJoinKernel::genDocIds({input, 2, 3}, "fid", docIds));
-    CHECK_TRACE_COUNT(1, "inner docid join only support int32_t", provider.getTrace(""));
-}
-
-TEST_F(LookupJoinKernelTest, testGenDocids_joinTypeNotSupport2) {
-    navi::NaviLoggerProvider provider("WARN");
-    TablePtr input = prepareTable();
-    vector<docid_t> docIds;
-    ASSERT_FALSE(LookupJoinKernel::genDocIds({input, 2, 3}, "ids", docIds));
-    CHECK_TRACE_COUNT(1, "inner docid join only support int32_t", provider.getTrace(""));
-}
-
-TEST_F(LookupJoinKernelTest, testGenDocids_Empty) {
-    navi::NaviLoggerProvider provider("WARN");
-    TablePtr input = prepareTable();
-    vector<docid_t> docIds;
-    ASSERT_TRUE(LookupJoinKernel::genDocIds({input, 1, 0}, "docid", docIds));
-    ASSERT_TRUE(docIds.empty());
-}
-
-TEST_F(LookupJoinKernelTest, testGenDocids_Success) {
-    navi::NaviLoggerProvider provider;
-    TablePtr input = prepareTable();
-    vector<docid_t> docIds;
-    ASSERT_TRUE(LookupJoinKernel::genDocIds({input, 0, 1}, "docid", docIds));
-    vector<docid_t> expected = {2};
-    ASSERT_EQ(expected, docIds);
-}
-
 TEST_F(LookupJoinKernelTest, testDocIds_Join) {
     prepareAttribute();
     _attributeMap["equi_condition"] = _attributeMap["condition"]
@@ -2281,7 +2216,9 @@ TEST_F(LookupJoinKernelTest, testDocIds_Join) {
     vector<string> aid = {"0", "3"};
     ASSERT_NO_FATAL_FAILURE(checkOutput(aid, odata, "aid"));
     auto lookupJoinKernel = dynamic_cast<LookupJoinKernel *>(testerPtr->getKernel());
-    ASSERT_FALSE(lookupJoinKernel->_useMatchedRow);
+    auto *lookupNormalR = dynamic_cast<LookupNormalR *>(lookupJoinKernel->_lookupR);
+    ASSERT_TRUE(lookupNormalR != nullptr);
+    ASSERT_FALSE(lookupNormalR->_useMatchedRow);
 }
 
 TEST_F(LookupJoinKernelTest, testDocidsJoin_ReuseInput) {
@@ -2330,7 +2267,9 @@ TEST_F(LookupJoinKernelTest, testDocidsJoin_ReuseInput) {
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(getTable(leftTable), "fid", {0, 1}));
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn(getTable(leftTable), "path", {"/a", "/a/b"}));
         auto lookupJoinKernel = dynamic_cast<LookupJoinKernel *>(testerPtr->getKernel());
-        ASSERT_FALSE(lookupJoinKernel->_useMatchedRow);
+        auto *lookupNormalR = dynamic_cast<LookupNormalR *>(lookupJoinKernel->_lookupR);
+        ASSERT_TRUE(lookupNormalR != nullptr);
+        ASSERT_FALSE(lookupNormalR->_useMatchedRow);
     }
 
     // reuse input
@@ -2379,7 +2318,9 @@ TEST_F(LookupJoinKernelTest, testDocidsJoin_ReuseInput) {
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(getTable(leftTable), "fid", {0, 1}));
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn(getTable(leftTable), "path", {"/a", "/a/b"}));
         auto lookupJoinKernel = dynamic_cast<LookupJoinKernel *>(testerPtr->getKernel());
-        ASSERT_FALSE(lookupJoinKernel->_useMatchedRow);
+        auto *lookupNormalR = dynamic_cast<LookupNormalR *>(lookupJoinKernel->_lookupR);
+        ASSERT_TRUE(lookupNormalR != nullptr);
+        ASSERT_FALSE(lookupNormalR->_useMatchedRow);
     }
 }
 
@@ -2593,123 +2534,6 @@ TEST_F(LookupJoinKernelStringPKTest, testPKJoin2) {
                           R"json({"JOIN_ATTR":{"lookupEnableRowDeduplicate":"yes"}})json"};
     for (const auto &hint : hints) {
         testPKJoin2Func(hint);
-    }
-}
-
-TEST_F(LookupJoinKernelTest, testSelectValidField) {
-    TablePtr input = prepareTable();
-    vector<string> inputFields;
-    vector<string> joinFields;
-    bool ret = LookupJoinKernel::selectValidField(input, inputFields, joinFields, false);
-    ASSERT_TRUE(ret);
-    ASSERT_EQ(inputFields.size(), joinFields.size());
-
-    vector<string> expectInput = {"fid", "path"};
-    vector<string> expectJoin = {"a", "b", "c"};
-    inputFields = expectInput;
-    joinFields = expectJoin;
-    ret = LookupJoinKernel::selectValidField(input, inputFields, joinFields, false);
-    ASSERT_TRUE(ret);
-    ASSERT_EQ(inputFields.size(), joinFields.size());
-    ASSERT_EQ(expectInput[0], inputFields[1]);
-    ASSERT_EQ(expectInput[1], inputFields[0]);
-    ASSERT_EQ(expectJoin[0], joinFields[1]);
-    ASSERT_EQ(expectJoin[1], joinFields[0]);
-
-    inputFields = expectInput;
-    joinFields = expectJoin;
-    ret = LookupJoinKernel::selectValidField(input, inputFields, joinFields, true);
-    ASSERT_TRUE(ret);
-    ASSERT_EQ(inputFields.size(), joinFields.size());
-    ASSERT_EQ(expectInput[0], inputFields[0]);
-    ASSERT_EQ(expectInput[1], inputFields[1]);
-    ASSERT_EQ(expectJoin[0], joinFields[0]);
-    ASSERT_EQ(expectJoin[1], joinFields[1]);
-}
-
-TEST_F(LookupJoinKernelTest, testGenStreamQueryTerm) {
-    TablePtr input = prepareTable();
-    vector<string> termVec;
-    Row row;
-    row.docid = 0;
-    row.index = 0;
-    string field = "fid";
-    bool ret = LookupJoinKernel::genStreamQueryTerm(input, row, field, termVec);
-    ASSERT_TRUE(ret);
-    ASSERT_FALSE(termVec.empty());
-    ASSERT_EQ("1", termVec[0]);
-    termVec.clear();
-
-    string mfield = "ids";
-    ret = LookupJoinKernel::genStreamQueryTerm(input, row, mfield, termVec);
-    ASSERT_TRUE(ret);
-    ASSERT_FALSE(termVec.empty());
-    ASSERT_EQ("1", termVec[0]);
-    ASSERT_EQ("2", termVec[1]);
-    termVec.clear();
-}
-
-TEST_F(LookupJoinKernelTest, testGetPkTriggerField) {
-    vector<string> inputFields = {"t1", "t2", "t3"};
-    vector<string> joinFields = {"f1", "f2", "f3", "f4"};
-    map<string, sql::IndexInfo> indexInfoMap;
-    string expectField = "null";
-    string triggerField = expectField;
-    indexInfoMap["pk1"] = sql::IndexInfo("f1", "long");
-    indexInfoMap["pk2"] = sql::IndexInfo("ff2", "primary_key");
-    indexInfoMap["pk3"] = sql::IndexInfo("f4", "primarykey128");
-    bool ret
-        = LookupJoinKernel::getPkTriggerField(inputFields, joinFields, indexInfoMap, triggerField);
-    ASSERT_FALSE(ret);
-    ASSERT_EQ(expectField, triggerField);
-
-    indexInfoMap["pk2"] = sql::IndexInfo("f2", "primarykey64");
-    ret = LookupJoinKernel::getPkTriggerField(inputFields, joinFields, indexInfoMap, triggerField);
-    ASSERT_TRUE(ret);
-    ASSERT_NE(expectField, triggerField);
-    ASSERT_EQ("t2", triggerField);
-}
-
-TEST_F(LookupJoinKernelTest, testDocIdsJoin) {
-    vector<MatchDoc> leftDocs = _matchDocUtil.createMatchDocs(_allocator, 4);
-    auto leftData = createTable(_allocator, leftDocs);
-    auto leftTable = getTable(leftData);
-    vector<MatchDoc> rightDocs = _matchDocUtil.createMatchDocs(_allocator, 2);
-    auto rightData = createTable(_allocator, rightDocs);
-    auto rightTable = getTable(rightData);
-    {
-        LookupJoinKernel kernel;
-        ASSERT_TRUE(kernel.docIdsJoin({leftTable, 0, 2}, rightTable));
-        ASSERT_EQ(2, kernel._tableAIndexes.size());
-        ASSERT_EQ(0, kernel._tableAIndexes[0]);
-        ASSERT_EQ(1, kernel._tableAIndexes[1]);
-
-        ASSERT_EQ(2, kernel._tableBIndexes.size());
-        ASSERT_EQ(0, kernel._tableBIndexes[0]);
-        ASSERT_EQ(1, kernel._tableBIndexes[1]);
-    }
-    {
-        LookupJoinKernel kernel;
-        ASSERT_TRUE(kernel.docIdsJoin({leftTable, 1, 2}, rightTable));
-        ASSERT_EQ(2, kernel._tableAIndexes.size());
-        ASSERT_EQ(1, kernel._tableAIndexes[0]);
-        ASSERT_EQ(2, kernel._tableAIndexes[1]);
-
-        ASSERT_EQ(2, kernel._tableBIndexes.size());
-        ASSERT_EQ(0, kernel._tableBIndexes[0]);
-        ASSERT_EQ(1, kernel._tableBIndexes[1]);
-    }
-    {
-        LookupJoinKernel kernel;
-        ASSERT_FALSE(kernel.docIdsJoin({leftTable, 0, 3}, rightTable));
-    }
-    {
-        LookupJoinKernel kernel;
-        ASSERT_TRUE(kernel.docIdsJoin({leftTable, 2, 2}, rightTable));
-    }
-    {
-        LookupJoinKernel kernel;
-        ASSERT_FALSE(kernel.docIdsJoin({leftTable, 3, 1}, rightTable));
     }
 }
 

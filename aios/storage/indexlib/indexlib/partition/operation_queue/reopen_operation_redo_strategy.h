@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_REOPEN_OPERATION_REDO_STRATEGY_H
-#define __INDEXLIB_REOPEN_OPERATION_REDO_STRATEGY_H
+#pragma once
 
 #include <memory>
 
@@ -72,5 +71,3 @@ private:
 
 DEFINE_SHARED_PTR(ReopenOperationRedoStrategy);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_REOPEN_OPERATION_REDO_STRATEGY_H

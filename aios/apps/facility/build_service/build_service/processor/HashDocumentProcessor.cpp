@@ -15,9 +15,23 @@
  */
 #include "build_service/processor/HashDocumentProcessor.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <set>
+
+#include "alog/Logger.h"
 #include "autil/HashFuncFactory.h"
+#include "build_service/config/HashMode.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/ProcessedDocument.h"
+#include "build_service/document/RawDocument.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/legacy_schema_adapter.h"
+#include "indexlib/config/region_schema.h"
+#include "indexlib/document/RawDocument.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 
@@ -107,7 +121,7 @@ bool HashDocumentProcessor::createClusterHashMeta(const HashModeConfig& hashMode
             }
         }
     } else {
-        if (!addHashInfo(hashModeConfig, DEFAULT_REGIONNAME, clusterHashMeta)) {
+        if (!addHashInfo(hashModeConfig, indexlib::DEFAULT_REGIONNAME, clusterHashMeta)) {
             return false;
         }
     }

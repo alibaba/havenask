@@ -15,30 +15,54 @@
  */
 #include "build_service/worker/MergerServiceImpl.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <unistd.h>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
-#include "build_service/common/ConfigDownloader.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CpuSpeedEstimater.h"
-#include "build_service/common/PathDefine.h"
+#include "build_service/common/NetworkTrafficEstimater.h"
+#include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/config/OfflineIndexConfigMap.h"
+#include "build_service/config/OfflineMergeConfig.h"
 #include "build_service/config/ResourceReaderManager.h"
 #include "build_service/proto/ProtoComparator.h"
 #include "build_service/proto/ProtoJsonizer.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/task_base/NewFieldMergeTask.h"
 #include "build_service/util/BsMetricTagsHandler.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/RangeUtil.h"
-#include "build_service/worker/ServiceWorker.h"
-#include "fslib/fslib.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
+#include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
 #include "fslib/util/MetricTagsHandler.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/file_system/Directory.h"
 #include "indexlib/index_base/deploy_index_wrapper.h"
 #include "indexlib/index_base/index_meta/index_summary.h"
-#include "indexlib/misc/common.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_base/index_meta/version_loader.h"
 
 using namespace std;
 using namespace autil;

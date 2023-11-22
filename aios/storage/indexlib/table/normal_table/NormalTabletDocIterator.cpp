@@ -19,6 +19,7 @@
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/document/RawDocument.h"
 #include "indexlib/document/normal/SearchSummaryDocument.h"
+#include "indexlib/document/normal/SourceDocument.h"
 #include "indexlib/framework/ReadResource.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/index/attribute/AttributeIteratorBase.h"
@@ -31,11 +32,16 @@
 #include "indexlib/index/inverted_index/OrPostingExecutor.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
 #include "indexlib/index/inverted_index/TermPostingExecutor.h"
+#include "indexlib/index/source/Common.h"
+#include "indexlib/index/source/SourceReader.h"
+#include "indexlib/index/source/config/SourceGroupConfig.h"
+#include "indexlib/index/source/config/SourceIndexConfig.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/SummaryReader.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
 #include "indexlib/table/normal_table/NormalTabletReader.h"
 #include "indexlib/table/normal_table/virtual_attribute/Common.h"
+#include "indexlib/util/Algorithm.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, NormalTabletDocIterator);
@@ -52,7 +58,7 @@ NormalTabletDocIterator::~NormalTabletDocIterator() {}
 Status NormalTabletDocIterator::Init(const std::shared_ptr<framework::TabletData>& tabletData,
                                      std::pair<uint32_t /*0-99*/, uint32_t /*0-99*/> rangeInRatio,
                                      const std::shared_ptr<indexlibv2::framework::MetricsManager>& metricsManager,
-                                     const std::vector<std::string>& requiredFields,
+                                     const std::optional<std::vector<std::string>>& requiredFields,
                                      const std::map<std::string, std::string>& params)
 {
     _tryBestExport = autil::EnvUtil::getEnv("INDEXLIB_TRY_BEST_EXPORT_INDEX", false);
@@ -88,8 +94,7 @@ Status NormalTabletDocIterator::Init(const std::shared_ptr<framework::TabletData
     _deletionMapReader = keepDeletedDoc ? nullptr : _tabletReader->GetDeletionMapReader();
 
     status = InitFieldReaders(requiredFields);
-    RETURN_IF_STATUS_ERROR(status, "init field readers failed for requiredFields [%s]",
-                           autil::legacy::ToJsonString(requiredFields).c_str());
+    RETURN_IF_STATUS_ERROR(status, "init field readers failed");
 
     std::string userDefineIndexParamStr = indexlib::util::GetValueFromKeyValueMap(params, USER_DEFINE_INDEX_PARAM);
     status = InitPostingExecutor(userDefineIndexParamStr);
@@ -215,15 +220,77 @@ NormalTabletDocIterator::CreateTermPostingExecutor(const indexlib::index::IndexT
     return std::make_shared<indexlib::index::TermPostingExecutor>(iter);
 }
 
-Status NormalTabletDocIterator::InitFieldReaders(const std::vector<std::string>& fieldNames)
+bool NormalTabletDocIterator::IsReadAllField() const { return _requiredFields == std::nullopt; }
+
+void NormalTabletDocIterator::InitSource(const std::shared_ptr<config::SourceIndexConfig>& sourceIndexConfig)
 {
+    if (!sourceIndexConfig) {
+        return;
+    }
+
+    _readSourceGroups.clear();
+    if (IsReadAllField()) {
+        for (auto sourceGroupConfig : sourceIndexConfig->GetGroupConfigs()) {
+            _readSourceGroups.push_back(sourceGroupConfig->GetGroupId());
+        }
+    } else {
+        auto& requiredFields = _requiredFields.value();
+        if (!requiredFields.empty()) {
+            for (auto& fieldName : requiredFields) {
+                auto groupId = sourceIndexConfig->GetGroupIdByFieldName(fieldName);
+                if (groupId != index::INVALID_SOURCEGROUPID) {
+                    _readSourceGroups.push_back(groupId);
+                }
+            }
+            for (auto sourceGroupConfig : sourceIndexConfig->GetGroupConfigs()) {
+                if (sourceGroupConfig->GetFieldMode() == indexlib::config::SourceGroupConfig::USER_DEFINE) {
+                    _readSourceGroups.push_back(sourceGroupConfig->GetGroupId());
+                }
+            }
+            indexlib::util::Algorithm::SortUniqueAndErase(_readSourceGroups);
+        }
+    }
+
+    if (!_readSourceGroups.empty()) {
+        _sourceReader = _tabletReader->GetSourceReader();
+    }
+
+    _hasUDFSourceGroup = false;
+    for (auto sourceGroupConfig : sourceIndexConfig->GetGroupConfigs()) {
+        if (sourceGroupConfig->GetFieldMode() == indexlib::config::SourceGroupConfig::USER_DEFINE) {
+            _hasUDFSourceGroup = true;
+            break;
+        }
+    }
+}
+
+Status NormalTabletDocIterator::InitFieldReaders(const std::optional<std::vector<std::string>>& fieldNames)
+{
+    std::vector<std::string> initFields;
     auto readSchema = _tabletReader->GetSchema();
+    if (fieldNames == std::nullopt) {
+        // read all field
+        for (auto fieldConfig : readSchema->GetFieldConfigs()) {
+            initFields.push_back(fieldConfig->GetFieldName());
+        }
+        _requiredFields = std::nullopt;
+    } else {
+        initFields = fieldNames.value();
+        _requiredFields = std::set<std::string>(initFields.begin(), initFields.end());
+    }
+
+    auto sourceIndexConfig = std::dynamic_pointer_cast<config::SourceIndexConfig>(
+        readSchema->GetIndexConfig(index::SOURCE_INDEX_TYPE_STR, index::SOURCE_INDEX_NAME));
+    InitSource(sourceIndexConfig);
 
     auto summaryConfig = std::dynamic_pointer_cast<config::SummaryIndexConfig>(
         readSchema->GetIndexConfig(index::SUMMARY_INDEX_TYPE_STR, index::SUMMARY_INDEX_NAME));
 
-    for (const auto& fieldName : fieldNames) {
-        if (auto attributeReader = _tabletReader->GetAttributeReader(fieldName)) {
+    for (const auto& fieldName : initFields) {
+        if (_sourceReader && sourceIndexConfig->GetGroupIdByFieldName(fieldName) != index::INVALID_SOURCEGROUPID) {
+            // 这个字段从一个非udf group中读取
+            continue;
+        } else if (auto attributeReader = _tabletReader->GetAttributeReader(fieldName)) {
             attributeReader->EnableGlobalReadContext();
             auto iter = attributeReader->CreateSequentialIterator();
             assert(iter);
@@ -232,19 +299,25 @@ Status NormalTabletDocIterator::InitFieldReaders(const std::vector<std::string>&
             if (!_summaryReader) {
                 _summaryReader = _tabletReader->GetSummaryReader();
                 _summaryReader->ClearAttrReaders();
+                _summaryReader->ClearSourceReader();
                 _summaryCount = summaryConfig->GetSummaryCount();
             }
             _summaryFields.push_back({fieldName, summaryConfig->GetSummaryFieldId(readSchema->GetFieldId(fieldName))});
+        } else if (_hasUDFSourceGroup) {
+            // 如果存在udf模式的source group，那么这个字段可能在source group里面
+            continue;
         } else {
-            // we don't care virtual attribute or "try best export mode"
+            // 我们不导出virtual attribute
             if (readSchema->GetIndexConfig(VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, fieldName)) {
                 AUTIL_LOG(DEBUG, "field [%s] is virtual attribute, not export", fieldName.c_str());
                 continue;
             }
+
             if (_tryBestExport) {
                 AUTIL_LOG(WARN, "field [%s] has no attibute and summary, will not export", fieldName.c_str());
                 continue;
             }
+
             RETURN_STATUS_ERROR(InvalidArgs, "get field failed [%s], not store in attribute or summary",
                                 fieldName.c_str());
         }
@@ -253,13 +326,32 @@ Status NormalTabletDocIterator::InitFieldReaders(const std::vector<std::string>&
 }
 
 Status NormalTabletDocIterator::Next(indexlibv2::document::RawDocument* rawDocument, std::string* checkpoint,
-                                     document::IDocument::DocInfo* docInfo)
+                                     framework::Locator::DocInfo* docInfo)
 {
     assert(HasNext());
 
     rawDocument->setDocOperateType(ADD_DOC);
     rawDocument->setIgnoreEmptyField(true);
+
+    // fill from source
+    if (_sourceReader) {
+        autil::mem_pool::Pool pool;
+        indexlib::document::SourceDocument sourceDocument(&pool);
+        auto status = _sourceReader->GetDocument(_currentDocId, _readSourceGroups, &sourceDocument);
+        RETURN_IF_STATUS_ERROR(status, "read from source reader failed by docid [%d]", _currentDocId);
+        if (IsReadAllField()) {
+            sourceDocument.ToRawDocument(*rawDocument);
+        } else {
+            assert(!_requiredFields.value().empty());
+            sourceDocument.ToRawDocument(*rawDocument, _requiredFields.value());
+        }
+    }
+
+    // fill from attribute
     for (auto& [fieldName, attrFieldIter] : _attrFieldIters) {
+        if (rawDocument->exist(fieldName)) {
+            continue;
+        }
         std::string fieldValue;
         if (!attrFieldIter->Seek(_currentDocId, fieldValue)) {
             AUTIL_LOG(ERROR, "read attribute [%s] docid [%d] failed", fieldName.c_str(), _currentDocId);
@@ -277,6 +369,9 @@ Status NormalTabletDocIterator::Next(indexlibv2::document::RawDocument* rawDocum
             return Status::Corruption();
         }
         for (auto& [fieldName, fieldId] : _summaryFields) {
+            if (rawDocument->exist(fieldName)) {
+                continue;
+            }
             auto fieldValue = summaryDoc.GetFieldValue(fieldId);
             rawDocument->setField(fieldName, *fieldValue);
         }

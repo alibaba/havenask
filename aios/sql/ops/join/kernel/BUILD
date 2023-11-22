@@ -8,6 +8,7 @@ cc_library(
     deps=[
         '//aios/navi',
         '//aios/sql/ops/externalTable/ha3sql:sql_ops_external_scan',
+        '//aios/sql/ops/join:lookup_join_r',
         '//aios/sql/ops/join:sql_ops_join_base',
         '//aios/sql/ops/remoteScan:sql_ops_remote_scan',
         '//aios/sql/ops/scan:sql_ops_normal_scan',

@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_FATALERRORDISCOVERER_H
-#define ISEARCH_BS_FATALERRORDISCOVERER_H
+#pragma once
+
+#include <memory>
+#include <stddef.h>
+#include <vector>
 
 #include "build_service/common_define.h"
 #include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/RoleNameGenerator.h"
 #include "build_service/util/Log.h"
 
@@ -121,5 +125,3 @@ private:
 BS_TYPEDEF_PTR(FatalErrorDiscoverer);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_FATALERRORDISCOVERER_H

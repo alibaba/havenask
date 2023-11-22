@@ -21,6 +21,7 @@
 #include "navi/tester/NaviResourceHelper.h"
 #include "sql/common/IndexInfo.h"
 #include "sql/common/TableMeta.h"
+#include "sql/common/common.h"
 #include "sql/ops/calc/CalcInitParamR.h"
 #include "sql/ops/sort/SortInitParam.h"
 #include "sql/ops/test/OpTestBase.h"
@@ -268,13 +269,31 @@ TEST_F(ScanInitParamRTest, testScanInitParamInitTableDist) {
     ASSERT_THAT(param->hashFields, testing::ElementsAre("attr1"));
 }
 
+TEST_F(ScanInitParamRTest, testHintDefautVal) {
+    autil::legacy::json::JsonMap attributeMap;
+    attributeMap["table_type"] = string("normal");
+    attributeMap["table_name"] = _tableName;
+    attributeMap["db_name"] = string("default");
+    attributeMap["catalog_name"] = string("default");
+    attributeMap["hash_fields"] = ParseJson(string(R"json(["id"])json"));
+    attributeMap["output_fields"] = ParseJson(string(R"json(["$attr1", "$attr2", "$id"])json"));
+    string jsonStr = autil::legacy::FastToJsonString(attributeMap);
+    auto *naviRHelper = getNaviRHelper();
+    naviRHelper->kernelConfig(jsonStr);
+    auto param = naviRHelper->getOrCreateRes<ScanInitParamR>();
+    ASSERT_TRUE(param);
+    ASSERT_EQ(std::numeric_limits<uint32_t>::max(), param->limit);
+    ASSERT_EQ(0, param->batchSize);
+    ASSERT_EQ(PARALLEL_DEFAULT_BLOCK_COUNT, param->parallelBlockCount);
+}
+
 TEST_F(ScanInitParamRTest, testInitWithHint) {
     autil::legacy::json::JsonMap attributeMap;
     attributeMap["table_type"] = string("normal");
     attributeMap["table_name"] = _tableName;
     attributeMap["db_name"] = string("default");
-    attributeMap["hints"]
-        = ParseJson(R"json({"SCAN_ATTR":{"localLimit":"10","batchSize":"20"}})json");
+    attributeMap["hints"] = ParseJson(
+        R"json({"SCAN_ATTR":{"localLimit":"10","batchSize":"20", "parallel_block_count": "40"}})json");
     attributeMap["catalog_name"] = string("default");
     attributeMap["hash_fields"] = ParseJson(string(R"json(["id"])json"));
     attributeMap["output_fields"] = ParseJson(string(R"json(["$attr1", "$attr2", "$id"])json"));
@@ -286,6 +305,7 @@ TEST_F(ScanInitParamRTest, testInitWithHint) {
     ASSERT_TRUE(param);
     ASSERT_EQ(10, param->limit);
     ASSERT_EQ(20, param->batchSize);
+    ASSERT_EQ(40, param->parallelBlockCount);
 }
 
 TEST_F(ScanInitParamRTest, testInitWithHint_limit) {
@@ -293,8 +313,8 @@ TEST_F(ScanInitParamRTest, testInitWithHint_limit) {
     attributeMap["table_type"] = string("normal");
     attributeMap["table_name"] = _tableName;
     attributeMap["db_name"] = string("default");
-    attributeMap["hints"]
-        = ParseJson(R"json({"SCAN_ATTR":{"localLimit":"10000","batchSize":"20"}})json");
+    attributeMap["hints"] = ParseJson(
+        R"json({"SCAN_ATTR":{"localLimit":"10000","batchSize":"20", "parallel_block_count": "40"}})json");
     attributeMap["catalog_name"] = string("default");
     attributeMap["hash_fields"] = ParseJson(string(R"json(["id"])json"));
     attributeMap["output_fields"] = ParseJson(string(R"json(["$attr1", "$attr2", "$id"])json"));
@@ -305,6 +325,8 @@ TEST_F(ScanInitParamRTest, testInitWithHint_limit) {
     auto param = naviRHelper->getOrCreateRes<ScanInitParamR>();
     ASSERT_TRUE(param);
     ASSERT_EQ(1000, param->limit);
+    ASSERT_EQ(20, param->batchSize);
+    ASSERT_EQ(40, param->parallelBlockCount);
 }
 
 TEST_F(ScanInitParamRTest, testInitWithHint_invalidValue) {
@@ -313,7 +335,7 @@ TEST_F(ScanInitParamRTest, testInitWithHint_invalidValue) {
     attributeMap["table_name"] = _tableName;
     attributeMap["db_name"] = string("default");
     attributeMap["hints"] = ParseJson(
-        R"json({"SCAN_ATTR":{"localLimit":"not_number","batchSize":"not_number"}})json");
+        R"json({"SCAN_ATTR":{"localLimit":"not_number","batchSize":"not_number", "parallel_block_count": "not_number"}})json");
     attributeMap["catalog_name"] = string("default");
     attributeMap["hash_fields"] = ParseJson(string(R"json(["id"])json"));
     attributeMap["output_fields"] = ParseJson(string(R"json(["$attr1", "$attr2", "$id"])json"));
@@ -324,6 +346,27 @@ TEST_F(ScanInitParamRTest, testInitWithHint_invalidValue) {
     ASSERT_TRUE(param);
     ASSERT_EQ(std::numeric_limits<uint32_t>::max(), param->limit);
     ASSERT_EQ(0, param->batchSize);
+    ASSERT_EQ(PARALLEL_DEFAULT_BLOCK_COUNT, param->parallelBlockCount);
+}
+
+TEST_F(ScanInitParamRTest, testInitWithHint_invalidNum) {
+    autil::legacy::json::JsonMap attributeMap;
+    attributeMap["table_type"] = string("normal");
+    attributeMap["table_name"] = _tableName;
+    attributeMap["db_name"] = string("default");
+    attributeMap["hints"] = ParseJson(
+        R"json({"SCAN_ATTR":{"localLimit":"0","batchSize":"0", "parallel_block_count": "0"}})json");
+    attributeMap["catalog_name"] = string("default");
+    attributeMap["hash_fields"] = ParseJson(string(R"json(["id"])json"));
+    attributeMap["output_fields"] = ParseJson(string(R"json(["$attr1", "$attr2", "$id"])json"));
+    string jsonStr = autil::legacy::FastToJsonString(attributeMap);
+    auto *naviRHelper = getNaviRHelper();
+    naviRHelper->kernelConfig(jsonStr);
+    auto param = naviRHelper->getOrCreateRes<ScanInitParamR>();
+    ASSERT_TRUE(param);
+    ASSERT_EQ(std::numeric_limits<uint32_t>::max(), param->limit);
+    ASSERT_EQ(0, param->batchSize);
+    ASSERT_EQ(PARALLEL_DEFAULT_BLOCK_COUNT, param->parallelBlockCount);
 }
 
 TEST_F(ScanInitParamRTest, testForbidIndex) {

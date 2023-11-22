@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_BUILTSEGMENTSDOCUMENTDEDUPERTEST_H
-#define __INDEXLIB_BUILTSEGMENTSDOCUMENTDEDUPERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/document_deduper/built_segments_document_deduper.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(BuiltSegmentsDocumentDeduperTest, TestDedup64Pks);
 INDEXLIB_UNIT_TEST_CASE(BuiltSegmentsDocumentDeduperTest, TestDedup128Pks);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_BUILTSEGMENTSDOCUMENTDEDUPERTEST_H

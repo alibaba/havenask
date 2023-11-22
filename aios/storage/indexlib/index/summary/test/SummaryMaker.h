@@ -36,7 +36,7 @@ public:
     static IIndexFactory* GetIndexFactory(const std::shared_ptr<indexlibv2::config::IIndexConfig>& config);
     static std::shared_ptr<IIndexReader> CreateIndexReader(std::shared_ptr<framework::TabletData>& tabletData,
                                                            const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                           IndexerParameter& indexerParam);
+                                                           const IndexReaderParameter& indexReaderParam);
 
 private:
     AUTIL_LOG_DECLARE();

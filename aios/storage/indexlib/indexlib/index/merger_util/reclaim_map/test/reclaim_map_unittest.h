@@ -1,3 +1,4 @@
+#pragma once
 #include "indexlib/common_define.h"
 #include "indexlib/config/SortDescription.h"
 #include "indexlib/config/attribute_config.h"

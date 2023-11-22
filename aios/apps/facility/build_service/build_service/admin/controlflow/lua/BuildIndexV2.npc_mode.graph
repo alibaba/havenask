@@ -17,11 +17,6 @@ function graphDef()
    local schemaIdMap = Tool.jsonToMap(Graph.parameter["schemaIdMap"])
    local builderInputs = Tool.jsonToList(Graph.parameter["builderInputs"])
    
-   if (#clusterNames ~= 1)
-   then
-      Log.log("ERROR", "NPC-mode does not support multiple clusters")
-      return false      
-   end
    if (#builderInputs ~= 2)
    then
       Log.log("ERROR", "NPC-mode: expects builderInputs.size equals to 2")
@@ -29,46 +24,53 @@ function graphDef()
    end
 
    local hasFullBuild = (Graph.parameter["buildStep"] == "full")
-   local importedVersionId = Graph.parameter["importedVersionId"]
    
-   if (importedVersionId ~= nil and hasFullBuild)
+   local importedVersionIdMap = nil
+   if (Graph.parameter["importedVersionIdMap"] ~= nil)   
+   then
+      importedVersionIdMap = Tool.jsonToMap(Graph.parameter["importedVersionIdMap"])
+   end
+   
+   if (importedVersionIdMap ~= nil and hasFullBuild)
    then
       Log.log("ERROR", "NPC-mode: does not support import in fullBuild")
       return false
    end
 
-   local clusterName = clusterNames[1]
-   local builderInputsFull = builderInputs[1]
-   local builderInputsInc = builderInputs[2]
+   for i, v in ipairs(clusterNames)
+   do
+      local clusterName = clusterNames[i]
+      local builderInputsFull = builderInputs[1]
+      local builderInputsInc = builderInputs[2]
    
-   local clusterParam = {}
-   clusterParam["clusterName"] = clusterName
-   clusterParam["schemaId"] = schemaIdMap[clusterName]
-   clusterParam["buildId"] = Graph.parameter["buildId"]
-   clusterParam["buildStep"] = Graph.parameter["buildStep"]
-   clusterParam["isTablet"] = "true"
-   if (importedVersionId ~= nil)
-   then
-      clusterParam["importedVersionId"] = importedVersionId
-   end
+      local clusterParam = {}
+      clusterParam["clusterName"] = clusterName
+      clusterParam["schemaId"] = schemaIdMap[clusterName]
+      clusterParam["buildId"] = Graph.parameter["buildId"]
+      clusterParam["buildStep"] = Graph.parameter["buildStep"]
+      clusterParam["isTablet"] = "true"
+      if (importedVersionIdMap ~= nil)
+      then
+         clusterParam["importedVersionId"] = importedVersionIdMap[clusterName]
+      end
 
-   local incParam = Tool.copyMap(clusterParam)
-   incParam["buildStep"] = "incremental"
-   incParam["data_description"] = builderInputsInc
-   local incBuild = Graph.loadSimpleFlow("builderV2", "incBuilder", incParam)
-   incBuild:addTag(clusterName..":IncBuild")
-   incBuild:addTag("BSBuildV2")
+      local incParam = Tool.copyMap(clusterParam)
+      incParam["buildStep"] = "incremental"
+      incParam["data_description"] = builderInputsInc
+      local incBuild = Graph.loadSimpleFlow("builderV2", "incBuilder", incParam)
+      incBuild:addTag(clusterName..":IncBuild")
+      incBuild:addTag("BSBuildV2")
    
-   if (hasFullBuild)
-   then
-      local fullParam = Tool.copyMap(clusterParam)
-      fullParam["data_description"] = builderInputsFull
-      local fullBuild = Graph.loadSimpleFlow("builderV2", "fullBuilder", fullParam)
-      fullBuild:addTag(clusterName..":FullBuild")
-      fullBuild:addTag("BSFullBuild")
-      fullBuild:addTag("BSBuildV2")
-      Graph.setUpstream(incBuild, fullBuild)
+      if (hasFullBuild)
+      then
+         local fullParam = Tool.copyMap(clusterParam)
+         fullParam["data_description"] = builderInputsFull
+         local fullBuild = Graph.loadSimpleFlow("builderV2", "fullBuilder", fullParam)
+         fullBuild:addTag(clusterName..":FullBuild")
+         fullBuild:addTag("BSFullBuild")
+         fullBuild:addTag("BSBuildV2")
+         Graph.setUpstream(incBuild, fullBuild)
+      end
    end
-
    return true
 end

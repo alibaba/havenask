@@ -107,7 +107,7 @@ private:
     protocol::ErrorCode getLastErrorCode() const;
     void setLastErrorCode(protocol::ErrorCode);
     void setLastRefreshTime(int64_t refreshTime);
-    bool needWaitForBrokerBusy(int64_t currentTime);
+    bool needRetreat(int64_t currentTime);
     int64_t calculateCommittedCount(const protocol::MessageResponse &response);
     bool needDetectCommitProgress(int64_t now);
     void sendSyncRequest(int64_t now, uint32_t retryTimes, monitor::ClientMetricsCollector &collector);
@@ -123,7 +123,7 @@ private:
     int64_t _lastSendRequestTime;
     int64_t _checkpointId;
     int64_t _refreshTime;
-    int64_t _brokerBusyNextTimestamp;
+    int64_t _retreatNextTimestamp;
     protocol::ErrorCode _lastErrorCode;
     MessageWriteBuffer _writeBuffer;
     int64_t _sessionId;

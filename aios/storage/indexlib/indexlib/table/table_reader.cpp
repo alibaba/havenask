@@ -15,13 +15,17 @@
  */
 #include "indexlib/table/table_reader.h"
 
+#include <iosfwd>
+
+#include "indexlib/config/load_config_list.h"
+
 using namespace std;
 
 using namespace indexlib::config;
 namespace indexlib { namespace table {
 IE_LOG_SETUP(table, TableReader);
 
-TableReader::TableReader() : mInterfaceId(DEFAULT_INTERFACE_ID), mForceSeekInfo(-1, -1), mExecutor(nullptr) {}
+TableReader::TableReader() : /* mInterfaceId(DEFAULT_INTERFACE_ID), */ mForceSeekInfo(-1, -1), mExecutor(nullptr) {}
 
 TableReader::~TableReader() { mExecutor = nullptr; }
 
@@ -32,7 +36,7 @@ bool TableReader::Init(const IndexPartitionSchemaPtr& schema, const IndexPartiti
     mOptions = options;
     mExecutor = executor;
     mMetricProvider = metricProvider;
-    InitInterfaceId();
+    // InitInterfaceId();
     return DoInit();
 }
 

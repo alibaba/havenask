@@ -96,6 +96,7 @@ public:
     // only call it when seek to the end.
     uint32_t getLeftQuotaInTheEnd() const;
     uint32_t getSeekedCount() const;
+    uint32_t getWholeDocCount() const;
     uint32_t getSeekTimes() const {
         return _seekTimes;
     }
@@ -115,8 +116,8 @@ private:
     docid_t _curBegin;
     docid_t _curEnd;
     uint32_t _curQuota;
-    docid_t _cousorNextBegin;
-    size_t _rangeCousor;
+    docid_t _cursorNextBegin;
+    size_t _rangeCursor;
     common::TimeoutTerminator *_timeoutTerminator;
     QueryExecutor *_queryExecutor;
     FilterWrapper *_filterWrapper;
@@ -154,21 +155,29 @@ inline uint32_t SingleLayerSearcher::getLeftQuotaInTheEnd() const {
 }
 
 inline uint32_t SingleLayerSearcher::getSeekedCount() const {
-    uint32_t seekedDocCount = 0;
-    for (size_t cousor = 0; cousor < _layerMeta->size(); ++cousor) {
-        if (cousor != _rangeCousor) {
-            seekedDocCount += (*_layerMeta)[cousor].nextBegin - (*_layerMeta)[cousor].begin;
+    uint32_t docCount = 0;
+    for (size_t cursor = 0; cursor < _layerMeta->size(); ++cursor) {
+        if (cursor != _rangeCursor) {
+            docCount += (*_layerMeta)[cursor].nextBegin - (*_layerMeta)[cursor].begin;
         } else {
-            seekedDocCount += _cousorNextBegin - (*_layerMeta)[cousor].begin;
+            docCount += _cursorNextBegin - (*_layerMeta)[cursor].begin;
         }
     }
 
-    return seekedDocCount;
+    return docCount;
+}
+
+inline uint32_t SingleLayerSearcher::getWholeDocCount() const {
+    uint32_t docCount = 0;
+    for (size_t cursor = 0; cursor < _layerMeta->size(); ++cursor) {
+        docCount += (*_layerMeta)[cursor].end - (*_layerMeta)[cursor].begin;
+    }
+    return docCount;
 }
 
 inline bool SingleLayerSearcher::tryToMakeItInRange(docid_t &docId) {
     if (_curQuota > 0 && _curEnd >= docId) {
-        _cousorNextBegin = docId + 1;
+        _cursorNextBegin = docId + 1;
         return true;
     }
     return moveToCorrectRange(docId);

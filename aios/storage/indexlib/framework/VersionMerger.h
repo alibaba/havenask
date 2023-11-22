@@ -15,21 +15,29 @@
  */
 #pragma once
 
+#include <atomic>
+#include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
+#include <stddef.h>
+#include <string>
+#include <utility>
 
 #include "autil/Log.h"
 #include "future_lite/coro/Lazy.h"
 #include "future_lite/coro/Mutex.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/ITabletMergeController.h"
 #include "indexlib/framework/Version.h"
-#include "indexlib/framework/VersionCoord.h"
+#include "indexlib/framework/index_task/IIndexTaskPlanCreator.h"
+#include "indexlib/framework/index_task/MergeTaskDefine.h"
 
 namespace indexlibv2::framework {
-class IndexTaskResource;
 class IndexTaskMetrics;
 class MetricsManager;
-class TabletData;
 
 class VersionMerger
 {
@@ -45,6 +53,7 @@ public:
                   std::unique_ptr<IIndexTaskPlanCreator> planCreator, MetricsManager* manager);
 
     void UpdateVersion(const Version& version);
+    void UpdateCommittedVersionLocator(const Locator& locator);
     std::shared_ptr<MergedVersionInfo> GetMergedVersionInfo();
     const std::shared_ptr<MergedVersionInfo>& GetMergedVersionInfo() const;
     std::optional<ITabletMergeController::TaskStat> GetRunningTaskStat() const;
@@ -68,6 +77,7 @@ private:
     void FinishTask(versionid_t baseVersionId, bool removeTempFiles);
     Status FillMergedVersionInfo(const MergeTaskStatus& mergeTaskStatus);
     versionid_t GetBaseVersion() const;
+    int64_t GetCommittedVersionTimestamp() const;
     void RegisterMetrics(MetricsManager* manager);
 
 private:
@@ -82,6 +92,7 @@ private:
     std::shared_ptr<MergedVersionInfo> _mergedVersionInfo;
 
     versionid_t _lastProposedVersionId;
+    Locator _committedVersionLocator;
     bool _recovered;
     std::atomic<bool> _stopped;
     size_t _skipCleanTask = 0;

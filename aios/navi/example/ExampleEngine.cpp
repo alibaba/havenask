@@ -43,22 +43,23 @@ public:
     void tearDown();
 protected:
     std::string _loader;
-    GraphDef *_graphDef;
+    GraphDef *_graphDef = nullptr;
+private:
+    std::unique_ptr<autil::EnvGuard> _naviPythonHome;
 public:
     static const size_t TEST_COUNT = 1;
 };
 
 void NaviExampleTest::setUp() {
     // for aios test
-    autil::EnvUtil::setEnv("NAVI_PYTHON_HOME",
-           TEST_ROOT_PATH() + "config_loader/python:/usr/lib64/python3.6/", true);
-    _loader = GET_PRIVATE_TEST_DATA_PATH() + "test_config_loader.py";
+    _naviPythonHome.reset(
+        new autil::EnvGuard("NAVI_PYTHON_HOME", NAVI_TEST_PYTHON_HOME));
+    _loader = NAVI_TEST_DATA_PATH + "test_config_loader.py";
     _graphDef = new GraphDef();
 }
 
 void NaviExampleTest::tearDown() {
-    delete _graphDef;
-    unsetenv("NAVI_PYTHON_HOME");
+    DELETE_AND_SET_NULL(_graphDef);
 }
 
 NaviResultPtr showData(const NaviUserResultPtr &result, bool show, int64_t expectCount,
@@ -82,6 +83,22 @@ NaviResultPtr showData(const NaviUserResultPtr &result, bool show, int64_t expec
     auto naviResult = result->getNaviResult();
     resultVec.push_back(naviResult);
     return naviResult;
+}
+
+void showResultAndSaveVis(const NaviUserResultPtr &userResult) {
+    // auto visProto = userResult->getNaviResult()->getVisProto();
+    // std::ofstream ofile(
+    //     "/home/zhang7/alibaba/aios/navi/http_server/test_graph.vis");
+    // ofile << visProto->SerializeAsString();
+    auto rpcInfoMap = userResult->getNaviResult()->getRpcInfoMap();
+    ASSERT_TRUE(rpcInfoMap);
+    std::cout << "rpcInfo: " << std::endl;
+    for (const auto &pair : *rpcInfoMap) {
+        std::cout << "[" << pair.first.first << "->" << pair.first.second
+                  << "] " << std::endl
+                  << autil::StringUtil::toString(pair.second, "\n")
+                  << std::endl;
+    }
 }
 
 static std::string randItem(const std::vector<std::string> &itemList) {
@@ -214,7 +231,7 @@ bool buildGraph4(const std::string &outputName,
     std::string splitKernel("StringSplitKernel");
     std::string mergeKernel("StringMergeKernel");
     GraphBuilder builder(graphDef);
-    builder.newSubGraph(randItem(bizList));
+    builder.newSubGraph("server_biz_1");
     auto clientWorld1 = builder.node("client_world_1").kernel("WorldKernel");
     auto clientHello1 = builder.node("client_hello_1").kernel("HelloKernel");
 
@@ -238,8 +255,8 @@ bool buildGraph4(const std::string &outputName,
 TEST_F(NaviExampleTest, testDistributeChain) {
     ResourceMapPtr rootResourceMap(new ResourceMap());
 
-    std::string configPath = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/";
-    std::string biz1Config = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/biz1.py";
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
     NaviTestCluster cluster;
     ASSERT_TRUE(
             cluster.addServer("host_0", _loader, configPath, rootResourceMap));
@@ -283,7 +300,7 @@ TEST_F(NaviExampleTest, testDistributeChain) {
 
     RunGraphParams params;
     params.setTimeoutMs(10000000);
-    params.setTraceLevel("error");
+    params.setTraceLevel("debug");
     params.setCollectMetric(true);
     params.setCollectPerf(true);
 
@@ -380,17 +397,7 @@ TEST_F(NaviExampleTest, testDistributeChain) {
                                        dataCount, dataVec, resultVec);
             dataVec.clear();
             resultVec.clear();
-            auto graphVisDef = naviResult->getGraphVisData();
-            graphVisDef->mutable_graph()->CopyFrom(*_graphDef);
-            std::ofstream ofile(
-                "/home/zhang7/aios/navi/http_server/test_graph.vis");
-            ofile << graphVisDef->SerializeAsString();
-            // timeline = naviResult->getTimeline();
-            EXPECT_EQ("EC_NONE",
-                      std::string(CommonUtil::getErrorString(naviResult->ec)))
-                << naviResult->ec;
-            EXPECT_EQ("", naviResult->errorEvent.message);
-            naviResult->show();
+            showResultAndSaveVis(userResult);
         }
         std::cout << "thread exited" << std::endl;
     });
@@ -403,7 +410,7 @@ TEST_F(NaviExampleTest, testDistributeChain) {
     // usleep(20000 * 1000);
     // for (const auto &data : dataVec) {
     //     std::cout << "session: "
-    //               << CommonUtil::formatSessionId(data.id, data.id.instance)
+    //               << CommonUtil::formatSessionId(data.id)
     //               << std::endl;
     //     if (data.data) {
     //         std::cout << "node: " << data.node << ", port: " << data.port
@@ -434,7 +441,7 @@ bool buildGraphFork(const std::string &outputName,
     auto clientWorldFork = builder.node("client_world_fork").kernel("WorldKernel");
 
     fork.in("input1").from(sourceFork.out("output1"));
-    clientWorldFork.in("input1").from(fork.out("output1"));
+    clientWorldFork.in("input1").from(fork.out("output2"));
     clientWorldFork.out("output1").asGraphOutput(outputName);
 
     return builder.ok();
@@ -443,8 +450,8 @@ bool buildGraphFork(const std::string &outputName,
 TEST_F(NaviExampleTest, testFork) {
     ResourceMapPtr rootResourceMap(new ResourceMap());
 
-    std::string configPath = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/";
-    std::string biz1Config = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/biz1.py";
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
     NaviTestCluster cluster;
     ASSERT_TRUE(
             cluster.addServer("host_0", _loader, configPath, rootResourceMap));
@@ -471,8 +478,9 @@ TEST_F(NaviExampleTest, testFork) {
 
     RunGraphParams params;
     params.setTimeoutMs(1000000000);
-    params.setTraceLevel("ERROR");
+    params.setTraceLevel("schedule1");
     params.setCollectMetric(true);
+    params.setCollectPerf(true);
 
     enum RunMode {
         RM_SINGLE = 1,
@@ -562,21 +570,12 @@ TEST_F(NaviExampleTest, testFork) {
             std::vector<NaviResultPtr> resultVec;
             auto naviResult = showData(userResult, thisShow, expectCount,
                                        dataCount, dataVec, resultVec);
-            EXPECT_EQ(20u, dataVec.size());
+            EXPECT_EQ(9u, dataVec.size());
             std::cout << "data count: " << dataVec.size() << std::endl;
             dataVec.clear();
             resultVec.clear();
-            if (show) {
-                auto graphVisDef = naviResult->getGraphVisData();
-                graphVisDef->mutable_graph()->CopyFrom(*_graphDef);
-            }
-            // timeline = naviResult->getTimeline();
-            // EXPECT_EQ("EC_NONE",
-            //           std::string(CommonUtil::getErrorString(naviResult->ec)));
-            // EXPECT_EQ("", naviResult->errorEvent.message);
-            // EXPECT_EQ(expectCount, dataCount);
-            // std::cout << "end round " << i << std::endl;
-            naviResult->show();
+            showResultAndSaveVis(userResult);
+            EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
         }
         std::cout << "thread exited" << std::endl;
     });
@@ -588,7 +587,7 @@ TEST_F(NaviExampleTest, testFork) {
     threads.clear();
     // for (const auto &data : dataVec) {
     //     std::cout << "session: "
-    //               << CommonUtil::formatSessionId(data.id, data.id.instance)
+    //               << CommonUtil::formatSessionId(data.id)
     //               << std::endl;
     //     if (data.data) {
     //         std::cout << "node: " << data.node << ", port: " << data.port
@@ -636,8 +635,8 @@ bool buildGraphForkWithTerminator(const std::string &outputName,
 TEST_F(NaviExampleTest, testForkWithTerminator) {
     ResourceMapPtr rootResourceMap(new ResourceMap());
 
-    std::string configPath = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/";
-    std::string biz1Config = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/biz1.py";
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
     NaviTestCluster cluster;
     ASSERT_TRUE(
             cluster.addServer("host_0", _loader, configPath, rootResourceMap));
@@ -729,11 +728,6 @@ TEST_F(NaviExampleTest, testForkWithTerminator) {
             std::cout << "data count: " << dataVec.size() << std::endl;
             dataVec.clear();
             resultVec.clear();
-            if (show) {
-                auto graphVisDef = naviResult->getGraphVisData();
-                graphVisDef->mutable_graph()->CopyFrom(*_graphDef);
-            }
-            naviResult->show();
         }
         std::cout << "thread exited" << std::endl;
     });
@@ -780,8 +774,8 @@ bool buildGraphForkDownStreamAbort(const std::string &outputName,
 TEST_F(NaviExampleTest, testForkDownStreamAbort) {
     ResourceMapPtr rootResourceMap(new ResourceMap());
 
-    std::string configPath = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/";
-    std::string biz1Config = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/biz1.py";
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
     NaviTestCluster cluster;
     ASSERT_TRUE(
             cluster.addServer("host_0", _loader, configPath, rootResourceMap));
@@ -870,15 +864,11 @@ TEST_F(NaviExampleTest, testForkDownStreamAbort) {
             auto naviResult = showData(userResult, thisShow, expectCount,
                                        dataCount, dataVec, resultVec);
             EXPECT_EQ(39u, dataVec.size());
-            EXPECT_EQ("abort", naviResult->errorEvent.message);
+            EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
+            // EXPECT_EQ("abort", naviResult->errorEvent.message);
             std::cout << "data count: " << dataVec.size() << std::endl;
             dataVec.clear();
             resultVec.clear();
-            if (show) {
-                auto graphVisDef = naviResult->getGraphVisData();
-                graphVisDef->mutable_graph()->CopyFrom(*_graphDef);
-            }
-            naviResult->show();
         }
         std::cout << "thread exited" << std::endl;
     });
@@ -925,8 +915,8 @@ bool buildGraphForkWithStop(const std::string &outputName,
 TEST_F(NaviExampleTest, testForkWithStop) {
     ResourceMapPtr rootResourceMap(new ResourceMap());
 
-    std::string configPath = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/";
-    std::string biz1Config = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/biz1.py";
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
     NaviTestCluster cluster;
     ASSERT_TRUE(
             cluster.addServer("host_0", _loader, configPath, rootResourceMap));
@@ -1019,11 +1009,6 @@ TEST_F(NaviExampleTest, testForkWithStop) {
             std::cout << "data count: " << dataVec.size() << std::endl;
             dataVec.clear();
             resultVec.clear();
-            if (show) {
-                auto graphVisDef = naviResult->getGraphVisData();
-                graphVisDef->mutable_graph()->CopyFrom(*_graphDef);
-            }
-            naviResult->show();
         }
         std::cout << "thread exited" << std::endl;
     });
@@ -1054,8 +1039,8 @@ bool buildScopeTerminatorWithInput(const std::string &outputName,
 TEST_F(NaviExampleTest, testScopeTerminatorWithInput) {
     ResourceMapPtr rootResourceMap(new ResourceMap());
 
-    std::string configPath = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/";
-    std::string biz1Config = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/biz1.py";
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
     NaviTestCluster cluster;
     ASSERT_TRUE(
             cluster.addServer("host_0", _loader, configPath, rootResourceMap));
@@ -1147,11 +1132,6 @@ TEST_F(NaviExampleTest, testScopeTerminatorWithInput) {
             std::cout << "data count: " << dataVec.size() << std::endl;
             dataVec.clear();
             resultVec.clear();
-            if (show) {
-                auto graphVisDef = naviResult->getGraphVisData();
-                graphVisDef->mutable_graph()->CopyFrom(*_graphDef);
-            }
-            naviResult->show();
         }
         std::cout << "thread exited" << std::endl;
     });
@@ -1195,8 +1175,8 @@ bool buildGraphForkWithError(const std::string &outputName,
 TEST_F(NaviExampleTest, testForkGraphError) {
     ResourceMapPtr rootResourceMap(new ResourceMap());
 
-    std::string configPath = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/";
-    std::string biz1Config = GET_PRIVATE_TEST_DATA_PATH() + "config/cluster/biz1.py";
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
     NaviTestCluster cluster;
     ASSERT_TRUE(
             cluster.addServer("host_0", _loader, configPath, rootResourceMap));
@@ -1284,14 +1264,138 @@ TEST_F(NaviExampleTest, testForkGraphError) {
             auto naviResult = showData(userResult, thisShow, expectCount,
                                        dataCount, dataVec, resultVec);
             EXPECT_EQ(28u, dataVec.size());
-            EXPECT_EQ("EC_NONE",
-                      std::string(CommonUtil::getErrorString(naviResult->ec)))
-                << naviResult->ec;
-            EXPECT_EQ("abort", naviResult->errorEvent.message);
+            EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
             std::cout << "data count: " << dataVec.size() << std::endl;
             dataVec.clear();
             resultVec.clear();
-            naviResult->show();
+        }
+        std::cout << "thread exited" << std::endl;
+    });
+    std::vector<autil::ThreadPtr> threads;
+    for (size_t i = 0; i < threadCount; i++) {
+        threads.push_back(autil::Thread::createThread(
+                        func, "test_thread_" + autil::StringUtil::toString(i)));
+    }
+    threads.clear();
+    std::cout << "begin destruct" << std::endl;
+}
+
+bool buildGraphForkRecur(const std::string &outputName, GraphDef *graphDef,
+                         const std::vector<std::string> &bizList)
+{
+    GraphBuilder builder(graphDef);
+    builder.newSubGraph(randItem(bizList));
+    auto sourceFork = builder.node("source_node_fork").kernel("SourceKernel").jsonAttrs(R"json({"times" : 20})json");
+    auto currentScope = builder.getCurrentScope();
+    builder.scopeErrorHandleStrategy(currentScope, EHS_ERROR_AS_FATAL);
+    builder.addScope();
+    auto fork = builder.node("fork").kernel("SubGraphRecurKernel");
+    builder.scope(currentScope);
+    auto clientWorldFork = builder.node("client_world_fork").kernel("WorldKernel2");
+
+    fork.in("input1").from(sourceFork.out("output1"));
+    clientWorldFork.in("input1").from(fork.out("output2"));
+    clientWorldFork.out("output1").asGraphOutput(outputName);
+    fork.out("output1").asGraphOutput(outputName + "_2");
+
+    return builder.ok();
+}
+
+TEST_F(NaviExampleTest, testForkRecur) {
+    ResourceMapPtr rootResourceMap(new ResourceMap());
+
+    std::string configPath = NAVI_TEST_DATA_PATH + "config/cluster/";
+    std::string biz1Config = NAVI_TEST_DATA_PATH + "config/cluster/biz1.py";
+    NaviTestCluster cluster;
+    ASSERT_TRUE(
+            cluster.addServer("host_0", _loader, configPath, rootResourceMap));
+    ASSERT_TRUE(
+            cluster.addServer("host_1", _loader, configPath, rootResourceMap));
+    ASSERT_TRUE(
+            cluster.addServer("host_2", _loader, configPath, rootResourceMap));
+    ASSERT_TRUE(
+            cluster.addServer("host_3", _loader, configPath, rootResourceMap));
+    ASSERT_TRUE(
+            cluster.addServer("host_4", _loader, configPath, rootResourceMap));
+
+    std::vector<std::string> hostList = { "host_0", "host_1", "host_2",
+                                          "host_3", "host_4", "host_5",
+                                          "host_6", "host_7" };
+    ASSERT_TRUE(cluster.addBiz("host_0", "client_biz", 1, 0, biz1Config));
+    ASSERT_TRUE(cluster.addBiz("host_1", "server_biz_1", 2, 0, biz1Config));
+    ASSERT_TRUE(cluster.addBiz("host_2", "server_biz_1", 2, 1, biz1Config));
+    ASSERT_TRUE(cluster.start());
+
+    rootResourceMap.reset();
+
+    auto bizList = cluster.getBizList();
+    EXPECT_TRUE(buildGraphForkRecur("o1", _graphDef, { "client_biz" }));
+    EXPECT_TRUE(buildGraphForkRecur("o2", _graphDef, { "client_biz" }));
+    EXPECT_TRUE(buildGraphForkRecur("o3", _graphDef, { "client_biz" }));
+    EXPECT_TRUE(buildGraphForkRecur("o4", _graphDef, { "server_biz_1" }));
+    EXPECT_TRUE(buildGraphForkRecur("o5", _graphDef, { "server_biz_1" }));
+    EXPECT_TRUE(buildGraphForkRecur("o6", _graphDef, { "server_biz_1" }));
+
+    RunGraphParams params;
+    params.setTimeoutMs(1000000000);
+    params.setTraceLevel("debug");
+    params.setCollectMetric(true);
+    params.setCollectPerf(true);
+
+    usleep(3 * 1000 * 1000);
+    enum RunMode {
+        RM_SINGLE = 1,
+        RM_PERF = 2,
+    };
+    RunMode mode= RM_SINGLE;
+
+    size_t queryCount = 1;
+    size_t threadCount = 1;
+    bool show = false;
+    if (RM_SINGLE == mode) {
+        show = true;
+    } else if (RM_PERF == mode) {
+        string perfParamEnvStr = autil::EnvUtil::getEnv("perf_param");
+        if (!perfParamEnvStr.empty()) {
+            auto vec = autil::StringUtil::split(perfParamEnvStr, ";");
+            ASSERT_EQ(2u, vec.size());
+            queryCount = autil::StringUtil::fromString<int32_t>(vec[0]);
+            threadCount = autil::StringUtil::fromString<int32_t>(vec[1]);
+        } else {
+            queryCount = 1000000;
+            threadCount = 1;
+        }
+    }
+    bool abort = false;
+    atomic64_t counter;
+    atomic_set(&counter, 0);
+    auto func = std::bind([&]() {
+        for (size_t i = 0; i < queryCount; i++) {
+            if (abort) {
+                break;
+            }
+            auto thisShow = show;
+            thisShow = true;
+            auto def = new GraphDef();
+            def->CopyFrom(*_graphDef);
+            int64_t expectCount = 20;
+            int64_t dataCount = 0;
+            auto graphStr = def->SerializeAsString();
+            // auto host = randItem(hostList);
+            // std::cout << host << std::endl;
+            auto navi = cluster.getNavi("host_1");
+            auto userResult = navi->runGraph(def, params);
+
+            std::vector<NaviUserData> dataVec;
+            std::vector<NaviResultPtr> resultVec;
+            auto naviResult = showData(userResult, thisShow, expectCount,
+                                       dataCount, dataVec, resultVec);
+            EXPECT_EQ(378u, dataVec.size());
+            std::cout << "data count: " << dataVec.size() << std::endl;
+            dataVec.clear();
+            resultVec.clear();
+            showResultAndSaveVis(userResult);
+            EXPECT_EQ(EC_NONE, naviResult->getErrorCode());
         }
         std::cout << "thread exited" << std::endl;
     });

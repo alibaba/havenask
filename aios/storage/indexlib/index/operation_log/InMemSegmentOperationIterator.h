@@ -51,8 +51,10 @@ protected:
     // Next() may trigger switch operation block.
     // In this case, clone the operation to ensure life cycle
     OperationBase* _reservedOperation;
+    bool _reservedOpFromPool = false;
     std::vector<OperationBase*> _reservedOpVec;
     autil::mem_pool::Pool _pool;
+    size_t _resetPoolThreshold;
 
 private:
     AUTIL_LOG_DECLARE();

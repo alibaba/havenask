@@ -16,7 +16,6 @@
 #pragma once
 
 #include "navi/engine/BizManager.h"
-#include "navi/engine/TaskQueue.h"
 #include "navi/rpc_server/NaviRpcServerR.h"
 #include "navi/log/NaviLogManager.h"
 #include "navi/log/NaviLogger.h"
@@ -45,8 +44,13 @@ struct NaviUserData;
 class NaviUserResultClosure;
 class RunGraphParams;
 class NaviSymbolTable;
-struct NaviSnapshotStat;
+class TaskQueue;
+class NaviThreadPoolItemBase;
+class NaviWorkerBase;
 class EvTimer;
+class NaviResult;
+class TaskQueueScheduleItemBase;
+class NaviHostInfo;
 
 NAVI_TYPEDEF_PTR(NaviSnapshot);
 
@@ -68,7 +72,7 @@ private:
 class NaviSnapshot : public autil::ObjectTracer<NaviSnapshot, true>
 {
 public:
-    NaviSnapshot(const std::string &naviName);
+    NaviSnapshot(const std::shared_ptr<NaviHostInfo> &hostInfo);
     ~NaviSnapshot();
 private:
     NaviSnapshot(const NaviSnapshot &);
@@ -92,7 +96,6 @@ public:
     void stop();
     void setTestMode(TestMode testMode);
     TestMode getTestMode() const { return _testMode; }
-    void onSessionDestruct(TaskQueue *queueEntry);
     void cleanupModule();
 public:
     std::shared_ptr<NaviUserResult>
@@ -101,17 +104,21 @@ public:
                        const RunGraphParams &params,
                        const ResourceMap *resourceMap,
                        NaviUserResultClosure *closure);
-    bool runGraph(NaviMessage *request,
-                  const ArenaPtr &arena,
-                  const RunParams &pbParams,
-                  const std::shared_ptr<multi_call::GigStreamBase> &stream,
-                  NaviLoggerPtr &logger);
+    bool doRunStreamSession(NaviMessage *request,
+                            const ArenaPtr &arena,
+                            const RunParams &pbParams,
+                            const std::shared_ptr<multi_call::GigStreamBase> &stream);
     bool createResource(const std::string &bizName,
                         NaviPartId partCount,
                         NaviPartId partId,
                         const std::set<std::string> &resources,
                         ResourceMap &resourceMap);
     const std::shared_ptr<NaviThreadPool> &getDestructThreadPool() const;
+    void runStreamSession(const std::string &taskQueueName,
+                          const SessionId &sessionId,
+                          TaskQueueScheduleItemBase *item,
+                          std::shared_ptr<NaviLogger> &logger);
+
 public:
     void reportStat(kmonitor::MetricsReporter &reporter);
 public:
@@ -120,7 +127,8 @@ private:
     void initDefaultLogger();
     bool initLogger(InstanceId instanceId, const NaviSnapshotPtr &oldSnapshot);
     bool initTaskQueue();
-    bool initSingleTaskQueue(const std::string &name, const ConcurrencyConfig &config, TaskQueueUPtr &entry);
+    bool
+    initSingleTaskQueue(const std::string &name, const ConcurrencyConfig &config, std::unique_ptr<TaskQueue> &entry);
     bool initBizManager(const ModuleManagerPtr &moduleManager,
                         multi_call::GigRpcServer *gigRpcServer,
                         const NaviSnapshotPtr &oldSnapshot,
@@ -135,10 +143,9 @@ private:
     bool collectResultResource(const std::shared_ptr<NaviUserResult> &result,
                                ResourceMap &resourceMap, InitWaiter *waiter);
     NaviObjectLogger getObjectLogger(SessionId id);
-    void stopSingleTaskQueue(TaskQueue *taskQueue);
     bool parseRunParams(const RunParams &pbParams,
                         RunGraphParams &params);
-    void initSnapshotResource(NaviWorkerBase *session);
+    void fillSnapshotResource(const RunGraphParams &params, NaviWorkerBase *session);
     void doSchedule(TaskQueue *taskQueue);
     TaskQueue *getTaskQueue(const std::string &taskQueueName);
     bool runGraphImpl(GraphDef *graphDef,
@@ -146,18 +153,18 @@ private:
                       const ResourceMap *resourceMap,
                       std::shared_ptr<NaviUserResult> &userResult,
                       NaviUserResultClosure *closure);
-    void getTaskQueueStat(const TaskQueue *taskQueue, NaviSnapshotStat &stat) const;
+    void logVisData(const std::shared_ptr<NaviResult> &naviResult) const;
     void writeSummary(const std::string &naviName,
                       const std::string &summaryStr) const;
 private:
     DECLARE_LOGGER();
-    std::string _naviName;
+    std::shared_ptr<NaviHostInfo> _hostInfo;
     NaviConfigPtr _config;
     std::shared_ptr<NaviSymbolTable> _naviSymbolTable;
     NaviLogManagerPtr _logManager;
     std::shared_ptr<kmonitor::MetricsReporter> _metricsReporter;
-    std::map<std::string, TaskQueueUPtr> _extraTaskQueueMap;
-    TaskQueueUPtr _defaultTaskQueue;
+    std::map<std::string, std::unique_ptr<TaskQueue>> _extraTaskQueueMap;
+    std::unique_ptr<TaskQueue> _defaultTaskQueue;
     BizManagerPtr _bizManager;
     autil::ThreadPtr _collectThread;
     std::shared_ptr<NaviUserResult> _initResult;

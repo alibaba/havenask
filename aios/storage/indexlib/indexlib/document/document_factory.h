@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_FACTORY_H
-#define __INDEXLIB_DOCUMENT_FACTORY_H
+#pragma once
 
 #include <memory>
 
@@ -81,5 +80,3 @@ DEFINE_SHARED_PTR(DocumentFactory);
 extern "C" plugin::ModuleFactory* createDocumentFactory();
 extern "C" void destroyDocumentFactory(plugin::ModuleFactory* factory);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_DOCUMENT_FACTORY_H

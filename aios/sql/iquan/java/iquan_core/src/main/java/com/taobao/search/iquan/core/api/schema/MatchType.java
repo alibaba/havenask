@@ -7,12 +7,10 @@ public enum MatchType {
     MT_SUB(Constant.SUB),
     MT_INVALID(Constant.INVALID);
 
-    public interface Constant {
-        String SIMPLE = "simple";
-        String FULL = "full";
-        String VALUE = "value";
-        String SUB = "sub";
-        String INVALID = "invalid";
+    private final String name;
+
+    MatchType(String name) {
+        this.name = name;
     }
 
     public static MatchType from(String name) {
@@ -31,10 +29,6 @@ public enum MatchType {
         }
     }
 
-    MatchType(String name) {
-        this.name = name;
-    }
-
     @Override
     public String toString() {
         return getName();
@@ -48,5 +42,11 @@ public enum MatchType {
         return name;
     }
 
-    private final String name;
+    public interface Constant {
+        String SIMPLE = "simple";
+        String FULL = "full";
+        String VALUE = "value";
+        String SUB = "sub";
+        String INVALID = "invalid";
+    }
 }

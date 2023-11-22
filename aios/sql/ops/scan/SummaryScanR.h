@@ -82,6 +82,9 @@ public:
     bool config(navi::ResourceConfigContext &ctx) override;
     navi::ErrorCode init(navi::ResourceInitContext &ctx) override;
 
+public:
+    void startAsyncLookup() override;
+
 private:
     bool doBatchScan(table::TablePtr &table, bool &eof) override;
     bool doUpdateScanQuery(const StreamQueryPtr &inputQuery) override;
@@ -93,7 +96,6 @@ private:
     bool convertPK2DocId(const std::vector<std::string> &pks);
 
     bool prepareLookupCtxs();
-    virtual void startLookupCtxs();
     virtual bool getSummaryDocs(SearchSummaryDocVecType &summaryDocs);
     template <typename T>
     bool fillSummaryDocs(const matchdoc::Reference<T> *ref,

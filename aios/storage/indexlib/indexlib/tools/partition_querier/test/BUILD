@@ -1,0 +1,31 @@
+cc_library(
+    name='table_query_test_helper',
+    testonly=True,
+    deps=[
+        '//aios/storage/indexlib/indexlib/test',
+        '//aios/storage/indexlib/indexlib/util/test:indexlib_util_test_helper',
+        '//aios/storage/indexlib/legacy/config/test:schema_maker',
+        '//aios/storage/indexlib/util/testutil:unittest'
+    ]
+)
+cc_test(
+    name='kv_table_query_test',
+    srcs=['KvTableQueryTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':table_query_test_helper',
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/storage/indexlib/indexlib/tools:index_partition_querier_lib',
+        '//aios/storage/indexlib/table/kv_table/test:kv_table_test_helper'
+    ]
+)
+cc_test(
+    name='kkv_table_query_test',
+    srcs=['KkvTableQueryTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        ':table_query_test_helper',
+        '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/storage/indexlib/indexlib/tools:index_partition_querier_lib'
+    ]
+)

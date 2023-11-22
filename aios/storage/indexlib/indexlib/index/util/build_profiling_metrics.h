@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILD_PROFILING_METRICS_H
-#define __INDEXLIB_BUILD_PROFILING_METRICS_H
+#pragma once
 
 #include <memory>
 
@@ -114,5 +113,3 @@ private:
     BuildProfilingMetricsPtr& _metric;
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_BUILD_PROFILING_METRICS_H

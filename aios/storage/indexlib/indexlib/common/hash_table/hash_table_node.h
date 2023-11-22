@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_HASH_TABLE_NODE_H
-#define __INDEXLIB_HASH_TABLE_NODE_H
+#pragma once
 
 #include <limits>
 #include <memory>
@@ -42,5 +41,3 @@ struct HashTableNode {
 };
 #pragma pack(pop)
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_HASH_TABLE_NODE_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SECTIONATTRIBUTEREWRITERTEST_H
-#define __INDEXLIB_SECTIONATTRIBUTEREWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_rewriter/section_attribute_rewriter.h"
@@ -41,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE(SectionAttributeRewriterTest, TestRewriteWithSubDoc);
 INDEXLIB_UNIT_TEST_CASE(SectionAttributeRewriterTest, TestRewriteWithException);
 INDEXLIB_UNIT_TEST_CASE(SectionAttributeRewriterTest, TestRewriteWithDeserializeDoc);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_SECTIONATTRIBUTEREWRITERTEST_H

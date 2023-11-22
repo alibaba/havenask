@@ -441,6 +441,30 @@ private:
     RESOURCE_DEPEND_ON(QuerySessionR, _querySessionR);
 };
 
+class TestSnapshotR : public Resource {
+public:
+    TestSnapshotR() {
+    }
+    ~TestSnapshotR() {
+    }
+    TestSnapshotR(const TestSnapshotR &) = delete;
+    TestSnapshotR &operator=(const TestSnapshotR &) = delete;
+public:
+    void def(ResourceDefBuilder &builder) const override {
+        builder.name(RESOURCE_ID, RS_SNAPSHOT);
+    }
+    bool config(ResourceConfigContext &ctx) override {
+        return true;
+    }
+    ErrorCode init(ResourceInitContext &ctx) override {
+        return EC_NONE;
+    }
+public:
+    static const std::string RESOURCE_ID;
+private:
+    RESOURCE_DEPEND_DECLARE();
+};
+
 }
 
 #endif //NAVI_TESTRESOURCE_H

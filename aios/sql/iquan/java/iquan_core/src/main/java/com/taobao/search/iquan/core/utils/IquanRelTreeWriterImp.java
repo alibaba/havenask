@@ -1,14 +1,14 @@
 package com.taobao.search.iquan.core.utils;
 
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.externalize.RelWriterImpl;
 import org.apache.calcite.rel.metadata.RelMetadataQuery;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.util.Pair;
-
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 
 public class IquanRelTreeWriterImp extends RelWriterImpl {
     private final boolean withRowType;
@@ -36,6 +36,20 @@ public class IquanRelTreeWriterImp extends RelWriterImpl {
         this.withRowType = false;
         this.withTreeStyle = true;
         borders = new ArrayList<>();
+    }
+
+    private static <T> List<T> dropLastElement(List<T> originList) {
+        if (originList == null || originList.isEmpty()) {
+            throw new RuntimeException("dropLastElement cant support null or emtpy List");
+        }
+        return originList.subList(0, originList.size() - 1);
+    }
+
+    private static <T> T getLast(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            throw new RuntimeException("getLast cant support null or emtpy List");
+        }
+        return list.get(list.size() - 1);
     }
 
     @Override
@@ -79,7 +93,7 @@ public class IquanRelTreeWriterImp extends RelWriterImpl {
                     continue;
                 }
                 s.append(j == 0 ? "(" : ", ");
-                    j = j + 1;
+                j = j + 1;
                 s.append(v.left).append("=[").append(v.right).append("]");
             }
             if (j > 0) {
@@ -127,19 +141,5 @@ public class IquanRelTreeWriterImp extends RelWriterImpl {
                 getLast(inputs).explain(this);
             }
         }
-    }
-
-    private static <T> List<T> dropLastElement(List<T> originList) {
-        if (originList == null || originList.isEmpty()) {
-            throw new RuntimeException("dropLastElement cant support null or emtpy List");
-        }
-        return originList.subList(0, originList.size() - 1);
-    }
-
-    private static <T> T getLast(List<T> list) {
-        if (list == null || list.isEmpty()) {
-            throw new RuntimeException("getLast cant support null or emtpy List");
-        }
-        return list.get(list.size() - 1);
     }
 }

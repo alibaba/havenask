@@ -200,7 +200,7 @@ navi::ErrorCode AggKernel::finalize(navi::DataPtr &data) {
         SQL_LOG(ERROR, "get output table failed");
         return navi::EC_ABORT;
     }
-    SQL_LOG(TRACE1, "aggregate table row count [%lu]", table->getRowCount());
+    SQL_LOG(TRACE2, "aggregate table row count [%lu]", table->getRowCount());
     if (!_calcTableR->projectTable(table)) {
         SQL_LOG(WARN, "project table [%s] failed.", TableUtil::toString(table, 5).c_str());
         return navi::EC_ABORT;
@@ -219,8 +219,8 @@ navi::ErrorCode AggKernel::finalize(navi::DataPtr &data) {
     _aggInfo.set_aggpoolsize(aggPoolSize);
     reportMetrics();
     _sqlSearchInfoCollectorR->getCollector()->overwriteAggInfo(_aggInfo);
-    SQL_LOG(TRACE1, "agg output table: [%s]", TableUtil::toString(table, 10).c_str());
-    SQL_LOG(DEBUG, "agg info: [%s]", _aggInfo.ShortDebugString().c_str());
+    SQL_LOG(TRACE2, "agg output table: [%s]", TableUtil::toString(table, 5).c_str());
+    SQL_LOG(TRACE1, "agg info: [%s]", _aggInfo.ShortDebugString().c_str());
     return navi::EC_NONE;
 }
 
@@ -261,7 +261,7 @@ void AggKernel::patchHintInfo(const map<string, map<string, string>> &hintsMap) 
 
 void AggKernel::reportMetrics() {
     if (_queryMetricReporterR) {
-        string pathName = "sql.user.ops." + getKernelName();
+        static const string pathName = "sql.user.ops.AggKernel";
         auto opMetricsReporter
             = _queryMetricReporterR->getReporter()->getSubReporter(pathName, {{{"scope", _scope}}});
         opMetricsReporter->report<AggOpMetrics, AggInfo>(nullptr, &_aggInfo);

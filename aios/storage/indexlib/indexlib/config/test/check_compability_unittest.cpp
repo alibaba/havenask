@@ -3,14 +3,12 @@
 #include "autil/legacy/any.h"
 #include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/impl/index_partition_schema_impl.h"
 #include "indexlib/config/index_config_creator.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/schema_configurator.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 using namespace std;
 using namespace autil;
@@ -50,7 +48,7 @@ public:
          * add a new_field, a new_index, a new_field to attribute and summary
          * this new config should be compatible with check_me.json
          */
-        INDEXLIB_TEST_TRUE(mRawSchema.get() != NULL);
+        ASSERT_TRUE(mRawSchema.get() != NULL);
         string compatibleSchemaFile = GET_PRIVATE_TEST_DATA_PATH() + "compatible_with_check_me.json";
         IndexPartitionSchemaPtr compatibleSchema = LoadSchema(compatibleSchemaFile);
         mRawSchema->AssertCompatible(*compatibleSchema);
@@ -84,19 +82,19 @@ public:
     {
         string schemaFile = GET_PRIVATE_TEST_DATA_PATH() + "index_engine_example.json";
         IndexPartitionSchemaPtr rawSchema = LoadSchema(schemaFile);
-        INDEXLIB_TEST_TRUE(rawSchema != NULL);
+        ASSERT_TRUE(rawSchema != NULL);
 
         size_t fieldCount = rawSchema->GetFieldCount();
         IndexPartitionSchemaPtr modifiedSchema = LoadSchema(schemaFile);
-        INDEXLIB_TEST_TRUE(modifiedSchema != NULL);
+        ASSERT_TRUE(modifiedSchema != NULL);
 
         FieldConfigPtr fieldConfig = modifiedSchema->AddFieldConfig("virtual", ft_long, false, true);
-        INDEXLIB_TEST_TRUE(fieldConfig != NULL);
-        INDEXLIB_TEST_EQUAL((fieldid_t)fieldCount, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL("virtual", fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL(ft_long, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_EQUAL(true, fieldConfig->IsVirtual());
-        INDEXLIB_TEST_EQUAL(fieldCount + 1, modifiedSchema->GetFieldCount());
+        ASSERT_TRUE(fieldConfig != NULL);
+        ASSERT_EQ((fieldid_t)fieldCount, fieldConfig->GetFieldId());
+        ASSERT_EQ("virtual", fieldConfig->GetFieldName());
+        ASSERT_EQ(ft_long, fieldConfig->GetFieldType());
+        ASSERT_EQ(true, fieldConfig->IsVirtual());
+        ASSERT_EQ(fieldCount + 1, modifiedSchema->GetFieldCount());
 
         rawSchema->AssertCompatible(*modifiedSchema);
     }
@@ -105,30 +103,30 @@ public:
     {
         string schemaFile = GET_PRIVATE_TEST_DATA_PATH() + "index_engine_example.json";
         IndexPartitionSchemaPtr rawSchema = LoadSchema(schemaFile);
-        INDEXLIB_TEST_TRUE(rawSchema != NULL);
+        ASSERT_TRUE(rawSchema != NULL);
 
         size_t fieldCount = rawSchema->GetFieldCount();
         size_t indexCount = rawSchema->GetIndexSchema()->GetIndexCount();
         IndexPartitionSchemaPtr modifiedSchema = LoadSchema(schemaFile);
-        INDEXLIB_TEST_TRUE(modifiedSchema != NULL);
+        ASSERT_TRUE(modifiedSchema != NULL);
 
         FieldConfigPtr fieldConfig = modifiedSchema->AddFieldConfig("virtual", ft_long, false, true);
-        INDEXLIB_TEST_TRUE(fieldConfig != NULL);
+        ASSERT_TRUE(fieldConfig != NULL);
 
         IndexConfigPtr indexConfig = IndexConfigCreator::CreateSingleFieldIndexConfig(
             "virtual", it_number, "virtual", "", true, modifiedSchema->GetFieldSchema());
         modifiedSchema->AddIndexConfig(indexConfig);
-        INDEXLIB_TEST_TRUE(indexConfig != NULL);
+        ASSERT_TRUE(indexConfig != NULL);
 
-        INDEXLIB_TEST_EQUAL((fieldid_t)fieldCount, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL("virtual", fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL(ft_long, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_EQUAL(true, fieldConfig->IsVirtual());
-        INDEXLIB_TEST_EQUAL(fieldCount + 1, modifiedSchema->GetFieldCount());
+        ASSERT_EQ((fieldid_t)fieldCount, fieldConfig->GetFieldId());
+        ASSERT_EQ("virtual", fieldConfig->GetFieldName());
+        ASSERT_EQ(ft_long, fieldConfig->GetFieldType());
+        ASSERT_EQ(true, fieldConfig->IsVirtual());
+        ASSERT_EQ(fieldCount + 1, modifiedSchema->GetFieldCount());
 
-        INDEXLIB_TEST_EQUAL((indexid_t)indexCount, indexConfig->GetIndexId());
-        INDEXLIB_TEST_EQUAL(true, indexConfig->IsVirtual());
-        INDEXLIB_TEST_EQUAL(indexCount + 1, modifiedSchema->GetIndexSchema()->GetIndexCount());
+        ASSERT_EQ((indexid_t)indexCount, indexConfig->GetIndexId());
+        ASSERT_EQ(true, indexConfig->IsVirtual());
+        ASSERT_EQ(indexCount + 1, modifiedSchema->GetIndexSchema()->GetIndexCount());
 
         rawSchema->AssertCompatible(*modifiedSchema);
     }
@@ -137,10 +135,10 @@ public:
     {
         string schemaFile = GET_PRIVATE_TEST_DATA_PATH() + "index_engine_example.json";
         IndexPartitionSchemaPtr rawSchema = LoadSchema(schemaFile);
-        INDEXLIB_TEST_TRUE(rawSchema != NULL);
+        ASSERT_TRUE(rawSchema != NULL);
 
         IndexPartitionSchemaPtr modifiedSchema = LoadSchema(schemaFile);
-        INDEXLIB_TEST_TRUE(modifiedSchema != NULL);
+        ASSERT_TRUE(modifiedSchema != NULL);
 
         bool exceptionCaught = false;
         IndexConfigPtr indexConfig = IndexConfigCreator::CreateSingleFieldIndexConfig(
@@ -154,7 +152,7 @@ public:
         } catch (SchemaException& e) {
             exceptionCaught = true;
         }
-        INDEXLIB_TEST_TRUE(exceptionCaught);
+        ASSERT_TRUE(exceptionCaught);
     }
 
 private:
@@ -174,11 +172,11 @@ private:
 
     void InternalTestForInCompability(const string& schemaFile)
     {
-        INDEXLIB_TEST_TRUE(mRawSchema.get() != NULL);
+        ASSERT_TRUE(mRawSchema.get() != NULL);
         IndexPartitionSchemaPtr compatibleSchema = LoadSchema(schemaFile);
         const IndexPartitionSchemaImplPtr& compatibleImpl = compatibleSchema->GetImpl();
         const IndexPartitionSchemaImplPtr& rawImpl = mRawSchema->GetImpl();
-        INDEXLIB_EXPECT_EXCEPTION(rawImpl->DoAssertCompatible(*(compatibleImpl.get())), AssertEqualException);
+        ASSERT_THROW(rawImpl->DoAssertCompatible(*(compatibleImpl.get())), AssertEqualException);
         mRawSchema->AssertCompatible(*compatibleSchema);
     }
 

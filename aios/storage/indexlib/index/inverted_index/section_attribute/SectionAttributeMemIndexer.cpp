@@ -25,7 +25,7 @@ using indexlibv2::document::IDocumentBatch;
 } // namespace
 AUTIL_LOG_SETUP(indexlib.index, SectionAttributeMemIndexer);
 
-SectionAttributeMemIndexer::SectionAttributeMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam)
+SectionAttributeMemIndexer::SectionAttributeMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam)
     : _indexerParam(indexerParam)
 {
 }

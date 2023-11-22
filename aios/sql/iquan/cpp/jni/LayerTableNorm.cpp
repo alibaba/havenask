@@ -17,6 +17,8 @@
 
 #include <sstream>
 
+#include "iquan/jni/IquanImpl.h"
+
 using namespace std;
 
 namespace iquan {
@@ -48,14 +50,15 @@ bool LayerTableNorm::doNorm(const unordered_map<string, LayerTableMetaPtr> &laye
                             const LayerTablePlanMeta &planMeta,
                             const vector<autil::legacy::Any> &params,
                             string &result) const {
-    const string &layerTableName = planMeta.layerTableName;
+    const string &fullPath
+        = IquanImpl::concatFullPath(planMeta.catalogName, planMeta.dbName, planMeta.layerTableName);
     const string &fieldName = planMeta.fieldName;
     auto op = planMeta.op;
     auto isRev = planMeta.isRev;
     int paramId = planMeta.dynamicParamsIndex;
     auto &value = params[paramId];
 
-    auto iter = layerTableMetaMap.find(layerTableName);
+    auto iter = layerTableMetaMap.find(fullPath);
     if (iter == layerTableMetaMap.end()) {
         return false;
     }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 #include "gmock/gmock.h"
 #include <memory>
 #include <string>
@@ -77,6 +78,7 @@ public:
     MOCK_METHOD(Status, Open, (const BuildResource&, indexlib::framework::SegmentMetrics*), (override));
     MOCK_METHOD(Status, Build, (document::IDocumentBatch*), (override));
     MOCK_METHOD(std::shared_ptr<indexlib::util::BuildResourceMetrics>, GetBuildResourceMetrics, (), (const, override));
+    MOCK_METHOD(void, ValidateDocumentBatch, (document::IDocumentBatch*), (const, override));
     MOCK_METHOD(bool, NeedDump, (), (const, override));
     MOCK_METHOD(bool, IsDirty, (), (const, override));
     MOCK_METHOD((std::pair<Status, std::vector<std::shared_ptr<SegmentDumpItem>>>), CreateSegmentDumpItems, (),

@@ -31,6 +31,8 @@
 #include "navi/tester/KernelTesterBuilder.h"
 #include "navi/tester/NaviResourceHelper.h"
 #include "navi/util/NaviTestPool.h"
+#include "sql/common/common.h"
+#include "sql/data/SqlQueryConfigData.h"
 #include "sql/data/TableData.h"
 #include "sql/resource/AnalyzerFactoryR.h"
 #include "sql/resource/Ha3QueryInfoR.h"
@@ -72,10 +74,16 @@ void OpTestBase::SetUp() {
         ASSERT_NO_FATAL_FAILURE(prepareTablet());
         ASSERT_TRUE(_indexApp->InitByTablet(_tabletMap));
     }
+    ASSERT_NO_FATAL_FAILURE(prepareNamedData());
     ASSERT_NO_FATAL_FAILURE(prepareResources());
 }
 
 void OpTestBase::TearDown() {
+    _indexApp->Close();
+    for (const auto &it : _tabletMap) {
+        auto tablet = it.second;
+        tablet->Close();
+    }
     _attributeMap.clear();
     _indexPartitionMap.clear();
     _inputs.clear();
@@ -324,6 +332,11 @@ OpTestBase::makeIndexPartitionForInvertedTable(const std::string &rootPath,
     return indexPartition;
 }
 
+void OpTestBase::prepareNamedData() {
+    _queryConfigData = std::make_shared<SqlQueryConfigData>();
+    _naviRHelper.namedData(SQL_QUERY_CONFIG_NAME, _queryConfigData);
+}
+
 void OpTestBase::prepareResources() {
     auto tableInfoR = std::make_shared<suez::turing::TableInfoR>();
     tableInfoR->_id2IndexAppMap = _id2IndexAppMap;
@@ -368,6 +381,7 @@ void OpTestBase::prepareTabletManagerR() {
 
 void OpTestBase::setResource(navi::KernelTesterBuilder &testerBuilder) {
     testerBuilder.resource(_naviRHelper.getResourceMap());
+    testerBuilder.namedData(SQL_QUERY_CONFIG_NAME, _queryConfigData);
 }
 
 void OpTestBase::compareStringColumn(table::Table *table,
@@ -391,7 +405,7 @@ table::TablePtr OpTestBase::getTable(navi::DataPtr data) {
 
 navi::DataPtr OpTestBase::createTable(matchdoc::MatchDocAllocatorPtr allocator,
                                       std::vector<matchdoc::MatchDoc> docs) {
-    table::TablePtr ret(new table::Table(docs, allocator));
+    table::TablePtr ret = table::Table::fromMatchDocs(docs, allocator);
     return std::dynamic_pointer_cast<navi::Data>(TableDataPtr(new TableData(ret)));
 }
 
@@ -421,14 +435,6 @@ void OpTestBase::makeConfigCtx(const std::string &jsonStr, navi::KernelConfigCon
     builder.attrs(jsonStr);
     ctx = builder.buildConfigContext();
     ASSERT_NE(nullptr, ctx);
-}
-
-void OpTestBase::checkDependentTable(const std::shared_ptr<table::Table> &inputTable,
-                                     const std::shared_ptr<table::Table> &outputTable) {
-    const auto &inputDependentPoolList = inputTable->getDependentPools();
-    for (const auto &inputPool : inputDependentPoolList) {
-        ASSERT_TRUE(outputTable->getDependentPools().count(inputPool) == 1);
-    }
 }
 
 void OpTestBase::asyncRunKernel(navi::KernelTester &tester,

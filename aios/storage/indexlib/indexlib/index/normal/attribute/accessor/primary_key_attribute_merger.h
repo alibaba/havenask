@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIMARY_KEY_ATTRIBUTE_MERGER_H
-#define __INDEXLIB_PRIMARY_KEY_ATTRIBUTE_MERGER_H
+#pragma once
 
 #include <memory>
 
@@ -90,5 +89,3 @@ PrimaryKeyAttributeMerger<Key>::CreateDataFileWriter(const file_system::Director
     return pkAttrDirectory->CreateFileWriter(ATTRIBUTE_DATA_FILE_NAME);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARY_KEY_ATTRIBUTE_MERGER_H

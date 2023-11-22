@@ -2,9 +2,11 @@
 
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/index_define.h"
+#include "indexlib/merger/segment_directory.h"
 #include "indexlib/plugin/plugin_manager.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

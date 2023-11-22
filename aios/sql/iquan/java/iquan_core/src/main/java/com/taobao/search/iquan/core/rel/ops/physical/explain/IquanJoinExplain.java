@@ -1,7 +1,13 @@
 package com.taobao.search.iquan.core.rel.ops.physical.explain;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.schema.FieldMeta;
-import com.taobao.search.iquan.core.api.schema.Table;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.hint.IquanHintCategory;
 import com.taobao.search.iquan.core.rel.hint.IquanHintOptUtils;
@@ -17,8 +23,6 @@ import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.util.ImmutableIntList;
-
-import java.util.*;
 
 public class IquanJoinExplain {
     protected IquanJoinOp join;
@@ -70,19 +74,19 @@ public class IquanJoinExplain {
             map.put(ConstantDefine.JOIN_SYSTEM_FIELD_NUM, join.getSystemFieldList().size());
 
             RelNode leftInput = IquanRelOptUtils.toRel(join.getLeft());
-            Table leftTable = IquanRelOptUtils.getIquanTable(join.getLeft());
+            IquanTable leftIquanTable = IquanRelOptUtils.getIquanTable(join.getLeft());
             Set<String> leftKeys = calcJoinKeys(leftInput, joinInfo.leftKeys);
-            if (leftTable != null && !leftKeys.isEmpty()) {
-                List<FieldMeta> fieldMetaList = leftTable.getFieldMetaList();
+            if (leftIquanTable != null && !leftKeys.isEmpty()) {
+                List<FieldMeta> fieldMetaList = leftIquanTable.getFieldMetaList();
                 IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.LEFT_TABLE_META,
                         PlanWriteUtils.formatTableMeta(fieldMetaList, leftKeys));
             }
 
             RelNode rightInput = IquanRelOptUtils.toRel(join.getRight());
-            Table rightTable = IquanRelOptUtils.getIquanTable(join.getRight());
+            IquanTable rightIquanTable = IquanRelOptUtils.getIquanTable(join.getRight());
             Set<String> rightKeys = calcJoinKeys(rightInput, joinInfo.rightKeys);
-            if (rightTable != null && !rightKeys.isEmpty()) {
-                List<FieldMeta> fieldMetaList = rightTable.getFieldMetaList();
+            if (rightIquanTable != null && !rightKeys.isEmpty()) {
+                List<FieldMeta> fieldMetaList = rightIquanTable.getFieldMetaList();
                 IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.RIGHT_TABLE_META, PlanWriteUtils
                         .formatTableMeta(fieldMetaList, rightKeys));
             }

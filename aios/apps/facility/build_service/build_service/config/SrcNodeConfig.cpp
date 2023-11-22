@@ -15,6 +15,16 @@
  */
 #include "build_service/config/SrcNodeConfig.h"
 
+#include <iosfwd>
+#include <limits>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/online_config.h"
+#include "indexlib/file_system/load_config/LoadConfig.h"
+#include "indexlib/file_system/load_config/LoadConfigList.h"
+
 using namespace std;
 
 namespace build_service { namespace config {

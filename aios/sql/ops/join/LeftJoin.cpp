@@ -25,7 +25,6 @@
 #include "sql/common/Log.h"
 #include "sql/ops/calc/CalcTableR.h"
 #include "sql/ops/join/JoinBase.h"
-#include "sql/ops/join/JoinInfoCollector.h"
 
 using namespace std;
 using namespace autil;
@@ -33,7 +32,7 @@ using namespace table;
 
 namespace sql {
 
-LeftJoin::LeftJoin(const JoinBaseParam &joinBaseParam)
+LeftJoin::LeftJoin(const JoinBaseParamR &joinBaseParam)
     : JoinBase(joinBaseParam) {}
 
 bool LeftJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
@@ -51,11 +50,9 @@ bool LeftJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
             return false;
         }
     }
-    outputTable->mergeDependentPools(leftTable);
-    outputTable->mergeDependentPools(rightTable);
     size_t joinIndexStart = outputTable->getRowCount();
     uint64_t afterInitTable = TimeUtility::currentTime();
-    JoinInfoCollector::incInitTableTime(_joinBaseParam._joinInfo, afterInitTable - beginOutput);
+    _joinBaseParam._joinInfoR->incInitTableTime(afterInitTable - beginOutput);
     if (!evaluateJoinedTable(
             leftTableIndexes, rightTableIndexes, leftTable, rightTable, outputTable)) {
         SQL_LOG(ERROR, "evaluate join table failed");
@@ -76,7 +73,7 @@ bool LeftJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
     }
 
     uint64_t afterEvaluate = TimeUtility::currentTime();
-    JoinInfoCollector::incEvaluateTime(_joinBaseParam._joinInfo, afterEvaluate - afterInitTable);
+    _joinBaseParam._joinInfoR->incEvaluateTime(afterEvaluate - afterInitTable);
 
     return true;
 }
@@ -116,7 +113,7 @@ bool LeftJoin::finish(const table::TablePtr &leftTable,
         return false;
     }
     uint64_t afterEvaluate = TimeUtility::currentTime();
-    JoinInfoCollector::incEvaluateTime(_joinBaseParam._joinInfo, afterEvaluate - beforeEvaluate);
+    _joinBaseParam._joinInfoR->incEvaluateTime(afterEvaluate - beforeEvaluate);
     return true;
 }
 

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_UNIQ_ENCODE_VAR_NUM_ATTRIBUTE_SEGMENT_READER_FOR_OFFLINE_H
-#define __INDEXLIB_UNIQ_ENCODE_VAR_NUM_ATTRIBUTE_SEGMENT_READER_FOR_OFFLINE_H
+#pragma once
 
 #include <memory>
 
@@ -232,5 +231,3 @@ inline uint32_t UniqEncodeVarNumAttributeSegmentReaderForOffline<T>::GetMaxDataI
     return maxItemLen;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_UNIQ_ENCODE_VAR_NUM_ATTRIBUTE_SEGMENT_READER_FOR_OFFLINE_H

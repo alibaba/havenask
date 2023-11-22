@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_LEGACY_INDEX_READER_H
-#define __INDEXLIB_LEGACY_INDEX_READER_H
+#pragma once
 
 #include "indexlib/config/index_config.h"
 #include "indexlib/document/normal/ModifiedTokens.h"
@@ -107,5 +106,3 @@ inline std::shared_ptr<indexlib::config::IndexConfig> LegacyIndexReader::GetInde
 }
 
 } // namespace indexlib::index
-
-#endif //__INDEXLIB_LEGACY_INDEX_READER_H

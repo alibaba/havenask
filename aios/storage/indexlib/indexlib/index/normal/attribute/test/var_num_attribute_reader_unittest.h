@@ -1,3 +1,4 @@
+#pragma once
 #include "autil/MultiValueCreator.h"
 #include "autil/StringUtil.h"
 #include "autil/mem_pool/Pool.h"
@@ -501,8 +502,8 @@ std::shared_ptr<VarNumAttributeReader<T>> VarNumAttributeReaderTest::CreateAttrR
         RESET_FILE_SYSTEM();
     } else {
         RESET_FILE_SYSTEM(LoadConfigListCreator::CreateLoadConfigList(readMode));
-        THROW_IF_FS_ERROR(mFileSystem->MountVersion(GET_TEMP_DATA_PATH(), INVALID_VERSION, "", FSMT_READ_ONLY, nullptr),
-                          "");
+        THROW_IF_FS_ERROR(
+            mFileSystem->MountVersion(GET_TEMP_DATA_PATH(), INVALID_VERSIONID, "", FSMT_READ_ONLY, nullptr), "");
         EXPECT_EQ(FSEC_OK, mFileSystem->MountDir(GET_TEMP_DATA_PATH(), "", "", FSMT_READ_WRITE, false));
     }
     PartitionDataPtr partitionData = IndexTestUtil::CreatePartitionData(GET_FILE_SYSTEM(), segCount);

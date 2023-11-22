@@ -199,7 +199,7 @@ bool SimpleRerankTvfFunc::computeTable(const table::TablePtr &table) {
     std::vector<std::vector<table::Row>> groups;
     groups.resize(_quotaFieldValues.size());
     makeGroup(table, &groups);
-    SQL_LOG(DEBUG, "Success to make group");
+    SQL_LOG(TRACE3, "Success to make group");
     // 2: make a rerank by using rerankFields in every group (using sort function) with a quota
     std::vector<table::Row> target, extra;
     for (size_t i = 0; i < groups.size(); i++) {

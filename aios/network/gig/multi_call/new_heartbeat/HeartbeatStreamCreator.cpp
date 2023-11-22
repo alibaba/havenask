@@ -36,7 +36,7 @@ GigServerStreamPtr HeartbeatStreamCreator::create() {
     if (!manager) {
         return nullptr;
     }
-    auto stream = std::make_shared<HeartbeatServerStream>(_manager);
+    auto stream = std::make_shared<HeartbeatServerStream>(manager);
     manager->addStream(stream);
     return std::dynamic_pointer_cast<GigServerStream>(stream);
 }

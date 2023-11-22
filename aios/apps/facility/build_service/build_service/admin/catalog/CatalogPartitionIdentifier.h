@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 #pragma once
+#include <string>
+
 #include "autil/legacy/jsonizable.h"
 #include "build_service/util/Log.h"
 

@@ -15,6 +15,7 @@
  */
 #include "indexlib/document/kv/KVDocument.h"
 
+#include "autil/ConstString.h"
 #include "autil/DataBuffer.h"
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/index/kv/Constant.h"
@@ -22,7 +23,7 @@
 namespace indexlibv2::document {
 AUTIL_LOG_SETUP(indexlib.document, KVDocument);
 
-KVDocument::KVDocument(autil::mem_pool::Pool* pool) : _pool(pool), _docInfo(0, INVALID_TIMESTAMP, 0) {}
+KVDocument::KVDocument(autil::mem_pool::Pool* pool) : _pool(pool), _docInfo(0, INVALID_TIMESTAMP, 0, 0) {}
 
 KVDocument::~KVDocument() {}
 

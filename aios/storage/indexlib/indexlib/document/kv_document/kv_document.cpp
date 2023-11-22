@@ -323,7 +323,7 @@ void KVDocument::DoDeserialize(autil::DataBuffer& dataBuffer, uint32_t serialize
             }
         }
         // deserialize tag
-        if(serializedVersion >= KVIndexDocument::STORE_TAG_INFO_MAP_VERSION) {
+        if (serializedVersion >= KVIndexDocument::STORE_TAG_INFO_MAP_VERSION) {
             std::string source;
             dataBuffer.read(source);
             TagInfoFromString(source);

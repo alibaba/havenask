@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTECOMPRESSINFOTEST_H
-#define __INDEXLIB_ATTRIBUTECOMPRESSINFOTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/data_structure/attribute_compress_info.h"
@@ -25,5 +24,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(AttributeCompressInfoTest, TestNeedCompressData);
 INDEXLIB_UNIT_TEST_CASE(AttributeCompressInfoTest, TestNeedCompressOffset);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTECOMPRESSINFOTEST_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_LIFECYCLE_SEGMENT_ATTRIBUTE_UPDATER_H
-#define __INDEXLIB_LIFECYCLE_SEGMENT_ATTRIBUTE_UPDATER_H
+#pragma once
 
 #include <memory>
 
@@ -92,5 +91,3 @@ private:
 
 DEFINE_SHARED_PTR(LifecycleSegmentMetricsUpdater);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_LIFECYCLE_SEGMENT_ATTRIBUTE_UPDATER_H

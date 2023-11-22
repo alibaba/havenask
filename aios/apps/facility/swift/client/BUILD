@@ -64,8 +64,29 @@ cc_library(
     hdrs=[],
     copts=['-Werror'],
     include_prefix='swift/client',
+    visibility=[
+        '//aios/apps/facility/dispatch_framework:__subpackages__',
+        '//aios/apps/facility/swift:__subpackages__'
+    ],
     deps=[':swift_client_no_transport', ':transport_client'],
     alwayslink=True
+)
+cc_test(
+    name='swift_client_test',
+    srcs=glob([
+        'test/MockSwiftReader.h', 'test/*Test.cpp', 'helper/test/*Test.cpp',
+        'trace/test/*Test.cpp'
+    ]),
+    copts=['-fno-access-control'],
+    data=['//aios/apps/facility/swift:swift_testdata'],
+    flaky=True,
+    shard_count=3,
+    deps=[
+        '//aios/apps/facility/swift/client/fake_client:fake_client_minimal',
+        '//aios/apps/facility/swift/testlib:mock_swift_client',
+        '//aios/apps/facility/swift/util:swift_util',
+        '//aios/filesystem/fslib:fslib-framework', '//aios/unittest_framework'
+    ]
 )
 cc_test(
     name='client_benchmark',

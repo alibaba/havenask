@@ -15,8 +15,23 @@
  */
 #include "build_service/admin/LegacyCheckpointAdaptor.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <map>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/common/Checkpoint.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
 #include "build_service/config/BuildRuleConfig.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/util/RangeUtil.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 

@@ -15,16 +15,29 @@
  */
 #include "indexlib/merger/table_merge_meta.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+
 #include "indexlib/file_system/Directory.h"
-#include "indexlib/file_system/FenceDirectory.h"
 #include "indexlib/file_system/IFileSystem.h"
 // #include "indexlib/file_system/package_storage.h"
+#include "alog/Logger.h"
+#include "autil/LongHashValue.h"
 #include "autil/StringUtil.h"
-#include "fslib/fs/FileSystem.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/file_system/WriterOption.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/table/table_merge_plan.h"
 #include "indexlib/table/table_merge_plan_meta.h"
 #include "indexlib/table/table_merge_plan_resource.h"
-#include "indexlib/util/PathUtil.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace autil::legacy;

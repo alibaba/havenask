@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONLINEPARTITIONEXCEPTIONTEST_H
-#define __INDEXLIB_ONLINEPARTITIONEXCEPTIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/test/fake_partition.h"
@@ -41,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE(OnlinePartitionExceptionTest, TestExceptionInRTBuild);
 INDEXLIB_UNIT_TEST_CASE(OnlinePartitionExceptionTest, TestReopenFail);
 INDEXLIB_UNIT_TEST_CASE(OnlinePartitionExceptionTest, TestBuildWithSplit);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINEPARTITIONEXCEPTIONTEST_H
