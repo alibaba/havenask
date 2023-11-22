@@ -64,7 +64,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
 * Create table
 ```
-/ha3_install/hape create table -t in0 -s /ha3_install/hape_conf/example/cases/normal/in0_schema.json -p 1
+/ha3_install/hape create table -t in0 -s /ha3_install/example/cases/normal/in0_schema.json -p 1
 ```
 
 * Insert data
