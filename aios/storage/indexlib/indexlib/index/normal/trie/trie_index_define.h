@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TRIE_INDEX_DEFINE_H
-#define __INDEXLIB_TRIE_INDEX_DEFINE_H
+#pragma once
 
 #include <algorithm>
 #include <limits>
@@ -26,5 +25,3 @@ namespace indexlib { namespace index {
 const uint8_t TRIE_INDEX_VERSION = 1; // for compitable in the feature
 const int32_t TRIE_MAX_MATCHES = std::numeric_limits<int32_t>::max();
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TRIE_INDEX_DEFINE_H

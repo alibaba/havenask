@@ -7,9 +7,6 @@ cc_library(
     hdrs=glob(['*h']),
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/inverted_index/builtin_index/bitmap/test',
-    visibility=[
-        '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap/test:__pkg__'
-    ],
     deps=[
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:BitmapIndexWriter',
         '//aios/storage/indexlib/indexlib:indexlib_testbase_helper',

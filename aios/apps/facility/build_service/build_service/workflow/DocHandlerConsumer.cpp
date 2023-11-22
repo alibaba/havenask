@@ -15,6 +15,10 @@
  */
 #include "build_service/workflow/DocHandlerConsumer.h"
 
+#include <cstddef>
+#include <memory>
+#include <vector>
+
 using namespace std;
 
 namespace build_service { namespace workflow {

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_NULLFIELDAPPENDERTEST_H
-#define __INDEXLIB_NULLFIELDAPPENDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_parser/normal_parser/null_field_appender.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(NullFieldAppenderTest, TestSimpleProcess);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_NULLFIELDAPPENDERTEST_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOC_FILTER_PROCESSOR_H
-#define __INDEXLIB_DOC_FILTER_PROCESSOR_H
+#pragma once
 
 #include <memory>
 
@@ -156,5 +155,3 @@ inline void DocFilterProcessorTyped<T>::GetFilterRange(int64_t& min, int64_t& ma
 
 DEFINE_SHARED_PTR(DocFilterProcessor);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_DOC_FILTER_PROCESSOR_H

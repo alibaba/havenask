@@ -1,5 +1,6 @@
 #include "unittest/unittest.h"
 #include "navi/tester/KernelTesterBuilder.h"
+#include "navi/example/TestData.h"
 
 using namespace std;
 using namespace testing;
@@ -25,7 +26,7 @@ TEST_F(NaviSnapshotTest, testInitResource) {
         testerBuilder.logLevel("debug");
         testerBuilder.threadNum(10);
         testerBuilder.module(
-            GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+            NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
         testerBuilder.snapshotResourceConfig(GIG_CLIENT_RESOURCE_ID, gigClientConfig);
         ResourcePtr a1;
         {
@@ -51,7 +52,7 @@ TEST_F(NaviSnapshotTest, testInitResource) {
         KernelTesterBuilder testerBuilder;
         testerBuilder.logLevel("debug");
         testerBuilder.module(
-            GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+            NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
         testerBuilder.snapshotResourceConfig(GIG_CLIENT_RESOURCE_ID, gigClientConfig);
         ResourcePtr a1;
         {

@@ -1,13 +1,14 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.client.common.json.function.JsonTvfFunction;
 import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import com.taobao.search.iquan.core.catalog.FullPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class TvfFunction extends Function {
     private static final Logger logger = LoggerFactory.getLogger(TvfFunction.class);
@@ -15,13 +16,13 @@ public class TvfFunction extends Function {
     private final List<TvfSignature> signatureList;
     private final JsonTvfFunction jsonTvfFunction;
 
-    public TvfFunction(long version, String name, FunctionType type, boolean isDeterministic, List<TvfSignature> signatureList) {
-        this(version, name, type, isDeterministic, signatureList, null);
+    public TvfFunction(long version, FullPath fullPath, FunctionType type, boolean isDeterministic, List<TvfSignature> signatureList) {
+        this(version, fullPath, type, isDeterministic, signatureList, null);
     }
 
-    public TvfFunction(long version, String name, FunctionType type, boolean isDeterministic,
+    public TvfFunction(long version, FullPath fullPath, FunctionType type, boolean isDeterministic,
                        List<TvfSignature> signatureList, JsonTvfFunction jsonTvfFunction) {
-        super(version, name, type, isDeterministic);
+        super(version, fullPath, type, isDeterministic);
         this.signatureList = signatureList;
         this.jsonTvfFunction = jsonTvfFunction;
     }

@@ -1,10 +1,27 @@
 #include "build_service/common/CheckpointResourceKeeper.h"
 
+#include <ext/alloc_traits.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "autil/StringUtil.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/ResourceCheckpointFormatter.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeper.h"
 #include "build_service/common/ResourceKeeperCreator.h"
 #include "build_service/common/ResourceKeeperGuard.h"
+#include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/test/unittest.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

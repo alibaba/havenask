@@ -39,20 +39,20 @@ NormalCompressBlockDataRetriever::NormalCompressBlockDataRetriever(
 
 NormalCompressBlockDataRetriever::~NormalCompressBlockDataRetriever() noexcept { ReleaseBuffer(); }
 
-uint8_t* NormalCompressBlockDataRetriever::RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
-                                                             size_t& blockDataLength)
+FSResult<uint8_t*> NormalCompressBlockDataRetriever::RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
+                                                                       size_t& blockDataLength) noexcept
 {
     if (!GetBlockMeta(fileOffset, blockDataBeginOffset, blockDataLength)) {
-        return nullptr;
+        return {FSEC_OK, nullptr};
     }
 
     size_t blockIdx = _compressAddrMapper->OffsetToBlockIdx(blockDataBeginOffset);
-    DecompressBlockData(blockIdx);
+    RETURN2_IF_FS_ERROR(DecompressBlockData(blockIdx).Code(), nullptr, "decompress block failed");
     size_t len = _compressor->GetBufferOutLen();
     char* data = IE_POOL_COMPATIBLE_NEW_VECTOR(_pool, char, len);
     memcpy(data, _compressor->GetBufferOut(), len);
     _addrVec.push_back(StringView(data, len));
-    return (uint8_t*)data;
+    return {FSEC_OK, (uint8_t*)data};
 }
 
 void NormalCompressBlockDataRetriever::Reset() noexcept

@@ -15,13 +15,18 @@
  */
 #include "indexlib/config/UnresolvedSchema.h"
 
+#include <assert.h>
+#include <exception>
+
 #include "UnresolvedSchema.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/jsonizable.h"
+#include "indexlib/config/FieldConfig.h"
 #include "indexlib/config/IIndexConfig.h"
 #include "indexlib/config/IndexConfigDeserializeResource.h"
 #include "indexlib/config/LegacySchemaConvertor.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IndexFactoryCreator.h"
-#include "indexlib/index/common/Constant.h"
 
 namespace indexlibv2::config {
 AUTIL_LOG_SETUP(indexlib.config, UnresolvedSchema);
@@ -151,7 +156,6 @@ bool UnresolvedSchema::Serialize(bool isCompact, std::string* output)
         jsonMap = wrapper.GetMap();
     }
     autil::legacy::json::JsonMap indexes;
-    // TODO(yonghao.fyh) : select certain index by TableType
     SerializeIndexes(indexes);
 
     if (!indexes.empty()) {
@@ -281,10 +285,6 @@ Status UnresolvedSchema::PrepareIndexConfigs(const autil::legacy::json::JsonMap&
             RETURN_IF_STATUS_ERROR(status, "add index config [%s][%s] failed", indexConfig->GetIndexType().c_str(),
                                    indexConfig->GetIndexName().c_str());
         }
-    }
-    if (_nativeIndexConfigs.empty()) {
-        AUTIL_LOG(INFO, "tablet schema index configs is empty. tableType[%s] tableName[%s]", GetTableType().c_str(),
-                  GetTableName().c_str());
     }
     return Status::OK();
 }

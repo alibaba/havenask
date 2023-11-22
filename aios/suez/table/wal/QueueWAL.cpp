@@ -56,7 +56,7 @@ bool QueueWAL::init(const WALConfig &config) {
     return true;
 }
 
-void QueueWAL::log(const vector<pair<uint16_t, string>> &strs, CallbackType done) {
+void QueueWAL::log(const vector<std::pair<uint16_t, std::string>> &strs, CallbackType done) {
     if (_docQueuePtr == nullptr) {
         done(RuntimeError::make("doc queue is null"));
         return;
@@ -67,8 +67,10 @@ void QueueWAL::log(const vector<pair<uint16_t, string>> &strs, CallbackType done
     }
     vector<int64_t> timestamps;
     for (const auto &str : strs) {
-        _docQueuePtr->Push(str.second);
-        timestamps.push_back(TimeUtility::currentTime());
+        int64_t timestamp = TimeUtility::currentTime();
+        RawDoc rawDoc = std::make_pair(timestamp, str.second);
+        _docQueuePtr->Push(rawDoc);
+        timestamps.push_back(timestamp);
     }
     done(std::move(timestamps));
 }

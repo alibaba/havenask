@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "iquan/common/catalog/TvfFunctionModel.h"
+#include "iquan/common/catalog/FunctionModel.h"
 #include "navi/engine/Resource.h"
 #include "navi/log/NaviLoggerProvider.h"
 #include "navi/tester/NaviResourceHelper.h"
@@ -125,24 +125,24 @@ TEST_F(TvfFuncFactoryRTest, test_initTvfInfo) {
 
 TEST_F(TvfFuncFactoryRTest, test_fillTvfModels) {
     {
-        iquan::TvfModels tvfModels;
+        std::vector<iquan::FunctionModel> tvfModels;
         TvfFuncFactoryR factory;
         EXPECT_TRUE(factory.fillTvfModels(tvfModels));
-        EXPECT_TRUE(tvfModels.functions.empty());
+        EXPECT_TRUE(tvfModels.empty());
     }
     {
         navi::NaviLoggerProvider provider;
-        iquan::TvfModels tvfModels;
+        std::vector<iquan::FunctionModel> tvfModels;
         TvfFuncFactoryR factory;
         ErrorTvfFuncCreator errorCreator;
         factory._funcToCreator["tvf_1"] = &errorCreator;
         EXPECT_FALSE(factory.fillTvfModels(tvfModels));
-        EXPECT_EQ(0u, tvfModels.functions.size());
+        EXPECT_EQ(0u, tvfModels.size());
         ASSERT_EQ("register tvf models failed [].", provider.getErrorMessage());
     }
     {
         navi::NaviLoggerProvider provider;
-        iquan::TvfModels tvfModels;
+        std::vector<iquan::FunctionModel> tvfModels;
         TvfFuncFactoryR factory;
         ErrorTvfFuncCreator errorCreator;
         errorCreator._tvfDef = R"tvf_json(
@@ -192,7 +192,7 @@ TEST_F(TvfFuncFactoryRTest, test_fillTvfModels) {
 )tvf_json";
         factory._funcToCreator["tvf_1"] = &errorCreator;
         EXPECT_TRUE(factory.fillTvfModels(tvfModels));
-        EXPECT_EQ(1u, tvfModels.functions.size());
+        EXPECT_EQ(1u, tvfModels.size());
         ASSERT_EQ("", provider.getErrorMessage());
     }
 }

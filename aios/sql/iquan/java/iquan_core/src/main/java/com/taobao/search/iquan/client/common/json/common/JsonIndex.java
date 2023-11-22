@@ -1,15 +1,26 @@
 package com.taobao.search.iquan.client.common.json.common;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.taobao.search.iquan.client.common.common.ConstantDefine;
 import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class JsonIndex {
     private static final Logger logger = LoggerFactory.getLogger(JsonIndex.class);
 
@@ -24,48 +35,6 @@ public class JsonIndex {
 
     @JsonProperty("extend_infos")
     private Map<String, String> extendInfos = new TreeMap<>();
-
-    public JsonIndex() {
-    }
-
-    public JsonIndex(String indexType, String indexName, List<String> indexFields, Map<String, String> extendInfos) {
-        this.indexType = indexType;
-        this.indexName = indexName;
-        this.indexFields = indexFields;
-        this.extendInfos = extendInfos;
-    }
-
-    public String getIndexType() {
-        return indexType;
-    }
-
-    public void setIndexType(String indexType) {
-        this.indexType = indexType;
-    }
-
-    public String getIndexName() {
-        return indexName;
-    }
-
-    public void setIndexName(String indexName) {
-        this.indexName = indexName;
-    }
-
-    public List<String> getIndexFields() {
-        return this.indexFields;
-    }
-
-    public void setIndexFields(List<String> fields) {
-        this.indexFields = fields;
-    }
-
-    public Map<String, String> getExtendInfos() {
-        return this.extendInfos;
-    }
-
-    public void setExtendInfos(Map<String, String> extendInfos) {
-        this.extendInfos = extendInfos;
-    }
 
     @JsonIgnore
     public boolean isValid() {

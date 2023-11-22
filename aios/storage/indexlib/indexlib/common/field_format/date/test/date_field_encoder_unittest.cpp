@@ -1,7 +1,7 @@
 #include "indexlib/common/field_format/date/test/date_field_encoder_unittest.h"
 
 #include "autil/StringUtil.h"
-#include "indexlib/test/schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

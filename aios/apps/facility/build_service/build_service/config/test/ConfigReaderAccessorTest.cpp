@@ -1,8 +1,20 @@
 #include "build_service/config/ConfigReaderAccessor.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

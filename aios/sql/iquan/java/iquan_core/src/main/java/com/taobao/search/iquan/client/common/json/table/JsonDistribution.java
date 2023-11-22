@@ -1,15 +1,22 @@
 package com.taobao.search.iquan.client.common.json.table;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
 import com.taobao.search.iquan.core.api.schema.HashType;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-
+@Getter
+@Setter
 public class JsonDistribution {
     private static final Logger logger = LoggerFactory.getLogger(JsonDistribution.class);
 
@@ -24,42 +31,6 @@ public class JsonDistribution {
 
     @JsonProperty(value = "hash_params")
     Map<String, String> hashParams = new TreeMap<>();
-
-
-    public int getPartitionCnt() {
-        return partitionCnt;
-    }
-
-    public void setPartitionCnt(int partitionCnt) {
-        this.partitionCnt = partitionCnt;
-    }
-
-    public List<String> getHashFields() {
-        return hashFields;
-    }
-
-    public void setHashFields(List<String> hashFields) {
-        this.hashFields = hashFields;
-    }
-
-    public String getHashFunction() {
-        return hashFunction;
-    }
-
-    public void setHashFunction(String hashFunction) {
-        this.hashFunction = hashFunction;
-    }
-
-    public Map<String, String> getHashParams() {
-        return hashParams;
-    }
-
-    public void setHashParams(Map<String, String> hashParams) {
-        this.hashParams = hashParams;
-    }
-
-    public JsonDistribution() {
-    }
 
     @JsonIgnore
     public boolean isValid() {

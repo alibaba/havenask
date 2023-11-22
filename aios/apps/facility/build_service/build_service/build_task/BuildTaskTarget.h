@@ -15,11 +15,15 @@
  */
 #pragma once
 
+#include <stdint.h>
+#include <string>
+
 #include "build_service/common_define.h"
 #include "build_service/config/TaskTarget.h"
 #include "build_service/proto/BuildTaskTargetInfo.h"
 #include "build_service/proto/DataDescription.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
 
 namespace indexlibv2 { namespace framework {
 class VersionCoord;
@@ -59,6 +63,7 @@ public:
     bool getBatchMask(std::string* batchMask) const;
     bool getSrcSignature(uint64_t* srcSignature) const;
     const proto::DataDescription& getDataDescription() const { return _dataDescription; }
+    const proto::BuildTaskTargetInfo& getBuildTaskTargetInfo() const { return _targetInfo; }
 
 private:
     bool checkBuilderParam(const proto::BuildTaskTargetInfo& buildTaskInfo) const;

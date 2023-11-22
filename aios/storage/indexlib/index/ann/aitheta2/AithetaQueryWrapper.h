@@ -34,7 +34,8 @@ public:
     void AddAithetaQuery(const float* embeddings, uint32_t embeddingDim, uint32_t embeddingCnt, size_t topk,
                          float scorethreshold = InvalidScoreThreshold, const std::string& searchParams = "");
 
-    void AddQueryTag(const std::string& key, const std::string& value) {
+    void AddQueryTag(const std::string& key, const std::string& value)
+    {
         (*_aithetaQueries.mutable_querytags())[key] = value;
     }
 

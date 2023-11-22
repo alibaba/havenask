@@ -41,10 +41,10 @@ DynamicIndexReader::~DynamicIndexReader() {}
 
 void DynamicIndexReader::Open(
     const std::shared_ptr<InvertedIndexConfig>& indexConfig,
-    std::vector<std::tuple</*baseDocId=*/docid_t, /*segmentDocCount=*/uint64_t,
+    std::vector<std::tuple</*baseDocId=*/docid64_t, /*segmentDocCount=*/uint64_t,
                            /*dynamicPostingResourceFile=*/std::shared_ptr<indexlib::file_system::ResourceFile>>>
         dynamicPostingResources,
-    std::vector<std::pair<docid_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders)
+    std::vector<std::pair<docid64_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders)
 {
     _indexConfig = indexConfig;
     assert(_indexConfig != nullptr);
@@ -64,8 +64,8 @@ void DynamicIndexReader::FillSegmentContextsByRanges(
     bool currentSegmentFilled = false;
     while (currentSegmentIdx < _postingResources.size() && currentRangeIdx < ranges.size()) {
         const auto& range = ranges[currentRangeIdx];
-        docid_t segBegin = _baseDocIds[currentSegmentIdx];
-        docid_t segEnd = _baseDocIds[currentSegmentIdx] + _segmentDocCount[currentSegmentIdx];
+        docid64_t segBegin = _baseDocIds[currentSegmentIdx];
+        docid64_t segEnd = _baseDocIds[currentSegmentIdx] + _segmentDocCount[currentSegmentIdx];
         if (segEnd <= range.first) {
             ++currentSegmentIdx;
             currentSegmentFilled = false;
@@ -99,7 +99,7 @@ void DynamicIndexReader::FillSegmentContextsByRanges(
             }
             currentSegmentFilled = true;
         }
-        auto minEnd = std::min(segEnd, range.second);
+        auto minEnd = std::min(segEnd, (docid64_t)range.second);
         if (segEnd == minEnd) {
             ++currentSegmentIdx;
             currentSegmentFilled = false;
@@ -221,9 +221,9 @@ void DynamicIndexReader::TEST_SetIndexConfig(const std::shared_ptr<IIndexConfig>
 }
 
 void DynamicIndexReader::LoadSegments(
-    std::vector<std::tuple<docid_t, uint64_t, std::shared_ptr<indexlib::file_system::ResourceFile>>>
+    std::vector<std::tuple<docid64_t, uint64_t, std::shared_ptr<indexlib::file_system::ResourceFile>>>
         dynamicPostingResources,
-    std::vector<std::pair<docid_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders)
+    std::vector<std::pair<docid64_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders)
 {
     _segmentDocCount.clear();
     _baseDocIds.clear();
@@ -242,7 +242,7 @@ void DynamicIndexReader::LoadSegments(
     }
 }
 
-void DynamicIndexReader::AddInMemSegmentReader(docid_t baseDocId,
+void DynamicIndexReader::AddInMemSegmentReader(docid64_t baseDocId,
                                                const std::shared_ptr<DynamicIndexSegmentReader>& inMemSegReader)
 {
     if (!_buildingIndexReader) {

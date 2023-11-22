@@ -64,22 +64,19 @@ bool IndexApplication::Init(const vector<IndexPartitionPtr>& indexPartitions, co
         IE_LOG(ERROR, "IndexPartition should't be create after tablet");
         return false;
     }
-    if (!PrepareBackgroundSnapshotReaderThread()) {
-        return false;
-    }
     mReaderUpdater.reset(new TableReaderContainerUpdater(std::bind(&IndexApplication::updateCallBack, this)));
     if (!AddIndexPartitions(indexPartitions)) {
         return false;
     }
     mReaderContainer.Init(mTableName2PartitionIdMap);
-    return mReaderUpdater->Init(mIndexPartitionVec, joinRelations, &mReaderContainer);
+    if (!mReaderUpdater->Init(mIndexPartitionVec, joinRelations, &mReaderContainer)) {
+        return false;
+    }
+    return PrepareBackgroundSnapshotReaderThread();
 }
 
 bool IndexApplication::Init(const IndexPartitionMap& indexPartitions, const JoinRelationMap& joinRelations)
 {
-    if (!PrepareBackgroundSnapshotReaderThread()) {
-        return false;
-    }
     vector<IndexPartitionPtr> partitionVec;
     IndexPartitionMap::const_iterator iter = indexPartitions.begin();
     for (; iter != indexPartitions.end(); iter++) {
@@ -92,9 +89,6 @@ bool IndexApplication::Init(const vector<partition::IndexPartitionPtr>& indexPar
 {
     if (_hasTablet) {
         IE_LOG(ERROR, "IndexPartition should't be create after tablet");
-        return false;
-    }
-    if (!PrepareBackgroundSnapshotReaderThread()) {
         return false;
     }
     mReaderUpdater.reset(new TableReaderContainerUpdater());
@@ -110,7 +104,7 @@ bool IndexApplication::Init(const vector<partition::IndexPartitionPtr>& indexPar
         mReaderContainer.UpdateReader(mIndexPartitionVec[i]->GetSchema()->GetSchemaName(),
                                       mIndexPartitionVec[i]->GetReader());
     }
-    return true;
+    return PrepareBackgroundSnapshotReaderThread();
 }
 
 bool IndexApplication::PrepareBackgroundSnapshotReaderThread()
@@ -130,9 +124,6 @@ bool IndexApplication::PrepareBackgroundSnapshotReaderThread()
 
 bool IndexApplication::InitByTablet(const TabletMap& tabletMap)
 {
-    if (!PrepareBackgroundSnapshotReaderThread()) {
-        return false;
-    }
     _tabletReaderTypeBaseIdx = mReaderTypeVec.size();
     _tablets.clear();
     for (auto tabletPair : tabletMap) {
@@ -144,7 +135,7 @@ bool IndexApplication::InitByTablet(const TabletMap& tabletMap)
         return false;
     }
     _hasTablet = true;
-    return true;
+    return PrepareBackgroundSnapshotReaderThread();
 }
 
 bool IndexApplication::AddIndexPartitions(const vector<IndexPartitionPtr>& indexPartitions)

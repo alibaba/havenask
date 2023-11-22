@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BLOCK_PRIMARY_KEY_FORMATTER_H
-#define __INDEXLIB_BLOCK_PRIMARY_KEY_FORMATTER_H
+#pragma once
 
 #include "autil/LongHashValue.h"
 #include "indexlib/common_define.h"
@@ -276,5 +275,3 @@ size_t BlockPrimaryKeyFormatter<Key>::EstimateDirectLoadSize(const PrimaryKeyLoa
 }
 
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_BLOCK_PRIMARY_KEY_FORMATTER_H

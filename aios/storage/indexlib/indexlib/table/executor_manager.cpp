@@ -15,6 +15,11 @@
  */
 #include "indexlib/table/executor_manager.h"
 
+#include <cstddef>
+#include <type_traits>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "future_lite/Executor.h"
 #include "indexlib/table/executor_provider.h"
 

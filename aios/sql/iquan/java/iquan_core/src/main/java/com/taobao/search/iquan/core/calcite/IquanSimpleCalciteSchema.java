@@ -1,21 +1,25 @@
 package com.taobao.search.iquan.core.calcite;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.rel.type.RelProtoDataType;
-import org.apache.calcite.schema.*;
+import org.apache.calcite.schema.Function;
+import org.apache.calcite.schema.Schema;
+import org.apache.calcite.schema.SchemaVersion;
+import org.apache.calcite.schema.Table;
+import org.apache.calcite.schema.TableMacro;
 import org.apache.calcite.util.NameMap;
 import org.apache.calcite.util.NameMultimap;
 import org.apache.calcite.util.NameSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 public class IquanSimpleCalciteSchema extends CalciteSchema {
     IquanSimpleCalciteSchema(@Nullable CalciteSchema parent, Schema schema, String name) {
@@ -52,12 +56,20 @@ public class IquanSimpleCalciteSchema extends CalciteSchema {
             return lowerCaseName;
         }
         // Fall through: Set iteration
-        for (String candidate: candidates) {
+        for (String candidate : candidates) {
             if (candidate.equalsIgnoreCase(name)) {
                 return candidate;
             }
         }
         return null;
+    }
+
+    private static boolean isTemplateName(String name) {
+        return name != null && name.contains(ConstantDefine.TEMPLATE_TABLE_SEPARATION);
+    }
+
+    public static IquanSimpleCalciteSchema createRootSchema(String name, Schema schema) {
+        return new IquanSimpleCalciteSchema(null, schema, name);
     }
 
     @Override
@@ -209,13 +221,5 @@ public class IquanSimpleCalciteSchema extends CalciteSchema {
                 new IquanSimpleCalciteSchema(this, schema, name);
         subSchemaMap.put(name, calciteSchema);
         return calciteSchema;
-    }
-
-    private static boolean isTemplateName(String name) {
-        return name != null && name.contains(ConstantDefine.TEMPLATE_TABLE_SEPARATION);
-    }
-
-    public static IquanSimpleCalciteSchema createRootSchema(String name, Schema schema) {
-        return new IquanSimpleCalciteSchema(null, schema, name);
     }
 }

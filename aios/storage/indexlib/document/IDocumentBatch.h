@@ -46,6 +46,10 @@ public:
     virtual void SetMaxTTL(int64_t maxTTL) = 0;
     virtual int64_t GetMaxTimestamp() const = 0;
 
+    /* for batched pipeline */
+    virtual void SetBatchLocator(const framework::Locator& locator) = 0;
+    virtual const framework::Locator& GetBatchLocator() const = 0;
+
     virtual void AddDocument(DocumentPtr doc) = 0;
     virtual void DropDoc(int64_t docIdx) = 0;
     virtual void ReleaseDoc(int64_t docIdx) = 0;
@@ -55,12 +59,11 @@ public:
     virtual size_t EstimateMemory() const = 0;
     virtual size_t GetAddedDocCount() const = 0;
 
-    virtual std::shared_ptr<IDocument> TEST_GetDocument(int64_t docIdx) const = 0;
-
 public:
     // Try to avoid calling these methods, use IDocumentIterator instead.
     virtual bool IsDropped(int64_t docIdx) const = 0;
     virtual std::shared_ptr<IDocument> operator[](int64_t docIdx) const = 0;
+    virtual std::shared_ptr<IDocument> TEST_GetDocument(int64_t docIdx) const = 0;
 };
 
 } // namespace indexlibv2::document

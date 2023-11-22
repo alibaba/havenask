@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_INDEXRECLAIMCONFIGMAKER_H
-#define ISEARCH_BS_INDEXRECLAIMCONFIGMAKER_H
+#pragma once
+
+#include <map>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
@@ -53,5 +57,3 @@ private:
 BS_TYPEDEF_PTR(IndexReclaimConfigMaker);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_INDEXRECLAIMCONFIGMAKER_H

@@ -16,6 +16,7 @@
 #pragma once
 
 #include "navi/engine/NaviUserResult.h"
+#include "aios/network/http_arpc/HTTPRPCServerClosure.h"
 #include <google/protobuf/service.h>
 
 namespace navi {
@@ -32,11 +33,27 @@ public:
     ArpcGraphClosure &operator=(const ArpcGraphClosure &) = delete;
 public:
     void run(NaviUserResultPtr result) override;
+public:
+    void init(std::string &debugParamStr);
+    void setNeedDebug(bool needDebug) {
+        _needDebug = needDebug;
+    }
+private:
+    bool doRun(const NaviUserResultPtr &result, std::string &errorMsg) const;
+    bool processResult(const NaviUserResultPtr &result) const;
+    bool needReplace() const;
+    void replaceProtoJsonizer(const NaviResultPtr &naviResult) const;
+    bool processData(bool streamMode, const NaviUserData &userData,
+                     bool eof) const;
+    bool processStreamData(const NaviUserData &userData, bool eof) const;
+    google::protobuf::Message *getDataMessage(const DataPtr &data) const;
 private:
     const std::string &_method;
     google::protobuf::RpcController *_controller;
     google::protobuf::Message *_response;
     google::protobuf::Closure *_done;
+    http_arpc::HTTPRPCServerClosure *_httpClosure = nullptr;
+    bool _needDebug = false;
 };
 
 }

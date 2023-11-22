@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ANDINDEXRECLAIMERTEST_H
-#define __INDEXLIB_ANDINDEXRECLAIMERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/document_reclaimer/and_index_reclaimer.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(AndIndexReclaimerTest, TestInit);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_ANDINDEXRECLAIMERTEST_H

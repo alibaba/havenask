@@ -1,8 +1,10 @@
 #include "indexlib/index/inverted_index/InvertedIndexFactory.h"
 
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IIndexMerger.h"
 #include "indexlib/index/IIndexReader.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/inverted_index/config/SingleFieldIndexConfig.h"
 #include "indexlib/index/inverted_index/config/test/InvertedIndexConfigCreator.h"
 #include "unittest/unittest.h"
@@ -29,10 +31,13 @@ TEST_F(InvertedIndexFactoryTest, TestSimpleProcess)
     auto [status, indexFactory] = indexFactoryCreator->Create(indexConfig->GetIndexType());
     ASSERT_TRUE(status.IsOK());
     ASSERT_EQ(typeid(InvertedIndexFactory), typeid(*indexFactory));
-    indexlibv2::index::IndexerParameter indexParam;
-    ASSERT_TRUE(indexFactory->CreateDiskIndexer(indexConfig, indexParam));
-    ASSERT_TRUE(indexFactory->CreateMemIndexer(indexConfig, indexParam));
-    ASSERT_TRUE(indexFactory->CreateIndexReader(indexConfig, indexParam));
+    indexlibv2::index::DiskIndexerParameter indexerParam;
+    indexlibv2::index::MemIndexerParameter memIndexerParam;
+
+    indexlibv2::index::IndexReaderParameter indexReaderParam;
+    ASSERT_TRUE(indexFactory->CreateDiskIndexer(indexConfig, indexerParam));
+    ASSERT_TRUE(indexFactory->CreateMemIndexer(indexConfig, memIndexerParam));
+    ASSERT_TRUE(indexFactory->CreateIndexReader(indexConfig, indexReaderParam));
     ASSERT_TRUE(indexFactory->CreateIndexMerger(indexConfig));
     ASSERT_EQ(std::string("index"), indexFactory->GetIndexPath());
 }

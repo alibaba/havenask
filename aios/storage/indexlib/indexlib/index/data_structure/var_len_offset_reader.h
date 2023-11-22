@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VAR_LEN_OFFSET_READER_H
-#define __INDEXLIB_VAR_LEN_OFFSET_READER_H
+#pragma once
 
 #include <memory>
 
@@ -110,5 +109,3 @@ inline uint32_t VarLenOffsetReader::GetDocCount() const
     return mUncompressOffsetReader.GetDocCount();
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VAR_LEN_OFFSET_READER_H

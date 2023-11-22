@@ -327,7 +327,13 @@ void SearchServiceManager::createSnapshot() {
     }
     _heartbeatClientManager->updateSpecVec(heartbeatSpecs);
     auto heartbeatVersion = _heartbeatClientManager->getVersion();
-    bool onlyHeartbeatSub = topoNodeVec.empty();
+    bool onlyHeartbeatSub = true;
+    for (const auto &topoNode : topoNodeVec) {
+        if (multi_call::ST_LOCAL != topoNode.ssType) {
+            onlyHeartbeatSub = false;
+            break;
+        }
+    }
     if (onlyHeartbeatSub && _onlyHeartbeatSub && (_heartbeatVersion == heartbeatVersion)) {
         return;
     }
@@ -354,6 +360,8 @@ bool SearchServiceManager::createSnapshot(const TopoNodeVec &topoNodeVec) {
     }
     REPORT_METRICS(reportCreateSnapshotSuccQps);
     oldSnapshot.reset();
+    // skip first rand num;
+    snapshot->getRandomSourceId();
     setSearchServiceSnapshot(snapshot);
     syncConnection();
     return true;

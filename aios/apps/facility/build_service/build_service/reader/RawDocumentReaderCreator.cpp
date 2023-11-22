@@ -18,10 +18,12 @@
 #include "autil/StringUtil.h"
 #include "autil/legacy/any.h"
 #include "beeper/beeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/reader/BinaryFileRawDocumentReader.h"
 #include "build_service/reader/FileListCollector.h"
 #include "build_service/reader/FileRawDocumentReader.h"
+#include "build_service/reader/FilterRawDocumentReader.h"
 #include "build_service/reader/IndexDocReader.h"
 #include "build_service/reader/IndexDocToFileReader.h"
 #include "build_service/reader/MultiIndexDocReader.h"
@@ -163,7 +165,83 @@ RawDocumentReader* RawDocumentReaderCreator::createSingleSourceReader(
         delete reader;
         return NULL;
     }
+
+    bool filterReader = false;
+    if (StringUtil::fromString(getValueFromKeyValueMap(kvMap, FILTER_READER), filterReader) && filterReader) {
+        auto filterReader = createFilterRawDocumentReader(kvMap, reader);
+        if (filterReader == nullptr) {
+            delete reader;
+            return nullptr;
+        }
+        if (!filterReader->initialize(param)) {
+            delete filterReader;
+            return NULL;
+        }
+        return filterReader;
+    }
+    BS_LOG(INFO, "create normal reader");
+
     return reader;
+}
+
+RawDocumentReader* RawDocumentReaderCreator::createFilterRawDocumentReader(const KeyValueMap& kvMap,
+                                                                           RawDocumentReader* reader)
+{
+    auto filterFieldName = getValueFromKeyValueMap(kvMap, FILTER_FIELD_NAME);
+    if (filterFieldName.empty()) {
+        BS_LOG(ERROR, "need filter field name");
+        return nullptr;
+    }
+    string filterType = getValueFromKeyValueMap(kvMap, FILTER_TYPE);
+    if (filterType.empty()) {
+        BS_LOG(ERROR, "need filter type");
+        return nullptr;
+    }
+
+    auto filterValue = getValueFromKeyValueMap(kvMap, FILTER_VALUE);
+    if (filterValue.empty()) {
+        uint64_t us;
+        if (!StringUtil::fromString(getValueFromKeyValueMap(kvMap, SWIFT_START_TIMESTAMP), us)) {
+            return nullptr;
+        }
+
+        filterValue = autil::TimeUtility::usFormat(us, "%Y%m%d");
+    }
+
+    BS_LOG(INFO, "create filter reader with fileld name: %s, value: %s, type %s", filterFieldName.c_str(),
+           filterValue.c_str(), filterType.c_str());
+
+    if (filterType == ">") {
+        auto func = [](const std::string& a, const std::string& b) {
+            return autil::StringUtil::numberFromString<uint64_t>(a) > autil::StringUtil::numberFromString<uint64_t>(b);
+        };
+        return new FilterRawDocumentReader(reader, filterFieldName, filterValue, func);
+    }
+    if (filterType == "<") {
+        auto func = [](const std::string& a, const std::string& b) {
+            return autil::StringUtil::numberFromString<uint64_t>(a) < autil::StringUtil::numberFromString<uint64_t>(b);
+        };
+        return new FilterRawDocumentReader(reader, filterFieldName, filterValue, func);
+    }
+    if (filterType == ">=") {
+        auto func = [](const std::string& a, const std::string& b) {
+            return autil::StringUtil::numberFromString<uint64_t>(a) >= autil::StringUtil::numberFromString<uint64_t>(b);
+        };
+        return new FilterRawDocumentReader(reader, filterFieldName, filterValue, func);
+    }
+    if (filterType == "<=") {
+        auto func = [](const std::string& a, const std::string& b) {
+            return autil::StringUtil::numberFromString<uint64_t>(a) <= autil::StringUtil::numberFromString<uint64_t>(b);
+        };
+        return new FilterRawDocumentReader(reader, filterFieldName, filterValue, func);
+    }
+    if (filterType == "==") {
+        auto func = [](const std::string& a, const std::string& b) { return a == b; };
+        return new FilterRawDocumentReader(reader, filterFieldName, filterValue, func);
+    }
+
+    BS_LOG(ERROR, "not support filter type: %s", filterType.c_str());
+    return nullptr;
 }
 
 }} // namespace build_service::reader

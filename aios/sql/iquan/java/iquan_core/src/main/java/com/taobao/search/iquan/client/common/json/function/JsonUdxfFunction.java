@@ -1,18 +1,20 @@
 package com.taobao.search.iquan.client.common.json.function;
 
-import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
-import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.taobao.search.iquan.core.api.schema.FunctionType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
+import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import com.taobao.search.iquan.core.api.schema.FunctionType;
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Getter
 public class JsonUdxfFunction {
     private static final Logger logger = LoggerFactory.getLogger(JsonUdxfFunction.class);
 
@@ -23,14 +25,6 @@ public class JsonUdxfFunction {
     private Map<String, Object> properties = new HashMap<>(1);
 
     public JsonUdxfFunction() {
-    }
-
-    public List<JsonUdxfSignature> getPrototypes() {
-        return prototypes;
-    }
-
-    public Map<String, Object> getProperties() {
-        return properties;
     }
 
     @JsonIgnore

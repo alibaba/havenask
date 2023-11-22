@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIMARYKEYFORMATTERCREATORTEST_H
-#define __INDEXLIB_PRIMARYKEYFORMATTERCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/single_field_index_config.h"
@@ -31,5 +30,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(PrimaryKeyFormatterCreatorTest, TestCreate);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARYKEYFORMATTERCREATORTEST_H

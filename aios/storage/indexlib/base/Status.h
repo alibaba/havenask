@@ -16,13 +16,13 @@
 #pragma once
 
 #include <cstdio>
-#include <cstring>
 #include <inttypes.h>
-#include <sstream>
+#include <memory>
+#include <new>
 #include <stdarg.h>
 #include <string>
+#include <utility>
 
-#include "autil/StringView.h"
 #include "autil/result/Errors.h"
 #include "autil/result/Result.h"
 
@@ -51,6 +51,7 @@ enum class StatusCode : uint8_t {
     EC_EXPIRED = 133,
     EC_EXIST = 134,
     EC_SEALED = 135,
+    EC_PARSE_ERROR = 136,
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -96,6 +97,7 @@ public:
     bool IsExpired() const { return self()->code() == StatusCode::EC_EXPIRED; }
     bool IsExist() const { return self()->code() == StatusCode::EC_EXIST; }
     bool IsSealed() const { return self()->code() == StatusCode::EC_SEALED; }
+    bool IsParseError() const { return self()->code() == StatusCode::EC_PARSE_ERROR; }
 
     bool IsOKOrNotFound() const { return IsOK() || IsNotFound(); }
 
@@ -202,6 +204,7 @@ public:
     IB_STATUS_IMPL_STATUS_CODE_(Expired, EC_EXPIRED);
     IB_STATUS_IMPL_STATUS_CODE_(Exist, EC_EXIST);
     IB_STATUS_IMPL_STATUS_CODE_(Sealed, EC_SEALED);
+    IB_STATUS_IMPL_STATUS_CODE_(ParseError, EC_PARSE_ERROR);
 
 #undef IB_STATUS_IMPL_STATUS_CODE_
 };

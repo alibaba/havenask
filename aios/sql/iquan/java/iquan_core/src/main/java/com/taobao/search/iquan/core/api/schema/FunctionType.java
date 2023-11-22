@@ -11,13 +11,10 @@ public enum FunctionType {
     FT_INVALID(Constant.INVALID);
 
     private static final Logger logger = LoggerFactory.getLogger(FunctionType.class);
+    private final String name;
 
-    public interface Constant {
-        String UDF = "UDF";
-        String UDAF = "UDAF";
-        String UDTF = "UDTF";
-        String TVF = "TVF";
-        String INVALID = "INVALID";
+    FunctionType(String name) {
+        this.name = name;
     }
 
     public static FunctionType from(String name) {
@@ -34,11 +31,6 @@ public enum FunctionType {
             default:
                 return FT_INVALID;
         }
-    }
-
-
-    FunctionType(String name) {
-        this.name = name;
     }
 
     public String getName() {
@@ -58,5 +50,11 @@ public enum FunctionType {
         return getName();
     }
 
-    private final String name;
+    public interface Constant {
+        String UDF = "UDF";
+        String UDAF = "UDAF";
+        String UDTF = "UDTF";
+        String TVF = "TVF";
+        String INVALID = "INVALID";
+    }
 }

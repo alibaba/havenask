@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.core.rel.ops.logical;
 
+import java.util.List;
+
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelWriter;
 import org.apache.calcite.rel.SingleRel;
 import org.apache.calcite.rel.hint.RelHint;
-
-import java.util.List;
 
 public class CTEProducer extends SingleRel {
 
@@ -21,8 +21,7 @@ public class CTEProducer extends SingleRel {
             RelNode input,
             String name,
             int index,
-            List<RelHint> hints)
-    {
+            List<RelHint> hints) {
         super(cluster, traits, input);
         this.name = name;
         this.index = index;

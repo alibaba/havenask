@@ -30,19 +30,32 @@ private:
 public:
     bool init() override { return true; }
     void remove(const PartitionId &pid) override { _versionList.erase(pid); }
-    bool syncFromPersist(const PartitionId &pid, const std::string &configPath, TableVersion &version) override {
+    bool syncFromPersist(const PartitionId &pid,
+                         const std::string &appName,
+                         const std::string &dataTable,
+                         const std::string &remoteConfigPath,
+                         TableVersion &version) override {
         return true;
     }
     bool supportSyncFromPersist(const PartitionMeta &target) const override { return true; }
-    bool
-    persistVersion(const PartitionId &pid, const std::string &localConfigPath, const TableVersion &version) override {
+    bool persistVersion(const PartitionId &pid,
+                        const std::string &appName,
+                        const std::string &dataTable,
+                        const std::string &remoteConfigPath,
+                        const TableVersion &version) override {
         return true;
     }
-    bool getVersionList(const PartitionId &pid, std::vector<TableVersion> &versions) override {
+    bool getVersionList(const PartitionId &pid,
+                        const std::string &appName,
+                        const std::string &dataTable,
+                        std::vector<TableVersion> &versions) override {
         versions = _versionList[pid];
         return true;
     }
-    bool updateVersionList(const PartitionId &pid, const std::vector<TableVersion> &versions) override {
+    bool updateVersionList(const PartitionId &pid,
+                           const std::string &appName,
+                           const std::string &dataTable,
+                           const std::vector<TableVersion> &versions) override {
         if (_versionList.find(pid) != _versionList.end()) {
             _versionList[pid] = versions;
         }

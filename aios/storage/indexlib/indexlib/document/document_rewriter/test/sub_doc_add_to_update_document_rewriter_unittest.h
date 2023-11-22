@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SUBDOCADDTOUPDATEDOCUMENTREWRITERTEST_H
-#define __INDEXLIB_SUBDOCADDTOUPDATEDOCUMENTREWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_rewriter/sub_doc_add_to_update_document_rewriter.h"
@@ -52,5 +51,3 @@ INDEXLIB_UNIT_TEST_CASE(SubDocAddToUpdateDocumentRewriterTest, TestRewriteMainFa
 INDEXLIB_UNIT_TEST_CASE(SubDocAddToUpdateDocumentRewriterTest, TestRewriteSubFail);
 INDEXLIB_UNIT_TEST_CASE(SubDocAddToUpdateDocumentRewriterTest, TestInvalidModifiedFields);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_SUBDOCADDTOUPDATEDOCUMENTREWRITERTEST_H

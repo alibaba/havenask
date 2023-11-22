@@ -15,9 +15,26 @@
  */
 #include "build_service/common/SwiftResourceKeeper.h"
 
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/DataLinkModeUtil.h"
 #include "build_service/config/ProcessorConfigReader.h"
 #include "build_service/config/ProcessorConfigurator.h"
+#include "build_service/util/SwiftClientCreator.h"
+#include "swift/client/SwiftReaderConfig.h"
+#include "swift/protocol/SwiftMessage.pb.h"
 
 using namespace std;
 using autil::StringUtil;
@@ -182,6 +199,17 @@ common::SwiftParam SwiftResourceKeeper::createSwiftReader(const util::SwiftClien
                                                           const config::ResourceReaderPtr& configReader,
                                                           const proto::Range& range)
 {
+    if (config::DataLinkModeUtil::isDataLinkNPCMode(params)) {
+        return createSwiftReaderForNPCMode(swiftClientCreator, params, configReader, range);
+    } else {
+        return createSwiftReaderForNormalMode(swiftClientCreator, params, configReader, range);
+    }
+}
+
+common::SwiftParam SwiftResourceKeeper::createSwiftReaderForNormalMode(
+    const util::SwiftClientCreatorPtr& swiftClientCreator, const KeyValueMap& params,
+    const config::ResourceReaderPtr& configReader, const proto::Range& range)
+{
     swift::client::SwiftClient* client = createSwiftClient(swiftClientCreator, configReader);
     BS_LOG(DEBUG, "processedDocTopicName: %s", _topicName.c_str());
     if (!client) {
@@ -276,8 +304,63 @@ common::SwiftParam SwiftResourceKeeper::createSwiftReader(const util::SwiftClien
         BS_LOG(ERROR, "%s", errorMsg.c_str());
         return {};
     }
-    return common::SwiftParam(reader, _topicName, enableFastSlowQueue, maskPairs, range.from(), range.to(),
+    return common::SwiftParam(client, reader, _topicName, enableFastSlowQueue, maskPairs, range.from(), range.to(),
                               useBSInnerMaskFilter);
+}
+
+common::SwiftParam SwiftResourceKeeper::createSwiftReaderForNPCMode(
+    const util::SwiftClientCreatorPtr& swiftClientCreator, const KeyValueMap& params,
+    const config::ResourceReaderPtr& configReader, const proto::Range& range)
+{
+    config::SwiftConfig swiftConfig;
+    if (!getSwiftConfig(configReader, swiftConfig)) {
+        BS_LOG(ERROR, "failed to get SwiftConfig");
+        return {};
+    }
+    string clientConfig = swiftConfig.getSwiftClientConfig(_topicConfigName);
+    if (clientConfig.empty()) {
+        clientConfig = autil::EnvUtil::getEnv("raw_topic_swift_client_config", std::string(""));
+    }
+    BS_LOG(INFO, "SwiftClientConfig for topic[%s] : [%s]", _topicName.c_str(), clientConfig.c_str());
+    swift::client::SwiftClient* client = swiftClientCreator->createSwiftClient(_swiftRoot, clientConfig);
+    string swiftReaderConfigStr = getSwiftReaderConfigForNPCMode(swiftConfig, range);
+    swift::client::SwiftReaderConfig swiftReaderConfig;
+    if (!swiftReaderConfig.parseFromString(swiftReaderConfigStr)) {
+        BS_LOG(ERROR, "failed to parse swift readerConfig[%s]", swiftReaderConfigStr.c_str());
+        return {};
+    }
+    BS_LOG(INFO, "create swift reader with config %s", swiftReaderConfigStr.c_str());
+
+    const auto& filter = swiftReaderConfig.swiftFilter;
+    std::vector<std::pair<uint8_t, uint8_t>> maskPairs;
+    maskPairs.push_back({filter.uint8filtermask(), filter.uint8maskresult()});
+    auto reader = client->createReader(swiftReaderConfigStr, NULL);
+    if (!reader) {
+        string errorMsg = string("Fail to create swift reader for config: ") + swiftReaderConfigStr;
+        BS_LOG(ERROR, "%s", errorMsg.c_str());
+        return {};
+    }
+    return common::SwiftParam(client, reader, _topicName, /*enableFastSlowQueue*/ false, maskPairs, range.from(),
+                              range.to(),
+                              /*useBSInnerMaskFilter*/ false);
+}
+
+std::string SwiftResourceKeeper::getSwiftReaderConfigForNPCMode(const config::SwiftConfig& swiftConfig,
+                                                                const proto::Range& range) const
+{
+    const string& topicReaderConfig = swiftConfig.getSwiftReaderConfig(_topicConfigName);
+    string globalReaderConfig = autil::EnvUtil::getEnv("raw_topic_swift_reader_config", std::string(""));
+    stringstream ss;
+    ss << "topicName=" << _topicName << ";";
+    if (!topicReaderConfig.empty()) {
+        ss << topicReaderConfig << ";";
+    }
+    if (!globalReaderConfig.empty()) {
+        ss << globalReaderConfig << ";";
+    }
+    ss << "from=" << range.from() << ";"
+       << "to=" << range.to() << ";";
+    return ss.str();
 }
 
 swift::client::SwiftWriter*

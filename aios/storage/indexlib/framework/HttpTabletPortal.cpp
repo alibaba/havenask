@@ -15,8 +15,16 @@
  */
 #include "indexlib/framework/HttpTabletPortal.h"
 
+#include <functional>
+#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <unistd.h>
+#include <vector>
+
 #include "autil/NetUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Status.h"
 
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, HttpTabletPortal);

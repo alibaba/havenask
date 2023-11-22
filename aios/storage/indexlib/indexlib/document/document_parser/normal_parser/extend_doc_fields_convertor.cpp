@@ -51,7 +51,7 @@ void ExtendDocFieldsConvertor::convertIndexField(const IndexlibExtendDocumentPtr
 
     FieldType fieldType = fieldConfig->GetFieldType();
     if (fieldType == ft_raw) {
-        const string& fieldValue = document->getRawDocument()->getField(fieldConfig->GetFieldName());
+        const string& fieldValue = document->GetRawDocument()->getField(fieldConfig->GetFieldName());
         if (fieldValue.empty()) {
             return;
         }
@@ -165,7 +165,7 @@ void ExtendDocFieldsConvertor::convertAttributeField(const IndexlibExtendDocumen
     const AttributeDocumentPtr& attrDoc = classifiedDoc->getAttributeDoc();
     const StringView& fieldValue = classifiedDoc->getAttributeField(fieldId);
     if (fieldValue.empty()) {
-        const RawDocumentPtr& rawDoc = document->getRawDocument();
+        const RawDocumentPtr& rawDoc = document->GetRawDocument();
         const StringView& rawField = rawDoc->getField(StringView(fieldConfig->GetFieldName()));
         if (rawField.data() == NULL) {
             if (fieldConfig->IsEnableNullField()) {
@@ -207,7 +207,7 @@ void ExtendDocFieldsConvertor::convertSummaryField(const IndexlibExtendDocumentP
     }
 
     if (fieldConfig->GetFieldType() != ft_text) {
-        const RawDocumentPtr& rawDoc = document->getRawDocument();
+        const RawDocumentPtr& rawDoc = document->GetRawDocument();
         const string& fieldName = fieldConfig->GetFieldName();
         const StringView& fieldValue = rawDoc->getField(StringView(fieldName));
         // memory is in raw document.

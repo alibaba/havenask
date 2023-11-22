@@ -22,6 +22,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <random>
 
 #include "autil/HashFuncFactory.h" // IWYU pragma: keep
 #include "autil/StringUtil.h"
@@ -54,6 +55,7 @@ AUTIL_LOG_SETUP(swift, SwiftWriterImpl);
 const std::string SwiftWriterImpl::functionSeperator = ",";
 const std::string SwiftWriterImpl::functionParamSeperator = ":";
 const std::string SwiftWriterImpl::funcHashId2Pid = "hashId2partId";
+const std::string SwiftWriterImpl::funcShuffleWithinPart = "shuffleWithinPart";
 const std::string SwiftWriterImpl::funcHashIdAsPid = "hashIdAspartId";
 const std::string SwiftWriterImpl::funcHashStr2HashId_HashFuncPrefix = "hashFunction:";
 const std::string SwiftWriterImpl::funcHashStr2HashId_DefaultHash = "HASH";
@@ -183,6 +185,8 @@ bool SwiftWriterImpl::initProcessFuncs() {
     for (size_t i = 0; i < funcs.size(); ++i) {
         if (funcHashId2Pid == funcs[i]) {
             _processFuncs.push_back((ProcessFunc)(&SwiftWriterImpl::processHashId2PartId));
+        } else if (funcShuffleWithinPart == funcs[i]) {
+            _processFuncs.push_back((ProcessFunc)(&SwiftWriterImpl::processShuffleWithinPart));
         } else if (funcHashIdAsPid == funcs[i]) {
             _processFuncs.push_back((ProcessFunc)(&SwiftWriterImpl::processHashIdAsPartId));
         } else {
@@ -408,6 +412,32 @@ bool SwiftWriterImpl::processHashId2PartId(MessageInfo &msgInfo) {
         return false;
     }
     msgInfo.pid = pid;
+    return true;
+}
+
+bool SwiftWriterImpl::processShuffleWithinPart(MessageInfo &msgInfo) {
+    int32_t pid = -1;
+    uint32_t from = 0;
+    uint32_t to = 65535;
+    bool hasError = false;
+    {
+        ScopedReadLock lock(_rangeUtilLock);
+        pid = _rangeUtil->getPartitionId(msgInfo.uint16Payload);
+        if (pid == -1 || !_rangeUtil->getPartRange(pid, from, to)) {
+            hasError = true;
+        }
+    }
+    if (hasError) {
+        AUTIL_LOG(ERROR,
+                  "topic[%s] get partition id failed hash id is :%d",
+                  _config.topicName.c_str(),
+                  msgInfo.uint16Payload);
+        return false;
+    }
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(from, to);
+    msgInfo.uint16Payload = distrib(gen);
     return true;
 }
 

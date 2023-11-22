@@ -31,6 +31,7 @@
 #include "ha3/proto/QrsService.pb.h"
 #include "iquan/jni/IquanDqlRequest.h"
 #include "iquan/jni/IquanDqlResponse.h"
+#include "kmonitor/client/MetricMacro.h"
 #include "multi_call/interface/QuerySession.h"
 #include "navi/engine/Kernel.h"
 #include "navi/engine/KernelComputeContext.h"
@@ -38,13 +39,12 @@
 #include "navi/log/LoggingEvent.h"
 #include "navi/log/NaviLogger.h"
 #include "navi/resource/GraphMemoryPoolR.h"
-#include "navi/resource/NaviResultR.h"
 #include "navi/resource/QuerySessionR.h"
-#include "navi/rpc_server/NaviArpcRequestData.h"
 #include "navi/rpc_server/NaviArpcResponseData.h"
 #include "sql/common/Log.h"
 #include "sql/common/common.h"
 #include "sql/data/ErrorResult.h"
+#include "sql/data/SqlFormatData.h"
 #include "sql/data/SqlPlanData.h"
 #include "sql/data/SqlQueryRequest.h"
 #include "sql/data/SqlRequestData.h"
@@ -80,7 +80,6 @@ bool SqlFormatKernel::config(navi::KernelConfigContext &ctx) {
     std::string formatStr;
     NAVI_JSONIZE(ctx, "format_type", formatStr, formatStr);
     _formatType = QrsSessionSqlResult::strToType(formatStr);
-    NAVI_JSONIZE(ctx, "disable_soft_failure", _disableSoftFailure, _disableSoftFailure);
     return true;
 }
 
@@ -124,6 +123,13 @@ bool SqlFormatKernel::process(const autil::mem_pool::PoolPtr &pool,
     const auto &tableData = tableGroupDatas[1].data;
     const auto &planData = tableGroupDatas[2].data;
     const auto &metaData = tableGroupDatas[3].data;
+    const auto &formatData = tableGroupDatas[4].data;
+    auto sqlFormatData = dynamic_cast<SqlFormatData *>(formatData.get());
+    if (sqlFormatData) {
+        initFormatType(sqlFormatData->getSqlFormat());
+    } else {
+        NAVI_KERNEL_LOG(ERROR, "invalid sql format data");
+    }
     auto sqlRequestData = dynamic_cast<SqlRequestData *>(requestData.get());
     SqlQueryRequest *sqlQueryRequest = nullptr;
     if (sqlRequestData) {
@@ -131,25 +137,26 @@ bool SqlFormatKernel::process(const autil::mem_pool::PoolPtr &pool,
     } else {
         NAVI_KERNEL_LOG(ERROR, "invalid sql request data");
     }
-    initFormatType(sqlQueryRequest);
     fillSqlPlan(sqlQueryRequest, planData, result);
     fillSqlResult(tableData, ctx, result);
-    fillMetaData(metaData, ctx.getTimeoutChecker()->beginTime(), result);
-    ctx.fillTrace(result.sqlTrace);
+    fillMetaData(metaData, ctx, result);
+    if (!_requestData->isAiosDebug()) {
+        ctx.collectTrace(result.sqlTrace);
+    }
     if (sqlQueryRequest) {
         _accessLog->setQueryString(sqlQueryRequest->getRawQueryStr());
     }
     _accessLog->setProcessTime(ctx.getTimeoutChecker()->elapsedTime());
     SqlAccessLogFormatHelper accessLogHelper(*_accessLog);
-    if (disableSoftFailure(sqlQueryRequest) && accessLogHelper.hasSoftFailure()) {
-        result.errorResult.resetError(isearch::ERROR_SQL_SOFT_FAILURE_NOT_ALLOWED,
-                                      "soft failure is not allowed");
-    }
     _accessLog->setStatusCode(result.errorResult.getErrorCode());
     _accessLog->setIp(_requestData->getClientIp());
     _accessLog->setRowCount(result.table ? result.table->getRowCount() : 0);
     formatSqlResult(sqlQueryRequest, &accessLogHelper, pool, result);
     _accessLog->setResultLen(result.resultStr.size());
+    if (accessLogHelper.hasSoftFailure()) {
+        static const std::string metricName = "sql.softFailureQps";
+        REPORT_USER_MUTABLE_QPS(_queryMetricReporterR->getReporter(), metricName);
+    }
     return true;
 }
 
@@ -187,19 +194,10 @@ bool SqlFormatKernel::isOutputSqlPlan(sql::SqlQueryRequest *sqlQueryRequest) con
     return navi::logEnable(navi::NAVI_TLS_LOGGER, navi::LOG_LEVEL_DEBUG);
 }
 
-void SqlFormatKernel::initFormatType(const sql::SqlQueryRequest *sqlQueryRequest) {
-    if (!sqlQueryRequest) {
-        return;
+void SqlFormatKernel::initFormatType(const std::string &format) {
+    if (!format.empty()) {
+        _formatType = QrsSessionSqlResult::strToType(format);
     }
-    std::string format;
-    sqlQueryRequest->getValue(SQL_FORMAT_TYPE, format);
-    if (format.empty()) {
-        sqlQueryRequest->getValue(SQL_FORMAT_TYPE_NEW, format);
-    }
-    if (format.empty()) {
-        return;
-    }
-    _formatType = QrsSessionSqlResult::strToType(format);
 }
 
 QrsSessionSqlResult::SearchInfoLevel
@@ -240,7 +238,12 @@ bool SqlFormatKernel::fillSqlResult(const navi::DataPtr &data,
                                     QrsSessionSqlResult &result) const {
     auto tableData = dynamic_cast<TableData *>(data.get());
     if (!tableData || !tableData->getTable()) {
-        const auto &message = ctx.firstErrorEvent().message;
+        const auto &naviError = ctx.getScopeError();
+        ctx.reportScopeError(naviError);
+        std::string message;
+        if (naviError && naviError->errorEvent) {
+            message = naviError->errorEvent->message;
+        }
         if (isearch::ERROR_NONE == result.errorResult.getErrorCode()) {
             result.errorResult.resetError(isearch::ERROR_SQL_RUN_GRAPH, message);
         }
@@ -252,8 +255,9 @@ bool SqlFormatKernel::fillSqlResult(const navi::DataPtr &data,
 }
 
 void SqlFormatKernel::fillMetaData(const navi::DataPtr &metaData,
-                                   int64_t runGraphBeginTime,
+                                   navi::KernelComputeContext &ctx,
                                    QrsSessionSqlResult &result) {
+    auto runGraphBeginTime = ctx.getTimeoutChecker()->beginTime();
     auto *sqlMetaData = dynamic_cast<SqlMetaData *>(metaData.get());
     if (!sqlMetaData) {
         SQL_LOG(WARN, "sql meta data is empty");
@@ -274,17 +278,19 @@ void SqlFormatKernel::fillMetaData(const navi::DataPtr &metaData,
     timeInfo->set_sqlrungraphtime(timeInfo->sqlrunforkgraphendtime() - runGraphBeginTime);
     _accessLog->setSearchInfo(std::move(info),
                               _formatType != QrsSessionSqlResult::SQL_RF_FLATBUFFERS_TIMELINE);
-    _accessLog->setRpcInfoMap(_naviResultR->getRpcInfoMap());
+    const auto &rpcInfoMap = ctx.getRpcInfoMap();
+    if (rpcInfoMap) {
+        _accessLog->setRpcInfoMap(*rpcInfoMap);
+    }
 }
 
 void SqlFormatKernel::formatSqlResult(sql::SqlQueryRequest *sqlQueryRequest,
                                       const SqlAccessLogFormatHelper *accessLogHelper,
                                       const autil::mem_pool::PoolPtr &pool,
                                       QrsSessionSqlResult &result) const {
+    result.formatType = _formatType;
     if (sqlQueryRequest) {
-        result.readable = sqlQueryRequest->isResultReadable();
         result.sqlQuery = sqlQueryRequest->getRawQueryStr();
-        result.formatType = _formatType;
         sqlQueryRequest->getValue(SQL_FORMAT_DESC, result.formatDesc);
         result.resultCompressType = sqlQueryRequest->getResultCompressType();
         result.searchInfoLevel = parseSearchInfoLevel(sqlQueryRequest);
@@ -316,19 +322,6 @@ void SqlFormatKernel::fillResponse(const std::string &result,
         response->set_assemblyresult(result);
     }
     response->set_formattype(convertFormatType(formatType));
-}
-
-bool SqlFormatKernel::disableSoftFailure(sql::SqlQueryRequest *sqlQueryRequest) const {
-    std::string info;
-    if (sqlQueryRequest) {
-        sqlQueryRequest->getValue(SQL_RESULT_ALLOW_SOFT_FAILURE, info);
-    }
-    if (info.empty()) {
-        return _disableSoftFailure;
-    }
-    bool res = false;
-    autil::StringUtil::fromString(info, res);
-    return !res;
 }
 
 void SqlFormatKernel::endGigTrace(size_t responseSize, QrsSessionSqlResult &result) {

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIMARY_KEY_INDEX_MERGER_TYPED_UNITTEST_H
-#define __INDEXLIB_PRIMARY_KEY_INDEX_MERGER_TYPED_UNITTEST_H
+#pragma once
 
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
@@ -239,5 +238,3 @@ void PrimaryKeyIndexMergerTypedTest::CheckMergeData(const indexlib::index::Legac
     }
 }
 }} // namespace indexlib::index
-
-#endif // __INDEXLIB_PRIMARY_KEY_INDEX_MERGER_TYPED_UNITTEST_H

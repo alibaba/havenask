@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_WORK_ITEM_CREATOR_H
-#define __INDEXLIB_MERGE_WORK_ITEM_CREATOR_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/merge_config.h"
 #include "indexlib/index/merger_util/truncate/truncate_attribute_reader_creator.h"
 #include "indexlib/index/merger_util/truncate/truncate_index_writer_creator.h"
@@ -28,27 +27,24 @@
 #include "indexlib/index/normal/attribute/accessor/attribute_merger.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_merger.h"
 #include "indexlib/index/normal/framework/index_merger.h"
+#include "indexlib/index/normal/framework/merger_interface.h"
 #include "indexlib/index/normal/source/source_group_merger.h"
 #include "indexlib/index/normal/summary/summary_merger.h"
 #include "indexlib/index_base/index_meta/output_segment_merge_info.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/index_base/index_meta/segment_merge_info.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/merger/index_merge_meta.h"
 #include "indexlib/merger/index_partition_merger_metrics.h"
+#include "indexlib/merger/merge_file_system.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/merge_task_item.h"
-#include "indexlib/merger/merge_work_item_typed.h"
+#include "indexlib/merger/merge_work_item.h"
 #include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
-DECLARE_REFERENCE_CLASS(util, CounterMap);
-DECLARE_REFERENCE_CLASS(plugin, PluginManager);
-DECLARE_REFERENCE_CLASS(index_base, MergeTaskResourceManager);
-DECLARE_REFERENCE_CLASS(index_base, MergeTaskResource);
 DECLARE_REFERENCE_CLASS(index, TruncateIndexWriter);
-DECLARE_REFERENCE_CLASS(merger, MergeFileSystem);
-DECLARE_REFERENCE_CLASS(file_system, ArchiveFolder);
-
-namespace indexlib { namespace index { namespace legacy {
-class AdaptiveBitmapIndexWriter;
-}}} // namespace indexlib::index::legacy
 
 namespace indexlib { namespace merger {
 
@@ -137,5 +133,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeWorkItemCreator);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_WORK_ITEM_CREATOR_H

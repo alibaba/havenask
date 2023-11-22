@@ -64,8 +64,8 @@ public:
     FinalLoad(const framework::TabletData& currentTabletData) override;
 
 private:
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
-                           const std::vector<framework::Segment*>& segments) override;
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
+                                              const std::vector<framework::Segment*>& segments) override;
     using RedoParam =
         std::tuple<Status, std::unique_ptr<indexlib::index::OperationLogReplayer>,
                    std::unique_ptr<NormalTabletModifier>, std::unique_ptr<indexlib::index::PrimaryKeyIndexReader>>;

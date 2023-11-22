@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.ops.logical.LayerTable;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
@@ -22,16 +27,12 @@ import org.apache.calcite.sql.type.SqlTypeFamily;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 public class LayerTableAggDistinct extends LayerTableDistinct {
     protected final String primaryFuncName;
     protected final String defaultFuncName;
 
     protected final String hintName;
+
     protected LayerTableAggDistinct(LogicalLayerTableScan scan) {
         super(scan);
         Map<String, String> distinctParam = (Map<String, String>) distinct.get("params");
@@ -73,7 +74,7 @@ public class LayerTableAggDistinct extends LayerTableDistinct {
                 boolean isNumeric = originalType.getSqlTypeName().getFamily().equals(SqlTypeFamily.NUMERIC);
                 String filedName = input.getRowType().getFieldList().get(i).getName();
                 SqlAggFunction curFunction = isNumeric ? function : arbitraryFunc;
-                AggregateCall aggCall =  AggregateCall.create(curFunction,
+                AggregateCall aggCall = AggregateCall.create(curFunction,
                         false, false, false,
                         ImmutableList.of(i), -1, RelCollations.EMPTY, originalType, filedName);
                 calls.add(aggCall);
@@ -83,7 +84,7 @@ public class LayerTableAggDistinct extends LayerTableDistinct {
         relBuilder.clear();
         final RelBuilder.GroupKey groupKey =
                 relBuilder.push(input).groupKey(groupId);
-        RelNode agg = relBuilder.aggregate(groupKey,calls).build();
+        RelNode agg = relBuilder.aggregate(groupKey, calls).build();
         if (normalAgg && (agg instanceof LogicalAggregate)) {
             RelHint relHint = RelHint.builder(hintName).hintOption(TableType.Constant.LAYER_TABLE).build();
             agg = ((LogicalAggregate) agg).withHints(Collections.singletonList(relHint));

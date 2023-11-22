@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DUMPCONTAINERFLUSHEXECUTORTEST_H
-#define __INDEXLIB_DUMPCONTAINERFLUSHEXECUTORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -38,5 +37,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(DumpContainerFlushExecutorTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(DumpContainerFlushExecutorTest, TestExecuteFailed);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_DUMPCONTAINERFLUSHEXECUTORTEST_H

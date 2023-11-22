@@ -72,9 +72,9 @@ TermPostingInfo PostingIteratorImpl::GetTermPostingInfo() const
         file_system::ByteSliceReader reader;
         util::ByteSlice* singleSlice = segPosting.GetSingleSlice();
         if (singleSlice) {
-            reader.Open(singleSlice);
+            reader.Open(singleSlice).GetOrThrow();
         } else if (segPosting.GetSliceListPtr()) {
-            reader.Open(segPosting.GetSliceListPtr().get());
+            reader.Open(segPosting.GetSliceListPtr().get()).GetOrThrow();
         } else {
             continue;
         }

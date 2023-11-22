@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TEST_TOKENHELPER_H
-#define __INDEXLIB_TEST_TOKENHELPER_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -53,5 +52,3 @@ private:
 
 DEFINE_SHARED_PTR(TokenizeHelper);
 }} // namespace indexlib::document
-
-#endif // INDEXLIB_TEST_TOKENHELPER_H

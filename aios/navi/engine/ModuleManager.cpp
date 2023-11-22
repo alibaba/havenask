@@ -108,7 +108,7 @@ ModulePtr ModuleManager::loadModule(const std::string &configPath,
     CreatorRegistry::setCurrent(RT_RESOURCE, &module->getResourceRegistry());
     CreatorRegistry::setCurrent(RT_KERNEL, &module->getKernelRegistry());
     CreatorRegistry::setCurrent(RT_TYPE, &module->getTypeRegistry());
-    auto handle = ::dlopen(absPath.c_str(), RTLD_GLOBAL|RTLD_NOW);
+    auto handle = ::dlopen(absPath.c_str(), RTLD_LOCAL|RTLD_NOW);
     if (!handle) {
         NAVI_KERNEL_LOG(ERROR, "load module [%s] failed, error [%s]",
                         absPath.c_str(), ::dlerror());

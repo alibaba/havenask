@@ -154,18 +154,7 @@ public:
      */
     int32_t allocAllNode(const char* topo_cluster_name, std::vector<ServiceNode*>& node_vec, bool valid = false);
 
-    size_t getQueriedClusters(std::vector<std::string>& names);
-
 private:
-    // 根据集群名和列号 获得一个Partition
-    void onClusterQuery(const std::string& cluster_name);
-
-private:
-    // <cluster name, query timestamp>
-    typedef std::map<std::string, int64_t> QueriedClusters;
-    QueriedClusters _queriedClusters;
-    autil::ThreadMutex _queriedMutex;
-
     friend class ClusterManagerTest;
 };
 

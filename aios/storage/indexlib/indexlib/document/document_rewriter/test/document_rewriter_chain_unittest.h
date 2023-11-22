@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCUMENTREWRITERCHAINTEST_H
-#define __INDEXLIB_DOCUMENTREWRITERCHAINTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_rewriter/document_rewriter_chain.h"
@@ -39,5 +38,3 @@ INDEXLIB_UNIT_TEST_CASE(DocumentRewriterChainTest, TestAppendSectionAttribute);
 INDEXLIB_UNIT_TEST_CASE(DocumentRewriterChainTest, TestAppendPackAttributes);
 INDEXLIB_UNIT_TEST_CASE(DocumentRewriterChainTest, TestForKKVDocument);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_DOCUMENTREWRITERCHAINTEST_H

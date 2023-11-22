@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEARCHCACHETEST_H
-#define __INDEXLIB_SEARCHCACHETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -107,5 +106,3 @@ INDEXLIB_UNIT_TEST_CASE(SearchCacheTest, TestKKVSearchWithKeepSortSequence);
 INDEXLIB_UNIT_TEST_CASE(SearchCacheTest, TestDirtyCache);
 INDEXLIB_UNIT_TEST_CASE(SearchCacheTest, TestBug21328825);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SEARCHCACHETEST_H

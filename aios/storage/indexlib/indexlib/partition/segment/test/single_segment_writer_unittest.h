@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SINGLESEGMENTWRITERTEST_H
-#define __INDEXLIB_SINGLESEGMENTWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/framework/SegmentMetrics.h"
@@ -79,5 +78,3 @@ INDEXLIB_UNIT_TEST_CASE(SingleSegmentWriterTest, TestEstimateInitMemUse);
 INDEXLIB_UNIT_TEST_CASE(SingleSegmentWriterTest, TestEstimateInitMemUseWithShardingIndex);
 INDEXLIB_UNIT_TEST_CASE(SingleSegmentWriterTest, TestCloneInPrivateMode);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SINGLESEGMENTWRITERTEST_H

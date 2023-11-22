@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_VALUE_INITIALIZER_H
-#define __INDEXLIB_ATTRIBUTE_VALUE_INITIALIZER_H
+#pragma once
 
 #include <memory>
 
@@ -42,5 +41,3 @@ private:
 
 DEFINE_SHARED_PTR(AttributeValueInitializer);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_ATTRIBUTE_VALUE_INITIALIZER_H

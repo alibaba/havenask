@@ -15,7 +15,9 @@
  */
 #pragma once
 
+#include <stdint.h>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "autil/NoCopyable.h"

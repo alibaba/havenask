@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_RECLAIM_MAP_H
-#define __INDEXLIB_RECLAIM_MAP_H
+#pragma once
 
 #include <algorithm>
 #include <functional>
@@ -240,5 +239,3 @@ inline docid_t ReclaimMap::GetOldDocIdAndSegId(docid_t newDocId, segmentid_t& se
     return gid.second;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_RECLAIM_MAP_H

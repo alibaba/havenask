@@ -29,9 +29,9 @@ class MockTableLeaderInfoPublisher : public TableLeaderInfoPublisher {
 public:
     MockTableLeaderInfoPublisher(const PartitionId &pid,
                                  const std::string &zoneName,
-                                 multi_call::GigRpcServer *gigRpcServer,
+                                 TableInfoPublishWrapper *publishWrapper,
                                  LeaderElectionManager *leaderElectionMgr)
-        : TableLeaderInfoPublisher(pid, zoneName, gigRpcServer, leaderElectionMgr) {}
+        : TableLeaderInfoPublisher(pid, zoneName, publishWrapper, leaderElectionMgr) {}
     MOCK_METHOD0(publish, bool());
 };
 
@@ -41,9 +41,9 @@ TEST_F(TableLeaderInfoPublisherTest, testUpdateLeaderInfo) {
         std::make_unique<MockTableLeaderInfoPublisher>(TableMetaUtil::makePid("t"), "z", nullptr, leaderMgr.get());
 
     EXPECT_CALL(*leaderMgr, getRoleType(_)).WillOnce(Return(RT_FOLLOWER));
-    EXPECT_CALL(*publisher, publish()).Times(0);
+    EXPECT_CALL(*publisher, publish()).WillOnce(Return(true));
     ASSERT_TRUE(publisher->updateLeaderInfo());
-    ASSERT_FALSE(publisher->_leaderInfoPublished);
+    ASSERT_TRUE(publisher->_leaderInfoPublished);
 
     EXPECT_CALL(*leaderMgr, getRoleType(_)).WillOnce(Return(RT_LEADER));
     EXPECT_CALL(*publisher, publish()).WillOnce(Return(false));
@@ -61,9 +61,19 @@ TEST_F(TableLeaderInfoPublisherTest, testUpdateLeaderInfo) {
     ASSERT_TRUE(publisher->_leaderInfoPublished);
 
     EXPECT_CALL(*leaderMgr, getRoleType(_)).WillOnce(Return(RT_FOLLOWER));
+    EXPECT_CALL(*publisher, publish()).WillOnce(Return(false));
+    ASSERT_FALSE(publisher->updateLeaderInfo());
+    ASSERT_FALSE(publisher->_leaderInfoPublished);
+
+    EXPECT_CALL(*leaderMgr, getRoleType(_)).WillOnce(Return(RT_FOLLOWER));
+    EXPECT_CALL(*publisher, publish()).WillOnce(Return(true));
+    ASSERT_TRUE(publisher->updateLeaderInfo());
+    ASSERT_TRUE(publisher->_leaderInfoPublished);
+
+    EXPECT_CALL(*leaderMgr, getRoleType(_)).WillOnce(Return(RT_FOLLOWER));
     EXPECT_CALL(*publisher, publish()).Times(0);
     ASSERT_TRUE(publisher->updateLeaderInfo());
-    ASSERT_FALSE(publisher->_leaderInfoPublished);
+    ASSERT_TRUE(publisher->_leaderInfoPublished);
 }
 
 } // namespace suez

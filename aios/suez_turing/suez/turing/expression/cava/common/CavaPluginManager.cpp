@@ -80,10 +80,12 @@ bool CavaPluginManager::isAutoRegFuncPkg(const std::string &pkgName) {
 
 void CavaPluginManager::constructModuleInfoMap(const std::vector<FunctionInfo> &functionInfos) {
     if (!_cavaJitWrapper) {
+        AUTIL_LOG(ERROR, "cava jit wrapper is null");
         return;
     }
     auto ha3CavaModule = _cavaJitWrapper->getCavaModule();
     if (!ha3CavaModule) {
+        AUTIL_LOG(WARN, "ha3 cava module is null");
         return;
     }
 

@@ -16,14 +16,14 @@
 #include "indexlib/config/merge_config_base.h"
 
 #include "indexlib/config/truncate_option_config.h"
-#include "indexlib/index_define.h"
+//#include "indexlib/index_define.h"
 
 using namespace std;
 using namespace autil::legacy;
 using namespace autil::legacy::json;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, MergeConfigBase);
+AUTIL_LOG_SETUP(indexlib.config, MergeConfigBase);
 
 const string MergeConfigBase::DEFAULT_MERGE_STRATEGY = OPTIMIZE_MERGE_STRATEGY_STR;
 

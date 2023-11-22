@@ -17,6 +17,7 @@
 #include "indexlib/index/ann/aitheta2/impl/RealtimeSegmentBuilder.h"
 
 #include "indexlib/index/ann/aitheta2/util/PkDumper.h"
+#include "indexlib/index/ann/aitheta2/util/params_initializer/ParamsInitializer.h"
 using namespace std;
 using namespace indexlib::file_system;
 
@@ -30,22 +31,25 @@ RealtimeSegmentBuilder::RealtimeSegmentBuilder(const AithetaIndexConfig& indexCo
 {
 }
 
-RealtimeSegmentBuilder::~RealtimeSegmentBuilder() { _segment->Close(); }
+RealtimeSegmentBuilder::~RealtimeSegmentBuilder() {}
 
 bool RealtimeSegmentBuilder::Init(const SegmentBuildResourcePtr& segmentBuildResource)
 {
     InitBuildMetrics();
+
+    ANN_CHECK(ParamsInitializer::InitAiThetaMeta(_indexConfig, _indexMeta), "init meta failed");
     _segment = make_shared<RealtimeSegment>(_indexConfig);
-    ANN_CHECK(_segment->Open(segmentBuildResource), "segment open failed");
+    ANN_CHECK(_segment->Open(segmentBuildResource), "open segment failed");
+
     AUTIL_LOG(INFO, "realtime segment builder is initialized");
     return true;
 }
 
-bool RealtimeSegmentBuilder::Build(const EmbeddingFieldData& data)
+bool RealtimeSegmentBuilder::Build(const IndexFields& data)
 {
     ScopedLatencyReporter reporter(_buildLatencyMetric);
 
-    if (_pkDataHolder.IsExist(data.pk)) {
+    if (_pkHolder.IsExist(data.pk)) {
         ANN_CHECK(DoDelete(data.pk), "delete pk failed");
     }
     ANN_CHECK(DoBuild(data), "build data failed");
@@ -59,7 +63,7 @@ bool RealtimeSegmentBuilder::DoDelete(int64_t pk)
 {
     docid_t docId = INVALID_DOCID;
     vector<index_id_t> indexIds;
-    _pkDataHolder.Remove(pk, docId, indexIds);
+    _pkHolder.Remove(pk, docId, indexIds);
     for (index_id_t indexId : indexIds) {
         auto iterator = _indexBuilderMap.find(indexId);
         ANN_CHECK(iterator != _indexBuilderMap.end(), "index builder with id[%ld] not exist", indexId);
@@ -69,9 +73,9 @@ bool RealtimeSegmentBuilder::DoDelete(int64_t pk)
     return true;
 }
 
-bool RealtimeSegmentBuilder::DoBuild(const EmbeddingFieldData& data)
+bool RealtimeSegmentBuilder::DoBuild(const IndexFields& data)
 {
-    _pkDataHolder.Add(data.pk, data.docId, data.indexIds);
+    _pkHolder.Add(data.pk, data.docId, data.indexIds);
     for (index_id_t indexId : data.indexIds) {
         auto indexBuilder = GetRealtimeIndexBuilder(indexId);
         ANN_CHECK(indexBuilder, "get builder failed. build pk[%ld] docId[%d] failed", data.pk, data.docId);
@@ -92,7 +96,7 @@ bool RealtimeSegmentBuilder::Dump(const indexlib::file_system::DirectoryPtr& dir
     ScopedLatencyReporter reporter(_dumpLatencyMetric);
 
     _segment->SetDirectory(dir);
-    ANN_CHECK(DumpPrimaryKey(_pkDataHolder, *_segment), "dump pkey failed");
+    ANN_CHECK(DumpPrimaryKey(_pkHolder, *_segment), "dump pkey failed");
     ANN_CHECK(_segment->DumpIndexData(), "dump index failed");
     ANN_CHECK(_segment->DumpSegmentMeta(), "dump meta failed");
     ANN_CHECK(_segment->EndDump(), "end dump failed");
@@ -123,9 +127,9 @@ RealtimeIndexBuilderPtr RealtimeSegmentBuilder::GetRealtimeIndexBuilder(index_id
         return nullptr;
     }
 
-    IndexQueryMeta meta;
-    meta.set_meta(FeatureType::FT_FP32, _indexConfig.dimension);
-    builder = make_shared<RealtimeIndexBuilder>(streamer, meta, _buildContextHolder);
+    IndexQueryMeta queryMeta;
+    queryMeta.set_meta(_indexMeta.type(), _indexMeta.dimension());
+    builder = make_shared<RealtimeIndexBuilder>(streamer, queryMeta, _buildContextHolder);
     return builder;
 }
 

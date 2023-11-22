@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_JOIN_DOCID_READER_BASE_H
-#define __INDEXLIB_JOIN_DOCID_READER_BASE_H
+#pragma once
 
 #include <memory>
 
@@ -38,5 +37,3 @@ private:
 
 DEFINE_SHARED_PTR(JoinDocidReaderBase);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_JOIN_DOCID_READER_BASE_H

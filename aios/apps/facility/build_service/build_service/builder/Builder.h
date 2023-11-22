@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDER_H
-#define ISEARCH_BS_BUILDER_H
+#pragma once
+
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 
 #include "autil/Lock.h"
 #include "build_service/builder/BuildSpeedLimiter.h"
@@ -23,18 +27,25 @@
 #include "build_service/common/PeriodDocCounter.h"
 #include "build_service/common_define.h"
 #include "build_service/config/BuilderConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
 #include "build_service/util/Log.h"
 #include "fslib/fs/FileLock.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/FieldType.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/index_partition_options.h"
 #include "indexlib/document/document.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
 #include "indexlib/partition/index_builder.h"
+#include "indexlib/util/counter/AccumulativeCounter.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
-DECLARE_REFERENCE_CLASS(util, AccumulativeCounter);
 DECLARE_REFERENCE_CLASS(util, StateCounter);
 
 namespace indexlib { namespace util {
-class MetricProvider;
-class Metric;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util
@@ -132,5 +143,3 @@ private:
 
 BS_TYPEDEF_PTR(Builder);
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_BUILDER_H

@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKBUILDERSERVICEIMPL_H
-#define ISEARCH_BS_MOCKBUILDERSERVICEIMPL_H
+#pragma once
 
 #include "build_service/test/test.h"
 #include "build_service/test/unittest.h"
@@ -41,5 +40,3 @@ typedef ::testing::StrictMock<MockBuilderServiceImpl> StrictMockBuilderServiceIm
 typedef ::testing::NiceMock<MockBuilderServiceImpl> NiceMockBuilderServiceImpl;
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_MOCKBUILDERSERVICEIMPL_H

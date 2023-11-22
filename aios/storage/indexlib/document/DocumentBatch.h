@@ -36,6 +36,25 @@ public:
     std::unique_ptr<IDocumentBatch> Create() const override { return std::make_unique<Self>(); }
     const framework::Locator& GetLastLocator() const override;
     int64_t GetMaxTimestamp() const override { return _maxTimestamp; }
+
+    /* for batched pipeline*/
+    void SetBatchLocator(const framework::Locator& locator) override
+    {
+        if (_batchLocator == nullptr) {
+            _batchLocator = std::make_unique<indexlibv2::framework::Locator>(locator);
+        } else {
+            *_batchLocator = locator;
+        }
+    }
+    const framework::Locator& GetBatchLocator() const override
+    {
+        if (_batchLocator == nullptr) {
+            static indexlibv2::framework::Locator invalidLocator;
+            return invalidLocator;
+        }
+        return *_batchLocator;
+    }
+
     int64_t GetMaxTTL() const override { return _maxTTL; }
     void SetMaxTTL(int64_t maxTTL) override { _maxTTL = maxTTL; }
     void DropDoc(int64_t docIdx) override;
@@ -61,7 +80,7 @@ public:
 protected:
     DocumentPtrVec _documents;
     DocumentBitMap _documentDroppedBitMap;
-
+    std::unique_ptr<indexlibv2::framework::Locator> _batchLocator;
     size_t _droppedDocCount;
     size_t _estimateMemorySize;
     int64_t _maxTimestamp;
@@ -78,6 +97,9 @@ protected:
 template <typename DocumentType>
 const framework::Locator& TemplateDocumentBatch<DocumentType>::GetLastLocator() const
 {
+    if (_batchLocator != nullptr) {
+        return GetBatchLocator();
+    }
     auto batchSize = GetBatchSize();
     if (!batchSize) {
         static framework::Locator invalidLocator;

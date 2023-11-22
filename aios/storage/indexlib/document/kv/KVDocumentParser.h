@@ -50,6 +50,8 @@ public:
 
     std::pair<Status, std::unique_ptr<IDocumentBatch>> Parse(const autil::StringView& serializedData) const override;
 
+    std::pair<Status, std::unique_ptr<IDocumentBatch>> BatchParse(IMessageIterator* inputIterator) const override;
+
     std::pair<Status, std::unique_ptr<IDocumentBatch>>
     ParseRawDoc(const std::shared_ptr<RawDocument>& rawDoc) const override;
 

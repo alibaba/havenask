@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OPERATIONBLOCKTEST_H
-#define __INDEXLIB_OPERATIONBLOCKTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/operation_queue/operation_block.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(OperationBlockTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(OperationBlockTest, TestGetTotalMemoryUse);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPERATIONBLOCKTEST_H

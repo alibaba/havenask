@@ -4,6 +4,11 @@ public class SortDesc {
     private String field;
     private String order;
 
+    public SortDesc(String field, String order) {
+        this.field = field;
+        this.order = order;
+    }
+
     public String getField() {
         return field;
     }
@@ -17,11 +22,6 @@ public class SortDesc {
     }
 
     public void setOrder(String order) {
-        this.order = order;
-    }
-
-    public SortDesc(String field, String order) {
-        this.field = field;
         this.order = order;
     }
 }

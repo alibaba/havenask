@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __SELECT_BUILD_TYPE_PROCESSOR_H
-#define __SELECT_BUILD_TYPE_PROCESSOR_H
+#pragma once
 
+#include <string>
+#include <vector>
+
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/util/Log.h"
 
@@ -51,5 +54,3 @@ private:
 };
 
 }} // namespace build_service::processor
-
-#endif

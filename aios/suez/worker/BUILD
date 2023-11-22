@@ -7,17 +7,26 @@ cc_proto(
     deps=['//aios/network/arpc:proto']
 )
 cc_library(
+    name='env_param',
+    srcs=['EnvParam.cpp'],
+    hdrs=['EnvParam.h'],
+    include_prefix='suez/worker',
+    deps=['//aios/autil:env_util', '//aios/suez/sdk']
+)
+cc_library(
     name='suez_worker_lib',
     srcs=(
-        glob(['*.cpp'], exclude=['SapServerWorkerHandlerFactoryAdapter.cpp']) +
-        []
+        glob(['*.cpp'],
+             exclude=[
+                 'SapServerWorkerHandlerFactoryAdapter.cpp', 'EnvParam.cpp'
+             ]) + []
     ),
     hdrs=(
         glob(['*.h'], exclude=['SapServerWorkerHandlerFactoryAdapter.h']) + []
     ),
     include_prefix='suez/worker',
     deps=([
-        ':killself_service_cc_proto',
+        ':killself_service_cc_proto', '//aios/suez/worker/kmon:lib',
         '//aios/suez/heartbeat:debug_proto_cc_proto', '//aios/autil:env_util',
         '//aios/autil:hash_func', '//aios/autil:mem_util',
         '//aios/autil:object_tracer', '//aios/autil:thread',

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_LINE_DATA_DOCUMENT_PARSER_H
-#define __INDEXLIB_LINE_DATA_DOCUMENT_PARSER_H
+#pragma once
 
 #include <memory>
 
@@ -41,5 +40,3 @@ private:
 
 DEFINE_SHARED_PTR(LineDataDocumentParser);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_LINE_DATA_DOCUMENT_PARSER_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIPARTSEGMENTDIRECTORYTEST_H
-#define __INDEXLIB_MULTIPARTSEGMENTDIRECTORYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/segment/multi_part_segment_directory.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(MultiPartSegmentDirectoryTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(MultiPartSegmentDirectoryTest, TestEncodeToVirtualSegmentId);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_MULTIPARTSEGMENTDIRECTORYTEST_H

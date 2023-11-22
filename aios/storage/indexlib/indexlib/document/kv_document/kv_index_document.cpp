@@ -117,8 +117,7 @@ KVIndexDocument KVIndexDocument::Clone(autil::mem_pool::Pool* pool) const
 }
 
 std::unique_ptr<indexlibv2::document::KVDocument>
-KVIndexDocument::CreateKVDocumentV2(autil::mem_pool::Pool* pool,
-                                    const indexlibv2::document::IDocument::DocInfo& docInfo,
+KVIndexDocument::CreateKVDocumentV2(autil::mem_pool::Pool* pool, const indexlibv2::framework::Locator::DocInfo& docInfo,
                                     const indexlibv2::framework::Locator& locator) const
 {
     auto ret = make_unique<indexlibv2::document::KVDocument>(pool);

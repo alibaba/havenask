@@ -1,5 +1,8 @@
 package com.taobao.search.iquan.core.catalog.function.internal;
 
+import java.util.List;
+import java.util.Map;
+
 import com.taobao.search.iquan.client.common.json.function.JsonTvfDistribution;
 import com.taobao.search.iquan.client.common.json.function.JsonTvfOutputTable;
 import com.taobao.search.iquan.client.common.json.function.JsonTvfReturns;
@@ -7,14 +10,17 @@ import com.taobao.search.iquan.client.common.json.function.JsonTvfSignature;
 import com.taobao.search.iquan.core.api.schema.TvfFunction;
 import com.taobao.search.iquan.core.api.schema.TvfSignature;
 import com.taobao.search.iquan.core.utils.IquanTypeFactory;
-import org.apache.calcite.sql.*;
+import org.apache.calcite.sql.SqlFunction;
+import org.apache.calcite.sql.SqlFunctionCategory;
+import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlTableFunction;
 import org.apache.calcite.sql.parser.SqlParserPos;
-import org.apache.calcite.sql.type.*;
+import org.apache.calcite.sql.type.ReturnTypes;
+import org.apache.calcite.sql.type.SqlOperandTypeChecker;
+import org.apache.calcite.sql.type.SqlOperandTypeInference;
+import org.apache.calcite.sql.type.SqlReturnTypeInference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
 
 public class TableValueFunction extends SqlFunction implements SqlTableFunction {
     private static final Logger logger = LoggerFactory.getLogger(TableValueFunction.class);
@@ -29,7 +35,7 @@ public class TableValueFunction extends SqlFunction implements SqlTableFunction 
             SqlOperandTypeInference operandTypeInference,
             SqlOperandTypeChecker operandTypeChecker)
     {
-        super(new SqlIdentifier(function.getName(), SqlParserPos.ZERO),
+        super(new SqlIdentifier(function.getFullPath().toList(), SqlParserPos.ZERO),
                 ReturnTypes.CURSOR,
                 operandTypeInference,
                 operandTypeChecker,

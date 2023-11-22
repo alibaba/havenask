@@ -15,11 +15,16 @@
  */
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
 #include "build_service/admin/taskcontroller/TaskController.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
+
 namespace build_service::admin {
 
 class OperationTopoManager;
@@ -27,37 +32,38 @@ class OperationTopoManager;
 class GeneralNodeGroup
 {
 public:
-    GeneralNodeGroup(const std::string& taskType, const std::string& taskName, uint32_t mainNodeId,
-                     OperationTopoManager* topoManager)
-        : _taskType(taskType)
-        , _taskName(taskName)
-        , _nodeId(mainNodeId)
-        , _topoManager(topoManager)
-    {
-    }
+    GeneralNodeGroup(const std::string& taskType, const std::string& taskName, uint32_t nodeId,
+                     OperationTopoManager* topoManager, bool enableTargetBase64Encode,
+                     const std::string& partitionWorkRoot);
 
-    void addNode(TaskController::Node* node);
-    size_t getMinRunningOpCount() const;
-    bool handleFinishedOp(proto::GeneralTaskWalRecord* walRecord);
-    void dispatchExecutableOp(const proto::OperationDescription* op, uint32_t nodeRunningOpLimit,
-                              proto::GeneralTaskWalRecord* walRecord);
-    void serializeTarget() const;
-    void updateTarget() const;
-    void recoverNodeTarget(const proto::OperationDescription& op);
-    bool hasStatus() const;
-    void syncPendingOp(uint32_t nodeRunningOpLimit);
+    uint32_t getNodeId() const { return _nodeId; }
+    std::string getTaskType() const { return _taskType; }
+    std::string getTaskName() const { return _taskName; }
+    size_t getRunningOpCount() const { return _runningOpCount; }
+
+    void addNode(TaskController::Node* node) { _nodes.push_back(node); }
+    bool updateTarget();
+    void serializeTarget();
+
+    bool collectFinishOp(proto::GeneralTaskWalRecord* walRecord);
+    void assignOp(const proto::OperationDescription* op, proto::GeneralTaskWalRecord* walRecord);
+
+    void suspend();
+    void resume();
+    bool isIdle() const { return _target.ops_size() == 0; }
 
 private:
     const std::string _taskType;
     const std::string _taskName;
     const uint32_t _nodeId; // main node id, not backup node id
     OperationTopoManager* _topoManager;
+    const bool _enableTargetBase64Encode;
+    const std::string _partitionWorkRoot;
 
     std::vector<TaskController::Node*> _nodes;
-    std::vector<proto::OperationTarget> _newTargets;
-    std::vector<size_t> _runningOpCounts;
+    proto::OperationTarget _target;
+    size_t _runningOpCount = 0;
 
-private:
     BS_LOG_DECLARE();
 };
 

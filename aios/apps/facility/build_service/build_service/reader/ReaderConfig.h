@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_READERCONFIG_H
-#define ISEARCH_BS_READERCONFIG_H
+#pragma once
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/plugin/ModuleInfo.h"
@@ -39,5 +38,3 @@ private:
 BS_TYPEDEF_PTR(ReaderConfig);
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_TOKENIZERCONFIG_H

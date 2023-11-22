@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_FIELD_PRINTER_H
-#define __INDEXLIB_ATTRIBUTE_FIELD_PRINTER_H
+#pragma once
 
 #include <memory>
 
@@ -215,5 +214,3 @@ inline bool AttributeFieldPrinter::Print<char>(bool isNull, const autil::MultiVa
 DEFINE_SHARED_PTR(AttributeFieldPrinter);
 
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_ATTRIBUTE_FIELD_PRINTER_H

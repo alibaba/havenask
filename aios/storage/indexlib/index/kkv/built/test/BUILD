@@ -6,7 +6,8 @@ strict_cc_fast_test(
         'KKVBuiltSegmentReaderTest.cpp', 'KKVBuiltValueReaderTest.cpp',
         'KKVDiskIndexerTest.cpp', 'NormalKKVBuiltSegmentIteratorTest.cpp'
     ],
-    shard_count=10,
+    copts=['-fno-access-control'],
+    shard_count=5,
     deps=[
         '//aios/future_lite/future_lite/executors:simple_executor',
         '//aios/storage/indexlib/config:schema',

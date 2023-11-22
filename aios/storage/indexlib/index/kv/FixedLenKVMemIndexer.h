@@ -30,7 +30,7 @@ namespace indexlibv2::index {
 class FixedLenKVMemIndexer final : public KVMemIndexerBase
 {
 public:
-    explicit FixedLenKVMemIndexer(int64_t maxMemoryUse);
+    explicit FixedLenKVMemIndexer(bool tolerateDocError, int64_t maxMemoryUse);
     ~FixedLenKVMemIndexer();
 
 public:

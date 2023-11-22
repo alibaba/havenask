@@ -29,12 +29,10 @@
 #include "autil/TimeUtility.h"
 #include "autil/TimeoutTerminator.h"
 #include "autil/mem_pool/Pool.h"
-#include "build_service/util/LocatorUtil.h"
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/ITabletReader.h"
-#include "indexlib/framework/TabletInfos.h"
 #include "indexlib/index/kv/Common.h"
 #include "indexlib/index/kv/KVReadOptions.h"
 #include "kmonitor/client/MetricMacro.h"
@@ -43,8 +41,6 @@
 #include "navi/common.h"
 #include "navi/engine/AsyncPipe.h"
 #include "navi/log/NaviLogger.h"
-#include "sql/common/WatermarkType.h"
-#include "sql/resource/TabletManagerR.h"
 
 namespace kmonitor {
 class MetricsTags;
@@ -72,8 +68,6 @@ public:
         REGISTER_GAUGE_MUTABLE_METRIC(_docsCount, "AsyncKV.docsCount");
         REGISTER_GAUGE_MUTABLE_METRIC(_failedDocsCount, "AsyncKV.failedDocsCount");
         REGISTER_GAUGE_MUTABLE_METRIC(_notFoundDocsCount, "AsyncKV.notFoundDocsCount");
-        REGISTER_LATENCY_MUTABLE_METRIC(_watermarkLatency, "AsyncKV.watermarkLatency");
-        REGISTER_QPS_MUTABLE_METRIC(_waitWatermarkFailedQps, "AsyncKV.waitWatermarkFailedQps");
         return true;
     }
 
@@ -95,13 +89,6 @@ public:
         REPORT_MUTABLE_METRIC(_docsCount, kvMetrics->docsCount);
         REPORT_MUTABLE_METRIC(_failedDocsCount, kvMetrics->failedDocsCount);
         REPORT_MUTABLE_METRIC(_notFoundDocsCount, kvMetrics->notFoundDocsCount);
-
-        if (kvMetrics->needWatermark) {
-            REPORT_MUTABLE_METRIC(_watermarkLatency, kvMetrics->waitWatermarkTime / 1000.0f);
-            if (kvMetrics->waitWatermarkFailed) {
-                REPORT_MUTABLE_QPS(_waitWatermarkFailedQps);
-            }
-        }
     }
 
 private:
@@ -116,8 +103,6 @@ private:
     MutableMetric *_docsCount = nullptr;
     MutableMetric *_failedDocsCount = nullptr;
     MutableMetric *_notFoundDocsCount = nullptr;
-    MutableMetric *_watermarkLatency = nullptr;
-    MutableMetric *_waitWatermarkFailedQps = nullptr;
 };
 
 AsyncKVLookupCallbackCtxV2::AsyncKVLookupCallbackCtxV2(const AsyncPipePtr &pipe,
@@ -134,92 +119,18 @@ bool AsyncKVLookupCallbackCtxV2::isSchemaMatch(
 void AsyncKVLookupCallbackCtxV2::asyncGet(KVLookupOption option) {
     _metricsCollector = {};
     _option = std::move(option);
-    doWaitTablet();
-}
-
-void AsyncKVLookupCallbackCtxV2::doWaitTablet() {
-    auto done
-        = [ctx = shared_from_this()](
-              autil::result::Result<std::shared_ptr<indexlibv2::framework::ITablet>> res) mutable {
-              ctx->onWaitTabletCallback(std::move(res));
-          };
-
-    NAVI_LOG(TRACE3,
-             "start wait tablet, asyncPipe[%p] watermark[%ld] type[%d]",
-             _asyncPipe.get(),
-             _option.targetWatermark,
-             _option.targetWatermarkType);
-    if (!_asyncPipe || _option.targetWatermarkType == WatermarkType::WM_TYPE_DISABLED) {
-        NAVI_LOG(TRACE3, "get tablet use sync mode without watermark value");
-        auto tablet = _option.tabletManagerR->getTablet(_option.tableName);
-        done({tablet});
-    } else if (_option.targetWatermarkType == WatermarkType::WM_TYPE_SYSTEM_TS) {
-        NAVI_LOG(TRACE3, "wait tablet by target ts");
-        _metricsCollector.needWatermark = true;
-        _option.tabletManagerR->waitTabletByTargetTs(_option.tableName,
-                                                     _option.targetWatermark,
-                                                     std::move(done),
-                                                     _option.leftTime
-                                                         * _option.targetWatermarkTimeoutRatio);
-    } else if (_option.targetWatermarkType == WatermarkType::WM_TYPE_MANUAL) {
-        NAVI_LOG(TRACE3, "wait tablet by manual watermark");
-        _metricsCollector.needWatermark = true;
-        _option.tabletManagerR->waitTabletByWatermark(_option.tableName,
-                                                      _option.targetWatermark,
-                                                      std::move(done),
-                                                      _option.leftTime
-                                                          * _option.targetWatermarkTimeoutRatio);
-    }
-}
-
-void AsyncKVLookupCallbackCtxV2::onWaitTabletCallback(
-    autil::result::Result<std::shared_ptr<indexlibv2::framework::ITablet>> res) {
-    int64_t waitWatermarkTime = incCallbackVersion();
-    NAVI_LOG(TRACE3, "wait tablet returned, latency[%ld]", waitWatermarkTime);
-    _metricsCollector.waitWatermarkTime = waitWatermarkTime;
-
-    std::shared_ptr<indexlibv2::framework::ITablet> tablet;
-    _option.leftTime -= waitWatermarkTime;
-    if (res.is_ok()) {
-        tablet = std::move(res).steal_value();
-    } else {
-        NAVI_INTERVAL_LOG(
-            32,
-            WARN,
-            "wait tablet failed for tableName[%s] error[%s] waitWatermarkTime[%ld] pks[%s]",
-            _option.tableName.c_str(),
-            res.get_error().message().c_str(),
-            waitWatermarkTime,
-            autil::StringUtil::toString(_pksForSearch).c_str());
-        NAVI_LOG(DEBUG,
-                 "wait tablet by target ts failed, tableName[%s] error[%s] "
-                 "waitWatermarkTime[%ld], do degraded search",
-                 _option.tableName.c_str(),
-                 res.get_error().message().c_str(),
-                 waitWatermarkTime);
-        _metricsCollector.waitWatermarkFailed = true;
-        tablet = _option.tabletManagerR->getTablet(_option.tableName);
-    }
-    assert(tablet != nullptr && "invalid tablet");
-    doSearch(std::move(tablet));
-}
-
-void AsyncKVLookupCallbackCtxV2::doSearch(std::shared_ptr<indexlibv2::framework::ITablet> tablet) {
-    assert(tablet != nullptr);
+    assert(_option.tablet != nullptr);
     prepareReadOptions(_option);
     size_t pkCount = _pksForSearch.size();
     _rawResults.resize(pkCount);
     _metricsCollector.docsCount = pkCount;
-    _metricsCollector.buildWatermark = build_service::util::LocatorUtil::GetSwiftWatermark(
-        tablet->GetTabletInfos()->GetLatestLocator());
 
     NAVI_LOG(TRACE3,
-             "do search with leftTime[%ld], maxConcurrency[%ld], buildWatermark[%ld]",
+             "do search with leftTime[%ld], maxConcurrency[%ld]",
              _option.leftTime,
-             _option.maxConcurrency,
-             _metricsCollector.buildWatermark);
+             _option.maxConcurrency);
 
-    auto kvReader = getReader(std::move(tablet), _option.indexName);
+    auto kvReader = getReader(_option.tablet, _option.indexName);
     if (!kvReader) {
         NAVI_LOG(ERROR, "get reader from tablet failed");
         endLookupSession({"get reader from tablet failed"});
@@ -228,7 +139,6 @@ void AsyncKVLookupCallbackCtxV2::doSearch(std::shared_ptr<indexlibv2::framework:
 
     if (_asyncPipe == nullptr) {
         NAVI_LOG(DEBUG, "async pipe is nullptr, use sync with reader v2");
-        incStartVersion();
         auto result = future_lite::interface::syncAwaitViaExecutor(
             kvReader->BatchGetAsync(_pksForSearch, _rawResults, _readOptions), _executor);
         processStatusVec(std::move(result));
@@ -238,7 +148,6 @@ void AsyncKVLookupCallbackCtxV2::doSearch(std::shared_ptr<indexlibv2::framework:
         assert(_executor && "executor is nullptr");
         NAVI_LOG(DEBUG, "async pipe ready, use async with reader v2");
         auto ctx = shared_from_this();
-        incStartVersion();
         future_lite::interface::awaitViaExecutor(
             kvReader->BatchGetAsync(_pksForSearch, _rawResults, _readOptions),
             _executor,
@@ -249,10 +158,9 @@ void AsyncKVLookupCallbackCtxV2::doSearch(std::shared_ptr<indexlibv2::framework:
 }
 
 std::shared_ptr<indexlibv2::index::KVIndexReader>
-AsyncKVLookupCallbackCtxV2::getReader(std::shared_ptr<indexlibv2::framework::ITablet> tablet,
+AsyncKVLookupCallbackCtxV2::getReader(const std::shared_ptr<indexlibv2::framework::ITablet> &tablet,
                                       const std::string &indexName) {
-    _tablet = std::move(tablet);
-    _tabletReader = _tablet->GetTabletReader();
+    _tabletReader = tablet->GetTabletReader();
     _schema = _tabletReader->GetSchema();
 
     auto indexReader
@@ -328,28 +236,9 @@ bool AsyncKVLookupCallbackCtxV2::tryReportMetrics(
     return true;
 }
 
-int64_t AsyncKVLookupCallbackCtxV2::getWaitWatermarkTime() const {
-    assert(!isInFlightNoLock());
-    return _metricsCollector.waitWatermarkTime;
-}
-
-int64_t AsyncKVLookupCallbackCtxV2::getBuildWatermark() const {
-    assert(!isInFlightNoLock());
-    return _metricsCollector.buildWatermark;
-}
-
-size_t AsyncKVLookupCallbackCtxV2::getDegradeDocsSize() const {
-    assert(!isInFlightNoLock());
-    if (_metricsCollector.waitWatermarkFailed) {
-        return _pksForSearch.size();
-    } else {
-        return getFailedCount();
-    }
-}
-
 int64_t AsyncKVLookupCallbackCtxV2::getSeekTime() const {
     assert(!isInFlightNoLock());
-    return _metricsCollector.lookupTime + _metricsCollector.waitWatermarkTime;
+    return _metricsCollector.lookupTime;
 }
 
 void AsyncKVLookupCallbackCtxV2::endLookupSession(std::optional<std::string> errorDesc) {
@@ -366,7 +255,6 @@ void AsyncKVLookupCallbackCtxV2::endLookupSession(std::optional<std::string> err
     }
     _option = {};
     _tabletReader.reset();
-    _tablet.reset();
 }
 
 } // namespace sql

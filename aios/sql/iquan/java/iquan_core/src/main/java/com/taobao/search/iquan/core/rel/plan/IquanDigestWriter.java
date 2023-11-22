@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.plan;
 
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.exception.PlanWriteException;
 import com.taobao.search.iquan.core.common.ConstantDefine;
@@ -11,11 +16,6 @@ import org.apache.calcite.rel.externalize.RelJsonReader;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.util.Pair;
 
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Callback for a relational expression to dump itself as JSON.
  *
@@ -26,9 +26,9 @@ public class IquanDigestWriter implements RelWriter {
     private final Map<RelNode, Integer> relIdMap = new IdentityHashMap<>();
     private final List<Pair<String, Object>> values = new ArrayList<>();
     private final List<String> outputs;
-    private int depth = 0;
     private final SqlExplainLevel explainLevel;
     private final boolean withRelId;
+    private int depth = 0;
 
     //~ Constructors -------------------------------------------------------------
 

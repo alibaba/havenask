@@ -31,7 +31,7 @@ void SqlAuthManagerRTest::tearDown() {}
 
 TEST_F(SqlAuthManagerRTest, testItemSign) {
     std::string token = "token";
-    std::string secret = "74b87337454200d4d33f80c4663dc5e5";
+    std::string secret = "123456";
     // sql?query=update biz_order_summary set status = ? where biz_order_id=
     // ?&&kvpair=databaseName:biz_order_summary;timeout:1000;dynamic_params:[["999","1302461072256853"]]
     std::string queryStr

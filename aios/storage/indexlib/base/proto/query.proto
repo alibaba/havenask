@@ -9,6 +9,27 @@ message AttrCondition {
     repeated string values            = 3;
 }
 
+message FieldMetaQuery {
+    required string fieldMetaType = 1;
+    required string indexName = 2;
+}
+
+message FieldMetaResult {
+    optional string indexName = 1;
+    optional string fieldMetaType = 2;
+    optional string metaInfo = 3;
+}
+
+message FieldTokenCountQuery {
+    required string indexName = 1;
+    required int64 docId = 2;
+}
+
+message FieldTokenCountResult {
+    optional string indexName = 1;
+    optional int64 fieldTokenCount = 2;
+}
+
 message PartitionQuery {
     // attributes to return, empty means return everything.
     repeated string attrs               = 1;
@@ -30,8 +51,12 @@ message PartitionQuery {
 
     optional bool needSectionInfo      = 11;
 
-    // summarys to return, empty means return everything
+    // summarys/sources to return, empty means return everything
     repeated string summarys = 12;
+    repeated string sources = 13;
+    
+    optional FieldMetaQuery fieldMetaQuery = 14;
+    optional FieldTokenCountQuery fieldTokenCountQuery = 15;
 }
 
 message PartitionScan {
@@ -57,12 +82,19 @@ message SummaryValue {
     optional string value = 2;
 }
 
+message SourceValue {
+    optional string fieldName = 1;
+    optional string value = 2;
+}
+
 message Row {
     optional uint32 docid            = 1;
     optional string pk               = 2;
     optional string skey             = 3;
     repeated AttrValue attrValues    = 4;
     repeated SummaryValue summaryValues = 5;
+    repeated SourceValue sourceValues = 6;
+    optional FieldTokenCountResult fieldTokenCountRes = 7;
 }
 
 message IndexTermMeta {
@@ -83,7 +115,7 @@ message ErrorInfo {
 }
 
 message PartitionResponse {
-    required AttrInfo attrInfo       = 1;
+    optional AttrInfo attrInfo       = 1;
     repeated Row rows                = 2;
 
     optional IndexTermMeta termMeta  = 3;
@@ -91,4 +123,6 @@ message PartitionResponse {
 
     optional ErrorInfo error         = 5;
     repeated SectionMeta sectionMetas = 6;
+
+    optional FieldMetaResult metaResult = 7;
 }

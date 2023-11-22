@@ -31,10 +31,6 @@ bool GraphDomainRemoteBase::preInit() {
     if (EC_NONE != doPreInit()) {
         return false;
     }
-    if (!_streamState.init()) {
-        NAVI_LOG(ERROR, "init domain part state failed");
-        return false;
-    }
     if (!bindStream()) {
         NAVI_LOG(ERROR, "bind domain stream failed");
         return false;
@@ -125,8 +121,8 @@ void GraphDomainRemoteBase::send(NaviPartId partId) {
             NAVI_LOG(WARN, "do send failed or partState cancelled, partId [%d]", gigPartId);
             if (onSendFailure(gigPartId)) {
                 hasError = true;
-                break;
             }
+            break;
         }
     }
     if (hasError) {
@@ -175,8 +171,6 @@ bool GraphDomainRemoteBase::doReceive(
              message.partId,
              (void *)message.handlerId,
              message.message->DebugString().c_str());
-    receivePartResult(naviMessage);
-    receivePartTrace(naviMessage);
     auto borderCount = naviMessage->border_datas_size();
     for (int32_t index = 0; index < borderCount; index++) {
         auto &borderData = *naviMessage->mutable_border_datas(index);
@@ -198,51 +192,13 @@ bool GraphDomainRemoteBase::borderReceive(NaviBorderData &borderData) {
     return border->receive(borderData);
 }
 
-void GraphDomainRemoteBase::receivePartTrace(NaviMessage *naviMessage) {
-    const auto &traceStr = naviMessage->navi_trace();
-    if (traceStr.empty()) {
-        return;
-    }
-    try {
-        autil::DataBuffer dataBuffer((void *)traceStr.data(),
-                                     traceStr.size());
-        auto worker = _param->worker;
-        TraceCollector collector;
-        dataBuffer.read(collector);
-        NAVI_LOG(SCHEDULE2, "receive part trace [%lu]", collector.eventSize());
-        worker->appendTrace(collector);
-    } catch (const autil::legacy::ExceptionBase &e) {
-    }
-}
-
-void GraphDomainRemoteBase::receivePartResult(NaviMessage *naviMessage) {
-    const auto &resultStr = naviMessage->navi_result();
-    if (resultStr.empty()) {
-        return;
-    }
-    try {
-        autil::DataBuffer dataBuffer((void *)resultStr.data(),
-                                     resultStr.size());
-        NaviResult result;
-        dataBuffer.read(result);
-        NAVI_LOG(SCHEDULE2, "receive part trace from navi result [%lu]", result.traceCollector.eventSize());
-        auto ec = result.ec;
-        if (ec == EC_TIMEOUT || ec == EC_PART_CANCEL) {
-            NAVI_LOG(DEBUG, "ignore ec [%s] as part lack", CommonUtil::getErrorString(ec));
-            result.ec = EC_NONE;
-        }
-        _param->worker->appendResult(result);
-    } catch (const autil::legacy::ExceptionBase &e) {
-    }
-}
-
 void GraphDomainRemoteBase::doFinish(ErrorCode ec) {
     NAVI_LOG(SCHEDULE1, "do finish, ec [%s]", CommonUtil::getErrorString(ec));
-    unBindStream();
     auto stream = getStream();
     if (stream) {
         tryCancel(stream);
     }
+    unBindStream();
     setStream(multi_call::GigStreamBasePtr());
 }
 

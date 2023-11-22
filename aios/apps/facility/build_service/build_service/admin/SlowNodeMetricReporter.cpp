@@ -15,8 +15,17 @@
  */
 #include "build_service/admin/SlowNodeMetricReporter.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <memory>
+#include <string>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "build_service/util/Monitor.h"
+#include "kmonitor/client/MetricLevel.h"
 
 using namespace std;
 using namespace autil;

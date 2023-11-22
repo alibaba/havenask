@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_UPDATABLEVARNUMATTRIBUTEMERGERINTETEST_H
-#define __INDEXLIB_UPDATABLEVARNUMATTRIBUTEMERGERINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/attribute_config.h"
@@ -49,5 +48,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(UpdatableVarNumAttributeMergerInteTestCombine
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(UpdatableVarNumAttributeMergerInteTestCombineCompress, TestMergeSegmentsWithPatch);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(UpdatableVarNumAttributeMergerInteTestCombineCompress, TestMergeWithCompressOffset);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_UPDATABLEVARNUMATTRIBUTEMERGERINTETEST_H

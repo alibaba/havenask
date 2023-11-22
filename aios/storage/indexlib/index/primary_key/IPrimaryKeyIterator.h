@@ -30,7 +30,7 @@ public:
     virtual ~IPrimaryKeyIterator() {}
 
 public:
-    using PKPairTyped = PKPair<Key, docid_t>;
+    using PKPairTyped = PKPair<Key, docid64_t>;
 
 public:
     [[nodiscard]] virtual bool Init(const std::shared_ptr<indexlibv2::index::PrimaryKeyIndexConfig>& indexConfig,

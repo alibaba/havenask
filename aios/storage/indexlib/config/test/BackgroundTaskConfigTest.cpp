@@ -33,7 +33,6 @@ TEST_F(BackgroundTaskConfigTest, TestDefaultValue)
     ASSERT_EQ(60 * 60 * 1000u, config.GetDumpIntervalMs());
     ASSERT_EQ(10 * 1000u, config.GetReportMetricsIntervalMs());
     ASSERT_EQ(60 * 1000u, config.GetMergeIntervalMs());
-    ASSERT_EQ(1000u, config.GetMemReclaimIntervalMs());
     autil::EnvUtil::setEnv("IS_TEST_MODE", "true", true);
 }
 
@@ -57,8 +56,7 @@ TEST_F(BackgroundTaskConfigTest, testInitFromEnv)
 "renew_fence_lease_interval_ms": -1,
 "dump_interval_ms" : 100,
 "async_dump_interval_ms" : 456,
-"merge_interval_ms" : 789,
-"mem_reclaim_interval_ms": 1000000
+"merge_interval_ms" : 789
 })doc";
         autil::EnvGuard guard("INDEXLIB_BACKGROUND_TASK_CONFIG", jsonStr);
         BackgroundTaskConfig config;
@@ -70,7 +68,6 @@ TEST_F(BackgroundTaskConfigTest, testInitFromEnv)
         EXPECT_EQ(10, config.GetReportMetricsIntervalMs());
         EXPECT_EQ(456, config.GetAsyncDumpIntervalMs());
         EXPECT_EQ(789, config.GetMergeIntervalMs());
-        EXPECT_EQ(1000000, config.GetMemReclaimIntervalMs());
     }
 }
 

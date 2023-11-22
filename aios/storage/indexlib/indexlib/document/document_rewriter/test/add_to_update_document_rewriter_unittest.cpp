@@ -1,10 +1,10 @@
 #include "indexlib/document/document_rewriter/test/add_to_update_document_rewriter_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/config/test/truncate_config_maker.h"
 #include "indexlib/document/document_rewriter/pack_attribute_rewriter.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::config;

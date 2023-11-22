@@ -16,23 +16,29 @@
 #pragma once
 
 #include "autil/Log.h"
-#include "indexlib/index/ann/aitheta2/CommonDefine.h"
 #include "indexlib/index/ann/aitheta2/AithetaQueryWrapper.h"
+#include "indexlib/index/ann/aitheta2/CommonDefine.h"
+#include "indexlib/index/common/DictHasher.h"
 
 namespace indexlibv2::index::ann {
 class QueryParser
 {
 public:
-    static Status Parse(const AithetaIndexConfig& indexConf, const std::string& termWord,
+    static Status Parse(const AithetaIndexConfig& indexConf,
+                        const std::shared_ptr<indexlib::index::TokenHasher>& tokenHasher, const std::string& termWord,
                         AithetaQueries& indexQuery);
 
 private:
-    static Status ParseFromRawString(const AithetaIndexConfig& indexConf, const std::string& termWord,
-                                     AithetaQueryWrapper& queryWrapper);
+    static Status ParseFromRawString(const AithetaIndexConfig& indexConf,
+                                     const std::shared_ptr<indexlib::index::TokenHasher>& tokenHasher,
+                                     const std::string& termWord, AithetaQueryWrapper& queryWrapper);
     template <typename T>
     static Status ParseValue(std::string& queryStr, const std::string& key, T& value);
-    static Status ParseEmbedding(const AithetaIndexConfig& indexConf, const std::string& queryStr,
-                                 std::map<index_id_t, std::vector<float>>& embeddingMap);
+    static Status ParseEmbedding(const AithetaIndexConfig& indexConf,
+                                 const std::shared_ptr<indexlib::index::TokenHasher>& tokenHasher,
+                                 const std::string& queryStr, std::map<index_id_t, std::vector<float>>& embeddingMap);
+    static Status ConvertToBinaryEmbedding(int32_t fp32Dimension, AithetaQueries& query);
+    static Status ConvertToBinaryEmbedding(int32_t fp32Dimension, AithetaQuery& query);
 
 private:
     inline static const std::string QUERY_SEARCH_PARAMS_KEY = "&search_params=";

@@ -12,7 +12,7 @@ using namespace autil;
 using namespace autil::legacy::json;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, KVIndexConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, KVIndexConfigTest);
 
 KVIndexConfigTest::KVIndexConfigTest() {}
 
@@ -48,7 +48,7 @@ void KVIndexConfigTest::TestSimpleProcess()
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
     ASSERT_EQ(it_kv, indexSchema->GetPrimaryKeyIndexType());
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+    KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
     ASSERT_TRUE(kvIndexConfig);
     ASSERT_EQ(hft_int64, kvIndexConfig->GetKeyHashFunctionType());
 
@@ -80,7 +80,7 @@ void KVIndexConfigTest::TestDisableSimpleValue()
     FromJson(*schema, ParseJson(jsonString));
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+    KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
     ASSERT_TRUE(kvIndexConfig);
     auto valueConfig = kvIndexConfig->GetValueConfig();
     ASSERT_FALSE(valueConfig->IsSimpleValue());
@@ -119,7 +119,7 @@ void KVIndexConfigTest::TestFixValueAutoInline()
     // inc build or online: for compatible
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+    KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
     auto preference = kvIndexConfig->GetIndexPreference();
     auto valueParam = preference.GetValueParam();
     ASSERT_TRUE(valueParam.IsFixLenAutoInline());
@@ -166,7 +166,7 @@ void KVIndexConfigTest::TestValueImpact()
     // inc build or online: for compatible
     IndexSchemaPtr indexSchema = newSchema->GetIndexSchema();
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+    KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
     ASSERT_TRUE(kvIndexConfig);
 
     auto valueConfig = kvIndexConfig->GetValueConfig();
@@ -215,7 +215,7 @@ void KVIndexConfigTest::TestPlainFormat()
     // inc build or online: for compatible
     IndexSchemaPtr indexSchema = newSchema->GetIndexSchema();
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+    KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
     ASSERT_TRUE(kvIndexConfig);
 
     auto valueConfig = kvIndexConfig->GetValueConfig();
@@ -302,7 +302,7 @@ void KVIndexConfigTest::TestAutoValueImpact()
     // inc build or online: for compatible
     IndexSchemaPtr indexSchema = newSchema->GetIndexSchema();
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+    KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
     ASSERT_TRUE(kvIndexConfig);
 
     auto valueConfig = kvIndexConfig->GetValueConfig();
@@ -350,7 +350,7 @@ void KVIndexConfigTest::TestHashFunctionType()
     // inc build or online: for compatible
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KVIndexConfigPtr kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, indexConfig);
+    KVIndexConfigPtr kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(indexConfig);
     ASSERT_TRUE(kvIndexConfig);
     ASSERT_EQ(hft_int64, kvIndexConfig->GetKeyHashFunctionType());
 
@@ -361,7 +361,7 @@ void KVIndexConfigTest::TestHashFunctionType()
     FromJson(*newSchema, ParseJson(newJsonString));
     IndexSchemaPtr newIndexSchema = newSchema->GetIndexSchema();
     SingleFieldIndexConfigPtr newIndexConfig = newIndexSchema->GetPrimaryKeyIndexConfig();
-    KVIndexConfigPtr newKvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, newIndexConfig);
+    KVIndexConfigPtr newKvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(newIndexConfig);
     ASSERT_TRUE(newKvIndexConfig);
     ASSERT_EQ(hft_int64, newKvIndexConfig->GetKeyHashFunctionType());
     ASSERT_FALSE(newKvIndexConfig->GetIndexPreference().GetHashDictParam().HasEnableCompactHashKey());
@@ -386,7 +386,7 @@ void KVIndexConfigTest::TestHashFunctionType()
     )";
     schema.reset(new IndexPartitionSchema(""));
     FromJson(*schema, ParseJson(jsonString));
-    kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
+    kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
     ASSERT_TRUE(kvIndexConfig);
     ASSERT_EQ(hft_uint64, kvIndexConfig->GetKeyHashFunctionType());
     ASSERT_TRUE(kvIndexConfig->GetIndexPreference().GetHashDictParam().HasEnableCompactHashKey());
@@ -411,7 +411,7 @@ void KVIndexConfigTest::TestHashFunctionType()
     )";
     schema.reset(new IndexPartitionSchema(""));
     FromJson(*schema, ParseJson(jsonString));
-    kvIndexConfig = DYNAMIC_POINTER_CAST(KVIndexConfig, schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
+    kvIndexConfig = std::dynamic_pointer_cast<KVIndexConfig>(schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
     ASSERT_TRUE(kvIndexConfig);
     ASSERT_EQ(hft_murmur, kvIndexConfig->GetKeyHashFunctionType());
 }

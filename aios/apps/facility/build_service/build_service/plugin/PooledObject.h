@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_POOLEDOBJECT_H
-#define ISEARCH_BS_POOLEDOBJECT_H
+#pragma once
 
 #include <stack>
 
@@ -135,5 +134,3 @@ void PooledObject<ObjectType, ObjectTypeBase>::deallocate()
 }
 
 }} // namespace build_service::plugin
-
-#endif // ISEARCH_BS_POOLEDOBJECT_H

@@ -6,7 +6,8 @@ strict_cc_library(
     srcs=[],
     hdrs=[
         'IDocument.h', 'IDocumentBatch.h', 'IDocumentFactory.h',
-        'IDocumentIterator.h', 'IDocumentParser.h', 'IRawDocumentParser.h'
+        'IDocumentIterator.h', 'IDocumentParser.h', 'IMessageIterator.h',
+        'IRawDocumentParser.h'
     ],
     visibility=['//visibility:public'],
     deps=[
@@ -27,7 +28,10 @@ strict_cc_library(
     srcs=[],
     hdrs=[],
     visibility=['//visibility:public'],
-    deps=[':DocumentBatch', '//aios/storage/indexlib/document/kv:kv_document']
+    deps=[
+        ':DocumentBatch', ':ElementaryDocumentBatch',
+        '//aios/storage/indexlib/document/kv:kv_document'
+    ]
 )
 strict_cc_library(
     name='DocumentFactoryAdapter',
@@ -42,6 +46,18 @@ strict_cc_library(
     hdrs=['DocumentBatch.h', 'DocumentIterator.h'],
     deps=[':interface', '//aios/autil:log']
 )
+strict_cc_library(
+    name='ElementaryDocumentBatch',
+    srcs=[],
+    deps=['//aios/storage/indexlib/util:Exception']
+)
+strict_cc_library(
+    name='DocumentMemPoolFactory',
+    deps=[
+        '//aios/autil:env_util', '//aios/autil:json',
+        '//aios/autil:mem_pool_base', '//aios/storage/indexlib/util:Singleton'
+    ]
+)
 strict_cc_library(name='DocumentInitParam')
 strict_cc_library(
     name='BuiltinParserInitParam', srcs=[], deps=[':DocumentInitParam']
@@ -50,8 +66,9 @@ strict_cc_library(name='RawDocumentDefine', srcs=[])
 strict_cc_library(
     name='RawDocument',
     deps=[
-        ':RawDocumentDefine', ':interface', '//aios/autil:mem_pool_base',
-        '//aios/autil:span', '//aios/storage/indexlib/base:constants'
+        'DocumentMemPoolFactory', ':RawDocFieldIterator', ':RawDocumentDefine',
+        ':interface', '//aios/autil:mem_pool_base', '//aios/autil:span',
+        '//aios/storage/indexlib/base:Define'
     ]
 )
 strict_cc_library(
@@ -59,7 +76,9 @@ strict_cc_library(
     srcs=[],
     deps=['//aios/autil:log', '//aios/autil:span']
 )
-strict_cc_library(name='ExtendDocument', deps=[])
+strict_cc_library(
+    name='ExtendDocument', deps=['//aios/autil:resource_container']
+)
 strict_cc_library(
     name='IIndexFields',
     srcs=[],
@@ -86,8 +105,8 @@ strict_cc_library(
 strict_cc_library(
     name='PlainDocument',
     deps=[
-        ':IIndexFields', ':IIndexFieldsParser', ':interface',
-        ':plain_document_fbs_h', '//aios/autil:log',
+        'DocumentMemPoolFactory', ':IIndexFields', ':IIndexFieldsParser',
+        ':interface', ':plain_document_fbs_h', '//aios/autil:log',
         '//aios/storage/indexlib/config:IndexConfigHash',
         '//aios/storage/indexlib/index:IndexFactoryCreator',
         '//aios/storage/indexlib/util:PooledUniquePtr'

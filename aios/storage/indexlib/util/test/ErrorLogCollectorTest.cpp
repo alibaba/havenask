@@ -2,6 +2,7 @@
 
 #include <cstdio>
 
+#include "autil/EnvUtil.h"
 #include "autil/Log.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "unittest/unittest.h"

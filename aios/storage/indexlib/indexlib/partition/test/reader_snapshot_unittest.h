@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_READERSNAPSHOTTEST_H
-#define __INDEXLIB_READERSNAPSHOTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/partition_reader_snapshot.h"
@@ -42,5 +41,3 @@ INDEXLIB_UNIT_TEST_CASE(ReaderSnapshotTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(ReaderSnapshotTest, TestLeadingTable);
 INDEXLIB_UNIT_TEST_CASE(ReaderSnapshotTest, TestLeadingTableWithJoinTable);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_READERSNAPSHOTTEST_H

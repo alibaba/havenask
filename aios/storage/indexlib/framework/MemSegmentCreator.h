@@ -15,21 +15,21 @@
  */
 #pragma once
 
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "autil/Log.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/file_system/IDirectory.h"
+#include "indexlib/framework/BuildResource.h"
+#include "indexlib/framework/MemSegment.h"
+#include "indexlib/framework/SegmentMeta.h"
 #include "indexlib/framework/TabletData.h"
-
-namespace indexlib::file_system {
-class IDirectory;
-} // namespace indexlib::file_system
-
-namespace indexlibv2::config {
-class ITabletSchema;
-class TabletOptions;
-} // namespace indexlibv2::config
 
 namespace indexlibv2::framework {
 class IdGenerator;
-struct SegmentMeta;
 class ITabletFactory;
 
 class MemSegmentCreator

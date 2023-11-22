@@ -42,6 +42,7 @@
 #include "navi/resource/GraphMemoryPoolR.h"
 #include "sql/common/Log.h"
 #include "sql/framework/PushDownOp.h"
+#include "sql/ops/util/KernelUtil.h"
 #include "sql/proto/SqlSearchInfo.pb.h"
 #include "sql/proto/SqlSearchInfoCollector.h"
 #include "suez/turing/common/JoinConfigInfo.h"
@@ -88,7 +89,6 @@ public:
         REGISTER_GAUGE_MUTABLE_METRIC(_totalComputeCount, "TotalComputeCount");
         REGISTER_GAUGE_MUTABLE_METRIC(_totalOutputCount, "TotalOutputCount");
         REGISTER_GAUGE_MUTABLE_METRIC(_totalScanCount, "TotalScanCount");
-        REGISTER_GAUGE_MUTABLE_METRIC(_totalSeekCount, "TotalSeekCount");
         REGISTER_GAUGE_MUTABLE_METRIC(_queryPoolSize, "queryPoolSize");
         REGISTER_LATENCY_MUTABLE_METRIC(_totalSeekTime, "TotalSeekTime");
         REGISTER_LATENCY_MUTABLE_METRIC(_totalEvaluateTime, "TotalEvaluateTime");
@@ -104,7 +104,6 @@ public:
         REPORT_MUTABLE_METRIC(_totalComputeCount, scanInfo->totalcomputetimes());
         REPORT_MUTABLE_METRIC(_totalOutputCount, scanInfo->totaloutputcount());
         REPORT_MUTABLE_METRIC(_totalScanCount, scanInfo->totalscancount());
-        REPORT_MUTABLE_METRIC(_totalSeekCount, scanInfo->totalseekcount());
         REPORT_MUTABLE_METRIC(_queryPoolSize, scanInfo->querypoolsize() / 1000);
         REPORT_MUTABLE_METRIC(_totalSeekTime, scanInfo->totalseektime() / 1000);
         REPORT_MUTABLE_METRIC(_totalEvaluateTime, scanInfo->totalevaluatetime() / 1000);
@@ -122,7 +121,6 @@ private:
     MutableMetric *_totalComputeCount = nullptr;
     MutableMetric *_totalOutputCount = nullptr;
     MutableMetric *_totalScanCount = nullptr;
-    MutableMetric *_totalSeekCount = nullptr;
     MutableMetric *_queryPoolSize = nullptr;
     MutableMetric *_totalSeekTime = nullptr;
     MutableMetric *_totalEvaluateTime = nullptr;
@@ -137,15 +135,17 @@ ScanBase::ScanBase()
     : _durationTimer(make_unique<autil::ScopedTime2>())
     , _scanOnce(true)
     , _pushDownMode(false)
+    , _enableWatermark(false)
     , _batchSize(0)
     , _limit(std::numeric_limits<uint32_t>::max())
-    , _seekCount(0) {}
+    , _scanCount(0) {}
 
 ScanBase::~ScanBase() {
     reportBaseMetrics();
 }
 
 bool ScanBase::doInit() {
+    _queryConfig = &_queryConfigData->getConfig();
     _batchSize = _scanInitParamR->batchSize;
     _limit = _scanInitParamR->limit;
     return true;
@@ -165,7 +165,7 @@ bool ScanBase::batchScan(table::TablePtr &table, bool &eof) {
         return false;
     }
     if (_scanInitParamR->scanInfo.totalcomputetimes() < 5 && table != nullptr) {
-        SQL_LOG(TRACE1,
+        SQL_LOG(TRACE2,
                 "scan id [%d] output table [%s]: [%s]",
                 _scanInitParamR->parallelIndex,
                 _scanInitParamR->tableName.c_str(),
@@ -175,13 +175,12 @@ bool ScanBase::batchScan(table::TablePtr &table, bool &eof) {
     if (table) {
         _scanInitParamR->incTotalOutputCount(table->getRowCount());
     }
-    _scanInitParamR->setTotalSeekCount(_seekCount);
+    _scanInitParamR->setTotalScanCount(_scanCount);
     if (_sqlSearchInfoCollectorR) {
         _sqlSearchInfoCollectorR->getCollector()->overwriteScanInfo(_scanInitParamR->scanInfo);
     }
     if (eof) {
-        _scanInitParamR->incTotalSeekCount(_seekCount);
-        SQL_LOG(DEBUG, "scan info: [%s]", _scanInitParamR->scanInfo.ShortDebugString().c_str());
+        SQL_LOG(TRACE1, "scan info: [%s]", _scanInitParamR->scanInfo.ShortDebugString().c_str());
         onBatchScanFinish();
     }
     if (_scanPushDownR) {
@@ -247,7 +246,7 @@ MatchDocAllocatorPtr ScanBase::copyMatchDocAllocator(vector<MatchDoc> &matchDocV
 
 table::TablePtr ScanBase::doCreateTable(matchdoc::MatchDocAllocatorPtr outputAllocator,
                                         std::vector<matchdoc::MatchDoc> copyMatchDocs) {
-    return make_shared<Table>(copyMatchDocs, outputAllocator);
+    return Table::fromMatchDocs(copyMatchDocs, outputAllocator);
 }
 
 bool ScanBase::initAsyncPipe(navi::ResourceInitContext &ctx) {
@@ -262,7 +261,7 @@ bool ScanBase::initAsyncPipe(navi::ResourceInitContext &ctx) {
 
 void ScanBase::reportBaseMetrics() {
     if (_queryMetricReporterR) {
-        const string &pathName = "sql.user.ops." + _scanInitParamR->opName;
+        static const string pathName = "sql.user.ops.ScanKernel";
         auto opMetricsReporter = _queryMetricReporterR->getReporter()->getSubReporter(
             pathName,
             {{{"table_name", getTableNameForMetrics()}, {"op_scope", _scanInitParamR->opScope}}});

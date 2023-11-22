@@ -1,9 +1,24 @@
 #include "build_service_tasks/batch_control/BatchReporter.h"
 
+#include <cstdint>
+#include <iostream>
+#include <map>
+#include <stddef.h>
+#include <string>
+#include <vector>
+
 #include "aios/network/anet/httppacket.h"
-#include "aios/network/anet/httpstreamer.h"
-#include "autil/StringUtil.h"
+#include "aios/network/anet/ipacketfactory.h"
+#include "aios/network/anet/ipackethandler.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/ParserConfig.h"
+#include "build_service_tasks/batch_control/BatchControlWorker.h"
 #include "build_service_tasks/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

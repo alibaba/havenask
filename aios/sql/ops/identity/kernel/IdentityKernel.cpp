@@ -40,6 +40,7 @@
 #include "sql/proto/SqlSearchInfoCollector.h"
 #include "table/Row.h"
 #include "table/Table.h"
+#include "table/TableUtil.h"
 
 namespace navi {
 class KernelInitContext;
@@ -107,6 +108,7 @@ navi::ErrorCode IdentityKernel::compute(navi::KernelComputeContext &runContext) 
     TablePtr table = KernelUtil::getTable(data);
     if (table != nullptr) {
         _identityInfo.set_totaloutputcount(_identityInfo.totaloutputcount() + table->getRowCount());
+        SQL_LOG(TRACE2, "identity output table: [%s]", TableUtil::toString(table, 5).c_str());
     }
 
     if (eof == true) {
@@ -120,7 +122,7 @@ navi::ErrorCode IdentityKernel::compute(navi::KernelComputeContext &runContext) 
 
 void IdentityKernel::reportMetrics() {
     if (_queryMetricReporterR) {
-        string pathName = "sql.user.ops." + getKernelName();
+        static const string pathName = "sql.user.ops.IdentityKernel";
         auto opMetricsReporter = _queryMetricReporterR->getReporter()->getSubReporter(
             pathName, {{{"op_scope", _scope}}});
         opMetricsReporter->report<IdentityOpMetrics, IdentityInfo>(nullptr, &_identityInfo);

@@ -109,6 +109,25 @@ TEST_F(ShardBasedMergeStrategyTest, TestSimpleProcess)
     CheckMergePlan(mergePlan, 1, {3, 5, 6}, {1, 1, 0});
 }
 
+TEST_F(ShardBasedMergeStrategyTest, TestMergedSegmentInLevel0)
+{
+    FakeSegmentInfos segInfos = {{.id = 0, .isMerged = true, .docCount = 1, .deleteDocCount = 0, .segmentSize = 50},
+                                 {.id = 1, .isMerged = true, .docCount = 1, .deleteDocCount = 0, .segmentSize = 50}};
+    std::string levelInfoStr = "hash_mod,2,3:0,1;-1,-1;-1,-1";
+    auto context = MergeTestHelper::CreateContextWithLevelInfo(segInfos, levelInfoStr);
+    context->TEST_SetTabletSchema(_tabletSchema);
+    auto& mergeConfig = context->GetTabletOptions()->TEST_GetOfflineConfig().TEST_GetMergeConfig();
+    std::string strategyString = "space_amplification=1.5";
+    mergeConfig.TEST_SetMergeStrategyStr("shard_based");
+    mergeConfig.TEST_SetMergeStrategyParameterStr(strategyString);
+    ASSERT_TRUE(context->SetDesignateTask("merge", "default_merge"));
+    ShardBasedMergeStrategy mergeStrategy;
+    auto mergePlan = mergeStrategy.CreateMergePlan(context.get()).second;
+    ASSERT_EQ(2u, mergePlan->Size());
+    CheckMergePlan(mergePlan, 0, {0, 1}, {/*levelIdx=*/2, /*shardIdx=*/0, /*isBottomLevel=*/1});
+    CheckMergePlan(mergePlan, 1, {0, 1}, {/*levelIdx=*/2, /*shardIdx=*/1, /*isBottomLevel=*/1});
+}
+
 TEST_F(ShardBasedMergeStrategyTest, TestMergeMultiShard)
 {
     FakeSegmentInfos segInfos = {{.id = 0, .isMerged = true, .docCount = 1, .deleteDocCount = 0, .segmentSize = 50},

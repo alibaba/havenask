@@ -1,15 +1,32 @@
 #include "build_service/admin/controlflow/TaskFlowManager.h"
 
-#include "build_service/admin/controlflow/ControlDefine.h"
+#include <algorithm>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <stdlib.h>
+#include <string>
+#include <vector>
+
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "build_service/admin/controlflow/LocalLuaScriptReader.h"
 #include "build_service/admin/controlflow/TaskBase.h"
 #include "build_service/admin/controlflow/TaskFactory.h"
 #include "build_service/admin/controlflow/TaskFlow.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/common_define.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;

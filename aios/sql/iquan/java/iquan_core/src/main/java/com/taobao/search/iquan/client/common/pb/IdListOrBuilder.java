@@ -4,19 +4,21 @@
 package com.taobao.search.iquan.client.common.pb;
 
 public interface IdListOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:iquan.pb.IdList)
-    com.google.protobuf.MessageOrBuilder {
+        // @@protoc_insertion_point(interface_extends:iquan.pb.IdList)
+        com.google.protobuf.MessageOrBuilder {
 
-  /**
-   * <code>repeated int32 ids = 1;</code>
-   */
-  java.util.List<java.lang.Integer> getIdsList();
-  /**
-   * <code>repeated int32 ids = 1;</code>
-   */
-  int getIdsCount();
-  /**
-   * <code>repeated int32 ids = 1;</code>
-   */
-  int getIds(int index);
+    /**
+     * <code>repeated int32 ids = 1;</code>
+     */
+    java.util.List<java.lang.Integer> getIdsList();
+
+    /**
+     * <code>repeated int32 ids = 1;</code>
+     */
+    int getIdsCount();
+
+    /**
+     * <code>repeated int32 ids = 1;</code>
+     */
+    int getIds(int index);
 }

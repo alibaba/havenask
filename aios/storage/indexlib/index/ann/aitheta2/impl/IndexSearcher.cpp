@@ -25,21 +25,22 @@ IndexSearcher::IndexSearcher(const AithetaIndexConfig& config, const std::string
     , _segmentBaseDocId(0)
     , _contextHolder(holder)
 {
-    _queryMeta.set_meta(FeatureType::FT_FP32, _indexConfig.dimension);
+    ParamsInitializer::InitAiThetaMeta(_indexConfig, _aithetaMeta);
+    _queryMeta.set_meta(_aithetaMeta.type(), _aithetaMeta.dimension());
 }
 
 IndexSearcher::~IndexSearcher() {}
 
 bool IndexSearcher::InitMeasure(const std::string& distanceType)
 {
-    AiThetaMeta indexMeta(FeatureType::FT_FP32, _indexConfig.dimension);
     _measure = AiThetaFactory::CreateMeasure(distanceType);
     ANN_CHECK(_measure != nullptr, "create measure failed");
-    ANN_CHECK_OK(_measure->init(indexMeta, AiThetaParams()), "init measure %s failed", distanceType.c_str());
+    ANN_CHECK_OK(_measure->init(_aithetaMeta, AiThetaParams()), "init measure[%s] failed", distanceType.c_str());
     auto query_measure = _measure->query_measure();
     if (query_measure != nullptr) {
         _measure = query_measure;
     }
+
     return true;
 }
 
@@ -47,7 +48,7 @@ bool IndexSearcher::UpdateContext(const AithetaQuery& query,
                                   const std::shared_ptr<AithetaAuxSearchInfoBase>& auxiliarySearchInfo,
                                   bool isNewContext, AiThetaContext* context) const
 {
-    if (isNewContext && !query.searchparams().empty()) {
+    if (isNewContext && !query.searchparams().empty() && query.searchparams() != "{}") {
         AiThetaParams params;
         ANN_CHECK(ParseQueryParameter(query.searchparams(), params), "parse query parameters failed");
         ANN_CHECK_OK(context->update(params), "update ctx failed with[%s]", query.searchparams().c_str());

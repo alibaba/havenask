@@ -1,0 +1,34 @@
+{
+    "table_name":"simple",
+    "table_type":"kv",
+    "fields":[
+        {
+            "field_name":"key",
+            "field_type":"INT64"
+        },
+        {
+            "field_name":"value1",
+            "field_type":"INT64",
+            "multi_value":true
+        },
+        {
+            "field_name":"value2",
+            "field_type":"INT64"
+        }
+    ],
+    "indexs":[
+        {
+            "index_name":"key",
+            "index_fields":"key",
+            "index_type":"PRIMARY_KEY",
+            "index_preference":{
+                "type":"PERF"
+            }
+        }
+    ],
+    "attributes":[
+        "key",
+        "value1",
+        "value2"
+    ]
+}

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_DATA_ITERATOR_H
-#define __INDEXLIB_SINGLE_VALUE_DATA_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -189,5 +188,3 @@ inline autil::StringView SingleValueDataIterator<T>::GetValueBinaryStr(autil::me
     return autil::StringView((const char*)copyBuf, sizeof(T));
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_DATA_ITERATOR_H

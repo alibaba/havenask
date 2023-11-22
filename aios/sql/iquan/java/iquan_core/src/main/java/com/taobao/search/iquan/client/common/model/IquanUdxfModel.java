@@ -31,11 +31,11 @@ public class IquanUdxfModel extends IquanFunctionModel {
             ExceptionUtils.throwIfTrue(!isPathValid(), "udxf path is not valid");
             ExceptionUtils.throwIfTrue(function_version <= 0, "udxf function_version is smaller than 0");
             ExceptionUtils.throwIfTrue(!function_type.isValid(),
-                                        "udxf function_type is not valid");
+                    "udxf function_type is not valid");
             ExceptionUtils.throwIfTrue(function_content_version.isEmpty(),
-                                        "udxf function_content_version.isEmpty()");
+                    "udxf function_content_version.isEmpty()");
             ExceptionUtils.throwIfTrue(function_content.isEmpty(),
-                                        "udxf function_content is empty");
+                    "udxf function_content is empty");
         } catch (IquanNotValidateException e) {
             logger.error("udxf function model is not valid: " + getDigest());
             logger.error(e.getMessage());

@@ -92,13 +92,29 @@ bool AsyncScanKernel::config(navi::KernelConfigContext &ctx) {
 
 navi::ErrorCode AsyncScanKernel::init(navi::KernelInitContext &ctx) {
     _asyncPipe = _scanBase->getAsyncPipe();
+    assert(_asyncPipe);
     if (_scanPushDownR) {
         _scanBase->setPushDownMode(_scanPushDownR);
     }
     return navi::EC_NONE;
 }
 
-navi::ErrorCode AsyncScanKernel::computeEnd(navi::KernelComputeContext &context) {
+navi::ErrorCode AsyncScanKernel::compute(navi::KernelComputeContext &ctx) {
+    navi::DataPtr data;
+    bool eof;
+    _asyncPipe->getData(data, eof);
+    if (_scanBase->isWatermarkEnabled()) {
+        NAVI_KERNEL_LOG(TRACE3, "wait watermark success, start lookup");
+        _scanBase->startAsyncLookup();
+        _scanBase->disableWatermark();
+        return navi::EC_NONE;
+    } else {
+        NAVI_KERNEL_LOG(TRACE3, "after get pipe data [%p] eof [%d]", data.get(), eof);
+        return doCompute(ctx);
+    }
+}
+
+navi::ErrorCode AsyncScanKernel::doCompute(navi::KernelComputeContext &context) {
     table::TablePtr table;
     bool eof = true;
     do {

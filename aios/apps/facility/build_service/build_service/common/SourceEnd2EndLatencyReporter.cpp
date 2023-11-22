@@ -15,11 +15,22 @@
  */
 #include "build_service/common/SourceEnd2EndLatencyReporter.h"
 
+#include <iosfwd>
+#include <map>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "autil/legacy/any.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/config/field_config.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/document/normal/Field.h"
 #include "indexlib/document/source_timestamp_parser.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;

@@ -70,14 +70,17 @@ void SpatialIndexConfig::Check() const
 {
     SingleFieldIndexConfig::Check();
     if (_impl->maxDistError < MIN_MAX_DIST_ERROR_VALUE) {
-        INDEXLIB_FATAL_ERROR(Schema, "max dist error must greater or equal than %lf", MIN_MAX_DIST_ERROR_VALUE);
+        INDEXLIB_FATAL_ERROR(Schema, "max dist error must greater or equal than %lf, index name [%s]",
+                             MIN_MAX_DIST_ERROR_VALUE, GetIndexName().c_str());
     }
 
     if (_impl->maxSearchDist < _impl->maxDistError) {
-        INDEXLIB_FATAL_ERROR(Schema, "max search dist must greater than max dist error");
+        INDEXLIB_FATAL_ERROR(Schema, "max search dist must greater than max dist error, index name [%s]",
+                             GetIndexName().c_str());
     }
     if (_impl->distanceLoss >= 1.0 || _impl->distanceLoss <= 0.0) {
-        INDEXLIB_FATAL_ERROR(Schema, "invalid distance loss: %lf, should between (0,1)", _impl->distanceLoss);
+        INDEXLIB_FATAL_ERROR(Schema, "invalid distance loss: %lf, should between (0,1), index name [%s]",
+                             _impl->distanceLoss, GetIndexName().c_str());
     }
 }
 InvertedIndexConfig* SpatialIndexConfig::Clone() const { return new SpatialIndexConfig(*this); }

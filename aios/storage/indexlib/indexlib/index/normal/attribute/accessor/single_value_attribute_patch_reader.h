@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_PATCH_READER_H
-#define __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_PATCH_READER_H
+#pragma once
 
 #include <memory>
 #include <queue>
@@ -317,5 +316,3 @@ void SingleValueAttributePatchReader<T>::PushBackToHeap(std::unique_ptr<SinglePa
     }
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_ATTRIBUTE_PATCH_READER_H

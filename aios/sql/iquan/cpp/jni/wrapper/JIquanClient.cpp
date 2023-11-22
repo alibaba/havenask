@@ -25,23 +25,8 @@ AUTIL_LOG_SETUP(iquan, JIquanClient);
 GlobalRef<jclass> JIquanClient::_clazz = {nullptr};
 autil::ThreadMutex JIquanClient::_mutex;
 
-LocalRef<jbyteArray> JIquanClient::updateTables(jint format, AliasRef<jbyteArray> request) {
-    static auto method = getClass()->getMethod<jbyteArray(jint, jbyteArray)>("updateTables");
-    return method(self(), format, request.get());
-}
-
-LocalRef<jbyteArray> JIquanClient::updateLayerTables(jint format, AliasRef<jbyteArray> request) {
-    static auto method = getClass()->getMethod<jbyteArray(jint, jbyteArray)>("updateLayerTables");
-    return method(self(), format, request.get());
-}
-
-LocalRef<jbyteArray> JIquanClient::updateCatalog(jint format, AliasRef<jbyteArray> request) {
-    static auto method = getClass()->getMethod<jbyteArray(jint, jbyteArray)>("updateCatalog");
-    return method(self(), format, request.get());
-}
-
-LocalRef<jbyteArray> JIquanClient::updateFunctions(jint format, AliasRef<jbyteArray> request) {
-    static auto method = getClass()->getMethod<jbyteArray(jint, jbyteArray)>("updateFunctions");
+LocalRef<jbyteArray> JIquanClient::registerCatalogs(jint format, AliasRef<jbyteArray> request) {
+    static auto method = getClass()->getMethod<jbyteArray(jint, jbyteArray)>("registerCatalogs");
     return method(self(), format, request.get());
 }
 

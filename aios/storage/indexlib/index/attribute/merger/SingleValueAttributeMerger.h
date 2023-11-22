@@ -90,7 +90,7 @@ private:
             return dataAppender->IsFull();
         }
 
-        void Flush()
+        Status Flush()
         {
             assert(dataAppender);
             return dataAppender->Flush();
@@ -105,7 +105,7 @@ private:
     void FlushCompressDataBuffer(const OutputData& outputData);
     Status DumpCompressDataBuffer();
 
-    void FlushDataBuffer(OutputData& outputData);
+    Status FlushDataBuffer(OutputData& outputData);
 
     Status PrepareOutputDatas(const std::shared_ptr<DocMapper>& docMapper,
                               const std::vector<std::shared_ptr<framework::SegmentMeta>>& targetSegmentMetas);
@@ -120,7 +120,7 @@ private:
     GetDiskIndexer(const std::shared_ptr<framework::Segment>& segment);
 
     virtual std::pair<Status, std::shared_ptr<indexlib::file_system::IDirectory>>
-    GetOutputDirectory(const std::shared_ptr<indexlib::file_system::IDirectory>& segDir);
+    GetOutputDirectory(const std::shared_ptr<indexlib::file_system::IDirectory>& segDir) override;
 
 private:
     static const uint32_t DEFAULT_RECORD_COUNT = 1024 * 1024;
@@ -154,7 +154,7 @@ Status SingleValueAttributeMerger<T>::DoMerge(const SegmentMergeInfos& segMergeI
             AUTIL_LOG(ERROR, "not support attribute slice with merge to multi segment");
             return Status::Corruption();
         }
-        int64_t docCount = docMapper->GetTargetSegmentDocCount(0);
+        int64_t docCount = docMapper->GetTargetSegmentDocCount(segMergeInfos.targetSegments[0]->segmentId);
         sliceInfo.GetDocRange(docCount, beginDocId, endDocId);
     }
     std::vector<DiskIndexerWithCtx> diskIndexersWithCtx;
@@ -185,12 +185,12 @@ Status SingleValueAttributeMerger<T>::DoMerge(const SegmentMergeInfos& segMergeI
         diskIndexer->Read(currentLocalId, ctx, (uint8_t*)&value, sizeof(value), dataLen, isNull);
         output->Set(info.newDocId - beginDocId, value, isNull);
         if (output->BufferFull()) {
-            FlushDataBuffer(*output);
+            RETURN_IF_STATUS_ERROR(FlushDataBuffer(*output), "data appender flush failed.");
         }
     }
 
     for (auto& outputData : _segOutputMapper.GetOutputs()) {
-        FlushDataBuffer(outputData);
+        RETURN_IF_STATUS_ERROR(FlushDataBuffer(outputData), "data appender flush last buf failed.");
     }
 
     if (AttributeCompressInfo::NeedCompressData(_attributeConfig)) {
@@ -353,17 +353,17 @@ Status SingleValueAttributeMerger<T>::MergePatches(const SegmentMergeInfos segme
 }
 
 template <typename T>
-void SingleValueAttributeMerger<T>::FlushDataBuffer(OutputData& outputData)
+Status SingleValueAttributeMerger<T>::FlushDataBuffer(OutputData& outputData)
 {
     if (!outputData.dataAppender || outputData.dataAppender->GetInBufferCount() == 0) {
-        return;
+        return Status::OK();
     }
 
     if (AttributeCompressInfo::NeedCompressData(_attributeConfig)) {
         FlushCompressDataBuffer(outputData);
-        return;
+        return Status::OK();
     }
-    outputData.dataAppender->Flush();
+    return outputData.Flush();
 }
 
 template <typename T>

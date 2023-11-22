@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DENSEHASHTABLEPERFTEST_H
-#define __INDEXLIB_DENSEHASHTABLEPERFTEST_H
+#pragma once
 
 #include <vector>
 
@@ -60,5 +59,3 @@ private:
 // INDEXLIB_UNIT_TEST_CASE(DenseHashTablePerfTest, TestOccupancy);
 // INDEXLIB_UNIT_TEST_CASE(DenseHashTablePerfTest, TestInsertAndFind);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_DENSEHASHTABLEPERFTEST_H

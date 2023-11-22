@@ -3,13 +3,13 @@
 #include "indexlib/common/field_format/attribute/single_value_attribute_convertor.h"
 #include "indexlib/config/field_schema.h"
 #include "indexlib/config/summary_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_rewriter/pack_attribute_appender.h"
 #include "indexlib/document/index_document/normal_document/index_tokenize_field.h"
 #include "indexlib/document/index_document/normal_document/summary_formatter.h"
 #include "indexlib/document/index_document/normal_document/test/document_serialize_test_helper.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/Exception.h"
 #include "indexlib/util/KeyHasherTyped.h"
 
@@ -446,7 +446,7 @@ void NormalDocumentTest::TestSerializeSourceDocument()
     srcDoc->SetMeta(meta);
     string tmp2 = "v1,v2";
     StringView groupData(tmp2);
-    srcDoc->AddGroupValue(groupData);
+    srcDoc->SetGroupValue(0, groupData);
     doc1->SetSourceDocument(srcDoc);
 
     {

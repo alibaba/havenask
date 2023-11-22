@@ -42,7 +42,7 @@ PartitionResourceProviderPtr PartitionResourceProviderFactory::DeclareProvider(c
 {
     string normalPath = PathUtil::NormalizePath(indexPath);
     versionid_t versionId = GetTargetVersionId(normalPath, targetVersionId);
-    if (versionId == INVALID_VERSION) {
+    if (versionId == INVALID_VERSIONID) {
         IE_LOG(ERROR, "not found valid version at [%s]!", normalPath.c_str());
         return PartitionResourceProviderPtr();
     }
@@ -72,7 +72,7 @@ PartitionResourceProviderPtr PartitionResourceProviderFactory::CreateProvider(co
     string normalizedIndexPath = PathUtil::NormalizePath(indexPath);
     string normalizedPluginPath = PathUtil::NormalizePath(pluginPath);
     versionid_t versionId = GetTargetVersionId(normalizedIndexPath, targetVersionId);
-    if (versionId == INVALID_VERSION) {
+    if (versionId == INVALID_VERSIONID) {
         IE_LOG(ERROR, "not found valid version at [%s]!", normalizedIndexPath.c_str());
         return PartitionResourceProviderPtr();
     }
@@ -88,11 +88,11 @@ PartitionResourceProviderPtr PartitionResourceProviderFactory::CreateProvider(co
 
 versionid_t PartitionResourceProviderFactory::GetTargetVersionId(const string& indexPath, versionid_t versionId)
 {
-    if (versionId != INVALID_VERSION) {
+    if (versionId != INVALID_VERSIONID) {
         return versionId;
     }
     Version version;
-    VersionLoader::GetVersionS(indexPath, version, INVALID_VERSION);
+    VersionLoader::GetVersionS(indexPath, version, INVALID_VERSIONID);
     return version.GetVersionId();
 }
 

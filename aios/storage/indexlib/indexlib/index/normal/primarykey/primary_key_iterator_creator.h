@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIMARY_KEY_ITERATOR_CREATOR_H
-#define __INDEXLIB_PRIMARY_KEY_ITERATOR_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -57,5 +56,3 @@ PrimaryKeyIteratorCreator::Create(const config::PrimaryKeyIndexConfigPtr& indexC
     return PrimaryKeyIteratorPtr();
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARY_KEY_ITERATOR_CREATOR_H

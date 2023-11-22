@@ -1,11 +1,18 @@
 package com.taobao.search.iquan.core.rel.visitor.rexshuttle;
 
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rex.*;
-import org.apache.calcite.util.Litmus;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexDynamicParam;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexLocalRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexProgram;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.util.Litmus;
 
 public class RexShuttleUtils {
 

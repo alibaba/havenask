@@ -36,11 +36,11 @@ public:
 public:
     virtual OpenStatus Open(const std::string& primaryDir, const std::string& secondaryDir,
                             const config::IndexPartitionSchemaPtr& schema, const config::IndexPartitionOptions& options,
-                            versionid_t version = INVALID_VERSION)
+                            versionid_t version = INVALID_VERSIONID)
     {
         return OS_OK;
     }
-    virtual OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSION) { return OS_OK; }
+    virtual OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSIONID) { return OS_OK; }
     virtual void ReOpenNewSegment() {}
     virtual void Close() {}
     virtual partition::PartitionWriterPtr GetWriter() const { return mWriter; }

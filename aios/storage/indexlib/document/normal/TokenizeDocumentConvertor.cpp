@@ -28,6 +28,9 @@
 #include "indexlib/document/normal/tokenize/TokenizeSection.h"
 #include "indexlib/index/ann/Common.h"
 #include "indexlib/index/inverted_index/Common.h"
+#include "indexlib/index/primary_key/Common.h"
+#include "indexlib/index/summary/Common.h"
+#include "indexlib/util/Algorithm.h"
 
 using namespace indexlibv2::analyzer;
 
@@ -40,48 +43,43 @@ static const char SECTION_WEIGHT_SEPARATOR = '\x1C';
 Status TokenizeDocumentConvertor::Init(const std::shared_ptr<config::ITabletSchema>& schema,
                                        analyzer::IAnalyzerFactory* analyzerFactory)
 {
-    _schema = schema;
-    _analyzerFactory = analyzerFactory;
-    InitFields(schema);
-    return CheckAnalyzers();
+    std::vector<std::string> fieldNames;
+    for (const auto& indexType : {indexlib::index::INVERTED_INDEX_TYPE_STR, index::ANN_INDEX_TYPE_STR,
+                                  index::PRIMARY_KEY_INDEX_TYPE_STR, index::SUMMARY_INDEX_TYPE_STR}) {
+        for (const auto& fieldConfig : schema->GetIndexFieldConfigs(indexType)) {
+            fieldNames.push_back(fieldConfig->GetFieldName());
+        }
+    }
+    indexlib::util::Algorithm::SortUniqueAndErase(fieldNames);
+    std::vector<std::shared_ptr<config::FieldConfig>> fieldConfigs;
+    for (const auto& fieldName : fieldNames) {
+        fieldConfigs.push_back(schema->GetFieldConfig(fieldName));
+    }
+    auto allFieldConfigs = schema->GetFieldConfigs();
+    for (const auto& fieldConfig : allFieldConfigs) {
+        if (fieldConfig->GetFieldType() != ft_raw &&
+            std::find(fieldNames.begin(), fieldNames.end(), fieldConfig->GetFieldName()) == fieldNames.end()) {
+            _emptyFieldConfigs.push_back(fieldConfig);
+        }
+    }
+    return Init(fieldConfigs, analyzerFactory);
 }
 
-void TokenizeDocumentConvertor::InitFields(const std::shared_ptr<config::ITabletSchema>& schema)
+Status TokenizeDocumentConvertor::Init(const std::vector<std::shared_ptr<config::FieldConfig>>& fieldConfigs,
+                                       analyzer::IAnalyzerFactory* analyzerFactory)
 {
-    auto fieldCount = schema->GetFieldCount();
-    _isFieldInIndex.resize(fieldCount, false);
-
-    {
-        auto fieldConfigs = schema->GetIndexFieldConfigs(indexlib::index::INVERTED_INDEX_TYPE_STR);
-        for (const auto& fieldConfig : fieldConfigs) {
-            auto fieldId = fieldConfig->GetFieldId();
-            assert(fieldId >= 0 && static_cast<size_t>(fieldId) < _isFieldInIndex.size());
-            _isFieldInIndex[fieldId] = true;
-        }
+    _fieldConfigs = fieldConfigs;
+    _maxFieldId = INVALID_FIELDID;
+    for (const auto& fieldConfig : fieldConfigs) {
+        _maxFieldId = std::max(_maxFieldId, fieldConfig->GetFieldId());
     }
-    {
-        auto fieldConfigs = schema->GetIndexFieldConfigs(indexlibv2::index::ANN_INDEX_TYPE_STR);
-        for (const auto& fieldConfig : fieldConfigs) {
-            auto fieldId = fieldConfig->GetFieldId();
-            assert(fieldId >= 0 && static_cast<size_t>(fieldId) < _isFieldInIndex.size());
-            _isFieldInIndex[fieldId] = true;
-        }
-    }
-
-    const auto& pkConfig = schema->GetPrimaryKeyIndexConfig();
-    if (pkConfig) {
-        const auto& pkFields = pkConfig->GetFieldConfigs();
-        assert(pkFields.size() == 1);
-        auto pkFieldId = pkFields[0]->GetFieldId();
-        assert(pkFieldId >= 0 && static_cast<size_t>(pkFieldId) < _isFieldInIndex.size());
-        _isFieldInIndex[pkFieldId] = true;
-    }
+    _analyzerFactory = analyzerFactory;
+    return CheckAnalyzers();
 }
 
 Status TokenizeDocumentConvertor::CheckAnalyzers() const
 {
-    const auto& fieldConfigs = _schema->GetFieldConfigs();
-    for (const auto& fieldConfig : fieldConfigs) {
+    for (const auto& fieldConfig : _fieldConfigs) {
         if (fieldConfig->GetFieldType() == ft_text) {
             const std::string& analyzerName = fieldConfig->GetAnalyzerName();
             if (analyzerName.empty()) {
@@ -108,11 +106,10 @@ TokenizeDocumentConvertor::Convert(RawDocument* rawDoc, const std::map<fieldid_t
                                    const std::shared_ptr<indexlib::document::TokenizeDocument>& tokenizeDocument,
                                    const std::shared_ptr<indexlib::document::TokenizeDocument>& lastTokenizeDocument)
 {
-    auto fieldCount = _schema->GetFieldCount();
+    auto fieldCount = _maxFieldId + 1;
     tokenizeDocument->reserve(fieldCount);
     lastTokenizeDocument->reserve(fieldCount);
-    const auto& fieldConfigs = _schema->GetFieldConfigs();
-    for (const auto& fieldConfig : fieldConfigs) {
+    for (const auto& fieldConfig : _fieldConfigs) {
         const std::string& fieldName = fieldConfig->GetFieldName();
         std::string specifyAnalyzerName = GetAnalyzerName(fieldConfig->GetFieldId(), fieldAnalyzerNameMap);
         if (!ProcessField(rawDoc, fieldConfig, fieldName, specifyAnalyzerName, tokenizeDocument)) {
@@ -121,6 +118,21 @@ TokenizeDocumentConvertor::Convert(RawDocument* rawDoc, const std::map<fieldid_t
         if (!ProcessLastField(rawDoc, fieldConfig, LAST_VALUE_PREFIX + fieldName, specifyAnalyzerName,
                               lastTokenizeDocument)) {
             return Status::InternalError();
+        }
+    }
+    for (const auto& fieldConfig : _emptyFieldConfigs) {
+        fieldid_t fieldId = fieldConfig->GetFieldId();
+        if (tokenizeDocument->getField(fieldId) != nullptr) {
+            AUTIL_LOG(DEBUG, "fieldName:[%s] has already been tokenized", fieldConfig->GetFieldName().c_str());
+            continue;
+        }
+        const indexlib::document::TokenizeFieldPtr& field = tokenizeDocument->createField(fieldId);
+        if (field.get() == nullptr) {
+            std::stringstream ss;
+            ss << "create TokenizeField failed: [" << fieldId << "]";
+            std::string errorMsg = ss.str();
+            AUTIL_LOG(ERROR, "%s", errorMsg.c_str());
+            return Status::Corruption();
         }
     }
     return Status::OK();
@@ -177,37 +189,16 @@ bool TokenizeDocumentConvertor::ProcessField(const RawDocument* rawDocument,
     }
     bool setNull = fieldConfig->IsEnableNullField() and ((fieldValue.empty() && !rawDocument->exist(fieldName)) ||
                                                          fieldValue == fieldConfig->GetNullFieldLiteralString());
-    if (setNull) {
-        field->setNull(true);
-        return true;
-    }
-    bool ret = true;
-    if (ft_text == fieldType) {
-        ret = TokenizeTextField(field, fieldValue, specifyAnalyzerName);
-    } else if (ft_location == fieldType || ft_line == fieldType || ft_polygon == fieldType) {
-        ret = TokenizeSingleValueField(field, fieldValue);
-    } else if (fieldConfig->IsMultiValue() && IsInIndex(fieldId)) {
-        ret = TokenizeMultiValueField(field, fieldValue, fieldConfig->GetSeparator());
-    } else if (IsInIndex(fieldId)) {
-        ret = TokenizeSingleValueField(field, fieldValue);
-    } else {
-        return true;
-    }
-    if (!ret) {
-        std::string errorMsg = "Failed to Tokenize field:[" + fieldConfig->GetFieldName() + "]";
-        AUTIL_LOG(WARN, "%s", errorMsg.c_str());
-        return false;
-    }
-    return true;
+    return TokenizeField(fieldConfig, fieldValue, specifyAnalyzerName, setNull, field);
 }
 
-Analyzer* TokenizeDocumentConvertor::GetAnalyzer(fieldid_t fieldId, const std::string& fieldAnalyzerName) const
+Analyzer* TokenizeDocumentConvertor::GetAnalyzer(const std::shared_ptr<config::FieldConfig>& fieldConfig,
+                                                 const std::string& fieldAnalyzerName) const
 {
     std::string analyzerName;
     if (!fieldAnalyzerName.empty()) {
         analyzerName = fieldAnalyzerName;
     } else {
-        auto fieldConfig = _schema->GetFieldConfig(fieldId);
         if (!fieldConfig) {
             return nullptr;
         }
@@ -218,11 +209,10 @@ Analyzer* TokenizeDocumentConvertor::GetAnalyzer(fieldid_t fieldId, const std::s
         analyzer = _analyzerFactory->createAnalyzer(analyzerName);
     }
     if (analyzer == nullptr && analyzerName == SIMPLE_ANALYZER) {
-        auto fieldConfig = _schema->GetFieldConfig(fieldId);
         if (!fieldConfig) {
             return nullptr;
         }
-        analyzer = CreateSimpleAnalyzer(fieldConfig->GetSeparator());
+        analyzer = CreateSimpleAnalyzer(GetSeparator(fieldConfig));
     }
     return analyzer;
 }
@@ -236,19 +226,18 @@ Analyzer* TokenizeDocumentConvertor::CreateSimpleAnalyzer(const std::string& del
     return analyzer;
 }
 
-bool TokenizeDocumentConvertor::TokenizeTextField(const indexlib::document::TokenizeFieldPtr& field,
+bool TokenizeDocumentConvertor::TokenizeTextField(const std::shared_ptr<config::FieldConfig>& fieldConfig,
+                                                  const indexlib::document::TokenizeFieldPtr& field,
                                                   const autil::StringView& fieldValue,
                                                   const std::string& fieldAnalyzerName)
 {
     if (fieldValue.empty()) {
         return true;
     }
-
-    fieldid_t fieldId = field->getFieldId();
-    Analyzer* analyzer = GetAnalyzer(fieldId, fieldAnalyzerName);
+    Analyzer* analyzer = GetAnalyzer(fieldConfig, fieldAnalyzerName);
     if (!analyzer) {
         std::stringstream ss;
-        ss << "Get analyzer FAIL, fieldId = [" << fieldId << "]";
+        ss << "Get analyzer FAIL, fieldName = [" << fieldConfig->GetFieldName() << "]";
         std::string errorMsg = ss.str();
         AUTIL_LOG(ERROR, "%s", errorMsg.c_str());
         return false;
@@ -409,10 +398,39 @@ bool TokenizeDocumentConvertor::TokenizeSingleValueField(const indexlib::documen
     return true;
 }
 
-bool TokenizeDocumentConvertor::IsInIndex(fieldid_t fieldId) const
+const std::string&
+TokenizeDocumentConvertor::GetSeparator(const std::shared_ptr<config::FieldConfig>& fieldConfig) const
 {
-    assert(fieldId >= 0 && static_cast<size_t>(fieldId) < _isFieldInIndex.size());
-    return _isFieldInIndex[fieldId];
+    return fieldConfig->GetSeparator();
+}
+
+bool TokenizeDocumentConvertor::TokenizeField(const std::shared_ptr<config::FieldConfig>& fieldConfig,
+                                              autil::StringView fieldValue, const std::string& analyzerName,
+                                              bool isNull,
+                                              const std::shared_ptr<indexlib::document::TokenizeField>& field)
+{
+    if (isNull) {
+        field->setNull(true);
+        return true;
+    }
+    bool ret = true;
+    auto fieldType = fieldConfig->GetFieldType();
+    if (ft_text == fieldType) {
+        ret = TokenizeTextField(fieldConfig, field, fieldValue, analyzerName);
+    } else if (ft_location == fieldType || ft_line == fieldType || ft_polygon == fieldType) {
+        ret = TokenizeSingleValueField(field, fieldValue);
+    } else if (fieldConfig->IsMultiValue()) {
+        ret = TokenizeMultiValueField(field, fieldValue, GetSeparator(fieldConfig));
+    } else {
+        ret = TokenizeSingleValueField(field, fieldValue);
+    }
+
+    if (!ret) {
+        std::string errorMsg = "Failed to Tokenize field:[" + fieldConfig->GetFieldName() + "]";
+        AUTIL_LOG(WARN, "%s", errorMsg.c_str());
+        return false;
+    }
+    return true;
 }
 
 } // namespace indexlibv2::document

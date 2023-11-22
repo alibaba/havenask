@@ -15,9 +15,13 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 #include "build_service/common_define.h"
-#include "build_service/proto/WorkerNode.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor_adapter/Metric.h"
 #include "kmonitor_adapter/Monitor.h"
 
 namespace build_service { namespace admin {

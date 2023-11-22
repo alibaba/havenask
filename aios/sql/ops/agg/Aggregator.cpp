@@ -67,7 +67,8 @@ Aggregator::Aggregator(AggFuncMode mode,
     , _aggPoolSize(0)
     , _aggregateCnt(0)
     , _mode(mode)
-    , _aggregatorPoolPtr(_graphMemoryPoolR->getPool()) {}
+    , _aggregatorPoolPtr(_graphMemoryPoolR->getPool())
+    , _dataPoolPtr(_graphMemoryPoolR->getPool()) {}
 
 Aggregator::~Aggregator() {
     assert(_accumulatorVec.size() == _aggFuncVec.size());
@@ -125,7 +126,6 @@ bool Aggregator::init(const AggFuncFactoryR *aggFuncFactoryR,
             return false;
         }
     }
-    _table->endGroup();
     return true;
 }
 
@@ -135,9 +135,6 @@ bool Aggregator::createAggFunc(const AggFuncFactoryR *aggFuncFactoryR,
                                const vector<std::string> &inputs,
                                const vector<std::string> &outputs,
                                const int32_t filterArg) {
-    auto dataPool = _graphMemoryPoolR->getPool();
-    _table->dependPool(dataPool);
-
     vector<ValueType> types;
     for (const string &param : inputs) {
         auto column = table->getColumn(param);
@@ -157,7 +154,7 @@ bool Aggregator::createAggFunc(const AggFuncFactoryR *aggFuncFactoryR,
         SQL_LOG(ERROR, "create agg function [%s] failed", funcName.c_str());
         return false;
     }
-    if (!func->init(dataPool.get(), _aggregatorPoolPtr.get(), _aggHints.funcHint)) {
+    if (!func->init(_dataPoolPtr.get(), _aggregatorPoolPtr.get(), _aggHints.funcHint)) {
         SQL_LOG(ERROR,
                 "agg function [%s] init failed, hint [%s]",
                 funcName.c_str(),
@@ -175,11 +172,6 @@ bool Aggregator::createAggFunc(const AggFuncFactoryR *aggFuncFactoryR,
 }
 
 bool Aggregator::aggregate(const TablePtr &table, const vector<size_t> &groupKeys) {
-    if (needDependInputTablePools()) {
-        // if no multi value from old table, we do not need depend pools
-        _table->mergeDependentPools(table);
-    }
-
     autil::ScopedTime2 aggregatorTimer;
 
     std::vector<table::ColumnData<bool> *> aggFilterColumn(_aggFilterArgs.size(), nullptr);
@@ -285,15 +277,6 @@ void Aggregator::getStatistics(uint64_t &aggregateTime,
     aggregateTime = _aggregateTime;
     getTableTime = _getTableTime;
     aggPoolSize = _aggPoolSize;
-}
-
-bool Aggregator::needDependInputTablePools() const {
-    for (auto &func : _aggFuncVec) {
-        if (func->needDependInputTablePools()) {
-            return true;
-        }
-    }
-    return false;
 }
 
 } // namespace sql

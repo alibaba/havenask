@@ -239,7 +239,7 @@ PartitionMetricsPtr PartitionStateMachine::GetMetrics()
 ResultPtr PartitionStateMachine::Search(const string& queryString, TableSearchCacheType cacheType)
 {
     if (!mOnlinePartition) {
-        CreateOnlinePartition(INVALID_VERSION);
+        CreateOnlinePartition(INVALID_VERSIONID);
     }
 
     if (!mOnlinePartition) {
@@ -308,11 +308,11 @@ void PartitionStateMachine::UpdateRtBuildStatus()
 
 bool PartitionStateMachine::RefreshOnlinePartition(PsmEvent event, const string& data)
 {
-    versionid_t targetVersionId = INVALID_VERSION;
+    versionid_t targetVersionId = INVALID_VERSIONID;
     if (!data.empty() && (event == PE_REOPEN || event == PE_REOPEN_FORCE)) {
         if (!StringUtil::fromString(data, targetVersionId)) {
             IE_LOG(ERROR, "failed to get target vesion[%s]", data.c_str());
-            targetVersionId = INVALID_VERSION;
+            targetVersionId = INVALID_VERSIONID;
         }
     }
 
@@ -438,7 +438,7 @@ int64_t PartitionStateMachine::BatchBuild(const IndexBuilderPtr& builder, const 
         int64_t docTs = doc->GetTimestamp();
         if (!locator.IsValid()) {
             IndexLocator indexLocator(0, docTs + 1, /*userData=*/"");
-            doc->SetLocator(indexLocator.toString());
+            doc->SetLocator(indexLocator);
         }
         if (docTimeStamp < docTs) {
             docTimeStamp = docTs;
@@ -673,7 +673,7 @@ DocumentPtr PartitionStateMachine::CreateDocument(const string& docString)
     }
 
     document::DocumentPtr doc = mDocParser->Parse(extDoc);
-    const document::RawDocumentPtr& extRawDoc = extDoc->getRawDocument();
+    const document::RawDocumentPtr& extRawDoc = extDoc->GetRawDocument();
     if (extRawDoc && extRawDoc->getLocator().IsValid()) {
         doc->SetLocator(extRawDoc->getLocator());
     }

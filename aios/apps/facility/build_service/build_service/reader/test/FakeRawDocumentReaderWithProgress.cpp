@@ -36,7 +36,7 @@ bool FakeRawDocumentReaderWithProgress::seek(const Checkpoint& checkpoint)
         std::vector<indexlibv2::base::Progress> progress;
         progress.push_back({0, 32767, {i / 2 + 1, 0}});
         progress.push_back({32768, 65535, {i / 2 + i % 2, 0}});
-        if (progress == checkpoint.progress) {
+        if (progress == checkpoint.progress[0]) {
             _cursor = i + 1;
             if (checkpoint.offset != (i + 1) / 2) {
                 return false;
@@ -65,8 +65,10 @@ RawDocumentReader::ErrorCode FakeRawDocumentReaderWithProgress::readDocStr(strin
 
     checkpoint->offset = (_documents[_cursor].offset + 1) / 2;
     docInfo.hashId = _cursor;
-    checkpoint->progress.push_back({0, 32767, {_documents[_cursor].offset / 2 + 1, 0}});
-    checkpoint->progress.push_back(
+    checkpoint->progress.clear();
+    checkpoint->progress.emplace_back();
+    checkpoint->progress[0].push_back({0, 32767, {_documents[_cursor].offset / 2 + 1, 0}});
+    checkpoint->progress[0].push_back(
         {32768, 65535, {_documents[_cursor].offset / 2 + _documents[_cursor].offset % 2, 0}});
     _cursor++;
     return ERROR_NONE;

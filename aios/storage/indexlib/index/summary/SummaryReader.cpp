@@ -16,10 +16,14 @@
 #include "indexlib/index/summary/SummaryReader.h"
 
 #include "indexlib/document/normal/SearchSummaryDocument.h"
+#include "indexlib/document/normal/SourceDocument.h"
+#include "indexlib/document/normal/SourceFormatter.h"
 #include "indexlib/document/normal/SummaryGroupFormatter.h"
 #include "indexlib/index/attribute/AttributeIteratorBase.h"
 #include "indexlib/index/attribute/AttributeReader.h"
 #include "indexlib/index/pack_attribute/PackAttributeReader.h"
+#include "indexlib/index/source/Constant.h"
+#include "indexlib/index/source/SourceReader.h"
 #include "indexlib/index/summary/SummaryMemIndexer.h"
 #include "indexlib/index/summary/SummaryMemReaderContainer.h"
 #include "indexlib/index/summary/config/SummaryConfig.h"
@@ -55,6 +59,7 @@ Status SummaryReader::DoOpen(const std::shared_ptr<config::IIndexConfig>& indexC
                              const std::vector<IndexerInfo>& indexers)
 {
     _summaryIndexConfig = std::dynamic_pointer_cast<config::SummaryIndexConfig>(indexConfig);
+    _needStoreSummary = _summaryIndexConfig->NeedStoreSummary();
     for (summarygroupid_t groupId = 0; groupId < _summaryIndexConfig->GetSummaryGroupConfigCount(); ++groupId) {
         _allGroupIds.push_back(groupId);
     }
@@ -132,11 +137,16 @@ void SummaryReader::ClearAttrReaders()
     _groupPackAttributeReaders.clear();
 }
 
+void SummaryReader::ClearSourceReader() { _sourceReader = nullptr; }
+
 std::pair<Status, bool> SummaryReader::GetDocument(docid_t docId, const SummaryGroupIdVec& groupVec,
                                                    indexlib::document::SearchSummaryDocument* summaryDoc) const
 {
     auto [status, ret] = GetDocumentFromSummary(docId, groupVec, summaryDoc);
     RETURN2_IF_STATUS_ERROR(status, false, "get document from summary fail.");
+    if (ret && _sourceReader) {
+        ret = GetDocumentFromSource(docId, groupVec, summaryDoc);
+    }
     if (ret) {
         ret = GetDocumentFromAttributes(docId, groupVec, summaryDoc);
         return std::make_pair(Status::OK(), ret);
@@ -151,7 +161,7 @@ SummaryReader::GetDocumentFromSummary(docid_t docId, const SummaryGroupIdVec& gr
     if (docId < 0) {
         return std::make_pair(Status::OK(), false);
     }
-    if (!_summaryIndexConfig->NeedStoreSummary()) {
+    if (!_needStoreSummary) {
         return std::make_pair(Status::OK(), true);
     }
 
@@ -441,6 +451,15 @@ future_lite::coro::Lazy<indexlib::index::ErrorCodeVec> SummaryReader::InnerGetDo
     for (auto iter : attributeIterators) {
         indexlib::IE_POOL_COMPATIBLE_DELETE_CLASS(sessionPool, iter);
     }
+
+    if (_sourceReader) {
+        auto ecVec = co_await GetDocumentFromSourceAsync(docIds, groupVec, sessionPool, readOption, docs);
+        for (size_t i = 0; i < docIds.size(); ++i) {
+            if (ecVec[i] != indexlib::index::ErrorCode::OK && result[i] == indexlib::index::ErrorCode::OK) {
+                result[i] = ecVec[i];
+            }
+        }
+    }
     co_return result;
 }
 
@@ -453,6 +472,9 @@ future_lite::coro::Lazy<indexlib::index::ErrorCodeVec> SummaryReader::GetDocumen
     }
 
     std::vector<indexlib::index::ErrorCode> ret(docIds.size(), indexlib::index::ErrorCode::OK);
+    if (!_needStoreSummary) {
+        co_return ret;
+    }
     // fill result for built segment
     auto segmentResults = co_await GetBuiltSegmentTasks(docIds, groupVec, sessionPool, readOption, docs);
     size_t docIdx = 0;
@@ -475,6 +497,110 @@ future_lite::coro::Lazy<indexlib::index::ErrorCodeVec> SummaryReader::GetDocumen
         docIdx++;
     }
     co_return ret;
+}
+
+future_lite::coro::Lazy<indexlib::index::ErrorCodeVec> SummaryReader::GetDocumentFromSourceAsync(
+    const std::vector<docid_t>& docIds, const SummaryGroupIdVec& groupVec, autil::mem_pool::Pool* sessionPool,
+    indexlib::file_system::ReadOption readOption, const SearchSummaryDocVec* docs) const
+{
+    assert(_sourceReader);
+    std::vector<indexlib::document::SerializedSourceDocument> sourceDocuments;
+    sourceDocuments.reserve(docIds.size());
+    for (size_t i = 0; i < docIds.size(); ++i) {
+        sourceDocuments.emplace_back(sessionPool);
+    }
+    std::vector<indexlib::document::SerializedSourceDocument*> sourceDocs;
+    for (auto& sourceDocument : sourceDocuments) {
+        sourceDocs.push_back(&sourceDocument);
+    }
+
+    auto ecVec =
+        co_await _sourceReader->GetDocumentAsync(docIds, _requiredSourceGroups, sessionPool, readOption, &sourceDocs);
+
+    for (size_t i = 0; i < docIds.size(); ++i) {
+        if (ecVec[i] != indexlib::index::ErrorCode::OK) {
+            continue;
+        }
+
+        std::vector<std::string> readedFieldNames, readedFieldValues;
+        auto sourceConfig = _sourceReader->GetSourceConfig();
+
+        document::SourceFormatter formatter;
+        formatter.Init(sourceConfig);
+        auto st = formatter.DeserializeSourceDocument(
+            sourceDocs[i],
+            [this, doc = (*docs)[i], &groupVec](const autil::StringView& fieldName,
+                                                const autil::StringView& fieldValue) -> Status {
+                for (auto groupId : groupVec) {
+                    const auto& groupFieldMap = _groupFieldName2SummaryFieldIdMap[groupId];
+                    auto iter = groupFieldMap.find(fieldName);
+                    if (iter != groupFieldMap.end()) {
+                        if (doc->SetFieldValue(iter->second, fieldValue.data(), fieldValue.size())) {
+                            return Status::OK();
+                        } else {
+                            return Status::Corruption("set field value failed");
+                        }
+                    }
+                }
+                return Status::OK();
+            });
+        if (!st.IsOK()) {
+            ecVec[i] = indexlib::index::ErrorCode::Runtime;
+        }
+    }
+    co_return ecVec;
+}
+
+bool SummaryReader::GetDocumentFromSource(docid_t docId, const SummaryGroupIdVec& groupVec,
+                                          indexlib::document::SearchSummaryDocument* summaryDoc) const
+{
+    std::vector<docid_t> docIds;
+    docIds.push_back(docId);
+    SearchSummaryDocVec docs;
+    docs.push_back(summaryDoc);
+
+    auto ret = future_lite::coro::syncAwait(
+        GetDocumentFromSourceAsync(docIds, groupVec, (autil::mem_pool::Pool*)summaryDoc->getPool(), nullptr, &docs));
+    return ret[0] == indexlib::index::ErrorCode::OK;
+}
+
+void SummaryReader::AddSourceReader(const std::vector<index::sourcegroupid_t>& groupIdFromSource,
+                                    const std::vector<std::string>& sourceFieldNames, SourceReader* sourceReader)
+{
+    if (!sourceReader) {
+        return;
+    }
+    _requiredSourceGroups = groupIdFromSource;
+    std::map<std::string, fieldid_t> fieldName2FieldIdMap;
+    for (const auto& fieldConfig : _summaryIndexConfig->GetFieldConfigs()) {
+        if (fieldConfig) {
+            fieldName2FieldIdMap[fieldConfig->GetFieldName()] = fieldConfig->GetFieldId();
+        }
+    }
+    _groupFieldName2SummaryFieldIdMap.resize(_allGroupIds.size());
+    bool hasValid = false;
+    for (const auto& fieldName : sourceFieldNames) {
+        if (fieldName2FieldIdMap.find(fieldName) == fieldName2FieldIdMap.end()) {
+            continue;
+        }
+        auto fieldId = fieldName2FieldIdMap[fieldName];
+        hasValid = true;
+        AUTIL_LOG(INFO, "field [%s] read from source", fieldName.c_str());
+        auto summaryGroupId = _summaryIndexConfig->FieldIdToSummaryGroupId(fieldId);
+        assert(summaryGroupId < _groupFieldName2SummaryFieldIdMap.size() && summaryGroupId >= 0);
+
+        std::shared_ptr<std::string> fieldNamePtr(new std::string(fieldName));
+        _allGroupFieldName2SummaryFieldIdMapHolder.push_back(fieldNamePtr);
+        autil::StringView tmpStr(fieldNamePtr->data(), fieldNamePtr->size());
+        _groupFieldName2SummaryFieldIdMap[summaryGroupId][tmpStr] = _summaryIndexConfig->GetSummaryFieldId(fieldId);
+    }
+    if (!hasValid) {
+        assert(false);
+        AUTIL_LOG(INFO, "no fields need reuse from source");
+        return;
+    }
+    _sourceReader = sourceReader;
+    AUTIL_LOG(INFO, "summary reuse source");
 }
 
 } // namespace indexlibv2::index

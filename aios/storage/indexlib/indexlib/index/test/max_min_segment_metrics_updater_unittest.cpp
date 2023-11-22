@@ -1,8 +1,8 @@
 #include "indexlib/index/test/max_min_segment_metrics_updater_unittest.h"
 
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

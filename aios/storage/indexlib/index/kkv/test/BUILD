@@ -13,6 +13,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='KKVIndexFileTest',
     srcs=['KKVIndexFileTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/index/kkv:constants',

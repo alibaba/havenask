@@ -34,11 +34,28 @@ class Node;
 class Edge;
 class Resource;
 
-struct ScopeInfo {
-    ErrorCode ec = EC_NONE;
+class ScopeInfo {
+public:
+    void setError(const NaviErrorPtr &error) {
+        autil::ScopedLock lock(_errorMutex);
+        if (!_error) {
+            _error = error;
+        }
+    }
+    NaviErrorPtr getError() const {
+        autil::ScopedLock lock(_errorMutex);
+        return _error;
+    }
+public:
+    const SubGraphScopeDef *def = nullptr;
     std::atomic<bool> terminated = false;
     Node *terminator = nullptr;
     std::vector<Node *> nodes;
+    NaviLoggerPtr logger;
+    ErrorHandleStrategy strategy = EHS_ERROR_AS_FATAL;
+private:
+    mutable autil::ThreadMutex _errorMutex;
+    NaviErrorPtr _error;
 };
 
 class LocalSubGraph : public SubGraphBase
@@ -57,11 +74,14 @@ private:
 public:
     ErrorCode init() override;
     ErrorCode run() override;
+    void collectMetric(GraphMetric *graphMetric) override;
+    void collectForkGraphMetric() override;
     void terminate(ErrorCode ec) override;
 public:
     Node *getNode(const std::string &nodeName) const;
     bool schedule(Node *node);
-    void notifyFinish(Node *node, ErrorCode ec);
+    void setScopeError(int32_t scopeIndex, const NaviErrorPtr &error);
+    void notifyFinish(Node *node, const NaviErrorPtr &error);
     NaviWorkerBase *getWorker() const;
     const BizPtr &getBiz() const;
     bool bindPortDataType(Node *node, Port *port, IoType ioType);
@@ -83,18 +103,19 @@ public:
                                          const ResourceMap &nodeResourceMap,
                                          Node *requireKernelNode,
                                          ResourceMap &inputResourceMap);
-    bool terminateScope(Node *node, int32_t scopeIndex, ErrorCode ec);
-    ErrorCode getScopeErrorCode(int32_t scopeIndex) const;
+    bool terminateScope(Node *node, int32_t scopeIndex,
+                        const NaviErrorPtr &error);
+    NaviErrorPtr getScopeError(int32_t scopeIndex);
+    ErrorHandleStrategy getScopeErrorHandleStrategy(int32_t scopeIndex);
     const ReplaceInfoMap &getReplaceInfoMap() const {
         return _rewriteInfo->replaceInfoMap;
     }
-
 public:
     TestMode getTestMode() const;
-
 private:
     bool doInit();
     void initSubGraphOption();
+    bool initScopeMap();
     bool addDependResourceRecur(const std::string &resource, bool require,
                                 GraphBuilder &builder);
     bool initPortDataType();
@@ -103,7 +124,8 @@ private:
                                        const std::string &peerPortName,
                                        IoType ioType) const;
     bool createNodes();
-    void addToScopeInfoMap(Node *node);
+    ScopeInfo *getScopeInfo(int32_t scopeIndex);
+    void addToScopeInfo(ScopeInfo *scopeInfo, NodeType nodeType, Node *node);
     bool bindPortToNode();
     bool createEdges();
     bool bindForkDomain();
@@ -118,6 +140,7 @@ private:
     void doSchedule();
     ErrorCode flushEdgeOverride();
     bool inlineCompute(NaviWorkerBase *worker, Node *node);
+    void forceStopNodes(Node *stopBy, const std::vector<Node *> &nodes);
 private:
     BizPtr _biz;
     RewriteInfoPtr _rewriteInfo;
@@ -127,6 +150,7 @@ private:
     IndexType _finishPortIndex;
     bool _frozen;
     bool _inlineMode;
+    ErrorHandleStrategy _errorHandleStrategy = EHS_ERROR_AS_FATAL;
     std::unordered_map<int32_t, ScopeInfo> _scopeInfoMap;
 };
 

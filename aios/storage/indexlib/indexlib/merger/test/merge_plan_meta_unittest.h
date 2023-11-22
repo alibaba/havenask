@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGEPLANMETATEST_H
-#define __INDEXLIB_MERGEPLANMETATEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/merge_plan_meta.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(MergePlanMetaTest, TestStoreAndLoad);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGEPLANMETATEST_H

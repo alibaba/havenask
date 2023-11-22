@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_POLYGON_ATTRIBUTE_CONVERTOR_H
-#define __INDEXLIB_POLYGON_ATTRIBUTE_CONVERTOR_H
+#pragma once
 
 #include <memory>
 
@@ -59,5 +58,3 @@ autil::StringView PolygonAttributeConvertor::InnerEncode(const autil::StringView
     return LocationAttributeConvertor::InnerEncodeVec(attrData, encodeVec, memPool, resultStr, outBuffer);
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_POLYGON_ATTRIBUTE_CONVERTOR_H

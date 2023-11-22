@@ -56,6 +56,7 @@ const string AdminServiceImpl::ERROR = "error";
             string errMsg = "service not ready, drop rpc request";                                                     \
             response->set_errorinfo(errMsg);                                                                           \
             AUTIL_LOG(WARN, "%s", errMsg.c_str());                                                                     \
+            return;                                                                                                    \
         }                                                                                                              \
     } while (0)
 

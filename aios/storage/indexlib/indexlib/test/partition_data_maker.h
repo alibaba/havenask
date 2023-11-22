@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITION_DATA_MAKER_H
-#define __INDEXLIB_PARTITION_DATA_MAKER_H
+#pragma once
 
 #include <memory>
 
@@ -51,5 +50,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionDataMaker);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_PARTITION_DATA_MAKER_H

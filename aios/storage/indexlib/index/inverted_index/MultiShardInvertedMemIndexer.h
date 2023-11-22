@@ -16,7 +16,7 @@
 #pragma once
 
 #include "autil/Log.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/inverted_index/IInvertedMemIndexer.h"
 #include "indexlib/index/inverted_index/Types.h"
 
@@ -42,13 +42,14 @@ public:
     using IndexerAndMemUpdaterPair = std::pair<std::shared_ptr<InvertedMemIndexer>,
                                                std::shared_ptr<indexlibv2::index::BuildingIndexMemoryUseUpdater>>;
 
-    explicit MultiShardInvertedMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam);
+    explicit MultiShardInvertedMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam);
     ~MultiShardInvertedMemIndexer();
 
     Status Init(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
                 indexlibv2::document::extractor::IDocumentInfoExtractorFactory* docInfoExtractorFactory) override;
     Status Build(indexlibv2::document::IDocumentBatch* docBatch) override;
     Status Build(const indexlibv2::document::IIndexFields* indexFields, size_t n) override;
+    Status AddDocument(document::IndexDocument* doc) override;
     Status AddDocument(document::IndexDocument* doc, size_t shardId);
     Status Dump(autil::mem_pool::PoolBase* dumpPool, const std::shared_ptr<file_system::Directory>& indexDirectory,
                 const std::shared_ptr<indexlibv2::framework::DumpParams>& dumpParams) override;
@@ -59,6 +60,10 @@ public:
     void UpdateMemUse(indexlibv2::index::BuildingIndexMemoryUseUpdater* updater) override;
     std::string GetIndexName() const override;
     autil::StringView GetIndexType() const override;
+    const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& GetIndexConfig() const override
+    {
+        return _indexConfig;
+    }
     void Seal() override;
     std::shared_ptr<InvertedMemIndexer> GetSingleShardIndexer(const std::string& indexName) const;
     bool IsDirty() const override;
@@ -74,7 +79,7 @@ public:
     indexlibv2::document::extractor::IDocumentInfoExtractor* GetDocInfoExtractor() const override;
 
 private:
-    Status AddField(const document::Field* field, size_t shardId);
+    Status AddField(const document::Field* field, size_t shardId, pos_t* basePos);
     Status AddToken(const document::Token* token, fieldid_t fieldId, pos_t tokenBasePos, size_t shardId);
 
     void EndDocument(const document::IndexDocument& indexDocument);
@@ -84,9 +89,8 @@ private:
 
 private:
     std::vector<fieldid_t> _fieldIds; // field ids related to this indexer
-    pos_t _basePos = 0;
     int32_t _docCount = 0;
-    indexlibv2::index::IndexerParameter _indexerParam;
+    indexlibv2::index::MemIndexerParameter _indexerParam;
     std::shared_ptr<indexlibv2::config::InvertedIndexConfig> _indexConfig;
 
     std::vector<IndexerAndMemUpdaterPair> _memIndexers;

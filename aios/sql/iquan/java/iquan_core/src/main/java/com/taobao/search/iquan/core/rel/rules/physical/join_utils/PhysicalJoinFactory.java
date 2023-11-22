@@ -2,7 +2,7 @@ package com.taobao.search.iquan.core.rel.rules.physical.join_utils;
 
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.Table;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
 import org.apache.calcite.rel.RelNode;
 
@@ -13,7 +13,7 @@ public abstract class PhysicalJoinFactory {
         this.physicalJoinType = physicalJoinType;
     }
 
-    public abstract RelNode create(IquanJoinOp joinOp, Table leftTable, Table rightTable);
+    public abstract RelNode create(IquanJoinOp joinOp, IquanTable leftIquanTable, IquanTable rightIquanTable);
 
     public static PhysicalJoinFactory createInstance(JsonResult result) {
         switch (result.physicalJoinType) {

@@ -111,14 +111,6 @@ cc_library(
     alwayslink=True
 )
 cc_library(
-    name='stack_buf',
-    hdrs=['autil/StackBuf.h'],
-    include_prefix='autil',
-    strip_include_prefix='autil',
-    visibility=['//visibility:public'],
-    alwayslink=True
-)
-cc_library(
     name='url_util',
     srcs=['autil/URLUtil.cpp', 'autil/UrlDecoder.cpp', 'autil/UrlEncode.cpp'],
     hdrs=['autil/URLUtil.h', 'autil/UrlDecoder.h', 'autil/UrlEncode.h'],
@@ -513,7 +505,8 @@ cc_library(
     ],
     hdrs=[
         'autil/mem_pool/AllocatePolicy.h',
-        'autil/mem_pool/ChunkAllocatorBase.h', 'autil/mem_pool/MemoryChunk.h',
+        'autil/mem_pool/ChunkAllocatorBase.h',
+        'autil/mem_pool/MemPoolFactory.h', 'autil/mem_pool/MemoryChunk.h',
         'autil/mem_pool/Pool.h', 'autil/mem_pool/PoolBase.h',
         'autil/mem_pool/RecyclePool.h', 'autil/mem_pool/SimpleAllocatePolicy.h',
         'autil/mem_pool/SimpleAllocator.h', 'autil/mem_pool/SubPoolAllocator.h',
@@ -522,7 +515,9 @@ cc_library(
     include_prefix='autil',
     strip_include_prefix='autil',
     visibility=['//visibility:public'],
-    deps=[':common_macros', ':lock', ':log', ':sanitizer_util'],
+    deps=[
+        ':common_macros', ':lock', ':log', ':object_tracer', ':sanitizer_util'
+    ],
     alwayslink=True
 )
 cc_library(
@@ -653,7 +648,10 @@ cc_library(
     include_prefix='autil',
     strip_include_prefix='autil',
     visibility=['//visibility:public'],
-    deps=[':common_macros', ':hash_base', ':long_hash_value', ':span'],
+    deps=[
+        ':common_macros', ':data_buffer', ':hash_base', ':long_hash_value',
+        ':span'
+    ],
     alwayslink=True
 )
 cc_library(
@@ -674,10 +672,7 @@ cc_library(
     include_prefix='autil',
     strip_include_prefix='autil',
     visibility=['//visibility:public'],
-    deps=[
-        ':exception', ':long_hash_value', ':mem_pool_base', ':multi_value',
-        ':string_type'
-    ],
+    deps=[':exception', ':long_hash_value', ':mem_pool_base', ':string_type'],
     alwayslink=True
 )
 cc_library(
@@ -877,6 +872,15 @@ cc_library(
 cc_library(
     name='singleton',
     hdrs=['autil/Singleton.h'],
+    include_prefix='autil',
+    strip_include_prefix='autil',
+    visibility=['//visibility:public'],
+    deps=[':lock'],
+    alwayslink=True
+)
+cc_library(
+    name='resource_container',
+    hdrs=['autil/ResourceContainer.h'],
     include_prefix='autil',
     strip_include_prefix='autil',
     visibility=['//visibility:public'],

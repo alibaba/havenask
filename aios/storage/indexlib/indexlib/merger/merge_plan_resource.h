@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_PLAN_RESOURCE_H
-#define __INDEXLIB_MERGE_PLAN_RESOURCE_H
+#pragma once
 
 #include <memory>
 
@@ -40,5 +39,3 @@ struct MergePlanResource {
     index::legacy::BucketMaps bucketMaps;
 };
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_PLAN_RESOURCE_H

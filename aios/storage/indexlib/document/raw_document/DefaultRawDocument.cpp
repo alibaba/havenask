@@ -49,7 +49,7 @@ DefaultRawDocument::DefaultRawDocument(const DefaultRawDocument& other)
     _fieldsPrimary.reserve(other._fieldsPrimary.size());
     for (FieldVec::const_iterator it = other._fieldsPrimary.begin(); it != other._fieldsPrimary.end(); ++it) {
         if (it->data()) {
-            StringView fieldValue = autil::MakeCString(*it, _pool.get());
+            StringView fieldValue = autil::MakeCString(*it, getPool());
             _fieldsPrimary.emplace_back(fieldValue);
         } else {
             _fieldsPrimary.emplace_back(StringView());
@@ -58,7 +58,7 @@ DefaultRawDocument::DefaultRawDocument(const DefaultRawDocument& other)
     _fieldsIncrement.reserve(other._fieldsIncrement.size());
     for (FieldVec::const_iterator it = other._fieldsIncrement.begin(); it != other._fieldsIncrement.end(); ++it) {
         if (it->data()) {
-            StringView fieldValue = autil::MakeCString(*it, _pool.get());
+            StringView fieldValue = autil::MakeCString(*it, getPool());
             _fieldsIncrement.emplace_back(fieldValue);
         } else {
             _fieldsIncrement.emplace_back(StringView());
@@ -118,7 +118,7 @@ DefaultRawDocument* DefaultRawDocument::createNewDocument() const { return new D
 
 void DefaultRawDocument::setField(const StringView& fieldName, const StringView& fieldValue)
 {
-    StringView copyedValue = autil::MakeCString(fieldValue, _pool.get());
+    StringView copyedValue = autil::MakeCString(fieldValue, getPool());
     StringView* value = search(fieldName);
     if (value) {
         // if the KEY is in the map, then just record the VALUE.
@@ -134,7 +134,7 @@ void DefaultRawDocument::setField(const StringView& fieldName, const StringView&
 
 void DefaultRawDocument::setFieldNoCopy(const StringView& fieldName, const StringView& fieldValue)
 {
-    assert(_pool->isInPool(fieldValue.data()));
+    assert(getPool()->isInPool(fieldValue.data()));
     StringView* value = search(fieldName);
     if (value) {
         if (value->data() == NULL) {
@@ -273,14 +273,15 @@ int64_t DefaultRawDocument::GetIngestionTimestamp() const
     return autil::StringUtil::fromString<int64_t>(ingestionTimestampStr);
 }
 
-void DefaultRawDocument::SetDocInfo(const indexlibv2::document::IDocument::DocInfo& docInfo) { _docInfo = docInfo; }
-indexlibv2::document::IDocument::DocInfo DefaultRawDocument::GetDocInfo() const { return _docInfo; }
+void DefaultRawDocument::SetDocInfo(const indexlibv2::framework::Locator::DocInfo& docInfo) { _docInfo = docInfo; }
+indexlibv2::framework::Locator::DocInfo DefaultRawDocument::GetDocInfo() const { return _docInfo; }
 size_t DefaultRawDocument::EstimateMemory() const
 {
     size_t ret = sizeof(*this);
-    if (_pool) {
+    auto pool = getPool();
+    if (pool) {
         size_t pageSize = getpagesize();
-        size_t pageAlignSize = (_pool->getUsedBytes() + pageSize - 1) / pageSize * pageSize;
+        size_t pageAlignSize = (pool->getUsedBytes() + pageSize - 1) / pageSize * pageSize;
         ret += pageAlignSize;
     }
     return ret;

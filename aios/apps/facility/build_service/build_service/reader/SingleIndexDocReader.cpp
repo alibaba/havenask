@@ -44,7 +44,7 @@ SingleIndexDocReader::~SingleIndexDocReader() {}
 
 bool SingleIndexDocReader::init(const ReaderInitParam& param, int64_t offset)
 {
-    if (param.indexVersion == INVALID_VERSION) {
+    if (param.indexVersion == indexlib::INVALID_VERSIONID) {
         AUTIL_LOG(ERROR, "invalid version id [%d]", param.indexVersion);
         return false;
     }

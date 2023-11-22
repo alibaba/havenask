@@ -311,22 +311,27 @@
       },
     "is_attribute":
       true
+    },
+    {
+    "field_name":
+      "summary_only_field",
+    "field_type":
+      {
+      "extend_infos":
+        {
+        },
+      "type":
+        "ARRAY",
+      "value_type":
+        {
+        "type":
+          "STRING"
+        }
+      },
+    "is_attribute":
+      false
     }
   ],
-"join_info":
-  [
-  ],
-"location":
-  {
-  "db_name":
-    "",
-  "partition_cnt":
-    0,
-  "service_desc":
-    "",
-  "table_group_name":
-    ""
-  },
 "properties":
   {
   },
@@ -614,6 +619,25 @@
       },
     "is_attribute":
       true
+    },
+    {
+    "field_name":
+      "summary_only_field",
+    "field_type":
+      {
+      "extend_infos":
+        {
+        },
+      "type":
+        "ARRAY",
+      "value_type":
+        {
+        "type":
+          "STRING"
+        }
+      },
+    "is_attribute":
+      false
     }
   ],
 "table_name":

@@ -15,6 +15,11 @@
  */
 #include "build_service/builder/BuildSpeedLimiter.h"
 
+#include <unistd.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/Span.h"
 #include "autil/TimeUtility.h"
 
 using namespace autil;

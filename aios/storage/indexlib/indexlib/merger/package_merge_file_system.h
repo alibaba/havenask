@@ -13,15 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PACKAGE_MERGE_FILE_SYSTEM_H
-#define __INDEXLIB_PACKAGE_MERGE_FILE_SYSTEM_H
+#pragma once
 
+#include <map>
 #include <memory>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "autil/ThreadPool.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "autil/Lock.h"
+#include "autil/ThreadLocal.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/config/merge_config.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/archive/ArchiveFolder.h"
 #include "indexlib/merger/merge_file_system.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -29,7 +39,7 @@ class PackageMergeFileSystem : public MergeFileSystem
 {
 public:
     PackageMergeFileSystem(const std::string& rootPath, const config::MergeConfig& mergeConfig, uint32_t instanceId,
-                           const file_system::IFileSystemPtr& fileSystem);
+                           const std::shared_ptr<file_system::IFileSystem>& fileSystem);
     ~PackageMergeFileSystem();
 
 public:
@@ -76,7 +86,7 @@ private:
 
 private:
     std::vector<std::string> mTargetSegmentPaths;
-    std::vector<file_system::IFileSystemPtr> mThreadFileSystems;
+    std::vector<std::shared_ptr<file_system::IFileSystem>> mThreadFileSystems;
     std::map<std::string, fslib::FileList> mTargetSegmentFileList; // for optimize recover
     std::set<std::string> mNeedMakeDirectoryPaths;
     CheckpointManager mCheckpointManager;
@@ -92,5 +102,3 @@ private:
 
 DEFINE_SHARED_PTR(PackageMergeFileSystem);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PACKAGE_MERGE_FILE_SYSTEM_H

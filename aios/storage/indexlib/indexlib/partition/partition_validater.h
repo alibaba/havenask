@@ -34,7 +34,7 @@ public:
     PartitionValidater& operator=(PartitionValidater&&) = delete;
 
 public:
-    bool Init(const std::string& indexPath, versionid_t versionId = INVALID_VERSION);
+    bool Init(const std::string& indexPath, versionid_t versionId = INVALID_VERSIONID);
     void Check();
 
 private:

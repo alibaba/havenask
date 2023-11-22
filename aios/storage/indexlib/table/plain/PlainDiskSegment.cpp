@@ -222,8 +222,7 @@ void PlainDiskSegment::DeleteIndexer(const std::string& type, const std::string&
     }
 }
 
-// TODO: if exception occurs, how-to ?
-size_t PlainDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
+std::pair<Status, size_t> PlainDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     auto segDir = GetSegmentDirectory();
     size_t totalMemUsed = 0;
@@ -239,36 +238,34 @@ size_t PlainDiskSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSc
         }
         auto indexer = indexFactory->CreateDiskIndexer(indexConfig, indexerParam);
         if (!indexer) {
-            continue;
+            AUTIL_LOG(ERROR, "get indexer for type [%s] name [%s] failed", indexType.c_str(), indexName.c_str());
+            return {Status::Corruption(), 0};
         }
         auto [dirStatus, indexDir] = GetIndexDirectory(segDir, indexConfig, indexFactory);
         if (!dirStatus.IsOK()) {
             AUTIL_LOG(ERROR, "get index directory fail. error [%s]", dirStatus.ToString().c_str());
-            continue;
+            return {Status::Corruption(), 0};
         }
 
         try {
             totalMemUsed += indexer->EstimateMemUsed(indexConfig, (indexDir ? indexDir->GetIDirectory() : nullptr));
         } catch (...) {
             AUTIL_LOG(ERROR, "fail to estimate mem use for indexer [%s]", indexName.c_str());
-            continue;
+            return {Status::Corruption(), 0};
         }
     }
-    return totalMemUsed;
+    return {Status::OK(), totalMemUsed};
 }
 
-index::IndexerParameter PlainDiskSegment::GenerateIndexerParameter() const
+index::DiskIndexerParameter PlainDiskSegment::GenerateIndexerParameter() const
 {
-    index::IndexerParameter indexerParam;
+    index::DiskIndexerParameter indexerParam;
     indexerParam.segmentId = GetSegmentId();
     indexerParam.docCount = GetSegmentInfo()->docCount;
-    indexerParam.counterMap = _buildResource.counterMap;
-    indexerParam.counterPrefix = _buildResource.counterPrefix;
     indexerParam.metricsManager = _buildResource.metricsManager;
     indexerParam.indexMemoryReclaimer = _buildResource.indexMemoryReclaimer;
     indexerParam.segmentInfo = GetSegmentInfo();
     indexerParam.segmentMetrics = GetSegmentMetrics();
-
     return indexerParam;
 }
 

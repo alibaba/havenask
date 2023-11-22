@@ -1,6 +1,12 @@
 #include "build_service_tasks/channel/test/FakeRpcServer.h"
 
-#include <future>
+#include <arpc/ThreadPoolDescriptor.h>
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+#include <unistd.h>
+
+#include "alog/Logger.h"
 
 using namespace std;
 using namespace build_service::task_base;

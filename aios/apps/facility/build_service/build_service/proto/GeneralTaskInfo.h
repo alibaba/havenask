@@ -24,6 +24,9 @@ namespace build_service::proto {
 struct GeneralTaskInfo : public autil::legacy::Jsonizable {
     GeneralTaskInfo() = default;
 
+    std::string taskType;
+    std::string taskName;
+    std::string taskTraceId;
     indexlibv2::versionid_t baseVersionId = indexlibv2::INVALID_VERSIONID;
     uint64_t branchId = 0;
     int64_t totalOpCount = -1;
@@ -33,6 +36,9 @@ struct GeneralTaskInfo : public autil::legacy::Jsonizable {
 
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override
     {
+        json.Jsonize("task_type", taskType, taskType);
+        json.Jsonize("task_name", taskName, taskName);
+        json.Jsonize("task_trace_id", taskTraceId, taskTraceId);
         json.Jsonize("base_version_id", baseVersionId, baseVersionId);
         json.Jsonize("branch_id", branchId, branchId);
         json.Jsonize("total_op_count", totalOpCount, totalOpCount);

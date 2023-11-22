@@ -33,6 +33,8 @@ inline const std::string NORMAL_TABLE_GROUP_TAG_KEY = "segment_group";
 inline const std::string NORMAL_TABLE_COMPACTION_TYPE = "compaction_type";
 inline const std::string NORMAL_TABLE_SPLIT_TYPE = "split";
 inline const std::string NORMAL_TABLE_MERGE_TYPE = "merge";
+inline const std::string NORMAL_TABLE_SUMMARY_REUSE_SOURCE_FIELDS = "summary_reuse_source_fields";
+
 } // namespace indexlib::table
 //////////////////////////////////////////////////////////////////////
 namespace indexlibv2::table {
@@ -41,5 +43,6 @@ using indexlib::table::NORMAL_TABLE_GROUP_CONFIG_KEY;
 using indexlib::table::NORMAL_TABLE_GROUP_TAG_KEY;
 using indexlib::table::NORMAL_TABLE_MERGE_TYPE;
 using indexlib::table::NORMAL_TABLE_SPLIT_TYPE;
+using indexlib::table::NORMAL_TABLE_SUMMARY_REUSE_SOURCE_FIELDS;
 using indexlib::table::NORMAL_TABLET_INFO_HOLDER;
 } // namespace indexlibv2::table

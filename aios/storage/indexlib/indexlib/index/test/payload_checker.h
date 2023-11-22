@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PAYLOAD_CHECKER_H
-#define __INDEXLIB_PAYLOAD_CHECKER_H
+#pragma once
 
 #include <memory>
 
@@ -46,5 +45,3 @@ private:
 
 typedef std::shared_ptr<PayloadChecker> PayloadCheckerPtr;
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PAYLOAD_CHECKER_H

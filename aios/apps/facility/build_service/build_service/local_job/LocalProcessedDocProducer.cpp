@@ -15,7 +15,15 @@
  */
 #include "build_service/local_job/LocalProcessedDocProducer.h"
 
+#include <iosfwd>
+#include <memory>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "build_service/document/DocumentDefine.h"
 #include "build_service/document/ProcessedDocument.h"
+#include "indexlib/document/IDocumentBatch.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
 
 using namespace std;
 using namespace build_service::workflow;

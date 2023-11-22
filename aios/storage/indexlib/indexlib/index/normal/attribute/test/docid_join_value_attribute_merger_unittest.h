@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCIDJOINVALUEATTRIBUTEMERGERTEST_H
-#define __INDEXLIB_DOCIDJOINVALUEATTRIBUTEMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/docid_join_value_attribute_merger.h"
@@ -49,5 +48,3 @@ INDEXLIB_UNIT_TEST_CASE(DocidJoinValueAttributeMergerTest, TestMergeToMultiSegme
 INDEXLIB_UNIT_TEST_CASE(DocidJoinValueAttributeMergerTest, TestSubMergeToMultiSegment);
 INDEXLIB_UNIT_TEST_CASE(DocidJoinValueAttributeMergerTest, TestMergeSpecialJoinValue);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DOCIDJOINVALUEATTRIBUTEMERGERTEST_H

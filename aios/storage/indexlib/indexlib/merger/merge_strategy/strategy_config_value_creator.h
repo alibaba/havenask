@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_STRATEGY_CONFIG_VALUE_CREATOR_H
-#define __INDEXLIB_STRATEGY_CONFIG_VALUE_CREATOR_H
+#pragma once
 
+#include <limits>
 #include <memory>
 #include <sstream>
+#include <stddef.h>
+#include <string>
+#include <vector>
 
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
 class StrategyConfigValue;
+
 DEFINE_SHARED_PTR(StrategyConfigValue);
 
 class StrategyConfigValue
@@ -164,5 +170,3 @@ private:
 
 DEFINE_SHARED_PTR(StrategyConfigValueCreator);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_STRATEGY_CONFIG_VALUE_CREATOR_H

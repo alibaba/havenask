@@ -15,23 +15,48 @@
  */
 #include "build_service/admin/JobTask.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <map>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "autil/ZlibCompressor.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/admin/ClusterCheckpointSynchronizerCreator.h"
+#include "build_service/admin/ConfigCleaner.h"
+#include "build_service/admin/FatalErrorChecker.h"
+#include "build_service/admin/FlowIdMaintainer.h"
+#include "build_service/admin/controlflow/TaskBase.h"
+#include "build_service/admin/controlflow/TaskFactory.h"
+#include "build_service/admin/controlflow/TaskFlowManager.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/BuildServiceTask.h"
 #include "build_service/admin/taskcontroller/SingleJobBuilderTask.h"
 #include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/config/ResourceReaderManager.h"
-#include "build_service/proto/ProtoComparator.h"
-#include "build_service/proto/WorkerNodeCreator.h"
+#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/util/DataSourceHelper.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "fslib/util/FileUtil.h"
-#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/index_base/version_committer.h"
+#include "indexlib/misc/common.h"
 #include "indexlib/table/BuiltinDefine.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace indexlib::config;
 

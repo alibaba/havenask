@@ -127,24 +127,21 @@ TEST_F(GenericWaiterTest, testWait_Success) {
         // check checkpoint queue pop order
         auto queue = waiter._targetTsQueue;
         ASSERT_FALSE(queue.empty());
-        ASSERT_NE(nullptr, queue.top());
-        ASSERT_EQ(1, queue.top()->targetTs);
-        ASSERT_EQ(100 * 1000, queue.top()->timeoutInUs);
-        ASSERT_TRUE(queue.top()->callback);
+        ASSERT_EQ(1, queue.top().targetTs);
+        ASSERT_EQ(100 * 1000, queue.top().payload->timeoutInUs);
+        ASSERT_TRUE(queue.top().payload->callback);
         queue.pop();
 
         ASSERT_FALSE(queue.empty());
-        ASSERT_NE(nullptr, queue.top());
-        ASSERT_EQ(2, queue.top()->targetTs);
-        ASSERT_EQ(1000 * 1000, queue.top()->timeoutInUs);
-        ASSERT_TRUE(queue.top()->callback);
+        ASSERT_EQ(2, queue.top().targetTs);
+        ASSERT_EQ(1000 * 1000, queue.top().payload->timeoutInUs);
+        ASSERT_TRUE(queue.top().payload->callback);
         queue.pop();
 
         ASSERT_FALSE(queue.empty());
-        ASSERT_NE(nullptr, queue.top());
-        ASSERT_EQ(3, queue.top()->targetTs);
-        ASSERT_EQ(10000 * 1000, queue.top()->timeoutInUs);
-        ASSERT_TRUE(queue.top()->callback);
+        ASSERT_EQ(3, queue.top().targetTs);
+        ASSERT_EQ(10000 * 1000, queue.top().payload->timeoutInUs);
+        ASSERT_TRUE(queue.top().payload->callback);
         queue.pop();
 
         ASSERT_TRUE(queue.empty());
@@ -154,27 +151,24 @@ TEST_F(GenericWaiterTest, testWait_Success) {
         // check timeout queue pop order
         auto queue = waiter._timeoutQueue;
         ASSERT_FALSE(queue.empty());
-        ASSERT_NE(nullptr, queue.top());
-        ASSERT_EQ(1, queue.top()->targetTs);
-        ASSERT_EQ(100 * 1000, queue.top()->timeoutInUs);
-        ASSERT_GE(TimeUtility::currentTime() + 100 * 1000, queue.top()->expireTimeInUs);
-        ASSERT_TRUE(queue.top()->callback);
+        ASSERT_EQ(1, queue.top().targetTs);
+        ASSERT_EQ(100 * 1000, queue.top().payload->timeoutInUs);
+        ASSERT_GE(TimeUtility::currentTime() + 100 * 1000, queue.top().expireTimeInUs);
+        ASSERT_TRUE(queue.top().payload->callback);
         queue.pop();
 
         ASSERT_FALSE(queue.empty());
-        ASSERT_NE(nullptr, queue.top());
-        ASSERT_EQ(2, queue.top()->targetTs);
-        ASSERT_EQ(1000 * 1000, queue.top()->timeoutInUs);
-        ASSERT_GE(TimeUtility::currentTime() + 1000 * 1000, queue.top()->expireTimeInUs);
-        ASSERT_TRUE(queue.top()->callback);
+        ASSERT_EQ(2, queue.top().targetTs);
+        ASSERT_EQ(1000 * 1000, queue.top().payload->timeoutInUs);
+        ASSERT_GE(TimeUtility::currentTime() + 1000 * 1000, queue.top().expireTimeInUs);
+        ASSERT_TRUE(queue.top().payload->callback);
         queue.pop();
 
         ASSERT_FALSE(queue.empty());
-        ASSERT_NE(nullptr, queue.top());
-        ASSERT_EQ(3, queue.top()->targetTs);
-        ASSERT_EQ(10000 * 1000, queue.top()->timeoutInUs);
-        ASSERT_GE(TimeUtility::currentTime() + 10000 * 1000, queue.top()->expireTimeInUs);
-        ASSERT_TRUE(queue.top()->callback);
+        ASSERT_EQ(3, queue.top().targetTs);
+        ASSERT_EQ(10000 * 1000, queue.top().payload->timeoutInUs);
+        ASSERT_GE(TimeUtility::currentTime() + 10000 * 1000, queue.top().expireTimeInUs);
+        ASSERT_TRUE(queue.top().payload->callback);
         queue.pop();
 
         ASSERT_TRUE(queue.empty());
@@ -191,33 +185,33 @@ TEST_F(GenericWaiterTest, testCheckCallback_WatermarkReady) {
     WatermarkWaiter waiter;
     size_t callbackOrder = 0;
     {
-        auto item = make_shared<CallbackItem>();
-        item->callback = [&](Result<CallbackParam> result) {
+        CallbackItem item;
+        item.payload->callback = [&](Result<CallbackParam> result) {
             EXPECT_TRUE(result.is_ok());
             notifier1.notifyExit();
             EXPECT_EQ(3, ++callbackOrder);
         };
-        item->targetTs = 103;
+        item.targetTs = 103;
         waiter._targetTsQueue.emplace(item);
     }
     {
-        auto item = make_shared<CallbackItem>();
-        item->callback = [&](Result<CallbackParam> result) {
+        CallbackItem item;
+        item.payload->callback = [&](Result<CallbackParam> result) {
             EXPECT_TRUE(result.is_ok());
             notifier2.notifyExit();
             EXPECT_EQ(2, ++callbackOrder);
         };
-        item->targetTs = 102;
+        item.targetTs = 102;
         waiter._targetTsQueue.emplace(item);
     }
     {
-        auto item = make_shared<CallbackItem>();
-        item->callback = [&](Result<CallbackParam> result) {
+        CallbackItem item;
+        item.payload->callback = [&](Result<CallbackParam> result) {
             EXPECT_TRUE(result.is_ok());
             notifier3.notifyExit();
             EXPECT_EQ(1, ++callbackOrder);
         };
-        item->targetTs = 101;
+        item.targetTs = 101;
         waiter._targetTsQueue.emplace(item);
     }
     waiter._pendingItemCount = waiter._targetTsQueue.size();
@@ -249,33 +243,33 @@ TEST_F(GenericWaiterTest, testCheckCallback_timeoutReady) {
     WatermarkWaiter waiter;
     size_t callbackOrder = 0;
     {
-        auto item = make_shared<CallbackItem>();
-        item->callback = [&](Result<CallbackParam> result) {
+        CallbackItem item;
+        item.payload->callback = [&](Result<CallbackParam> result) {
             EXPECT_TRUE(result.is_err());
             notifier1.notifyExit();
             EXPECT_EQ(3, ++callbackOrder);
         };
-        item->expireTimeInUs = std::numeric_limits<int64_t>::max();
+        item.expireTimeInUs = std::numeric_limits<int64_t>::max();
         waiter._timeoutQueue.emplace(item);
     }
     {
-        auto item = make_shared<CallbackItem>();
-        item->callback = [&](Result<CallbackParam> result) {
+        CallbackItem item;
+        item.payload->callback = [&](Result<CallbackParam> result) {
             EXPECT_TRUE(result.is_err());
             notifier2.notifyExit();
             EXPECT_EQ(2, ++callbackOrder);
         };
-        item->expireTimeInUs = 2;
+        item.expireTimeInUs = 2;
         waiter._timeoutQueue.emplace(item);
     }
     {
-        auto item = make_shared<CallbackItem>();
-        item->callback = [&](Result<CallbackParam> result) {
+        CallbackItem item;
+        item.payload->callback = [&](Result<CallbackParam> result) {
             EXPECT_TRUE(result.is_err());
             notifier3.notifyExit();
             EXPECT_EQ(1, ++callbackOrder);
         };
-        item->expireTimeInUs = 1;
+        item.expireTimeInUs = 1;
         waiter._timeoutQueue.emplace(item);
     }
     waiter._pendingItemCount = waiter._timeoutQueue.size();
@@ -287,7 +281,7 @@ TEST_F(GenericWaiterTest, testCheckCallback_timeoutReady) {
     ASSERT_EQ(1, waiter._timeoutQueue.size());
     ASSERT_EQ(1, waiter._pendingItemCount);
 
-    waiter._timeoutQueue.top()->expireTimeInUs = 0;
+    (const_cast<CallbackItem &>(waiter._timeoutQueue.top())).expireTimeInUs = 0;
     waiter.checkCallback();
     ASSERT_EQ(0, waiter._timeoutQueue.size());
     ASSERT_EQ(0, waiter._pendingItemCount);

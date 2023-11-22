@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMORYSEGMENTCLEANERTEST_H
-#define __INDEXLIB_INMEMORYSEGMENTCLEANERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/segment/in_memory_segment_cleaner.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(InMemorySegmentCleanerTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INMEMORYSEGMENTCLEANERTEST_H

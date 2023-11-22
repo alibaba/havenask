@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIMARYKEYMERGEITERATORTEST_H
-#define __INDEXLIB_PRIMARYKEYMERGEITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/primarykey/primary_key_merge_iterator.h"
@@ -83,5 +82,3 @@ void PrimaryKeyMergeIteratorTest::CheckIterator(PrimaryKeyMergeIterator<Key>& it
     ASSERT_EQ(cursor, expectResults.size());
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARYKEYMERGEITERATORTEST_H

@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_PLAN_META_H
-#define __INDEXLIB_MERGE_PLAN_META_H
+#pragma once
 
-#include <memory>
+#include <string>
 
-#include "indexlib/common_define.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/merge_plan.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -56,5 +57,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_PLAN_META_H

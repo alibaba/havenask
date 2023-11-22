@@ -44,7 +44,7 @@ class PlainFormatEncoder;
 class KVMemIndexerBase : public IMemIndexer
 {
 public:
-    KVMemIndexerBase();
+    KVMemIndexerBase(bool tolerateDocError);
     virtual ~KVMemIndexerBase();
 
 public:
@@ -84,8 +84,10 @@ private:
     Status BuildSingleField(DocOperateType docType, const KVIndexFields::SingleField& singleField);
     Status AddField(const KVIndexFields::SingleField& field);
     Status DeleteField(const KVIndexFields::SingleField& field);
+    Status ConvertBuildDocStatus(const Status& status) const;
 
 protected:
+    bool _tolerateDocError;
     std::shared_ptr<indexlibv2::config::KVIndexConfig> _indexConfig;
     uint64_t _indexNameHash;
     std::shared_ptr<AttributeConvertor> _attrConvertor;

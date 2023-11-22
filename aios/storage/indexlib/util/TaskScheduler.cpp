@@ -15,6 +15,14 @@
  */
 #include "indexlib/util/TaskScheduler.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <utility>
+
+#include "autil/TimeUtility.h"
+
 using namespace std;
 using namespace autil;
 

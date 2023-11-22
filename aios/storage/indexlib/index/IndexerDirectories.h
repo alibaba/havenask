@@ -16,6 +16,8 @@
 #pragma once
 
 #include <memory>
+#include <stdint.h>
+#include <utility>
 #include <vector>
 
 #include "autil/Log.h"

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DATE_INDEX_MERGER_H
-#define __INDEXLIB_DATE_INDEX_MERGER_H
+#pragma once
 
 #include <memory>
 
@@ -95,5 +94,3 @@ void DateIndexMerger::MergeRangeInfo(const index::MergerResource& resource,
     }
 }
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_DATE_INDEX_MERGER_H

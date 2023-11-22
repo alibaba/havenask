@@ -15,20 +15,36 @@
  */
 #pragma once
 
+#include <atomic>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/SynchronizedQueue.h"
+#include "autil/ThreadPool.h"
+#include "build_service/common/ExceedTsAction.h"
+#include "build_service/common/Locator.h"
+#include "build_service/common/SwiftParam.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
+#include "build_service/workflow/FlowError.h"
+#include "build_service/workflow/Producer.h"
 #include "build_service/workflow/SingleSwiftProcessedDocProducer.h"
+#include "build_service/workflow/StopOption.h"
 #include "build_service/workflow/SwiftProcessedDocProducer.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/util/TaskScheduler.h"
+#include "indexlib/util/counter/CounterMap.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace util {
-class MetricProvider;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 }} // namespace indexlib::util
-
-namespace build_service { namespace common {
-struct SwiftParam;
-}} // namespace build_service::common
 
 namespace build_service { namespace workflow {
 
@@ -67,8 +83,10 @@ public: // 功能相关接口
 
     int64_t getStartTimestamp() const override;
     bool getMaxTimestamp(int64_t& timestamp) override;
-    bool getLastReadTimestamp(int64_t& timestamp) override;
+    bool getLastReadTimestamp(int64_t& timestamp) const override;
     uint64_t getLocatorSrc() const override { return getStartTimestamp(); }
+    schemaid_t getAlterTableSchemaId() const override { return indexlib::DEFAULT_SCHEMAID; }
+    bool needAlterTable() const override { return false; }
 
 public: // metrics 和 测试 相关接口
     void setLinkReporter(const common::SwiftLinkFreshnessReporterPtr& reporter) override;
@@ -90,7 +108,7 @@ private:
     std::unique_ptr<autil::SynchronizedQueue<std::pair<size_t, document::ProcessedDocumentPtr>>> _documentQueue;
 
     std::string _buildIdStr;
-    std::vector<std::vector<indexlibv2::base::Progress>> _progress;
+    std::vector<indexlibv2::base::ProgressVector> _progress;
     volatile bool _isRunning;
     volatile bool _hasFatalError;
 

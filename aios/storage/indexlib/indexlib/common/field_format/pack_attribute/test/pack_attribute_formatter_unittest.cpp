@@ -5,9 +5,9 @@
 #include "indexlib/config/field_type_traits.h"
 #include "indexlib/config/kv_index_config.h"
 #include "indexlib/config/test/schema_loader.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

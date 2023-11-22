@@ -1,4 +1,5 @@
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/index/test/partition_schema_maker.h"
 #include "indexlib/index_base/index_meta/version.h"
@@ -13,7 +14,6 @@
 #include "indexlib/test/query_parser.h"
 #include "indexlib/test/result.h"
 #include "indexlib/test/result_checker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/searcher.h"
 #include "indexlib/test/unittest.h"
 #include "indexlib/util/test/build_test_util.h"
@@ -91,7 +91,7 @@ void SwitchBranchExecutorTest::TestSimpleProcess()
     INDEXLIB_TEST_TRUE(psm.Init(mSchema, options, mRootDir));
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDocString, "", ""));
     Version fullVersion;
-    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, fullVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "version [%s]", ToJsonString(fullVersion).c_str());
     ASSERT_EQ(2, fullVersion.GetSegmentCount());
 
@@ -111,7 +111,7 @@ void SwitchBranchExecutorTest::TestSimpleProcess()
     ASSERT_TRUE(indexPartition);
     OnlinePartition* onlinePartition = dynamic_cast<OnlinePartition*>(indexPartition.get());
     Version incVersion;
-    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSION);
+    VersionLoader::GetVersionS(mRootDir, incVersion, INVALID_VERSIONID);
     IE_LOG(INFO, "version [%s]", ToJsonString(incVersion).c_str());
     ASSERT_EQ(4, incVersion.GetSegmentCount());
     ASSERT_EQ(file_system::FSEC_OK,

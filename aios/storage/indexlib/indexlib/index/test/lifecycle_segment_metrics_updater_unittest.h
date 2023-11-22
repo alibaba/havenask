@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_LIFECYCLESEGMENTMETRICSUPDATERTEST_H
-#define __INDEXLIB_LIFECYCLESEGMENTMETRICSUPDATERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/segment_metrics_updater/lifecycle_segment_metrics_updater.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(LifecycleSegmentMetricsUpdaterTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_LIFECYCLESEGMENTMETRICSUPDATERTEST_H

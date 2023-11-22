@@ -1,6 +1,13 @@
 #include "build_service/proto/WorkerNode.h"
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_LOCALLUASCRIPTREADER_H
-#define ISEARCH_BS_LOCALLUASCRIPTREADER_H
+#pragma once
 
+#include <stddef.h>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "autil/Lock.h"
 #include "autil/legacy/jsonizable.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
-#include "build_service/util/Log.h"
 #include "indexlib/util/Singleton.h"
 
 namespace build_service { namespace admin {
 
 class TaskResourceManager;
+
 BS_TYPEDEF_PTR(TaskResourceManager);
 
 class LocalLuaScriptReader : public indexlib::util::Singleton<LocalLuaScriptReader>
@@ -145,5 +147,3 @@ private:
 BS_TYPEDEF_PTR(LocalLuaScriptReader);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_LOCALLUASCRIPTREADER_H

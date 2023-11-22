@@ -15,9 +15,22 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorAdaptiveScaling.h"
 
-#include "autil/Defer.h"
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <initializer_list>
+#include <memory>
+#include <type_traits>
+#include <unordered_map>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
 #include "build_service/admin/CpuSpeedDetectStrategy.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/proto/ProtoComparator.h"
+#include "build_service/proto/WorkerNode.h"
 
 using namespace std;
 

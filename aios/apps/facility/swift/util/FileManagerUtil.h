@@ -46,11 +46,14 @@ public:
     static protocol::ErrorCode initFilePairVec(const FileLists &fileList, storage::FilePairVec &filePairVec);
     static bool removeFilePair(const storage::FilePairPtr &filePair);
     static bool removeFilePair(const std::string &metaFileName, const std::string &dataFileName);
+    static bool removeFilePairWithSize(const storage::FilePairPtr &filePair, int64_t &fileSize);
     static std::string generateFilePrefix(int64_t msgId, int64_t timestamp, bool isNew = true);
 
 private:
     static MetaDataMap generateMetaDataPairMap(const FileLists &fileList);
     static bool extractMessageIdAndTimestamp(const std::string &prefix, int64_t &msgId, int64_t &timestamp);
+    static int64_t getFileSize(const std::string &fileName);
+    static bool removeFile(const std::string &fileName);
 
 public:
     static const std::string DATA_SUFFIX;

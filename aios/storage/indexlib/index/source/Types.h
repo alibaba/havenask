@@ -17,11 +17,11 @@
 #include <stdint.h>
 
 namespace indexlib::index {
-typedef int32_t groupid_t;
+typedef int32_t sourcegroupid_t;
 } // namespace indexlib::index
 
 //////////////////////////////////////////////////////////////////////
 // TODO: rm
 namespace indexlibv2::index {
-using indexlib::index::groupid_t;
+using indexlib::index::sourcegroupid_t;
 } // namespace indexlibv2::index

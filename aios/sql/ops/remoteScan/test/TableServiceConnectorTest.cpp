@@ -72,7 +72,7 @@ TEST_F(TableServiceConnectorTest, testMergeTableResult) {
     }
 
     string result;
-    TablePtr table1 = std::make_shared<table::Table>(docs, allocator);
+    TablePtr table1 = table::Table::fromMatchDocs(docs, allocator);
     table1->serializeToString(result, pool.get());
     TablePtr table;
     ASSERT_TRUE(connector.mergeTableResult(table, result, pool));

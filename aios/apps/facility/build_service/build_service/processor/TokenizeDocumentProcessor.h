@@ -15,20 +15,15 @@
  */
 #pragma once
 
-#include "build_service/analyzer/Token.h"
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "build_service/common_define.h"
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/util/Log.h"
-#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/document/normal/TokenizeDocumentConvertor.h"
-#include "indexlib/indexlib.h"
-
-namespace indexlibv2::analyzer {
-class Analyzer;
-}
-
-namespace build_service { namespace analyzer {
-class AnalyzerFactory;
-}} // namespace build_service::analyzer
 
 namespace build_service { namespace processor {
 class TokenizeDocumentProcessor : public DocumentProcessor

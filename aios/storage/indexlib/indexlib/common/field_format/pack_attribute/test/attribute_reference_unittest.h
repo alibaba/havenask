@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEREFERENCETEST_H
-#define __INDEXLIB_ATTRIBUTEREFERENCETEST_H
+#pragma once
 
 #include "autil/ConstString.h"
 #include "indexlib/common/field_format/pack_attribute/attribute_reference.h"
@@ -36,5 +35,3 @@ INDEXLIB_UNIT_TEST_CASE(AttributeReferenceTest, TestSetAndGetCompactMultiValue);
 INDEXLIB_UNIT_TEST_CASE(AttributeReferenceTest, TestReferenceOffset);
 
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_ATTRIBUTEREFERENCETEST_H

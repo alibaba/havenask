@@ -60,10 +60,11 @@ void DefaultProcessLauncher::launch(const map<string, std::set<SlotId> > &slotId
     if (!_controller.started()) {
         _controller.start();
     }
-    clearUselessContexts(slotIds);
     map<string, std::set<SlotId> > releasedSlotIds;
     getReleasedSlots(slotIds, releasedSlotIds);
     stopProcess(releasedSlotIds);
+
+    clearUselessContexts(slotIds);
     _role2SlotIds = slotIds;
     asyncLaunch(slotIds);
     HIPPO_LOG(DEBUG, "after async launch, counter:%d", _counter.peek());
@@ -126,7 +127,7 @@ void DefaultProcessLauncher::asyncLaunchOneSlot(
                   role.c_str(), slotId.slaveAddress.c_str(), slotId.id);
         return;
     }
-    if (!needLaunch(slotId)) {
+    if (!needLaunch(slotId, workItem)) {
         HIPPO_LOG(DEBUG, "no need launch, slot role:%s, slot address:%s slot id:%d",
                   role.c_str(), slotId.slaveAddress.c_str(), slotId.id);
         return;
@@ -151,8 +152,8 @@ bool DefaultProcessLauncher::getSlotResource(const hippo::SlotId &slotId,
         slotResource = it->second;
         HIPPO_LOG(DEBUG, "get resource, resource size:%ld", slotResource.resources.size());
         for (auto &resource : slotResource.resources) {
-            HIPPO_LOG(DEBUG, "resource name:%s resource value:%d",
-                      resource.name.c_str(), resource.amount);
+            HIPPO_LOG(DEBUG, "resource name:%s, type:%d, value:%d",
+                      resource.name.c_str(), resource.type, resource.amount);
         }
         return true;
     }
@@ -184,11 +185,19 @@ void DefaultProcessLauncher::stopProcess(
         const map<string, set<hippo::SlotId> > &releasedSlots)
 {
     for (const auto& roleSlotIds : releasedSlots) {
+        const string &role = roleSlotIds.first;
         for (const auto& slotId : roleSlotIds.second) {
             HIPPO_LOG(INFO, "stop unused slot, role:[%s], "
-                      "slot address:[%s], slot id:[%d]", roleSlotIds.first.c_str(),
+                      "slot address:[%s], slot id:[%d]", role.c_str(),
                       slotId.slaveAddress.c_str(), slotId.id);
-            _controller.stopProcess(slotId);
+            hippo::ProcessContext slotProcessContext;
+            vector<string> processNames;
+            if (getSlotProcessContext(role, slotId, &slotProcessContext)) {
+                for (auto process: slotProcessContext.processes) {
+                    processNames.push_back(process.cmd);
+                }
+            }
+            _controller.stopProcess(slotId, processNames);
         }
     }
 }
@@ -208,7 +217,9 @@ bool DefaultProcessLauncher::getLaunchSignature(const hippo::SlotId &slotId,
     return true;
 }
 
-bool DefaultProcessLauncher::needLaunch(const hippo::SlotId &slotId) {
+bool DefaultProcessLauncher::needLaunch(const hippo::SlotId &slotId,
+                                        const ProcessStartWorkItem *workItem)
+{
     int64_t targetSignature = -1;
     if (!getLaunchSignature(slotId, targetSignature)) {
         HIPPO_LOG(DEBUG, "target launch meta not exists, no need launch, "
@@ -238,7 +249,11 @@ bool DefaultProcessLauncher::needLaunch(const hippo::SlotId &slotId) {
                   "currentTime:%ld lastCheckTime:%ld",
                   slotId.slaveAddress.c_str(), slotId.id,
                   currentTime, cIt->second.second);
-            return true;
+        if (isSlotRunning(workItem)) {
+            return false;
+        }
+        HIPPO_LOG(DEBUG, "slot not running, need launch");
+        return true;
     }
     return false;
 }
@@ -278,6 +293,21 @@ void DefaultProcessLauncher::setLaunchMetas(
         const std::map<hippo::SlotId, LaunchMeta> &launchMetas)
 {
     _launchMetas = launchMetas;
+
+    for (auto &[slotId, launchMeta] : _launchMetas) {
+        hippo::ProcessContext context;
+        for (auto &[role, _] : _roleProcessContextMap) {
+            if (doGetSlotProcessContext(role, slotId, &context)) {
+                proto::ProcessLaunchContext launchContext;
+                ProtoWrapper::convert(context, &launchContext);
+                int64_t curVersionSignature = SignatureUtil::signature(launchContext);
+                HIPPO_LOG(DEBUG, "rewrite launchSignature, curVersionSignature:%ld, allocateSignature:%ld",
+                        curVersionSignature, launchMeta.launchSignature);
+                launchMeta.launchSignature = curVersionSignature;
+                break;
+            }
+        }
+    }
     ScopedLock lock(_mutex);
     //clear useless slot
     for (auto it = _launchedMetas.begin(); it != _launchedMetas.end();) {
@@ -301,6 +331,13 @@ std::map<hippo::SlotId, LaunchMeta> DefaultProcessLauncher::getLaunchedMetas() {
 void DefaultProcessLauncher::setApplicationId(const string &appId) {
     ProcessLauncherBase::setApplicationId(appId);
     _controller.setApplicationId(appId);
+}
+
+bool DefaultProcessLauncher::isSlotRunning(const ProcessStartWorkItem *workItem) {
+    if (!workItem) {
+        return false;
+    }
+    return _controller.checkProcessExist(workItem);
 }
 
 END_HIPPO_NAMESPACE(sdk);

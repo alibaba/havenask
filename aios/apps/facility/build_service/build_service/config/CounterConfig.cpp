@@ -15,7 +15,14 @@
  */
 #include "build_service/config/CounterConfig.h"
 
+#include <iosfwd>
+#include <map>
+#include <stdint.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 
 using namespace std;
 using namespace autil;

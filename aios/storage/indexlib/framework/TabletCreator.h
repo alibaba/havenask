@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <memory>
+
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "indexlib/framework/ITablet.h"
@@ -46,7 +48,6 @@ class MemoryQuotaController;
 namespace framework {
 
 struct TabletResource;
-class TabletCreator;
 class ITabletMergeController;
 class IdGenerator;
 

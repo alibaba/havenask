@@ -47,7 +47,7 @@ template <typename T>
 class MultiValueAttributeMemIndexer : public AttributeMemIndexer
 {
 public:
-    MultiValueAttributeMemIndexer(const IndexerParameter& indexerParam)
+    MultiValueAttributeMemIndexer(const MemIndexerParameter& indexerParam)
         : AttributeMemIndexer(indexerParam)
         , _accessor(nullptr)
     {
@@ -67,7 +67,7 @@ public:
         FieldType GetAttributeType() const override { return TypeInfo<T>::GetFieldType(); }
 
         std::unique_ptr<AttributeMemIndexer> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override
+                                                    const MemIndexerParameter& indexerParam) const override
         {
             return std::make_unique<MultiValueAttributeMemIndexer<T>>(indexerParam);
         }

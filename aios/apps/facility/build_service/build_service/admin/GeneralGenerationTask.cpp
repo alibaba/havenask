@@ -15,9 +15,33 @@
  */
 #include "build_service/admin/GeneralGenerationTask.h"
 
+#include <map>
+#include <ostream>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "autil/ZlibCompressor.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
+#include "build_service/admin/ConfigCleaner.h"
+#include "build_service/admin/FlowIdMaintainer.h"
 #include "build_service/admin/controlflow/TaskBase.h"
+#include "build_service/admin/controlflow/TaskFactory.h"
+#include "build_service/admin/controlflow/TaskFlow.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/GeneralTaskController.h"
+#include "build_service/admin/taskcontroller/TaskMaintainer.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/WorkerNode.h"
 
 using namespace std;
 using namespace build_service::proto;
@@ -85,7 +109,7 @@ bool GeneralGenerationTask::loadFromConfig(const string& configPath, const strin
 
     KeyValueMap kvMap;
     kvMap["buildId"] = ProtoUtil::buildIdToStr(_buildId);
-    kvMap["buildStep"] = buildStep == BUILD_STEP_FULL ? "full" : "incremental";
+    kvMap["buildStep"] = buildStep == proto::BUILD_STEP_FULL ? config::BUILD_STEP_FULL_STR : config::BUILD_STEP_INC_STR;
     kvMap["configPath"] = configPath;
 
     string targetGraph = "Idle.graph";
@@ -123,6 +147,7 @@ void GeneralGenerationTask::makeDecision(WorkerTable& workerTable)
         break;
     }
     case GENERATION_STOPPING: {
+        workerTable.clearAllNodes();
         _step = GENERATION_STOPPED;
         BS_LOG(INFO, "stop generation[%s] end", _buildId.ShortDebugString().c_str());
         break;

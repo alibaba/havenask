@@ -20,7 +20,8 @@ public class IquanFilterCalcMergeRule extends FilterCalcMergeRule {
         super(relBuilderFactory);
     }
 
-    @Override public boolean matches(RelOptRuleCall call) {
+    @Override
+    public boolean matches(RelOptRuleCall call) {
         final LogicalFilter filter = call.rel(0);
         final LogicalCalc calc = call.rel(1);
 
@@ -41,7 +42,8 @@ public class IquanFilterCalcMergeRule extends FilterCalcMergeRule {
     public interface Config extends RelRule.Config {
         IquanFilterCalcMergeRule.Config DEFAULT = ImmutableIquanFilterCalcMergeRule.Config.builder().build();
 
-        @Override default IquanFilterCalcMergeRule toRule() {
+        @Override
+        default IquanFilterCalcMergeRule toRule() {
             return new IquanFilterCalcMergeRule(this);
         }
     }

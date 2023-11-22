@@ -16,8 +16,8 @@
 #pragma once
 
 #include "autil/Log.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IDiskIndexer.h"
-#include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/ann/aitheta2/impl/NormalSegment.h"
 #include "indexlib/index/ann/aitheta2/impl/NormalSegmentSearcher.h"
 
@@ -26,7 +26,7 @@ namespace indexlibv2::index::ann {
 class AithetaDiskIndexer : public IDiskIndexer
 {
 public:
-    AithetaDiskIndexer(const IndexerParameter& indexerParam);
+    AithetaDiskIndexer(const DiskIndexerParameter& indexerParam);
     ~AithetaDiskIndexer() = default;
 
     Status Open(const std::shared_ptr<config::IIndexConfig>& indexConfig,
@@ -35,14 +35,16 @@ public:
                            const std::shared_ptr<indexlib::file_system::IDirectory>& indexDirectory) override;
     size_t EvaluateCurrentMemUsed() override;
     std::pair<Status, std::shared_ptr<NormalSegmentSearcher>>
-    CreateSearcher(docid_t segmentBaseDocId, const std::shared_ptr<AithetaFilterCreatorBase>& creator);
+    CreateSearcher(const AithetaIndexConfig& segmentSearchConfig, docid_t segmentBaseDocId,
+                   const std::shared_ptr<AithetaFilterCreatorBase>& creator);
+    const std::shared_ptr<NormalSegment>& GetSegment() const { return _normalSegment; }
 
 private:
     static constexpr double CONVERT_TO_MB_FACTOR = 1.1f;
 
 private:
     AithetaIndexConfig _aithetaIndexConfig;
-    IndexerParameter _indexerParam;
+    DiskIndexerParameter _indexerParam;
     std::shared_ptr<NormalSegment> _normalSegment;
     std::string _indexName;
     size_t _currentMemUsed = 0;

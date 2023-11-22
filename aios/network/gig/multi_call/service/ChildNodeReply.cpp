@@ -37,12 +37,17 @@ ChildNodeReply::ChildNodeReply(const FlowConfigSnapshotPtr &flowConfigSnapshot,
     , _callDelegationStatPrepared(false)
     , _etTime(numeric_limits<int64_t>::max())
     , _startDetectionTime(numeric_limits<int64_t>::max())
-    , _singleRetryEnabled(false) {
+    , _singleRetryEnabled(false)
+    , _needEndStream(false)
+{
     assert(_replyInfoCollector);
     _startTime = TimeUtility::currentTime();
 }
 
 ChildNodeReply::~ChildNodeReply() {
+    if (_needEndStream) {
+        endStreamQuery();
+    }
 }
 
 size_t ChildNodeReply::fillResponses(vector<ResponsePtr> &responseVec) {

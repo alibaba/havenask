@@ -48,6 +48,8 @@ public:
 
     autil::Result<bool> batchSeek(size_t batchSize,
                                   std::vector<matchdoc::MatchDoc> &matchDocs) override;
+    uint32_t getTotalSeekedCount() const override;
+    uint32_t getTotalWholeDocCount() const override;
 
 private:
     size_t batchFilter(const std::vector<int32_t> &docIds,

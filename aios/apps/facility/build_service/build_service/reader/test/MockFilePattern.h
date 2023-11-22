@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKFILEPATTERN_H
-#define ISEARCH_BS_MOCKFILEPATTERN_H
+#pragma once
 
 #include "build_service/reader/FilePatternBase.h"
 #include "build_service/test/unittest.h"
@@ -17,5 +16,3 @@ public:
 };
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_MOCKFILEPATTERN_H

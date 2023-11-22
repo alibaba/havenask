@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIMARYKEYINDEXREADERTYPEDINTETESTTEST_H
-#define __INDEXLIB_PRIMARYKEYINDEXREADERTYPEDINTETESTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -85,5 +84,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(PrimaryKeyIndexReaderTypedIntetestTest, TestM
 
 INSTANTIATE_TEST_CASE_P(BuildMode, PrimaryKeyIndexReaderTypedIntetestTest, testing::Values(0, 1, 2));
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARYKEYINDEXREADERTYPEDINTETESTTEST_H

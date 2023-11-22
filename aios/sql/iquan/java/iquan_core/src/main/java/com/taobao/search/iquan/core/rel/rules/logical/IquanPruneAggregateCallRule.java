@@ -1,11 +1,22 @@
 package com.taobao.search.iquan.core.rel.rules.logical;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.*;
+import org.apache.calcite.rel.core.Aggregate;
+import org.apache.calcite.rel.core.AggregateCall;
+import org.apache.calcite.rel.core.Calc;
+import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rex.RexInputRef;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexProgram;
@@ -14,10 +25,6 @@ import org.apache.calcite.runtime.Utilities;
 import org.apache.calcite.tools.RelBuilderFactory;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.mapping.Mappings;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public abstract class IquanPruneAggregateCallRule<T extends RelNode> extends RelOptRule {
     public static final IquanPruneAggregateCallRule PROJECT_ON_AGGREGATE = new IquanProjectPruneAggregateCallRule(IquanRelBuilder.LOGICAL_BUILDER, Project.class);
@@ -38,7 +45,7 @@ public abstract class IquanPruneAggregateCallRule<T extends RelNode> extends Rel
         T relOnAgg = call.rel(0);
         Aggregate agg = call.rel(1);
         if (!Aggregate.isSimple(agg) || agg.getAggCallList().isEmpty()
-        || (agg.getGroupCount() == 0 && agg.getAggCallList().size() == 1)) {
+                || (agg.getGroupCount() == 0 && agg.getAggCallList().size() == 1)) {
             return false;
         }
 

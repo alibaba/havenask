@@ -27,7 +27,7 @@ SectionAttributeIndexFactory::~SectionAttributeIndexFactory() {}
 
 std::shared_ptr<indexlibv2::index::IDiskIndexer>
 SectionAttributeIndexFactory::CreateDiskIndexer(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-                                                const indexlibv2::index::IndexerParameter& indexerParam) const
+                                                const indexlibv2::index::DiskIndexerParameter& indexerParam) const
 {
     std::shared_ptr<indexlibv2::index::AttributeMetrics> attributeMetrics;
     if (indexerParam.metricsManager != nullptr) {

@@ -15,9 +15,14 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/Log.h"
+#include "autil/legacy/any.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Status.h"
 

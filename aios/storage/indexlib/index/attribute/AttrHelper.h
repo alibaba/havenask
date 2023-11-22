@@ -50,6 +50,15 @@ public:
         return AttrHelper::GetAttributeValue(attrRef, value.data(), attrConfig, attrValue);
     }
 
+    static bool GetAttributeValue(const autil::StringView& value,
+                                  const indexlibv2::index::PackAttributeFormatter* formatter, const std::string& name,
+                                  indexlibv2::base::AttrValue& attrValue)
+    {
+        auto attrConfig = formatter->GetAttributeConfig(name);
+        auto attrRef = formatter->GetAttributeReference(name);
+        return AttrHelper::GetAttributeValue(attrRef, value.data(), attrConfig, attrValue);
+    }
+
     template <typename Fetcher, typename Src>
     static bool GetAttributeValue(Fetcher* const attrFetcher, const Src attrIndex,
                                   const std::shared_ptr<indexlibv2::index::AttributeConfig>& attrConfig,

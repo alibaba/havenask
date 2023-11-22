@@ -16,9 +16,26 @@
 #include "build_service/processor/DeleteSubRawDocRewriter.h"
 
 #include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <iterator>
+#include <memory>
 
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/StringUtil.h"
+#include "build_service/document/DocumentDefine.h"
 #include "build_service/processor/SubDocumentExtractor.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/field_schema.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/RawDocumentDefine.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 

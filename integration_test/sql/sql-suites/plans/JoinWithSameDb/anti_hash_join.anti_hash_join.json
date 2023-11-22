@@ -10,8 +10,8 @@
           "db_name": "daogou", 
           "limit": 2147483647, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "daogou"
+            "node_name": "daogou", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -111,8 +111,8 @@
           "db_name": "daogou", 
           "limit": 2147483647, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "daogou"
+            "node_name": "daogou", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -259,8 +259,8 @@
             ]
           }, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "daogou"
+            "node_name": "daogou", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -341,8 +341,8 @@
         "attrs": {
           "limit": 100, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "daogou"
+            "node_name": "daogou", 
+            "partition_cnt": 1
           }, 
           "offset": 0, 
           "op_scope": "default", 
@@ -387,6 +387,7 @@
             "INTEGER", 
             "VARCHAR"
           ], 
+          "node_name": "daogou", 
           "op_scope": "default", 
           "output_distribution": {
             "hash_mode": {
@@ -409,8 +410,7 @@
             }, 
             "partition_cnt": 1, 
             "type": "BROADCAST_DISTRIBUTED"
-          }, 
-          "table_group_name": "daogou"
+          }
         }, 
         "id": 4, 
         "inputs": {
@@ -426,8 +426,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {

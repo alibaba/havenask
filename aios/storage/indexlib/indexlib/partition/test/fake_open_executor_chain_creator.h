@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_EXECUTOR_CHAIN_CREATOR_H
-#define __INDEXLIB_FAKE_EXECUTOR_CHAIN_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -41,5 +40,3 @@ private:
 };
 DEFINE_SHARED_PTR(FakeOpenExecutorChainCreator);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_FAKE_EXECUTOR_CHAIN_CREATOR_H

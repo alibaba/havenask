@@ -333,7 +333,7 @@ private:
             assert(status.IsOK());
             segMeta.segmentInfo = segInfo;
             auto segment = std::make_shared<indexlibv2::framework::FakeDiskSegment>(segMeta);
-            indexlibv2::index::IndexerParameter indexerParam;
+            indexlibv2::index::DiskIndexerParameter indexerParam;
             indexerParam.docCount = segInfo->GetDocCount();
             indexerParam.segmentInfo = segInfo;
             auto invertedDiskIndexer = std::make_shared<InvertedDiskIndexer>(indexerParam);

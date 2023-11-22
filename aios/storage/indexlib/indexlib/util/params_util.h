@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARAMS_UTIL_H
-#define __INDEXLIB_PARAMS_UTIL_H
+#pragma once
 
 #include <stdlib.h>
 
@@ -49,5 +48,3 @@ private:
 };
 DEFINE_SHARED_PTR(ParamsUtil);
 }} // namespace indexlib::util
-
-#endif //__INDEXLIB_PARAMS_UTIL_H

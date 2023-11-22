@@ -7,6 +7,7 @@
 #include "autil/TimeUtility.h"
 #include "indexlib/config/date_index_config.h"
 #include "indexlib/config/primary_key_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/config/virtual_attribute_config_creator.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
@@ -25,7 +26,6 @@
 #include "indexlib/partition/memory_stat_reporter.h"
 #include "indexlib/partition/online_partition.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/single_field_partition_data_provider.h"
 #include "indexlib/test/slow_dump_segment_container.h"
 #include "indexlib/test/version_maker.h"
@@ -680,12 +680,12 @@ void OnlinePartitionInteTest::TestSourceReaderWithDisableSourceGroup()
     ASSERT_TRUE(sourceReader->GetDocument(docId, &sourceDocument));
 
     // group 0 is disabled
-    ASSERT_EQ(StringView::empty_instance(), sourceDocument.GetField((groupid_t)0, "string1"));
-    ASSERT_EQ(StringView::empty_instance(), sourceDocument.GetField((groupid_t)0, "pk"));
+    ASSERT_EQ(StringView::empty_instance(), sourceDocument.GetField((sourcegroupid_t)0, "string1"));
+    ASSERT_EQ(StringView::empty_instance(), sourceDocument.GetField((sourcegroupid_t)0, "pk"));
 
     // group 1 is normal
-    ASSERT_EQ(StringView("4"), sourceDocument.GetField((groupid_t)1, "price"));
-    ASSERT_EQ(StringView::empty_instance(), sourceDocument.GetField((groupid_t)1, "string2"));
+    ASSERT_EQ(StringView("4"), sourceDocument.GetField((sourcegroupid_t)1, "price"));
+    ASSERT_EQ(StringView::empty_instance(), sourceDocument.GetField((sourcegroupid_t)1, "string2"));
 }
 
 void OnlinePartitionInteTest::TestAttributeFloatCompressUpdateField()
@@ -2250,7 +2250,7 @@ void OnlinePartitionInteTest::TestReopenSpecificIncIndex()
     onlinePart.ReOpen(false, 1);
     ASSERT_EQ((int64_t)10, onlinePart.GetRtSeekTimestampFromIncVersion());
 
-    onlinePart.ReOpen(false, INVALID_VERSION);
+    onlinePart.ReOpen(false, INVALID_VERSIONID);
     ASSERT_EQ((int64_t)100, onlinePart.GetRtSeekTimestampFromIncVersion());
 }
 
@@ -3203,7 +3203,7 @@ void OnlinePartitionInteTest::TestForceReopenWithSpecificVersion()
     string incDoc = "cmd=add,pk=2,string1=hello2,long1=2;";
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDoc, "", ""));
     Version incVersion;
-    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), incVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), incVersion, INVALID_VERSIONID);
 
     Version illegalVersion(100);
     illegalVersion.AddSegment(100);
@@ -3215,7 +3215,7 @@ void OnlinePartitionInteTest::TestForceReopenWithSpecificVersion()
     file_system::FslibWrapper::DeleteFileE(GET_TEMP_DATA_PATH() + "version.100", DeleteOption::NoFence(false));
     incDoc = "cmd=add,pk=3,string1=hello3,long1=3;";
     INDEXLIB_TEST_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDoc, "", ""));
-    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), incVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), incVersion, INVALID_VERSIONID);
     illegalVersion.TEST_Store(GET_TEMP_DATA_PATH(), false);
     ASSERT_EQ(IndexPartition::OS_OK, onlinePartition->ReOpen(true, incVersion.GetVersionId()));
     ASSERT_EQ(incVersion.GetVersionId(), onlinePartition->GetReader()->GetVersion().GetVersionId());

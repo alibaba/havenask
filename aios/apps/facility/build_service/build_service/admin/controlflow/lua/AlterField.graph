@@ -24,7 +24,8 @@ function graphDef()
       clusterParam["dataDescriptions"] = Graph.parameter["dataDescriptions"]
       clusterParam["buildId"] = Graph.parameter["buildId"]
       clusterParam["buildStep"] = Graph.parameter["buildStep"]
-
+      clusterParam["isTablet"] = "true"
+      clusterParam["hasRealtimeDataDesc"] = Graph.parameter["hasRealtimeDataDesc"]
       local loadClusterSuccess = Graph.loadSubGraph(v, "SingleClusterAlterField.graph", clusterParam)
       if (not loadClusterSuccess)
       then

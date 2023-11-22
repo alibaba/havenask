@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PACK_ATTRIBUTE_ITERATOR_TYPED_H
-#define __INDEXLIB_PACK_ATTRIBUTE_ITERATOR_TYPED_H
+#pragma once
 
 #include <memory>
 
@@ -70,5 +69,3 @@ inline bool PackAttributeIteratorTyped<T>::Seek(docid_t docId, T& value)
     return true;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PACK_ATTRIBUTE_ITERATOR_TYPED_H

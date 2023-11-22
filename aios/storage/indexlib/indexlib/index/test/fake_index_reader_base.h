@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_INDEX_READER_BASE_H
-#define __INDEXLIB_FAKE_INDEX_READER_BASE_H
+#pragma once
 
 #include <memory>
 
@@ -45,5 +44,3 @@ protected:
 
 typedef std::shared_ptr<FakeIndexReaderBase> FakeIndexReaderBasePtr;
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_FAKE_INDEX_READER_BASE_H

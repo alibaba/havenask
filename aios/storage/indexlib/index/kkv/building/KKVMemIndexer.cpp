@@ -33,7 +33,7 @@ AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, KKVMemIndexer, SKeyType);
 template <typename SKeyType>
 KKVMemIndexer<SKeyType>::KKVMemIndexer(const std::string& tabletName, size_t maxPKeyMemUse, size_t maxSKeyMemUse,
                                        size_t maxValueMemUse, double skeyCompressRatio, double valueCompressRatio,
-                                       bool isOnline)
+                                       bool isOnline, bool tolerateDocError)
     : _tabletName(tabletName)
     , _maxPKeyMemUse(maxPKeyMemUse)
     , _maxSKeyMemUse(maxSKeyMemUse)
@@ -41,6 +41,7 @@ KKVMemIndexer<SKeyType>::KKVMemIndexer(const std::string& tabletName, size_t max
     , _skeyCompressRatio(skeyCompressRatio)
     , _valueCompressRatio(valueCompressRatio)
     , _isOnline(isOnline)
+    , _tolerateDocError(tolerateDocError)
 {
 }
 
@@ -150,7 +151,7 @@ Status KKVMemIndexer<SKeyType>::Build(document::IDocumentBatch* docBatch)
         if (curIndexNameHash != 0 && indexNameHash != curIndexNameHash) {
             continue;
         }
-        auto s = BuildSingleDocument(kkvDoc.get(), valueSize);
+        auto s = ConvertBuildDocStatus(BuildSingleDocument(kkvDoc.get(), valueSize));
         if (!s.IsOK()) {
             return s;
         }
@@ -179,7 +180,7 @@ Status KKVMemIndexer<SKeyType>::BuildSingleDocument(const document::KKVDocument*
         status = DeleteDocument(doc);
         break;
     default:
-        return Status::InternalError("unsupported doc type: %d", docType);
+        return Status::ParseError("unsupported doc type: %d", docType);
     }
 
     valueSize += doc->GetValue().length();
@@ -195,7 +196,7 @@ Status KKVMemIndexer<SKeyType>::AddDocument(const document::KKVDocument* doc)
         if (!_indexConfig->DenyEmptySuffixKey()) {
             return Status::OK();
         }
-        return Status::InvalidArgs("add doc has no skey");
+        return Status::ParseError("add doc has no skey");
     }
 
     auto pkey = doc->GetPKeyHash();
@@ -214,7 +215,7 @@ Status KKVMemIndexer<SKeyType>::AddDocument(const document::KKVDocument* doc)
                             "value length [%lu] over limit [%lu]!",
                             _tabletName.c_str(), _indexName.c_str(), pkey, autil::StringUtil::toString(skey).c_str(),
                             value.size(), index::MAX_KKV_VALUE_LEN);
-        return Status::Corruption("value length over limit");
+        return Status::ParseError("value length over limit");
     }
 
     if (unlikely(value.size() + _valueWriter->GetUsedBytes() > _valueWriter->GetReserveBytes())) {
@@ -498,6 +499,18 @@ uint32_t KKVMemIndexer<SKeyType>::GetExpireTime(const document::KKVDocument* doc
     }
     uint64_t expireTime = static_cast<uint64_t>(autil::TimeUtility::us2sec(doc->GetUserTimestamp())) + docTTL;
     return expireTime > indexlib::index::MAX_EXPIRE_TIME ? indexlib::index::MAX_EXPIRE_TIME : expireTime;
+}
+
+template <typename SKeyType>
+Status KKVMemIndexer<SKeyType>::ConvertBuildDocStatus(const Status& status) const
+{
+    if (!_tolerateDocError || status.IsOK()) {
+        return status;
+    }
+    if (status.IsParseError()) {
+        return Status::OK();
+    }
+    return status;
 }
 
 EXPLICIT_DECLARE_ALL_SKEY_TYPE_TEMPLATE_CALSS(KKVMemIndexer);

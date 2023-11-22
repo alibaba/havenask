@@ -27,19 +27,14 @@ namespace indexlib::index {
 class InDocPositionState
 {
 public:
-    InDocPositionState(const PositionListFormatOption& option = PositionListFormatOption())
-        : _termFreq(0)
-        , _docId(INVALID_DOCID)
-        , _seekedDocCount(0)
-        , _hasSectionReader(false)
-        , _option(option)
+    InDocPositionState(const PositionListFormatOption& option = PositionListFormatOption()) : _option(option)
     {
         _data.sectionReader = nullptr;
     }
 
     InDocPositionState(const InDocPositionState& other)
-        : _termFreq(other._termFreq)
-        , _docId(other._docId)
+        : _docId(other._docId)
+        , _termFreq(other._termFreq)
         , _seekedDocCount(other._seekedDocCount)
         , _hasSectionReader(other._hasSectionReader)
         , _option(other._option)
@@ -62,9 +57,9 @@ public:
         return _termFreq;
     }
 
-    void SetDocId(docid_t docId) { _docId = docId; }
+    void SetDocId(docid64_t docId) { _docId = docId; }
 
-    docid_t GetDocId() const { return _docId; }
+    docid64_t GetDocId() const { return _docId; }
 
     void SetTermFreq(tf_t termFreq) { _termFreq = termFreq; }
 
@@ -109,10 +104,10 @@ protected:
     };
 
     StateData _data;                  // 8 byte
-    tf_t _termFreq;                   // 4 byte
-    docid_t _docId;                   // 4 byte
-    uint32_t _seekedDocCount;         // 4 byte
-    bool _hasSectionReader;           // 1 byte
+    docid64_t _docId = INVALID_DOCID; // 8 byte
+    tf_t _termFreq = 0;               // 4 byte
+    uint32_t _seekedDocCount = 0;     // 4 byte
+    bool _hasSectionReader = false;   // 1 byte
     PositionListFormatOption _option; // 1 byte
 };
 

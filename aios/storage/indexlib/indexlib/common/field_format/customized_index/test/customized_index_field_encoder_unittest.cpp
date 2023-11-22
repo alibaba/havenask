@@ -1,6 +1,6 @@
 #include "indexlib/common/field_format/customized_index/test/customized_index_field_encoder_unittest.h"
 
-#include "indexlib/test/schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 
 using namespace std;
 

@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#include <stdint.h>
+#include <string>
+
 #include "autil/Log.h"
 
 namespace indexlib::util {

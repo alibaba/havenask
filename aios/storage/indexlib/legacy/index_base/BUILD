@@ -9,6 +9,6 @@ strict_cc_library(
 )
 strict_cc_library(
     name='SchemaAdapter',
-    implementation_deps=['//aios/storage/indexlib/indexlib/config'],
+    implementation_deps=['//aios/storage/indexlib/legacy/config:schema'],
     deps=['//aios/storage/indexlib/file_system']
 )

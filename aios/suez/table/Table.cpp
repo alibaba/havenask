@@ -189,11 +189,16 @@ void Table::init(const TargetPartitionMeta &target) {
         _tableResource.pid.setPartitionIndex(target.getTotalPartitionCount());
     }
 
-    _suezPartition = _factory->create(type, _tableResource, _partitionMeta);
+    auto newPartitionMeta = std::make_shared<CurrentPartitionMeta>();
+    _suezPartition = _factory->create(type, _tableResource, newPartitionMeta);
     // TODO can set TableMeta ?
     if (!_suezPartition) {
         updateTableStatus(StatusAndError<TableStatus>(TS_UNKNOWN, CREATE_TABLE_ERROR));
     } else {
+        {
+            autil::ScopedLock lock(_switchMutex);
+            _partitionMeta = newPartitionMeta;
+        }
         _partitionMeta->setTableType(type);
         _partitionMeta->setTotalPartitionCount(target.getTotalPartitionCount());
         _partitionMeta->setTableMode(target.getTableMode());

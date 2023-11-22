@@ -22,6 +22,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='OperationLogIndexFactoryTest',
     srcs=['OperationLogIndexFactoryTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/operation_log:CompressOperationLogMemIndexer',
         '//aios/storage/indexlib/index/operation_log:OperationLogIndexFactory',
@@ -33,6 +34,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='TargetSegmentsRedoStrategyTest',
     srcs=['TargetSegmentsRedoStrategyTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/framework/mock:FakeSegment',
         '//aios/storage/indexlib/index/operation_log:RemoveOperation',
@@ -44,6 +46,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='OperationBlockTest',
     srcs=['OperationBlockTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         ':MockOperation',
         '//aios/storage/indexlib/index/operation_log:OperationBlock',

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DOCUMENT_PROCESSOR_MODULE_FACTORY_H
-#define ISEARCH_BS_DOCUMENT_PROCESSOR_MODULE_FACTORY_H
+#pragma once
 
 #include <memory>
 
@@ -41,5 +40,3 @@ private:
 typedef std::shared_ptr<DocumentProcessorFactory> DocumentProcessorFactoryPtr;
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_DOCUMENT_PROCESSOR_MODULE_FACTORY_H

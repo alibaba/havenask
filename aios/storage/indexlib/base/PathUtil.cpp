@@ -16,7 +16,10 @@
 #include "indexlib/base/PathUtil.h"
 
 #include <assert.h>
+#include <iterator>
+#include <ostream>
 #include <regex.h>
+#include <vector>
 
 #include "autil/Regex.h"
 #include "autil/StringUtil.h"

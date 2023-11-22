@@ -46,30 +46,22 @@ NormalDocumentRewriteChainCreator::AppendDocInfoRewriterIfNeed(const std::shared
                                                                document::DocumentRewriteChain* rewriteChain)
 {
     if (indexlib::table::TABLE_TYPE_NORMAL == schema->GetTableType()) {
-        auto virtualTimestampAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(schema->GetIndexConfig(
-            VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, document::DocumentInfoToAttributeRewriter::VIRTUAL_TIMESTAMP_FIELD_NAME));
-        assert(virtualTimestampAttrConfig);
-        auto timestampLegacyConf = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(
-            virtualTimestampAttrConfig->GetAttributeConfig());
-        assert(timestampLegacyConf);
+        auto getVirtualAtrrConfig = [schema](const std::string& fieldName) {
+            auto virtualAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(
+                schema->GetIndexConfig(VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, fieldName));
+            assert(virtualAttrConfig);
+            auto legacyConf =
+                std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(virtualAttrConfig->GetAttributeConfig());
+            assert(legacyConf);
+            return legacyConf;
+        };
 
-        auto virtualHashIdAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(schema->GetIndexConfig(
-            VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR, document::DocumentInfoToAttributeRewriter::VIRTUAL_HASH_ID_FIELD_NAME));
-        assert(virtualHashIdAttrConfig);
-        auto hashIdLegacyConf = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(
-            virtualHashIdAttrConfig->GetAttributeConfig());
-        assert(hashIdLegacyConf);
-
-        auto virtualConcurrentIdxAttrConfig = std::dynamic_pointer_cast<VirtualAttributeConfig>(
-            schema->GetIndexConfig(VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR,
-                                   document::DocumentInfoToAttributeRewriter::VIRTUAL_CONCURRENT_IDX_FIELD_NAME));
-        assert(virtualConcurrentIdxAttrConfig);
-        auto concurrentIdxLegacyConf = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(
-            virtualConcurrentIdxAttrConfig->GetAttributeConfig());
-        assert(concurrentIdxLegacyConf);
-
-        auto docInfoRewriter = std::make_shared<document::DocumentInfoToAttributeRewriter>(
-            timestampLegacyConf, hashIdLegacyConf, concurrentIdxLegacyConf);
+        auto timestampLegacyConf =
+            getVirtualAtrrConfig(document::DocumentInfoToAttributeRewriter::VIRTUAL_TIMESTAMP_FIELD_NAME);
+        auto docInfoLegacyConf =
+            getVirtualAtrrConfig(document::DocumentInfoToAttributeRewriter::VIRTUAL_DOC_INFO_FIELD_NAME);
+        auto docInfoRewriter =
+            std::make_shared<document::DocumentInfoToAttributeRewriter>(timestampLegacyConf, docInfoLegacyConf);
         rewriteChain->AppendRewriter(docInfoRewriter);
     }
     return Status::OK();

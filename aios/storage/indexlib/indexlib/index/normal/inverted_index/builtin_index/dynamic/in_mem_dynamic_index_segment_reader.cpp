@@ -43,7 +43,7 @@ PostingWriter* InMemDynamicIndexSegmentReader::GetPostingWriter(const index::Dic
     return nullptr;
 }
 
-bool InMemDynamicIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId,
+bool InMemDynamicIndexSegmentReader::GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId,
                                                        SegmentPosting& segPosting, autil::mem_pool::Pool* sessionPool,
                                                        indexlib::index::InvertedIndexSearchTracer* tracer) const
 {

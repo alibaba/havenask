@@ -1,5 +1,8 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
@@ -10,9 +13,6 @@ import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.core.Calc;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class CalcScanMergeRule extends RelOptRule {
     public static final CalcScanMergeRule INSTANCE = new CalcScanMergeRule(IquanRelBuilder.LOGICAL_BUILDER);
@@ -50,7 +50,7 @@ public class CalcScanMergeRule extends RelOptRule {
 
     private List<IquanRelNode> addCalc(final List<IquanRelNode> ops, final IquanCalcOp calc) {
         IquanCalcOp newCalc = calc;
-        int i = ops.size() - 1 ;
+        int i = ops.size() - 1;
         for (; i >= 0; --i) {
             if (ops.get(i) instanceof IquanCalcOp) {
                 Calc merged = IquanRuleUtils.mergeCalc(newCalc, (IquanCalcOp) ops.get(i));

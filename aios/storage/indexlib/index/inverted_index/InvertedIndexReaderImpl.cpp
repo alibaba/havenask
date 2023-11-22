@@ -80,7 +80,7 @@ Status InvertedIndexReaderImpl::Open(const std::shared_ptr<IIndexConfig>& indexC
     auto segments = tabletData->CreateSlice();
     std::vector<Indexer> indexers;
     auto readSchemaId = tabletData->GetOnDiskVersionReadSchema()->GetSchemaId();
-    docid_t baseDocId = 0;
+    docid64_t baseDocId = 0;
 
     for (const auto& segment : segments) {
         std::shared_ptr<indexlibv2::index::IIndexer> indexer;
@@ -134,14 +134,14 @@ Status InvertedIndexReaderImpl::DoOpen(const std::shared_ptr<InvertedIndexConfig
     _indexSupportNull = _indexConfig->SupportNull();
     _dictHasher = IndexDictHasher(indexConfig->GetDictHashParams(), indexConfig->GetInvertedIndexType());
     std::vector<std::shared_ptr<InvertedLeafReader>> segmentReaders;
-    std::vector<docid_t> baseDocIds;
-    std::vector<std::pair<docid_t, std::shared_ptr<BitmapLeafReader>>> bitmapDiskReaders;
-    std::vector<std::tuple</*baseDocId=*/docid_t, /*segmentDocCount=*/uint64_t,
+    std::vector<docid64_t> baseDocIds;
+    std::vector<std::pair<docid64_t, std::shared_ptr<BitmapLeafReader>>> bitmapDiskReaders;
+    std::vector<std::tuple</*baseDocId=*/docid64_t, /*segmentDocCount=*/uint64_t,
                            /*dynamicPostingResourceFile=*/std::shared_ptr<file_system::ResourceFile>>>
         dynamicPostingResources;
     std::vector<std::shared_ptr<SegmentPosting>> segmentPostings;
-    std::vector<std::pair<docid_t, std::shared_ptr<InMemBitmapIndexSegmentReader>>> bitmapMemReaders;
-    std::vector<std::pair<docid_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders;
+    std::vector<std::pair<docid64_t, std::shared_ptr<InMemBitmapIndexSegmentReader>>> bitmapMemReaders;
+    std::vector<std::pair<docid64_t, std::shared_ptr<DynamicIndexSegmentReader>>> dynamicSegmentReaders;
     for (auto& [baseDocId, indexer, segId, segStatus] : indexers) {
         std::shared_ptr<InvertedLeafReader> reader;
         if (segStatus == Segment::SegmentStatus::ST_BUILT) {
@@ -219,7 +219,8 @@ Status InvertedIndexReaderImpl::TryOpenTruncateIndexReader(
     if (!invertedIndexConfig->HasTruncate()) {
         return Status::OK();
     }
-    auto truncateTabletData = std::make_shared<indexlibv2::framework::TabletData>("truncate");
+    auto truncateTabletData =
+        std::make_shared<indexlibv2::framework::TabletData>("__TMP__truncate_" + invertedIndexConfig->GetIndexName());
     const auto& onDiskVersion = tabletData->GetOnDiskVersion();
 
     std::vector<std::shared_ptr<Segment>> incSegments;
@@ -243,7 +244,7 @@ Status InvertedIndexReaderImpl::TryOpenTruncateIndexReader(
     return Status::OK();
 }
 
-void InvertedIndexReaderImpl::AddBuildingSegmentReader(docid_t baseDocId,
+void InvertedIndexReaderImpl::AddBuildingSegmentReader(docid64_t baseDocId,
                                                        const std::shared_ptr<IndexSegmentReader>& segReader)
 {
     if (!segReader) {
@@ -483,14 +484,14 @@ bool InvertedIndexReaderImpl::ValidatePartitonRange(const DocIdRangeVector& rang
     if (ranges.empty()) {
         return true;
     }
-    docid_t lastEndDocId = INVALID_DOCID;
+    docid64_t lastEndDocId = INVALID_DOCID;
     for (const auto& range : ranges) {
         if (range.first >= range.second) {
             AUTIL_LOG(ERROR, "range [%d, %d) is invalid", range.first, range.second);
             return false;
         }
         if (range.first < lastEndDocId) {
-            AUTIL_LOG(ERROR, "range [%d, %d) is invalid, previous range ends at [%d]", range.first, range.second,
+            AUTIL_LOG(ERROR, "range [%d, %d) is invalid, previous range ends at [%ld]", range.first, range.second,
                       lastEndDocId);
             return false;
         }
@@ -601,8 +602,8 @@ InvertedIndexReaderImpl::FillRangeByBuiltSegments(const Term* term, const DictKe
     bool currentSegmentFilled = false;
     while (currentSegmentIdx < _segmentReaders.size() && currentRangeIdx < ranges.size()) {
         const auto& range = ranges[currentRangeIdx];
-        docid_t segBegin = _baseDocIds[currentSegmentIdx];
-        docid_t segEnd = _baseDocIds[currentSegmentIdx] + _segmentReaders[currentSegmentIdx]->GetDocCount();
+        docid64_t segBegin = _baseDocIds[currentSegmentIdx];
+        docid64_t segEnd = _baseDocIds[currentSegmentIdx] + _segmentReaders[currentSegmentIdx]->GetDocCount();
         if (segEnd <= range.first) {
             ++currentSegmentIdx;
             currentSegmentFilled = false;
@@ -619,7 +620,7 @@ InvertedIndexReaderImpl::FillRangeByBuiltSegments(const Term* term, const DictKe
             currentSegmentFilled = true;
         }
 
-        auto minEnd = std::min(segEnd, range.second);
+        auto minEnd = std::min(segEnd, (docid64_t)range.second);
         if (segEnd == minEnd) {
             ++currentSegmentIdx;
             currentSegmentFilled = false;
@@ -726,12 +727,12 @@ std::pair<Status, std::shared_ptr<InvertedDiskIndexer>>
 InvertedIndexReaderImpl::CreateDefaultDiskIndexer(const std::shared_ptr<Segment>& segment,
                                                   const std::shared_ptr<IIndexConfig>& indexConfig)
 {
-    indexlibv2::index::IndexerParameter indexerParam;
+    indexlibv2::index::DiskIndexerParameter indexerParam;
     indexerParam.segmentId = segment->GetSegmentId();
     indexerParam.docCount = segment->GetSegmentInfo()->docCount;
     indexerParam.segmentInfo = segment->GetSegmentInfo();
     indexerParam.segmentMetrics = segment->GetSegmentMetrics();
-    indexerParam.readerOpenType = indexlibv2::index::IndexerParameter::READER_DEFAULT_VALUE;
+    indexerParam.readerOpenType = indexlibv2::index::DiskIndexerParameter::READER_DEFAULT_VALUE;
 
     auto [status, directory] =
         segment->GetSegmentDirectory()->GetIDirectory()->GetDirectory(INVERTED_INDEX_PATH).StatusWith();

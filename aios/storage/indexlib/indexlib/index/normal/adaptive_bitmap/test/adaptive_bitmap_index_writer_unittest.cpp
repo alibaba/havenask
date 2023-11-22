@@ -1,5 +1,6 @@
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
+#include "indexlib/config/single_field_index_config.h"
 #include "indexlib/file_system/file/BufferedFileWriter.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
@@ -15,8 +16,6 @@
 
 using namespace autil;
 using namespace std;
-using namespace indexlib::file_system;
-using namespace indexlib::common;
 using namespace indexlib::file_system;
 
 namespace indexlib { namespace index { namespace legacy {

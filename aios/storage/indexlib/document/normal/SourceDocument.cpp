@@ -66,12 +66,22 @@ bool SourceDocument::operator==(const SourceDocument& right) const
 
 bool SourceDocument::operator!=(const SourceDocument& right) const { return !operator==(right); }
 
-const StringView& SourceDocument::GetField(index::groupid_t groupId, const string& fieldName) const
+const StringView& SourceDocument::GetField(index::sourcegroupid_t groupId, const string& fieldName) const
 {
     if (groupId >= _data.size()) {
         return StringView::empty_instance();
     }
     return _data[groupId]->GetField(fieldName);
+}
+
+const StringView& SourceDocument::GetField(const string& fieldName) const
+{
+    for (const auto& group : _data) {
+        if (group->HasField(fieldName)) {
+            return group->GetField(fieldName);
+        }
+    }
+    return StringView::empty_instance();
 }
 
 const autil::StringView& SourceDocument::GetAccessaryField(const std::string& fieldName) const
@@ -82,7 +92,7 @@ const autil::StringView& SourceDocument::GetAccessaryField(const std::string& fi
     return _accessaryData->GetField(fieldName);
 }
 
-bool SourceDocument::HasField(index::groupid_t groupId, const string& fieldName) const
+bool SourceDocument::HasField(index::sourcegroupid_t groupId, const string& fieldName) const
 {
     if (groupId >= _data.size()) {
         return false;
@@ -90,7 +100,7 @@ bool SourceDocument::HasField(index::groupid_t groupId, const string& fieldName)
     return _data[groupId]->HasField(fieldName);
 }
 
-bool SourceDocument::IsNonExistField(index::groupid_t groupId, const string& fieldName) const
+bool SourceDocument::IsNonExistField(index::sourcegroupid_t groupId, const string& fieldName) const
 {
     if (groupId >= _data.size()) {
         return false;
@@ -98,20 +108,20 @@ bool SourceDocument::IsNonExistField(index::groupid_t groupId, const string& fie
     return _data[groupId]->IsNonExistField(fieldName);
 }
 
-void SourceDocument::Append(const index::groupid_t groupId, const StringView& fieldName, const StringView& value,
+void SourceDocument::Append(const index::sourcegroupid_t groupId, const StringView& fieldName, const StringView& value,
                             bool needCopy)
 {
     string fn(fieldName.data(), fieldName.size());
     Append(groupId, fn, value, needCopy);
 }
 
-void SourceDocument::AppendNonExistField(index::groupid_t groupId, const StringView& fieldName)
+void SourceDocument::AppendNonExistField(index::sourcegroupid_t groupId, const StringView& fieldName)
 {
     string fn(fieldName.data(), fieldName.size());
     AppendNonExistField(groupId, fn);
 }
 
-void SourceDocument::AppendNonExistField(index::groupid_t groupId, const string& fieldName)
+void SourceDocument::AppendNonExistField(index::sourcegroupid_t groupId, const string& fieldName)
 {
     if (groupId < 0) {
         return;
@@ -122,7 +132,7 @@ void SourceDocument::AppendNonExistField(index::groupid_t groupId, const string&
     _data[groupId]->AppendNonExistField(fieldName);
 }
 
-void SourceDocument::Append(const index::groupid_t groupId, const string& fieldName, const StringView& value,
+void SourceDocument::Append(const index::sourcegroupid_t groupId, const string& fieldName, const StringView& value,
                             bool needCopy)
 {
     if (groupId < 0) {
@@ -233,7 +243,7 @@ bool SourceDocument::SourceGroup::IsNonExistField(size_t fieldIdx) const
     return this->nonExistFieldIdSet.find((uint16_t)fieldIdx) != this->nonExistFieldIdSet.end();
 }
 
-SourceDocument::SourceGroupFieldIter SourceDocument::CreateGroupFieldIter(index::groupid_t groupId) const
+SourceDocument::SourceGroupFieldIter SourceDocument::CreateGroupFieldIter(index::sourcegroupid_t groupId) const
 {
     if (groupId >= _data.size()) {
         return SourceDocument::SourceGroupFieldIter();
@@ -241,7 +251,7 @@ SourceDocument::SourceGroupFieldIter SourceDocument::CreateGroupFieldIter(index:
     return SourceDocument::SourceGroupFieldIter(_data[groupId]);
 }
 
-SourceDocument::SourceMetaIter SourceDocument::CreateGroupMetaIter(index::groupid_t groupId) const
+SourceDocument::SourceMetaIter SourceDocument::CreateGroupMetaIter(index::sourcegroupid_t groupId) const
 {
     if (groupId >= _data.size()) {
         return SourceDocument::SourceMetaIter();
@@ -283,12 +293,17 @@ const StringView SourceDocument::SourceMetaIter::Next()
     return ret;
 }
 
-void SourceDocument::ToRawDocument(indexlibv2::document::RawDocument& rawDoc) const
+void SourceDocument::ToRawDocument(indexlibv2::document::RawDocument& rawDoc, const set<string>& requiredFields) const
 {
+    bool hasRequiredField = !requiredFields.empty();
     for (auto& sourceGroup : _data) {
         assert(sourceGroup);
         for (size_t i = 0; i < sourceGroup->fieldsName.size(); i++) {
             if (sourceGroup->IsNonExistField(i)) {
+                continue;
+            }
+
+            if (hasRequiredField && requiredFields.count(sourceGroup->fieldsName[i]) == 0) {
                 continue;
             }
             StringView fieldName(sourceGroup->fieldsName[i]);
@@ -301,6 +316,10 @@ void SourceDocument::ToRawDocument(indexlibv2::document::RawDocument& rawDoc) co
             if (_accessaryData->IsNonExistField(i)) {
                 continue;
             }
+
+            if (hasRequiredField && requiredFields.count(_accessaryData->fieldsName[i]) == 0) {
+                continue;
+            }
             StringView fieldName(_accessaryData->fieldsName[i]);
             rawDoc.setField(fieldName, _accessaryData->fieldsValue[i]);
         }
@@ -311,7 +330,6 @@ void SourceDocument::ExtractFields(vector<string>& fieldNames, vector<string>& f
                                    const set<string>& requiredFields) const
 {
     bool hasRequiredField = !requiredFields.empty();
-
     assert(fieldNames.size() == fieldValues.size());
     for (auto& sourceGroup : _data) {
         assert(sourceGroup);

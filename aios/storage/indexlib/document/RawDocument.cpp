@@ -15,28 +15,45 @@
  */
 #include "indexlib/document/RawDocument.h"
 
+#include <utility>
+
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/base/Constant.h"
+#include "indexlib/document/DocumentMemPoolFactory.h"
+#include "indexlib/document/RawDocFieldIterator.h"
 #include "indexlib/document/RawDocumentDefine.h"
 
 namespace indexlibv2::document {
 
-RawDocument::RawDocument() : _pool(new autil::mem_pool::Pool(1024)) {}
+RawDocument::RawDocument()
+{
+    _recyclePool = indexlib::util::Singleton<DocumentMemPoolFactory>::GetInstance()->GetPool();
+}
 
-RawDocument::RawDocument(const RawDocument& other) : _pool(new autil::mem_pool::Pool(1024)) {}
+RawDocument::RawDocument(const RawDocument& other)
+{
+    _recyclePool = indexlib::util::Singleton<DocumentMemPoolFactory>::GetInstance()->GetPool();
+}
 
-RawDocument::~RawDocument() {}
+RawDocument::~RawDocument()
+{
+    if (_recyclePool) {
+        indexlib::util::Singleton<DocumentMemPoolFactory>::GetInstance()->Recycle(_recyclePool);
+    }
+}
 
 RawDocument& RawDocument::operator=(const RawDocument& other)
 {
     if (this != &other) {
-        _pool->reset();
+        if (_recyclePool) {
+            _recyclePool->reset();
+        }
     }
     return *this;
 }
 
 RawDocument::RawDocument(RawDocument&& other)
-    : _pool(std::exchange(other._pool, nullptr))
+    : _recyclePool(std::exchange(other._recyclePool, nullptr))
     , _ignoreEmptyField(other._ignoreEmptyField)
 {
 }
@@ -73,7 +90,7 @@ std::string RawDocument::GetTraceId() const { return getField(BUILTIN_KEY_TRACE_
 
 autil::StringView RawDocument::GetEvaluatorState() const { return _evaluatorState; }
 void RawDocument::SetEvaluatorState(const autil::StringView& state) { _evaluatorState = state; }
-autil::mem_pool::Pool* RawDocument::getPool() { return _pool.get(); }
+autil::mem_pool::Pool* RawDocument::getPool() const { return _recyclePool; }
 
 const std::string& RawDocument::getDocSource() const { return GetTag(DOCUMENT_SOURCE_TAG_KEY); }
 void RawDocument::setDocSource(const std::string& src) { AddTag(DOCUMENT_SOURCE_TAG_KEY, src); }
@@ -135,6 +152,15 @@ bool RawDocument::IsUserDoc()
     auto opType = getDocOperateType();
     return opType == UNKNOWN_OP || opType == ADD_DOC || opType == DELETE_DOC || opType == UPDATE_FIELD ||
            opType == SKIP_DOC || opType == DELETE_SUB_DOC;
+}
+
+RawDocument::Snapshot* RawDocument::GetSnapshot() const
+{
+    auto snapshot = new Snapshot();
+    for (auto iter = std::unique_ptr<RawDocFieldIterator>(CreateIterator()); iter->IsValid(); iter->MoveToNext()) {
+        snapshot->emplace(iter->GetFieldName(), iter->GetFieldValue());
+    }
+    return snapshot;
 }
 
 } // namespace indexlibv2::document

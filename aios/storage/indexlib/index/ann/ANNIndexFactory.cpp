@@ -28,13 +28,13 @@ AUTIL_LOG_SETUP(indexlib.index, ANNIndexFactory);
 
 std::shared_ptr<IDiskIndexer>
 ANNIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                   const IndexerParameter& indexerParam) const
+                                   const DiskIndexerParameter& indexerParam) const
 {
     return std::make_shared<ann::AithetaDiskIndexer>(indexerParam);
 }
 
 std::shared_ptr<IMemIndexer> ANNIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                               const IndexerParameter& indexerParam) const
+                                                               const MemIndexerParameter& indexerParam) const
 {
     auto annIndexConfig = std::dynamic_pointer_cast<config::ANNIndexConfig>(indexConfig);
     if (!annIndexConfig) {
@@ -46,9 +46,9 @@ std::shared_ptr<IMemIndexer> ANNIndexFactory::CreateMemIndexer(const std::shared
 
 std::unique_ptr<IIndexReader>
 ANNIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                   const IndexerParameter& indexerParam) const
+                                   const IndexReaderParameter& indexReaderParam) const
 {
-    return std::make_unique<ann::AithetaIndexReader>(indexerParam);
+    return std::make_unique<ann::AithetaIndexReader>(indexReaderParam);
 }
 
 std::unique_ptr<IIndexMerger>

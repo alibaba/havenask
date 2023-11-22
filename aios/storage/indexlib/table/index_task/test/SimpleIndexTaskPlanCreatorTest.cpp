@@ -19,7 +19,7 @@ public:
 class SimpleIndexTaskPlanCreatorForTest : public SimpleIndexTaskPlanCreator
 {
 public:
-    SimpleIndexTaskPlanCreatorForTest() : SimpleIndexTaskPlanCreator("taskName", /*params=*/ {}) {}
+    SimpleIndexTaskPlanCreatorForTest() : SimpleIndexTaskPlanCreator("taskName", "taskTraceId", /*params=*/ {}) {}
     std::string ConstructLogTaskType() const override { return ""; }
     std::string ConstructLogTaskId(const framework::IndexTaskContext* taskContext,
                                    const framework::Version& targetVersion) const override

@@ -29,7 +29,7 @@
 #include "sql/ops/scan/ScanBase.h"
 #include "sql/ops/scan/ScanInitParamR.h"
 #include "sql/ops/scan/ScanR.h"
-#include "sql/resource/TabletManagerR.h"
+#include "sql/resource/WatermarkR.h"
 #include "suez_navi/resource/AsyncExecutorR.h"
 #include "table/Table.h"
 
@@ -89,6 +89,9 @@ public:
     navi::ErrorCode init(navi::ResourceInitContext &ctx) override;
 
 public:
+    void startAsyncLookup() override;
+
+public:
     static const std::string RESOURCE_ID;
 
 private:
@@ -98,7 +101,6 @@ private:
     bool prepareIndexInfo();
     bool prepareLookUpCtx();
     KVLookupOption prepareLookupOption();
-    virtual void startLookupCtx();
     bool parseQuery();
     bool prepareFields();
     bool prepareBatchMatchDocAllocator();
@@ -118,7 +120,7 @@ private:
     RESOURCE_DEPEND_ON(CalcTableR, _calcTableR);
     RESOURCE_DEPEND_ON(AttributeExpressionCreatorR, _attributeExpressionCreatorR);
     RESOURCE_DEPEND_ON(suez_navi::AsyncExecutorR, _asyncExecutorR);
-    RESOURCE_DEPEND_ON(TabletManagerR, _tabletManagerR);
+    RESOURCE_DEPEND_ON(WatermarkR, _watermarkR);
     std::shared_ptr<AsyncKVLookupCallbackCtx> _lookupCtx;
     std::shared_ptr<void> _kvReader;
     bool _requirePk = true;

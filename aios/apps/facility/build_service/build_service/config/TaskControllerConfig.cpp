@@ -15,6 +15,10 @@
  */
 #include "build_service/config/TaskControllerConfig.h"
 
+#include <iosfwd>
+
+#include "autil/legacy/jsonizable.h"
+
 using namespace std;
 
 namespace build_service { namespace config {

@@ -114,7 +114,6 @@ bool TableMergeKernel::mergeTableData(NaviPartId index, DataPtr &data) {
         NAVI_KERNEL_LOG(ERROR, "get table failed for [%p]", data.get());
         return false;
     }
-    NAVI_KERNEL_LOG(TRACE2, "get table [%p] for partId [%d]", table.get(), index);
     NAVI_KERNEL_LOG(
         TRACE3, "table data [%s] for partId [%d]", TableUtil::toString(table, 5).c_str(), index);
     _dataReadyMap->setReady(index, true);

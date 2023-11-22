@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TIMESERIESMERGESTRATEGYTEST_H
-#define __INDEXLIB_TIMESERIESMERGESTRATEGYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/merge_strategy/time_series_merge_strategy.h"
@@ -49,5 +48,3 @@ INDEXLIB_UNIT_TEST_CASE(TimeSeriesMergeStrategyTest, TestException);
 INDEXLIB_UNIT_TEST_CASE(TimeSeriesMergeStrategyTest, TestMergeWithTag);
 INDEXLIB_UNIT_TEST_CASE(TimeSeriesMergeStrategyTest, TestInvalidSortField);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TIMESERIESMERGESTRATEGYTEST_H

@@ -17,6 +17,8 @@
 
 #include "aios/network/gig/multi_call/arpc/ServiceWrapper.h"
 
+#ifndef GLIBC_2_17_COMPATIBLE
+#endif
 
 using namespace std;
 
@@ -35,10 +37,14 @@ bool RdmaArpcServerWapper::startRdmaArpcServer(RdmaArpcServerDescription &desc) 
 }
 
 int32_t RdmaArpcServerWapper::getListenPort() {
+#ifndef GLIBC_2_17_COMPATIBLE
+#endif
     return INVALID_PORT;
 }
 
 std::shared_ptr<arpc::RPCServer> RdmaArpcServerWapper::getRPCServer() const {
+#ifndef GLIBC_2_17_COMPATIBLE
+#endif
     return nullptr;
 }
 
@@ -52,6 +58,8 @@ template <typename ThreadPoolRep>
 void RdmaArpcServerWapper::doRegisterService(const std::shared_ptr<ServiceWrapper> &serviceWrapper,
                                              const std::string &methodName,
                                              const ThreadPoolRep &poolRep) {
+#ifndef GLIBC_2_17_COMPATIBLE
+#endif
 }
 
 void RdmaArpcServerWapper::registerService(ServiceWrapper *serviceWrapper,
@@ -67,9 +75,13 @@ void RdmaArpcServerWapper::registerService(ServiceWrapper *serviceWrapper,
 template <typename ThreadPoolRep>
 void RdmaArpcServerWapper::doRegisterService(ServiceWrapper *serviceWrapper,
                                              const ThreadPoolRep &poolRep) {
+#ifndef GLIBC_2_17_COMPATIBLE
+#endif
 }
 
 void RdmaArpcServerWapper::stopRdmaArpcServer() {
+#ifndef GLIBC_2_17_COMPATIBLE
+#endif
 }
 
 } // namespace multi_call

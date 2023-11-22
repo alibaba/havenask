@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEGMENTMERGEINFOTEST_H
-#define __INDEXLIB_SEGMENTMERGEINFOTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(SegmentMergeInfoTest, TestJsonize);
 INDEXLIB_UNIT_TEST_CASE(SegmentMergeInfoTest, TestComparation);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SEGMENTMERGEINFOTEST_H

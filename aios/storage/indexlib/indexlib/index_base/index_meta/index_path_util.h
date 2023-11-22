@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_PATH_UTIL_H
-#define __INDEXLIB_INDEX_PATH_UTIL_H
+#pragma once
 
 #include "indexlib/index_define.h"
 #include "indexlib/indexlib.h"
@@ -28,11 +27,9 @@ public:
     static bool GetVersionId(const std::string& path, versionid_t& versionId) noexcept;
     static bool GetDeployMetaId(const std::string& path, versionid_t& versionId) noexcept;
     static bool GetPatchMetaId(const std::string& path, versionid_t& versionId) noexcept;
-    static bool GetSchemaId(const std::string& path, schemavid_t& schemaId) noexcept;
-    static bool GetPatchIndexId(const std::string& path, schemavid_t& schemaId) noexcept;
+    static bool GetSchemaId(const std::string& path, schemaid_t& schemaId) noexcept;
+    static bool GetPatchIndexId(const std::string& path, schemaid_t& schemaId) noexcept;
 
     static bool IsValidSegmentName(const std::string& path) noexcept;
 };
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_INDEX_PATH_UTIL_H

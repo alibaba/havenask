@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_REMOVEOPERATIONTEST_H
-#define __INDEXLIB_REMOVEOPERATIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/primarykey/legacy_primary_key_reader.h"
@@ -52,7 +51,7 @@ template <typename T>
 class MockPrimaryKeyIndexReader : public index::LegacyPrimaryKeyReader<T>
 {
 public:
-    MOCK_METHOD(docid_t, LookupWithPKHash, (const autil::uint128_t&, future_lite::Executor* executor),
+    MOCK_METHOD(docid64_t, LookupWithPKHash, (const autil::uint128_t&, future_lite::Executor* executor),
                 (const, override));
 };
 
@@ -115,5 +114,3 @@ void RemoveOperationTest::DoTestProcess()
     simplePartitionData.reset();
 }
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_REMOVEOPERATIONTEST_H

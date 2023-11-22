@@ -46,6 +46,8 @@ void TokenizeDocument::eraseField(fieldid_t fieldId)
     }
 }
 
+void TokenizeDocument::clear() { _fields.clear(); }
+
 const std::shared_ptr<TokenizeField>& TokenizeDocument::getField(fieldid_t fieldId) const
 {
     if ((size_t)fieldId >= _fields.size()) {

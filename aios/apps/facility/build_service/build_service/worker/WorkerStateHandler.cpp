@@ -15,10 +15,19 @@
  */
 #include "build_service/worker/WorkerStateHandler.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <thread>
+#include <unordered_map>
+#include <utility>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/ConfigDownloader.h"
 #include "build_service/common/CounterSynchronizer.h"
 #include "build_service/common/PathDefine.h"
-#include "build_service/proto/HeartbeatDefine.h"
+#include "build_service/proto/ProtoComparator.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;

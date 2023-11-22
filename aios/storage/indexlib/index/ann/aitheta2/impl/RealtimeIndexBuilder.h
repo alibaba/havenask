@@ -23,10 +23,11 @@ namespace indexlibv2::index::ann {
 class RealtimeIndexBuilder
 {
 public:
-    RealtimeIndexBuilder(const AiThetaStreamerPtr& index, const IndexQueryMeta& meta,
+    RealtimeIndexBuilder(const AiThetaStreamerPtr& index, const IndexQueryMeta& queryMeta,
                          const AiThetaContextHolderPtr& holder)
         : _streamer(index)
-        , _indexQueryMeta(meta)
+        , _streamerName(_streamer->meta().streamer_name())
+        , _queryMeta(queryMeta)
         , _contextHolder(holder)
     {
     }
@@ -42,7 +43,8 @@ public:
 
 private:
     AiThetaStreamerPtr _streamer;
-    IndexQueryMeta _indexQueryMeta;
+    std::string _streamerName;
+    IndexQueryMeta _queryMeta;
     AiThetaContextHolderPtr _contextHolder;
 
     AUTIL_LOG_DECLARE();

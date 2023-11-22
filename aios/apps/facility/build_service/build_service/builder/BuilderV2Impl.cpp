@@ -15,16 +15,32 @@
  */
 #include "build_service/builder/BuilderV2Impl.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <map>
+#include <unistd.h>
+#include <vector>
+
+#include "autil/Log.h"
 #include "build_service/common/BeeperCollectorDefine.h"
-#include "build_service/proto/ProtoUtil.h"
-#include "fslib/fs/FileSystem.h"
+#include "build_service/common_define.h"
+#include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
-#include "indexlib/config/TabletOptions.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/ElementaryDocumentBatch.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/framework/BuildDocumentMetrics.h"
 #include "indexlib/framework/ITablet.h"
+#include "indexlib/framework/IndexRoot.h"
+#include "indexlib/framework/OpenOptions.h"
 #include "indexlib/framework/TabletInfos.h"
 #include "indexlib/framework/TabletMetrics.h"
+#include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
@@ -97,9 +113,12 @@ bool BuilderV2Impl::build(const std::shared_ptr<indexlibv2::document::IDocumentB
     if (hasFatalError()) {
         return false;
     }
-    for (size_t i = 0; i < batch->GetBatchSize(); ++i) {
-        if ((*batch)[i]->GetDocOperateType() == DocOperateType::CHECKPOINT_DOC) {
-            batch->DropDoc(i);
+    auto elementaryBatch = std::dynamic_pointer_cast<indexlibv2::document::ElementaryDocumentBatch>(batch);
+    if (elementaryBatch == nullptr) {
+        for (size_t i = 0; i < batch->GetBatchSize(); ++i) {
+            if ((*batch)[i]->GetDocOperateType() == DocOperateType::CHECKPOINT_DOC) {
+                batch->DropDoc(i);
+            }
         }
     }
     auto status = doBuild(batch);
@@ -306,7 +325,13 @@ indexlibv2::framework::Locator BuilderV2Impl::getLastLocator() const
     return indexlibv2::framework::Locator();
 }
 
-indexlibv2::framework::Locator BuilderV2Impl::getLatestVersionLocator() const { return getLastLocator(); }
+indexlibv2::framework::Locator BuilderV2Impl::getLatestVersionLocator() const
+{
+    if (_tablet) {
+        return _tablet->GetTabletInfos()->GetLoadedPublishVersion().GetLocator();
+    }
+    return indexlibv2::framework::Locator();
+}
 indexlibv2::framework::Locator BuilderV2Impl::getLastFlushedLocator() const
 {
     if (_tablet) {

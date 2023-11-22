@@ -15,8 +15,25 @@
  */
 #include "build_service/admin/BatchBrokerTopicAccessor.h"
 
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <set>
+#include <type_traits>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/SwiftAdminFacade.h"
+#include "build_service/util/SwiftClientCreator.h"
+#include "swift/client/SwiftClient.h"
+#include "swift/client/SwiftClientConfig.h"
+#include "swift/protocol/AdminRequestResponse.pb.h"
+#include "swift/protocol/Common.pb.h"
+#include "swift/protocol/ErrCode.pb.h"
 
 using namespace std;
 using namespace autil;

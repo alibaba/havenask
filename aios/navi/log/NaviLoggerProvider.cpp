@@ -28,8 +28,8 @@ NaviLoggerProvider::NaviLoggerProvider(const std::string &logLevel,
     config.maxMessageLength = 1024 * 1024;
     _logManager->init(config);
     auto logger = _logManager->createLogger();
-    logger->setTraceAppender(new TraceAppender(logLevel));
-    logger->addAppender(new ConsoleAppender(logLevel));
+    logger->setTraceAppender(std::make_shared<TraceAppender>(logLevel));
+    logger->addAppender(std::make_shared<ConsoleAppender>(logLevel));
     _logger = new NaviObjectLogger(this, prefix.c_str(), logger);
     _scope = new NaviLoggerScope(*_logger);
 }
@@ -40,7 +40,12 @@ NaviLoggerProvider::~NaviLoggerProvider() {
 }
 
 std::string NaviLoggerProvider::getErrorMessage() const {
-    return _logger->logger->firstErrorEvent().message;
+    auto errorEvent = _logger->logger->firstErrorEvent();
+    if (errorEvent) {
+        return errorEvent->message;
+    } else {
+        return std::string();
+    }
 }
 
 std::vector<std::string> NaviLoggerProvider::getTrace(

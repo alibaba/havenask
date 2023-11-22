@@ -11,7 +11,6 @@ strict_cc_library(
 strict_cc_library(
     name='TabletTestAgent',
     testonly=True,
-    visibility=['//visibility:public'],
     deps=['//aios/storage/indexlib/framework:Tablet']
 )
 strict_cc_library(
@@ -24,9 +23,11 @@ strict_cc_fast_test(
     name='framework_unittest',
     srcs=[
         'BuildDocumentMetricsTest.cpp', 'DeployIndexUtilTest.cpp',
-        'FenceTest.cpp', 'IdGeneratorTest.cpp', 'IndexRecoverStrategyTest.cpp',
-        'LevelInfoTest.cpp', 'LocatorTest.cpp', 'MetricsManagerTest.cpp',
-        'ResourceMapTest.cpp', 'SegmentDescriptionsTest.cpp',
+        'EnvironmentVariablesProviderTest.cpp', 'FenceTest.cpp',
+        'IdGeneratorTest.cpp', 'IndexRecoverStrategyTest.cpp',
+        'IndexTaskQueueTest.cpp', 'LevelInfoTest.cpp', 'LocatorTest.cpp',
+        'MetricsManagerTest.cpp', 'ResourceMapTest.cpp',
+        'SegmentDescriptionsTest.cpp', 'SegmentInfoTest.cpp',
         'TabletCommitterTest.cpp', 'TabletDataTest.cpp', 'TabletDumperTest.cpp',
         'TabletLoaderTest.cpp', 'TabletMemoryCalculatorTest.cpp',
         'TabletMetricsTest.cpp', 'TabletReaderContainerTest.cpp',
@@ -45,6 +46,8 @@ strict_cc_fast_test(
         '//aios/storage/indexlib/framework:Fence',
         '//aios/storage/indexlib/framework:IdGenerator',
         '//aios/storage/indexlib/framework:IndexRecoverStrategy',
+        '//aios/storage/indexlib/framework:LSMMemTableControlStrategy',
+        '//aios/storage/indexlib/framework:IndexTaskQueue',
         '//aios/storage/indexlib/framework:OpenOptions',
         '//aios/storage/indexlib/framework:ReadResource',
         '//aios/storage/indexlib/framework:ResourceMap',
@@ -94,6 +97,7 @@ strict_cc_library(
 strict_cc_fast_test(
     name='TabletSchemaLoaderTest',
     srcs=['TabletSchemaLoaderTest.cpp'],
+    copts=['-fno-access-control'],
     data=['testdata/schema.json.1', 'testdata/schema.json.2'],
     deps=[
         '//aios/storage/indexlib/framework:TabletSchemaLoader',
@@ -104,6 +108,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='TabletDeployerTest',
     srcs=['TabletDeployerTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/framework:TabletDeployer',
         '//aios/unittest_framework'
@@ -112,6 +117,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='VersionDeployDescriptionTest',
     srcs=['VersionDeployDescriptionTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/framework:VersionDeployDescription',
         '//aios/unittest_framework'
@@ -120,6 +126,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='SegmentStatisticsTest',
     srcs=['SegmentStatisticsTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/framework:SegmentStatistics',
         '//aios/unittest_framework'
@@ -128,6 +135,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='SegmentMetricsTest',
     srcs=['SegmentMetricsTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/framework:SegmentMetrics',
         '//aios/unittest_framework'

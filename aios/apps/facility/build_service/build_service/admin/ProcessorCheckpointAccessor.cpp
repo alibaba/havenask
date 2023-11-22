@@ -15,10 +15,15 @@
  */
 #include "build_service/admin/ProcessorCheckpointAccessor.h"
 
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
-#include "build_service/admin/CheckpointCreator.h"
 #include "build_service/admin/ProcessorCheckpointFormatter.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/proto/Admin.pb.h"
+#include "indexlib/base/Progress.h"
 
 using namespace std;
 using autil::StringUtil;

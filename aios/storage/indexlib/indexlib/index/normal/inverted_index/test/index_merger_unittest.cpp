@@ -160,7 +160,7 @@ void IndexMergerTest::TestGetMaxLengthOfPostingWithDictInline()
     mergeInfos.push_back(SegmentMergeInfo(0, segmentInfo, 0, 0));
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     Version version;
-    VersionLoader::GetVersionS(GET_TEMP_DATA_PATH(), version, INVALID_VERSION);
+    VersionLoader::GetVersionS(GET_TEMP_DATA_PATH(), version, INVALID_VERSIONID);
     merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
     segDir->Init(false);
     NormalIndexMerger* normalIndexMerger = dynamic_cast<NormalIndexMerger*>(indexMerger.get());

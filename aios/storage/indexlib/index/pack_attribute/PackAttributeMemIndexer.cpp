@@ -22,7 +22,7 @@
 namespace indexlibv2::index {
 AUTIL_LOG_SETUP(indexlib.index, PackAttributeMemIndexer);
 
-PackAttributeMemIndexer::PackAttributeMemIndexer(const IndexerParameter& indexerParam)
+PackAttributeMemIndexer::PackAttributeMemIndexer(const MemIndexerParameter& indexerParam)
     : MultiValueAttributeMemIndexer<char>(indexerParam)
 {
 }

@@ -472,14 +472,16 @@ TEST_F(TableServiceKVBatchGetTest, testSimpleQuery) {
     ASSERT_EQ(2, table->getColumnCount());
 
     int idx = 0;
-    if (table->toString(0, 0) == "k1") {
+    auto *column = table->getColumn(0);
+    if (column->toString(0) == "k1") {
         idx = 1;
     }
-    ASSERT_EQ("k3", table->toString(idx, 0));
-    ASSERT_EQ("k1", table->toString(1 - idx, 0));
+    ASSERT_EQ("k3", column->toString(idx));
+    ASSERT_EQ("k1", column->toString(1 - idx));
 
-    ASSERT_EQ("4^]5^]6", table->toString(idx, 1));
-    ASSERT_EQ("1^]2^]3", table->toString(1 - idx, 1));
+    column = table->getColumn(1);
+    ASSERT_EQ("4^]5^]6", column->toString(idx));
+    ASSERT_EQ("1^]2^]3", column->toString(1 - idx));
 }
 
 TEST_F(TableServiceKVBatchGetTest, testEmptyQuery) {

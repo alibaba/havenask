@@ -267,7 +267,8 @@ ErrorCode SwiftClient::init(const vector<SwiftClientConfig> &configVec, arpc::AN
         _blockPoolMap[_configVec[i].zkPath] = blockPoolPtr;
         int64_t bufferSizeLimit = _configVec[i].tempWriteBufferPercent * 1024 * 1024;
         if (_configVec[i].tempWriteBufferPercent < 1.0) {
-            bufferSizeLimit = _configVec[i].maxWriteBufferSizeMb * _configVec[i].tempWriteBufferPercent * 1024 * 1024;
+            bufferSizeLimit = maxBufferSize * _configVec[i].tempWriteBufferPercent * 1024 * 1024;
+            AUTIL_LOG(INFO, "addjust buffer size limit to [%ld]", bufferSizeLimit);
         }
         BufferSizeLimiterPtr limiter(new BufferSizeLimiter(bufferSizeLimit));
         _limiterMap[_configVec[i].zkPath] = limiter;

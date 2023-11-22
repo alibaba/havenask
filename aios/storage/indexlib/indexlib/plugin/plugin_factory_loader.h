@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PLUGIN_FACTORY_LOADER_H
-#define __INDEXLIB_PLUGIN_FACTORY_LOADER_H
+#pragma once
 
 #include <memory>
+#include <string>
 
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "alog/Logger.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/plugin/Module.h"
-#include "indexlib/plugin/ModuleFactory.h"
 #include "indexlib/plugin/plugin_manager.h"
 
 namespace indexlib { namespace plugin {
@@ -67,5 +67,3 @@ Factory* PluginFactoryLoader::GetFactory(const std::string& moduleName, const st
 }
 
 }} // namespace indexlib::plugin
-
-#endif //__INDEXLIB_PLUGIN_FACTORY_LOADER_H

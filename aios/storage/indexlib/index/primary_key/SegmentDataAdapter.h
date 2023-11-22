@@ -39,7 +39,7 @@ public:
         std::shared_ptr<indexlib::file_system::Directory> _directory;
         segmentid_t _segmentId = INVALID_DOCID;
         bool _isRTSegment = false;
-        docid_t _baseDocId = 0;
+        docid64_t _baseDocId = 0;
         framework::Segment* _segment = nullptr;
     } SegmentDataType;
 

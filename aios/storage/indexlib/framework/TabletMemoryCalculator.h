@@ -17,11 +17,8 @@
 
 #include <memory>
 #include <mutex>
-#include <vector>
+#include <stddef.h>
 
-#include "indexlib/base/Constant.h"
-#include "indexlib/file_system/Directory.h"
-#include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/TabletWriter.h"
 
 namespace indexlibv2::framework {

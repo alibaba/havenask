@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MULTI_REGION_KKV_KEYS_EXTRACTOR_H
-#define __INDEXLIB_MULTI_REGION_KKV_KEYS_EXTRACTOR_H
+#pragma once
 
 #include <memory>
 
@@ -61,5 +60,3 @@ private:
 
 DEFINE_SHARED_PTR(MultiRegionKKVKeysExtractor);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_MULTI_REGION_KKV_KEYS_EXTRACTOR_H

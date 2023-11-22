@@ -324,7 +324,7 @@ uint8_t MmapFileNode::WarmUp(const char* addr, int64_t len) noexcept
     return noUse;
 }
 
-future_lite::Future<uint32_t> MmapFileNode::ReadVUInt32Async(size_t offset, ReadOption option) noexcept
+future_lite::Future<FSResult<uint32_t>> MmapFileNode::ReadVUInt32Async(size_t offset, ReadOption option) noexcept
 {
     uint8_t* byte = static_cast<uint8_t*>(_data) + offset;
     uint32_t value = (*byte) & 0x7f;
@@ -334,7 +334,7 @@ future_lite::Future<uint32_t> MmapFileNode::ReadVUInt32Async(size_t offset, Read
         value |= ((*byte & 0x7F) << shift);
         shift += 7;
     }
-    return future_lite::makeReadyFuture<uint32_t>(value);
+    return future_lite::makeReadyFuture<FSResult<uint32_t>>({FSEC_OK, value});
 }
 
 bool MmapFileNode::MatchType(FSOpenType type, FSFileType fileType, bool needWrite) const noexcept

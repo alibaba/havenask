@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
@@ -16,15 +21,13 @@ import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.commons.lang3.tuple.Triple;
 
-import java.util.*;
-
 /**
  * Used for parallel optimize
  */
 public class IquanMergeOp extends Union implements IquanRelNode {
+    private final boolean isBlock;
     private int parallelNum = -1;
     private int parallelIndex = -1;
-    private final boolean isBlock;
     private Location location;
     private Distribution distribution;
 
@@ -119,7 +122,7 @@ public class IquanMergeOp extends Union implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         return null;
     }
 

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OFFLINEPARTITIONINTETEST_H
-#define __INDEXLIB_OFFLINEPARTITIONINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -90,5 +89,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OfflinePartitionInteTest, TestExcludedFileCom
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OfflinePartitionInteTest, TestUpdateFileCompressSchema);
 
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OFFLINEPARTITIONINTETEST_H

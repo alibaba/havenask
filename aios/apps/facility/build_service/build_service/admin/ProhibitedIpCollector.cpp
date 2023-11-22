@@ -15,6 +15,11 @@
  */
 #include "build_service/admin/ProhibitedIpCollector.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <utility>
+
+#include "autil/Span.h"
 #include "autil/TimeUtility.h"
 #include "build_service/admin/ProhibitedIpsTable.h"
 

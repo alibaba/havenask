@@ -30,7 +30,7 @@ void SegmentDirectoryTest::TestGetFsDirectoryForSub()
 {
     Version onDiskVersion = VersionMaker::Make(GET_PARTITION_DIRECTORY(), 1, "0,2,4", "", "", 0, true);
     SegmentDirectory segDir;
-    segDir.Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir.Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
 
     SegmentDirectoryPtr subSegDir = segDir.GetSubSegmentDirectory();
     INDEXLIB_TEST_TRUE(subSegDir);
@@ -44,7 +44,7 @@ void SegmentDirectoryTest::TestInitSegmentDataForSub()
 {
     Version onDiskVersion = VersionMaker::Make(GET_PARTITION_DIRECTORY(), 1, "0,2,4", "", "", 0, true);
     SegmentDirectory segDir;
-    segDir.Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir.Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
 
     SegmentDirectoryPtr subSegDir = segDir.GetSubSegmentDirectory();
     INDEXLIB_TEST_TRUE(subSegDir);
@@ -61,7 +61,7 @@ void SegmentDirectoryTest::TestInitIndexFormatVersion()
     {
         // non-exist format version
         SegmentDirectory segDir;
-        segDir.Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+        segDir.Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
         const IndexFormatVersion& formatVersion = segDir.GetIndexFormatVersion();
         IndexFormatVersion expectFormatVersion(INDEX_FORMAT_VERSION);
         ASSERT_TRUE(expectFormatVersion == formatVersion);
@@ -79,7 +79,7 @@ void SegmentDirectoryTest::TestInitIndexFormatVersion()
         indexFormatVersion.Store(rootDirectory);
 
         SegmentDirectory segDir;
-        segDir.Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+        segDir.Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
 
         IndexFormatVersion expectFormatVersion("1.8.0");
         IndexFormatVersion loadFormatVersion = segDir.GetIndexFormatVersion();
@@ -96,7 +96,7 @@ void SegmentDirectoryTest::TestClone()
     Version onDiskVersion = VersionMaker::Make(GET_PARTITION_DIRECTORY(), 1, "0,2,4", "", "", 0, true);
 
     SegmentDirectoryPtr segDir(new SegmentDirectory);
-    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION), true);
+    segDir->Init(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID), true);
 
     auto dpDesc = std::make_shared<indexlibv2::framework::VersionDeployDescription>();
     dpDesc->rawPath = "/rawPath";

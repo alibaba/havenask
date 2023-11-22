@@ -17,6 +17,7 @@
 
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
+#include "autil/Span.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
 
@@ -48,31 +49,46 @@ class TokenizeDocumentConvertor : private autil::NoCopyable
 {
 public:
     TokenizeDocumentConvertor() = default;
-    ~TokenizeDocumentConvertor() = default;
+    virtual ~TokenizeDocumentConvertor() = default;
 
 public:
     static const std::string LAST_VALUE_PREFIX;
-    // analyzer factory
+
     Status Init(const std::shared_ptr<config::ITabletSchema>& schema, analyzer::IAnalyzerFactory* analyzerFactory);
 
+    Status Init(const std::vector<std::shared_ptr<config::FieldConfig>>& fieldConfigs,
+                analyzer::IAnalyzerFactory* analyzerFactory);
     Status Convert(RawDocument* rawDoc, const std::map<fieldid_t, std::string>& fieldAnalyzerNameMap,
                    const std::shared_ptr<indexlib::document::TokenizeDocument>& tokenizeDocument,
                    const std::shared_ptr<indexlib::document::TokenizeDocument>& lastTokenizeDocument);
 
+protected:
+    virtual const std::string& GetSeparator(const std::shared_ptr<config::FieldConfig>& fieldConfig) const;
+    virtual Status CheckAnalyzers() const;
+
+protected:
+    bool TokenizeField(const std::shared_ptr<config::FieldConfig>& fieldConfig, autil::StringView fieldValue,
+                       const std::string& analyzerName, bool isNull,
+                       const std::shared_ptr<indexlib::document::TokenizeField>& tokenizeField);
+
 private:
     std::string GetAnalyzerName(fieldid_t fieldId, const std::map<fieldid_t, std::string>& fieldAnalyzerNameMap);
-    analyzer::Analyzer* GetAnalyzer(fieldid_t fieldId, const std::string& fieldAnalyzerName) const;
+
     analyzer::Analyzer* CreateSimpleAnalyzer(const std::string& delimiter) const;
     bool ProcessLastField(const RawDocument* rawDocument,
                           const std::shared_ptr<indexlibv2::config::FieldConfig>& fieldConfig,
                           const std::string& fieldName, const std::string& specifyAnalyzerName,
                           const indexlib::document::TokenizeDocumentPtr& tokenizeDocument);
+    analyzer::Analyzer* GetAnalyzer(const std::shared_ptr<config::FieldConfig>& fieldConfig,
+                                    const std::string& fieldAnalyzerName) const;
     bool ProcessField(const RawDocument* rawDocument,
                       const std::shared_ptr<indexlibv2::config::FieldConfig>& fieldConfig, const std::string& fieldName,
                       const std::string& specifyAnalyzerName,
                       const indexlib::document::TokenizeDocumentPtr& tokenizeDocument);
-    bool TokenizeTextField(const indexlib::document::TokenizeFieldPtr& field, const autil::StringView& fieldValue,
+    bool TokenizeTextField(const std::shared_ptr<config::FieldConfig>& fieldConfig,
+                           const indexlib::document::TokenizeFieldPtr& field, const autil::StringView& fieldValue,
                            const std::string& fieldAnalyzerName);
+
     bool TokenizeMultiValueField(const indexlib::document::TokenizeFieldPtr& field, const autil::StringView& fieldValue,
                                  const std::string& seperator);
     bool TokenizeSingleValueField(const indexlib::document::TokenizeFieldPtr& field,
@@ -83,17 +99,13 @@ private:
 
     bool FindFirstNonDelimiterToken(const analyzer::Analyzer& analyzer, indexlib::document::AnalyzerToken& token) const;
 
-    Status CheckAnalyzers() const;
-
     bool ExtractSectionWeight(indexlib::document::TokenizeSection* section, const analyzer::Analyzer& analyzer);
 
-    void InitFields(const std::shared_ptr<config::ITabletSchema>& schema);
-
-    bool IsInIndex(fieldid_t fieldId) const;
-
 private:
-    std::shared_ptr<config::ITabletSchema> _schema;
-    std::vector<bool> _isFieldInIndex; // mapping: fieldId -> isInIndex
+    fieldid_t _maxFieldId = INVALID_FIELDID;
+    std::vector<std::shared_ptr<config::FieldConfig>> _fieldConfigs;
+    //兼容老行为，非倒排字段也会create field
+    std::vector<std::shared_ptr<config::FieldConfig>> _emptyFieldConfigs;
     analyzer::IAnalyzerFactory* _analyzerFactory = nullptr;
 
 private:

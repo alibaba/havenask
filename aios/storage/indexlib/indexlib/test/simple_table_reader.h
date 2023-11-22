@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SIMPLE_TABLE_READER_H
-#define __INDEXLIB_SIMPLE_TABLE_READER_H
+#pragma once
 
 #include <memory>
 
@@ -25,5 +24,3 @@ private:
 
 DEFINE_SHARED_PTR(SimpleTableReader);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_SIMPLE_TABLE_READER_H

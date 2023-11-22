@@ -58,7 +58,7 @@ private:
         MatchDocAllocatorPtr allocator;
         const auto &docs = _matchDocUtil.createMatchDocs(allocator, 1);
         _matchDocUtil.extendMatchDocAllocator(allocator, docs, "value", {string("a")});
-        return TablePtr(new Table(docs, allocator));
+        return Table::fromMatchDocs(docs, allocator);
     }
 
     GigStreamRpcInfoMap constructLackRpcInfoMap() const;
@@ -108,6 +108,7 @@ TEST_F(SqlResultFormatterTest, testFormatFullJson) {
     accessLog._info.rpcInfoMap = constructLackRpcInfoMap();
 
     SqlAccessLogFormatHelper accessLogHelper(accessLog);
+    accessLogHelper._softFailureCodes = {1, 2};
     SqlResultFormatter::formatFullJson(sqlResult, &accessLogHelper);
     string expectStr = R"json({
     "error_info": {
@@ -159,6 +160,7 @@ TEST_F(SqlResultFormatterTest, testFormatFullJson) {
     },
     "covered_percent":0.1,
     "has_soft_failure":true,
+    "soft_failure_codes":[1, 2],
     "total_time": 0.0,
     "navi_graph":"",
     "trace": []
@@ -180,6 +182,7 @@ TEST_F(SqlResultFormatterTest, testFormatJson) {
     accessLog._info.rpcInfoMap = constructLackRpcInfoMap();
 
     SqlAccessLogFormatHelper accessLogHelper(accessLog);
+    accessLogHelper._softFailureCodes = {1, 2};
     SqlResultFormatter::formatJson(sqlResult, &accessLogHelper);
     string expectStr = R"json({
     "error_info": "{\n\"errorCode\": 0,\n\"errorMsg\": ERROR_NONE\n}\n",
@@ -203,6 +206,7 @@ TEST_F(SqlResultFormatterTest, testFormatJson) {
     "table_leader_info": {},
     "covered_percent":0.1,
     "has_soft_failure":true,
+    "soft_failure_codes":[1, 2],
     "navi_graph":"",
     "trace": []
 })json";
@@ -220,8 +224,10 @@ TEST_F(SqlResultFormatterTest, testFormatString) {
     accessLog._info.rpcInfoMap = constructLackRpcInfoMap();
 
     SqlAccessLogFormatHelper accessLogHelper(accessLog);
+    accessLogHelper._softFailureCodes = {1, 2};
     SqlResultFormatter::formatString(sqlResult, &accessLogHelper);
-    string expectStr = R"string(USE_TIME: 0ms, ROW_COUNT: 0, HAS_SOFT_FAILURE: 1, COVERAGE: 0.1
+    string expectStr
+        = R"string(USE_TIME: 0ms, ROW_COUNT: 0, HAS_SOFT_FAILURE: 1, SOFT_FAILURE_CODES: [1,2], COVERAGE: 0.1
 
 ------------------------------- TABLE INFO ---------------------------
 total:1, rows:[0, 1), cols:1

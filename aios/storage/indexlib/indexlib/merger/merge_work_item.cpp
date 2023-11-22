@@ -15,9 +15,12 @@
  */
 #include "indexlib/merger/merge_work_item.h"
 
-#include "autil/StringUtil.h"
+#include <assert.h>
+#include <iosfwd>
+
+#include "alog/Logger.h"
 #include "autil/TimeUtility.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/file_system/fslib/IoConfig.h"
 
 using namespace std;
 using namespace autil;

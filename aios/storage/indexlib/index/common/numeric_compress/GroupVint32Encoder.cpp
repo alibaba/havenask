@@ -59,17 +59,24 @@ std::pair<Status, uint32_t> GroupVint32Encoder::Encode(uint8_t* dest, const uint
 std::pair<Status, uint32_t> GroupVint32Encoder::Decode(uint32_t* dest, uint32_t destLen,
                                                        file_system::ByteSliceReader& sliceReader) const
 {
-    uint32_t compLen = (uint32_t)sliceReader.ReadInt16();
+    auto ret = sliceReader.ReadInt16();
+    RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0), "ReadInt16 failed");
+
+    uint32_t compLen = (uint32_t)ret.Value();
     uint32_t srcLen = 128;
 
     if (compLen & SRC_LEN_FLAG) {
-        srcLen = (uint32_t)sliceReader.ReadByte();
+        auto ret = sliceReader.ReadByte();
+        RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0), "ReadByte failed");
+        srcLen = (uint32_t)ret.Value();
         compLen &= ~SRC_LEN_FLAG;
     }
 
     uint8_t buffer[ENCODER_BUFFER_SIZE];
     void* bufPtr = buffer;
-    size_t len = sliceReader.ReadMayCopy(bufPtr, compLen);
+    auto lenRet = sliceReader.ReadMayCopy(bufPtr, compLen);
+    RETURN_RESULT_IF_FS_ERROR(lenRet.Code(), std::make_pair(lenRet.Status(), 0), "ReadMayCopy failed");
+    size_t len = lenRet.Value();
     if (len != compLen) {
         RETURN2_IF_STATUS_ERROR(Status::Corruption(), 0, "GroupVarint Decode FAILED.");
     }

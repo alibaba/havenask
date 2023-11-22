@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_SUMMARY_H
-#define __INDEXLIB_INDEX_SUMMARY_H
+#pragma once
 
 #include <memory>
 
@@ -70,10 +69,10 @@ public:
     static IndexSummary Load(const file_system::DirectoryPtr& rootDir, const std::vector<std::string>& versionFiles);
 
     static IndexSummary Load(const file_system::DirectoryPtr& rootDir, versionid_t versionId,
-                             versionid_t preVersionId = INVALID_VERSION);
+                             versionid_t preVersionId = INVALID_VERSIONID);
 
     static IndexSummary Load(const file_system::DirectoryPtr& rootDir, const Version& version,
-                             versionid_t preVersionId = INVALID_VERSION);
+                             versionid_t preVersionId = INVALID_VERSIONID);
 
     static std::string GetFileName(versionid_t id);
 
@@ -98,5 +97,3 @@ private:
 
 DEFINE_SHARED_PTR(IndexSummary);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_INDEX_SUMMARY_H

@@ -1,11 +1,22 @@
-#ifndef __INDEXLIB_TEST_SPLIT_STRATEGY_H
-#define __INDEXLIB_TEST_SPLIT_STRATEGY_H
+#pragma once
 
-#include <memory>
+#include <map>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/index/segment_metrics_updater/segment_metrics_updater.h"
+#include "indexlib/index/util/segment_directory_base.h"
+#include "indexlib/index_base/index_meta/segment_merge_info.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/split_strategy/split_segment_strategy.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/util/KeyValueMap.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace merger {
 
@@ -50,5 +61,3 @@ private:
 
 DEFINE_SHARED_PTR(TestSplitStrategy);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TEST_SPLIT_STRATEGY_H

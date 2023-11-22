@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_COMPRESSSINGLEFLOATATTRIBUTECONVERTORTEST_H
-#define __INDEXLIB_COMPRESSSINGLEFLOATATTRIBUTECONVERTORTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/attribute/compress_single_float_attribute_convertor.h"
 #include "indexlib/common_define.h"
@@ -60,5 +59,3 @@ void CompressSingleFloatAttributeConvertorTest::InnerTestEncode(std::string comp
 
 INDEXLIB_UNIT_TEST_CASE(CompressSingleFloatAttributeConvertorTest, TestSimpleProcess);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_COMPRESSSINGLEFLOATATTRIBUTECONVERTORTEST_H

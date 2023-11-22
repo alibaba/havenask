@@ -1,7 +1,14 @@
 package com.taobao.search.iquan.core.rel.visitor.relshuttle;
 
-import com.taobao.search.iquan.core.rel.hint.IquanHintInitializer;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.common.ConstantDefine;
+import com.taobao.search.iquan.core.rel.hint.IquanHintInitializer;
 import org.apache.calcite.rel.RelHomogeneousShuttle;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.hint.Hintable;
@@ -10,9 +17,6 @@ import org.apache.calcite.rel.logical.LogicalAggregate;
 import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.util.Pair;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 // Not support Multi-Trees
 public class ResolveHintPropagationShuttle extends RelHomogeneousShuttle {
     /**
@@ -20,6 +24,34 @@ public class ResolveHintPropagationShuttle extends RelHomogeneousShuttle {
      */
     private final Deque<Pair<List<RelHint>, Deque<Integer>>> inheritPaths =
             new ArrayDeque<>();
+
+    private static List<RelHint> copyWithInheritPath(List<RelHint> hints,
+                                                     Deque<Integer> inheritPath) {
+        final List<Integer> path = new ArrayList<>();
+        final Iterator<Integer> iterator = inheritPath.descendingIterator();
+        while (iterator.hasNext()) {
+            path.add(iterator.next());
+        }
+
+        List<RelHint> newHints = new ArrayList<>(hints.size());
+        for (RelHint hint : hints) {
+            List<Integer> newInheritPath = new ArrayList<>(hint.inheritPath.size() + path.size());
+            newInheritPath.addAll(hint.inheritPath);
+            newInheritPath.addAll(path);
+            newHints.add(hint.copy(newInheritPath));
+        }
+        return newHints;
+    }
+
+    public static List<RelNode> go(List<RelNode> roots) {
+        List<RelNode> newRoots = new ArrayList<>();
+        for (RelNode root : roots) {
+            ResolveHintPropagationShuttle resolveHintPropagationShuttle = new ResolveHintPropagationShuttle();
+            RelNode newRoot = root.accept(resolveHintPropagationShuttle);
+            newRoots.add(newRoot);
+        }
+        return newRoots;
+    }
 
     /**
      * Visits a particular child of a parent.
@@ -98,33 +130,5 @@ public class ResolveHintPropagationShuttle extends RelHomogeneousShuttle {
             }
         }
         return node;
-    }
-
-    private static List<RelHint> copyWithInheritPath(List<RelHint> hints,
-                                                     Deque<Integer> inheritPath) {
-        final List<Integer> path = new ArrayList<>();
-        final Iterator<Integer> iterator = inheritPath.descendingIterator();
-        while (iterator.hasNext()) {
-            path.add(iterator.next());
-        }
-
-        List<RelHint> newHints = new ArrayList<>(hints.size());
-        for (RelHint hint : hints) {
-            List<Integer> newInheritPath = new ArrayList<>(hint.inheritPath.size() + path.size());
-            newInheritPath.addAll(hint.inheritPath);
-            newInheritPath.addAll(path);
-            newHints.add(hint.copy(newInheritPath));
-        }
-        return newHints;
-    }
-
-    public static List<RelNode> go(List<RelNode> roots) {
-        List<RelNode> newRoots = new ArrayList<>();
-        for (RelNode root : roots) {
-            ResolveHintPropagationShuttle resolveHintPropagationShuttle = new ResolveHintPropagationShuttle();
-            RelNode newRoot = root.accept(resolveHintPropagationShuttle);
-            newRoots.add(newRoot);
-        }
-        return newRoots;
     }
 }

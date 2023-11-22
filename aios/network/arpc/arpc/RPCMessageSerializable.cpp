@@ -36,6 +36,12 @@ RPCMessageSerializable::RPCMessageSerializable(RPCMessage *header,
     _arena = arena;
     _header = header;
     _body = body;
+    if (_header) {
+        _headerSerializedSize = _header->ByteSizeLong();
+    }
+    if (_body) {
+        _bodySerializedSize = _body->ByteSizeLong();
+    }
 }
 
 RPCMessageSerializable::~RPCMessageSerializable() {}
@@ -45,12 +51,13 @@ bool RPCMessageSerializable::serialize(DataBuffer *outputBuffer) const {
         return false;
     }
 
-    if (!serializeMessage(_header, outputBuffer)) {
+    outputBuffer->ensureFree(getSerializedSize());
+    if (!serializeMessage(_header, _headerSerializedSize, outputBuffer)) {
         ARPC_LOG(ERROR, "serialize header error");
         return false;
     }
 
-    if (!serializeMessage(_body, outputBuffer)) {
+    if (!serializeMessage(_body, _bodySerializedSize, outputBuffer)) {
         ARPC_LOG(ERROR, "serialize body error");
         return false;
     }
@@ -84,17 +91,21 @@ bool RPCMessageSerializable::deserialize(anet::DataBuffer *inputBuffer, int leng
     return true;
 }
 
-bool RPCMessageSerializable::serializeMessage(const RPCMessage *message, DataBuffer *outputBuffer) {
+bool RPCMessageSerializable::serializeMessage(const RPCMessage* message, anet::DataBuffer *outputBuffer) {
+    return serializeMessage(message, message->ByteSizeLong(), outputBuffer);
+}
+
+bool RPCMessageSerializable::serializeMessage(const RPCMessage *message, size_t messageSize, DataBuffer *outputBuffer) {
     int oldLen = outputBuffer->getDataLen();
-    int size = message->ByteSize();
-    if (size < 0 || size > MAX_RPC_MSG_BYTE_SIZE) {
-        ARPC_LOG(
-            ERROR, "failed to serialize message. ByteSize %d should be between 0 and %d", size, MAX_RPC_MSG_BYTE_SIZE);
+    if (messageSize > MAX_RPC_MSG_BYTE_SIZE) {
+        ARPC_LOG(ERROR,
+                 "failed to serialize message. ByteSize %lu should be between 0 and %d",
+                 messageSize,
+                 MAX_RPC_MSG_BYTE_SIZE);
         return false;
     }
 
     outputBuffer->writeInt32(0);
-    outputBuffer->ensureFree(size);
     DataBufferOutputStream outputStream(outputBuffer);
 
     bool ret = message->IsInitialized();

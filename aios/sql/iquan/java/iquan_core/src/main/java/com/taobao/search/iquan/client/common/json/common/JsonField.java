@@ -1,12 +1,16 @@
 package com.taobao.search.iquan.client.common.json.common;
 
-import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
-import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
+import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuperBuilder(toBuilder = true)
+@Getter
 public class JsonField {
     private static final Logger logger = LoggerFactory.getLogger(JsonField.class);
 
@@ -46,46 +50,6 @@ public class JsonField {
         isAttribute = isAttr;
     }
 
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    public void setFieldName(String fieldName) {
-        this.fieldName = fieldName;
-    }
-
-    public JsonType getFieldType() {
-        return fieldType;
-    }
-
-    public void setFieldType(JsonType fieldType) {
-        this.fieldType = fieldType;
-    }
-
-    public boolean getIsAttribute() { return isAttribute; }
-
-    public void setIsAttribute(boolean isAttribute) { this.isAttribute = isAttribute; }
-
-    public Boolean getNullable() {
-        return isNullable;
-    }
-
-    public void setNullable(Boolean nullable) {
-        isNullable = nullable;
-    }
-
-    public Boolean getUnique() {
-        return isUnique;
-    }
-
-    public void setUnique(Boolean unique) {
-        isUnique = unique;
-    }
-
-    public Object getDefaultValue() {
-        return defaultValue;
-    }
-
     @JsonIgnore
     public boolean isValid() {
         boolean isValid = true;
@@ -98,5 +62,9 @@ public class JsonField {
             isValid = false;
         }
         return isValid;
+    }
+
+    public boolean getIsAttribute() {
+        return isAttribute;
     }
 }

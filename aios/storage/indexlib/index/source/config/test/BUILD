@@ -8,3 +8,15 @@ strict_cc_fast_test(
         '//aios/unittest_framework'
     ]
 )
+strict_cc_fast_test(
+    name='SourceIndexConfigTest',
+    srcs=['SourceIndexConfigTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/config:FileCompressConfigV2',
+        '//aios/storage/indexlib/config:IndexConfigDeserializeResource',
+        '//aios/storage/indexlib/index/source/config:SourceIndexConfig',
+        '//aios/storage/indexlib/legacy/config:module_info',
+        '//aios/unittest_framework'
+    ]
+)

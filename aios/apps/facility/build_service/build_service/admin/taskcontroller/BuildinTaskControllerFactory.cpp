@@ -15,6 +15,9 @@
  */
 #include "build_service/admin/taskcontroller/BuildinTaskControllerFactory.h"
 
+#include <iosfwd>
+
+#include "build_service/admin/CheckpointCreator.h"
 #include "build_service/admin/taskcontroller/BatchTaskController.h"
 #include "build_service/admin/taskcontroller/CloneIndexTaskController.h"
 #include "build_service/admin/taskcontroller/DefaultTaskController.h"
@@ -25,13 +28,14 @@
 #include "build_service/admin/taskcontroller/GeneralTaskController.h"
 #include "build_service/admin/taskcontroller/PrepareDataSourceTaskController.h"
 #include "build_service/admin/taskcontroller/RepartitionTaskController.h"
+#include "build_service/admin/taskcontroller/ResetVersionTaskController.h"
 #include "build_service/admin/taskcontroller/RollbackTaskController.h"
 #include "build_service/admin/taskcontroller/RunScriptTaskController.h"
 #include "build_service/admin/taskcontroller/SingleBuilderTaskV2.h"
 #include "build_service/admin/taskcontroller/SyncIndexTaskController.h"
 #include "build_service/admin/taskcontroller/TableMetaSynchronizerTaskController.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ConfigDefine.h"
-#include "build_service/config/TaskConfig.h"
 
 using namespace std;
 using namespace build_service::config;
@@ -76,6 +80,8 @@ TaskControllerPtr BuildinTaskControllerFactory::createTaskController(const std::
         taskController.reset(new GeneralTaskController(taskId, taskName, resMgr));
     } else if (taskName == BS_BUILDER_TASK_V2) {
         taskController.reset(new SingleBuilderTaskV2(taskId, taskName, resMgr));
+    } else if (taskName == BS_TASK_RESET_VERSION) {
+        taskController.reset(new ResetVersionTaskController(taskId, taskName, resMgr));
     } else {
         taskController.reset(new DefaultTaskController(taskId, taskName, resMgr));
     }

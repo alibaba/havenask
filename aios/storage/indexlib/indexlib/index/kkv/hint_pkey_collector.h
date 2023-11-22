@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PKEY_HINT_COLLECTOR_H
-#define __INDEXLIB_PKEY_HINT_COLLECTOR_H
+#pragma once
 
 #include <deque>
 #include <memory>
@@ -52,5 +51,3 @@ private:
 
 DEFINE_SHARED_PTR(HintPKeyCollector);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PKEY_HINT_COLLECTOR_H

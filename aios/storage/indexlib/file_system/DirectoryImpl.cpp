@@ -15,10 +15,17 @@
  */
 #include "indexlib/file_system/DirectoryImpl.h"
 
-#include "alog/Logger.h"
+#include <assert.h>
+#include <exception>
+#include <set>
+#include <string.h>
+
+#include "autil/CommonMacros.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/FenceDirectory.h"
 #include "indexlib/file_system/FileInfo.h"
+#include "indexlib/file_system/FileSystemMetricsReporter.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/JsonUtil.h"
@@ -28,11 +35,15 @@
 #include "indexlib/file_system/archive/ArchiveDirectory.h"
 #include "indexlib/file_system/archive/ArchiveFolder.h"
 #include "indexlib/file_system/file/CompressFileInfo.h"
-#include "indexlib/file_system/file/CompressFileReader.h"
 #include "indexlib/file_system/file/CompressFileReaderCreator.h"
 #include "indexlib/file_system/file/CompressFileWriter.h"
+#include "indexlib/file_system/file/FileReader.h"
+#include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/file_system/file/ResourceFile.h"
+#include "indexlib/file_system/load_config/LoadConfig.h"
+#include "indexlib/util/KeyValueMap.h"
 #include "indexlib/util/PathUtil.h"
+#include "indexlib/util/RegularExpression.h"
 
 namespace indexlib { namespace file_system {
 AUTIL_LOG_SETUP(indexlib.file_system, DirectoryImpl);

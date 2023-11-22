@@ -15,15 +15,15 @@
  */
 #pragma once
 
-#include <limits.h>
-#include <memory>
+#include <algorithm>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 
-#include "autil/ConstString.h"
 #include "autil/HashAlgorithm.h"
 #include "autil/Log.h"
-#include "autil/MurmurHash.h"
 #include "autil/NumbersUtil.h"
-#include "autil/StringUtil.h"
+#include "autil/Span.h"
 #include "indexlib/index/common/Types.h"
 #include "indexlib/util/KeyValueMap.h"
 

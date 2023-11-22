@@ -15,6 +15,15 @@
  */
 #include "build_service/worker/WorkerHeartbeatExecutor.h"
 
+#include <iostream>
+#include <stddef.h>
+#include <unistd.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/TimeUtility.h"
+#include "beeper/beeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/proto/HeartbeatDefine.h"
 #include "build_service/worker/ZkWorkerHeartbeat.h"
 

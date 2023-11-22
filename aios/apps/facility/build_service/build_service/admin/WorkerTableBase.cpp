@@ -15,6 +15,12 @@
  */
 #include "build_service/admin/WorkerTableBase.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "build_service/admin/RpcHeartbeat.h"
 #include "build_service/proto/HeartbeatDefine.h"
 

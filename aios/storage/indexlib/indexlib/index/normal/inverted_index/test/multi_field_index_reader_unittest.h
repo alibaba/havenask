@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIFIELDINDEXREADERTEST_H
-#define __INDEXLIB_MULTIFIELDINDEXREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/framework/multi_field_index_segment_reader.h"
@@ -35,5 +34,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(MultiFieldIndexReaderTest, TestGetIndexReaderWithIndexId);
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_MULTIFIELDINDEXREADERTEST_H

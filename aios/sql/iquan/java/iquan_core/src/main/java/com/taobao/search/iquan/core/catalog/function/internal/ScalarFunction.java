@@ -13,7 +13,7 @@ public class ScalarFunction extends SqlFunction {
 
     public ScalarFunction(IquanTypeFactory typeFactory, UdxfFunction function)
     {
-        super(new SqlIdentifier(function.getName(), SqlParserPos.ZERO),
+        super(new SqlIdentifier(function.getFullPath().toList(), SqlParserPos.ZERO),
                 FunctionUtils.createUdxfReturnTypeInference(function.getName(), function),
                 FunctionUtils.createUdxfSqlOperandTypeInference(function.getName(), function),
                 FunctionUtils.createUdxfSqlOperandMetadata(function.getName(), function),

@@ -16,6 +16,7 @@
 #pragma once
 
 #include <assert.h>
+#include <memory>
 #include <stddef.h>
 #include <stdint.h>
 #include <string>
@@ -31,36 +32,35 @@ public:
 
 public:
     ByteSliceReader();
-    ByteSliceReader(util::ByteSliceList* sliceList);
 
 public:
-    uint8_t ReadByte();
-    int16_t ReadInt16();
-    int32_t ReadInt32();
-    uint32_t ReadUInt32();
-    int64_t ReadInt64();
-    uint64_t ReadUInt64();
-    int32_t ReadVInt32();
-    uint32_t ReadVUInt32();
+    FSResult<uint8_t> ReadByte();
+    FSResult<int16_t> ReadInt16();
+    FSResult<int32_t> ReadInt32();
+    FSResult<uint32_t> ReadUInt32();
+    FSResult<int64_t> ReadInt64();
+    FSResult<uint64_t> ReadUInt64();
+    FSResult<int32_t> ReadVInt32();
+    FSResult<uint32_t> ReadVUInt32();
 
-    size_t Read(void* value, size_t len);
+    FSResult<size_t> Read(void* value, size_t len);
 
     /*
      * Parameter value may be modified, so you should call the function
      * with a temporary pointer to the destination buffer.
      */
-    size_t ReadMayCopy(void*& value, size_t len);
+    FSResult<size_t> ReadMayCopy(void*& value, size_t len);
 
-    int32_t PeekInt32();
+    FSResult<int32_t> PeekInt32();
 
-    size_t Seek(size_t offset);
+    FSResult<size_t> Seek(size_t offset);
     size_t Tell() const { return _globalOffset; }
     bool CurrentSliceEnough(size_t len) { return _currentSliceOffset + len <= GetSliceDataSize(_currentSlice); }
     uint8_t* GetCurrentSliceData() { return _currentSlice->data + _currentSliceOffset; }
 
 public:
-    void Open(util::ByteSliceList* sliceList);
-    void Open(util::ByteSlice* slice);
+    FSResult<void> Open(util::ByteSliceList* sliceList);
+    FSResult<void> Open(util::ByteSlice* slice);
     void Close();
     size_t GetSize() const { return _sliceList->GetTotalSize(); }
 
@@ -72,12 +72,12 @@ private:
 
 private:
     template <typename T>
-    inline T ReadInt();
+    inline FSResult<T> ReadInt();
 
     void HandleError(const std::string& msg) const;
-    inline util::ByteSlice* NextSlice(util::ByteSlice* byteSlice);
+    inline FSResult<util::ByteSlice*> NextSlice(util::ByteSlice* byteSlice);
     inline size_t GetSliceDataSize(util::ByteSlice* byteSlice) const;
-    inline util::ByteSlice* PrepareSlice(util::ByteSlice* byteSlice);
+    inline FSResult<util::ByteSlice*> PrepareSlice(util::ByteSlice* byteSlice);
 
 protected:
     util::ByteSlice* _currentSlice;
@@ -86,58 +86,69 @@ protected:
     util::ByteSliceList* _sliceList;
     size_t _size;
     bool _isBlockByteSliceList;
+
+private:
+    AUTIL_LOG_DECLARE();
 };
 
 typedef std::shared_ptr<ByteSliceReader> ByteSliceReaderPtr;
 
 //////////////////////////////////////////////////////////////
 //
-inline uint8_t ByteSliceReader::ReadByte()
+inline FSResult<uint8_t> ByteSliceReader::ReadByte()
 {
     if (_currentSliceOffset >= GetSliceDataSize(_currentSlice)) {
-        _currentSlice = NextSlice(_currentSlice);
-        if (!_currentSlice) {
-            HandleError("Read past EOF.");
-        }
+        auto ret = NextSlice(_currentSlice);
+        RETURN2_IF_FS_ERROR(ret.Code(), 0, "NextSlice failed");
+        _currentSlice = ret.Value();
         _currentSliceOffset = 0;
     }
     uint8_t value = _currentSlice->data[_currentSliceOffset++];
     _globalOffset++;
-    return value;
+    return {FSEC_OK, value};
 }
 
-inline int16_t ByteSliceReader::ReadInt16() { return ReadInt<int16_t>(); }
+inline FSResult<int16_t> ByteSliceReader::ReadInt16() { return ReadInt<int16_t>(); }
 
-inline int32_t ByteSliceReader::ReadInt32() { return ReadInt<int32_t>(); }
+inline FSResult<int32_t> ByteSliceReader::ReadInt32() { return ReadInt<int32_t>(); }
 
-inline uint32_t ByteSliceReader::ReadUInt32() { return ReadInt<uint32_t>(); }
+inline FSResult<uint32_t> ByteSliceReader::ReadUInt32() { return ReadInt<uint32_t>(); }
 
-inline int32_t ByteSliceReader::ReadVInt32() { return (int32_t)ReadVUInt32(); }
-
-inline uint32_t ByteSliceReader::ReadVUInt32()
+inline FSResult<int32_t> ByteSliceReader::ReadVInt32()
 {
-    uint8_t byte = ReadByte();
+    auto ret = ReadVUInt32();
+    RETURN2_IF_FS_ERROR(ret.Code(), 0, "ReadVUInt32 failed");
+    return {FSEC_OK, (int32_t)ret.Value()};
+}
+
+inline FSResult<uint32_t> ByteSliceReader::ReadVUInt32()
+{
+    auto ret = ReadByte();
+    RETURN2_IF_FS_ERROR(ret.Code(), 0, "ReadByte failed");
+    uint8_t byte = ret.Value();
     uint32_t value = byte & 0x7F;
     int shift = 7;
 
     while (byte & 0x80) {
-        byte = ReadByte();
+        ret = ReadByte();
+        RETURN2_IF_FS_ERROR(ret.Code(), 0, "ReadByte failed");
+        byte = ret.Value();
         value |= ((byte & 0x7F) << shift);
         shift += 7;
     }
-    return value;
+    return {FSEC_OK, value};
 }
 
-inline int64_t ByteSliceReader::ReadInt64() { return ReadInt<int64_t>(); }
+inline FSResult<int64_t> ByteSliceReader::ReadInt64() { return ReadInt<int64_t>(); }
 
-inline uint64_t ByteSliceReader::ReadUInt64() { return ReadInt<uint64_t>(); }
+inline FSResult<uint64_t> ByteSliceReader::ReadUInt64() { return ReadInt<uint64_t>(); }
 
-inline int32_t ByteSliceReader::PeekInt32()
+inline FSResult<int32_t> ByteSliceReader::PeekInt32()
 {
     assert(_currentSlice != NULL);
 
     if (_currentSliceOffset + sizeof(int32_t) <= GetSliceDataSize(_currentSlice)) {
-        return *((int32_t*)(_currentSlice->data + _currentSliceOffset));
+        return {FSEC_OK, *((int32_t*)(_currentSlice->data + _currentSliceOffset))};
     }
 
     uint8_t bytes[sizeof(int32_t)];
@@ -147,9 +158,11 @@ inline int32_t ByteSliceReader::PeekInt32()
     size_t curSliceOff = _currentSliceOffset;
     for (size_t i = 0; i < sizeof(int32_t); ++i) {
         if (curSliceOff >= GetSliceDataSize(slice)) {
-            nextSlice = NextSlice(slice);
+            auto ret = NextSlice(slice);
+            RETURN2_IF_FS_ERROR(ret.Code(), 0, "NextSlice failed");
+            nextSlice = ret.Value();
             if (nextSlice == NULL || nextSlice->data == NULL) {
-                HandleError("Read past EOF.");
+                RETURN2_IF_FS_ERROR(FSEC_ERROR, 0, "slice is null");
             } else {
                 slice = nextSlice;
             }
@@ -157,32 +170,34 @@ inline int32_t ByteSliceReader::PeekInt32()
         }
         bytes[i] = slice->data[curSliceOff++];
     }
-    return *((int32_t*)buffer);
+    return {FSEC_OK, *((int32_t*)buffer)};
 }
 
 template <typename T>
-inline T ByteSliceReader::ReadInt()
+inline FSResult<T> ByteSliceReader::ReadInt()
 {
     auto currentSliceDataSize = GetSliceDataSize(_currentSlice);
     if (_currentSliceOffset + sizeof(T) <= currentSliceDataSize) {
         T value = *((T*)(_currentSlice->data + _currentSliceOffset));
         _currentSliceOffset += sizeof(T);
         _globalOffset += sizeof(T);
-        return value;
+        return {FSEC_OK, value};
     }
 
     uint8_t bytes[sizeof(T)];
     char* buffer = (char*)bytes;
     for (size_t i = 0; i < sizeof(T); ++i) {
-        bytes[i] = ReadByte();
+        auto ret = ReadByte();
+        RETURN2_IF_FS_ERROR(ret.Code(), 0, "ReadByte failed");
+        bytes[i] = ret.Value();
     }
-    return *((T*)buffer);
+    return {FSEC_OK, *((T*)buffer)};
 }
 
-inline util::ByteSlice* ByteSliceReader::NextSlice(util::ByteSlice* byteSlice)
+inline FSResult<util::ByteSlice*> ByteSliceReader::NextSlice(util::ByteSlice* byteSlice)
 {
     if (!_isBlockByteSliceList) {
-        return byteSlice->next;
+        return {FSEC_OK, (util::ByteSlice*)byteSlice->next};
     }
     auto blockSliceList = static_cast<BlockByteSliceList*>(_sliceList);
     return blockSliceList->GetNextSlice(byteSlice);
@@ -196,15 +211,17 @@ inline size_t ByteSliceReader::GetSliceDataSize(util::ByteSlice* byteSlice) cons
     return byteSlice->dataSize;
 }
 
-inline util::ByteSlice* ByteSliceReader::PrepareSlice(util::ByteSlice* byteSlice)
+inline FSResult<util::ByteSlice*> ByteSliceReader::PrepareSlice(util::ByteSlice* byteSlice)
 {
     if (!_isBlockByteSliceList) {
-        return byteSlice;
+        return {FSEC_OK, byteSlice};
     }
     auto blockSliceList = static_cast<BlockByteSliceList*>(_sliceList);
     auto fileOffset = byteSlice->offset + _currentSliceOffset;
-    auto newSlice = blockSliceList->GetSlice(fileOffset, byteSlice);
+    auto ret = blockSliceList->GetSlice(fileOffset, byteSlice);
+    RETURN2_IF_FS_ERROR(ret.Code(), nullptr, "GetSlice failed");
+    auto newSlice = ret.Value();
     _currentSliceOffset = fileOffset - newSlice->offset;
-    return newSlice;
+    return {FSEC_OK, newSlice};
 }
 }} // namespace indexlib::file_system

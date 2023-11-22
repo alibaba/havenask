@@ -18,7 +18,7 @@
 #include <memory>
 
 #include "indexlib/base/Types.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/attribute/AttributeMemIndexer.h"
 
 namespace indexlib2::config {
@@ -32,7 +32,7 @@ namespace indexlibv2::index {
     public:                                                                                                            \
         FieldType GetAttributeType() const override { return indextype; }                                              \
         std::unique_ptr<AttributeMemIndexer> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,          \
-                                                    const IndexerParameter& indexerParam) const override               \
+                                                    const MemIndexerParameter& indexerParam) const override            \
         {                                                                                                              \
             return std::make_unique<classname>(indexerParam);                                                          \
         }                                                                                                              \
@@ -46,7 +46,7 @@ public:
 
     virtual FieldType GetAttributeType() const = 0;
     virtual std::unique_ptr<AttributeMemIndexer> Create(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                        const IndexerParameter& indexerParam) const = 0;
+                                                        const MemIndexerParameter& indexerParam) const = 0;
 };
 
 } // namespace indexlibv2::index

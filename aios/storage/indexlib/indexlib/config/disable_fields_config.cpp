@@ -18,7 +18,7 @@
 using namespace std;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, DisableFieldsConfig);
+AUTIL_LOG_SETUP(indexlib.config, DisableFieldsConfig);
 
 const string DisableFieldsConfig::SUMMARY_FIELD_ALL = "__SUMMARY_FIELD_ALL__";
 const string DisableFieldsConfig::SUMMARY_FIELD_NONE = "__SUMMARY_FIELD_NONE__";
@@ -96,7 +96,7 @@ DisableFieldsConfig::SourceDisableField DisableFieldsConfig::StrToDisableSource(
 
     if (str.find(SOURCE_FIELD_GROUP) == 0) {
         string groupIdStr = str.substr(SOURCE_FIELD_GROUP.size());
-        vector<index::groupid_t> groupIds;
+        vector<index::sourcegroupid_t> groupIds;
         autil::StringUtil::fromString(groupIdStr, groupIds, ",");
         disabledSourceGroupIds = groupIds;
         return DisableFieldsConfig::SourceDisableField::CDF_FIELD_GROUP;

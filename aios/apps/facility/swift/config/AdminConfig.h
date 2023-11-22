@@ -49,6 +49,7 @@ public:
     std::string getUserName() const;
     std::string getServiceName() const;
     std::string getHippoRoot() const;
+    std::string getGatewayRoot() const;
     std::string getZkRoot() const;
     uint16_t getAmonitorPort() const;
     uint32_t getBrokerCount() const;
@@ -85,6 +86,7 @@ public:
     int64_t getSyncHeartbeatInterval();
     int64_t getAdjustResourceDuration();
     const std::map<std::string, uint32_t> &getGroupBrokerCountMap();
+    const std::map<std::string, uint32_t> &getGroupNetPriorityMap() const;
     BrokerExclusiveLevel getExclusiveLevel() const;
     int64_t getForceScheduleTimeSecond() const;
     int getRecordLocalFile() const;
@@ -148,6 +150,7 @@ private:
     std::string userName;
     std::string serviceName;
     std::string hippoRoot;
+    std::string gatewayRoot;
     std::string zkRoot;
     std::string workDir;
     std::string logConfFile;
@@ -186,6 +189,7 @@ private:
     int64_t syncHeartbeatInterval;
     std::map<std::string, uint32_t> groupBrokerCountMap;
     std::map<std::string, uint32_t> veticalGroupBrokerCountMap;
+    std::map<std::string, uint32_t> groupNetPriorityMap;
     int64_t adjustResourceDuration;
     uint32_t exclusiveLevel;
     int64_t forceScheduleTimeSecond;

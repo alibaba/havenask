@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_MULTIREGIONEXTENDDOCFIELDSCONVERTOR_H
-#define __INDEXLIB_DOCUMENT_MULTIREGIONEXTENDDOCFIELDSCONVERTOR_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_parser/normal_parser/extend_doc_fields_convertor.h"
@@ -47,5 +46,3 @@ private:
 
 DEFINE_SHARED_PTR(MultiRegionExtendDocFieldsConvertor);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_DOCUMENT_MULTIREGIONEXTENDDOCFIELDSCONVERTOR_H

@@ -40,8 +40,8 @@ public:
     KKVTabletReader(const std::shared_ptr<config::ITabletSchema>& schema) : TabletReader(schema) {}
     ~KKVTabletReader() = default;
 
-    Status Open(const std::shared_ptr<framework::TabletData>& tabletData,
-                const framework::ReadResource& readResource) override;
+    Status DoOpen(const std::shared_ptr<framework::TabletData>& tabletData,
+                  const framework::ReadResource& readResource) override;
 
 public:
     /* protobuf query.proto:PartitionQuery to json

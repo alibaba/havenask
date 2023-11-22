@@ -21,9 +21,11 @@ public:
 
 public:
     bool config(const std::string &name, const std::string &config);
+    bool snapshotConfig(const std::string &name, const std::string &config);
     bool config(const std::string &configStr);
     bool loadConfig(const std::string &configFile);
     void kernelConfig(const std::string &configStr); // used for kernel resource
+    void namedData(const std::string &name, std::shared_ptr<Data> data);
     std::shared_ptr<Resource> getOrCreateResPtr(const std::string &name);
     Resource *getOrCreateRes(const std::string &name);
     template <typename ResT>
@@ -45,9 +47,11 @@ private:
 
 private:
     std::list<autil::legacy::RapidDocument> _document;
+    NaviRegistryConfigMap _snapshotConfigMap;
     NaviRegistryConfigMap _configMap;
     ResourceMap _resourceMap;
     std::string _kernelConfig;
+    std::map<std::string, std::shared_ptr<Data>> _namedDatas;
     std::vector<std::string> _modules;
     std::vector<std::shared_ptr<KernelTester>> _testers;
     std::string _logLevel;

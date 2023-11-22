@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OPERATION_ITERATOR_H
-#define __INDEXLIB_OPERATION_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -133,5 +132,3 @@ inline void OperationIterator::UpdateLastCursor(const SegmentOperationIteratorPt
     }
 }
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPERATION_ITERATOR_H

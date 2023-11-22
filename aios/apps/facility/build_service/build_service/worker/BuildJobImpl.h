@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDJOBIMPL_H
-#define ISEARCH_BS_BUILDJOBIMPL_H
+#pragma once
 
+#include <memory>
+#include <string>
+
+#include "aios/autil/autil/Lock.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/util/Log.h"
 #include "build_service/worker/WorkerStateHandler.h"
 #include "build_service/workflow/BuildFlow.h"
+#include "build_service/workflow/FlowFactory.h"
 
-BS_DECLARE_REFERENCE_CLASS(common, CounterSynchronizer);
 namespace build_service { namespace worker {
 
 class ServiceWorker;
@@ -72,5 +75,3 @@ private:
 BS_TYPEDEF_PTR(BuildJobImpl);
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_BUILDJOBIMPL_H

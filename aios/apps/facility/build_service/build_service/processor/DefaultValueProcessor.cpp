@@ -15,7 +15,18 @@
  */
 #include "build_service/processor/DefaultValueProcessor.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <utility>
+
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/RawDocument.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/FieldConfig.h"
 #include "indexlib/config/ITabletSchema.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
 
 using namespace std;
 using namespace build_service::document;

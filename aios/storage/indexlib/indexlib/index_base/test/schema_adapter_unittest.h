@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SCHEMAADAPTERTEST_H
-#define __INDEXLIB_SCHEMAADAPTERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/schema_adapter.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(SchemaAdapterTest, TestCaseForJsonizeTableType);
 INDEXLIB_UNIT_TEST_CASE(SchemaAdapterTest, TestLoadFromString);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SCHEMAADAPTERTEST_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMORYSEGMENTCONTAINERTEST_H
-#define __INDEXLIB_INMEMORYSEGMENTCONTAINERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/segment/in_memory_segment_container.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(InMemorySegmentContainerTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INMEMORYSEGMENTCONTAINERTEST_H

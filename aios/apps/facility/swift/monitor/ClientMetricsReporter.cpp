@@ -75,6 +75,10 @@ bool WriterMetrics::init(MetricsGroupManager *manager) {
     SWIFT_REGISTER_GAUGE_METRIC(requestMsgCount, CLIENT_WRITER_METRIC);
     SWIFT_REGISTER_QPS_METRIC(errorCbQps, CLIENT_WRITER_METRIC);
     SWIFT_REGISTER_QPS_METRIC(detectCommitQps, CLIENT_WRITER_METRIC);
+    SWIFT_REGISTER_GAUGE_METRIC(usedBlockCount, CLIENT_WRITER_METRIC);
+    SWIFT_REGISTER_GAUGE_METRIC(usedTotalPoolSize, CLIENT_WRITER_METRIC);
+    SWIFT_REGISTER_QPS_METRIC(rpcErrorQps, CLIENT_WRITER_METRIC);
+    SWIFT_REGISTER_GAUGE_METRIC(totalPoolSize, CLIENT_WRITER_METRIC);
     return true;
 }
 
@@ -95,6 +99,12 @@ void WriterMetrics::report(const MetricsTags *tags, ClientMetricsCollector *coll
     if (collector->isDetectCommit) {
         SWIFT_REPORT_QPS_METRIC(detectCommitQps);
     }
+    SWIFT_REPORT_MUTABLE_METRIC(usedBlockCount, collector->usedBlockCount);
+    SWIFT_REPORT_MUTABLE_METRIC(usedTotalPoolSize, collector->usedTotalPoolSize);
+    if (collector->rpcError) {
+        SWIFT_REPORT_QPS_METRIC(rpcErrorQps);
+    }
+    SWIFT_REPORT_MUTABLE_METRIC(totalPoolSize, collector->totalPoolSize);
 }
 
 bool ReaderMetrics::init(MetricsGroupManager *manager) {

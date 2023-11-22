@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_EXAMPLE_FUNCTION_EXECUTOR_H
-#define __INDEXLIB_EXAMPLE_FUNCTION_EXECUTOR_H
+#pragma once
 
 #include <memory>
 
@@ -79,5 +78,3 @@ public:
 
 DEFINE_SHARED_PTR(ExampleFunctionExecutor);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_EXAMPLE_FUNCTION_EXECUTOR_H

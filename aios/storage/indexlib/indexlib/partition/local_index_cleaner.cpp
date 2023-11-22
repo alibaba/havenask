@@ -63,7 +63,7 @@ bool LocalIndexCleaner::CleanUnreferencedIndexFiles(const index_base::Version& t
                                                     const set<string>& toKeepFiles)
 {
     bool ret = false;
-    if (targetVersion.GetVersionId() == INVALID_VERSION || targetVersion.GetSegmentCount() == 0) {
+    if (targetVersion.GetVersionId() == INVALID_VERSIONID || targetVersion.GetSegmentCount() == 0) {
         IE_LOG(INFO,
                "invalid version id or target version has no segment, doesn't need clean local disk, versionId[%d]",
                static_cast<int>(targetVersion.GetVersionId()));
@@ -212,11 +212,11 @@ void LocalIndexCleaner::DoClean(const vector<versionid_t>& keepVersionIds, bool 
         versionid_t tmpVersionId;
         versionid_t currentVersionId =
             mReaderContainer ? mReaderContainer->GetLatestReaderVersion()
-                             : (keepVersions.empty() ? INVALID_VERSION : keepVersions.begin()->GetVersionId());
+                             : (keepVersions.empty() ? INVALID_VERSIONID : keepVersions.begin()->GetVersionId());
         set<versionid_t> localVersionIds;
         for (const string& name : fileList) {
             if (IndexPathUtil::GetVersionId(name, tmpVersionId) &&
-                (currentVersionId == INVALID_VERSION || tmpVersionId < currentVersionId)) {
+                (currentVersionId == INVALID_VERSIONID || tmpVersionId < currentVersionId)) {
                 localVersionIds.insert(tmpVersionId);
             }
         }
@@ -256,7 +256,7 @@ void LocalIndexCleaner::CleanFiles(const FileList& fileList, const set<Version>&
                                    bool cleanAfterMaxKeepVersionFiles)
 {
     set<segmentid_t> keepSegmentIds;
-    set<schemavid_t> keepSchemaIds;
+    set<schemaid_t> keepSchemaIds;
     for (const Version& version : keepVersions) {
         keepSegmentIds.insert(version.GetSegmentVector().begin(), version.GetSegmentVector().end());
         keepSchemaIds.insert(version.GetSchemaVersionId());
@@ -267,13 +267,13 @@ void LocalIndexCleaner::CleanFiles(const FileList& fileList, const set<Version>&
     segmentid_t maxCanCleanSegmentId = (cleanAfterMaxKeepVersionFiles || keepSegmentIds.empty())
                                            ? std::numeric_limits<segmentid_t>::max()
                                            : *keepSegmentIds.rbegin();
-    schemavid_t maxCanCleanSchemaid = (cleanAfterMaxKeepVersionFiles || keepSchemaIds.empty())
-                                          ? std::numeric_limits<schemavid_t>::max()
-                                          : *keepSchemaIds.rbegin();
+    schemaid_t maxCanCleanSchemaid = (cleanAfterMaxKeepVersionFiles || keepSchemaIds.empty())
+                                         ? std::numeric_limits<schemaid_t>::max()
+                                         : *keepSchemaIds.rbegin();
 
     segmentid_t segmentId;
     versionid_t versionId;
-    schemavid_t schemaId;
+    schemaid_t schemaId;
 
     // only for online now, thus no fence
     for (const string& name : fileList) {
@@ -304,7 +304,7 @@ void LocalIndexCleaner::CleanFiles(const FileList& fileList, const set<Version>&
 }
 
 void LocalIndexCleaner::CleanPatchIndexSegmentFiles(const string& patchDirName, const set<segmentid_t>& keepSegmentIds,
-                                                    segmentid_t maxCanCleanSegmentId, schemavid_t patchSchemaId)
+                                                    segmentid_t maxCanCleanSegmentId, schemaid_t patchSchemaId)
 {
     if (unlikely(patchSchemaId == DEFAULT_SCHEMAID)) // Why? for legency code, may useless
     {

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXER_DEFINE_H
-#define __INDEXER_DEFINE_H
+#pragma once
 
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -38,7 +37,7 @@ public:
     IndexerResource(const config::IndexPartitionSchemaPtr& _schema, const config::IndexPartitionOptions& _options,
                     const util::CounterMapPtr& _counterMap, const index_base::PartitionMeta& _partitionMeta,
                     const std::string& _indexName, const std::string& _pluginPath,
-                    util::MetricProviderPtr _metricProvider = nullptr,
+                    const util::MetricProviderPtr& _metricProvider,
                     const IndexerUserDataPtr& _userData = IndexerUserDataPtr())
         : schema(_schema)
         , options(_options)
@@ -204,4 +203,3 @@ public:
 };
 
 } // namespace indexlib
-#endif

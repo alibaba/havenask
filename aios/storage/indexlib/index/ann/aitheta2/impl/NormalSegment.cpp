@@ -27,7 +27,6 @@ bool NormalSegment::Open()
     ANN_CHECK(_segmentMeta.Load(_directory), "load meta failed");
     ANN_CHECK(!_isOnline || IsServiceable(), "not serviceable. param[%s] not set in alter field merge",
               INDEX_BUILD_IN_FULL_BUILD_PHASE.c_str());
-    ANN_CHECK(GetSegmentDataReader(), "get segment data reader failed");
 
     return true;
 }

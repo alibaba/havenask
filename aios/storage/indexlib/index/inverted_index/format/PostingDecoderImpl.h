@@ -41,7 +41,7 @@ public:
     void Init(TermMeta* termMeta, dictvalue_t dictValue, bool isDocList, bool dfFirst);
 
     // virtual for test
-    virtual uint32_t DecodeDocList(docid_t* docIdBuf, tf_t* tfListBuf, docpayload_t* docPayloadBuf,
+    virtual uint32_t DecodeDocList(docid32_t* docIdBuf, tf_t* tfListBuf, docpayload_t* docPayloadBuf,
                                    fieldmap_t* fieldMapBuf, size_t len);
 
     uint32_t DecodePosList(pos_t* posListBuf, pospayload_t* posPayloadBuf, size_t len);

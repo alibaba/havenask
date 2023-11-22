@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_VARLENDATAITERATORTEST_H
-#define __INDEXLIB_VARLENDATAITERATORTEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common_define.h"
@@ -36,5 +35,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(VarLenDataIteratorTest, TestHasNext);
 INDEXLIB_UNIT_TEST_CASE(VarLenDataIteratorTest, TestNext);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VARLENDATAITERATORTEST_H

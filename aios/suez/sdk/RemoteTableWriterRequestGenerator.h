@@ -75,6 +75,9 @@ public:
     RemoteTableWriterRequestGenerator(RemoteTableWriterParam param);
     ~RemoteTableWriterRequestGenerator() {}
 
+public:
+    void setLeaderTags(multi_call::TagMatchType type);
+
 private:
     RemoteTableWriterRequestGenerator(const RemoteTableWriterRequestGenerator &);
     RemoteTableWriterRequestGenerator &operator=(const RemoteTableWriterRequestGenerator &);

@@ -44,8 +44,8 @@ public:
 
     Status
     Open(const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig,
-         const std::vector<std::pair<docid_t, std::shared_ptr<BitmapLeafReader>>>& diskSegmentReaders,
-         const std::vector<std::pair<docid_t, std::shared_ptr<InMemBitmapIndexSegmentReader>>>& memSegmentReaders);
+         const std::vector<std::pair<docid64_t, std::shared_ptr<BitmapLeafReader>>>& diskSegmentReaders,
+         const std::vector<std::pair<docid64_t, std::shared_ptr<InMemBitmapIndexSegmentReader>>>& memSegmentReaders);
 
     index::Result<PostingIterator*> Lookup(const index::Term& term, uint32_t statePoolSize,
                                            autil::mem_pool::Pool* sessionPool,
@@ -74,7 +74,7 @@ private:
                                               file_system::ReadOption option,
                                               InvertedIndexSearchTracer* tracer) const noexcept;
 
-    void AddInMemSegmentReader(docid_t baseDocId,
+    void AddInMemSegmentReader(docid64_t baseDocId,
                                const std::shared_ptr<InMemBitmapIndexSegmentReader>& bitmapSegReader);
 
 private:
@@ -83,7 +83,7 @@ private:
     std::shared_ptr<indexlibv2::config::InvertedIndexConfig> _indexConfig;
     IndexFormatOption _indexFormatOption;
     std::vector<uint64_t> _segmentDocCount;
-    std::vector<docid_t> _baseDocIds;
+    std::vector<docid64_t> _baseDocIds;
     std::shared_ptr<BuildingIndexReader> _buildingIndexReader;
 
     AUTIL_LOG_DECLARE();

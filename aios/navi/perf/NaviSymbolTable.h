@@ -22,6 +22,7 @@
 namespace navi {
 
 class PerfSymbolTableDef;
+class StringHashTable;
 
 class NaviSymbolTable
 {
@@ -34,7 +35,8 @@ private:
 public:
     bool init(const NaviLoggerPtr &logger);
     void resolveSymbol(const std::unordered_map<uint64_t, uint32_t> &addrMap,
-                       PerfSymbolTableDef *perfSymbolTableDef) const;
+                       PerfSymbolTableDef *perfSymbolTableDef,
+                       StringHashTable *stringHashTable) const;
     std::string resolveAddr(uint64_t ip) const;
 public:
     static std::string parseSymbol(const char *symbol);

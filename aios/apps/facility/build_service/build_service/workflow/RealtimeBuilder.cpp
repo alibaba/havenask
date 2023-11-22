@@ -15,19 +15,30 @@
  */
 #include "build_service/workflow/RealtimeBuilder.h"
 
+#include <cstddef>
+#include <map>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/Span.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "build_service/builder/Builder.h"
 #include "build_service/common/ConfigDownloader.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
-#include "build_service/util/IndexPathConstructor.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/workflow/ProcessedDocRtBuilderImpl.h"
 #include "build_service/workflow/RawDocRtJobBuilderImpl.h"
 #include "build_service/workflow/RawDocRtServiceBuilderImpl.h"
+#include "build_service/workflow/RealtimeBuilderImplBase.h"
 #include "fslib/util/FileUtil.h"
-#include "indexlib/file_system/Directory.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
 #include "indexlib/partition/index_partition.h"
+#include "indexlib/partition/partition_group_resource.h"
 
 using namespace std;
 using namespace autil;

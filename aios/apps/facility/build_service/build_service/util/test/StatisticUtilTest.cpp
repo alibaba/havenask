@@ -1,6 +1,12 @@
 #include "build_service/util/StatisticUtil.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <utility>
+#include <vector>
+
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

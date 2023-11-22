@@ -1,227 +1,226 @@
 [
-
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : true,
-            "left_is_scannable" : true,
-            "right_is_scannable" : true,
-            "left_bigger" : true
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : true,
-            "is_internal_build" : false
-        }
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": true,
+      "left_is_scannable": true,
+      "right_is_scannable": true,
+      "left_bigger": true
     },
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : true,
-            "left_is_scannable" : true,
-            "right_is_scannable" : true,
-            "left_bigger" : false
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : false,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : true,
-            "left_is_scannable" : true,
-            "right_is_scannable" : false,
-            "left_bigger" : true
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : false,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : true,
-            "left_is_scannable" : true,
-            "right_is_scannable" : false,
-            "left_bigger" : false
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : false,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : true,
-            "left_is_scannable" : false,
-            "right_is_scannable" : true,
-            "left_bigger" : true
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : true,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : true,
-            "left_is_scannable" : false,
-            "right_is_scannable" : true,
-            "left_bigger" : false
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : true,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : false,
-            "left_is_scannable" : true,
-            "right_is_scannable" : true,
-            "left_bigger" : true
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : true,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : false,
-            "left_is_scannable" : true,
-            "right_is_scannable" : true,
-            "left_bigger" : false
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : true,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : false,
-            "left_is_scannable" : false,
-            "right_is_scannable" : true,
-            "left_bigger" : true
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : true,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : true,
-            "right_has_index" : false,
-            "left_is_scannable" : false,
-            "right_is_scannable" : true,
-            "left_bigger" : false
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : true,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : false,
-            "right_has_index" : true,
-            "left_is_scannable" : true,
-            "right_is_scannable" : true,
-            "left_bigger" : true
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : false,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : false,
-            "right_has_index" : true,
-            "left_is_scannable" : true,
-            "right_is_scannable" : true,
-            "left_bigger" : false
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : false,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : false,
-            "right_has_index" : true,
-            "left_is_scannable" : true,
-            "right_is_scannable" : false,
-            "left_bigger" : true
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : false,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : false,
-            "right_has_index" : true,
-            "left_is_scannable" : true,
-            "right_is_scannable" : false,
-            "left_bigger" : false
-        },
-        "result" : {
-            "join_type" : "lookup_join",
-            "left_is_build" : false,
-            "is_internal_build" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : false,
-            "right_has_index" : false,
-            "left_is_scannable" : true,
-            "right_is_scannable" : true,
-            "left_bigger" : true
-        },
-        "result" : {
-            "join_type" : "hash_join",
-            "left_is_build" : false,
-            "try_distinct_build_row" : false
-        }
-    },
-    {
-        "pattern" : {
-            "left_has_index" : false,
-            "right_has_index" : false,
-            "left_is_scannable" : true,
-            "right_is_scannable" : true,
-            "left_bigger" : false
-        },
-        "result" : {
-            "join_type" : "hash_join",
-            "left_is_build" : true,
-            "try_distinct_build_row" : false
-        }
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": true,
+      "is_internal_build": false
     }
+  },
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": true,
+      "left_is_scannable": true,
+      "right_is_scannable": true,
+      "left_bigger": false
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": false,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": true,
+      "left_is_scannable": true,
+      "right_is_scannable": false,
+      "left_bigger": true
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": false,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": true,
+      "left_is_scannable": true,
+      "right_is_scannable": false,
+      "left_bigger": false
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": false,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": true,
+      "left_is_scannable": false,
+      "right_is_scannable": true,
+      "left_bigger": true
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": true,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": true,
+      "left_is_scannable": false,
+      "right_is_scannable": true,
+      "left_bigger": false
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": true,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": false,
+      "left_is_scannable": true,
+      "right_is_scannable": true,
+      "left_bigger": true
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": true,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": false,
+      "left_is_scannable": true,
+      "right_is_scannable": true,
+      "left_bigger": false
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": true,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": false,
+      "left_is_scannable": false,
+      "right_is_scannable": true,
+      "left_bigger": true
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": true,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": true,
+      "right_has_index": false,
+      "left_is_scannable": false,
+      "right_is_scannable": true,
+      "left_bigger": false
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": true,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": false,
+      "right_has_index": true,
+      "left_is_scannable": true,
+      "right_is_scannable": true,
+      "left_bigger": true
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": false,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": false,
+      "right_has_index": true,
+      "left_is_scannable": true,
+      "right_is_scannable": true,
+      "left_bigger": false
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": false,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": false,
+      "right_has_index": true,
+      "left_is_scannable": true,
+      "right_is_scannable": false,
+      "left_bigger": true
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": false,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": false,
+      "right_has_index": true,
+      "left_is_scannable": true,
+      "right_is_scannable": false,
+      "left_bigger": false
+    },
+    "result": {
+      "join_type": "lookup_join",
+      "left_is_build": false,
+      "is_internal_build": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": false,
+      "right_has_index": false,
+      "left_is_scannable": true,
+      "right_is_scannable": true,
+      "left_bigger": true
+    },
+    "result": {
+      "join_type": "hash_join",
+      "left_is_build": false,
+      "try_distinct_build_row": false
+    }
+  },
+  {
+    "pattern": {
+      "left_has_index": false,
+      "right_has_index": false,
+      "left_is_scannable": true,
+      "right_is_scannable": true,
+      "left_bigger": false
+    },
+    "result": {
+      "join_type": "hash_join",
+      "left_is_build": true,
+      "try_distinct_build_row": false
+    }
+  }
 ]

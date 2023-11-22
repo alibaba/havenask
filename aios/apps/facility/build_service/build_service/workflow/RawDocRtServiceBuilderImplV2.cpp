@@ -15,16 +15,29 @@
  */
 #include "build_service/workflow/RawDocRtServiceBuilderImplV2.h"
 
-#include "autil/TimeUtility.h"
+#include <assert.h>
+#include <atomic>
+#include <map>
+#include <mutex>
+#include <ostream>
+#include <stddef.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "build_service/builder/BuilderV2.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/workflow/AsyncStarter.h"
 #include "build_service/workflow/BuildFlow.h"
+#include "build_service/workflow/BuildFlowMode.h"
 #include "build_service/workflow/DocReaderProducer.h"
+#include "build_service/workflow/Producer.h"
+#include "build_service/workflow/RealtimeErrorDefine.h"
+#include "build_service/workflow/StopOption.h"
+#include "build_service/workflow/Workflow.h"
+#include "build_service/workflow/WorkflowItem.h"
 #include "indexlib/framework/ITablet.h"
-#include "indexlib/framework/Locator.h"
-#include "indexlib/framework/Segment.h"
-#include "indexlib/framework/Version.h"
-#include "indexlib/index_base/online_join_policy.h"
 
 namespace build_service { namespace workflow {
 BS_LOG_SETUP(workflow, RawDocRtServiceBuilderImplV2);

@@ -1,21 +1,27 @@
 package com.taobao.search.iquan.core.rel.visitor.rexshuttle;
 
-import com.taobao.search.iquan.core.api.common.IquanErrorCode;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.LayerTable;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rex.*;
-import org.apache.calcite.sql.SqlKind;
-import org.apache.calcite.sql.type.SqlTypeFamily;
-import org.apache.calcite.sql.type.SqlTypeName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.taobao.search.iquan.core.api.common.IquanErrorCode;
+import com.taobao.search.iquan.core.api.exception.SqlQueryException;
+import com.taobao.search.iquan.core.api.schema.LayerTable;
+import com.taobao.search.iquan.core.common.ConstantDefine;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexDynamicParam;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.sql.SqlKind;
+import org.apache.calcite.sql.type.SqlTypeFamily;
+import org.apache.calcite.sql.type.SqlTypeName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RexLayerDynamicParamsShuttle extends RexShuttle {
     private static final Logger logger = LoggerFactory.getLogger(RexLayerDynamicParamsShuttle.class);
@@ -25,7 +31,7 @@ public class RexLayerDynamicParamsShuttle extends RexShuttle {
     private final int limit;
     private LayerTable layerTable;
 
-    private List<Map<String, Object>> layerTablePlanMeta;
+    private final List<Map<String, Object>> layerTablePlanMeta;
 
     public RexLayerDynamicParamsShuttle(RexBuilder rexBuilder,
                                         List<List<Object>> dynamicParams,
@@ -51,7 +57,7 @@ public class RexLayerDynamicParamsShuttle extends RexShuttle {
             case GREATER_THAN_OR_EQUAL:
             case LESS_THAN:
             case LESS_THAN_OR_EQUAL:
-            case EQUALS:{
+            case EQUALS: {
                 RexNode first = call.getOperands().get(0);
                 int flag = first instanceof RexInputRef ? 0 : 1;
                 RexInputRef inputRef = RexShuttleUtils.getInputRefFromCall(call);
@@ -64,6 +70,8 @@ public class RexLayerDynamicParamsShuttle extends RexShuttle {
                 int fieldId = inputRef.getIndex() - limit;
                 Map<String, Object> slot = new HashMap<>();
                 layerTablePlanMeta.add(slot);
+                slot.put(ConstantDefine.CATALOG_NAME, layerTable.getFakeIquanTable().getCatalogName());
+                slot.put(ConstantDefine.DATABASE_NAME, layerTable.getFakeIquanTable().getDbName());
                 slot.put("layer_table_name", layerTable.getLayerTableName());
                 slot.put("dynamic_params_index", right.getIndex());
                 slot.put("layer_field", layerTable.getLayerFormats().get(fieldId).getFieldName());
@@ -81,11 +89,12 @@ public class RexLayerDynamicParamsShuttle extends RexShuttle {
                 }
                 return rexBuilder.makeCall(call.getType(), call.getOperator(), newOperands);
             }
+            default:
+                return super.visitCall(call);
         }
-        return super.visitCall(call);
     }
 
-    private RexNode processRexDynamicParam(RexDynamicParam dynamicParam, int fieldId , SqlKind op, boolean reverse, Map<String, Object> slot) {
+    private RexNode processRexDynamicParam(RexDynamicParam dynamicParam, int fieldId, SqlKind op, boolean reverse, Map<String, Object> slot) {
         List<Object> params = dynamicParams.get(0);
 
         int i = dynamicParam.getIndex();
@@ -113,13 +122,13 @@ public class RexLayerDynamicParamsShuttle extends RexShuttle {
             logger.error("cast dynamic params fail:", ex);
             throw new SqlQueryException(IquanErrorCode.IQUAN_EC_DYNAMIC_PARAMS_INVALID_PARAMS,
                     String.format("sql[0], param[%d], value[%s], type[%s], family[%s]",
-                            i, actualParam.toString(), sqlType.toString(), sqlTypeFamily.toString())
+                            i, actualParam.toString(), sqlType, sqlTypeFamily)
             );
         }
 
         throw new SqlQueryException(IquanErrorCode.IQUAN_EC_DYNAMIC_PARAMS_UNSUPPORT_PARAM_TYPE,
                 String.format("sql[0], param[%d], value[%s], type[%s], family[%s]",
-                        i, actualParam.toString(), sqlType.toString(), sqlTypeFamily.toString())
+                        i, actualParam.toString(), sqlType, sqlTypeFamily.toString())
         );
     }
 

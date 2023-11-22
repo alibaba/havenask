@@ -38,7 +38,8 @@ class ReclaimMap;
 class KVTableMergePlanCreator : public SimpleIndexTaskPlanCreator
 {
 public:
-    KVTableMergePlanCreator(const std::string& taskName, const std::map<std::string, std::string>& params);
+    KVTableMergePlanCreator(const std::string& taskName, const std::string& taskTraceId,
+                            const std::map<std::string, std::string>& params);
     ~KVTableMergePlanCreator();
 
 public:

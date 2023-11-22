@@ -1,7 +1,14 @@
 #include "build_service/admin/taskcontroller/ProcessorWriterVersion.h"
 
+#include <iosfwd>
+#include <stdint.h>
+#include <vector>
+
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/proto/WorkerNodeCreator.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

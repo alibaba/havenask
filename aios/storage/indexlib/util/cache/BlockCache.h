@@ -188,7 +188,8 @@ public:
 protected:
     virtual bool DoInit(const BlockCacheOption& option) = 0;
 
-    bool ExtractCacheParam(const BlockCacheOption& option, int32_t& shardBitsNum, float& lruHighPriorityRatio) const;
+    bool ExtractCacheParam(const BlockCacheOption& option, int32_t& shardBitsNum, float& lruHighPriorityRatio,
+                           float& lruLowPriorityRatio) const;
 
 protected:
     size_t _memorySize;

@@ -20,7 +20,9 @@
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/load_config/CacheLoadStrategy.h"
 #include "indexlib/framework/BuildResource.h"
+#include "indexlib/framework/DefaultMemoryControlStrategy.h"
 #include "indexlib/framework/DiskSegment.h"
+#include "indexlib/framework/LSMMemTableControlStrategy.h"
 #include "indexlib/framework/ResourceMap.h"
 #include "indexlib/framework/TabletCenter.h"
 #include "indexlib/framework/TabletLoader.h"
@@ -81,7 +83,7 @@ public:
         _indexRoot = framework::IndexRoot(localRoot, localRoot);
     }
     void tearDown() override {}
-    void SetProgress(Locator& locator, std::vector<base::Progress> progress) { locator.SetProgress(progress); }
+    void SetProgress(Locator& locator, std::vector<base::Progress> progress) { locator.SetMultiProgress({progress}); }
     std::vector<base::Progress> GetProgress(std::vector<std::tuple<uint32_t, uint32_t, int64_t>> params)
     {
         std::vector<base::Progress> progress;
@@ -93,7 +95,7 @@ public:
     }
     void SetProgress(Locator& locator, std::vector<std::tuple<uint32_t, uint32_t, int64_t>> params)
     {
-        locator.SetProgress(GetProgress(params));
+        locator.SetMultiProgress({GetProgress(params)});
     }
 
 private:
@@ -164,7 +166,7 @@ TEST_F(TabletTest, testBuildAndCommit)
     ASSERT_TRUE(tabletData->Init(version, {}, resourceMap).IsOK());
     EXPECT_CALL(*tabletLoader, FinalLoad(_))
         .WillOnce(Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
-    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(0));
+    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(std::make_pair(Status::OK(), 0)));
 
     // MemSegment
     std::vector<std::shared_ptr<SegmentDumpItem>> segmentDumpItems;
@@ -199,11 +201,11 @@ TEST_F(TabletTest, testBuildAndCommit)
 
     // TabletReader
     auto tabletReader = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader, DoOpen(_, _)).WillOnce(Return(Status::OK()));
     auto tabletReader2 = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader2, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader2, DoOpen(_, _)).WillOnce(Return(Status::OK()));
     auto tabletReader3 = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader3, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader3, DoOpen(_, _)).WillOnce(Return(Status::OK()));
 
     // TabletFactory
     factory = new MockTabletFactory();
@@ -282,7 +284,7 @@ TEST_F(TabletTest, testSealSegment)
     ASSERT_TRUE(tabletData->Init(version, {}, resourceMap).IsOK());
     EXPECT_CALL(*tabletLoader, FinalLoad(_))
         .WillOnce(Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
-    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(0));
+    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(std::make_pair(Status::OK(), 0)));
 
     // MemSegment
     std::vector<std::shared_ptr<SegmentDumpItem>> segmentDumpItems;
@@ -307,9 +309,9 @@ TEST_F(TabletTest, testSealSegment)
 
     // TabletReader
     auto tabletReader = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader, DoOpen(_, _)).WillOnce(Return(Status::OK()));
     auto tabletReader2 = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader2, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader2, DoOpen(_, _)).WillOnce(Return(Status::OK()));
 
     // TabletFactory
     factory = new MockTabletFactory();
@@ -383,7 +385,8 @@ TEST_F(TabletTest, testMemoryController4TabletLoader4NoMem)
     // TabletLoader
     auto tabletLoader = std::make_unique<MockTabletLoader>();
     EXPECT_CALL(*tabletLoader, DoPreLoad(_, _, _)).WillRepeatedly(Return(Status::OK()));
-    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillRepeatedly(Return(10 * 1024 * 1024));
+    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _))
+        .WillRepeatedly(Return(std::make_pair(Status::OK(), 10 * 1024 * 1024)));
     // TabletFactory
     factory = new MockTabletFactory();
     EXPECT_CALL(*factory, CreateTabletLoader(_)).Times(1).WillOnce(Return(ByMove(std::move(tabletLoader))));
@@ -417,7 +420,8 @@ TEST_F(TabletTest, testMemoryController4TabletLoader4Success)
     // TabletLoader
     auto tabletLoader = std::make_unique<MockTabletLoader>();
     EXPECT_CALL(*tabletLoader, DoPreLoad(_, _, _)).WillRepeatedly(Return(Status::OK()));
-    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillRepeatedly(Return(tabletTotalQuota));
+    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _))
+        .WillRepeatedly(Return(std::make_pair(Status::OK(), tabletTotalQuota)));
     EXPECT_CALL(*tabletLoader, FinalLoad(_))
         .WillOnce(Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
 
@@ -634,7 +638,7 @@ TEST_F(TabletTest, testCheckMemoryStatus4MaxRt4MultiTablet)
                                      /*fileSystem*/ nullptr);
         framework::TabletTestAgent(tablet.get())
             .TEST_GetBuildMemoryQuotaSynchronizer()
-            ->SyncMemoryQuota(tabletMetrics->GetRtIndexMemsize());
+            ->SyncMemoryQuota(tabletMetrics->GetRtIndexMemSize());
         if (i < dumpingSegmentCnt / 2) {
             ASSERT_EQ(MemoryStatus::OK, tablet->CheckMemoryStatus());
         } else {
@@ -648,7 +652,7 @@ TEST_F(TabletTest, testCheckMemoryStatus4MaxRt4MultiTablet)
                                      /*fileSystem*/ nullptr);
         framework::TabletTestAgent(tablet.get())
             .TEST_GetBuildMemoryQuotaSynchronizer()
-            ->SyncMemoryQuota(tabletMetrics->GetRtIndexMemsize());
+            ->SyncMemoryQuota(tabletMetrics->GetRtIndexMemSize());
         ASSERT_EQ(MemoryStatus::REACH_MAX_RT_INDEX_SIZE, tablet->CheckMemoryStatus());
     }
     tabletReaderContainer->EvictOldestTabletReader();
@@ -656,7 +660,7 @@ TEST_F(TabletTest, testCheckMemoryStatus4MaxRt4MultiTablet)
                                  /*fileSystem*/ nullptr);
     framework::TabletTestAgent(tablet.get())
         .TEST_GetBuildMemoryQuotaSynchronizer()
-        ->SyncMemoryQuota(tabletMetrics->GetRtIndexMemsize());
+        ->SyncMemoryQuota(tabletMetrics->GetRtIndexMemSize());
     EXPECT_EQ(MemoryStatus::OK, tablet->CheckMemoryStatus());
 
     ASSERT_TRUE(tabletData->Init(emptyVersion, segments, std::make_shared<ResourceMap>()).IsOK());
@@ -666,7 +670,7 @@ TEST_F(TabletTest, testCheckMemoryStatus4MaxRt4MultiTablet)
                                  /*fileSystem*/ nullptr);
     framework::TabletTestAgent(tablet.get())
         .TEST_GetBuildMemoryQuotaSynchronizer()
-        ->SyncMemoryQuota(tabletMetrics->GetRtIndexMemsize());
+        ->SyncMemoryQuota(tabletMetrics->GetRtIndexMemSize());
     EXPECT_EQ(MemoryStatus::REACH_MAX_RT_INDEX_SIZE, tablet->CheckMemoryStatus());
 }
 
@@ -808,7 +812,7 @@ TEST_F(TabletTest, testNeedDumpButCreateSegmentDumperFailed)
     ASSERT_TRUE(tabletData->Init(version, {}, resourceMap).IsOK());
     EXPECT_CALL(*tabletLoader, FinalLoad(_))
         .WillOnce(Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
-    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(0));
+    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(std::make_pair(Status::OK(), 0)));
 
     // MemSegment
     auto memSegment = std::make_unique<MockMemSegment>(536870912, fs, Segment::SegmentStatus::ST_BUILDING);
@@ -822,9 +826,9 @@ TEST_F(TabletTest, testNeedDumpButCreateSegmentDumperFailed)
 
     // TabletReader
     auto tabletReader = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader, DoOpen(_, _)).WillOnce(Return(Status::OK()));
     auto tabletReader2 = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader2, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader2, DoOpen(_, _)).WillOnce(Return(Status::OK()));
 
     // TabletFactory
     factory = new MockTabletFactory();
@@ -870,16 +874,16 @@ TEST_F(TabletTest, TestUpdateControlFlow)
     ASSERT_TRUE(tabletData->Init(version, {}, resourceMap).IsOK());
     EXPECT_CALL(*tabletLoader, FinalLoad(_))
         .WillOnce(Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
-    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(0));
+    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(std::make_pair(Status::OK(), 0)));
 
     auto fs = framework::TabletTestAgent(tablet.get()).TEST_GetFileSystem();
     auto memSegment = std::make_unique<MockMemSegment>(536870912, fs, Segment::SegmentStatus::ST_BUILDING);
     EXPECT_CALL(*memSegment, Open(_, _)).WillOnce(Return(Status::OK()));
 
     auto tabletReader = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader, DoOpen(_, _)).WillOnce(Return(Status::OK()));
     auto tabletReader2 = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader2, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader2, DoOpen(_, _)).WillOnce(Return(Status::OK()));
 
     auto tabletWriter = std::make_unique<MockTabletWriter>();
     factory = new MockTabletFactory();
@@ -937,16 +941,16 @@ TEST_F(TabletTest, TestUpdateControlFlowRaceCondition)
     ASSERT_TRUE(tabletData->Init(version, {}, resourceMap).IsOK());
     EXPECT_CALL(*tabletLoader, FinalLoad(_))
         .WillOnce(Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
-    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(0));
+    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(std::make_pair(Status::OK(), 0)));
 
     auto fs = framework::TabletTestAgent(tablet.get()).TEST_GetFileSystem();
     auto memSegment = std::make_unique<MockMemSegment>(536870912, fs, Segment::SegmentStatus::ST_BUILDING);
     EXPECT_CALL(*memSegment, Open(_, _)).WillOnce(Return(Status::OK()));
 
     auto tabletReader = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader, DoOpen(_, _)).WillOnce(Return(Status::OK()));
     auto tabletReader2 = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader2, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader2, DoOpen(_, _)).WillOnce(Return(Status::OK()));
 
     auto tabletWriter = std::make_unique<MockTabletWriter>();
     auto segment = std::make_shared<MockMemSegment>(536870912, fs, Segment::SegmentStatus::ST_BUILT);
@@ -1023,7 +1027,7 @@ void TabletTest::InnerTestFilterDoc(const Locator& latestLocator, const Locator&
     ON_CALL(*tabletLoader, FinalLoad(_))
         .WillByDefault(
             Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
-    ON_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillByDefault(Return(0));
+    ON_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillByDefault(Return(std::make_pair(Status::OK(), 0)));
 
     // MemSegment
     std::vector<std::shared_ptr<SegmentDumpItem>> segmentDumpItems;
@@ -1042,15 +1046,15 @@ void TabletTest::InnerTestFilterDoc(const Locator& latestLocator, const Locator&
     // TabletReader
     auto tabletReader1 = std::make_unique<MockTabletReader>();
     auto tabletReader2 = std::make_unique<MockTabletReader>();
-    ON_CALL(*tabletReader1, Open(_, _)).WillByDefault(Return(Status::OK()));
-    ON_CALL(*tabletReader2, Open(_, _)).WillByDefault(Return(Status::OK()));
+    ON_CALL(*tabletReader1, DoOpen(_, _)).WillByDefault(Return(Status::OK()));
+    ON_CALL(*tabletReader2, DoOpen(_, _)).WillByDefault(Return(Status::OK()));
 
     // TabletFactory
     factory = new MockTabletFactory();
     //    ON_CALL(*factory, CreateTabletReader(_)).WillOnce(Return(ByMove(std::move(tabletReader1))));
     ON_CALL(*factory, CreateTabletReader(_)).WillByDefault(Invoke([] {
         auto tabletReader1 = std::make_unique<MockTabletReader>();
-        ON_CALL(*tabletReader1, Open(_, _)).WillByDefault(Return(Status::OK()));
+        ON_CALL(*tabletReader1, DoOpen(_, _)).WillByDefault(Return(Status::OK()));
         return tabletReader1;
     }));
 
@@ -1136,7 +1140,7 @@ TEST_F(TabletTest, testImportExternalFiles)
     ON_CALL(*tabletLoader, FinalLoad(_))
         .WillByDefault(
             Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
-    ON_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillByDefault(Return(0));
+    ON_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillByDefault(Return(std::make_pair(Status::OK(), 0)));
 
     // MemSegment
     std::vector<std::shared_ptr<SegmentDumpItem>> segmentDumpItems;
@@ -1152,15 +1156,15 @@ TEST_F(TabletTest, testImportExternalFiles)
     // TabletReader
     auto tabletReader1 = std::make_unique<MockTabletReader>();
     auto tabletReader2 = std::make_unique<MockTabletReader>();
-    ON_CALL(*tabletReader1, Open(_, _)).WillByDefault(Return(Status::OK()));
-    ON_CALL(*tabletReader2, Open(_, _)).WillByDefault(Return(Status::OK()));
+    ON_CALL(*tabletReader1, DoOpen(_, _)).WillByDefault(Return(Status::OK()));
+    ON_CALL(*tabletReader2, DoOpen(_, _)).WillByDefault(Return(Status::OK()));
 
     // TabletFactory
     factory = new MockTabletFactory();
     //    ON_CALL(*factory, CreateTabletReader(_)).WillOnce(Return(ByMove(std::move(tabletReader1))));
     ON_CALL(*factory, CreateTabletReader(_)).WillByDefault(Invoke([] {
         auto tabletReader1 = std::make_unique<MockTabletReader>();
-        ON_CALL(*tabletReader1, Open(_, _)).WillByDefault(Return(Status::OK()));
+        ON_CALL(*tabletReader1, DoOpen(_, _)).WillByDefault(Return(Status::OK()));
         return tabletReader1;
     }));
 
@@ -1180,7 +1184,8 @@ TEST_F(TabletTest, testImportExternalFiles)
         externalFiles.emplace_back(externalFile1);
         externalFiles.emplace_back(externalFile2);
         auto importOptions = std::make_shared<ImportExternalFileOptions>();
-        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, importOptions, Action::ADD);
+        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, importOptions, Action::ADD,
+                                                  /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_TRUE(status.IsOK());
     }
     {
@@ -1188,8 +1193,8 @@ TEST_F(TabletTest, testImportExternalFiles)
         std::string bulkloadId = "123";
         std::vector<std::string> externalFiles;
         auto importOptions = std::make_shared<ImportExternalFileOptions>();
-        auto status =
-            tablet->ImportExternalFiles(bulkloadId, externalFiles, /*importOptions=*/nullptr, Action::SUSPEND);
+        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, /*importOptions=*/nullptr, Action::SUSPEND,
+                                                  /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_TRUE(status.IsOK());
     }
     {
@@ -1197,22 +1202,25 @@ TEST_F(TabletTest, testImportExternalFiles)
         std::string bulkloadId = "123";
         std::vector<std::string> externalFiles;
         auto importOptions = std::make_shared<ImportExternalFileOptions>();
-        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, /*importOptions=*/nullptr, Action::ABORT);
+        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, /*importOptions=*/nullptr, Action::ABORT,
+                                                  /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_TRUE(status.IsOK());
     }
     {
         // invalid external files
-        std::string bulkloadId = "123";
+        std::string bulkloadId = "1234";
         std::vector<std::string> externalFiles;
         auto importOptions = std::make_shared<ImportExternalFileOptions>();
-        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, importOptions, Action::ADD);
+        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, importOptions, Action::ADD,
+                                                  /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_FALSE(status.IsOK());
     }
     {
         // invalid import options
-        std::string bulkloadId = "123";
+        std::string bulkloadId = "12345";
         std::vector<std::string> externalFiles;
-        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, /*importOptions=*/nullptr, Action::ADD);
+        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, /*importOptions=*/nullptr, Action::ADD,
+                                                  /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_FALSE(status.IsOK());
     }
     {
@@ -1224,7 +1232,8 @@ TEST_F(TabletTest, testImportExternalFiles)
         externalFiles.emplace_back(externalFile1);
         externalFiles.emplace_back(externalFile2);
         auto importOptions = std::make_shared<ImportExternalFileOptions>();
-        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, importOptions, Action::UNKNOWN);
+        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, importOptions, Action::UNKNOWN,
+                                                  /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_FALSE(status.IsOK());
     }
     {
@@ -1236,40 +1245,49 @@ TEST_F(TabletTest, testImportExternalFiles)
         externalFiles.emplace_back(externalFile2);
         auto importOptions = std::make_shared<ImportExternalFileOptions>();
         autil::EnvUtil::setEnv("IGNORE_BULKLOAD_ID", "1;2;3");
-        auto status = tablet->ImportExternalFiles("1", externalFiles, importOptions, Action::ADD);
+        auto status = tablet->ImportExternalFiles("1", externalFiles, importOptions, Action::ADD,
+                                                  /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_FALSE(status.IsOK());
-        status = tablet->ImportExternalFiles("2", externalFiles, importOptions, Action::ADD);
+        status = tablet->ImportExternalFiles("2", externalFiles, importOptions, Action::ADD,
+                                             /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_FALSE(status.IsOK());
-        status = tablet->ImportExternalFiles("3", externalFiles, importOptions, Action::ADD);
+        status = tablet->ImportExternalFiles("3", externalFiles, importOptions, Action::ADD,
+                                             /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_FALSE(status.IsOK());
         autil::EnvUtil::unsetEnv("IGNORE_BULKLOAD_ID");
-        status = tablet->ImportExternalFiles("1", externalFiles, importOptions, Action::ADD);
+        status = tablet->ImportExternalFiles("1", externalFiles, importOptions, Action::ADD,
+                                             /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_TRUE(status.IsOK());
-        status = tablet->ImportExternalFiles("2", externalFiles, importOptions, Action::ADD);
+        status = tablet->ImportExternalFiles("2", externalFiles, importOptions, Action::ADD,
+                                             /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_TRUE(status.IsOK());
-        status = tablet->ImportExternalFiles("3", externalFiles, importOptions, Action::ADD);
+        status = tablet->ImportExternalFiles("3", externalFiles, importOptions, Action::ADD,
+                                             /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_TRUE(status.IsOK());
     }
     {
         // invalid overwrite
-        std::string bulkloadId = "123";
+        std::string bulkloadId = "123456";
         std::vector<std::string> externalFiles1;
         auto importOptions = std::make_shared<ImportExternalFileOptions>();
-        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles1, importOptions, Action::ADD);
+        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles1, importOptions, Action::ADD,
+                                                  /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_FALSE(status.IsOK());
         std::vector<std::string> externalFiles2;
         std::string externalFile3 = indexlib::util::PathUtil::JoinPath(GET_TEMP_DATA_PATH(), "1.sst");
         std::string externalFile4 = indexlib::util::PathUtil::JoinPath(GET_TEMP_DATA_PATH(), "2.sst");
         externalFiles2.emplace_back(externalFile3);
         externalFiles2.emplace_back(externalFile4);
-        status = tablet->ImportExternalFiles(bulkloadId, externalFiles2, /*importOptions=*/nullptr, Action::OVERWRITE);
+        status = tablet->ImportExternalFiles(bulkloadId, externalFiles2, /*importOptions=*/nullptr, Action::OVERWRITE,
+                                             /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_FALSE(status.IsOK());
-        status = tablet->ImportExternalFiles(bulkloadId, externalFiles2, importOptions, Action::OVERWRITE);
+        status = tablet->ImportExternalFiles(bulkloadId, externalFiles2, importOptions, Action::OVERWRITE,
+                                             /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_TRUE(status.IsOK());
     }
     {
         // import external files for follower
-        std::string bulkloadId = "123";
+        std::string bulkloadId = "1234567";
         std::vector<std::string> externalFiles;
         std::string externalFile1 = indexlib::util::PathUtil::JoinPath(GET_TEMP_DATA_PATH(), "1.sst");
         std::string externalFile2 = indexlib::util::PathUtil::JoinPath(GET_TEMP_DATA_PATH(), "2.sst");
@@ -1278,9 +1296,67 @@ TEST_F(TabletTest, testImportExternalFiles)
         auto importOptions = std::make_shared<ImportExternalFileOptions>();
         auto& options = tablet->_tabletOptions;
         options->SetIsLeader(false);
-        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, importOptions, Action::ADD);
+        auto status = tablet->ImportExternalFiles(bulkloadId, externalFiles, importOptions, Action::ADD,
+                                                  /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
         ASSERT_TRUE(tablet->NeedCommit());
         ASSERT_TRUE(status.IsOK());
+    }
+}
+
+TEST_F(TabletTest, testCheckMemoryStatus)
+{
+    auto tabletOptions = std::make_shared<indexlibv2::config::TabletOptions>();
+    tabletOptions->SetIsOnline(true);
+    auto& onlineConfig = tabletOptions->TEST_GetOnlineConfig();
+    onlineConfig.TEST_SetMaxRealtimeMemoryUse(1024 * 1024);
+    auto memoryQuotaController = std::make_shared<MemoryQuotaController>("test", 1024 * 1024);
+    auto memoryQuotaSynchronizer = std::make_shared<MemoryQuotaSynchronizer>(memoryQuotaController);
+    auto tabletCommitter = std::make_unique<TabletCommitter>("test");
+    auto tabletDumper = std::make_unique<TabletDumper>("test", nullptr, tabletCommitter.get());
+    auto resourceMap = std::make_shared<ResourceMap>();
+    SegmentMeta segMeta;
+    segMeta.segmentId = Segment::RT_SEGMENT_ID_MASK;
+    {
+        // default memory strategy
+        auto tablet = std::make_unique<Tablet>(_resource);
+        tablet->_tabletMetrics =
+            std::make_shared<TabletMetrics>(nullptr, memoryQuotaController.get(), "test", tabletDumper.get(), nullptr);
+        auto readerContainer = std::make_shared<TabletReaderContainer>("testTableName");
+        tablet->_tabletMetrics->_tabletMemoryCalculator.reset(new TabletMemoryCalculator(nullptr, readerContainer));
+        tablet->_memControlStrategy.reset(new DefaultMemoryControlStrategy(tabletOptions, memoryQuotaSynchronizer));
+        EXPECT_EQ(MemoryStatus::OK, tablet->CheckMemoryStatus());
+    }
+    {
+        // default memory strategy
+        auto tabletData = std::make_shared<TabletData>("demo");
+        auto mockDiskSegment = std::make_unique<MockDiskSegment>(segMeta);
+        ON_CALL(*mockDiskSegment, EvaluateCurrentMemUsed).WillByDefault(Return(1024 * 1024 + 1));
+        auto segment = std::shared_ptr<Segment>(mockDiskSegment.release());
+        ASSERT_TRUE(tabletData->Init(framework::Version(), {segment}, resourceMap).IsOK());
+        auto readerContainer = std::make_shared<TabletReaderContainer>("testTableName");
+        readerContainer->AddTabletReader(tabletData, nullptr, nullptr);
+        auto tablet = std::make_unique<Tablet>(_resource);
+        tablet->_tabletMetrics =
+            std::make_shared<TabletMetrics>(nullptr, memoryQuotaController.get(), "test", tabletDumper.get(), nullptr);
+        tablet->_tabletMetrics->_tabletMemoryCalculator.reset(new TabletMemoryCalculator(nullptr, readerContainer));
+        tablet->_memControlStrategy.reset(new DefaultMemoryControlStrategy(tabletOptions, memoryQuotaSynchronizer));
+        EXPECT_EQ(MemoryStatus::REACH_MAX_RT_INDEX_SIZE, tablet->CheckMemoryStatus());
+    }
+    {
+        // exclude builtRt memory strategy
+        auto tabletData = std::make_shared<TabletData>("demo");
+        auto mockDiskSegment = std::make_unique<MockDiskSegment>(segMeta);
+        ON_CALL(*mockDiskSegment, EvaluateCurrentMemUsed).WillByDefault(Return(1024 * 1024 + 1));
+        auto segment = std::shared_ptr<Segment>(mockDiskSegment.release());
+        ASSERT_TRUE(tabletData->Init(framework::Version(), {segment}, resourceMap).IsOK());
+        auto readerContainer = std::make_shared<TabletReaderContainer>("testTableName");
+        readerContainer->AddTabletReader(tabletData, nullptr, nullptr);
+        auto tablet = std::make_unique<Tablet>(_resource);
+        tablet->_tabletMetrics =
+            std::make_shared<TabletMetrics>(nullptr, memoryQuotaController.get(), "test", tabletDumper.get(), nullptr);
+        tablet->_tabletMetrics->_tabletMemoryCalculator.reset(new TabletMemoryCalculator(nullptr, readerContainer));
+        tablet->_memControlStrategy.reset(new LSMMemTableControlStrategy(tabletOptions, memoryQuotaSynchronizer));
+        EXPECT_EQ(MemoryStatus::OK, tablet->CheckMemoryStatus());
     }
 }
 

@@ -16,17 +16,19 @@
 #pragma once
 
 #include <map>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "autil/StringView.h"
 #include "indexlib/base/Types.h"
-#include "indexlib/document/IDocument.h"
+#include "indexlib/framework/Locator.h"
 
 namespace autil::mem_pool {
 class Pool;
-}
-
-namespace indexlibv2::framework {
-class Locator;
 }
 
 namespace indexlibv2::document {
@@ -36,9 +38,11 @@ class RawDocFieldIterator;
 class RawDocument
 {
 protected:
-    typedef std::map<std::string, std::string> TagInfoMap;
+    using TagInfoMap = std::map<std::string, std::string>;
 
 public:
+    using Snapshot = std::unordered_map<autil::StringView, autil::StringView>;
+
     RawDocument();
     RawDocument(const RawDocument& other);
     RawDocument& operator=(const RawDocument& other);
@@ -73,8 +77,8 @@ public:
     virtual void SetLocator(const framework::Locator& locator) = 0;
     virtual void SetIngestionTimestamp(int64_t ingestionTimestamp) = 0;
     virtual int64_t GetIngestionTimestamp() const = 0;
-    virtual void SetDocInfo(const indexlibv2::document::IDocument::DocInfo& docInfo) = 0;
-    virtual indexlibv2::document::IDocument::DocInfo GetDocInfo() const = 0;
+    virtual void SetDocInfo(const indexlibv2::framework::Locator::DocInfo& docInfo) = 0;
+    virtual indexlibv2::framework::Locator::DocInfo GetDocInfo() const = 0;
     virtual size_t EstimateMemory() const = 0;
 
 public:
@@ -88,20 +92,21 @@ public:
     void eraseField(const std::string& fieldName);
     autil::StringView GetEvaluatorState() const;
     void SetEvaluatorState(const autil::StringView& state);
-    autil::mem_pool::Pool* getPool();
+    autil::mem_pool::Pool* getPool() const;
     const std::string& getDocSource() const;
     void setDocSource(const std::string& source);
     void setIgnoreEmptyField(bool ignoreEmptyField);
     bool ignoreEmptyField() const;
     bool IsUserDoc();
+    Snapshot* GetSnapshot() const;
 
 public:
     static DocOperateType getDocOperateType(const autil::StringView& cmdString);
     static const std::string& getCmdString(DocOperateType type);
 
 protected:
-    std::unique_ptr<autil::mem_pool::Pool> _pool;
     autil::StringView _evaluatorState;
+    autil::mem_pool::Pool* _recyclePool = nullptr;
     bool _ignoreEmptyField = false;
 };
 

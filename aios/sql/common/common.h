@@ -41,11 +41,8 @@ constexpr char SQL_FORMAT_DESC[] = "formatDesc";
 constexpr char SQL_TRACE_LEVEL[] = "trace";
 constexpr char SQL_GET_SEARCH_INFO[] = "searchInfo";
 constexpr char SQL_GET_RESULT_COMPRESS_TYPE[] = "resultCompressType";
-constexpr char SQL_GET_SQL_PLAN[] = "sqlPlan";
 constexpr char SQL_FORBIT_MERGE_SEARCH_INFO[] = "forbitMergeSearchInfo";
 constexpr char SQL_FORBIT_SEARCH_INFO[] = "forbitSearchInfo";
-constexpr char SQL_RESULT_READABLE[] = "resultReadable";
-constexpr char SQL_RESULT_ALLOW_SOFT_FAILURE[] = "resultAllowSoftFailure";
 constexpr char SQL_DYNAMIC_PARAMS[] = "dynamic_params";
 constexpr char SQL_DYNAMIC_KV_PARAMS[] = "dynamic_kv_params";
 constexpr char SQL_HINT_PARAMS[] = "hint_params";
@@ -56,6 +53,7 @@ constexpr char SQL_PARALLEL_TABLES_SPLIT = '|';
 constexpr char SQL_LACK_RESULT_ENABLE[] = "lackResultEnable";
 constexpr char SQL_CATALOG_NAME[] = "catalogName";
 constexpr char SQL_DATABASE_NAME[] = "databaseName";
+constexpr char SQL_SYSTEM_DATABASE[] = "system";
 constexpr char SQL_PREPARE_LEVEL[] = "iquan.plan.prepare.level";
 constexpr char SQL_ENABLE_CACHE[] = "enableSqlCache";
 constexpr char SQL_IQUAN_PLAN_FORMAT_VERSION[] = "iquan.plan.format.version";
@@ -160,11 +158,21 @@ constexpr size_t PARALLEL_NUM_MAX_LIMIT = 16;
 constexpr size_t PARALLEL_NUM_MIN_LIMIT = 1;
 extern const std::string PARALLEL_INDEX_ATTR;
 
+constexpr size_t PARALLEL_MIN_BLOCK_SIZE = 1 << 14;
+constexpr size_t PARALLEL_MAX_BLOCK_COUNT = 1000;
+constexpr size_t PARALLEL_DEFAULT_BLOCK_COUNT = 20;
+extern const std::string PARALLEL_BLOCK_COUNT_ATTR;
+
 extern const std::string DEFAULT_INPUT_PORT;
 extern const std::string DEFAULT_OUTPUT_PORT;
 
+// kvpair
+extern const std::string SQL_RESULT_ALLOW_SOFT_FAILURE;
+extern const std::string SQL_GET_SQL_PLAN;
+
 // common
 extern const std::string IQUAN_OP_ID;
+extern const std::string SQL_QUERY_CONFIG_NAME;
 
 // scan kernel
 extern const std::string SCAN_TABLE_NAME_ATTR;

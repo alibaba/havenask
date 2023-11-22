@@ -103,14 +103,17 @@ private:
         return StringRef(str, len);                                                                                    \
     }
 
-format_unsigned_value(uint8_t) format_unsigned_value(uint16_t) format_unsigned_value(uint32_t)
-    format_unsigned_value(uint64_t)
+format_unsigned_value(uint8_t);
+format_unsigned_value(uint16_t);
+format_unsigned_value(uint32_t);
+format_unsigned_value(uint64_t);
+format_signed_value(int8_t);
+format_signed_value(int16_t);
+format_signed_value(int32_t);
+format_signed_value(int64_t);
 
-        format_signed_value(int8_t) format_signed_value(int16_t) format_signed_value(int32_t)
-            format_signed_value(int64_t)
-
-                template <typename T>
-                inline std::string FormatInt::toString(T v) {
+template <typename T>
+inline std::string FormatInt::toString(T v) {
     StringRef ref = format(v);
     return std::string(ref.buf, ref.len);
 }

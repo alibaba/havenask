@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ONLINE_CONFIG_IMPL_H
-#define __INDEXLIB_ONLINE_CONFIG_IMPL_H
+#pragma once
 
 #include <memory>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/disable_fields_config.h"
 #include "indexlib/config/index_dictionary_bloom_filter_param.h"
 #include "indexlib/file_system/LifecycleConfig.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -105,10 +104,8 @@ private:
     indexlib::file_system::LifecycleConfig mLifecycleConfig;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(OnlineConfigImpl);
+typedef std::shared_ptr<OnlineConfigImpl> OnlineConfigImplPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_ONLINE_CONFIG_IMPL_H

@@ -15,9 +15,19 @@
  */
 #include "indexlib/merger/split_strategy/split_segment_strategy.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/normal/attribute/accessor/offline_attribute_segment_reader_container.h"
 #include "indexlib/index/segment_metrics_updater/multi_segment_metrics_updater.h"
 #include "indexlib/index/segment_metrics_updater/temperature_segment_metrics_updater.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;

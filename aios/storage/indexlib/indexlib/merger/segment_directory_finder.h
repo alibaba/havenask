@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_DIRECTORY_FINDER_H
-#define __INDEXLIB_SEGMENT_DIRECTORY_FINDER_H
+#pragma once
 
-#include <memory>
+#include <string>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/attribute_config.h"
-#include "indexlib/file_system/Directory.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -49,5 +51,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentDirectoryFinder);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_SEGMENT_DIRECTORY_FINDER_H

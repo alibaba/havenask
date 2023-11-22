@@ -28,13 +28,23 @@ public:
 
 public:
     template <typename Iter>
-    static Iter SortAndUnique(Iter begin, Iter end);
+    [[nodiscard]] static Iter SortAndUnique(Iter begin, Iter end);
+
+    template <typename T>
+    static void SortUniqueAndErase(std::vector<T>& items);
+
     template <typename Map, typename Keys>
     static void GetSortedKeys(const Map& hashMap, Keys* sortedKeys);
 
 private:
     AUTIL_LOG_DECLARE();
 };
+
+template <typename T>
+void Algorithm::SortUniqueAndErase(std::vector<T>& items)
+{
+    items.erase(SortAndUnique(items.begin(), items.end()), items.end());
+}
 
 template <typename Iter>
 Iter Algorithm::SortAndUnique(Iter begin, Iter end)

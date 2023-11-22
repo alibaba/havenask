@@ -1,6 +1,7 @@
 #include "indexlib/partition/test/sub_doc_unittest.h"
 
 #include "indexlib/config/impl/merge_config_impl.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/package/PackageFileMeta.h"
 #include "indexlib/index/partition_info.h"
@@ -8,7 +9,6 @@
 #include "indexlib/index_base/deploy_index_wrapper.h"
 #include "indexlib/index_base/index_meta/segment_file_list_wrapper.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/slow_dump_segment_container.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/test/build_test_util.h"
@@ -1119,8 +1119,8 @@ void SubDocTest::InnerTestBuildAndMergeWithPackageFile(bool optimizeMerge)
     ASSERT_TRUE(psm.Transfer(QUERY, "", "sub_pk:sub60", "sub_long=660"));
     ASSERT_TRUE(psm.Transfer(QUERY, "", "sub_pk:sub66", "sub_long=666"));
 
-    DeployIndexChecker::CheckDeployIndexMeta(mRootDir, 0, INVALID_VERSION);
-    DeployIndexChecker::CheckDeployIndexMeta(mRootDir, 1, INVALID_VERSION);
+    DeployIndexChecker::CheckDeployIndexMeta(mRootDir, 0, INVALID_VERSIONID);
+    DeployIndexChecker::CheckDeployIndexMeta(mRootDir, 1, INVALID_VERSIONID);
     DeployIndexChecker::CheckDeployIndexMeta(mRootDir, 1, 0);
 }
 

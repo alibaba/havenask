@@ -45,8 +45,8 @@ void InMemDocListDecoder::Init(df_t df, SkipListReader* skipListReader, Buffered
     _docListReader.Open(docListBuffer);
 }
 
-bool InMemDocListDecoder::DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId,
-                                          docid_t& lastDocId, ttf_t& currentTTF)
+bool InMemDocListDecoder::DecodeDocBuffer(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId,
+                                          docid32_t& lastDocId, ttf_t& currentTTF)
 {
     DocBufferInfo docBufferInfo(docBuffer, firstDocId, lastDocId, currentTTF);
     if (_skipListReader == nullptr) {
@@ -85,8 +85,8 @@ bool InMemDocListDecoder::DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer
     return true;
 }
 
-bool InMemDocListDecoder::DecodeDocBufferWithoutSkipList(docid_t lastDocIdInPrevRecord, uint32_t offset,
-                                                         docid_t startDocId, DocBufferInfo& docBufferInfo)
+bool InMemDocListDecoder::DecodeDocBufferWithoutSkipList(docid32_t lastDocIdInPrevRecord, uint32_t offset,
+                                                         docid32_t startDocId, DocBufferInfo& docBufferInfo)
 {
     // only decode one time
     if (_finishDecoded) {

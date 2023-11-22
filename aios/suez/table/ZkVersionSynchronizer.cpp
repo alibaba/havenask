@@ -73,16 +73,20 @@ void ZkVersionSynchronizer::remove(const PartitionId &pid) {
 bool ZkVersionSynchronizer::supportSyncFromPersist(const PartitionMeta &target) const { return true; }
 
 bool ZkVersionSynchronizer::syncFromPersist(const PartitionId &pid,
-                                            const std::string &configPath,
+                                            const std::string &appName,
+                                            const std::string &dataTable,
+                                            const std::string &remoteConfigPath,
                                             TableVersion &version) {
-    static std::string suffix;
+    std::string suffix;
     return doSyncFromPersist<TableVersion, false>(pid, VST_VERSION, suffix, version);
 }
 
 bool ZkVersionSynchronizer::persistVersion(const PartitionId &pid,
-                                           const std::string &localConfigPath,
+                                           const std::string &appName,
+                                           const std::string &dataTable,
+                                           const std::string &remoteConfigPath,
                                            const TableVersion &version) {
-    static std::string suffix;
+    std::string suffix;
     return persistToZk(pid, VST_VERSION, suffix, version);
 }
 
@@ -92,13 +96,19 @@ VersionState *ZkVersionSynchronizer::createVersionState(const PartitionId &pid, 
     return new ZkStateWrapper(_zkWrapper, _config.zkRoot + "/" + fileName, _config.syncIntervalInSec);
 }
 
-bool ZkVersionSynchronizer::getVersionList(const PartitionId &pid, std::vector<TableVersion> &versions) {
-    static std::string suffix = "_list";
+bool ZkVersionSynchronizer::getVersionList(const PartitionId &pid,
+                                           const std::string &appName,
+                                           const std::string &dataTable,
+                                           std::vector<TableVersion> &versions) {
+    std::string suffix = "_list";
     return doSyncFromPersist<std::vector<TableVersion>, true>(pid, VST_VERSION_LIST, suffix, versions);
 }
 
-bool ZkVersionSynchronizer::updateVersionList(const PartitionId &pid, const std::vector<TableVersion> &versions) {
-    static std::string suffix = "_list";
+bool ZkVersionSynchronizer::updateVersionList(const PartitionId &pid,
+                                              const std::string &appName,
+                                              const std::string &dataTable,
+                                              const std::vector<TableVersion> &versions) {
+    std::string suffix = "_list";
     return persistToZk(pid, VST_VERSION_LIST, suffix, versions);
 }
 

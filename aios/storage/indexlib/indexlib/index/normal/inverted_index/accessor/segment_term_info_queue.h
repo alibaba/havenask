@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_TERM_INFO_QUEUE_H
-#define __INDEXLIB_SEGMENT_TERM_INFO_QUEUE_H
+#pragma once
 
 #include <memory>
 
@@ -81,5 +80,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentTermInfoQueue);
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_SEGMENT_TERM_INFO_QUEUE_H

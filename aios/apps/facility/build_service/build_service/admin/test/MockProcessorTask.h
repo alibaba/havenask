@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKPROCESSORTASK_H
-#define ISEARCH_BS_MOCKPROCESSORTASK_H
+#pragma once
 
 #include "build_service/admin/taskcontroller/ProcessorTask.h"
 #include "build_service/common_define.h"
@@ -38,5 +37,3 @@ typedef ::testing::NiceMock<MockProcessorTask> NiceMockProcessorTask;
 BS_TYPEDEF_PTR(MockProcessorTask);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_MOCKPROCESSORTASK_H

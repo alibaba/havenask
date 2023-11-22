@@ -16,15 +16,46 @@
 
 #include "build_service/custom_merger/CustomMergerImpl.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 #include "build_service/custom_merger/MergeResourceProvider.h"
-#include "fslib/util/FileUtil.h"
+#include "build_service/custom_merger/TaskItemDispatcher.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/schema_differ.h"
+#include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/MergeDirsOption.h"
 #include "indexlib/file_system/archive/ArchiveFolder.h"
+#include "indexlib/file_system/file/FileWriter.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/framework/VersionMeta.h"
 #include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/common_branch_hinter.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_define.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/merger_branch_hinter.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/partition/remote_access/attribute_data_seeker.h"
+#include "indexlib/partition/remote_access/partition_iterator.h"
+#include "indexlib/partition/remote_access/partition_patcher.h"
+#include "indexlib/partition/remote_access/partition_resource_provider.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;
@@ -168,7 +199,7 @@ bool CustomMergerImpl::endMerge(const CustomMergeMeta& mergeMeta, const std::str
         }
     }
 
-    if (targetVersionId != INVALID_VERSION) {
+    if (targetVersionId != indexlib::INVALID_VERSIONID) {
         // TODO (yiping.typ) add fence option
         partitionProvider->StoreVersion(newSchema, targetVersionId);
     } else {

@@ -1,5 +1,4 @@
-#ifndef ISEARCH_FAKEMULTIVALUEATTRIBUTEREADER_H
-#define ISEARCH_FAKEMULTIVALUEATTRIBUTEREADER_H
+#pragma once
 
 #include <memory>
 
@@ -243,5 +242,3 @@ inline void FakeStringAttributeReader::makeAttrFileData(const config::AttributeC
     writer.Dump(directory, &pool);
 }
 }} // namespace indexlib::testlib
-
-#endif // ISEARCH_FAKEMULTIVALUEATTRIBUTEREADER_H

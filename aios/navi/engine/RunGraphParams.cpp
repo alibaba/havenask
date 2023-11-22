@@ -18,6 +18,7 @@
 #include "navi/engine/SerializeData.h"
 #include "navi/log/TraceAppender.h"
 #include "navi/proto/NaviStream.pb.h"
+#include "autil/StringTokenizer.h"
 
 namespace navi {
 
@@ -73,8 +74,12 @@ void RunGraphParams::setTraceLevel(const std::string &traceLevelStr) {
     _traceLevel = getLevelByString(traceLevelStr);
 }
 
-std::string RunGraphParams::getTraceLevel() const {
+std::string RunGraphParams::getTraceLevelStr() const {
     return LoggingEvent::levelStrByLevel(_traceLevel);
+}
+
+LogLevel RunGraphParams::getTraceLevel() const {
+    return _traceLevel;
 }
 
 void RunGraphParams::setTraceFormatPattern(const std::string &pattern) {
@@ -89,7 +94,7 @@ void RunGraphParams::addTraceBtFilter(const std::string &file, int line) {
     _traceBtFilterParams.emplace_back(file, line);
 }
 
-void RunGraphParams::fillFilterParam(TraceAppender *traceApppender) {
+void RunGraphParams::fillFilterParam(TraceAppender *traceApppender) const {
     for (const auto &param : _traceBtFilterParams) {
         traceApppender->addBtFilter(LogBtFilterParam(param.first, param.second));
     }
@@ -113,6 +118,10 @@ void RunGraphParams::setCollectPerf(bool collect) {
 
 bool RunGraphParams::collectPerf() const {
     return _collectPerf;
+}
+
+bool RunGraphParams::needCollect() const {
+    return _collectMetric || _collectPerf;
 }
 
 void RunGraphParams::setAsyncIo(bool async) {
@@ -207,7 +216,7 @@ bool RunGraphParams::fromProto(const RunParams &pbParams,
 {
     NAVI_KERNEL_LOG(DEBUG, "pb run params: %s", pbParams.DebugString().c_str());
     SessionId sessionId;
-    auto pbSessionId = pbParams.id();
+    const auto &pbSessionId = pbParams.id();
     sessionId.instance = pbSessionId.instance();
     sessionId.queryId = pbSessionId.query_id();
     params.setSessionId(sessionId);
@@ -301,12 +310,11 @@ bool RunGraphParams::deserializeOverrideData(const RunParams &pbParams,
     return true;
 }
 
-bool RunGraphParams::toProto(const RunGraphParams &params,
-                             GraphId matchGraphId,
-                             CreatorManager *creatorManager,
-                             NaviPartId partId,
-                             int64_t timeoutMs,
-                             RunParams &pbParams)
+ErrorCode RunGraphParams::toProto(const RunGraphParams &params,
+                                  GraphId matchGraphId,
+                                  CreatorManager *creatorManager,
+                                  NaviPartId partId, int64_t timeoutMs,
+                                  RunParams &pbParams)
 {
     auto sessionId = params.getSessionId();
     auto pbSessionId = pbParams.mutable_id();
@@ -316,7 +324,7 @@ bool RunGraphParams::toProto(const RunGraphParams &params,
     pbParams.set_thread_limit(params.getThreadLimit());
     pbParams.set_timeout_ms(timeoutMs);
     pbParams.set_task_queue_name(params.getTaskQueueName());
-    pbParams.set_trace_level(params.getTraceLevel());
+    pbParams.set_trace_level(params.getTraceLevelStr());
     pbParams.set_collect_metric(params.collectMetric());
     pbParams.set_collect_perf(params.collectPerf());
     pbParams.set_max_inline(params.getMaxInline());
@@ -327,15 +335,15 @@ bool RunGraphParams::toProto(const RunGraphParams &params,
                                creatorManager, partId, pbParams))
     {
         NAVI_KERNEL_LOG(ERROR, "serialize override data failed");
-        return false;
+        return EC_SERIALIZE_OVERRIDE_DATA;
     }
     if (!serializeNamedData(params.getNamedDatas(), matchGraphId, creatorManager,
                             pbParams))
     {
         NAVI_KERNEL_LOG(ERROR, "serialize named data failed");
-        return false;
+        return EC_SERIALIZE_NAMED_DATA;
     }
-    return true;
+    return EC_NONE;
 }
 
 void RunGraphParams::serializeTraceBtFilter(const RunGraphParams &params,
@@ -524,6 +532,43 @@ bool RunGraphParams::deserializeNamedData(const RunParams &pbParams,
         }
     }
     return true;
+}
+
+void RunGraphParams::setDebugParamStr(const std::string &debugParamStr) {
+    auto params = autil::StringTokenizer::tokenize(
+        autil::StringView(debugParamStr), NAVI_DEBUG_DELIM2_STR);
+    for (const auto &param : params) {
+        auto sub = autil::StringTokenizer::tokenize(autil::StringView(param),
+                                                    NAVI_DEBUG_DELIM1_STR);
+        if (sub.size() == 2) {
+            const auto &key = sub[0];
+            const auto &value = sub[1];
+            if (key == NAVI_DEBUG_METRIC_STR) {
+                setCollectMetric(autil::StringUtil::fromString<bool>(value));
+            } else if (key == NAVI_DEBUG_PERF_STR) {
+                setCollectPerf(autil::StringUtil::fromString<bool>(value));
+            } else if (key == NAVI_DEBUG_TRACE_STR) {
+                setTraceLevel(value);
+            } else if (key == NAVI_DEBUG_BT_FILTER_STR) {
+                addBtFilterStr(value);
+            }
+        }
+    }
+}
+
+void RunGraphParams::addBtFilterStr(const std::string &btFilterStr) {
+    auto splited = autil::StringTokenizer::tokenize(
+        autil::StringView(btFilterStr), NAVI_DEBUG_BT_FILTER_DELIM_STR);
+    if (2 != splited.size()) {
+        return;
+    }
+    const auto &file = splited[0];
+    const auto &lineStr = splited[1];
+    int line = -1;
+    if (!autil::StringUtil::fromString(lineStr, line)) {
+        return;
+    }
+    addTraceBtFilter(file, line);
 }
 
 }

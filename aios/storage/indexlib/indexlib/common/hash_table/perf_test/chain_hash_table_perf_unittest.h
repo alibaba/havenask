@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CHAINHASHTABLEPERFTEST_H
-#define __INDEXLIB_CHAINHASHTABLEPERFTEST_H
+#pragma once
 
 #include <vector>
 
@@ -62,5 +61,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(ChainHashTablePerfTest, TestInsertAndFind);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CHAINHASHTABLEPERFTEST_H

@@ -35,8 +35,8 @@ DictInlinePostingDecoder::DictInlinePostingDecoder(const PostingFormatOption& po
     }
 }
 
-bool DictInlinePostingDecoder::DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId,
-                                               docid_t& lastDocId, ttf_t& currentTTF)
+bool DictInlinePostingDecoder::DecodeDocBuffer(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId,
+                                               docid32_t& lastDocId, ttf_t& currentTTF)
 {
     if (_isDocList) {
         return DecodeDocBufferForDocList(startDocId, docBuffer, firstDocId, lastDocId, currentTTF);
@@ -44,16 +44,16 @@ bool DictInlinePostingDecoder::DecodeDocBuffer(docid_t startDocId, docid_t* docB
     return DecodeDocBufferForSingleDoc(startDocId, docBuffer, firstDocId, lastDocId, currentTTF);
 }
 
-bool DictInlinePostingDecoder::DecodeDocBufferForDocList(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId,
-                                                         docid_t& lastDocId, ttf_t& currentTTF)
+bool DictInlinePostingDecoder::DecodeDocBufferForDocList(docid32_t startDocId, docid32_t* docBuffer,
+                                                         docid32_t& firstDocId, docid32_t& lastDocId, ttf_t& currentTTF)
 {
-    docid_t endDocId = _beginDocId + _df - 1;
+    docid32_t endDocId = _beginDocId + _df - 1;
     if (startDocId > endDocId) {
         return false;
     }
 
     firstDocId = (startDocId > _beginDocId) ? startDocId : _beginDocId;
-    lastDocId = std::min(endDocId, (docid_t)(firstDocId + MAX_DOC_PER_RECORD - 1));
+    lastDocId = std::min(endDocId, (docid32_t)(firstDocId + MAX_DOC_PER_RECORD - 1));
     currentTTF = firstDocId - _beginDocId;
     int len = lastDocId - firstDocId + 1;
 
@@ -68,8 +68,9 @@ bool DictInlinePostingDecoder::DecodeDocBufferForDocList(docid_t startDocId, doc
     return true;
 }
 
-bool DictInlinePostingDecoder::DecodeDocBufferForSingleDoc(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId,
-                                                           docid_t& lastDocId, ttf_t& currentTTF)
+bool DictInlinePostingDecoder::DecodeDocBufferForSingleDoc(docid32_t startDocId, docid32_t* docBuffer,
+                                                           docid32_t& firstDocId, docid32_t& lastDocId,
+                                                           ttf_t& currentTTF)
 {
     assert(_dictInlineFormatter.GetDocFreq() == 1);
     // df == 1, tf == ttf

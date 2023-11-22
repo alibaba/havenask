@@ -15,6 +15,12 @@
  */
 #include "build_service/processor/ModifiedFieldsModifier.h"
 
+#include <iosfwd>
+#include <memory>
+
+#include "build_service/document/ClassifiedDocument.h"
+#include "indexlib/document/normal/Field.h"
+
 using namespace std;
 using namespace build_service::document;
 using namespace indexlib::document;

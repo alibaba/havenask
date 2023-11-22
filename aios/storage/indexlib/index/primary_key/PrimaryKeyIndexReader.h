@@ -21,6 +21,7 @@
 #include "autil/MultiValueType.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/Types.h"
+#include "indexlib/document/IIndexFields.h"
 #include "indexlib/index/inverted_index/InvertedIndexReader.h"
 #include "indexlib/index/primary_key/Types.h"
 
@@ -61,22 +62,23 @@ public:
         co_return Lookup(*term, statePoolSize, type, pool);
     }
 
-    virtual docid_t Lookup(const std::string& pkStr, future_lite::Executor* executor) const = 0;
-    virtual docid_t Lookup(const std::string& pkStr) const { return Lookup(pkStr, nullptr); }
-    virtual docid_t Lookup(const autil::StringView& pkStr) const { return INVALID_DOCID; }
-    virtual docid_t LookupWithPKHash(const autil::uint128_t& pkHash,
-                                     future_lite::Executor* executor = nullptr) const = 0;
-    virtual bool LookupWithPKHash(const autil::uint128_t& pkHash, segmentid_t specifySegment, docid_t* docid) const = 0;
+    virtual docid64_t Lookup(const std::string& pkStr, future_lite::Executor* executor) const = 0;
+    virtual docid64_t Lookup(const std::string& pkStr) const { return Lookup(pkStr, nullptr); }
+    virtual docid64_t Lookup(const autil::StringView& pkStr) const { return INVALID_DOCID; }
+    virtual docid64_t LookupWithPKHash(const autil::uint128_t& pkHash,
+                                       future_lite::Executor* executor = nullptr) const = 0;
+    virtual bool LookupWithPKHash(const autil::uint128_t& pkHash, segmentid_t specifySegment,
+                                  docid64_t* docid) const = 0;
 
     virtual std::shared_ptr<indexlibv2::index::AttributeReader> GetPKAttributeReader() const = 0;
 
-    virtual docid_t LookupWithDocRange(const autil::uint128_t& pkHash, std::pair<docid_t, docid_t> docRange,
-                                       future_lite::Executor* executor) const
+    virtual docid64_t LookupWithDocRange(const autil::uint128_t& pkHash, std::pair<docid_t, docid_t> docRange,
+                                         future_lite::Executor* executor) const
     {
         assert(false);
         return INVALID_DOCID;
     }
-    virtual docid_t LookupWithHintValues(const autil::uint128_t& pkHash, int32_t hintValues) const
+    virtual docid64_t LookupWithHintValues(const autil::uint128_t& pkHash, int32_t hintValues) const
     {
         assert(false);
         return INVALID_DOCID;
@@ -87,16 +89,23 @@ public:
 
     virtual size_t EvaluateCurrentMemUsed() { return 0; }
 
+    virtual std::pair<Status, std::vector<bool>>
+    Contains(const std::vector<const indexlibv2::document::IIndexFields*>& indexFields) const
+    {
+        assert(false);
+        return {Status::Unimplement(), std::vector<bool> {}};
+    }
+
 public:
     // for index_printer, pair<docid, isDeleted>
-    virtual bool LookupAll(const std::string& pkStr, std::vector<std::pair<docid_t, bool>>& docidPairVec) const
+    virtual bool LookupAll(const std::string& pkStr, std::vector<std::pair<docid64_t, bool>>& docidPairVec) const
     {
         return false;
     }
 
 public:
     template <typename T>
-    inline docid_t LookupWithType(const T& key, future_lite::Executor* executor = nullptr) const;
+    inline docid64_t LookupWithType(const T& key, future_lite::Executor* executor = nullptr) const;
 
 public:
     bool Is128PK() const { return _is128Pk; }
@@ -135,7 +144,7 @@ private:
 };
 
 template <typename T>
-docid_t PrimaryKeyIndexReader::LookupWithType(const T& key, future_lite::Executor* executor) const
+docid64_t PrimaryKeyIndexReader::LookupWithType(const T& key, future_lite::Executor* executor) const
 {
     if (_isNumberHash && !_is128Pk) {
         const autil::uint128_t pkHash((uint64_t)key);
@@ -146,20 +155,21 @@ docid_t PrimaryKeyIndexReader::LookupWithType(const T& key, future_lite::Executo
 }
 
 template <>
-inline docid_t PrimaryKeyIndexReader::LookupWithType(const std::string& key, future_lite::Executor* executor) const
+inline docid64_t PrimaryKeyIndexReader::LookupWithType(const std::string& key, future_lite::Executor* executor) const
 {
     return Lookup(key, executor);
 }
 
 template <>
-inline docid_t PrimaryKeyIndexReader::LookupWithType(const autil::StringView& key,
-                                                     future_lite::Executor* executor) const
+inline docid64_t PrimaryKeyIndexReader::LookupWithType(const autil::StringView& key,
+                                                       future_lite::Executor* executor) const
 {
     return Lookup(key);
 }
 
 template <>
-inline docid_t PrimaryKeyIndexReader::LookupWithType(const autil::MultiChar& key, future_lite::Executor* executor) const
+inline docid64_t PrimaryKeyIndexReader::LookupWithType(const autil::MultiChar& key,
+                                                       future_lite::Executor* executor) const
 {
     const auto& constStr = autil::StringView(key.data(), key.size());
     return Lookup(constStr);

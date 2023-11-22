@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONTROL_FLOW_TASK_RESOURCE_MANAGER_H
-#define ISEARCH_BS_CONTROL_FLOW_TASK_RESOURCE_MANAGER_H
+#pragma once
 
+#include <map>
 #include <memory>
+#include <stdint.h>
+#include <string>
 
+#include "autil/Lock.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common/ResourceContainer.h"
 #include "build_service/common/ResourceKeeper.h"
 #include "build_service/common/ResourceKeeperGuard.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
+#include "build_service/config/ResourceReader.h"
 
 namespace build_service { namespace admin {
 struct ResourceKeeperInfo : public autil::legacy::Jsonizable {
@@ -98,5 +101,3 @@ private:
 
 BS_TYPEDEF_PTR(TaskResourceManager);
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CONTROL_FLOW_TASK_RESOURCE_MANAGER_H

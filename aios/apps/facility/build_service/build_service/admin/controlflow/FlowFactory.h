@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONTROL_FLOW_FLOW_FACTORY_H
-#define ISEARCH_BS_CONTROL_FLOW_FLOW_FACTORY_H
+#pragma once
 
-#include <memory>
+#include <map>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/Lock.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/controlflow/FlowContainer.h"
+#include "build_service/admin/controlflow/TaskFlow.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
 
@@ -93,5 +98,3 @@ private:
 BS_TYPEDEF_PTR(FlowFactory);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CONTROL_FLOW_FLOW_FACTORY_H

@@ -84,8 +84,14 @@ RemoteTableWriterRequestGenerator::RemoteTableWriterRequestGenerator(RemoteTable
     : RequestGenerator(param.bizName, param.sourceId), _param(std::move(param)) {
     setDisableRetry(true);
     setDisableProbe(true);
+    setFlowControlStrategy(_param.bizName);
+}
+
+void RemoteTableWriterRequestGenerator::setLeaderTags(TagMatchType type) {
+    multi_call::TagMatchInfo tagInfo;
+    tagInfo.type = type;
     auto tags = make_shared<MatchTagMap>();
-    tags->emplace(GeneratorDef::LEADER_TAG, param.tagInfo);
+    tags->emplace(GeneratorDef::LEADER_TAG, tagInfo);
     setMatchTags(tags);
 }
 

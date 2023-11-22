@@ -15,194 +15,138 @@
  */
 #include "build_service/admin/taskcontroller/GeneralNodeGroup.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <type_traits>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/base64.h"
 #include "build_service/admin/taskcontroller/OperationTopoManager.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/ProtoUtil.h"
 
 namespace build_service::admin {
 
 BS_LOG_SETUP(admin, GeneralNodeGroup);
 
-void GeneralNodeGroup::addNode(TaskController::Node* node)
+GeneralNodeGroup::GeneralNodeGroup(const std::string& taskType, const std::string& taskName, uint32_t nodeId,
+                                   OperationTopoManager* topoManager, bool enableTargetBase64Encode,
+                                   const std::string& partitionWorkRoot)
+    : _taskType(taskType)
+    , _taskName(taskName)
+    , _nodeId(nodeId)
+    , _topoManager(topoManager)
+    , _enableTargetBase64Encode(enableTargetBase64Encode)
+    , _partitionWorkRoot(partitionWorkRoot)
 {
-    _nodes.push_back(node);
-    proto::OperationTarget target;
-    target.set_taskname(_taskName);
-    target.set_tasktype(_taskType);
-    _newTargets.push_back(target);
-    _runningOpCounts.resize(_nodes.size(), /*invalid count*/ 0);
+    _target.set_tasktype(_taskType);
+    _target.set_taskname(_taskName);
 }
 
-size_t GeneralNodeGroup::getMinRunningOpCount() const
+bool GeneralNodeGroup::collectFinishOp(proto::GeneralTaskWalRecord* walRecord)
 {
-    size_t minRunningOpCount = -1;
-    for (auto cnt : _runningOpCounts) {
-        minRunningOpCount = std::min(minRunningOpCount, cnt);
-    }
-    return minRunningOpCount;
-}
-
-bool GeneralNodeGroup::hasStatus() const
-{
-    for (size_t i = 0; i < _nodes.size(); ++i) {
-        auto& node = _nodes[i];
-        if (!node->statusDescription.empty()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool GeneralNodeGroup::handleFinishedOp(proto::GeneralTaskWalRecord* walRecord)
-{
-    for (size_t i = 0; i < _nodes.size(); ++i) {
-        auto node = _nodes[i];
-        proto::OperationCurrent opCurrent;
+    for (const auto& node : _nodes) {
         if (node->statusDescription.empty()) {
-            BS_LOG(DEBUG, "node [%s] status empty", node->roleName.c_str());
             continue;
         }
-        if (!opCurrent.ParseFromString(node->statusDescription)) {
-            BS_LOG(ERROR, "parse op current from node[%s] failed", node->roleName.c_str());
+        proto::OperationCurrent opCurrent;
+        if (!proto::ProtoUtil::parseBase64EncodedPbStr(node->statusDescription, &opCurrent)) {
+            BS_LOG(ERROR, "parse op current from node[%s] failed, status desc[%s]", node->roleName.c_str(),
+                   node->statusDescription.c_str());
             return false;
         }
-
-        proto::OperationTarget oldTarget;
-        std::string content;
-        if (node->taskTarget.getTargetDescription(config::BS_GENERAL_TASK_OPERATION_TARGET, content)) {
-            if (!oldTarget.ParseFromString(content)) {
-                BS_LOG(ERROR, "parse old target failed, content[%s]", content.c_str());
-                return false;
+        for (const auto& result : opCurrent.opresults()) {
+            if (result.status() != proto::OP_FINISHED) {
+                continue;
             }
-        }
-        for (auto& result : opCurrent.opresults()) {
-            if (result.status() == proto::OP_FINISHED) {
-                _topoManager->finish(result.id(), opCurrent.workerepochid(), result.resultinfo());
-                BS_LOG(DEBUG, "handle plan, finish op[%ld] from [%s]", result.id(), opCurrent.workerepochid().c_str());
-                auto opFinish = walRecord->add_opfinish();
-                opFinish->set_opid(result.id());
-                opFinish->set_workerepochid(opCurrent.workerepochid());
-                opFinish->set_resultinfo(result.resultinfo());
-            }
-        }
-
-        auto& newTarget = _newTargets[i];
-        for (const auto& desc : oldTarget.ops()) {
-            if (!_topoManager->isFinished(desc.id())) {
-                *newTarget.add_ops() = desc;
-                ++_runningOpCounts[i];
-            }
+            _topoManager->finish(result.id(), opCurrent.workerepochid(), result.resultinfo());
+            auto opFinish = walRecord->add_opfinish();
+            opFinish->set_opid(result.id());
+            opFinish->set_workerepochid(opCurrent.workerepochid());
+            opFinish->set_resultinfo(result.resultinfo());
+            BS_LOG(INFO, "[%s] finish op[%ld] from [%s]", _partitionWorkRoot.c_str(), result.id(),
+                   opCurrent.workerepochid().c_str());
         }
     }
     return true;
 }
 
-void GeneralNodeGroup::syncPendingOp(uint32_t nodeRunningOpLimit)
+bool GeneralNodeGroup::updateTarget()
 {
-    std::map<int64_t, proto::OperationDescription> opId2OpDesc;
-    std::map<int64_t, std::vector<size_t>> opId2NodeIds; // nodes which already have the op
-    for (size_t i = 0; i < _nodes.size(); ++i) {
-        auto node = _nodes[i];
-        if (node->statusDescription.empty()) {
-            BS_LOG(DEBUG, "node [%s] status empty", node->roleName.c_str());
+    if (_nodes.empty()) {
+        BS_LOG(ERROR, "nodes is empty, no target to be updated");
+        return false;
+    }
+    auto& node = _nodes[0];
+    std::string content;
+    if (!node->taskTarget.getTargetDescription(config::BS_GENERAL_TASK_OPERATION_TARGET, content)) {
+        BS_LOG(ERROR, "not found BS_GENERAL_TASK_OPERATION_TARGET in target description");
+        return false;
+    }
+    proto::OperationTarget oldTarget;
+    if (!proto::ProtoUtil::parseBase64EncodedPbStr(content, &oldTarget)) {
+        BS_LOG(ERROR, "parse old general task operation failed. content [%s]", content.c_str());
+        return false;
+    }
+    std::set<int64_t> opIds;
+    for (const auto& op : _target.ops()) {
+        opIds.insert(op.id());
+    }
+    for (const auto& op : oldTarget.ops()) {
+        if (_topoManager->isFinished(op.id())) {
             continue;
         }
-        auto& newTarget = _newTargets[i];
-        for (const auto& op : newTarget.ops()) {
-            if (!_topoManager->isFinished(op.id())) {
-                auto it = opId2NodeIds.find(op.id());
-                if (it != opId2NodeIds.end()) {
-                    it->second.push_back(i);
-                } else {
-                    std::vector<size_t> nodeIds = {i};
-                    opId2NodeIds.insert(it, std::make_pair(op.id(), nodeIds));
-                    opId2OpDesc[op.id()] = op;
-                }
-            }
-        }
-    }
-    for (const auto& [opId, nodeIds] : opId2NodeIds) {
-        if (nodeIds.size() >= _nodes.size()) {
-            // op already in all nodes
+        if (opIds.find(op.id()) != opIds.end()) {
             continue;
         }
-        for (size_t i = 0; i < _nodes.size(); ++i) {
-            auto node = _nodes[i];
-            if (node->statusDescription.empty()) {
-                BS_LOG(DEBUG, "node [%s] status empty", node->roleName.c_str());
-                continue;
-            }
-            if (_runningOpCounts[i] >= nodeRunningOpLimit) {
-                continue;
-            }
-            if (std::find(nodeIds.begin(), nodeIds.end(), i) == nodeIds.end()) {
-                auto& newTarget = _newTargets[i];
-                auto it = opId2OpDesc.find(opId);
-                assert(it != opId2OpDesc.end());
-                *newTarget.add_ops() = it->second;
-                ++_runningOpCounts[i];
-            }
-        }
+        assignOp(&op, /*walRecord=*/nullptr);
     }
-
-    return;
+    return true;
 }
 
-void GeneralNodeGroup::dispatchExecutableOp(const proto::OperationDescription* op, uint32_t nodeRunningOpLimit,
-                                            proto::GeneralTaskWalRecord* walRecord)
+void GeneralNodeGroup::assignOp(const proto::OperationDescription* op, proto::GeneralTaskWalRecord* walRecord)
 {
-    assert(_runningOpCounts.size() == _newTargets.size());
-    assert(_runningOpCounts.size() == _nodes.size());
-    for (size_t i = 0; i < _nodes.size(); ++i) {
-        if (_nodes[i]->statusDescription.empty()) {
-            continue;
-        }
-        if (_runningOpCounts[i] >= nodeRunningOpLimit) {
-            continue;
-        }
-        auto& target = _newTargets[i];
-        *target.add_ops() = *op;
-        BS_LOG(DEBUG, "handle plan: run op[%ld] by node[%u:%lu]", op->id(), _nodeId, i);
+    *_target.add_ops() = *op;
+    _runningOpCount++;
+    if (walRecord) {
         auto opRun = walRecord->add_oprun();
         opRun->set_opid(op->id());
         opRun->set_nodeid(_nodeId);
-        ++_runningOpCounts[i];
     }
+    BS_LOG(INFO, "[%s] run op[%ld] by node[%u]", _partitionWorkRoot.c_str(), op->id(), _nodeId);
 }
 
-void GeneralNodeGroup::serializeTarget() const
+void GeneralNodeGroup::serializeTarget()
 {
-    for (size_t i = 0; i < _nodes.size(); ++i) {
-        auto node = _nodes[i];
-        if (node->statusDescription.empty()) {
-            continue;
-        }
-        std::string content;
-        [[maybe_unused]] auto r = _newTargets[i].SerializeToString(&content);
-        BS_LOG(DEBUG, "handle plan: node[%lu] target: %s", i, _newTargets[i].ShortDebugString().c_str());
-        BS_LOG(DEBUG, "handle plan: node[%lu] targetStr: %s", i, content.c_str());
-        assert(r);
+    std::string content;
+    [[maybe_unused]] auto r = _target.SerializeToString(&content);
+    assert(r);
+    if (_enableTargetBase64Encode) {
+        content = autil::legacy::Base64EncodeFast(content);
+    }
+    for (const auto& node : _nodes) {
         node->taskTarget.updateTargetDescription(config::BS_GENERAL_TASK_OPERATION_TARGET, content);
     }
-    return;
 }
 
-void GeneralNodeGroup::updateTarget() const
+void GeneralNodeGroup::resume()
 {
-    for (size_t i = 0; i < _nodes.size(); ++i) {
-        auto node = _nodes[i];
-        std::string content;
-        [[maybe_unused]] auto r = _newTargets[i].SerializeToString(&content);
-        assert(r);
-        node->taskTarget.updateTargetDescription(config::BS_GENERAL_TASK_OPERATION_TARGET, content);
+    for (const auto& node : _nodes) {
+        node->isSuspended = false;
     }
-    return;
 }
 
-void GeneralNodeGroup::recoverNodeTarget(const proto::OperationDescription& opDesc)
+void GeneralNodeGroup::suspend()
 {
-    assert(_nodes.size() == _newTargets.size());
-    for (size_t i = 0; i < _nodes.size(); ++i) {
-        auto& target = _newTargets[i];
-        *target.add_ops() = opDesc;
+    for (const auto& node : _nodes) {
+        node->isSuspended = true;
     }
 }
+
 } // namespace build_service::admin

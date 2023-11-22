@@ -78,8 +78,7 @@ private:
     std::map<std::string, SuezSingleTablePartInfo> _tablePartInfo;
 };
 
-NaviSearchManager::NaviSearchManager() {
-}
+NaviSearchManager::NaviSearchManager() : _navi(std::make_unique<navi::Navi>("suez_navi")) {}
 
 NaviSearchManager::~NaviSearchManager() {
 }
@@ -97,7 +96,7 @@ bool NaviSearchManager::init(const suez::SearchInitParam &initParam) {
     _metricsReporterR.reset(new kmonitor::MetricsReporterR(_metricsReporter));
     _asyncExecutorR.reset(new AsyncExecutorR(initParam.asyncInterExecutor,
                                              initParam.asyncIntraExecutor));
-    if (!_navi.init(initParam.installRoot, gigRpcServer)) {
+    if (!_navi->init(initParam.installRoot, gigRpcServer)) {
         return false;
     }
     auto *arpcServer = gigRpcServer->getArpcServer();
@@ -132,7 +131,11 @@ suez::UPDATE_RESULT NaviSearchManager::update(
     if (!getLoadParam(*(args.indexProvider), args.bizMetas, args.serviceInfo, args.customAppInfo, loadParam)) {
         return suez::UR_ERROR;
     }
-    if (!_navi.update(_configLoader, "", loadParam, rootResourceMap)) {
+    if (!_navi) {
+        AUTIL_LOG(ERROR, "navi is null, search manager might have stopped");
+        return suez::UR_ERROR;
+    }
+    if (!_navi->update(_configLoader, "", loadParam, rootResourceMap)) {
         AUTIL_LOG(ERROR, "navi update failed");
         return suez::UR_ERROR;
     }
@@ -141,14 +144,21 @@ suez::UPDATE_RESULT NaviSearchManager::update(
 }
 
 void NaviSearchManager::stopService() {
+    if (_navi) {
+        _navi->stopSnapshot();
+    }
 }
 
 void NaviSearchManager::stopWorker() {
-    _navi.stop();
+    // may stop twice
+    if (_navi) {
+        _navi->stop();
+    }
+    _navi.reset();
 }
 
 autil::legacy::json::JsonMap NaviSearchManager::getServiceInfo() const {
-    auto topoStr = _navi.getTopoInfoStr();
+    auto topoStr = _navi->getTopoInfoStr();
     if (topoStr.empty()) {
         return autil::legacy::json::JsonMap();
     }
@@ -212,6 +222,10 @@ bool NaviSearchManager::initGrpcServer(multi_call::GigRpcServer *gigRpcServer) {
     if (!gigRpcServer) {
         return true;
     }
+    if (multi_call::INVALID_PORT != gigRpcServer->getGrpcPort()) {
+        AUTIL_LOG(INFO, "grpc init skipped");
+        return true;
+    }
     multi_call::GrpcServerDescription desc;
     auto threadNumStr = autil::EnvUtil::getEnv("gigGrpcThreadNum");
     if (threadNumStr.empty()) {
@@ -252,7 +266,7 @@ void NaviSearchManager::initMetrics(const suez::KMonitorMetaInfo &kmonMetaInfo)
                         kmonMetaInfo.metricsPath,{kmonMetaInfo.tagsMap},
                         SUEZ_NAVI_MONITOR_NAME));
     }
-    _navi.initMetrics(*_metricsReporter);
+    _navi->initMetrics(*_metricsReporter);
 }
 
 }

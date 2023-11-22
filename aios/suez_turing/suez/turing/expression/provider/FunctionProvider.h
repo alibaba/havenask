@@ -48,6 +48,7 @@ class MetaInfo;
 class SuezCavaAllocator;
 class Tracer;
 class IndexInfoHelper;
+class FieldMetaReaderWrapper;
 
 class FunctionProvider : public ProviderBase {
 public:
@@ -90,6 +91,9 @@ public:
 
     std::shared_ptr<indexlib::index::InvertedIndexReader> getIndexReaderPtr() const { return _indexReaderPtr; }
 
+    void setFieldMetaReaderWrapper(std::shared_ptr<suez::turing::FieldMetaReaderWrapper> fieldMetaReaderWrapperPtr) {_fieldMetaReaderWrapperPtr = fieldMetaReaderWrapperPtr;}
+    std::shared_ptr<suez::turing::FieldMetaReaderWrapper> getFieldMetaReaderWrapper() {return _fieldMetaReaderWrapperPtr;}
+
     indexlib::index::SectionReaderWrapperPtr getSectionReader(const std::string &indexName = "") const;
 
     void setDebug(bool debug) { _debug = debug; }
@@ -100,6 +104,7 @@ private:
     MatchInfoReader _matchInfoReader;
     const IndexInfoHelper *_indexInfoHelper;
     std::shared_ptr<indexlib::index::InvertedIndexReader> _indexReaderPtr;
+    std::shared_ptr<suez::turing::FieldMetaReaderWrapper> _fieldMetaReaderWrapperPtr;
     bool _debug = false;
 };
 

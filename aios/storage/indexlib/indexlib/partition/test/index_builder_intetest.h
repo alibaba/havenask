@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXBUILDERINTETEST_H
-#define __INDEXLIB_INDEXBUILDERINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -260,5 +259,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(IndexBuilderInteTest, TestBranchWithSwitchFen
 INSTANTIATE_TEST_CASE_P(BuildMode, IndexBuilderInteTest, testing::Values(0, 1, 2));
 
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INDEXBUILDERINTETEST_H

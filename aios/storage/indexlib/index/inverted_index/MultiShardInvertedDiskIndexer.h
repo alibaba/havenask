@@ -20,7 +20,7 @@
 
 #include "autil/Log.h"
 #include "indexlib/config/IIndexConfig.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/inverted_index/IInvertedDiskIndexer.h"
 
 namespace indexlib::file_system {
@@ -42,7 +42,7 @@ class ShardingIndexHasher;
 class MultiShardInvertedDiskIndexer : public IInvertedDiskIndexer
 {
 public:
-    MultiShardInvertedDiskIndexer(const indexlibv2::index::IndexerParameter& indexerParam);
+    MultiShardInvertedDiskIndexer(const indexlibv2::index::DiskIndexerParameter& indexerParam);
     ~MultiShardInvertedDiskIndexer() = default;
 
     Status Open(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
@@ -68,7 +68,7 @@ private:
                                            const std::shared_ptr<file_system::IDirectory>& indexDirectory);
 
 private:
-    indexlibv2::index::IndexerParameter _indexerParam;
+    indexlibv2::index::DiskIndexerParameter _indexerParam;
     std::map<std::string, std::shared_ptr<InvertedDiskIndexer>> _indexers;
     std::vector<std::shared_ptr<InvertedDiskIndexer>> _shardIndexers;
     std::unique_ptr<ShardingIndexHasher> _indexHasher;

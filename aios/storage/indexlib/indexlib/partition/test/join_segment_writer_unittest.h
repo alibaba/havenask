@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_JOINSEGMENTWRITERTEST_H
-#define __INDEXLIB_JOINSEGMENTWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/join_segment_writer.h"
@@ -28,5 +27,3 @@ private:
 
 // INDEXLIB_UNIT_TEST_CASE(JoinSegmentWriterTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_JOINSEGMENTWRITERTEST_H

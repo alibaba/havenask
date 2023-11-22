@@ -1,11 +1,15 @@
 #include "build_service/util/SwiftTopicStreamReaderCreator.h"
 
+#include <cstdint>
+#include <limits>
+#include <memory>
+#include <vector>
+
 #include "build_service/test/unittest.h"
-#include "swift/client/SwiftClient.h"
-#include "swift/client/SwiftReader.h"
-#include "swift/client/SwiftTopicStreamReader.h"
+#include "swift/protocol/ErrCode.pb.h"
 #include "swift/testlib/MockSwiftClient.h"
 #include "swift/testlib/MockSwiftReader.h"
+#include "unittest/unittest.h"
 
 namespace build_service::util {
 

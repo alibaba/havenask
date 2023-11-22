@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCRANGEPARTITIONERTEST_H
-#define __INDEXLIB_DOCRANGEPARTITIONERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/test/partition_info_creator.h"
@@ -33,5 +32,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(DocRangePartitionerTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(DocRangePartitionerTest, TestBatch);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_DOCRANGEPARTITIONERTEST_H

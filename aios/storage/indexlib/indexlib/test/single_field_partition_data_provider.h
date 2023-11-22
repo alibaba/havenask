@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SINGLE_FIELD_PARTITION_DATA_PROVIDER_H
-#define __INDEXLIB_SINGLE_FIELD_PARTITION_DATA_PROVIDER_H
+#pragma once
 
 #include <memory>
 
@@ -88,5 +87,3 @@ private:
 
 DEFINE_SHARED_PTR(SingleFieldPartitionDataProvider);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_SINGLE_FIELD_PARTITION_DATA_PROVIDER_H

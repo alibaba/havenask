@@ -165,7 +165,7 @@ TableServiceConnector::prepareKVOptions(const Connector::ScanOptions &options) {
 
 bool TableServiceConnector::tryReportMetrics(kmonitor::MetricsReporter &opMetricsReporter) {
     opMetricsReporter.report<TableServiceConnectorMetrics>(nullptr, &_metricsCollector);
-    SQL_LOG(TRACE3,
+    SQL_LOG(TRACE1,
             "lookup time [%ld], convert time [%ld]",
             _metricsCollector.lookupTime,
             _metricsCollector.convertTime);
@@ -244,10 +244,10 @@ bool TableServiceConnector::fillTableResult(const multi_call::ReplyPtr &reply,
         _metricsCollector.notFoundCount += pbResponse->notfoundcount();
         _metricsCollector.failedCount += pbResponse->failedcount();
         SQL_LOG(
-            TRACE3, "after merge %d table is %s", partId, TableUtil::toString(table, 20).c_str());
+            TRACE3, "after merge %d table is %s", partId, TableUtil::toString(table, 10).c_str());
     }
 
-    SQL_LOG(TRACE3,
+    SQL_LOG(TRACE1,
             "lookup count: %d, not found count: %d, failed count: %d",
             _metricsCollector.lookupCount,
             _metricsCollector.notFoundCount,
@@ -260,7 +260,7 @@ bool TableServiceConnector::mergeTableResult(table::TablePtr &table,
                                              const autil::mem_pool::PoolPtr &pool) {
     TablePtr partTable = std::make_shared<table::Table>(pool);
     partTable->deserializeFromString(result, pool.get());
-    SQL_LOG(TRACE3, "part table is %s", TableUtil::toString(partTable, 20).c_str());
+    SQL_LOG(TRACE3, "part table is %s", TableUtil::toString(partTable, 10).c_str());
 
     if (table == nullptr) {
         table = partTable;
@@ -268,8 +268,8 @@ bool TableServiceConnector::mergeTableResult(table::TablePtr &table,
         if (!table->merge(partTable)) {
             SQL_LOG(ERROR,
                     "merge table failed, old table: %s, new table: %s",
-                    TableUtil::toString(table, 20).c_str(),
-                    TableUtil::toString(partTable, 20).c_str());
+                    TableUtil::toString(table, 10).c_str(),
+                    TableUtil::toString(partTable, 10).c_str());
             return false;
         }
     }

@@ -15,12 +15,14 @@
  */
 #pragma once
 
-#include "indexlib/index/common/Term.h"
+#include "aios/storage/indexlib/index/ann/aitheta2/proto/AithetaQuery.pb.h"
 #include "indexlib/index/ann/aitheta2/AithetaAuxSearchInfoBase.h"
+#include "indexlib/index/common/Term.h"
 
 namespace indexlibv2::index::ann {
 
-class AithetaTerm: public indexlib::index::Term {
+class AithetaTerm : public indexlib::index::Term
+{
 public:
     AithetaTerm() = default;
     ~AithetaTerm() = default;
@@ -42,11 +44,15 @@ public:
     void SetAithetaSearchInfo(std::shared_ptr<AithetaAuxSearchInfoBase> info) { _searchInfo = info; }
     const std::shared_ptr<AithetaAuxSearchInfoBase>& GetAithetaSearchInfo() const { return _searchInfo; }
 
+    std::shared_ptr<AithetaQueries> GetAithetaQueries() const { return _queries; }
+    void SetAithetaQueries(std::shared_ptr<AithetaQueries> queries) { _queries = queries; }
+
 public:
     static constexpr const char* AITHETA_TERM_NAME = "AithetaTerm";
 
 private:
     std::shared_ptr<AithetaAuxSearchInfoBase> _searchInfo;
+    std::shared_ptr<AithetaQueries> _queries;
 };
 
 } // namespace indexlibv2::index::ann

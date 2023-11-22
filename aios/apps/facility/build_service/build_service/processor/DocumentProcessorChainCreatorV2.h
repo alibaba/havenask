@@ -13,24 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DOCUMENTPROCESSORCHAINCREATORV2_H
-#define ISEARCH_BS_DOCUMENTPROCESSORCHAINCREATORV2_H
+#pragma once
 
-#include "build_service/analyzer/AnalyzerFactory.h"
-#include "build_service/common_define.h"
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "build_service/config/DocProcessorChainConfig.h"
+#include "build_service/config/ProcessorInfo.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/plugin/PlugInManager.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/processor/DocumentProcessorChain.h"
 #include "build_service/processor/SingleDocProcessorChain.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
-#include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
-#include "indexlib/index_base/index_meta/partition_meta.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/SortDescription.h"
+#include "indexlib/document/builtin_parser_init_param.h"
+#include "indexlib/document/document_init_param.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlibv2::config {
-class ITabletSchema;
 class TruncateOptionConfig;
 } // namespace indexlibv2::config
 
@@ -39,16 +45,13 @@ class IDocumentRewriter;
 }
 
 namespace indexlib { namespace util {
-class MetricProvider;
-class Metric;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util
 
-DECLARE_REFERENCE_CLASS(util, CounterMap);
-
 namespace build_service { namespace processor {
 class DocumentProcessorFactory;
+
 class DocumentProcessorChainCreatorV2
 {
 public:
@@ -63,7 +66,7 @@ public:
     bool init(const config::ResourceReaderPtr& resourceReaderPtr, indexlib::util::MetricProviderPtr metricProvider,
               const indexlib::util::CounterMapPtr& counterMap);
     DocumentProcessorChainPtr create(const config::DocProcessorChainConfig& docProcessorChainConfig,
-                                     const std::vector<std::string>& clusterNames) const;
+                                     const std::vector<std::string>& clusterNames, const KeyValueMap& kvMap) const;
 
 private:
     SingleDocProcessorChain* createSingleChain(const plugin::PlugInManagerPtr& plugInManagerPtr,
@@ -77,6 +80,8 @@ private:
 
     std::string checkAndGetTableName(const std::vector<std::string>& clusterNames) const;
     std::string getTableName(const std::string& clusterName) const;
+    bool needOriginalSnapshot(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema) const;
+
     bool
     initParamForAdd2UpdateRewriter(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                    const std::vector<std::string>& clusterNames,
@@ -89,13 +94,14 @@ private:
 
     indexlib::document::DocumentInitParamPtr
     createBuiltInInitParam(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
-                           const std::vector<std::string>& clusterNames, bool needAdd2Update) const;
+                           const std::vector<std::string>& clusterNames, bool needAdd2Update,
+                           const KeyValueMap& kvMap) const;
 
     bool initDocumentProcessorChain(const config::DocProcessorChainConfig& docProcessorChainConfig,
                                     const config::ProcessorInfos& mainProcessorInfos,
                                     const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                                     const std::vector<std::string>& clusterNames, const std::string& tableName,
-                                    DocumentProcessorChainPtr retChain) const;
+                                    DocumentProcessorChainPtr retChain, const KeyValueMap& kvMap) const;
     std::unique_ptr<indexlibv2::document::IDocumentFactory>
     createDocumentFactory(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema,
                           const std::vector<std::string>& clusterNames) const;
@@ -128,5 +134,3 @@ private:
 };
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_DOCUMENTPROCESSORCHAINCREATORV2_H

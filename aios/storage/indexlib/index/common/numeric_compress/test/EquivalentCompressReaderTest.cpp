@@ -571,7 +571,7 @@ private:
     // for multithread test
     std::mt19937 _random;
     const size_t _total;
-    volatile size_t _pos;
+    std::atomic<size_t> _pos;
     uint8_t* _u64Buffer;
     uint8_t* _u32Buffer;
     EquivalentCompressReader<uint64_t> _u64Reader;
@@ -580,8 +580,8 @@ private:
     bool _needUpdate;
     bool _seed;
     bool _oddEvenCheck;
-    bool volatile _isFinish;
-    bool volatile _isRun;
+    std::atomic_bool _isFinish;
+    std::atomic_bool _isRun;
 };
 
 EquivalentCompressReaderTest::EquivalentCompressReaderTest()
@@ -1040,7 +1040,7 @@ void EquivalentCompressReaderTest::DoWrite()
 void EquivalentCompressReaderTest::DoRead(int* status)
 {
     while (!IsFinished()) {
-        auto pos = _pos;
+        auto pos = _pos.load();
         DoCheck(pos, _u64Reader);
         DoCheck(pos, _u32Reader);
     }

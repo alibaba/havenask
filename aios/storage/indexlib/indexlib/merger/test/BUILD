@@ -23,9 +23,9 @@ cc_library(
 cc_fast_test(
     name='todo',
     srcs=[],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=[':merger_plugin_testdata', '//aios/storage/indexlib:testdata'],
-    shard_count=30,
+    shard_count=3,
     deps=[':indexlib_merger_test_helper']
 )
 cc_fast_test(
@@ -56,7 +56,7 @@ cc_fast_test(
     data=([':merger_plugin_testdata', '//aios/storage/indexlib:testdata'] +
           glob(['testdata/**'])),
     flaky=True,
-    shard_count=50,
+    shard_count=5,
     deps=[
         ':indexlib_merger_test_helper',
         '//aios/storage/indexlib/indexlib:indexlib_table',
@@ -72,7 +72,7 @@ cc_slow_test(
     srcs=['index_partition_merger_intetest.cpp'],
     copts=['-Werror', '-fno-access-control'],
     data=[':merger_plugin_testdata', '//aios/storage/indexlib:testdata'],
-    shard_count=50,
+    shard_count=5,
     deps=[
         ':indexlib_merger_test_helper',
         '//aios/storage/indexlib/indexlib:indexlib_table',

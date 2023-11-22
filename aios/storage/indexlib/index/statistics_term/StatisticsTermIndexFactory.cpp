@@ -17,7 +17,8 @@
 
 #include "autil/Log.h"
 #include "indexlib/framework/SegmentMetrics.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/statistics_term/Constant.h"
 #include "indexlib/index/statistics_term/StatisticsTermDiskIndexer.h"
 #include "indexlib/index/statistics_term/StatisticsTermIndexConfig.h"
@@ -31,14 +32,14 @@ AUTIL_DECLARE_AND_SETUP_LOGGER(indexlib.index, StatisticsTermIndexFactory);
 
 std::shared_ptr<IDiskIndexer>
 StatisticsTermIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                              const IndexerParameter& indexerParam) const
+                                              const DiskIndexerParameter& indexerParam) const
 {
     return std::make_shared<StatisticsTermDiskIndexer>();
 }
 
 std::shared_ptr<IMemIndexer>
 StatisticsTermIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                             const IndexerParameter& indexerParam) const
+                                             const MemIndexerParameter& indexerParam) const
 {
     std::map<std::string, size_t> initialKeyCount;
     if (indexerParam.lastSegmentMetrics != nullptr) {
@@ -55,7 +56,7 @@ StatisticsTermIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IInde
 
 std::unique_ptr<IIndexReader>
 StatisticsTermIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                              const IndexerParameter& indexerParam) const
+                                              const IndexReaderParameter&) const
 {
     return std::make_unique<StatisticsTermReader>();
 }

@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_PROTOMATCHER_H
-#define ISEARCH_BS_PROTOMATCHER_H
+#pragma once
 
 #include <cstdlib>
 
@@ -46,5 +45,3 @@ MATCHER_P8(PartitionIdEq, role, step, from, to, generationId, dataTable, cluster
 }
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_PROTOMATCHER_H

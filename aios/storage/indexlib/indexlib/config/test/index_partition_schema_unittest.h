@@ -1,8 +1,7 @@
-#include "indexlib/common_define.h"
+#pragma once
 #include "indexlib/config/impl/index_partition_schema_impl.h"
 #include "indexlib/config/index_partition_schema.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 

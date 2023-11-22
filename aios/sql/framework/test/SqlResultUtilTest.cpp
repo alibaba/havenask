@@ -24,6 +24,7 @@
 #include "navi/util/NaviTestPool.h"
 #include "sql/data/ErrorResult.h"
 #include "sql/framework/QrsSessionSqlResult.h"
+#include "sql/framework/test/FakeSqlResult_generated.h"
 #include "table/Column.h"
 #include "table/Row.h"
 #include "table/Table.h"
@@ -87,7 +88,7 @@ public:
         _matchDocUtil.extendMatchDocAllocator<int16_t>(_allocator, docs, "fint16", {});
         _matchDocUtil.extendMatchDocAllocator<int32_t>(_allocator, docs, "fint32", {});
         _matchDocUtil.extendMatchDocAllocator<int64_t>(_allocator, docs, "fint64", {});
-        _table.reset(new table::Table(docs, _allocator));
+        _table = table::Table::fromMatchDocs(docs, _allocator);
     }
 
     void createSingleNumericTable() {
@@ -100,7 +101,7 @@ public:
         _matchDocUtil.extendMatchDocAllocator<int16_t>(_allocator, docs, "fint16", {1, 2, 3, 4});
         _matchDocUtil.extendMatchDocAllocator<int32_t>(_allocator, docs, "fint32", {1, 2, 3, 4});
         _matchDocUtil.extendMatchDocAllocator<int64_t>(_allocator, docs, "fint64", {1, 2, 3, 4});
-        _table.reset(new table::Table(docs, _allocator));
+        _table = table::Table::fromMatchDocs(docs, _allocator);
     }
 
     void createMultiNumericTable() {
@@ -122,7 +123,7 @@ public:
         _matchDocUtil.extendMultiValueMatchDocAllocator<int64_t>(
             _allocator, docs, "fmint64", {{1}, {2}, {3}, {4}});
 
-        _table.reset(new table::Table(docs, _allocator));
+        _table = table::Table::fromMatchDocs(docs, _allocator);
     }
 
     void createStringTable() {
@@ -134,7 +135,7 @@ public:
             {{"abc", "def", "g"}, {"hij", "klm", "n"}, {"opq", "rst"}, {"uvw", "xyz"}});
         _matchDocUtil.extendMatchDocAllocator(
             _allocator, docs, "fstring", {"abcdefg", "hijklmn", "opqrst", "uvwxyz"});
-        _table.reset(new table::Table(docs, _allocator));
+        _table = table::Table::fromMatchDocs(docs, _allocator);
     }
 
     template <typename T>
@@ -142,7 +143,7 @@ public:
         MatchDocAllocatorPtr allocator;
         const auto &docs = _matchDocUtil.createMatchDocs(allocator, values.size());
         _matchDocUtil.extendMatchDocAllocator<T>(allocator, docs, columnName, values);
-        return TablePtr(new table::Table(docs, allocator));
+        return table::Table::fromMatchDocs(docs, allocator);
     }
 
     TablePtr createSingleStringColumnTableByVec(const string &columnName,
@@ -150,7 +151,7 @@ public:
         MatchDocAllocatorPtr allocator;
         const auto &docs = _matchDocUtil.createMatchDocs(allocator, values.size());
         _matchDocUtil.extendMatchDocAllocator(allocator, docs, columnName, values);
-        return TablePtr(new table::Table(docs, allocator));
+        return table::Table::fromMatchDocs(docs, allocator);
     }
 
     template <typename T>
@@ -159,7 +160,7 @@ public:
         MatchDocAllocatorPtr allocator;
         const auto &docs = _matchDocUtil.createMatchDocs(allocator, values.size());
         _matchDocUtil.extendMultiValueMatchDocAllocator<T>(allocator, docs, columnName, values);
-        return TablePtr(new table::Table(docs, allocator));
+        return table::Table::fromMatchDocs(docs, allocator);
     }
 
 public:
@@ -207,6 +208,18 @@ DECLARE_SINGLE_NUMERIC_TYPE_PARTIAL_TEMPLATE(uint32_t, UInt32);
 DECLARE_SINGLE_NUMERIC_TYPE_PARTIAL_TEMPLATE(uint64_t, UInt64);
 DECLARE_SINGLE_NUMERIC_TYPE_PARTIAL_TEMPLATE(float, Float);
 DECLARE_SINGLE_NUMERIC_TYPE_PARTIAL_TEMPLATE(double, Double);
+
+void checkColumnBoolValue(const isearch::fbs::Column *fbsColumn,
+                          const std::vector<uint8_t> &expectedValues) {
+    ASSERT_EQ(ColumnType_BoolColumn, fbsColumn->value_type());
+    const auto *column = fbsColumn->value_as_BoolColumn();
+    ASSERT_TRUE(column != nullptr);
+    const auto *columnValue = column->value();
+    ASSERT_EQ(expectedValues.size(), columnValue->size());
+    for (size_t i = 0; i < expectedValues.size(); i++) {
+        ASSERT_EQ(expectedValues[i], columnValue->Get(i));
+    }
+}
 
 template <>
 void checkColumnValue<string>(const isearch::fbs::Column *fbsColumn,
@@ -268,7 +281,7 @@ void checkByteStringColumnValue(const isearch::fbs::Column *fbsColumn,
             auto *columnData = column->getColumnData<fieldType>();                                 \
             ASSERT_NE(nullptr, columnData);                                                        \
             ASSERT_TRUE(SqlResultUtil().FromSqlTableColumnBy##fbType(                              \
-                outputTable->getDataPool(), fbsColumn, columnData));                               \
+                outputTable->getPool(), fbsColumn, columnData));                                   \
             TableTestUtil::checkOutputColumn<fieldType>(outputTable, "a", expectedValue);          \
             ASSERT_FALSE(HasFatalFailure());                                                       \
         }                                                                                          \
@@ -398,7 +411,7 @@ void checkMultiByteStringColumnMultiValue(const isearch::fbs::Column *fbsColumn,
             auto *columnData = column->getColumnData<mfieldType>();                                \
             ASSERT_NE(nullptr, columnData);                                                        \
             ASSERT_TRUE(SqlResultUtil().FromSqlTableColumnByMulti##fbType(                         \
-                outputTable->getDataPool(), fbsColumn, columnData));                               \
+                outputTable->getPool(), fbsColumn, columnData));                                   \
             TableTestUtil::checkOutputMultiColumn<mfieldType::type>(                               \
                 outputTable, "a", expectedValue);                                                  \
             ASSERT_FALSE(HasFatalFailure());                                                       \
@@ -446,7 +459,7 @@ TEST_F(SqlResultUtilTest, testCreateAndFromSqlTableColumnByString) {
         auto *columnData = column->getColumnData<autil::MultiChar>();
         ASSERT_NE(nullptr, columnData);
         ASSERT_TRUE(SqlResultUtil().FromSqlTableColumnByString(
-            outputTable->getDataPool(), fbsColumn, columnData));
+            outputTable->getPool(), fbsColumn, columnData));
         ASSERT_NO_FATAL_FAILURE(TableTestUtil::checkOutputColumn(outputTable, "a", expectedValue));
     }
 }
@@ -484,7 +497,7 @@ TEST_F(SqlResultUtilTest, testCreateAndFromSqlTableColumnByMultiString) {
         auto *columnData = column->getColumnData<autil::MultiString>();
         ASSERT_NE(nullptr, columnData);
         ASSERT_TRUE(SqlResultUtil().FromSqlTableColumnByMultiString(
-            outputTable->getDataPool(), fbsColumn, columnData));
+            outputTable->getPool(), fbsColumn, columnData));
         ASSERT_NO_FATAL_FAILURE(
             TableTestUtil::checkOutputMultiColumn(outputTable, "a", expectedValue));
     }
@@ -519,7 +532,7 @@ TEST_F(SqlResultUtilTest, testCreateAndFromSqlTableColumnByByteString) {
         auto *columnData = column->getColumnData<autil::MultiChar>();
         ASSERT_NE(nullptr, columnData);
         ASSERT_TRUE(SqlResultUtil().FromSqlTableColumnByByteString(
-            outputTable->getDataPool(), fbsColumn, columnData));
+            outputTable->getPool(), fbsColumn, columnData));
         ASSERT_NO_FATAL_FAILURE(TableTestUtil::checkOutputColumn(outputTable, "a", expectedValue));
     }
 }
@@ -557,9 +570,47 @@ TEST_F(SqlResultUtilTest, testCreateAndFromSqlTableColumnByMultiByteString) {
         auto *columnData = column->getColumnData<autil::MultiString>();
         ASSERT_NE(nullptr, columnData);
         ASSERT_TRUE(SqlResultUtil().FromSqlTableColumnByMultiByteString(
-            outputTable->getDataPool(), fbsColumn, columnData));
+            outputTable->getPool(), fbsColumn, columnData));
         ASSERT_NO_FATAL_FAILURE(
             TableTestUtil::checkOutputMultiColumn(outputTable, "a", expectedValue));
+    }
+}
+
+TEST_F(SqlResultUtilTest, testCreateAndFromSqlTableColumnByBool) {
+    string columnName = "fbool";
+    vector<bool> inputValue = {true, false, true, false};
+    vector<uint8_t> expectedValue = {true, false, true, false};
+    table::TablePtr table = createSingleColumnTableByVec(columnName, inputValue);
+    FlatBufferSimpleAllocator flatbufferAllocator(_poolPtr.get());
+    FlatBufferBuilder fbb(40 * 1024, &flatbufferAllocator);
+    vector<Offset<isearch::fbs::Column>> fbsColumnVec;
+    auto *columnData = table::TableUtil::getColumnData<bool>(table, columnName);
+    ASSERT_TRUE(columnData != nullptr);
+    SqlResultUtil().CreateSqlTableColumnByBool(columnName, columnData, fbb, fbsColumnVec);
+    ASSERT_EQ(1, fbsColumnVec.size());
+    Offset<isearch::fbs::Column> fbsColumnOffset = fbsColumnVec[0];
+    fbb.Finish(fbsColumnOffset);
+    char *data = reinterpret_cast<char *>(fbb.GetBufferPointer());
+    const isearch::fbs::Column *fbsColumn = GetRoot<isearch::fbs::Column>(data);
+    ASSERT_NE(nullptr, fbsColumn);
+    const flatbuffers::String *testColumnName = fbsColumn->name();
+    ASSERT_TRUE(testColumnName != nullptr);
+    ASSERT_EQ(columnName, testColumnName->str());
+    checkColumnBoolValue(fbsColumn, expectedValue);
+    ASSERT_FALSE(HasFatalFailure());
+    {
+        TablePtr outputTable;
+        auto asanPool = std::make_shared<autil::mem_pool::PoolAsan>();
+        outputTable.reset(new table::Table(asanPool));
+        outputTable->batchAllocateRow(table->getRowCount());
+        auto *column = outputTable->declareColumn<bool>("a");
+        ASSERT_NE(nullptr, column);
+        auto *columnData = column->getColumnData<bool>();
+        ASSERT_NE(nullptr, columnData);
+        ASSERT_TRUE(SqlResultUtil().FromSqlTableColumnByBool(
+            outputTable->getPool(), fbsColumn, columnData));
+        TableTestUtil::checkOutputColumn<bool>(outputTable, "a", inputValue);
+        ASSERT_FALSE(HasFatalFailure());
     }
 }
 
@@ -724,6 +775,7 @@ TEST_F(SqlResultUtilTest, testCreateFBSqlResult) {
                                             {{"table_a", true}},
                                             {{"table_b", 123}},
                                             true,
+                                            {1, 2},
                                             fbb);
     fbb.Finish(fbsSqlResultOffset);
     char *data = reinterpret_cast<char *>(fbb.GetBufferPointer());
@@ -810,6 +862,7 @@ TEST_F(SqlResultUtilTest, testFromFBSqlResult) {
                                             {{"table_a", true}},
                                             {{"table_b", 123}},
                                             true,
+                                            {1, 2},
                                             fbb);
     fbb.Finish(fbsSqlResultOffset);
     char *data = reinterpret_cast<char *>(fbb.GetBufferPointer());
@@ -823,10 +876,65 @@ TEST_F(SqlResultUtilTest, testFromFBSqlResult) {
     bool hasSoftFailure = false;
     auto asanPool = std::make_shared<autil::mem_pool::PoolAsan>();
     auto outputTable = std::make_shared<table::Table>(asanPool);
+    vector<int64_t> softFailureCodes;
     ASSERT_TRUE(SqlResultUtil().FromFBSqlResult(
-        fbsSqlResult, outputErrorResult, hasSoftFailure, outputTable));
+        fbsSqlResult, outputErrorResult, hasSoftFailure, softFailureCodes, outputTable));
     ASSERT_EQ(errorResult.toJsonString(), outputErrorResult.toJsonString());
     ASSERT_TRUE(hasSoftFailure);
+    EXPECT_THAT(softFailureCodes, ElementsAre(1, 2));
+    ASSERT_NO_FATAL_FAILURE(TableTestUtil::checkOutputMultiColumn(
+        outputTable,
+        "fmstring",
+        {{"abc", "def", "g"}, {"hij", "klm", "n"}, {"opq", "rst"}, {"uvw", "xyz"}}));
+    ASSERT_NO_FATAL_FAILURE(TableTestUtil::checkOutputColumn(
+        outputTable, "fstring", {"abcdefg", "hijklmn", "opqrst", "uvwxyz"}));
+}
+
+TEST_F(SqlResultUtilTest, testFromFBSqlResultWithFieldNotExist) {
+    FlatBufferSimpleAllocator flatbufferAllocator(_poolPtr.get());
+    FlatBufferBuilder fbb(40 * 1024, &flatbufferAllocator);
+    ErrorResult errorResult(ERROR_UNKNOWN);
+    errorResult.setErrorMsg("error message");
+    QrsSessionSqlResult sqlResult;
+    sqlResult.errorResult = errorResult;
+
+    createStringTable();
+    sqlResult.table = _table;
+
+    double processTime = 1.0;
+    uint32_t rowCount = 1000;
+    double coveredPercent = 0.5;
+    string searchInfo = "searchInfoTest";
+    SqlResultUtil sqlResultUtil = SqlResultUtil();
+    Offset<isearch::fbs::FakeSqlResult> fakeFbsSqlResultOffset = isearch::fbs::CreateFakeSqlResult(
+        fbb,
+        processTime,
+        rowCount,
+        sqlResultUtil.CreateSqlErrorResult(sqlResult.errorResult, fbb),
+        sqlResultUtil.CreateSqlTable(sqlResult.table, fbb),
+        fbb.CreateString(searchInfo),
+        coveredPercent,
+        fbb.CreateVector(sqlResultUtil.CreateLeaderInfo({{"table_a", true}}, fbb)),
+        fbb.CreateVector(sqlResultUtil.CreateWatermarkInfo({{"table_b", 123}}, fbb)));
+    fbb.Finish(fakeFbsSqlResultOffset);
+    char *data = reinterpret_cast<char *>(fbb.GetBufferPointer());
+    size_t dataLen = fbb.GetSize();
+    flatbuffers::Verifier verifier((const uint8_t *)data, dataLen);
+    ASSERT_TRUE(VerifySqlResultBuffer(verifier));
+
+    const isearch::fbs::SqlResult *fbsSqlResult = GetRoot<isearch::fbs::SqlResult>(data);
+    ASSERT_TRUE(fbsSqlResult != nullptr);
+    ErrorResult outputErrorResult;
+    bool hasSoftFailure = false;
+    auto asanPool = std::make_shared<autil::mem_pool::PoolAsan>();
+    auto outputTable = std::make_shared<table::Table>(asanPool);
+    vector<int64_t> softFailureCodes;
+    ASSERT_TRUE(SqlResultUtil().FromFBSqlResult(
+        fbsSqlResult, outputErrorResult, hasSoftFailure, softFailureCodes, outputTable));
+    ASSERT_EQ(errorResult.toJsonString(), outputErrorResult.toJsonString());
+    ASSERT_EQ(false, fbsSqlResult->hasSoftFailure());
+    ASSERT_EQ(nullptr, fbsSqlResult->softFailureCodes());
+    EXPECT_THAT(softFailureCodes, ElementsAre());
     ASSERT_NO_FATAL_FAILURE(TableTestUtil::checkOutputMultiColumn(
         outputTable,
         "fmstring",

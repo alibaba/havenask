@@ -79,7 +79,7 @@ void TopicPartitionSupervisorTest::setUp() { AUTIL_LOG(DEBUG, "setUp!"); }
 
 void TopicPartitionSupervisorTest::tearDown() { AUTIL_LOG(DEBUG, "tearDown!"); }
 
-TEST_F(TopicPartitionSupervisorTest, testGetToDelFilePartition) {
+TEST_F(TopicPartitionSupervisorTest, testGetBatchPartition) {
     config::BrokerConfig config;
     TopicPartitionSupervisor supervisor(&config, NULL, NULL);
     supervisor.start();
@@ -101,13 +101,13 @@ TEST_F(TopicPartitionSupervisorTest, testGetToDelFilePartition) {
     int64_t batchCnt = 10;
     for (int k = 0; k < 100; k++) {
         for (int i = 0; i < partCount / batchCnt; i++) {
-            vector<BrokerPartitionPtr> todelPartVec = supervisor.getToDelFilePartition();
+            vector<BrokerPartitionPtr> todelPartVec = supervisor.getBatchPartition(batchCnt, supervisor._delCount);
             ASSERT_EQ(batchCnt, todelPartVec.size());
             for (int j = 0; j < batchCnt; j++) {
                 ASSERT_TRUE(partIdVec[i * batchCnt + j] == todelPartVec[j]->getPartitionId()) << i << ", " << j;
             }
         }
-        vector<BrokerPartitionPtr> todelPartVec = supervisor.getToDelFilePartition();
+        vector<BrokerPartitionPtr> todelPartVec = supervisor.getBatchPartition(batchCnt, supervisor._delCount);
         ASSERT_EQ(1, todelPartVec.size());
         ASSERT_TRUE(partIdVec[100] == todelPartVec[0]->getPartitionId());
     }

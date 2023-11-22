@@ -1,3 +1,4 @@
+#pragma once
 #include "fslib/fslib.h"
 #include "indexlib/common_define.h"
 #include "indexlib/config/single_field_index_config.h"
@@ -24,7 +25,7 @@ public:
     MockInMemBitmapIndexSegmentReader() : index::InMemBitmapIndexSegmentReader(NULL, false) {}
 
     MOCK_METHOD(bool, GetSegmentPosting,
-                (const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+                (const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                  autil::mem_pool::Pool* sessionPool, file_system::ReadOption, InvertedIndexSearchTracer*),
                 (const, override));
 };

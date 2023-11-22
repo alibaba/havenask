@@ -27,7 +27,6 @@
 #include "indexlib/framework/OpenOptions.h"
 #include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionMeta.h"
-#include "indexlib/framework/index_task/MergeTaskDefine.h"
 
 namespace indexlibv2::document {
 class IDocumentBatch;
@@ -67,8 +66,8 @@ public:
                                                        const std::map<std::string, std::string>& params) = 0;
     virtual Status Import(const std::vector<Version>& versions, const ImportOptions& options) = 0;
     virtual Status ImportExternalFiles(const std::string& bulkloadId, const std::vector<std::string>& externalFiles,
-                                       const std::shared_ptr<ImportExternalFileOptions>& options,
-                                       const Action action) = 0;
+                                       const std::shared_ptr<ImportExternalFileOptions>& options, Action action,
+                                       int64_t eventTimeInSecs) = 0;
 
 public:
     // read

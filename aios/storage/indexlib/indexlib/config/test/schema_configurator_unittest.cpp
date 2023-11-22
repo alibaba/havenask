@@ -4,18 +4,17 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "autil/Log.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema_maker.h"
 #include "indexlib/config/primary_key_index_config.h"
 #include "indexlib/config/schema_configurator.h"
 #include "indexlib/config/single_field_index_config.h"
 #include "indexlib/config/test/schema_loader.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/testutil/unittest.h"
 using namespace std;
 using namespace autil;
 
@@ -36,13 +35,13 @@ public:
     {
         mIndexPartitionSchema = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_engine_example.json");
         assert(mIndexPartitionSchema.get() != NULL);
-        INDEXLIB_TEST_EQUAL(string("auction"), mIndexPartitionSchema->GetSchemaName());
+        ASSERT_EQ(string("auction"), mIndexPartitionSchema->GetSchemaName());
 
-        INDEXLIB_TEST_TRUE(mIndexPartitionSchema->GetDictSchema().get() != NULL);
-        INDEXLIB_TEST_TRUE(mIndexPartitionSchema->GetFieldSchema().get() != NULL);
-        INDEXLIB_TEST_TRUE(mIndexPartitionSchema->GetIndexSchema().get() != NULL);
-        INDEXLIB_TEST_TRUE(mIndexPartitionSchema->GetAttributeSchema().get() != NULL);
-        INDEXLIB_TEST_TRUE(mIndexPartitionSchema->GetSummarySchema().get() != NULL);
+        ASSERT_TRUE(mIndexPartitionSchema->GetDictSchema().get() != NULL);
+        ASSERT_TRUE(mIndexPartitionSchema->GetFieldSchema().get() != NULL);
+        ASSERT_TRUE(mIndexPartitionSchema->GetIndexSchema().get() != NULL);
+        ASSERT_TRUE(mIndexPartitionSchema->GetAttributeSchema().get() != NULL);
+        ASSERT_TRUE(mIndexPartitionSchema->GetSummarySchema().get() != NULL);
     }
 
     void TestCaseForIndexAnalyzer()
@@ -50,19 +49,19 @@ public:
         mIndexPartitionSchema = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_analyzer_example.json");
         assert(mIndexPartitionSchema.get() != NULL);
         IndexSchemaPtr indexSchema = mIndexPartitionSchema->GetIndexSchema();
-        INDEXLIB_TEST_TRUE(indexSchema.get() != NULL);
+        ASSERT_TRUE(indexSchema.get() != NULL);
         IndexConfigPtr indexConfig = indexSchema->GetIndexConfig("phrase");
-        INDEXLIB_TEST_TRUE("hello" == indexConfig->GetAnalyzer());
+        ASSERT_TRUE("hello" == indexConfig->GetAnalyzer());
         indexConfig = indexSchema->GetIndexConfig("title");
-        INDEXLIB_TEST_TRUE("helloworld" == indexConfig->GetAnalyzer());
+        ASSERT_TRUE("helloworld" == indexConfig->GetAnalyzer());
     }
 
     void TestCaseForIndexAnalyzerException()
     {
-        INDEXLIB_EXPECT_EXCEPTION(
-            SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_analyzer_exception.json"), SchemaException);
-        INDEXLIB_EXPECT_EXCEPTION(
-            SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_analyzer_exception1.json"), SchemaException);
+        ASSERT_THROW(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_analyzer_exception.json"),
+                     SchemaException);
+        ASSERT_THROW(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_analyzer_exception1.json"),
+                     SchemaException);
     }
 
     void TestCaseForTableType()
@@ -73,8 +72,8 @@ public:
         EXPECT_EQ(tt_index, mIndexPartitionSchema->GetTableType());
         mIndexPartitionSchema = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "rawtext_table_type.json");
         EXPECT_EQ(tt_linedata, mIndexPartitionSchema->GetTableType());
-        INDEXLIB_EXPECT_EXCEPTION(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "unknown_table_type.json"),
-                                  SchemaException);
+        ASSERT_THROW(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "unknown_table_type.json"),
+                     SchemaException);
     }
 
     void TestCaseForShardingIndex()
@@ -82,7 +81,7 @@ public:
         mIndexPartitionSchema = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_sharding_example.json");
         assert(mIndexPartitionSchema.get() != NULL);
         IndexSchemaPtr indexSchema = mIndexPartitionSchema->GetIndexSchema();
-        INDEXLIB_TEST_TRUE(indexSchema.get() != NULL);
+        ASSERT_TRUE(indexSchema.get() != NULL);
 
         CheckShardingIndexConfig(indexSchema, "phrase", "", 4);
         // check trunc index for phrase
@@ -137,17 +136,17 @@ public:
     {
         mIndexPartitionSchema = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_engine_example.json");
         DictionarySchemaPtr dictSchema = mIndexPartitionSchema->GetDictSchema();
-        INDEXLIB_TEST_TRUE(dictSchema != NULL);
+        ASSERT_TRUE(dictSchema != NULL);
 
         std::shared_ptr<DictionaryConfig> dictConfig = dictSchema->GetDictionaryConfig("top10");
-        INDEXLIB_TEST_TRUE(dictConfig != NULL);
-        INDEXLIB_TEST_TRUE(dictConfig->GetDictName() == "top10");
-        INDEXLIB_TEST_TRUE(dictConfig->GetContent() == "of;a;an");
+        ASSERT_TRUE(dictConfig != NULL);
+        ASSERT_TRUE(dictConfig->GetDictName() == "top10");
+        ASSERT_TRUE(dictConfig->GetContent() == "of;a;an");
 
         dictConfig = dictSchema->GetDictionaryConfig("top100");
-        INDEXLIB_TEST_TRUE(dictConfig != NULL);
-        INDEXLIB_TEST_TRUE(dictConfig->GetDictName() == "top100");
-        INDEXLIB_TEST_TRUE(dictConfig->GetContent() == "0;1;2;a;an");
+        ASSERT_TRUE(dictConfig != NULL);
+        ASSERT_TRUE(dictConfig->GetDictName() == "top100");
+        ASSERT_TRUE(dictConfig->GetContent() == "0;1;2;a;an");
         // TODO: add test for vocabulary hash key
     }
 
@@ -161,38 +160,38 @@ public:
             std::shared_ptr<AdaptiveDictionaryConfig> adaptiveConfig =
                 adaptiveSchema->GetAdaptiveDictionaryConfig("df");
             string ruleName = adaptiveConfig->GetRuleName();
-            INDEXLIB_TEST_EQUAL("df", ruleName);
+            ASSERT_EQ("df", ruleName);
             AdaptiveDictionaryConfig::DictType type = adaptiveConfig->GetDictType();
-            INDEXLIB_TEST_EQUAL(0, type);
+            ASSERT_EQ(0, type);
             int32_t threshold = adaptiveConfig->GetThreshold();
-            INDEXLIB_TEST_EQUAL(500000, threshold);
+            ASSERT_EQ(500000, threshold);
 
             adaptiveConfig = adaptiveSchema->GetAdaptiveDictionaryConfig("percent");
             ruleName = adaptiveConfig->GetRuleName();
-            INDEXLIB_TEST_EQUAL("percent", ruleName);
+            ASSERT_EQ("percent", ruleName);
             type = adaptiveConfig->GetDictType();
-            INDEXLIB_TEST_EQUAL(1, type);
+            ASSERT_EQ(1, type);
             threshold = adaptiveConfig->GetThreshold();
-            INDEXLIB_TEST_EQUAL(30, threshold);
+            ASSERT_EQ(30, threshold);
 
             adaptiveConfig = adaptiveSchema->GetAdaptiveDictionaryConfig("size");
             ruleName = adaptiveConfig->GetRuleName();
-            INDEXLIB_TEST_EQUAL("size", ruleName);
+            ASSERT_EQ("size", ruleName);
             type = adaptiveConfig->GetDictType();
-            INDEXLIB_TEST_EQUAL(2, type);
+            ASSERT_EQ(2, type);
         }
 
         {
             IndexSchemaPtr indexSchema = mIndexPartitionSchema->GetIndexSchema();
             IndexConfigPtr indexConfig = indexSchema->GetIndexConfig("phrase");
-            INDEXLIB_TEST_TRUE(indexConfig->HasAdaptiveDictionary());
+            ASSERT_TRUE(indexConfig->HasAdaptiveDictionary());
             std::shared_ptr<AdaptiveDictionaryConfig> adaptiveConfig = indexConfig->GetAdaptiveDictionaryConfig();
             string ruleName = adaptiveConfig->GetRuleName();
-            INDEXLIB_TEST_EQUAL("df", ruleName);
+            ASSERT_EQ("df", ruleName);
             AdaptiveDictionaryConfig::DictType type = adaptiveConfig->GetDictType();
-            INDEXLIB_TEST_EQUAL(0, type);
+            ASSERT_EQ(0, type);
             int32_t threshold = adaptiveConfig->GetThreshold();
-            INDEXLIB_TEST_EQUAL(500000, threshold);
+            ASSERT_EQ(500000, threshold);
         }
     }
     void TestCaseForEmptyDictionarySchema()
@@ -201,8 +200,8 @@ public:
             SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_engine_example_empty_dict.json");
         DictionarySchemaPtr dictSchema = mIndexPartitionSchema->GetDictSchema();
         AdaptiveDictionarySchemaPtr adaptiveSchema = mIndexPartitionSchema->GetAdaptiveDictSchema();
-        INDEXLIB_TEST_TRUE(dictSchema == NULL);
-        INDEXLIB_TEST_TRUE(adaptiveSchema == NULL);
+        ASSERT_TRUE(dictSchema == NULL);
+        ASSERT_TRUE(adaptiveSchema == NULL);
     }
 
     void TestCaseForSeparator()
@@ -314,115 +313,115 @@ public:
         assert(mIndexPartitionSchema.get() != NULL);
 
         FieldSchemaPtr fieldSchema = mIndexPartitionSchema->GetFieldSchema();
-        INDEXLIB_TEST_EQUAL((size_t)17, fieldSchema->GetFieldCount());
+        ASSERT_EQ((size_t)17, fieldSchema->GetFieldCount());
 
         FieldConfigPtr fieldConfig = fieldSchema->GetFieldConfig("title");
-        INDEXLIB_TEST_TRUE(fieldConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(0, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL(string("title"), fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_text, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_TRUE(!fieldConfig->IsMultiValue());
-        INDEXLIB_TEST_EQUAL(string("taobao_analyzer"), fieldConfig->GetAnalyzerName());
+        ASSERT_TRUE(fieldConfig.get() != NULL);
+        ASSERT_EQ(0, fieldConfig->GetFieldId());
+        ASSERT_EQ(string("title"), fieldConfig->GetFieldName());
+        ASSERT_EQ((FieldType)ft_text, fieldConfig->GetFieldType());
+        ASSERT_TRUE(!fieldConfig->IsMultiValue());
+        ASSERT_EQ(string("taobao_analyzer"), fieldConfig->GetAnalyzerName());
 
         fieldConfig = fieldSchema->GetFieldConfig("user_name");
         auto attrConfig = mIndexPartitionSchema->GetAttributeSchema()->GetAttributeConfig("user_name");
         ASSERT_TRUE(attrConfig);
-        INDEXLIB_TEST_TRUE(fieldConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(1, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL(string("user_name"), fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_string, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_TRUE(!fieldConfig->IsMultiValue());
-        INDEXLIB_TEST_EQUAL(string(""), fieldConfig->GetAnalyzerName());
-        INDEXLIB_TEST_TRUE(attrConfig->IsUniqEncode());
-        INDEXLIB_TEST_EQUAL(string("hello world"),
-                            *GetTypeValueFromJsonMap(fieldConfig->GetUserDefinedParam(), "key", std::string()));
+        ASSERT_TRUE(fieldConfig.get() != NULL);
+        ASSERT_EQ(1, fieldConfig->GetFieldId());
+        ASSERT_EQ(string("user_name"), fieldConfig->GetFieldName());
+        ASSERT_EQ((FieldType)ft_string, fieldConfig->GetFieldType());
+        ASSERT_TRUE(!fieldConfig->IsMultiValue());
+        ASSERT_EQ(string(""), fieldConfig->GetAnalyzerName());
+        ASSERT_TRUE(attrConfig->IsUniqEncode());
+        ASSERT_EQ(string("hello world"),
+                  *GetTypeValueFromJsonMap(fieldConfig->GetUserDefinedParam(), "key", std::string()));
 
         fieldConfig = fieldSchema->GetFieldConfig("user_id");
         attrConfig = mIndexPartitionSchema->GetAttributeSchema()->GetAttributeConfig("user_id");
         ASSERT_TRUE(attrConfig);
-        INDEXLIB_TEST_TRUE(fieldConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(2, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL(string("user_id"), fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_integer, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_TRUE(!fieldConfig->IsMultiValue());
-        INDEXLIB_TEST_EQUAL(string(""), fieldConfig->GetAnalyzerName());
-        INDEXLIB_TEST_TRUE(!attrConfig->IsUniqEncode());
+        ASSERT_TRUE(fieldConfig.get() != NULL);
+        ASSERT_EQ(2, fieldConfig->GetFieldId());
+        ASSERT_EQ(string("user_id"), fieldConfig->GetFieldName());
+        ASSERT_EQ((FieldType)ft_integer, fieldConfig->GetFieldType());
+        ASSERT_TRUE(!fieldConfig->IsMultiValue());
+        ASSERT_EQ(string(""), fieldConfig->GetAnalyzerName());
+        ASSERT_TRUE(!attrConfig->IsUniqEncode());
 
         fieldConfig = fieldSchema->GetFieldConfig(3);
-        INDEXLIB_TEST_TRUE(fieldConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(3, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL(string("price"), fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_integer, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_TRUE(!fieldConfig->IsMultiValue());
-        INDEXLIB_TEST_EQUAL(string(""), fieldConfig->GetAnalyzerName());
+        ASSERT_TRUE(fieldConfig.get() != NULL);
+        ASSERT_EQ(3, fieldConfig->GetFieldId());
+        ASSERT_EQ(string("price"), fieldConfig->GetFieldName());
+        ASSERT_EQ((FieldType)ft_integer, fieldConfig->GetFieldType());
+        ASSERT_TRUE(!fieldConfig->IsMultiValue());
+        ASSERT_EQ(string(""), fieldConfig->GetAnalyzerName());
 
         fieldConfig = fieldSchema->GetFieldConfig(4);
         attrConfig = mIndexPartitionSchema->GetAttributeSchema()->GetAttributeConfigByFieldId(4);
         ASSERT_TRUE(attrConfig);
-        INDEXLIB_TEST_TRUE(fieldConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(4, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL(string("category"), fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_integer, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_TRUE(fieldConfig->IsMultiValue());
-        INDEXLIB_TEST_TRUE(attrConfig->IsUniqEncode());
+        ASSERT_TRUE(fieldConfig.get() != NULL);
+        ASSERT_EQ(4, fieldConfig->GetFieldId());
+        ASSERT_EQ(string("category"), fieldConfig->GetFieldName());
+        ASSERT_EQ((FieldType)ft_integer, fieldConfig->GetFieldType());
+        ASSERT_TRUE(fieldConfig->IsMultiValue());
+        ASSERT_TRUE(attrConfig->IsUniqEncode());
 
         fieldConfig = fieldSchema->GetFieldConfig(5);
-        INDEXLIB_TEST_TRUE(fieldConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(5, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL(string("auction_type"), fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_enum, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_TRUE(!fieldConfig->IsMultiValue());
-        INDEXLIB_TEST_EQUAL(string(""), fieldConfig->GetAnalyzerName());
+        ASSERT_TRUE(fieldConfig.get() != NULL);
+        ASSERT_EQ(5, fieldConfig->GetFieldId());
+        ASSERT_EQ(string("auction_type"), fieldConfig->GetFieldName());
+        ASSERT_EQ((FieldType)ft_enum, fieldConfig->GetFieldType());
+        ASSERT_TRUE(!fieldConfig->IsMultiValue());
+        ASSERT_EQ(string(""), fieldConfig->GetAnalyzerName());
 
         EnumFieldConfigPtr enumFieldConfig = dynamic_pointer_cast<EnumFieldConfig>(fieldConfig);
-        INDEXLIB_TEST_TRUE(enumFieldConfig.get() != NULL);
+        ASSERT_TRUE(enumFieldConfig.get() != NULL);
 
-        INDEXLIB_TEST_TRUE(enumFieldConfig->GetValidValues().size() == 2);
-        INDEXLIB_TEST_EQUAL(string("sale"), enumFieldConfig->GetValidValues()[0]);
-        INDEXLIB_TEST_EQUAL(string("buy"), enumFieldConfig->GetValidValues()[1]);
+        ASSERT_TRUE(enumFieldConfig->GetValidValues().size() == 2);
+        ASSERT_EQ(string("sale"), enumFieldConfig->GetValidValues()[0]);
+        ASSERT_EQ(string("buy"), enumFieldConfig->GetValidValues()[1]);
 
         fieldConfig = fieldSchema->GetFieldConfig(6);
         attrConfig = mIndexPartitionSchema->GetAttributeSchema()->GetAttributeConfig(6);
         ASSERT_TRUE(attrConfig);
-        INDEXLIB_TEST_TRUE(fieldConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(6, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL(string("product_id"), fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_long, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_TRUE(!fieldConfig->IsMultiValue());
-        INDEXLIB_TEST_EQUAL(string(""), fieldConfig->GetAnalyzerName());
-        INDEXLIB_TEST_TRUE(!attrConfig->IsUniqEncode());
+        ASSERT_TRUE(fieldConfig.get() != NULL);
+        ASSERT_EQ(6, fieldConfig->GetFieldId());
+        ASSERT_EQ(string("product_id"), fieldConfig->GetFieldName());
+        ASSERT_EQ((FieldType)ft_long, fieldConfig->GetFieldType());
+        ASSERT_TRUE(!fieldConfig->IsMultiValue());
+        ASSERT_EQ(string(""), fieldConfig->GetAnalyzerName());
+        ASSERT_TRUE(!attrConfig->IsUniqEncode());
 
         fieldConfig = fieldSchema->GetFieldConfig("body");
-        INDEXLIB_TEST_TRUE(fieldConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(7, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL(string("body"), fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_text, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_TRUE(!fieldConfig->IsMultiValue());
-        INDEXLIB_TEST_EQUAL(string("taobao_analyzer"), fieldConfig->GetAnalyzerName());
+        ASSERT_TRUE(fieldConfig.get() != NULL);
+        ASSERT_EQ(7, fieldConfig->GetFieldId());
+        ASSERT_EQ(string("body"), fieldConfig->GetFieldName());
+        ASSERT_EQ((FieldType)ft_text, fieldConfig->GetFieldType());
+        ASSERT_TRUE(!fieldConfig->IsMultiValue());
+        ASSERT_EQ(string("taobao_analyzer"), fieldConfig->GetAnalyzerName());
 
         fieldConfig = fieldSchema->GetFieldConfig("b2b_body");
-        INDEXLIB_TEST_TRUE(fieldConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(8, fieldConfig->GetFieldId());
-        INDEXLIB_TEST_EQUAL(string("b2b_body"), fieldConfig->GetFieldName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_text, fieldConfig->GetFieldType());
-        INDEXLIB_TEST_TRUE(!fieldConfig->IsMultiValue());
-        INDEXLIB_TEST_EQUAL(string("b2b_analyzer"), fieldConfig->GetAnalyzerName());
+        ASSERT_TRUE(fieldConfig.get() != NULL);
+        ASSERT_EQ(8, fieldConfig->GetFieldId());
+        ASSERT_EQ(string("b2b_body"), fieldConfig->GetFieldName());
+        ASSERT_EQ((FieldType)ft_text, fieldConfig->GetFieldType());
+        ASSERT_TRUE(!fieldConfig->IsMultiValue());
+        ASSERT_EQ(string("b2b_analyzer"), fieldConfig->GetAnalyzerName());
 
         // fields not in fieldSchema
         fieldConfig = fieldSchema->GetFieldConfig(-1);
-        INDEXLIB_TEST_TRUE(fieldConfig.get() == NULL);
+        ASSERT_TRUE(fieldConfig.get() == NULL);
 
         fieldConfig = fieldSchema->GetFieldConfig(17);
-        INDEXLIB_TEST_TRUE(fieldConfig.get() == NULL);
+        ASSERT_TRUE(fieldConfig.get() == NULL);
 
         fieldConfig = fieldSchema->GetFieldConfig("wupingkao");
-        INDEXLIB_TEST_TRUE(fieldConfig.get() == NULL);
+        ASSERT_TRUE(fieldConfig.get() == NULL);
 
         fieldConfig = fieldSchema->GetFieldConfig(" title");
-        INDEXLIB_TEST_TRUE(fieldConfig.get() == NULL);
+        ASSERT_TRUE(fieldConfig.get() == NULL);
 
         fieldConfig = fieldSchema->GetFieldConfig("title ");
-        INDEXLIB_TEST_TRUE(fieldConfig.get() == NULL);
+        ASSERT_TRUE(fieldConfig.get() == NULL);
     }
 
     void TestCaseForIndexSchema()
@@ -432,78 +431,78 @@ public:
         assert(mIndexPartitionSchema.get() != NULL);
 
         IndexSchemaPtr indexSchema = mIndexPartitionSchema->GetIndexSchema();
-        INDEXLIB_TEST_EQUAL((size_t)7, indexSchema->GetIndexCount());
-        INDEXLIB_TEST_TRUE(indexSchema->HasPrimaryKeyIndex());
-        INDEXLIB_TEST_TRUE(indexSchema->HasPrimaryKeyAttribute());
-        INDEXLIB_TEST_EQUAL(it_primarykey64, indexSchema->GetPrimaryKeyIndexType());
-        INDEXLIB_TEST_EQUAL("product_id", indexSchema->GetPrimaryKeyIndexFieldName());
-        INDEXLIB_TEST_EQUAL(6, indexSchema->GetPrimaryKeyIndexFieldId());
+        ASSERT_EQ((size_t)7, indexSchema->GetIndexCount());
+        ASSERT_TRUE(indexSchema->HasPrimaryKeyIndex());
+        ASSERT_TRUE(indexSchema->HasPrimaryKeyAttribute());
+        ASSERT_EQ(it_primarykey64, indexSchema->GetPrimaryKeyIndexType());
+        ASSERT_EQ("product_id", indexSchema->GetPrimaryKeyIndexFieldName());
+        ASSERT_EQ(6, indexSchema->GetPrimaryKeyIndexFieldId());
         PrimaryKeyIndexConfigPtr pkIndexConfig =
-            DYNAMIC_POINTER_CAST(PrimaryKeyIndexConfig, indexSchema->GetPrimaryKeyIndexConfig());
-        INDEXLIB_TEST_EQUAL(index::pk_number_hash, pkIndexConfig->GetPrimaryKeyHashType());
+            std::dynamic_pointer_cast<PrimaryKeyIndexConfig>(indexSchema->GetPrimaryKeyIndexConfig());
+        ASSERT_EQ(index::pk_number_hash, pkIndexConfig->GetPrimaryKeyHashType());
 
         // check text index
         {
             IndexConfigPtr textIndexConfig = indexSchema->GetIndexConfig("title");
-            INDEXLIB_TEST_TRUE(textIndexConfig.get() != NULL);
+            ASSERT_TRUE(textIndexConfig.get() != NULL);
             std::shared_ptr<DictionaryConfig> dictConfig = textIndexConfig->GetDictConfig();
-            INDEXLIB_TEST_TRUE(dictConfig.get() != NULL);
-            INDEXLIB_TEST_EQUAL("top10", dictConfig->GetDictName());
-            INDEXLIB_TEST_EQUAL("of;a;an", dictConfig->GetContent());
-            INDEXLIB_TEST_EQUAL(indexlib::index::hp_both, textIndexConfig->GetHighFrequencyTermPostingType());
+            ASSERT_TRUE(dictConfig.get() != NULL);
+            ASSERT_EQ("top10", dictConfig->GetDictName());
+            ASSERT_EQ("of;a;an", dictConfig->GetContent());
+            ASSERT_EQ(indexlib::index::hp_both, textIndexConfig->GetHighFrequencyTermPostingType());
         }
 
         // check string index
         {
             IndexConfigPtr stringIndexConfig = indexSchema->GetIndexConfig("user_name");
-            INDEXLIB_TEST_TRUE(stringIndexConfig.get() != NULL);
+            ASSERT_TRUE(stringIndexConfig.get() != NULL);
             std::shared_ptr<DictionaryConfig> dictConfig = stringIndexConfig->GetDictConfig();
-            INDEXLIB_TEST_TRUE(!dictConfig);
-            INDEXLIB_TEST_EQUAL(indexlib::index::hp_bitmap, stringIndexConfig->GetHighFrequencyTermPostingType());
+            ASSERT_TRUE(!dictConfig);
+            ASSERT_EQ(indexlib::index::hp_bitmap, stringIndexConfig->GetHighFrequencyTermPostingType());
         }
 
         // for number index bitmap
         IndexConfigPtr numIndexConfig = indexSchema->GetIndexConfig("categoryp");
-        INDEXLIB_TEST_TRUE(numIndexConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(numIndexConfig->GetHighFrequencyTermPostingType(), indexlib::index::hp_both);
+        ASSERT_TRUE(numIndexConfig.get() != NULL);
+        ASSERT_EQ(numIndexConfig->GetHighFrequencyTermPostingType(), indexlib::index::hp_both);
         std::shared_ptr<DictionaryConfig> numDictConfig = numIndexConfig->GetDictConfig();
-        INDEXLIB_TEST_TRUE(numDictConfig != NULL);
-        INDEXLIB_TEST_EQUAL(numDictConfig->GetDictName(), "topNum");
-        INDEXLIB_TEST_EQUAL(numDictConfig->GetContent(), "0;1;2;9;11");
+        ASSERT_TRUE(numDictConfig != NULL);
+        ASSERT_EQ(numDictConfig->GetDictName(), "topNum");
+        ASSERT_EQ(numDictConfig->GetContent(), "0;1;2;9;11");
 
         numIndexConfig = indexSchema->GetIndexConfig("catmap");
-        INDEXLIB_TEST_TRUE(numIndexConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL(numIndexConfig->GetHighFrequencyTermPostingType(), indexlib::index::hp_bitmap);
+        ASSERT_TRUE(numIndexConfig.get() != NULL);
+        ASSERT_EQ(numIndexConfig->GetHighFrequencyTermPostingType(), indexlib::index::hp_bitmap);
         numDictConfig = numIndexConfig->GetDictConfig();
-        INDEXLIB_TEST_TRUE(numDictConfig != NULL);
-        INDEXLIB_TEST_EQUAL(numDictConfig->GetDictName(), "topNum");
-        INDEXLIB_TEST_EQUAL(numDictConfig->GetContent(), "0;1;2;9;11");
+        ASSERT_TRUE(numDictConfig != NULL);
+        ASSERT_EQ(numDictConfig->GetDictName(), "topNum");
+        ASSERT_EQ(numDictConfig->GetContent(), "0;1;2;9;11");
 
         // for package index
         IndexConfigPtr indexConfig = indexSchema->GetIndexConfig("phrase");
-        INDEXLIB_TEST_TRUE(indexConfig.get() != NULL);
+        ASSERT_TRUE(indexConfig.get() != NULL);
         PackageIndexConfigPtr packageIndexConfig = dynamic_pointer_cast<PackageIndexConfig>(indexConfig);
-        INDEXLIB_TEST_TRUE(packageIndexConfig.get() != NULL);
+        ASSERT_TRUE(packageIndexConfig.get() != NULL);
 
         std::shared_ptr<DictionaryConfig> dictConfig = indexConfig->GetDictConfig();
-        INDEXLIB_TEST_TRUE(dictConfig != NULL);
-        INDEXLIB_TEST_EQUAL(dictConfig->GetDictName(), "top10");
-        INDEXLIB_TEST_EQUAL(dictConfig->GetContent(), "of;a;an");
+        ASSERT_TRUE(dictConfig != NULL);
+        ASSERT_EQ(dictConfig->GetDictName(), "top10");
+        ASSERT_EQ(dictConfig->GetContent(), "of;a;an");
 
-        INDEXLIB_TEST_EQUAL((indexid_t)0, packageIndexConfig->GetIndexId());
-        INDEXLIB_TEST_EQUAL(string("phrase"), packageIndexConfig->GetIndexName());
-        INDEXLIB_TEST_EQUAL((InvertedIndexType)it_pack, packageIndexConfig->GetInvertedIndexType());
+        ASSERT_EQ((indexid_t)0, packageIndexConfig->GetIndexId());
+        ASSERT_EQ(string("phrase"), packageIndexConfig->GetIndexName());
+        ASSERT_EQ((InvertedIndexType)it_pack, packageIndexConfig->GetInvertedIndexType());
 
-        INDEXLIB_TEST_EQUAL((size_t)2, packageIndexConfig->GetFieldCount());
-        INDEXLIB_TEST_EQUAL(string("title"), packageIndexConfig->GetFieldConfigVector()[0]->GetFieldName());
-        INDEXLIB_TEST_EQUAL(string("body"), packageIndexConfig->GetFieldConfigVector()[1]->GetFieldName());
+        ASSERT_EQ((size_t)2, packageIndexConfig->GetFieldCount());
+        ASSERT_EQ(string("title"), packageIndexConfig->GetFieldConfigVector()[0]->GetFieldName());
+        ASSERT_EQ(string("body"), packageIndexConfig->GetFieldConfigVector()[1]->GetFieldName());
 
         // get all boost.
-        INDEXLIB_TEST_EQUAL(1010, packageIndexConfig->GetTotalFieldBoost());
-        INDEXLIB_TEST_EQUAL(1000, packageIndexConfig->GetFieldBoost(0));
-        INDEXLIB_TEST_EQUAL(10, packageIndexConfig->GetFieldBoost(7));
-        INDEXLIB_TEST_EQUAL(0, packageIndexConfig->GetFieldBoost(100000));
-        INDEXLIB_TEST_EQUAL(true, packageIndexConfig->HasSectionAttribute());
+        ASSERT_EQ(1010, packageIndexConfig->GetTotalFieldBoost());
+        ASSERT_EQ(1000, packageIndexConfig->GetFieldBoost(0));
+        ASSERT_EQ(10, packageIndexConfig->GetFieldBoost(7));
+        ASSERT_EQ(0, packageIndexConfig->GetFieldBoost(100000));
+        ASSERT_EQ(true, packageIndexConfig->HasSectionAttribute());
 
         // for single field index
         const int size = 3;
@@ -513,115 +512,113 @@ public:
 
         for (int i = 0; i < size; ++i) {
             IndexConfigPtr indexConfig = indexSchema->GetIndexConfig(field_names[i]);
-            INDEXLIB_TEST_TRUE(indexConfig.get() != NULL);
+            ASSERT_TRUE(indexConfig.get() != NULL);
 
             SingleFieldIndexConfigPtr singleFieldIndexConfig =
                 dynamic_pointer_cast<SingleFieldIndexConfig>(indexConfig);
-            INDEXLIB_TEST_TRUE(singleFieldIndexConfig.get() != NULL);
+            ASSERT_TRUE(singleFieldIndexConfig.get() != NULL);
 
-            INDEXLIB_TEST_EQUAL(string(field_names[i]), singleFieldIndexConfig->GetIndexName());
-            INDEXLIB_TEST_EQUAL((InvertedIndexType)index_types[i], singleFieldIndexConfig->GetInvertedIndexType());
-            INDEXLIB_TEST_EQUAL((indexid_t)(i + 1), singleFieldIndexConfig->GetIndexId());
-            INDEXLIB_TEST_EQUAL((size_t)1, singleFieldIndexConfig->GetFieldCount());
-            INDEXLIB_TEST_EQUAL(string(field_names[i]), singleFieldIndexConfig->GetFieldConfig()->GetFieldName());
+            ASSERT_EQ(string(field_names[i]), singleFieldIndexConfig->GetIndexName());
+            ASSERT_EQ((InvertedIndexType)index_types[i], singleFieldIndexConfig->GetInvertedIndexType());
+            ASSERT_EQ((indexid_t)(i + 1), singleFieldIndexConfig->GetIndexId());
+            ASSERT_EQ((size_t)1, singleFieldIndexConfig->GetFieldCount());
+            ASSERT_EQ(string(field_names[i]), singleFieldIndexConfig->GetFieldConfig()->GetFieldName());
 
             if (index_types[i] == it_primarykey64) {
-                INDEXLIB_TEST_TRUE(singleFieldIndexConfig->HasPrimaryKeyAttribute());
+                ASSERT_TRUE(singleFieldIndexConfig->HasPrimaryKeyAttribute());
             } else {
-                INDEXLIB_TEST_TRUE(!singleFieldIndexConfig->HasPrimaryKeyAttribute());
+                ASSERT_TRUE(!singleFieldIndexConfig->HasPrimaryKeyAttribute());
             }
 
             fieldid_t myfid = singleFieldIndexConfig->GetFieldConfig()->GetFieldId();
             for (fieldid_t fid = 0; fid < 6; ++fid) {
                 if (fid == myfid) {
-                    INDEXLIB_TEST_TRUE(indexConfig->IsInIndex(fid));
+                    ASSERT_TRUE(indexConfig->IsInIndex(fid));
                 } else {
-                    INDEXLIB_TEST_TRUE(!indexConfig->IsInIndex(fid));
+                    ASSERT_TRUE(!indexConfig->IsInIndex(fid));
                 }
             }
         }
 
         indexConfig = indexSchema->GetIndexConfig("phrase2");
-        INDEXLIB_TEST_TRUE(indexConfig.get() != NULL);
+        ASSERT_TRUE(indexConfig.get() != NULL);
         packageIndexConfig = dynamic_pointer_cast<PackageIndexConfig>(indexConfig);
-        INDEXLIB_TEST_TRUE(packageIndexConfig.get() != NULL);
-        INDEXLIB_TEST_EQUAL((indexid_t)4, packageIndexConfig->GetIndexId());
-        INDEXLIB_TEST_EQUAL(string("phrase2"), packageIndexConfig->GetIndexName());
-        INDEXLIB_TEST_EQUAL((InvertedIndexType)it_expack, packageIndexConfig->GetInvertedIndexType());
+        ASSERT_TRUE(packageIndexConfig.get() != NULL);
+        ASSERT_EQ((indexid_t)4, packageIndexConfig->GetIndexId());
+        ASSERT_EQ(string("phrase2"), packageIndexConfig->GetIndexName());
+        ASSERT_EQ((InvertedIndexType)it_expack, packageIndexConfig->GetInvertedIndexType());
 
-        INDEXLIB_TEST_EQUAL((size_t)2, packageIndexConfig->GetFieldCount());
-        INDEXLIB_TEST_EQUAL(string("title"), packageIndexConfig->GetFieldConfigVector()[0]->GetFieldName());
-        INDEXLIB_TEST_EQUAL(string("body"), packageIndexConfig->GetFieldConfigVector()[1]->GetFieldName());
+        ASSERT_EQ((size_t)2, packageIndexConfig->GetFieldCount());
+        ASSERT_EQ(string("title"), packageIndexConfig->GetFieldConfigVector()[0]->GetFieldName());
+        ASSERT_EQ(string("body"), packageIndexConfig->GetFieldConfigVector()[1]->GetFieldName());
         // get all boost.
-        INDEXLIB_TEST_EQUAL(1010, packageIndexConfig->GetTotalFieldBoost());
-        INDEXLIB_TEST_EQUAL(1000, packageIndexConfig->GetFieldBoost(0));
-        INDEXLIB_TEST_EQUAL(10, packageIndexConfig->GetFieldBoost(7));
-        INDEXLIB_TEST_EQUAL(0, packageIndexConfig->GetFieldBoost(100000));
-        INDEXLIB_TEST_EQUAL(false, packageIndexConfig->HasSectionAttribute());
+        ASSERT_EQ(1010, packageIndexConfig->GetTotalFieldBoost());
+        ASSERT_EQ(1000, packageIndexConfig->GetFieldBoost(0));
+        ASSERT_EQ(10, packageIndexConfig->GetFieldBoost(7));
+        ASSERT_EQ(0, packageIndexConfig->GetFieldBoost(100000));
+        ASSERT_EQ(false, packageIndexConfig->HasSectionAttribute());
 
         // get all fieldIdxInPack
-        INDEXLIB_TEST_EQUAL((int32_t)0, packageIndexConfig->GetFieldIdxInPack(0));
-        INDEXLIB_TEST_EQUAL((int32_t)1, packageIndexConfig->GetFieldIdxInPack(7));
-        INDEXLIB_TEST_EQUAL((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(2));
-        INDEXLIB_TEST_EQUAL((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(1));
-        INDEXLIB_TEST_EQUAL((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(3));
-        INDEXLIB_TEST_EQUAL((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(5));
-        INDEXLIB_TEST_EQUAL((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(100000));
+        ASSERT_EQ((int32_t)0, packageIndexConfig->GetFieldIdxInPack(0));
+        ASSERT_EQ((int32_t)1, packageIndexConfig->GetFieldIdxInPack(7));
+        ASSERT_EQ((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(2));
+        ASSERT_EQ((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(1));
+        ASSERT_EQ((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(3));
+        ASSERT_EQ((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(5));
+        ASSERT_EQ((int32_t)-1, packageIndexConfig->GetFieldIdxInPack(100000));
 
         // get all fieldId
-        INDEXLIB_TEST_EQUAL((fieldid_t)0, packageIndexConfig->GetFieldId(0));
-        INDEXLIB_TEST_EQUAL((fieldid_t)7, packageIndexConfig->GetFieldId(1));
-        INDEXLIB_TEST_EQUAL(INVALID_FIELDID, packageIndexConfig->GetFieldId(2));
-        INDEXLIB_TEST_EQUAL(INVALID_FIELDID, packageIndexConfig->GetFieldId(-1));
-        INDEXLIB_TEST_EQUAL(INVALID_FIELDID, packageIndexConfig->GetFieldId(-2));
-        INDEXLIB_TEST_EQUAL(INVALID_FIELDID, packageIndexConfig->GetFieldId(5));
-        INDEXLIB_TEST_EQUAL(INVALID_FIELDID, packageIndexConfig->GetFieldId(100000));
+        ASSERT_EQ((fieldid_t)0, packageIndexConfig->GetFieldId(0));
+        ASSERT_EQ((fieldid_t)7, packageIndexConfig->GetFieldId(1));
+        ASSERT_EQ(INVALID_FIELDID, packageIndexConfig->GetFieldId(2));
+        ASSERT_EQ(INVALID_FIELDID, packageIndexConfig->GetFieldId(-1));
+        ASSERT_EQ(INVALID_FIELDID, packageIndexConfig->GetFieldId(-2));
+        ASSERT_EQ(INVALID_FIELDID, packageIndexConfig->GetFieldId(5));
+        ASSERT_EQ(INVALID_FIELDID, packageIndexConfig->GetFieldId(100000));
 
         // check isInIndex
         for (fieldid_t fid = 0; fid < 8; ++fid) {
             if (fid == 0 || fid == 7) {
-                INDEXLIB_TEST_TRUE(indexConfig->IsInIndex(fid));
+                ASSERT_TRUE(indexConfig->IsInIndex(fid));
             } else {
-                INDEXLIB_TEST_TRUE(!indexConfig->IsInIndex(fid));
+                ASSERT_TRUE(!indexConfig->IsInIndex(fid));
             }
         }
 
         // for not exist index
         indexConfig = indexSchema->GetIndexConfig(" phrase");
-        INDEXLIB_TEST_TRUE(indexConfig.get() == NULL);
+        ASSERT_TRUE(indexConfig.get() == NULL);
 
         indexConfig = indexSchema->GetIndexConfig("phrase ");
-        INDEXLIB_TEST_TRUE(indexConfig.get() == NULL);
+        ASSERT_TRUE(indexConfig.get() == NULL);
 
         indexConfig = indexSchema->GetIndexConfig("wokao");
-        INDEXLIB_TEST_TRUE(indexConfig.get() == NULL);
+        ASSERT_TRUE(indexConfig.get() == NULL);
 
         indexConfig = indexSchema->GetIndexConfig((indexid_t)-1);
-        INDEXLIB_TEST_TRUE(indexConfig.get() == NULL);
+        ASSERT_TRUE(indexConfig.get() == NULL);
 
         indexConfig = indexSchema->GetIndexConfig(7);
-        INDEXLIB_TEST_TRUE(indexConfig.get() == NULL);
+        ASSERT_TRUE(indexConfig.get() == NULL);
     }
 
     void TestCaseForIndexSchemaPostingTypeWithoutDictInPack()
     {
-        INDEXLIB_EXPECT_EXCEPTION(
+        ASSERT_THROW(
             SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "index_engine_example_dict_in_error_index.json"),
             SchemaException);
     }
 
     void TestCaseForAttributeSchemeErrorSortTag()
     {
-        INDEXLIB_EXPECT_EXCEPTION(
-            SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "schema_error_multi_sort_tag.json"),
-            SchemaException);
+        ASSERT_THROW(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "schema_error_multi_sort_tag.json"),
+                     SchemaException);
 
-        INDEXLIB_EXPECT_EXCEPTION(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "schema_error_sort_tag.json"),
-                                  SchemaException);
+        ASSERT_THROW(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "schema_error_sort_tag.json"),
+                     SchemaException);
 
-        INDEXLIB_EXPECT_EXCEPTION(
-            SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "schema_error_attribute_field.json"),
-            SchemaException);
+        ASSERT_THROW(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "schema_error_attribute_field.json"),
+                     SchemaException);
     }
 
     void TestCaseForAttributeSchema()
@@ -632,53 +629,53 @@ public:
 
         AttributeSchemaPtr attributeSchema = mIndexPartitionSchema->GetAttributeSchema();
 
-        INDEXLIB_TEST_EQUAL((size_t)8, attributeSchema->GetAttributeCount());
+        ASSERT_EQ((size_t)8, attributeSchema->GetAttributeCount());
 
         AttributeConfigPtr attributeConfig = attributeSchema->GetAttributeConfig(0);
-        INDEXLIB_TEST_TRUE(attributeConfig.get() != NULL);
+        ASSERT_TRUE(attributeConfig.get() != NULL);
         ASSERT_FALSE(attributeConfig->IsUniqEncode());
-        INDEXLIB_TEST_EQUAL((attrid_t)0, attributeConfig->GetAttrId());
-        INDEXLIB_TEST_EQUAL(string("user_id"), attributeConfig->GetAttrName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_integer, attributeConfig->GetFieldType());
-        INDEXLIB_TEST_EQUAL(mIndexPartitionSchema->GetFieldConfig("user_id"), attributeConfig->GetFieldConfig());
+        ASSERT_EQ((attrid_t)0, attributeConfig->GetAttrId());
+        ASSERT_EQ(string("user_id"), attributeConfig->GetAttrName());
+        ASSERT_EQ((FieldType)ft_integer, attributeConfig->GetFieldType());
+        ASSERT_EQ(mIndexPartitionSchema->GetFieldConfig("user_id"), attributeConfig->GetFieldConfig());
 
         attributeConfig = attributeSchema->GetAttributeConfig("product_id");
-        INDEXLIB_TEST_TRUE(attributeConfig.get() != NULL);
+        ASSERT_TRUE(attributeConfig.get() != NULL);
         ASSERT_FALSE(attributeConfig->IsUniqEncode());
-        INDEXLIB_TEST_EQUAL((attrid_t)1, attributeConfig->GetAttrId());
-        INDEXLIB_TEST_EQUAL(string("product_id"), attributeConfig->GetAttrName());
-        INDEXLIB_TEST_EQUAL((FieldType)ft_long, attributeConfig->GetFieldType());
-        INDEXLIB_TEST_EQUAL(mIndexPartitionSchema->GetFieldConfig("product_id"), attributeConfig->GetFieldConfig());
+        ASSERT_EQ((attrid_t)1, attributeConfig->GetAttrId());
+        ASSERT_EQ(string("product_id"), attributeConfig->GetAttrName());
+        ASSERT_EQ((FieldType)ft_long, attributeConfig->GetFieldType());
+        ASSERT_EQ(mIndexPartitionSchema->GetFieldConfig("product_id"), attributeConfig->GetFieldConfig());
 
         attributeConfig = attributeSchema->GetAttributeConfig("user_name");
-        INDEXLIB_TEST_TRUE(attributeConfig.get() != NULL);
-        INDEXLIB_TEST_TRUE(attributeConfig->IsUniqEncode());
+        ASSERT_TRUE(attributeConfig.get() != NULL);
+        ASSERT_TRUE(attributeConfig->IsUniqEncode());
 
         attributeConfig = attributeSchema->GetAttributeConfig("category");
-        INDEXLIB_TEST_TRUE(attributeConfig.get() != NULL);
-        INDEXLIB_TEST_TRUE(attributeConfig->IsUniqEncode());
+        ASSERT_TRUE(attributeConfig.get() != NULL);
+        ASSERT_TRUE(attributeConfig->IsUniqEncode());
 
         attributeConfig = attributeSchema->GetAttributeConfig("price2");
-        INDEXLIB_TEST_TRUE(attributeConfig.get() != NULL);
+        ASSERT_TRUE(attributeConfig.get() != NULL);
 
         attributeConfig = attributeSchema->GetAttributeConfig(5); // price 3
-        INDEXLIB_TEST_TRUE(attributeConfig.get() != NULL);
+        ASSERT_TRUE(attributeConfig.get() != NULL);
 
         // no such attributes
         attributeConfig = attributeSchema->GetAttributeConfig("wokao");
-        INDEXLIB_TEST_TRUE(attributeConfig.get() == NULL);
+        ASSERT_TRUE(attributeConfig.get() == NULL);
 
         attributeConfig = attributeSchema->GetAttributeConfig((attrid_t)-1);
-        INDEXLIB_TEST_TRUE(attributeConfig.get() == NULL);
+        ASSERT_TRUE(attributeConfig.get() == NULL);
 
         attributeConfig = attributeSchema->GetAttributeConfig(8);
-        INDEXLIB_TEST_TRUE(attributeConfig.get() == NULL);
+        ASSERT_TRUE(attributeConfig.get() == NULL);
 
         attributeConfig = attributeSchema->GetAttributeConfig(" user_id");
-        INDEXLIB_TEST_TRUE(attributeConfig.get() == NULL);
+        ASSERT_TRUE(attributeConfig.get() == NULL);
 
         attributeConfig = attributeSchema->GetAttributeConfig("user_id ");
-        INDEXLIB_TEST_TRUE(attributeConfig.get() == NULL);
+        ASSERT_TRUE(attributeConfig.get() == NULL);
     }
 
     void TestCaseForSummarySchema()
@@ -688,7 +685,7 @@ public:
         assert(mIndexPartitionSchema.get() != NULL);
 
         SummarySchemaPtr summarySchema = mIndexPartitionSchema->GetSummarySchema();
-        INDEXLIB_TEST_EQUAL((size_t)5, summarySchema->GetSummaryCount());
+        ASSERT_EQ((size_t)5, summarySchema->GetSummaryCount());
 
         const int size = 5;
         const char* field_names[] = {"title", "user_name", "user_id", "price", "auction_type"};
@@ -696,8 +693,8 @@ public:
 
         for (int i = 0; i < size; ++i) {
             std::shared_ptr<SummaryConfig> summaryConfig = summarySchema->GetSummaryConfig(field_ids[i]);
-            INDEXLIB_TEST_TRUE(summaryConfig.get() != NULL);
-            INDEXLIB_TEST_EQUAL(string(field_names[i]), summaryConfig->GetSummaryName());
+            ASSERT_TRUE(summaryConfig.get() != NULL);
+            ASSERT_EQ(string(field_names[i]), summaryConfig->GetSummaryName());
         }
     }
 
@@ -751,7 +748,7 @@ public:
 
         // start to check
         for (map<int, string>::iterator it = fieldType2Str.begin(); it != fieldType2Str.end(); ++it) {
-            INDEXLIB_TEST_EQUAL(it->second, FieldConfig::FieldTypeToStr((FieldType)it->first));
+            ASSERT_EQ(it->second, FieldConfig::FieldTypeToStr((FieldType)it->first));
         }
     }
 
@@ -806,7 +803,7 @@ public:
 
         // start to check
         for (map<string, int>::iterator it = fieldType2Str.begin(); it != fieldType2Str.end(); ++it) {
-            INDEXLIB_TEST_EQUAL(it->second, FieldConfig::StrToFieldType(it->first));
+            ASSERT_EQ(it->second, FieldConfig::StrToFieldType(it->first));
         }
     }
 
@@ -862,7 +859,7 @@ public:
 
         // start to check
         for (map<int, string>::iterator it = indexType2Str.begin(); it != indexType2Str.end(); ++it) {
-            INDEXLIB_TEST_EQUAL(it->second, IndexConfig::InvertedIndexTypeToStr((InvertedIndexType)it->first));
+            ASSERT_EQ(it->second, IndexConfig::InvertedIndexTypeToStr((InvertedIndexType)it->first));
         }
     }
 
@@ -919,7 +916,7 @@ public:
 
         // start to check
         for (map<string, int>::iterator it = indexType2Str.begin(); it != indexType2Str.end(); ++it) {
-            INDEXLIB_TEST_EQUAL(it->second, IndexConfig::StrToIndexType(it->first, tt_index));
+            ASSERT_EQ(it->second, IndexConfig::StrToIndexType(it->first, tt_index));
         }
     }
 
@@ -939,7 +936,7 @@ public:
         } catch (const util::SchemaException& e) {
             hasException = true;
         }
-        INDEXLIB_TEST_TRUE(hasException);
+        ASSERT_TRUE(hasException);
 
         // check normal
         hasException = false;
@@ -948,7 +945,7 @@ public:
         } catch (const util::SchemaException& e) {
             hasException = true;
         }
-        INDEXLIB_TEST_TRUE(!hasException);
+        ASSERT_TRUE(!hasException);
     }
 
     void TestCaseForCheckOptionFlagForPKIndex()
@@ -959,7 +956,7 @@ public:
         } catch (const util::SchemaException& e) {
             hasException = true;
         }
-        INDEXLIB_TEST_TRUE(!hasException);
+        ASSERT_TRUE(!hasException);
     }
 
     string GenerateFlagStr(int optionFlag)
@@ -1004,7 +1001,7 @@ public:
             size_t pos = strSchema.find("indexs");
             pos = strSchema.find(strIndexType, pos);
             if (pos == string::npos) {
-                INDEXLIB_TEST_TRUE(false);
+                ASSERT_TRUE(false);
             }
 
             if (strIndexType == "PRIMARYKEY64" || i > 1) {
@@ -1018,13 +1015,13 @@ public:
             } catch (const util::SchemaException& e) {
                 hasException = true;
                 string errMsg = "index cannot configure";
-                INDEXLIB_TEST_TRUE(e.ToString().find(errMsg) != string::npos);
+                ASSERT_TRUE(e.ToString().find(errMsg) != string::npos);
             }
 
             if (i < 2 && strIndexType == "STRING") {
-                INDEXLIB_TEST_TRUE(!hasException);
+                ASSERT_TRUE(!hasException);
             } else {
-                INDEXLIB_TEST_TRUE(hasException);
+                ASSERT_TRUE(hasException);
             }
         }
 
@@ -1042,9 +1039,9 @@ public:
         } catch (const util::SchemaException& e) {
             hasException = true;
             string errMsg = "position_payload_flag should not be set while position_list_flag is not set";
-            INDEXLIB_TEST_TRUE(e.ToString().find(errMsg) != string::npos);
+            ASSERT_TRUE(e.ToString().find(errMsg) != string::npos);
         }
-        INDEXLIB_TEST_TRUE(hasException);
+        ASSERT_TRUE(hasException);
     }
 
     void TestCaseForConfigureOptionFlags()
@@ -1058,17 +1055,17 @@ public:
                 IndexConfigPtr indexConfig = indexSchema->GetIndexConfig(i);
                 InvertedIndexType type = indexConfig->GetInvertedIndexType();
                 if (type == it_pack || type == it_text) {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), OPTION_FLAG_ALL);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), OPTION_FLAG_ALL);
                 } else if (type == it_expack) {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), EXPACK_OPTION_FLAG_ALL);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), EXPACK_OPTION_FLAG_ALL);
                 } else if (type == it_string) {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), NO_POSITION_LIST);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), NO_POSITION_LIST);
                 } else if (type == it_number || type == it_number_int8 || type == it_number_uint8 ||
                            type == it_number_int16 || type == it_number_uint16 || type == it_number_int32 ||
                            type == it_number_uint32 || type == it_number_int64 || type == it_number_uint64) {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), NO_POSITION_LIST);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), NO_POSITION_LIST);
                 } else {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), of_none);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), of_none);
                 }
             }
         }
@@ -1086,14 +1083,13 @@ public:
                 IndexConfigPtr indexConfig = indexSchema->GetIndexConfig(i);
                 InvertedIndexType type = indexConfig->GetInvertedIndexType();
                 if (type == it_pack || type == it_text) {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), of_position_list | of_term_frequency);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), of_position_list | of_term_frequency);
                 } else if (type == it_expack) {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(),
-                                        of_position_list | of_term_frequency | of_fieldmap);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), of_position_list | of_term_frequency | of_fieldmap);
                 } else if (type != it_primarykey64 && type != it_primarykey128) {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), of_term_frequency);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), of_term_frequency);
                 } else {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), of_none);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), of_none);
                 }
             }
         }
@@ -1110,9 +1106,9 @@ public:
             for (uint32_t i = 0; i < count; ++i) {
                 IndexConfigPtr indexConfig = indexSchema->GetIndexConfig(i);
                 if (indexConfig->GetInvertedIndexType() != it_expack) {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), NO_POSITION_LIST);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), NO_POSITION_LIST);
                 } else {
-                    INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), EXPACK_NO_POSITION_LIST);
+                    ASSERT_EQ(indexConfig->GetOptionFlag(), EXPACK_NO_POSITION_LIST);
                 }
             }
         }
@@ -1121,13 +1117,13 @@ public:
     void TestCaseForCheckIndexTypeOfIndexConfig()
     {
         IndexConfigPtr indexConfig(new SingleFieldIndexConfig("test", it_number));
-        INDEXLIB_TEST_TRUE(indexConfig->CheckFieldType(ft_uint8));
-        INDEXLIB_TEST_TRUE(indexConfig->CheckFieldType(ft_int16));
-        INDEXLIB_TEST_TRUE(indexConfig->CheckFieldType(ft_uint16));
-        INDEXLIB_TEST_TRUE(indexConfig->CheckFieldType(ft_integer));
-        INDEXLIB_TEST_TRUE(indexConfig->CheckFieldType(ft_uint32));
-        INDEXLIB_TEST_TRUE(indexConfig->CheckFieldType(ft_long));
-        INDEXLIB_TEST_TRUE(indexConfig->CheckFieldType(ft_uint64));
+        ASSERT_TRUE(indexConfig->CheckFieldType(ft_uint8));
+        ASSERT_TRUE(indexConfig->CheckFieldType(ft_int16));
+        ASSERT_TRUE(indexConfig->CheckFieldType(ft_uint16));
+        ASSERT_TRUE(indexConfig->CheckFieldType(ft_integer));
+        ASSERT_TRUE(indexConfig->CheckFieldType(ft_uint32));
+        ASSERT_TRUE(indexConfig->CheckFieldType(ft_long));
+        ASSERT_TRUE(indexConfig->CheckFieldType(ft_uint64));
         ASSERT_FALSE(indexConfig->CheckFieldType(ft_unknown));
         ASSERT_FALSE(indexConfig->CheckFieldType(ft_online));
     }
@@ -1143,17 +1139,17 @@ public:
             IndexConfigPtr indexConfig = indexSchema->GetIndexConfig(i);
             InvertedIndexType indexType = indexConfig->GetInvertedIndexType();
             if (indexType == it_primarykey64 || indexType == it_primarykey128) {
-                INDEXLIB_TEST_EQUAL(of_none, indexConfig->GetOptionFlag());
+                ASSERT_EQ(of_none, indexConfig->GetOptionFlag());
             } else if (indexType == it_string) {
-                INDEXLIB_TEST_EQUAL(of_term_frequency, indexConfig->GetOptionFlag());
+                ASSERT_EQ(of_term_frequency, indexConfig->GetOptionFlag());
             } else if (indexType == it_number || indexType == it_number_int8 || indexType == it_number_uint8 ||
                        indexType == it_number_int16 || indexType == it_number_uint16 || indexType == it_number_int32 ||
                        indexType == it_number_uint32 || indexType == it_number_int64 || indexType == it_number_uint64) {
-                INDEXLIB_TEST_EQUAL(of_term_frequency, indexConfig->GetOptionFlag());
+                ASSERT_EQ(of_term_frequency, indexConfig->GetOptionFlag());
             } else if (indexType == it_expack) {
-                INDEXLIB_TEST_EQUAL(of_position_list | of_term_frequency | of_fieldmap, indexConfig->GetOptionFlag());
+                ASSERT_EQ(of_position_list | of_term_frequency | of_fieldmap, indexConfig->GetOptionFlag());
             } else {
-                INDEXLIB_TEST_EQUAL(of_position_list | of_term_frequency, indexConfig->GetOptionFlag());
+                ASSERT_EQ(of_position_list | of_term_frequency, indexConfig->GetOptionFlag());
             }
         }
 
@@ -1163,17 +1159,17 @@ public:
             IndexConfigPtr indexConfig = indexSchema->GetIndexConfig(i);
             InvertedIndexType indexType = indexConfig->GetInvertedIndexType();
             if (indexType == it_primarykey64 || indexType == it_primarykey128) {
-                INDEXLIB_TEST_EQUAL(of_none, indexConfig->GetOptionFlag());
+                ASSERT_EQ(of_none, indexConfig->GetOptionFlag());
             } else if (indexType == it_string) {
-                INDEXLIB_TEST_EQUAL(NO_POSITION_LIST, indexConfig->GetOptionFlag());
+                ASSERT_EQ(NO_POSITION_LIST, indexConfig->GetOptionFlag());
             } else if (indexType == it_number || indexType == it_number_int8 || indexType == it_number_uint8 ||
                        indexType == it_number_int16 || indexType == it_number_uint16 || indexType == it_number_int32 ||
                        indexType == it_number_uint32 || indexType == it_number_int64 || indexType == it_number_uint64) {
-                INDEXLIB_TEST_EQUAL(NO_POSITION_LIST, indexConfig->GetOptionFlag());
+                ASSERT_EQ(NO_POSITION_LIST, indexConfig->GetOptionFlag());
             } else if (indexType == it_expack) {
-                INDEXLIB_TEST_EQUAL(EXPACK_OPTION_FLAG_ALL, indexConfig->GetOptionFlag());
+                ASSERT_EQ(EXPACK_OPTION_FLAG_ALL, indexConfig->GetOptionFlag());
             } else {
-                INDEXLIB_TEST_EQUAL(OPTION_FLAG_ALL, indexConfig->GetOptionFlag());
+                ASSERT_EQ(OPTION_FLAG_ALL, indexConfig->GetOptionFlag());
             }
         }
 
@@ -1183,10 +1179,10 @@ public:
         } catch (const util::AssertEqualException& e) {
             hasException = true;
             string errMsg = "mNameToIdMap not equal";
-            INDEXLIB_TEST_TRUE(e.ToString().find(errMsg) != string::npos) << e.ToString();
+            ASSERT_TRUE(e.ToString().find(errMsg) != string::npos) << e.ToString();
         }
 
-        INDEXLIB_TEST_TRUE(hasException);
+        ASSERT_TRUE(hasException);
     }
 
     void TestCaseForDefaultTermFrequencyFlag()
@@ -1200,7 +1196,7 @@ public:
             optionflag_t optionFlag = indexConfig->GetOptionFlag();
             if (indexConfig->GetInvertedIndexType() != it_primarykey128 &&
                 indexConfig->GetInvertedIndexType() != it_primarykey64) {
-                INDEXLIB_TEST_TRUE(optionFlag & of_term_frequency);
+                ASSERT_TRUE(optionFlag & of_term_frequency);
             }
         }
     }
@@ -1220,8 +1216,8 @@ public:
 
     void TestCaseForClearTFWithPositionListFlagSet()
     {
-        INDEXLIB_EXPECT_EXCEPTION(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "bad_tf_flag_example.json"),
-                                  SchemaException);
+        ASSERT_THROW(SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "bad_tf_flag_example.json"),
+                     SchemaException);
     }
 
     void TestCaseForIndexConfigClone()
@@ -1264,7 +1260,7 @@ public:
     {
         IndexPartitionSchemaPtr schema(new IndexPartitionSchema);
         IndexPartitionSchemaMaker::MakeSchema(schema, fieldSchema, indexSchema, attributeSchema, summarySchema);
-        INDEXLIB_TEST_EQUAL(needStoreSummary, schema->NeedStoreSummary());
+        ASSERT_EQ(needStoreSummary, schema->NeedStoreSummary());
     }
 
 protected:
@@ -1274,7 +1270,7 @@ protected:
         uint32_t count = indexSchema->GetIndexCount();
         for (uint32_t i = 0; i < count; ++i) {
             IndexConfigPtr indexConfig = indexSchema->GetIndexConfig(i);
-            INDEXLIB_TEST_EQUAL(indexConfig->GetOptionFlag(), optionFlag);
+            ASSERT_EQ(indexConfig->GetOptionFlag(), optionFlag);
         }
     }
 
@@ -1330,10 +1326,10 @@ private:
     IndexPartitionSchemaPtr mIndexPartitionSchema;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-IE_LOG_SETUP(config, SchemaConfiguratorTest);
+AUTIL_LOG_SETUP(indexlib.config, SchemaConfiguratorTest);
 
 INDEXLIB_UNIT_TEST_CASE(SchemaConfiguratorTest, TestCaseForIndexPartitionSchema);
 INDEXLIB_UNIT_TEST_CASE(SchemaConfiguratorTest, TestCaseForIndexAnalyzer);

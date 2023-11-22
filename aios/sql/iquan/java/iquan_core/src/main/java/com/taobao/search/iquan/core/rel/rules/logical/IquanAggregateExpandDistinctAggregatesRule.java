@@ -16,6 +16,20 @@
  */
 package com.taobao.search.iquan.core.rel.rules.logical;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import javax.annotation.Nullable;
+
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import org.apache.calcite.linq4j.Ord;
 import org.apache.calcite.plan.Contexts;
@@ -25,10 +39,10 @@ import org.apache.calcite.rel.RelCollations;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Aggregate;
 import org.apache.calcite.rel.core.Aggregate.Group;
-import org.apache.calcite.rel.hint.Hintable;
 import org.apache.calcite.rel.core.AggregateCall;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.core.RelFactories;
+import org.apache.calcite.rel.hint.Hintable;
 import org.apache.calcite.rel.logical.LogicalAggregate;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rex.RexBuilder;
@@ -47,19 +61,6 @@ import org.apache.calcite.util.Pair;
 import org.apache.calcite.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * This rules is copied from Calcite's {@link
@@ -85,18 +86,21 @@ import java.util.TreeSet;
 public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule {
     // ~ Static fields/initializers ---------------------------------------------
 
-    /** The default instance of the rule; operates only on logical expressions. */
+    /**
+     * The default instance of the rule; operates only on logical expressions.
+     */
     public static final IquanAggregateExpandDistinctAggregatesRule INSTANCE =
             new IquanAggregateExpandDistinctAggregatesRule(
                     LogicalAggregate.class, true, IquanRelBuilder.LOGICAL_BUILDER);
 
-    /** Instance of the rule that operates only on logical expressions and generates a join. */
+    /**
+     * Instance of the rule that operates only on logical expressions and generates a join.
+     */
     public static final IquanAggregateExpandDistinctAggregatesRule JOIN =
             new IquanAggregateExpandDistinctAggregatesRule(
                     LogicalAggregate.class, false, IquanRelBuilder.LOGICAL_BUILDER);
-
-    public final boolean useGroupingSets;
     private static final Logger logger = LoggerFactory.getLogger(IquanAggregateExpandDistinctAggregatesRule.class);
+    public final boolean useGroupingSets;
 
     // ~ Constructors -----------------------------------------------------------
 
@@ -146,6 +150,93 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
     }
 
     // ~ Methods ----------------------------------------------------------------
+
+    private static long groupValue(ImmutableBitSet fullGroupSet, ImmutableBitSet groupSet) {
+        long v = 0;
+        long x = 1L << (fullGroupSet.cardinality() - 1);
+        assert fullGroupSet.contains(groupSet);
+        for (int i : fullGroupSet) {
+            if (!groupSet.get(i)) {
+                v |= x;
+            }
+            x >>= 1;
+        }
+        return v;
+    }
+
+    private static ImmutableBitSet remap(ImmutableBitSet groupSet, ImmutableBitSet bitSet) {
+        final ImmutableBitSet.Builder builder = ImmutableBitSet.builder();
+        for (Integer bit : bitSet) {
+            builder.set(remap(groupSet, bit));
+        }
+        return builder.build();
+    }
+
+    private static com.google.common.collect.ImmutableList<ImmutableBitSet> remap(
+            ImmutableBitSet groupSet, Iterable<ImmutableBitSet> bitSets) {
+        final com.google.common.collect.ImmutableList.Builder<ImmutableBitSet> builder =
+                com.google.common.collect.ImmutableList.builder();
+        for (ImmutableBitSet bitSet : bitSets) {
+            builder.add(remap(groupSet, bitSet));
+        }
+        return builder.build();
+    }
+
+    private static List<Integer> remap(ImmutableBitSet groupSet, List<Integer> argList) {
+        ImmutableIntList list = ImmutableIntList.of();
+        for (int arg : argList) {
+            list = list.append(remap(groupSet, arg));
+        }
+        return list;
+    }
+
+    private static int remap(ImmutableBitSet groupSet, int arg) {
+        return arg < 0 ? -1 : groupSet.indexOf(arg);
+    }
+
+    private static void rewriteAggCalls(
+            List<AggregateCall> newAggCalls,
+            List<Integer> argList,
+            Map<Integer, Integer> sourceOf) {
+        // Rewrite the agg calls. Each distinct agg becomes a non-distinct call
+        // to the corresponding field from the right; for example,
+        // "COUNT(DISTINCT e.sal)" becomes   "COUNT(distinct_e.sal)".
+        for (int i = 0; i < newAggCalls.size(); i++) {
+            final AggregateCall aggCall = newAggCalls.get(i);
+
+            // Ignore agg calls which are not distinct or have the wrong set
+            // arguments. If we're rewriting aggregates whose args are {sal}, we will
+            // rewrite COUNT(DISTINCT sal) and SUM(DISTINCT sal) but ignore
+            // COUNT(DISTINCT gender) or SUM(sal).
+            if (!aggCall.isDistinct()
+                    && aggCall.getAggregation().getDistinctOptionality() != Optionality.IGNORED) {
+                continue;
+            }
+            if (!aggCall.getArgList().equals(argList)) {
+                continue;
+            }
+
+            // Re-map arguments.
+            final int argCount = aggCall.getArgList().size();
+            final List<Integer> newArgs = new ArrayList<>(argCount);
+            for (int j = 0; j < argCount; j++) {
+                final Integer arg = aggCall.getArgList().get(j);
+                newArgs.add(sourceOf.get(arg));
+            }
+            final AggregateCall newAggCall =
+                    AggregateCall.create(
+                            aggCall.getAggregation(),
+                            false,
+                            aggCall.isApproximate(),
+                            false,
+                            newArgs,
+                            -1,
+                            RelCollations.EMPTY,
+                            aggCall.getType(),
+                            aggCall.getName());
+            newAggCalls.set(i, newAggCall);
+        }
+    }
 
     public void onMatch(RelOptRuleCall call) {
         final Aggregate aggregate = call.rel(0);
@@ -234,7 +325,7 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
         if (distinctAggCallCount == 1 // one distinct aggregate
                 && filterCount == 0 // no filter
                 && unsupportedNonDistinctAggCallCount
-                        == 0 // sum/min/max/count in non-distinct aggregate
+                == 0 // sum/min/max/count in non-distinct aggregate
                 && nonDistinctAggCallCount > 0) { // one or more non-distinct aggregates
             final RelBuilder relBuilder = call.builder();
             convertSingletonDistinct(relBuilder, aggregate, argLists);
@@ -297,8 +388,8 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
      * multi-phase aggregates (see reference example below).
      *
      * @param relBuilder Contains the input relational expression
-     * @param aggregate Original aggregate
-     * @param argLists Arguments and filters to the distinct aggregate function
+     * @param aggregate  Original aggregate
+     * @param argLists   Arguments and filters to the distinct aggregate function
      */
     private RelBuilder convertSingletonDistinct(
             RelBuilder relBuilder,
@@ -524,7 +615,7 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
 
         relBuilder.aggregate(relBuilder.groupKey(fullGroupSet, groupSets), distinctAggCalls);
         // Iquan bugfix #38759951: copy hints to new agg
-        relBuilder.hints(((Hintable)aggregate).getHints());
+        relBuilder.hints(((Hintable) aggregate).getHints());
         final RelNode distinct = relBuilder.peek();
 
         // GROUPING returns an integer (0 or 1). Add a project to convert those
@@ -612,7 +703,7 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
                         remap(fullGroupSet, aggregate.getGroupSets())),
                 newCalls);
         // Iquan bugfix #38759951: copy hints to new agg
-        relBuilder.hints(((Hintable)aggregate).getHints());
+        relBuilder.hints(((Hintable) aggregate).getHints());
         if (!needDefaultValueAggCalls.isEmpty() && aggregate.getGroupCount() == 0) {
             final Aggregate newAgg = (Aggregate) relBuilder.peek();
             final List<RexNode> nodes = new ArrayList<>();
@@ -645,49 +736,6 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
 
         relBuilder.convert(aggregate.getRowType(), true);
         call.transformTo(relBuilder.build());
-    }
-
-    private static long groupValue(ImmutableBitSet fullGroupSet, ImmutableBitSet groupSet) {
-        long v = 0;
-        long x = 1L << (fullGroupSet.cardinality() - 1);
-        assert fullGroupSet.contains(groupSet);
-        for (int i : fullGroupSet) {
-            if (!groupSet.get(i)) {
-                v |= x;
-            }
-            x >>= 1;
-        }
-        return v;
-    }
-
-    private static ImmutableBitSet remap(ImmutableBitSet groupSet, ImmutableBitSet bitSet) {
-        final ImmutableBitSet.Builder builder = ImmutableBitSet.builder();
-        for (Integer bit : bitSet) {
-            builder.set(remap(groupSet, bit));
-        }
-        return builder.build();
-    }
-
-    private static com.google.common.collect.ImmutableList<ImmutableBitSet> remap(
-            ImmutableBitSet groupSet, Iterable<ImmutableBitSet> bitSets) {
-        final com.google.common.collect.ImmutableList.Builder<ImmutableBitSet> builder =
-                com.google.common.collect.ImmutableList.builder();
-        for (ImmutableBitSet bitSet : bitSets) {
-            builder.add(remap(groupSet, bitSet));
-        }
-        return builder.build();
-    }
-
-    private static List<Integer> remap(ImmutableBitSet groupSet, List<Integer> argList) {
-        ImmutableIntList list = ImmutableIntList.of();
-        for (int arg : argList) {
-            list = list.append(remap(groupSet, arg));
-        }
-        return list;
-    }
-
-    private static int remap(ImmutableBitSet groupSet, int arg) {
-        return arg < 0 ? -1 : groupSet.indexOf(arg);
     }
 
     /**
@@ -738,14 +786,14 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
      * set of top-level calls.
      *
      * @param aggregate Original aggregate
-     * @param n Ordinal of this in a join. {@code relBuilder} contains the input relational
-     *     expression (either the original aggregate, the output from the previous call to this
-     *     method. {@code n} is 0 if we're converting the first distinct aggregate in a query with
-     *     no non-distinct aggregates)
-     * @param argList Arguments to the distinct aggregate function
+     * @param n         Ordinal of this in a join. {@code relBuilder} contains the input relational
+     *                  expression (either the original aggregate, the output from the previous call to this
+     *                  method. {@code n} is 0 if we're converting the first distinct aggregate in a query with
+     *                  no non-distinct aggregates)
+     * @param argList   Arguments to the distinct aggregate function
      * @param filterArg Argument that filters input to aggregate function, or -1
-     * @param refs Array of expressions which will be the projected by the result of this rule.
-     *     Those relating to this arg list will be modified @return Relational expression
+     * @param refs      Array of expressions which will be the projected by the result of this rule.
+     *                  Those relating to this arg list will be modified @return Relational expression
      */
     private void doRewrite(
             RelBuilder relBuilder,
@@ -905,50 +953,6 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
         relBuilder.join(JoinRelType.INNER, conditions);
     }
 
-    private static void rewriteAggCalls(
-            List<AggregateCall> newAggCalls,
-            List<Integer> argList,
-            Map<Integer, Integer> sourceOf) {
-        // Rewrite the agg calls. Each distinct agg becomes a non-distinct call
-        // to the corresponding field from the right; for example,
-        // "COUNT(DISTINCT e.sal)" becomes   "COUNT(distinct_e.sal)".
-        for (int i = 0; i < newAggCalls.size(); i++) {
-            final AggregateCall aggCall = newAggCalls.get(i);
-
-            // Ignore agg calls which are not distinct or have the wrong set
-            // arguments. If we're rewriting aggregates whose args are {sal}, we will
-            // rewrite COUNT(DISTINCT sal) and SUM(DISTINCT sal) but ignore
-            // COUNT(DISTINCT gender) or SUM(sal).
-            if (!aggCall.isDistinct()
-                    && aggCall.getAggregation().getDistinctOptionality() != Optionality.IGNORED) {
-                continue;
-            }
-            if (!aggCall.getArgList().equals(argList)) {
-                continue;
-            }
-
-            // Re-map arguments.
-            final int argCount = aggCall.getArgList().size();
-            final List<Integer> newArgs = new ArrayList<>(argCount);
-            for (int j = 0; j < argCount; j++) {
-                final Integer arg = aggCall.getArgList().get(j);
-                newArgs.add(sourceOf.get(arg));
-            }
-            final AggregateCall newAggCall =
-                    AggregateCall.create(
-                            aggCall.getAggregation(),
-                            false,
-                            aggCall.isApproximate(),
-                            false,
-                            newArgs,
-                            -1,
-                            RelCollations.EMPTY,
-                            aggCall.getType(),
-                            aggCall.getName());
-            newAggCalls.set(i, newAggCall);
-        }
-    }
-
     /**
      * Given an {@link org.apache.calcite.rel.core.Aggregate} and the ordinals of the arguments to a
      * particular call to an aggregate function, creates a 'select distinct' relational expression
@@ -966,7 +970,7 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
      * <p>and the argument list
      *
      * <blockquote>
-     *
+     * <p>
      * {2}
      *
      * </blockquote>
@@ -983,10 +987,10 @@ public final class IquanAggregateExpandDistinctAggregatesRule extends RelOptRule
      * sourceOf.get(0) = 0, and sourceOf.get(1) = 2.
      *
      * @param relBuilder Relational expression builder
-     * @param aggregate Aggregate relational expression
-     * @param argList Ordinals of columns to make distinct
-     * @param filterArg Ordinal of column to filter on, or -1
-     * @param sourceOf Out parameter, is populated with a map of where each output field came from
+     * @param aggregate  Aggregate relational expression
+     * @param argList    Ordinals of columns to make distinct
+     * @param filterArg  Ordinal of column to filter on, or -1
+     * @param sourceOf   Out parameter, is populated with a map of where each output field came from
      * @return Aggregate relational expression which projects the required columns
      */
     private RelBuilder createSelectDistinct(

@@ -48,7 +48,8 @@ static map<proto::TableStructure::Index::IndexType, string> indexTypeMap = {
     {proto::TableStructure::Index::PRIMARY_KEY128, "primarykey"},
     {proto::TableStructure::Index::ORC, "orc"},
     {proto::TableStructure::Index::ATTRIBUTE, "attribute"},
-    {proto::TableStructure::Index::ANN, "ann"}};
+    {proto::TableStructure::Index::ANN, "ann"},
+    {proto::TableStructure::Index::SOURCE, "source"}};
 
 std::vector<std::string> IndexConfig::intParams = {"term_payload_flag",
                                                    "doc_payload_flag",
@@ -58,6 +59,39 @@ std::vector<std::string> IndexConfig::intParams = {"term_payload_flag",
                                                    "term_frequency_bitmap",
                                                    "format_version_id"};
 std::vector<std::string> IndexConfig::boolParams = {"has_primary_key_attribute"};
+
+class InvertedIndexConfigFactory {
+public:
+    InvertedIndexConfigFactory() {}
+    ~InvertedIndexConfigFactory() {}
+
+public:
+    static IndexConfig *create(proto::TableStructure::Index::IndexType indexType) {
+        switch (indexType) {
+        case (proto::TableStructure::Index::DATE):
+            return new DateIndexConfig();
+        case (proto::TableStructure::Index::SPATIAL):
+            return new SpatialIndexConfig();
+        default:
+            return new InvertedIndexConfig();
+        }
+    }
+};
+
+template <typename T>
+bool getValueFromParams(const google::protobuf::Map<std::string, std::string> &params, std::string key, T &value) {
+    auto valueIter = params.find(key);
+    if (valueIter == params.end()) {
+        AUTIL_LOG(DEBUG, "get [%s] from params failed", key.c_str());
+        return false;
+    }
+    const auto &valueStr = valueIter->second;
+    if (!autil::StringUtil::fromString(valueStr, value)) {
+        AUTIL_LOG(ERROR, "convert [%s] to type [%s] failed", valueStr.c_str(), typeid(T).name());
+        return false;
+    }
+    return true;
+}
 
 autil::Result<string> TableSchemaConfig::convertIndexType(proto::TableStructure::Index::IndexType indexType) {
     switch (indexType) {
@@ -70,7 +104,7 @@ autil::Result<string> TableSchemaConfig::convertIndexType(proto::TableStructure:
     case (proto::TableStructure::Index::EXPACK):
         return "EXPACK";
     case (proto::TableStructure::Index::DATE):
-        return "DATA";
+        return "DATE";
     case (proto::TableStructure::Index::RANGE):
         return "RANGE";
     case (proto::TableStructure::Index::SPATIAL):
@@ -93,6 +127,8 @@ autil::Result<string> TableSchemaConfig::convertIndexType(proto::TableStructure:
         return "ATTRIBUTE";
     case (proto::TableStructure::Index::ANN):
         return "CUSTOMIZED";
+    case (proto::TableStructure::Index::SOURCE):
+        return "SOURCE";
     default:
         return autil::result::RuntimeError::make("not support index type %d", indexType);
     }
@@ -490,7 +526,7 @@ bool TableSchemaConfig::init(const string &name, const TableStructure *tableStru
                 }
                 indexes["primarykey"].emplace_back(indexConfig);
             } else if (indexType == "inverted_index") {
-                auto indexConfig = make_shared<InvertedIndexConfig>();
+                std::shared_ptr<IndexConfig> indexConfig(InvertedIndexConfigFactory::create(index.index_type()));
                 if (!indexConfig->init(index)) {
                     return false;
                 }
@@ -514,8 +550,14 @@ bool TableSchemaConfig::init(const string &name, const TableStructure *tableStru
                     return false;
                 }
                 indexes["ann"].emplace_back(annConfig);
+            } else if (indexType == "source") {
+                auto sourceConfig = make_shared<SourceIndexConfig>();
+                if (!sourceConfig->init(index)) {
+                    return false;
+                }
+                indexes["source"].emplace_back(sourceConfig);
             } else {
-                AUTIL_LOG(ERROR, "not supported index type: %s", indexType.c_str());
+                AUTIL_LOG(ERROR, "not supported index type category: %s", indexType.c_str());
                 return false;
             }
         }
@@ -556,6 +598,18 @@ autil::Result<string> TableSchemaConfig::convertDataType(proto::TableStructure::
         return "TEXT";
     case (proto::TableStructure::Column::RAW):
         return "RAW";
+    case (proto::TableStructure::Column::TIME):
+        return "TIME";
+    case (proto::TableStructure::Column::TIMESTAMP):
+        return "TIMESTAMP";
+    case (proto::TableStructure::Column::DATE):
+        return "DATE";
+    case (proto::TableStructure::Column::LOCATION):
+        return "LOCATION";
+    case (proto::TableStructure::Column::POLYGON):
+        return "POLYGON";
+    case (proto::TableStructure::Column::LINE):
+        return "LINE";
     default:
         return autil::result::RuntimeError::make("not support data type %d", dataType);
     }
@@ -614,9 +668,132 @@ void TableSchemaConfig::initTtlSetting(const TableStructure *tableStructure) {
         settings["default_ttl"] = ttlOption.default_ttl();
     }
 }
+
+void TableSchemaConfig::initTableMetaOption(const TableStructure *tableStructure) {
+    const auto &tableMetaOption = tableStructure->tableStructureConfig().table_meta_option();
+
+    if (tableMetaOption.enable_all_text_field_meta()) {
+        settings["enable_all_text_field_meta"] = true;
+    }
+}
+
+
 void TableSchemaConfig::initSettings(const TableStructure *tableStructure) {
     initFileCompressSetting();
     initTtlSetting(tableStructure);
+    initTableMetaOption(tableStructure);
+}
+
+void SourceIndexConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
+    std::vector<std::map<std::string, std::string>> groupConfig;
+    std::map<std::string, std::string> singleGroupConfig;
+    singleGroupConfig["field_mode"] = fieldMode;
+    groupConfig.push_back(singleGroupConfig);
+    json.Jsonize("group_configs", groupConfig);
+}
+
+bool SourceIndexConfig::init(const catalog::proto::TableStructure::Index &index) {
+    auto s = TableSchemaConfig::convertIndexType(index.index_type());
+    if (!s.is_ok()) {
+        AUTIL_LOG(ERROR, "convert index type failed, error msg: %s", s.get_error().message().c_str());
+        return false;
+    }
+    indexType = s.get();
+    const auto &params = index.index_config().index_params();
+    auto fieldModeIter = params.find("field_mode");
+    if (fieldModeIter == params.end()) {
+        AUTIL_LOG(ERROR, "get field mode from params failed");
+        return false;
+    }
+    fieldMode = fieldModeIter->second;
+    if (fieldMode != "all_field") {
+        AUTIL_LOG(ERROR, "only support \"all_field\" now");
+        return false;
+    }
+    return true;
+}
+
+void DateIndexConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
+    json.Jsonize("index_name", indexName, indexName);
+    json.Jsonize("index_type", indexType, indexType);
+    json.Jsonize("index_fields", indexFields, indexFields);
+    json.Jsonize("build_granularity", buildGranularity, buildGranularity);
+    if (!fileCompressor.empty()) {
+        json.Jsonize("file_compressor", fileCompressor);
+    }
+}
+
+bool DateIndexConfig::init(const catalog::proto::TableStructure::Index &index) {
+    auto s = TableSchemaConfig::convertIndexType(index.index_type());
+    if (!s.is_ok()) {
+        AUTIL_LOG(ERROR, "convert index type failed, error msg: %s", s.get_error().message().c_str());
+        return false;
+    }
+    indexType = s.get();
+    indexName = index.name();
+    if (index.index_config().index_fields_size() != 1) {
+        AUTIL_LOG(ERROR, "un pack inverted index index fields size not equal 1, indexName[%s]", indexName.c_str());
+        return false;
+    }
+    indexFields = index.index_config().index_fields(0).field_name();
+    const auto &params = index.index_config().index_params();
+    if (!getValueFromParams(params, "build_granularity", buildGranularity)) {
+        AUTIL_LOG(ERROR, "get build granularity from params failed");
+        return false;
+    }
+    const set<string> granularities = {"year", "month", "day", "hour", "minute", "second", "millisecond"};
+    if (granularities.find(buildGranularity) == granularities.end()) {
+        AUTIL_LOG(ERROR, "not support build granularity value [%s]", buildGranularity.c_str());
+        return false;
+    }
+    fileCompressor = convertCompressType(index.index_config().compress_type());
+    return true;
+}
+
+void SpatialIndexConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
+    json.Jsonize("index_name", indexName, indexName);
+    json.Jsonize("index_type", indexType, indexType);
+    json.Jsonize("index_fields", indexFields, indexFields);
+    json.Jsonize("max_search_dist", maxSearchDist, maxSearchDist);
+    json.Jsonize("max_dist_err", maxDistErr, maxDistErr);
+    if (distanceLossAccuracy) {
+        json.Jsonize("distance_loss_accuracy", distanceLossAccuracy.value(), distanceLossAccuracy.value());
+    }
+    if (!fileCompressor.empty()) {
+        json.Jsonize("file_compressor", fileCompressor);
+    }
+}
+
+bool SpatialIndexConfig::init(const catalog::proto::TableStructure::Index &index) {
+    auto s = TableSchemaConfig::convertIndexType(index.index_type());
+    if (!s.is_ok()) {
+        AUTIL_LOG(ERROR, "convert index type failed, error msg: %s", s.get_error().message().c_str());
+        return false;
+    }
+    indexType = s.get();
+    indexName = index.name();
+    if (index.index_config().index_fields_size() != 1) {
+        AUTIL_LOG(ERROR, "un pack inverted index index fields size not equal 1, indexName[%s]", indexName.c_str());
+        return false;
+    }
+    indexFields = index.index_config().index_fields(0).field_name();
+    const auto &params = index.index_config().index_params();
+    if (!getValueFromParams(params, "max_search_dist", maxSearchDist)) {
+        AUTIL_LOG(ERROR, "get max_search_dist from params failed");
+        return false;
+    }
+    if (!getValueFromParams(params, "max_dist_err", maxDistErr)) {
+        AUTIL_LOG(ERROR, "get max_dist_err from params failed");
+        return false;
+    }
+    double distanceLossAccuracyVal = 0.025;
+    if (!getValueFromParams(params, "distance_loss_accuracy", distanceLossAccuracyVal)) {
+        AUTIL_LOG(WARN, "get distance_loss_accuracy from params failed, remain empty(use default value)");
+    } else {
+        distanceLossAccuracy.emplace(distanceLossAccuracyVal);
+    }
+    fileCompressor = convertCompressType(index.index_config().compress_type());
+    return true;
 }
 
 } // namespace catalog

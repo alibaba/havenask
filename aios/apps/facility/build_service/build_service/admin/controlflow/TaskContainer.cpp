@@ -15,6 +15,14 @@
  */
 #include "build_service/admin/controlflow/TaskContainer.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+
 using namespace std;
 using namespace autil;
 

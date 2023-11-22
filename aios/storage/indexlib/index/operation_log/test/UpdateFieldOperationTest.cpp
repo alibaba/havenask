@@ -16,7 +16,7 @@ public:
     MockPrimaryKeyIndexReader() : indexlibv2::index::PrimaryKeyReader<T>(nullptr) {}
 
 public:
-    MOCK_METHOD(docid_t, LookupWithDocRange,
+    MOCK_METHOD(docid64_t, LookupWithDocRange,
                 (const autil::uint128_t&, (std::pair<docid_t, docid_t>), future_lite::Executor*), (const, override));
 };
 
@@ -76,7 +76,7 @@ std::shared_ptr<UpdateFieldOperation<T>> UpdateFieldOperationTest::MakeOperation
     items[1].first = _fieldId;
     items[1].second = items[0].second;
     T hashValue(_pkHash);
-    std::shared_ptr<UpdateFieldOperation<T>> operation(new UpdateFieldOperation<T>({_hashId, _ts, 0}));
+    std::shared_ptr<UpdateFieldOperation<T>> operation(new UpdateFieldOperation<T>({_hashId, _ts, 0, 0}));
     operation->Init(hashValue, items, _itemSize, segmentId);
     operation->SetOperationFieldInfo(_fieldInfo);
     return operation;
@@ -131,7 +131,7 @@ TEST_F(UpdateFieldOperationTest, TestSerialize)
     // 23 means stub value for current impl
     EXPECT_EQ(23, _operation->Serialize(buffer, 1024));
 
-    UpdateFieldOperation<uint64_t> op({_hashId, _ts, 0});
+    UpdateFieldOperation<uint64_t> op({_hashId, _ts, 0, 0});
     char* cursor = buffer;
     ASSERT_TRUE(op.Load(&_pool, cursor));
 

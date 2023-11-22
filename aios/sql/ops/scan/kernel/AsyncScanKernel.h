@@ -18,8 +18,7 @@
 #include <memory>
 
 #include "navi/common.h"
-#include "navi/engine/KernelConfigContext.h"
-#include "navi_ops/coroutine/CoroutineKernel.h"
+#include "navi/engine/Kernel.h"
 
 namespace navi {
 class KernelComputeContext;
@@ -31,7 +30,7 @@ namespace sql {
 class ScanBase;
 class ScanPushDownR;
 
-class AsyncScanKernel : public navi_ops::CoroutineKernel {
+class AsyncScanKernel : public navi::Kernel {
 public:
     AsyncScanKernel();
     ~AsyncScanKernel();
@@ -44,11 +43,15 @@ public:
     void def(navi::KernelDefBuilder &builder) const override;
     bool config(navi::KernelConfigContext &ctx) override;
     navi::ErrorCode init(navi::KernelInitContext &initContext) override;
-    navi::ErrorCode computeEnd(navi::KernelComputeContext &runContext) override;
+    navi::ErrorCode compute(navi::KernelComputeContext &ctx) override;
+
+private:
+    navi::ErrorCode doCompute(navi::KernelComputeContext &runContext);
 
 protected:
     ScanBase *_scanBase = nullptr;
     ScanPushDownR *_scanPushDownR = nullptr;
+    std::shared_ptr<navi::AsyncPipe> _asyncPipe;
 };
 
 typedef std::shared_ptr<AsyncScanKernel> AsyncScanKernelPtr;

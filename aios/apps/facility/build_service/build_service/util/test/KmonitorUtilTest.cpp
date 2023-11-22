@@ -1,7 +1,12 @@
 #include "build_service/util/KmonitorUtil.h"
 
-#include "autil/StringUtil.h"
+#include <iostream>
+#include <string>
+
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "unittest/unittest.h"
 
 namespace build_service { namespace util {
 

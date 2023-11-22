@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOC_READER_BASE_H
-#define __INDEXLIB_DOC_READER_BASE_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/raw_document.h"
@@ -110,5 +109,3 @@ private:
 
 DEFINE_SHARED_PTR(DocReaderBase);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DOC_READER_BASE_H

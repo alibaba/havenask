@@ -195,4 +195,13 @@ TEST_F(RealtimeMergeStrategyTest, TestMaxTotalMergeSize8)
                                         {.docCount = 100, .segmentSize = 40}});
 }
 
+TEST_F(RealtimeMergeStrategyTest, TestDocId32)
+{
+    auto mergeStrategy = std::make_unique<RealtimeMergeStrategy>();
+    MergeTestHelper::TestMergeStrategy(mergeStrategy.get(), /*expectSrcSegments=*/ {{0, 1, 2}}, "",
+                                       {{.docCount = 1 << 29, .segmentSize = 0},
+                                        {.docCount = 1 << 29, .segmentSize = 0},
+                                        {.docCount = 1 << 29, .segmentSize = 0},
+                                        {.docCount = 1 << 30, .segmentSize = 0}});
+}
 }} // namespace indexlibv2::table

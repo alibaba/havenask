@@ -42,9 +42,9 @@ bool RealtimeSegment::InitStreamerMap(const SegmentBuildResourcePtr& segmentBuil
         return true;
     }
 
-    auto realtimeSegmentBuildRes = dynamic_pointer_cast<RealtimeSegmentBuildResource>(segmentBuildResource);
-    ANN_CHECK(realtimeSegmentBuildRes != nullptr, "dynamic cast failed, init streamer map failed");
-    for (auto indexResource : realtimeSegmentBuildRes->GetAllRealtimeIndexBuildResources()) {
+    auto resource = dynamic_pointer_cast<RealtimeSegmentBuildResource>(segmentBuildResource);
+    ANN_CHECK(resource != nullptr, "dynamic cast failed, init streamer map failed");
+    for (auto indexResource : resource->GetAllRealtimeIndexBuildResources()) {
         AiThetaStreamerPtr streamer;
         ANN_CHECK(AiThetaFactoryWrapper::CreateStreamer(_indexConfig, indexResource, streamer),
                   "create streamer failed");
@@ -116,14 +116,18 @@ bool RealtimeSegment::FillSegmentMeta()
         IndexMeta indexMeta;
         indexMeta.docCount = streamer->stats().added_count();
         indexMeta.builderName = streamer->meta().streamer_name();
-        if (indexMeta.builderName == OSWG_STREAMER) {
+        if (indexMeta.builderName == OSWG_STREAMER || indexMeta.builderName == HNSW_STREAMER) {
             indexMeta.searcherName = HNSW_SEARCHER;
+        } else if (indexMeta.builderName == QGRAPH_STREAMER) {
+            indexMeta.searcherName = QGRAPH_SEARCHER;
         } else if (indexMeta.builderName == QC_STREAMER) {
             indexMeta.searcherName = QC_SEARCHER;
+        } else {
+            AUTIL_LOG(ERROR, "get searcher name for streamer[%s] failed", indexMeta.builderName.c_str());
+            return false;
         }
         ANN_CHECK(_segmentMeta.AddIndexMeta(indexId, indexMeta), "add indexMeta failed");
     }
-
     return true;
 }
 

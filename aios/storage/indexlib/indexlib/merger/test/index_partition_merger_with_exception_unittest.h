@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXPARTITIONMERGERWITHEXCEPTIONTEST_H
-#define __INDEXLIB_INDEXPARTITIONMERGERWITHEXCEPTIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/index_partition_merger.h"
@@ -35,5 +34,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(IndexPartitionMergerWithExceptionTest, TestMergeParallelWithException);
 INDEXLIB_UNIT_TEST_CASE(IndexPartitionMergerWithExceptionTest, TestEndMergeException);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_INDEXPARTITIONMERGERWITHEXCEPTIONTEST_H

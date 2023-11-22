@@ -29,9 +29,9 @@ const std::string NormalTableSplitPlanCreator::DEFAULT_TASK_NAME = "__default_sp
 const std::string NormalTableSplitPlanCreator::TASK_TYPE = "split";
 const std::string NormalTableSplitPlanCreator::DEFAULT_TASK_PERIOD = "daytime=1:00";
 
-NormalTableSplitPlanCreator::NormalTableSplitPlanCreator(const std::string& taskName,
+NormalTableSplitPlanCreator::NormalTableSplitPlanCreator(const std::string& taskName, const std::string& taskTraceId,
                                                          const std::map<std::string, std::string>& params)
-    : NormalTableCompactPlanCreator(taskName, params)
+    : NormalTableCompactPlanCreator(taskName, taskTraceId, params)
 {
 }
 

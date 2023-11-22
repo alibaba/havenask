@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TOKENIZE_SECTION_H
-#define __INDEXLIB_TOKENIZE_SECTION_H
+#pragma once
 
 #include <memory>
 
@@ -12,5 +11,3 @@ namespace indexlib { namespace test {
 typedef document::IndexFieldConvertor::TokenizeSection TokenizeSection;
 DEFINE_SHARED_PTR(TokenizeSection);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_TOKENIZE_SECTION_H

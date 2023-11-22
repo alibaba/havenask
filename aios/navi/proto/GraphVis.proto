@@ -5,20 +5,33 @@ import "proto/GraphDef.proto";
 package navi;
 option cc_enable_arenas = true;
 
-message LoggingEventDef {
+message LoggingEventStrDef {
     string name = 1;
-    uint64 object = 2;
-    string prefix = 3;
-    bytes message = 4;
-    string bt = 5;
-    int32 level = 6;
-    string file = 7;
-    int32 line = 8;
-    string func = 9;
-    int32 pid = 10;
-    int64 tid = 11;
-    int64 time_sec = 12;
-    int64 time_usec = 13;
+    string prefix = 2;
+    string file = 3;
+    string func = 4;
+    string message = 5;
+    string bt = 6;
+}
+
+message LoggingEventHashDef {
+    uint64 prefix = 1;
+    uint64 file = 2;
+    uint64 func = 3;
+    uint64 message = 4;
+    uint64 bt = 5;
+}
+
+message LoggingEventDef {
+    LoggingEventStrDef str = 1;
+    LoggingEventHashDef hash = 2;
+    uint64 object = 3;
+    int32 level = 4;
+    int32 line = 5;
+    int32 pid = 6;
+    int64 tid = 7;
+    int64 time_sec = 8;
+    int64 time_usec = 9;
 }
 
 enum GraphEventType {
@@ -28,6 +41,8 @@ enum GraphEventType {
     GET_KERNEL_COMPUTE = 3;
     GET_KERNEL_DELETE_KERNEL = 4;
     GET_KERNEL_DELETE_DATA = 5;
+    GET_GRAPH_INIT_PREPARE = 6;
+    GET_GRAPH_INIT = 7;
 };
 
 message ScheduleInfoDef {
@@ -86,16 +101,22 @@ message KernelMetricDef {
     int64 graph_id = 1;
     string node = 2;
     string kernel = 3;
-    int64 schedule_count = 4;
-    int64 try_schedule_count = 5;
-    int64 queue_latency_us = 6;
-    int64 compute_latency_us = 7;
-    repeated KernelComputeEventDef events = 8;
+    int32 ec = 4;
+    string ec_str = 5;
+    int64 schedule_count = 6;
+    int64 try_schedule_count = 7;
+    int64 queue_latency_us = 8;
+    int64 compute_latency_us = 9;
+    repeated KernelComputeEventDef events = 10;
 }
+
+message SymbolTableDef {
+    map<uint64, string> table = 1;
+};
 
 message PerfSymbolDef {
     uint64 ip = 1;
-    string symbol = 2;
+    uint64 symbol = 2;
 }
 
 message PerfSymbolTableDef {
@@ -112,19 +133,116 @@ message GraphMetricDef {
     int64 begin_time_mono_ns = 7;
 }
 
-message GraphSummaryDef {
+enum NaviResultType {
+    NRT_UNKNOWN = 0;
+    NRT_NORMAL = 1;
+    NRT_FORK = 2;
+    NRT_RPC = 3;
+    NRT_RPC_PART = 4;
+}
+
+message ForkResultLocationDef {
+    int32 graph_id = 1;
+    string biz_name = 2;
+    string node_name = 3;
+}
+
+message RpcResultLocationDef {
+    string from_biz = 1;
+    int32 from_part_id = 2;
+    string to_biz = 3;
+    int32 part_count = 4;
+    int32 graph_id = 5;
+}
+
+message RpcPartResultLocationDef {
+    int32 part_id = 1;
+    SingleGigRpcInfoDef rpc_info = 2;
+}
+
+message SingleResultLocationDef {
+    NaviResultType type = 1;
+    ForkResultLocationDef fork_location = 2;
+    RpcResultLocationDef rpc_location = 3;
+    RpcPartResultLocationDef rpc_part_location = 4;
+}
+
+message ResultLocationDef {
+    repeated SingleResultLocationDef locations = 1;
+}
+
+message SingleGigRpcInfoDef {
+    int64 part_id = 1;
+    int64 send_count = 2;
+    int64 receive_count = 3;
+    int64 send_begin_ts = 4;
+    int64 send_end_ts = 5;
+    int32 send_status = 6;
+    int64 receive_begin_ts = 7;
+    int64 receive_end_ts = 8;
+    int32 receive_status = 9;
+    string spec = 10;
+    bool is_retry = 11;
+}
+
+message NaviErrorDef {
     SessionIdDef session = 1;
-    string ec = 2;
-    LoggingEventDef error_event = 3;
+    int32 ec = 2;
+    string ec_str = 3;
+    LoggingEventDef error_event = 4;
+    ResultLocationDef location = 5;
 }
 
 message GraphTraceDef {
-    repeated LoggingEventDef events = 1;
+    string format_pattern = 1;
+    string name = 2;
+    repeated LoggingEventDef events = 3;
+}
+
+message HostSpecDef {
+    string ip = 1;
+    int32 tcp_port = 2;
+    int32 arpc_port = 3;
+    int32 http_port = 4;
+    int32 grpc_port = 5;
+    int32 grpc_stream_port = 6;
+    int32 rdma_arpc_port = 7;
+}
+
+message HostInfoDef {
+    string navi_name = 1;
+    string git_commit_id = 2;
+    string packager = 3;
+    HostSpecDef spec = 4;
+}
+
+message GraphResultDef {
+    int32 version = 1;
+    SessionIdDef session = 2;
+    NaviErrorDef error = 3;
+    GraphDef graph = 4;
+    GraphTraceDef traces = 5;
+    GraphMetricDef graph_metric = 6;
+    SymbolTableDef symbol_table = 7;
+    HostInfoDef host_info = 8;
+}
+
+message SerializedResultDef {
+    ResultLocationDef location = 1;
+    bytes result_str = 2;
+    NaviErrorDef error = 3;
+    bool has_trace = 4;
+}
+
+message GraphVisNodeDef {
+    int32 version = 1;
+    SingleResultLocationDef location = 2;
+    GraphResultDef result = 3;
+    map<string, GraphVisNodeDef> sub_results = 4;
+    SymbolTableDef symbol_table = 5;
+    bytes user_result = 6;
 }
 
 message GraphVisDef {
-    GraphDef graph = 1;
-    GraphSummaryDef summary = 2;
-    GraphTraceDef trace = 3;
-    GraphMetricDef metric = 4;
+    repeated GraphVisNodeDef nodes = 1;
 }

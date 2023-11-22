@@ -46,7 +46,7 @@ struct CacheChannelItem {
 
 class SwiftRpcChannelManager {
 public:
-    SwiftRpcChannelManager(uint32_t ioThreadName = 1, uint32_t rpcSendQueueSize = 200, uint32_t rpcTimeout = 5000);
+    SwiftRpcChannelManager(uint32_t ioThreadNum = 1, uint32_t rpcSendQueueSize = 200, uint32_t rpcTimeout = 5000);
     ~SwiftRpcChannelManager();
 
 private:

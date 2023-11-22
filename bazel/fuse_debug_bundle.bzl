@@ -413,7 +413,7 @@ def fuse_debug_bundle_files(name, deps, compress = True, keep_symbols = [], **kw
 
 def gdb_add_index(src, dst):
     return native.genrule(
-        name = dst,
+        name = dst+ "_gdbindex",
         outs = [dst],
         srcs = [src],
         cmd = "set -x; cp $(SRCS) $(OUTS); chmod a+w $(OUTS); gdb-add-index $(OUTS); chmod a-w $(OUTS)",
@@ -430,7 +430,7 @@ def cc_binary_with_gdb_index(name, **kwargs):
 def strip_debug_info(name):
     stripped_name = name + ".strip"
     return native.genrule(
-        name = stripped_name,
+        name = stripped_name + "_rule",
         outs = [stripped_name],
         srcs = [name],
         cmd = "set -x; strip $(SRCS) -o $(OUTS); chmod a-w $(OUTS)",
@@ -441,3 +441,15 @@ def strip_debug_info(name):
 def cc_binary_with_stripped(name, **kwargs):
     native.cc_binary(name = name, **kwargs)
     return strip_debug_info(name)
+
+def cc_binary_stripped(name, **kwargs):
+    name_with_debug_info = name + "_with_debug_info_"
+    native.cc_binary(name = name_with_debug_info, **kwargs)
+    return native.genrule(
+        name = name + "_rule",
+        outs = [name],
+        srcs = [name_with_debug_info],
+        cmd = "set -x; strip $(SRCS) -o $(OUTS); chmod a-w $(OUTS)",
+        visibility = ["//visibility:public"],
+        tags = ["manual"],
+    )

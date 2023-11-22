@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONRESOUCECALCULATORTEST_H
-#define __INDEXLIB_PARTITIONRESOUCECALCULATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/partition_resource_calculator.h"
@@ -35,5 +34,3 @@ INDEXLIB_UNIT_TEST_CASE(PartitionResourceCalculatorTest, TestNeedLoadPatch);
 INDEXLIB_UNIT_TEST_CASE(PartitionResourceCalculatorTest, TestUpdateSwitchRtSegments);
 INDEXLIB_UNIT_TEST_CASE(PartitionResourceCalculatorTest, TestEstimateLoadPatchMemoryUse);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITIONRESOURCECALCULATORTEST_H

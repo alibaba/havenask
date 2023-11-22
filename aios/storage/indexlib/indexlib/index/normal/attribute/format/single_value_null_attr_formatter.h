@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_NULL_ATTRIBUTE_FORMATTER_H
-#define __INDEXLIB_SINGLE_VALUE_NULL_ATTRIBUTE_FORMATTER_H
+#pragma once
 
 #include <memory>
 
@@ -532,5 +531,3 @@ inline future_lite::coro::Lazy<index::ErrorCodeVec> SingleValueNullAttrFormatter
 #undef SET_NULL_VALUE
 #undef SET_NOT_NULL_VALUE
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_NULL_ATTRIBUTE_FORMATTER_H

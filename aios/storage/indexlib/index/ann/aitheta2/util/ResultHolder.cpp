@@ -46,7 +46,7 @@ void ResultHolder::UniqAndOrderByDocId()
             _matchItems[curCount++] = {curDocId, curScore};
             std::tie(curDocId, curScore) = {_matchItems[i].docid, _matchItems[i].score};
         } else {
-            if (_dropLargeScoreIfNeed) {
+            if (_isSmallerScoreBetter) {
                 curScore = std::min(curScore, _matchItems[i].score);
             } else {
                 curScore = std::max(curScore, _matchItems[i].score);
@@ -57,15 +57,15 @@ void ResultHolder::UniqAndOrderByDocId()
     _matchItems.resize(curCount);
 }
 
-bool ResultHolder::IsDropLargeScoreIfNeed(const std::string& distanceType) const
+bool ResultHolder::IsSmallerScoreBetter(const std::string& distanceType) const
 {
-    if (distanceType == SQUARED_EUCLIDEAN) {
+    if (distanceType == SQUARED_EUCLIDEAN || distanceType == HAMMING) {
         return true;
     } else if (distanceType == INNER_PRODUCT || distanceType == MIPS_SQUARED_EUCLIDEAN) {
         return false;
     } else {
         assert(false);
-        AUTIL_LOG(WARN, "no support for[%s]", distanceType.c_str());
+        AUTIL_LOG(ERROR, "no support for distance type[%s]", distanceType.c_str());
         return false;
     }
 }

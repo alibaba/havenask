@@ -1,14 +1,14 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.List;
+
+import com.taobao.search.iquan.core.api.schema.IquanTable;
+import com.taobao.search.iquan.core.api.schema.TableType;
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.hint.RelHint;
-import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
-import com.taobao.search.iquan.core.api.schema.Table;
-import com.taobao.search.iquan.core.api.schema.TableType;
-
-import java.util.*;
 
 public class IquanTableScanOp extends IquanTableScanBase {
 
@@ -29,7 +29,7 @@ public class IquanTableScanOp extends IquanTableScanBase {
 
     @Override
     public String getName() {
-        Table table = IquanRelOptUtils.getIquanTable(getTable());
+        IquanTable table = IquanRelOptUtils.getIquanTable(getTable());
         TableType type = table.getTableType();
         if (TableType.TT_LOGICAL == type) {
             return "LogicalTableScanOp";

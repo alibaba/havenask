@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITIONPATCHINDEXACCESSORTEST_H
-#define __INDEXLIB_PARTITIONPATCHINDEXACCESSORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/patch/partition_patch_index_accessor.h"
@@ -30,5 +29,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(PartitionPatchIndexAccessorTest, TestListPatchRootDirs);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_PARTITIONPATCHINDEXACCESSORTEST_H

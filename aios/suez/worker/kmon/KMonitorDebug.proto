@@ -1,0 +1,20 @@
+import "arpc/proto/rpc_extensions.proto";
+package suez;
+
+option cc_generic_services = true;
+option cc_enable_arenas = true;
+
+message KMonitorSnapshotRequest {
+}
+
+message KMonitorSnapshotResponse {
+    optional bytes assemblyresult = 1;
+}
+
+service KMonitorDebug
+{
+    option (arpc.global_service_id) = 711;
+    rpc snapshot(KMonitorSnapshotRequest) returns (KMonitorSnapshotResponse) {
+        option (arpc.local_method_id) = 1;
+    }
+}

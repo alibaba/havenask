@@ -19,7 +19,7 @@ using namespace indexlib::file_system;
 using namespace indexlib::util;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, SummarySchemaTest);
+AUTIL_LOG_SETUP(indexlib.config, SummarySchemaTest);
 
 SummarySchemaTest::SummarySchemaTest() {}
 
@@ -107,10 +107,10 @@ void SummarySchemaTest::TestSummaryGroup()
     }
 
     // group 0 (default): compress, has fields in attributes
-    SummaryGroupConfigPtr defaultGroupConfig = summarySchema->GetSummaryGroupConfig(DEFAULT_SUMMARYGROUPNAME);
-    ASSERT_EQ(0, summarySchema->GetSummaryGroupId(DEFAULT_SUMMARYGROUPNAME));
-    ASSERT_TRUE(defaultGroupConfig == summarySchema->GetSummaryGroupConfig(DEFAULT_SUMMARYGROUPID));
-    ASSERT_EQ(DEFAULT_SUMMARYGROUPNAME, defaultGroupConfig->GetGroupName());
+    SummaryGroupConfigPtr defaultGroupConfig = summarySchema->GetSummaryGroupConfig(index::DEFAULT_SUMMARYGROUPNAME);
+    ASSERT_EQ(0, summarySchema->GetSummaryGroupId(index::DEFAULT_SUMMARYGROUPNAME));
+    ASSERT_TRUE(defaultGroupConfig == summarySchema->GetSummaryGroupConfig(index::DEFAULT_SUMMARYGROUPID));
+    ASSERT_EQ(index::DEFAULT_SUMMARYGROUPNAME, defaultGroupConfig->GetGroupName());
     ASSERT_TRUE(defaultGroupConfig->IsCompress());
     ASSERT_TRUE(defaultGroupConfig->NeedStoreSummary());
     ASSERT_EQ(0, defaultGroupConfig->GetSummaryFieldIdBase());
@@ -426,10 +426,10 @@ void SummarySchemaTest::TestJsonize()
     }
 
     // group 0 (default): compress, has fields in attributes
-    SummaryGroupConfigPtr defaultGroupConfig = summarySchema->GetSummaryGroupConfig(DEFAULT_SUMMARYGROUPNAME);
-    ASSERT_EQ(0, summarySchema->GetSummaryGroupId(DEFAULT_SUMMARYGROUPNAME));
-    ASSERT_TRUE(defaultGroupConfig == summarySchema->GetSummaryGroupConfig(DEFAULT_SUMMARYGROUPID));
-    ASSERT_EQ(DEFAULT_SUMMARYGROUPNAME, defaultGroupConfig->GetGroupName());
+    SummaryGroupConfigPtr defaultGroupConfig = summarySchema->GetSummaryGroupConfig(index::DEFAULT_SUMMARYGROUPNAME);
+    ASSERT_EQ(0, summarySchema->GetSummaryGroupId(index::DEFAULT_SUMMARYGROUPNAME));
+    ASSERT_TRUE(defaultGroupConfig == summarySchema->GetSummaryGroupConfig(index::DEFAULT_SUMMARYGROUPID));
+    ASSERT_EQ(index::DEFAULT_SUMMARYGROUPNAME, defaultGroupConfig->GetGroupName());
     ASSERT_TRUE(defaultGroupConfig->IsCompress());
     ASSERT_TRUE(defaultGroupConfig->NeedStoreSummary());
     ASSERT_EQ(0, defaultGroupConfig->GetSummaryFieldIdBase());

@@ -41,7 +41,8 @@ private:
 public:
     bool init(const std::shared_ptr<ChildNodeReply> &reply,
               const std::vector<std::shared_ptr<SearchServiceResource>> &resourceVec,
-              const CallerPtr &caller, bool disableRetry, bool forceStop);
+              const CallerPtr &caller, bool disableRetry, bool forceStop,
+              const std::set<PartIdTy> &enablePartIds, bool allowLack);
     PartIdTy getPartCount() const;
     bool send(PartIdTy partId, bool eof, google::protobuf::Message *message);
     void sendCancel(PartIdTy partId, google::protobuf::Message *message);

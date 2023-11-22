@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SECTIONATTRIBUTEFORMATTERTEST_H
-#define __INDEXLIB_SECTIONATTRIBUTEFORMATTERTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/section_attribute/section_attribute_formatter.h"
 #include "indexlib/common_define.h"
@@ -31,5 +30,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(SectionAttributeFormatterTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(SectionAttributeFormatterTest, TestUnpackBuffer);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_SECTIONATTRIBUTEFORMATTERTEST_H

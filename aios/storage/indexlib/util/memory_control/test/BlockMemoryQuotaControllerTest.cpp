@@ -55,8 +55,8 @@ private:
     MemoryQuotaControllerPtr _mc;
     PartitionMemoryQuotaControllerPtr _pmc;
     BlockMemoryQuotaControllerPtr _bmc;
-    bool volatile _isFinish;
-    bool volatile _isRun;
+    atomic_bool _isFinish;
+    atomic_bool _isRun;
 
 private:
     AUTIL_LOG_DECLARE();

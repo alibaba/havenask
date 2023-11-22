@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ON_DISK_INDEX_CLEANER_H
-#define __INDEXLIB_ON_DISK_INDEX_CLEANER_H
+#pragma once
 
 #include <memory>
 
@@ -44,7 +43,7 @@ private:
     void DoExecute(const file_system::DirectoryPtr& rootDirectoy);
     void ConstructNeedKeepVersionIdxAndSegments(const file_system::DirectoryPtr& dir, const fslib::FileList& fileList,
                                                 size_t& firstKeepVersionIdx, std::set<segmentid_t>& needKeepSegments,
-                                                std::set<schemavid_t>& needKeepSchemaId);
+                                                std::set<schemaid_t>& needKeepSchemaId);
 
     segmentid_t CalculateMaxSegmentIdInAllVersions(const file_system::DirectoryPtr& dir,
                                                    const fslib::FileList& fileList);
@@ -58,7 +57,7 @@ private:
     void CleanPatchIndexSegmentFiles(const file_system::DirectoryPtr& dir, segmentid_t maxSegInVersion,
                                      const std::set<segmentid_t>& needKeepSegment);
 
-    void CleanUselessSchemaFiles(const file_system::DirectoryPtr& dir, const std::set<schemavid_t>& needKeepSchemaId);
+    void CleanUselessSchemaFiles(const file_system::DirectoryPtr& dir, const std::set<schemaid_t>& needKeepSchemaId);
 
 private:
     uint32_t mKeepVersionCount;
@@ -71,5 +70,3 @@ private:
 
 DEFINE_SHARED_PTR(OnDiskIndexCleaner);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ON_DISK_INDEX_CLEANER_H

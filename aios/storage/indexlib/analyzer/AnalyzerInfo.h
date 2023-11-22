@@ -15,12 +15,14 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
+#include <set>
+#include <string>
 
 #include "autil/Log.h"
 #include "autil/codec/NormalizeOptions.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/analyzer/AnalyzerDefine.h"
 
 namespace indexlibv2 { namespace analyzer {
 

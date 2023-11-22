@@ -15,10 +15,28 @@
  */
 #include "build_service/admin/AgentRolePlanMaker.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <iterator>
+#include <limits>
 #include <queue>
+#include <set>
+#include <tuple>
+#include <type_traits>
+#include <unordered_set>
 
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/AgentSimpleMasterScheduler.h"
 #include "build_service/proto/ProtoUtil.h"
+#include "hippo/DriverCommon.h"
+#include "master_framework/AppPlan.h"
+#include "master_framework/RolePlan.h"
 
 using namespace std;
 using namespace build_service::config;
@@ -522,17 +540,27 @@ bool AgentRolePlanMaker::checkAgentResourceLimit(const AppPlanPtr& appPlan, cons
         return false;
     }
     for (auto& param : config.resourceLimitParams) {
-        int32_t amountQuota = (int32_t)(getResourceAmount(agentPlan, param.resourceName) * param.oversellFactor);
+        int32_t amountQuota = 0;
+        getResourceAmount(agentPlan, param.resourceName, amountQuota);
+        amountQuota = (int32_t)(amountQuota * param.oversellFactor);
         int32_t expectTotalAmount = 0;
         for (auto& role : roleNames) {
             auto tmpIter = appPlan->rolePlans.find(role);
             assert(tmpIter != appPlan->rolePlans.end());
-            expectTotalAmount += getResourceAmount(tmpIter->second, param.resourceName);
+            int32_t amount = 0;
+            getResourceAmount(tmpIter->second, param.resourceName, amount);
+            expectTotalAmount += amount;
         }
 
         auto tmpIter = appPlan->rolePlans.find(targetRoleName);
         assert(tmpIter != appPlan->rolePlans.end());
-        expectTotalAmount += getResourceAmount(tmpIter->second, param.resourceName);
+        int32_t amount = 0;
+        if (!getResourceAmount(tmpIter->second, param.resourceName, amount)) {
+            BS_INTERVAL_LOG(100, INFO, "agent role [%s] will ignore target role [%s] for resource [%s] not exist!.",
+                            agentRoleName.c_str(), targetRoleName.c_str(), param.resourceName.c_str());
+            return false;
+        }
+        expectTotalAmount += amount;
         if (expectTotalAmount > amountQuota) {
             BS_INTERVAL_LOG(100, INFO, "agent role [%s] will ignore target role [%s] for over resource [%s] limits.",
                             agentRoleName.c_str(), targetRoleName.c_str(), param.resourceName.c_str());
@@ -542,15 +570,17 @@ bool AgentRolePlanMaker::checkAgentResourceLimit(const AppPlanPtr& appPlan, cons
     return true;
 }
 
-size_t AgentRolePlanMaker::getResourceAmount(const RolePlan& plan, const string& name)
+bool AgentRolePlanMaker::getResourceAmount(const RolePlan& plan, const string& name, int32_t& amount)
 {
     for (auto& resource : plan.slotResources) {
         auto resPtr = resource.find(name);
         if (resPtr != nullptr) {
-            return resPtr->amount;
+            amount = resPtr->amount;
+            return true;
         }
     }
-    return 0;
+    amount = 0;
+    return false;
 };
 
 bool AgentRolePlanMaker::allowAssignedToGlobalAgentNodes() const

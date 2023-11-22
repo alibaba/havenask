@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MULTI_FILE_OUTPUT_H
-#define ISEARCH_BS_MULTI_FILE_OUTPUT_H
+#pragma once
 
+#include <memory>
+#include <stdint.h>
+#include <string>
+
+#include "autil/legacy/any.h"
 #include "build_service/common_define.h"
 #include "build_service/config/TaskOutputConfig.h"
 #include "build_service/io/IODefine.h"
 #include "build_service/io/Output.h"
 #include "build_service/io/OutputCreator.h"
 #include "build_service/util/Log.h"
+#include "indexlib/misc/common.h"
 
 DECLARE_REFERENCE_CLASS(file_system, BufferedFileWriter);
 
@@ -89,5 +94,3 @@ private:
 BS_TYPEDEF_PTR(MultiFileOutputCreator);
 
 }} // namespace build_service::io
-
-#endif

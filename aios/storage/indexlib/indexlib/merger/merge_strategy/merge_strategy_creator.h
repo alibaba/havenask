@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_STRATEGY_CREATOR_H
-#define __INDEXLIB_MERGE_STRATEGY_CREATOR_H
+#pragma once
 
 #include <memory>
 #include <string>
@@ -54,5 +53,3 @@ public:
 
 typedef std::shared_ptr<MergeStrategyCreator> MergeStrategyCreatorPtr;
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_STRATEGY_CREATOR_H

@@ -1,9 +1,16 @@
-#ifndef ISEARCH_BS_FAKESWIFTWRITER_H
-#define ISEARCH_BS_FAKESWIFTWRITER_H
+#pragma once
+
+#include <cstdint>
+#include <functional>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
+#include "swift/client/MessageInfo.h"
 #include "swift/client/SwiftWriter.h"
+#include "swift/protocol/ErrCode.pb.h"
 
 namespace build_service { namespace util {
 
@@ -63,5 +70,3 @@ private:
 BS_TYPEDEF_PTR(FakeSwiftWriter);
 
 }} // namespace build_service::util
-
-#endif // ISEARCH_BS_FAKESWIFTWRITER_H

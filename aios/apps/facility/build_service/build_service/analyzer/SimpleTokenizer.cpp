@@ -15,7 +15,9 @@
  */
 #include "build_service/analyzer/SimpleTokenizer.h"
 
-#include "autil/StringUtil.h"
+#include <map>
+#include <utility>
+
 #include "indexlib/analyzer/AnalyzerDefine.h"
 #include "indexlib/analyzer/SimpleTokenizer.h"
 

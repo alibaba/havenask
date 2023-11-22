@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memory>
+#include <stddef.h>
 
 #include "autil/mem_pool/PoolBase.h"
 #include "indexlib/util/MMapAllocator.h"

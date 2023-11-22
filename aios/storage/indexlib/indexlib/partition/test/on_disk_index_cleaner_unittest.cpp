@@ -139,7 +139,7 @@ void OnDiskIndexCleanerTest::TestCleanWithInvalidSegments()
     MakeOnDiskVersion(0, "0");
     MakeOnDiskVersion(2, "9");
 
-    MakeOnDiskVersion(INVALID_VERSION, "5,10");
+    MakeOnDiskVersion(INVALID_VERSIONID, "5,10");
 
     OnDiskIndexCleaner cleaner(1, ReaderContainerPtr(), GET_PARTITION_DIRECTORY());
     cleaner.Execute();
@@ -174,7 +174,7 @@ void OnDiskIndexCleanerTest::TestCleanWithAllEmptyVersion()
 {
     MakeOnDiskVersion(0, "");
     MakeOnDiskVersion(1, "");
-    MakeOnDiskVersion(INVALID_VERSION, "0");
+    MakeOnDiskVersion(INVALID_VERSIONID, "0");
     OnDiskIndexCleaner cleaner(1, ReaderContainerPtr(), GET_PARTITION_DIRECTORY());
     cleaner.Execute();
 
@@ -270,7 +270,7 @@ void OnDiskIndexCleanerTest::MakeOnDiskVersion(versionid_t versionId, const std:
 {
     DirectoryPtr physicalDir = GET_CHECK_DIRECTORY(false);
     Version version = VersionMaker::Make(versionId, segmentIds);
-    if (versionId != INVALID_VERSION) {
+    if (versionId != INVALID_VERSIONID) {
         version.Store(physicalDir, false);
         // test reclaim entryTable.x
         physicalDir->Store(EntryTable::GetEntryTableFileName(version.GetVersionId()), "");

@@ -15,8 +15,18 @@
  */
 #include "build_service/admin/taskcontroller/DefaultTaskController.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <map>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/TaskConfig.h"
+#include "build_service/config/TaskControllerConfig.h"
 
 using namespace std;
 using namespace build_service::config;

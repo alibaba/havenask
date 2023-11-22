@@ -1,7 +1,16 @@
 package com.taobao.search.iquan.client.common.metrics;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.taobao.kmonitor.*;
+import com.taobao.kmonitor.ImmutableMetricTags;
+import com.taobao.kmonitor.KMonitorFactory;
 import com.taobao.kmonitor.core.MetricsTags;
 import com.taobao.kmonitor.impl.KMonitorConfig;
 import com.taobao.search.iquan.client.common.json.api.JsonKMonConfig;
@@ -11,14 +20,6 @@ import com.taobao.search.iquan.client.common.utils.ErrorUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class IquanKMonService {
     private static final Logger logger = LoggerFactory.getLogger(IquanKMonService.class);

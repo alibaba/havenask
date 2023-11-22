@@ -27,14 +27,14 @@ class PrimaryKeyBuildingIndexReader
 {
 public:
     using SegmentReader = util::HashMap<Key, docid_t>;
-    using SegmentReaderItem = std::tuple<docid_t, segmentid_t, std::shared_ptr<const SegmentReader>>;
+    using SegmentReaderItem = std::tuple<docid64_t, segmentid_t, std::shared_ptr<const SegmentReader>>;
 
 public:
     PrimaryKeyBuildingIndexReader() {}
     ~PrimaryKeyBuildingIndexReader() {}
 
 public:
-    void AddSegmentReader(docid_t baseDocId, segmentid_t segmentId,
+    void AddSegmentReader(docid64_t baseDocId, segmentid_t segmentId,
                           const std::shared_ptr<const SegmentReader>& inMemSegReader)
     {
         if (inMemSegReader) {
@@ -42,7 +42,7 @@ public:
         }
     }
 
-    docid_t Lookup(const Key& hashKey) const
+    docid64_t Lookup(const Key& hashKey) const
     {
         for (auto iter = mInnerSegReaderItems.rbegin(); iter != mInnerSegReaderItems.rend(); ++iter) {
             auto [baseDocId, _, segmentReader] = *iter;
@@ -53,7 +53,7 @@ public:
         return INVALID_DOCID;
     }
 
-    bool Lookup(const Key& hashKey, segmentid_t specifySegment, docid_t* docid) const
+    bool Lookup(const Key& hashKey, segmentid_t specifySegment, docid64_t* docid) const
     {
         for (const auto& [baseDocId, segmentId, segmentReader] : mInnerSegReaderItems) {
             if (segmentId == specifySegment) {

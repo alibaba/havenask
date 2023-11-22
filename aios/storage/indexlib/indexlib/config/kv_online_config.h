@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_ONLINE_CONFIG_H
-#define __INDEXLIB_KV_ONLINE_CONFIG_H
+#pragma once
 
 #include <memory>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -42,10 +41,8 @@ public:
     uint32_t buildProtectThreshold = INVALID_COUNT_LIMITS;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(KVOnlineConfig);
+typedef std::shared_ptr<KVOnlineConfig> KVOnlineConfigPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_KV_ONLINE_CONFIG_H

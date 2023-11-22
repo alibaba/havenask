@@ -1,8 +1,11 @@
 #include "build_service/util/ZipFileUtil.h"
 
+#include <iosfwd>
+#include <string>
 #include <unordered_map>
 
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

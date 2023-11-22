@@ -16,14 +16,15 @@
 #pragma once
 
 #include <assert.h>
+#include <exception>
 #include <stdint.h>
 #include <string>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
 #include "autil/Log.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 
 namespace indexlib { namespace file_system {

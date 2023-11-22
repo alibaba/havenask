@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VAR_NUM_ATTRIBUTE_READER_H
-#define __INDEXLIB_VAR_NUM_ATTRIBUTE_READER_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -383,5 +382,3 @@ inline void VarNumAttributeReader<T>::InitBuildingAttributeReader(const index_ba
 typedef VarNumAttributeReader<char> StringAttributeReader;
 DEFINE_SHARED_PTR(StringAttributeReader);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VAR_NUM_ATTRIBUTE_READER_H

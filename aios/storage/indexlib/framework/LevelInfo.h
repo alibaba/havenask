@@ -15,7 +15,13 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <memory>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"

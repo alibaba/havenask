@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AggregateExchangeRemoveRule extends RelOptRule {
-    private static final Logger logger = LoggerFactory.getLogger(AggregateExchangeRemoveRule.class);
     public static final AggregateExchangeRemoveRule INSTANCE =
             new AggregateExchangeRemoveRule(RelFactories.LOGICAL_BUILDER);
+    private static final Logger logger = LoggerFactory.getLogger(AggregateExchangeRemoveRule.class);
 
     private AggregateExchangeRemoveRule(RelBuilderFactory relBuilderFactory) {
         super(operand(

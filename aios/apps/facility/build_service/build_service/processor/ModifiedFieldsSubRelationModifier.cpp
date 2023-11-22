@@ -15,6 +15,14 @@
  */
 #include "build_service/processor/ModifiedFieldsSubRelationModifier.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+
+#include "build_service/document/ClassifiedDocument.h"
+#include "indexlib/document/extend_document/indexlib_extend_document.h"
+#include "indexlib/document/normal/Field.h"
+
 using namespace std;
 using namespace build_service::document;
 

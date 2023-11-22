@@ -15,20 +15,45 @@
  */
 #include "build_service/workflow/SwiftProcessedDocConsumer.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <limits>
 #include <unistd.h>
+#include <vector>
 
-#include "autil/DataBuffer.h"
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
+#include "autil/TimeUtility.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CounterSynchronizer.h"
 #include "build_service/common/Locator.h"
 #include "build_service/common/PkTracer.h"
+#include "build_service/document/DocumentDefine.h"
+#include "build_service/document/ProcessedDocument.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/base/FieldType.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/IDocument.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
+#include "indexlib/framework/Locator.h"
 #include "indexlib/util/DocTracer.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"
 #include "indexlib/util/counter/StringCounter.h"
+#include "swift/client/MessageInfo.h"
+#include "swift/protocol/ErrCode.pb.h"
+#include "swift/protocol/SwiftMessage.pb.h"
 
 using namespace std;
 using namespace autil;

@@ -15,9 +15,14 @@
  */
 #pragma once
 
-#include "build_service/common_define.h"
+#include <map>
+#include <memory>
+#include <string>
+
 #include "build_service/processor/ModifiedFieldsModifier.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 
 namespace indexlibv2::config {
 class ITabletSchema;

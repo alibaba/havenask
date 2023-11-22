@@ -15,6 +15,9 @@
  */
 #include "build_service/document/DocumentDefine.h"
 
+#include "indexlib/document/RawDocumentDefine.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
+
 namespace build_service { namespace document {
 
 const std::string CMD_SEPARATOR = "\x1E\n";

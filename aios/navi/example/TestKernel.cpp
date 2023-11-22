@@ -490,6 +490,55 @@ private:
     std::set<U *> _uSet;
 };
 
+class WorldKernel2 : public Kernel {
+public:
+    WorldKernel2()
+    {
+    }
+public:
+    void def(KernelDefBuilder &builder) const override {
+        builder.name("WorldKernel2")
+            .inputGroup("input1", CHAR_ARRAY_TYPE_ID)
+            .output("output1", CHAR_ARRAY_TYPE_ID)
+            .dependOn("C", true, nullptr)
+            .dependOn("F", true, nullptr)
+            .dependOn("H", true, nullptr)
+            .dependOn("ProduceTest", true, nullptr);
+    }
+    ErrorCode init(KernelInitContext &ctx) override {
+        return EC_NONE;
+    }
+    ErrorCode compute(KernelComputeContext &ctx) override {
+        size_t inputGroupSize;
+        ctx.getInputGroupSize(0, inputGroupSize);
+        GroupDatas datas;
+        if (!ctx.getGroupInput(0, datas)) {
+            return EC_ABORT;
+        }
+        auto eof = datas.eof();
+        if (eof) {
+            NAVI_KERNEL_LOG(DEBUG, "eof");
+        }
+        NAVI_KERNEL_LOG(DEBUG, "input group size: %ld, input eof: %d",
+                        inputGroupSize, eof);
+        if (datas[0].data) {
+            auto data = datas[0].data;
+            auto typeData = new HelloData(*dynamic_cast<HelloData *>(data.get()));
+            typeData->mark(getNodeName());
+            if (!ctx.setOutput(0, DataPtr(typeData), eof)) {
+                return EC_ABORT;
+            }
+        } else {
+            {
+                if (!ctx.setOutput(0, nullptr, eof)) {
+                    return EC_ABORT;
+                }
+            }
+        }
+        return EC_NONE;
+    }
+};
+
 class MergeKernel : public Kernel {
 public:
     MergeKernel()
@@ -514,8 +563,12 @@ public:
         auto typeData2 = dynamic_cast<HelloData *>(data2.get());
         if (typeData1) {
             typeData1->merge(typeData2);
+            ctx.setOutput(index1, data1, true);
+        } else if (typeData2) {
+            ctx.setOutput(index1, data2, true);
+        } else {
+            ctx.setOutput(index1, nullptr, true);
         }
-        ctx.setOutput(index1, data1, true);
         return EC_NONE;
     }
 };
@@ -632,9 +685,10 @@ public:
     }
     ErrorCode compute(KernelComputeContext &ctx) override {
         if (ctx.getThisPartId() == 0) {
+            NAVI_KERNEL_LOG(ERROR, "part 0 return timeout");
             return EC_TIMEOUT;
         }
-        usleep(0.5 * 1000 * 1000);
+        usleep(1.0 * 1000 * 1000);
         char buf[1024];
         snprintf(buf, 1024, "Hello from %s(%p), part [%d]",
                  getNodeName().c_str(), this, ctx.getThisPartId());
@@ -739,6 +793,58 @@ public:
         // std::string graphFileName("sub_searcher_graph.def");
         // std::ofstream graphFile(graphFileName);
         // graphFile << graphDef->SerializeAsString();
+        return ctx.fork(graphDef, param);
+    }
+private:
+    int64_t _abort = 0;
+};
+
+class SubGraphRecurKernel : public Kernel {
+public:
+    SubGraphRecurKernel()
+    {
+    }
+public:
+    void def(KernelDefBuilder &builder) const override {
+        builder.name("SubGraphRecurKernel")
+            .input("input1", CHAR_ARRAY_TYPE_ID)
+            .output("output2", CHAR_ARRAY_TYPE_ID)
+            .output("output1", CHAR_ARRAY_TYPE_ID);
+    }
+    bool config(KernelConfigContext &ctx) override {
+        NAVI_JSONIZE(ctx, "abort", _abort, _abort);
+        return true;
+    }
+    ErrorCode compute(KernelComputeContext &ctx) override {
+        auto graphDef = new GraphDef();
+        GraphBuilder builder(graphDef);
+        std::vector<std::string> itemList(
+            { "server_biz", "server_biz_1", "server_biz_2", "client_biz" });
+        auto nodeName = getNodeName();
+        auto helloName = "subhello_" + nodeName;
+
+        builder.newSubGraph("server_biz_1");
+        auto n = builder.node("fork_graph_node")
+                     .kernel("ForkGraphWithOverrideKernel")
+                     .attr("biz_name", "server_biz_1")
+                     .integerAttr("part_count", 2)
+                     .integerAttr("select_index", 4)
+                     .jsonAttrs(R"json({"r5" : { "r5_key" : "r5_value"}})json");
+        auto in = n.in("input1");
+        auto in0 = in.autoNext();
+        auto n1 = builder.node("source_0")
+                      .kernel("IdentityTestKernel")
+                      .jsonAttrs(R"json({"times" : 2})json");
+        n1.in("input1").fromForkNodeInput("input1");
+        n1.out("output1").to(in0);
+        auto out = n.out("output1");
+        auto out1 = out.autoNext();
+        auto out2 = out1.autoNext();
+        out1.toForkNodeOutput("output1").merge("StringMergeKernel");
+        out2.toForkNodeOutput("output2").merge("StringMergeKernel");
+
+        ForkGraphParam param;
+        param.errorAsEof = false;
         return ctx.fork(graphDef, param);
     }
 private:
@@ -1214,13 +1320,16 @@ public:
             return EC_ABORT;
         }
         ForkGraphParam param;
+        param.errorAsEof = false;
         for (NaviPartId partId = 0; partId < _partCount; partId++) {
             OverrideData overrideData;
             overrideData.graphId = graphId;
             overrideData.partId = partId;
             overrideData.outputNode = "placeholder";
             overrideData.outputPort = PLACEHOLDER_OUTPUT_PORT;
-            DataPtr data(new HelloData("override_data_with_part_id_" + std::to_string(partId)));
+            DataPtr data(new HelloData(std::to_string(ctx.getThisPartId()) +
+                                       "_override_data_with_part_id_" +
+                                       std::to_string(partId)));
             overrideData.datas.push_back(data);
             param.overrideDataVec.push_back(overrideData);
         }
@@ -1377,6 +1486,7 @@ REGISTER_KERNEL(AsyncInitSlowSourceKernel);
 REGISTER_KERNEL(HelloKernelOld);
 REGISTER_KERNEL(HelloKernel);
 REGISTER_KERNEL(WorldKernel);
+REGISTER_KERNEL(WorldKernel2);
 REGISTER_KERNEL(MergeKernel);
 REGISTER_KERNEL(SplitKernel);
 REGISTER_KERNEL(AbortKernel);
@@ -1386,6 +1496,7 @@ REGISTER_KERNEL(PartCancelSourceKernel);
 REGISTER_KERNEL(PartTimeoutSourceKernel);
 REGISTER_KERNEL(SleepKernel);
 REGISTER_KERNEL(SubGraphKernel);
+REGISTER_KERNEL(SubGraphRecurKernel);
 
 REGISTER_KERNEL(StringSplitKernel);
 REGISTER_KERNEL(StringMergeKernel);

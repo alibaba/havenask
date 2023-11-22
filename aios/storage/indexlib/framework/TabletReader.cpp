@@ -15,6 +15,11 @@
  */
 #include "indexlib/framework/TabletReader.h"
 
+#include <stddef.h>
+#include <typeinfo>
+
+#include "indexlib/framework/mem_reclaimer/IIndexMemoryReclaimer.h"
+
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, TabletReader);
 
@@ -28,6 +33,12 @@ TabletReader::~TabletReader()
                       iter->first.second.c_str(), iter->first.first.c_str(), useCount);
         }
     }
+}
+
+Status TabletReader::Open(const std::shared_ptr<TabletData>& tabletData, const ReadResource& readResource)
+{
+    _indexMemoryReclaimer = readResource.indexMemoryReclaimer;
+    return DoOpen(tabletData, readResource);
 }
 
 Status TabletReader::Search(const std::string& jsonQuery, std::string& result) const

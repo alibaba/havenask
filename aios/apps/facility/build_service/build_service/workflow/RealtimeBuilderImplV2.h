@@ -17,32 +17,38 @@
 
 #include <atomic>
 #include <chrono>
+#include <functional>
+#include <memory>
 #include <mutex>
+#include <stdint.h>
+#include <string>
+#include <utility>
 
+#include "build_service/builder/BuilderV2.h"
+#include "build_service/common/Locator.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/util/Log.h"
 #include "build_service/workflow/AsyncStarter.h"
 #include "build_service/workflow/BuildFlow.h"
+#include "build_service/workflow/RealtimeBuilderDefine.h"
 #include "build_service/workflow/RealtimeErrorDefine.h"
+#include "build_service/workflow/StopOption.h"
 #include "future_lite/TaskScheduler.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/framework/ITablet.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace util {
-class MetricProvider;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 }} // namespace indexlib::util
 
 namespace future_lite {
 class NamedTaskScheduler;
 }
-
-namespace indexlibv2::framework {
-
-class ITablet;
-
-} // namespace indexlibv2::framework
 
 namespace build_service { namespace workflow {
 
@@ -74,6 +80,8 @@ public:
     std::pair<indexlib::Status, indexlibv2::framework::VersionMeta> commit();
 
     const proto::PartitionId& getPartitionId() const { return _partitionId; }
+    virtual bool needAlterTable() const = 0;
+    virtual schemaid_t getAlterTableSchemaId() const = 0;
 
 protected:
     virtual bool doStart(const proto::PartitionId& partitionId, KeyValueMap& kvMap) = 0;
@@ -92,7 +100,7 @@ protected:
     virtual bool getLastReadTimestampInProducer(int64_t& timestamp) = 0;
     virtual bool producerSeek(const common::Locator& locator) = 0;
     virtual bool seekProducerToLatest() { return false; }
-    std::pair<indexlibv2::framework::Locator, /*fromInc*/ bool> getLatestLocator() const;
+    indexlibv2::framework::Locator getLatestLocator() const;
     void checkForceSeek();
 
 private:

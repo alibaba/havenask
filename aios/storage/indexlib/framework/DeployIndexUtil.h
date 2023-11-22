@@ -15,8 +15,9 @@
  */
 #pragma once
 
-#include <memory>
-#include <vector>
+#include <stdint.h>
+#include <string>
+#include <utility>
 
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"

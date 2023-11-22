@@ -168,46 +168,27 @@ Status Partition::create(const proto::Partition &request) {
 }
 
 Status Partition::update(const proto::Partition &request) {
-    CATALOG_CHECK(!request.has_data_source() || ProtoUtil::compareProto(request.data_source(), _dataSource),
-                  Status::UNSUPPORTED,
-                  "update for data_source in partition:[",
-                  _id.partitionName,
-                  "] is unsupported with table:[",
-                  _id.databaseName,
-                  ".",
-                  _id.tableName,
-                  "]");
-    bool tableStructureNoDiff = true;
     if (request.has_table_structure()) {
+        bool noDiff = true;
         if (_tableStructure == nullptr) {
-            tableStructureNoDiff = false;
+            noDiff = false;
         } else {
             proto::TableStructure proto;
             CATALOG_CHECK_OK(_tableStructure->toProto(&proto));
-            tableStructureNoDiff = ProtoUtil::compareProto(request.table_structure(), proto);
+            noDiff = ProtoUtil::compareProto(request.table_structure(), proto);
+        }
+        if (!noDiff) {
+            auto tableStructure = std::make_unique<TableStructure>();
+            CATALOG_CHECK_OK(tableStructure->fromProto(request.table_structure()));
+            _tableStructure = std::move(tableStructure);
         }
     }
-    CATALOG_CHECK(tableStructureNoDiff,
-                  Status::UNSUPPORTED,
-                  "table_structure for table:[",
-                  _id.databaseName,
-                  ".",
-                  _id.tableName,
-                  "] partition:[",
-                  _id.partitionName,
-                  "] can't update directely, use 'updatePartitionTableStructure' interface instead");
-
-    CATALOG_CHECK(!ProtoUtil::compareProto(_partitionConfig, request.partition_config()),
-                  Status::INVALID_ARGUMENTS,
-                  "partition_config has no actual diff for partition:[",
-                  _id.partitionName,
-                  "] in table:[",
-                  _id.databaseName,
-                  ".",
-                  _id.tableName,
-                  "]");
-
-    _partitionConfig = request.partition_config();
+    if (request.has_data_source()) {
+        _dataSource = request.data_source();
+    }
+    if (request.has_partition_config()) {
+        _partitionConfig = request.partition_config();
+    }
     _operationMeta = request.operation_meta();
     _version = kToUpdateCatalogVersion;
     _status.set_code(proto::EntityStatus::PENDING_PUBLISH);

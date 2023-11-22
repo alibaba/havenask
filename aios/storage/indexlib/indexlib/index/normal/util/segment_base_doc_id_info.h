@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_BASE_DOC_ID_INFO_H
-#define __INDEXLIB_SEGMENT_BASE_DOC_ID_INFO_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/indexlib.h"
@@ -30,5 +29,3 @@ struct SegmentBaseDocIdInfo {
     docid_t baseDocId;
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SEGMENT_MODIFIER_CONTAINER_H

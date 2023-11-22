@@ -77,7 +77,7 @@ bool TableManager::Init(const util::KeyValueMap& psmOptions, const std::string& 
     THROW_IF_FS_ERROR(file_system::FslibWrapper::MkDirIfNotExist(mOnlineIndexRoot).Code(), "path[%s]",
                       mOnlineIndexRoot.c_str());
     IndexPartitionResourcePtr onlineResource(new IndexPartitionResource);
-    auto onlinePartition = PrepareOnlinePartition(onlineResource, INVALID_VERSION);
+    auto onlinePartition = PrepareOnlinePartition(onlineResource, INVALID_VERSIONID);
     if (onlinePartition) {
         mOnlinePartition = onlinePartition;
         mOnlineResource = onlineResource;
@@ -99,7 +99,7 @@ IndexPartitionPtr TableManager::PrepareOnlinePartition(const IndexPartitionResou
     IndexPartitionPtr onlinePartition;
     onlineResource->indexPluginPath = mPluginRoot;
     onlineResource->memoryQuotaController =
-        MemoryQuotaControllerCreator::CreateMemoryQuotaController(DEFAULT_MEMORY_USE_LIMIT * 1024 * 1024);
+        MemoryQuotaControllerCreator::CreateMemoryQuotaController(1024L * 1024 * 1024 * 1024); // 1T
     onlineResource->taskScheduler.reset(new TaskScheduler);
     mMetricProvider.reset(new util::MetricProvider(nullptr));
     onlineResource->metricProvider = mMetricProvider;
@@ -117,7 +117,8 @@ IndexPartitionPtr TableManager::PrepareOnlinePartition(const IndexPartitionResou
     string schemaRoot = (onlineOptions.GetOnlineConfig().NeedReadRemoteIndex() && !mOfflineIndexRoot.empty())
                             ? mOfflineIndexRoot
                             : mOnlineIndexRoot;
-    onlinePartition = IndexPartitionCreator(*onlineResource).CreateByLoadSchema(mOptions, schemaRoot, INVALID_VERSION);
+    onlinePartition =
+        IndexPartitionCreator(*onlineResource).CreateByLoadSchema(mOptions, schemaRoot, INVALID_VERSIONID);
     if (!onlinePartition) {
         IE_LOG(ERROR, "fail to create OnlinePartition from online index path[%s]", mOnlineIndexRoot.c_str());
         return IndexPartitionPtr();
@@ -164,14 +165,14 @@ bool TableManager::DoOfflineBuild(const std::string& docString, bool isFullBuild
     }
 
     if (flag & OFB_NEED_DEPLOY) {
-        ret = DeployVersion(INVALID_VERSION);
+        ret = DeployVersion(INVALID_VERSIONID);
         if (!ret) {
             return false;
         }
     }
 
     if (flag & OFB_NEED_REOPEN) {
-        ret = ReOpenVersion(INVALID_VERSION, ReOpenFlag::RO_NORMAL);
+        ret = ReOpenVersion(INVALID_VERSIONID, ReOpenFlag::RO_NORMAL);
     }
     return ret;
 }
@@ -291,7 +292,7 @@ bool TableManager::DeployAndLoadVersion(versionid_t versionId)
     if (!ret) {
         return false;
     }
-    ret = ReOpenVersion(INVALID_VERSION, ReOpenFlag::RO_NORMAL);
+    ret = ReOpenVersion(INVALID_VERSIONID, ReOpenFlag::RO_NORMAL);
     if (!ret) {
         return false;
     }
@@ -303,7 +304,7 @@ bool TableManager::LegacyDeployVersion(versionid_t versionId)
     ScopedLock lock(mDeployLock);
     IE_LOG(INFO, "begin deploy version[%d]", versionId);
     try {
-        versionid_t onlineVersionId = INVALID_VERSION;
+        versionid_t onlineVersionId = INVALID_VERSIONID;
         Version offlineVersion;
         VersionLoader::GetVersionS(mOfflineIndexRoot, offlineVersion, versionId);
 
@@ -350,7 +351,7 @@ bool TableManager::DeployVersion(versionid_t versionId)
     IE_LOG(INFO, "begin deploy version[%d]", versionId);
 
     try {
-        versionid_t onlineVersionId = INVALID_VERSION;
+        versionid_t onlineVersionId = INVALID_VERSIONID;
         Version offlineVersion;
         VersionLoader::GetVersionS(mOfflineIndexRoot, offlineVersion, versionId);
 

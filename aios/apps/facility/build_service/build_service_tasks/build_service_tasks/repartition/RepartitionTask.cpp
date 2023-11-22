@@ -15,16 +15,34 @@
  */
 #include "build_service_tasks/repartition/RepartitionTask.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/BuildServiceConfig.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/HashModeConfig.h"
 #include "build_service/config/IndexPartitionOptionsWrapper.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/RangeUtil.h"
 #include "build_service_tasks/repartition/RepartitionDocFilterCreator.h"
 #include "fslib/util/FileUtil.h"
 #include "indexlib/config/legacy_schema_adapter.h"
+#include "indexlib/config/module_info.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/merger/doc_filter.h"
+#include "indexlib/merger/doc_filter_creator.h"
+#include "indexlib/merger/merge_meta.h"
 
 using namespace std;
 using namespace autil;
@@ -180,7 +198,7 @@ bool RepartitionTask::endMerge(const FilteredMultiPartitionMergerPtr& merger, co
         BS_LOG(ERROR, "%s", errorMsg.c_str());
         return false;
     }
-    merger->EndMerge(mergeMeta, INVALID_VERSION);
+    merger->EndMerge(mergeMeta, indexlib::INVALID_VERSIONID);
     return true;
 }
 

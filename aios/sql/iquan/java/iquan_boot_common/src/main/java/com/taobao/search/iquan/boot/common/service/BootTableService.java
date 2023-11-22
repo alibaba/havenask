@@ -103,11 +103,11 @@ public class BootTableService {
     // ****************************************
     // Service For Catalog
     // ****************************************
-    public SqlResponse updateTables(SqlTranslator sqlTranslator, Map<String, Object> reqMap) {
-        return TableService.updateTables(sqlTranslator, reqMap);
-    }
+//    public SqlResponse updateTables(SqlTranslator sqlTranslator, Map<String, Object> reqMap) {
+//        return TableService.registerTables(sqlTranslator, reqMap);
+//    }
 
-    public SqlResponse dropTables(SqlTranslator sqlTranslator, Map<String, Object> reqMap) {
-        return TableService.dropTables(sqlTranslator, reqMap);
-    }
+//    public SqlResponse dropTables(SqlTranslator sqlTranslator, Map<String, Object> reqMap) {
+//        return TableService.dropTables(sqlTranslator, reqMap);
+//    }
 }

@@ -50,6 +50,9 @@ std::string GigServerStream::getPeer() const {
 }
 
 bool GigServerStream::send(PartIdTy partId, bool eof, google::protobuf::Message *message) {
+    if (!_handler) {
+        return false;
+    }
     auto sendMessage = GigStreamHandlerBase::createSendBufferMessage(eof, false, message);
     if (eof) {
         _handler->endReceive();
@@ -58,6 +61,9 @@ bool GigServerStream::send(PartIdTy partId, bool eof, google::protobuf::Message 
 }
 
 void GigServerStream::sendCancel(PartIdTy partId, google::protobuf::Message *message) {
+    if (!_handler) {
+        return;
+    }
     auto sendMessage = GigStreamHandlerBase::createSendBufferMessage(true, true, message);
     _handler->send(sendMessage);
 }

@@ -9,9 +9,9 @@ cc_library(
 cc_fast_test(
     name='unittest',
     srcs=[
-        'fake_index_partition_unittest.cpp', 'IndexlibPartitionCreatorTest.cpp'
+        'IndexlibPartitionCreatorTest.cpp', 'fake_index_partition_unittest.cpp'
     ],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     deps=[
         ':test-headers', '//aios/storage/indexlib/indexlib:indexlib_testbase',

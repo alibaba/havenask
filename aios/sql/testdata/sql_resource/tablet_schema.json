@@ -1,0 +1,218 @@
+{
+    "attributes" : [
+	"field_int8",
+	"field_int16",
+	"field_int32",
+	"field_int64",
+	"field_uint8",
+	"field_uint16",
+	"field_uint32",
+	"field_uint64",
+	"field_float",
+	"field_double",
+	"field_string",
+	"multi_field_string",
+	"multi_field_float"
+    ],
+    "fields" : [
+        {
+            "field_name" : "id",
+            "field_type" : "INTEGER"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "subject",
+            "field_type" : "TEXT"
+        },
+        {
+            "field_name" : "keywords",
+            "field_type" : "STRING"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "product_summary",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "company_name",
+            "field_type" : "TEXT"
+        },
+        {
+            "analyzer" : "internet_analyzer",
+            "field_name" : "feature_value",
+            "field_type" : "TEXT"
+        },
+        {
+            "field_name" : "field_int8",
+            "field_type" : "INT8"
+        },
+        {
+            "field_name" : "field_int16",
+            "field_type" : "INT16"
+        },
+        {
+            "field_name" : "field_int32",
+            "field_type" : "INTEGER"
+        },
+        {
+            "field_name" : "field_int64",
+            "field_type" : "LONG"
+        },
+        {
+            "field_name" : "field_uint8",
+            "field_type" : "INT8"
+        },
+        {
+            "field_name" : "field_uint16",
+            "field_type" : "INT16"
+        },
+        {
+            "field_name" : "field_uint32",
+            "field_type" : "INT32"
+        },
+        {
+            "field_name" : "field_uint64",
+            "field_type" : "INT64"
+        },
+	{
+	    "field_name" : "field_double",
+	    "field_type" : "DOUBLE"
+	},
+	{
+	    "field_name" : "field_float",
+	    "field_type" : "FLOAT"
+	},
+	{
+	    "field_name" : "field_string",
+	    "field_type" : "STRING"
+	},
+	{
+	    "field_name" : "multi_field_string",
+	    "field_type" : "STRING",
+	    "multi_value" : true
+	},
+	{
+	    "field_name" : "multi_field_float",
+	    "field_type" : "FLOAT",
+	    "multi_value" : true
+	}
+    ],
+    "indexs" : [
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : [
+                {
+                    "boost" : 100,
+                    "field_name" : "subject"
+                },
+                {
+                    "boost" : 200,
+                    "field_name" : "product_summary"
+                },
+                {
+                    "boost" : 300,
+                    "field_name" : "company_name"
+                },
+                {
+                    "boost" : 400,
+                    "field_name" : "feature_value"
+                }
+            ],
+            "index_name" : "phrase",
+            "index_type" : "PACK",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1
+        },
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : "field_int8",
+            "index_name" : "field_int8",
+            "index_type" : "NUMBER",
+            "term_payload_flag" : 1
+        },
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : "field_uint8",
+            "index_name" : "field_uint8",
+            "index_type" : "NUMBER",
+            "term_payload_flag" : 1
+        },
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : "field_uint32",
+            "index_name" : "field_uint32",
+            "index_type" : "NUMBER",
+            "term_payload_flag" : 1
+        },
+	{
+            "index_name": "field_string",
+            "index_type": "STRING",
+            "term_payload_flag" :  1,
+            "doc_payload_flag" :  1,
+	    "term_frequency_flag" : 1,
+            "index_fields": "field_string"
+        },
+	{
+	    "index_name": "primary_key_index",
+	    "index_type" : "PRIMARYKEY64",
+	    "index_fields": "id",
+	    "has_primary_key_attribute": true
+	},
+	{
+            "doc_payload_flag" : 1,
+            "index_fields" : "keywords",
+            "index_name" : "keywords",
+            "index_type" : "STRING",
+            "term_payload_flag" : 1
+        },
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : "subject",
+            "index_name" : "subject",
+            "index_type" : "TEXT",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1
+        },
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : "company_name",
+            "index_name" : "company_name",
+            "index_type" : "TEXT",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1
+        },
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : "product_summary",
+            "index_name" : "product_summary",
+            "index_type" : "TEXT",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1
+        },
+        {
+            "doc_payload_flag" : 1,
+            "index_fields" : "feature_value",
+            "index_name" : "feature_value",
+            "index_type" : "TEXT",
+            "position_payload_flag" : 1,
+            "term_payload_flag" : 1
+        }
+    ],
+    "summarys" : {
+        "compress" : true,
+        "summary_fields" : [
+	    "field_int8",
+	    "field_uint8",
+	    "field_int32",
+	    "field_uint64",
+	    "field_string",
+	    "field_float",
+            "subject",
+            "product_summary",
+            "company_name",
+            "feature_value"
+        ]
+    },
+    "table_name" : "simple4"
+}

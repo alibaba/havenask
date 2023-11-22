@@ -78,7 +78,7 @@ public:
     // use file system's root as partition root
     static BuildingPartitionDataPtr
     CreateBuildingPartitionData(const BuildingPartitionParam& param, const file_system::IFileSystemPtr& fileSystem,
-                                index_base::Version version = index_base::Version(INVALID_VERSION),
+                                index_base::Version version = index_base::Version(INVALID_VERSIONID),
                                 const std::string& dir = "",
                                 const index_base::InMemorySegmentPtr& inMemSegment = index_base::InMemorySegmentPtr());
 

@@ -16,6 +16,7 @@
 #pragma once
 
 #include <assert.h>
+#include <memory>
 
 #include "autil/Log.h"
 #include "indexlib/file_system/FileSystemDefine.h"

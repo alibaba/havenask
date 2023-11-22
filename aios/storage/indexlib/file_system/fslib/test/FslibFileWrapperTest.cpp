@@ -106,7 +106,7 @@ public:
             ASSERT_TRUE(file != NULL);
             memset(outputBuf, '0', length);
             auto ret = file->PReadAsync(outputBuf, length - begingPos, begingPos, IO_ADVICE_LOW_LATENCY, nullptr).get();
-            ASSERT_EQ(length - begingPos, ret);
+            ASSERT_EQ(length - begingPos, ret.GetOrThrow());
             flag = true;
             for (size_t i = begingPos; i < length; i++) {
                 flag &= (inputBuf[i] == outputBuf[i - begingPos]);

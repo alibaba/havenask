@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ADMINWORKER_H
-#define ISEARCH_BS_ADMINWORKER_H
+#pragma once
 
 #include "autil/Lock.h"
 #include "build_service/admin/ServiceKeeper.h"
@@ -129,6 +128,9 @@ public:
     void getBulkloadInfo(::google::protobuf::RpcController* controller, const proto::BulkloadInfoRequest* request,
                          proto::InformResponse* response, ::google::protobuf::Closure* done) override;
 
+    void bulkload(::google::protobuf::RpcController* controller, const proto::BulkloadRequest* request,
+                  proto::InformResponse* response, ::google::protobuf::Closure* done) override;
+
 private:
     void initBeeper();
     void initEnvArgs();
@@ -171,5 +173,3 @@ private:
 };
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_ADMINWORKER_H

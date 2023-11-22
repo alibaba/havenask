@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKCOUNTERSYNCHRONIZER_H
-#define ISEARCH_BS_MOCKCOUNTERSYNCHRONIZER_H
+#pragma once
 
 #include "build_service/common/CounterSynchronizer.h"
 #include "build_service/test/unittest.h"
@@ -21,5 +20,3 @@ typedef ::testing::StrictMock<MockCounterSynchronizer> StrictMockCounterSynchron
 typedef ::testing::NiceMock<MockCounterSynchronizer> NiceMockCounterSynchronizer;
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_MOCKCOUNTERSYNCHRONIZER_H

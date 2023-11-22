@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTE_TEST_UTIL_H
-#define __INDEXLIB_ATTRIBUTE_TEST_UTIL_H
+#pragma once
 
 #include <memory>
 
@@ -53,5 +52,3 @@ public:
 
 DEFINE_SHARED_PTR(AttributeTestUtil);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_TEST_UTIL_H

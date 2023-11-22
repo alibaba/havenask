@@ -1,73 +1,34 @@
-load('@rules_cc//cc:defs.bzl', 'cc_library')
-filegroup(
-    name='module_info_h',
-    srcs=['module_info.h'],
-    visibility=['//aios/storage/indexlib:__subpackages__']
-)
 cc_library(
-    name='base',
-    srcs=[],
-    hdrs=['configurator_define.h'],
+    name='options',
+    srcs=[
+        'build_config.cpp', 'build_config_base.cpp',
+        'disable_fields_config.cpp', 'document_deduper_helper.cpp',
+        'impl/build_config_impl.cpp', 'impl/index_partition_options_impl.cpp',
+        'impl/merge_config_impl.cpp', 'impl/offline_config_impl.cpp',
+        'impl/online_config_impl.cpp', 'index_partition_options.cpp',
+        'kv_online_config.cpp', 'merge_config.cpp', 'merge_config_base.cpp',
+        'merge_strategy_parameter.cpp', 'offline_config.cpp',
+        'offline_config_base.cpp', 'online_config.cpp', 'online_config_base.cpp'
+    ],
+    hdrs=[
+        'build_config.h', 'build_config_base.h', 'document_deduper_helper.h',
+        'file_system_config.h', 'impl/build_config_impl.h',
+        'impl/index_partition_options_impl.h', 'impl/merge_config_impl.h',
+        'impl/offline_config_impl.h', 'impl/online_config_impl.h',
+        'index_partition_options.h', 'kv_online_config.h', 'merge_config.h',
+        'merge_config_base.h', 'merge_io_config.h',
+        'merge_strategy_parameter.h', 'offline_config.h',
+        'offline_config_base.h', 'online_config.h', 'online_config_base.h'
+    ],
     copts=['-Werror'],
     include_prefix='indexlib/config',
-    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
-    deps=[
-        '//aios/storage/indexlib/index/kv:constants',
-        '//aios/storage/indexlib/indexlib:indexlib_h'
-    ],
-    alwayslink=True
+    deps=['//aios/storage/indexlib/legacy/config:schema']
 )
 cc_library(
     name='config',
-    srcs=glob(['*.cpp', 'impl/*.cpp']),
-    hdrs=glob(['*.h', 'impl/*.h']),
+    hdrs=['function_executor_resource.h'],
     copts=['-Werror'],
     include_prefix='indexlib/config',
-    visibility=['//visibility:public'],
-    deps=[
-        ':base', '//aios/storage/indexlib/base:Status',
-        '//aios/storage/indexlib/base:Types',
-        '//aios/storage/indexlib/config:FieldConfig',
-        '//aios/storage/indexlib/config:FileCompressConfig',
-        '//aios/storage/indexlib/config:GroupDataParameter',
-        '//aios/storage/indexlib/config:IIndexConfig',
-        '//aios/storage/indexlib/config:SortDescription',
-        '//aios/storage/indexlib/config:SortParam',
-        '//aios/storage/indexlib/config:interface',
-        '//aios/storage/indexlib/file_system',
-        '//aios/storage/indexlib/framework:LevelInfo',
-        '//aios/storage/indexlib/index/ann:config',
-        '//aios/storage/indexlib/index/attribute:constants',
-        '//aios/storage/indexlib/index/attribute/config',
-        '//aios/storage/indexlib/index/common:constants',
-        '//aios/storage/indexlib/index/deletionmap:constants',
-        '//aios/storage/indexlib/index/inverted_index:constants',
-        '//aios/storage/indexlib/index/inverted_index/config:DateIndexConfig',
-        '//aios/storage/indexlib/index/inverted_index/config:DateLevelFormat',
-        '//aios/storage/indexlib/index/inverted_index/config:InvertedIndexConfig',
-        '//aios/storage/indexlib/index/inverted_index/config:PackageIndexConfig',
-        '//aios/storage/indexlib/index/inverted_index/config:PayloadConfig',
-        '//aios/storage/indexlib/index/inverted_index/config:RangeIndexConfig',
-        '//aios/storage/indexlib/index/inverted_index/config:SectionAttributeConfig',
-        '//aios/storage/indexlib/index/inverted_index/config:SingleFieldIndexConfig',
-        '//aios/storage/indexlib/index/inverted_index/config:SpatialIndexConfig',
-        '//aios/storage/indexlib/index/kkv/config',
-        '//aios/storage/indexlib/index/kkv/config:KKVIndexFieldInfo',
-        '//aios/storage/indexlib/index/kkv/config:KKVIndexPreference',
-        '//aios/storage/indexlib/index/kv:constants',
-        '//aios/storage/indexlib/index/kv/config',
-        '//aios/storage/indexlib/index/primary_key:constants',
-        '//aios/storage/indexlib/index/primary_key/config:PrimaryKeyIndexConfig',
-        '//aios/storage/indexlib/index/source/config:SourceGroupConfig',
-        '//aios/storage/indexlib/index/summary:constants',
-        '//aios/storage/indexlib/index/summary/config:SummaryConfig',
-        '//aios/storage/indexlib/index/summary/config:SummaryGroupConfig',
-        '//aios/storage/indexlib/index/summary/config:SummaryIndexConfig',
-        '//aios/storage/indexlib/indexlib:indexlib_h',
-        '//aios/storage/indexlib/indexlib:indexlib_misc',
-        '//aios/storage/indexlib/table:builtin_define',
-        '//aios/storage/indexlib/table/normal_table:Common',
-        '//aios/storage/indexlib/util:status_to_exception'
-    ],
-    alwayslink=True
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
+    deps=[':options', '//aios/storage/indexlib/legacy/config:schema']
 )

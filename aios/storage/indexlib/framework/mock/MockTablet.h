@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 #include "gmock/gmock.h"
 
 #include "indexlib/framework/Tablet.h"
@@ -50,7 +51,7 @@ public:
     MOCK_METHOD(std::shared_ptr<config::TabletOptions>, GetTabletOptions, (), (const, override));
     MOCK_METHOD(Status, ImportExternalFiles,
                 (const std::string&, const std::vector<std::string>&, const std::shared_ptr<ImportExternalFileOptions>&,
-                 Action action),
+                 Action action, int64_t eventTimeInSecs),
                 (override));
 };
 

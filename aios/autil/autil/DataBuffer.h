@@ -31,8 +31,6 @@
 
 #include "autil/CommonMacros.h"
 #include "autil/LongHashValue.h"
-#include "autil/MultiValueFormatter.h"
-#include "autil/MultiValueType.h"
 #include "autil/SerializableTypeTraits.h"
 #include "autil/Span.h"
 #include "autil/legacy/exception.h"
@@ -325,51 +323,6 @@ public:
     DECLARE_MAP_SUPPORT(std::unordered_map)
 #undef DECLARE_MAP_SUPPORT
 
-    template <typename T>
-    static constexpr bool is_multi_value = IsMultiType<T>::value;
-
-    template <typename T>
-    static constexpr bool is_multi_string = std::is_same<T, MultiValueType<MultiValueType<char>>>::value;
-
-    // MultiValueType
-    template <typename T>
-    typename std::enable_if<is_multi_value<T> && !is_multi_string<T>, void>::type write(const T &value) {
-        uint32_t len = value.getDataSize() + value.getHeaderSize();
-        write(len);
-        if (len > 0) {
-            char header[MultiValueFormatter::VALUE_COUNT_MAX_BYTES];
-            size_t countLen =
-                MultiValueFormatter::encodeCount(value.getCount(), header, MultiValueFormatter::VALUE_COUNT_MAX_BYTES);
-            writeBytes(header, countLen);
-            if (len > countLen) {
-                const char *data = value.getData();
-                assert(data != nullptr);
-                writeBytes(data, len - countLen);
-            }
-        }
-    }
-
-    // MultiString
-    void write(const MultiValueType<MultiValueType<char>> &value);
-
-    template <typename T>
-    typename std::enable_if<is_multi_value<T>, void>::type read(T &value) {
-        read(value, _pool);
-    }
-
-    template <typename T, typename Alloc>
-    typename std::enable_if<is_multi_value<T>, void>::type read(T &value, Alloc *allocator) {
-        assert(allocator != nullptr);
-        uint32_t len = 0;
-        read(len);
-        void *buf = nullptr;
-        if (len > 0) {
-            buf = allocator->allocate(len);
-            readBytes(buf, len);
-        }
-        value.init(buf);
-    }
-
     // user-defined types
     template <typename T>
     typename std::enable_if<__detail::HasSerialize<T>::value, void>::type write(const T &value) {
@@ -513,9 +466,9 @@ public:
         return -1;
     }
 
-private:
     void ensureFree(int len) { expand(len); }
 
+private:
     unsigned char *writeVarint32(uint32_t value, unsigned char *target);
     void readVarint32(uint32_t &value);
     void readVarint32FromArray(uint32_t &value) __attribute__((always_inline));

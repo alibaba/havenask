@@ -15,14 +15,22 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
+#include "autil/Lock.h"
 #include "autil/Log.h"
 #include "indexlib/util/TaskGroup.h"
+#include "indexlib/util/TaskItem.h"
 
 namespace indexlib { namespace util {
 
 class TaskScheduler;
+
 typedef std::shared_ptr<TaskScheduler> TaskSchedulerPtr;
 
 class TaskScheduler

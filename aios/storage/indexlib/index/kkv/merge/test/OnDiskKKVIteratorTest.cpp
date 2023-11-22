@@ -40,7 +40,10 @@ public:
         }
         return std::make_pair(Status::NotFound(), nullptr);
     }
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override { return 0; }
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override
+    {
+        return {Status::OK(), 0};
+    }
     size_t EvaluateCurrentMemUsed() override { return 0; }
 
 private:
@@ -185,7 +188,7 @@ std::shared_ptr<IMemIndexer> OnDiskKKVIteratorTest::CreateKKVMemIndexer(FieldTyp
     case type: {                                                                                                       \
         using SKeyType = indexlib::index::FieldTypeTraits<type>::AttrItemType;                                         \
         return std::make_shared<KKVMemIndexer<SKeyType>>(tabletName, pkeyMemUse, skeyMemUse, valueMemUse,              \
-                                                         skeyCompressRatio, valueCompressRatio, false);                \
+                                                         skeyCompressRatio, valueCompressRatio, false, true);          \
     }
         KKV_SKEY_DICT_TYPE_MACRO_HELPER(CASE_MACRO);
 #undef CASE_MACRO

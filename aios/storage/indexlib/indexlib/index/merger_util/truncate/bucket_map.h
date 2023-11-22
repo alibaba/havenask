@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUCKET_MAP_H
-#define __INDEXLIB_BUCKET_MAP_H
+#pragma once
 
 #include <memory>
 
@@ -91,5 +90,3 @@ inline uint32_t BucketMap::GetBucketValue(docid_t docId)
 DEFINE_SHARED_PTR(BucketMap);
 typedef std::map<std::string, BucketMapPtr> BucketMaps;
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_BUCKET_MAP_H

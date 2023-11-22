@@ -4,7 +4,7 @@ cc_library(
     testonly=1,
     hdrs=[
         'document_creator_unittest.h', 'document_parser_unittest.h',
-        'partition_state_machine_unittest.h', 'schema_maker_unittest.h',
+        'partition_state_machine_unittest.h',
         'single_field_partition_data_provider_unittest.h'
     ],
     copts=['-Werror'],
@@ -14,10 +14,10 @@ cc_fast_test(
     name='unittest',
     srcs=[
         'document_creator_unittest.cpp', 'document_parser_unittest.cpp',
-        'partition_state_machine_unittest.cpp', 'schema_maker_unittest.cpp',
+        'partition_state_machine_unittest.cpp',
         'single_field_partition_data_provider_unittest.cpp'
     ],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     deps=[
         ':test-headers', '//aios/storage/indexlib/indexlib/test:document',

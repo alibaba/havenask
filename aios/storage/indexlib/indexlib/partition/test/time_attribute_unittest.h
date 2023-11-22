@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TIMERANGEATTRIBUTETEST_H
-#define __INDEXLIB_TIMERANGEATTRIBUTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -41,5 +40,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(TimeAttributeTest, TestNullTimestampField);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(TimeAttributeTest, TestNullDateField);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(TimeAttributeTest, TestTimestampFieldWithDefaultTimeZoneDelta);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_TIMERANGEATTRIBUTETEST_H

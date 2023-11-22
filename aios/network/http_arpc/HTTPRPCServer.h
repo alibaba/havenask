@@ -92,6 +92,7 @@ public:
     bool PushItem(RPCService *service, HTTPRPCServerWorkItem *workItem);
     void registerService();
     bool addAlias(const AliasMap &aliasMap);
+    void removeAlias(const AliasMap &aliasMap);
     std::vector<std::string> getRPCNames();
     ServiceMethodPair getMethod(const std::string &serviceAndMethod);
     bool addMethod(const std::string &methodName, ServiceMethodPair &methodPair);

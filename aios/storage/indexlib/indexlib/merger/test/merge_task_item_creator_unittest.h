@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGETASKITEMCREATORTEST_H
-#define __INDEXLIB_MERGETASKITEMCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/merge_task_item_creator.h"
@@ -40,5 +39,3 @@ INDEXLIB_UNIT_TEST_CASE(MergeTaskItemCreatorTest, TestInitSummaryMergeIdentify);
 INDEXLIB_UNIT_TEST_CASE(MergeTaskItemCreatorTest, TestInitSourceMergeIdentify);
 INDEXLIB_UNIT_TEST_CASE(MergeTaskItemCreatorTest, TestInitAttributeMergeIdentify);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGETASKITEMCREATORTEST_H

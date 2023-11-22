@@ -1,11 +1,11 @@
 #include "indexlib/partition/test/reader_snapshot_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/normal/attribute/accessor/single_value_attribute_reader.h"
 #include "indexlib/index/test/partition_schema_maker.h"
 #include "indexlib/partition/index_application.h"
 #include "indexlib/partition/test/fake_index_partition_reader_base.h"
 #include "indexlib/partition/test/fake_online_partition.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::config;

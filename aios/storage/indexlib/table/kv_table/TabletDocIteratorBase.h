@@ -58,10 +58,10 @@ public:
     Status Init(const std::shared_ptr<framework::TabletData>& tabletData,
                 std::pair<uint32_t /*0-100*/, uint32_t /*0-100*/> rangeInRatio,
                 const std::shared_ptr<indexlibv2::framework::MetricsManager>&,
-                const std::vector<std::string>& requiredFields,
+                const std::optional<std::vector<std::string>>& requiredFields,
                 const std::map<std::string, std::string>& params) override;
     Status Next(indexlibv2::document::RawDocument* rawDocument, std::string* checkpoint,
-                document::IDocument::DocInfo* docInfo) override;
+                framework::Locator::DocInfo* docInfo) override;
     bool HasNext() const override;
     Status Seek(const std::string& checkpoint) override;
     void SetCheckPoint(const std::string& shardCheckpoint, std::string* checkpoint);
@@ -100,6 +100,7 @@ protected:
     autil::mem_pool::Pool _pool;
     std::string _nextShardCheckpoint;
     index::IShardRecordIterator::ShardRecord _nextRecord;
+    bool _readAllField = false;
     std::vector<std::string> _fieldNames;
     std::pair<uint32_t, uint32_t> _targetShardRange;
     std::shared_ptr<config::ValueConfig> _valueConfig;

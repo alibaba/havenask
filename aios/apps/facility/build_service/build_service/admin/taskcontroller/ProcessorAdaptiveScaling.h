@@ -15,10 +15,18 @@
  */
 #pragma once
 
+#include <map>
+#include <optional>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+
 #include "build_service/admin/LocatorDetectStrategy.h"
 #include "build_service/admin/taskcontroller/NodeStatusManager.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ProcessorAdaptiveScalingConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {

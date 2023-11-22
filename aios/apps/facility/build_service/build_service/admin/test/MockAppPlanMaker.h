@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKAPPPLANMAKER_H
-#define ISEARCH_BS_MOCKAPPPLANMAKER_H
+#pragma once
 
 #include "build_service/admin/AppPlanMaker.h"
 #include "build_service/test/test.h"
@@ -26,5 +25,3 @@ typedef ::testing::StrictMock<MockAppPlanMaker> StrictMockAppPlanMaker;
 typedef ::testing::NiceMock<MockAppPlanMaker> NiceMockAppPlanMaker;
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_MOCKAPPPLANMAKER_H

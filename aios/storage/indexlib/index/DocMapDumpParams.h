@@ -21,8 +21,8 @@
 namespace indexlibv2::index {
 
 struct DocMapDumpParams : public framework::DumpParams {
-    std::vector<docid_t> old2new;
-    std::vector<docid_t> new2old;
+    std::vector<docid32_t> old2new;
+    std::vector<docid32_t> new2old;
 };
 
 } // namespace indexlibv2::index

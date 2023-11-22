@@ -86,7 +86,7 @@ strict_cc_library(
     deps=[
         ':Common', ':IndexSegmentReader', ':InvertedIndexSearchTracer',
         ':SegmentPosting', '//aios/autil:memory',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index/inverted_index/format:IndexFormatOption',
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaDumper',
         '//aios/storage/indexlib/index/inverted_index/format/dictionary:DictionaryCreator',
@@ -155,7 +155,7 @@ strict_cc_library(
     name='InvertedMemIndexer',
     deps=[
         ':Common', ':IInvertedMemIndexer', ':IndexFormatWriterCreator',
-        ':InvertedIndexMerger', ':InvertedIndexMetrics',
+        ':InvertedIndexFields', ':InvertedIndexMerger', ':InvertedIndexMetrics',
         ':InvertedLeafMemReader', '//aios/storage/indexlib/config:IIndexConfig',
         '//aios/storage/indexlib/document/extractor:IDocumentInfoExtractor',
         '//aios/storage/indexlib/document/extractor/plain:DocumentInfoExtractorFactory',
@@ -179,6 +179,7 @@ strict_cc_library(
         '//aios/storage/indexlib/framework/index_task:IndexTaskResourceManager',
         '//aios/storage/indexlib/index:DocMapper',
         '//aios/storage/indexlib/index:IIndexMerger',
+        '//aios/storage/indexlib/index/common:PlainDocMapper',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/adaptive_bitmap:AdaptiveBitmapIndexWriterCreator',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/adaptive_bitmap:MultiAdaptiveBitmapIndexWriter',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/bitmap:BitmapPostingMerger',
@@ -251,17 +252,17 @@ strict_cc_library(
         '//aios/storage/indexlib/config:IIndexConfig',
         '//aios/storage/indexlib/framework:IMetrics',
         '//aios/storage/indexlib/framework:MetricsWrapper',
-        '//aios/storage/indexlib/index:IndexerParameter'
+        '//aios/storage/indexlib/index:IndexReaderParameter'
     ]
 )
 strict_cc_library(
     name='InvertedIndexFactory',
     deps=[
-        ':InvertedDiskIndexer', ':InvertedIndexMetrics',
-        ':InvertedIndexReaderImpl', ':InvertedMemIndexer',
-        ':MultiShardInvertedDiskIndexer', ':MultiShardInvertedIndexReader',
-        ':MultiShardInvertedMemIndexer', '//aios/autil:log',
-        '//aios/storage/indexlib/index:IIndexFactory',
+        ':InvertedDiskIndexer', ':InvertedIndexFieldsParser',
+        ':InvertedIndexMetrics', ':InvertedIndexReaderImpl',
+        ':InvertedMemIndexer', ':MultiShardInvertedDiskIndexer',
+        ':MultiShardInvertedIndexReader', ':MultiShardInvertedMemIndexer',
+        '//aios/autil:log', '//aios/storage/indexlib/index:IIndexFactory',
         '//aios/storage/indexlib/index:IIndexMerger',
         '//aios/storage/indexlib/index:IIndexReader',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/date:DateDiskIndexer',
@@ -301,7 +302,7 @@ strict_cc_library(
         '//aios/storage/indexlib/base:Types',
         '//aios/storage/indexlib/config:TabletSchema',
         '//aios/storage/indexlib/framework:TabletData',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index/inverted_index/section_attribute:SectionAttributeReaderImpl'
     ]
 )
@@ -503,10 +504,10 @@ strict_cc_library(
 strict_cc_library(
     name='InvertedIndexReader',
     deps=[
-        ':PostingIterator',
+        ':PostingIterator', '//aios/storage/indexlib/index:IIndexReader',
+        '//aios/storage/indexlib/document:IIndexFields',
         '//aios/storage/indexlib/document/normal:ModifiedTokens',
         '//aios/storage/indexlib/framework:SegmentInfo',
-        '//aios/storage/indexlib/index:IIndexReader',
         '//aios/storage/indexlib/index/inverted_index/format:DocListFormatOption',
         '//aios/storage/indexlib/index/inverted_index/format:IndexFormatOption',
         '//aios/storage/indexlib/index/inverted_index/format:PositionListFormatOption',
@@ -660,3 +661,31 @@ strict_cc_library(
 )
 strict_cc_library(name='Types', srcs=[])
 strict_cc_library(name='MatchValue', srcs=[])
+strict_cc_library(
+    name='InvertedIndexFields',
+    deps=[
+        ':Common', ':Types', '//aios/storage/indexlib/base:Types',
+        '//aios/storage/indexlib/document:IIndexFields',
+        '//aios/storage/indexlib/document/normal:Field',
+        '//aios/storage/indexlib/document/normal:IndexRawField',
+        '//aios/storage/indexlib/document/normal:IndexTokenizeField',
+        '//aios/storage/indexlib/document/normal:NullField',
+        '//aios/storage/indexlib/document/normal/tokenize'
+    ]
+)
+strict_cc_library(
+    name='InvertedIndexFieldsParser',
+    deps=[
+        ':InvertedIndexFields', ':config',
+        '//aios/storage/indexlib/config:FieldConfig',
+        '//aios/storage/indexlib/document:DocumentInitParam',
+        '//aios/storage/indexlib/document:ExtendDocument',
+        '//aios/storage/indexlib/document:IIndexFieldsParser',
+        '//aios/storage/indexlib/document:RawDocument',
+        '//aios/storage/indexlib/document/normal:TokenizeDocumentConvertor',
+        '//aios/storage/indexlib/index/common/field_format/date:DateFieldEncoder',
+        '//aios/storage/indexlib/index/common/field_format/range:RangeFieldEncoder',
+        '//aios/storage/indexlib/index/common/field_format/spatial:shape',
+        '//aios/storage/indexlib/util:PooledUniquePtr'
+    ]
+)

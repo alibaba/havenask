@@ -23,16 +23,19 @@ const std::string kReportArpcMetricsEnvName = "ARPC_METRIC_ENABLE";
 const std::string kShowSlowRequestLogEnvName = "ARPC_SLOW_REQUEST_LOG";
 const std::string kSlowRequestThresholdInUsEnvName = "ARPC_SLOW_REQUEST_THRESHOLD_IN_US";
 
-MetricReporterConfig::MetricReporterConfig(bool enable) : enableArpcMetric(enable) {
+MetricReporterConfig::MetricReporterConfig(bool enable) : enableArpcMetric(enable) 
+{
     enableArpcMetric = autil::EnvUtil::getEnv(kReportArpcMetricsEnvName, enableArpcMetric);
     enableSlowRequestLog = autil::EnvUtil::getEnv(kShowSlowRequestLogEnvName, enableSlowRequestLog);
     slowRequestThresholdInUs = autil::EnvUtil::getEnv(kSlowRequestThresholdInUsEnvName, slowRequestThresholdInUs);
 }
 
-void MetricReporterConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
+void MetricReporterConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
+{
     json.Jsonize("enable_arpc_metric", enableArpcMetric, enableArpcMetric);
     json.Jsonize("enable_slow_request_log", enableSlowRequestLog, enableSlowRequestLog);
     json.Jsonize("slow_request_threshold_us", slowRequestThresholdInUs, slowRequestThresholdInUs);
+    json.Jsonize("type", type, type);
 }
 
 } // namespace arpc

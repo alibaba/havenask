@@ -95,7 +95,7 @@ void SourceDocumentFormatter::DeserializeSourceDocument(const SerializedSourceDo
             assert(dataIter->HasNext());
             StringView fieldName = metaIter->Next();
             StringView data = dataIter->Next();
-            document->Append((index::groupid_t)i, fieldName, data, true);
+            document->Append((index::sourcegroupid_t)i, fieldName, data, true);
         }
     }
 
@@ -118,7 +118,7 @@ void SourceDocumentFormatter::SerializeData(const SourceDocumentPtr& document, a
         status = mGroupFormatterVec[i]->SerializeFields(iter, value, len);
         THROW_IF_STATUS_ERROR(status);
         StringView groupValue(value, len);
-        serDoc->AddGroupValue(groupValue);
+        serDoc->SetGroupValue(i, groupValue);
     }
 }
 

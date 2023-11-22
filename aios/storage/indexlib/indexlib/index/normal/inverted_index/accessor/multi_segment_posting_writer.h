@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MULTI_SEGMENT_POSTING_WRITER_H
-#define __INDEXLIB_MULTI_SEGMENT_POSTING_WRITER_H
+#pragma once
 
 #include <memory>
 
@@ -138,5 +137,3 @@ void MultiSegmentPostingWriter::DoDumpPosting(std::shared_ptr<PostingWriter>& po
     postingWriter->Dump(postingFile);
 }
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_MULTI_SEGMENT_POSTING_WRITER_H

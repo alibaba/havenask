@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_INDEX_PARTITION_OPTIONS_H
-#define __INDEXLIB_INDEX_PARTITION_OPTIONS_H
+#pragma once
 
 #include <memory>
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/offline_config.h"
 #include "indexlib/config/online_config.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
-DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
-DECLARE_REFERENCE_CLASS(config, IndexPartitionOptionsImpl);
-DECLARE_REFERENCE_CLASS(config, UpdateableSchemaStandards);
+namespace indexlib::config {
+class IndexPartitionSchema;
+typedef std::shared_ptr<IndexPartitionSchema> IndexPartitionSchemaPtr;
+} // namespace indexlib::config
+namespace indexlib::config {
+class IndexPartitionOptionsImpl;
+typedef std::shared_ptr<IndexPartitionOptionsImpl> IndexPartitionOptionsImplPtr;
+} // namespace indexlib::config
+namespace indexlib::config {
+class UpdateableSchemaStandards;
+typedef std::shared_ptr<UpdateableSchemaStandards> UpdateableSchemaStandardsPtr;
+} // namespace indexlib::config
 
 namespace indexlib { namespace config {
 
@@ -86,10 +94,8 @@ public:
     bool TEST_mReadOnly;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(IndexPartitionOptions);
+typedef std::shared_ptr<IndexPartitionOptions> IndexPartitionOptionsPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_INDEX_PARTITION_OPTIONS_H

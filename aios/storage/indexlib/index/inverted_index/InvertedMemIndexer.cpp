@@ -34,6 +34,7 @@
 #include "indexlib/index/common/patch/PatchFileInfo.h"
 #include "indexlib/index/inverted_index/IndexFormatWriterCreator.h"
 #include "indexlib/index/inverted_index/IndexSegmentReader.h"
+#include "indexlib/index/inverted_index/InvertedIndexFields.h"
 #include "indexlib/index/inverted_index/InvertedIndexMerger.h"
 #include "indexlib/index/inverted_index/InvertedIndexUtil.h"
 #include "indexlib/index/inverted_index/InvertedLeafMemReader.h"
@@ -62,7 +63,7 @@ using indexlibv2::document::IIndexFields;
 
 AUTIL_LOG_SETUP(indexlib.index, InvertedMemIndexer);
 
-InvertedMemIndexer::InvertedMemIndexer(const indexlibv2::index::IndexerParameter& indexerParam,
+InvertedMemIndexer::InvertedMemIndexer(const indexlibv2::index::MemIndexerParameter& indexerParam,
                                        const std::shared_ptr<InvertedIndexMetrics>& metrics)
     : _indexerParam(indexerParam)
     , _modifiedPosting(autil::mem_pool::pool_allocator<PostingPair>(&_simplePool))
@@ -94,13 +95,10 @@ Status InvertedMemIndexer::Init(const std::shared_ptr<IIndexConfig>& indexConfig
                                 indexlibv2::document::extractor::IDocumentInfoExtractorFactory* docInfoExtractorFactory)
 {
     std::any emptyFieldHint;
-    assert(docInfoExtractorFactory);
-    _docInfoExtractor = docInfoExtractorFactory->CreateDocumentInfoExtractor(
-        indexConfig, indexlibv2::document::extractor::DocumentInfoExtractorType::INVERTED_INDEX_DOC,
-        /*fieldHint=*/emptyFieldHint);
-    if (_docInfoExtractor == nullptr) {
-        AUTIL_LOG(ERROR, "create document info extractor failed");
-        return Status::InternalError("create document info extractor failed.");
+    if (docInfoExtractorFactory) {
+        _docInfoExtractor = docInfoExtractorFactory->CreateDocumentInfoExtractor(
+            indexConfig, indexlibv2::document::extractor::DocumentInfoExtractorType::INVERTED_INDEX_DOC,
+            /*fieldHint=*/emptyFieldHint);
     }
     _indexConfig = std::dynamic_pointer_cast<indexlibv2::config::InvertedIndexConfig>(indexConfig);
     if (_indexConfig == nullptr) {
@@ -193,9 +191,28 @@ Status InvertedMemIndexer::DocBatchToDocs(IDocumentBatch* docBatch, std::vector<
 }
 Status InvertedMemIndexer::Build(const IIndexFields* indexFields, size_t n)
 {
-    assert(0);
-    return {};
+    assert(_indexerParam.currentBuildDocId);
+    docid64_t startDocId = *(_indexerParam.currentBuildDocId);
+    const auto* fields = dynamic_cast<const indexlibv2::index::InvertedIndexFields*>(indexFields);
+    if (!fields) {
+        RETURN_STATUS_ERROR(Status::InvalidArgs, "cast to inverted index fields failed");
+    }
+
+    for (size_t i = 0; i < n; ++i, ++fields) {
+        for (auto fieldId : _fieldIds) {
+            const document::Field* field = fields->GetField(fieldId);
+            auto status = AddField(field);
+            RETURN_IF_STATUS_ERROR(status, "add field fail, fieldId[%d]", fieldId);
+        }
+        if (startDocId >= std::numeric_limits<docid32_t>::max() - 1) {
+            RETURN_STATUS_ERROR(Status::OutOfRange, "too many doc for one segment");
+        }
+        EndDocument(fields, startDocId++);
+        _docCount++;
+    }
+    return Status::OK();
 }
+
 Status InvertedMemIndexer::Build(IDocumentBatch* docBatch)
 {
     // TODO(makuo.mnb) remove this try catch when v2 migration completed
@@ -239,6 +256,53 @@ Status InvertedMemIndexer::AddDocument(document::IndexDocument* doc)
     EndDocument(*doc);
     _docCount++;
     return Status::OK();
+}
+
+void InvertedMemIndexer::EndDocument(const indexlibv2::index::InvertedIndexFields* indexFields, docid64_t docId)
+{
+    if (_bitmapIndexWriter) {
+        _bitmapIndexWriter->EndDocument(indexFields, docId);
+        _estimateDumpTempMemSize =
+            NeedEstimateDumpTempMemSize()
+                ? std::max(_estimateDumpTempMemSize, _bitmapIndexWriter->GetEstimateDumpTempMemSize())
+                : 0;
+    }
+    if (!_modifiedPosting.empty()) {
+        for (PostingVector::iterator it = _modifiedPosting.begin(); it != _modifiedPosting.end(); it++) {
+            if (_indexFormatOption->HasTermPayload()) {
+                termpayload_t termpayload = indexFields->GetTermPayload(it->first);
+                it->second->SetTermPayload(termpayload);
+            }
+
+            docpayload_t docPayload =
+                _indexFormatOption->HasDocPayload()
+                    ? indexFields->GetDocPayload(_indexConfig->GetTruncatePayloadConfig(), it->first)
+                    : 0;
+            it->second->EndDocument(docId, docPayload);
+            UpdateToCompressShortListCount(it->second->GetDF());
+            _estimateDumpTempMemSize =
+                NeedEstimateDumpTempMemSize()
+                    ? std::max(_estimateDumpTempMemSize, it->second->GetEstimateDumpTempMemSize())
+                    : 0;
+        }
+    }
+
+    if (_modifyNullTermPosting) {
+        assert(_nullTermPosting);
+        _nullTermPosting->EndDocument(docId, 0);
+        UpdateToCompressShortListCount(_nullTermPosting->GetDF());
+        _estimateDumpTempMemSize =
+            NeedEstimateDumpTempMemSize()
+                ? std::max(_estimateDumpTempMemSize, _nullTermPosting->GetEstimateDumpTempMemSize())
+                : 0;
+    }
+
+    _modifiedPosting.clear();
+    _modifyNullTermPosting = false;
+    if (_sectionAttributeMemIndexer) {
+        _sectionAttributeMemIndexer->EndDocument(indexFields, docId);
+    }
+    _basePos = 0;
 }
 
 void InvertedMemIndexer::EndDocument(const document::IndexDocument& indexDocument)
@@ -529,7 +593,7 @@ Status InvertedMemIndexer::DoDump(autil::mem_pool::PoolBase* dumpPool,
         DoDumpFiles(dumpPool, /*outputDirectory=*/tmpDirectory, /*sectionAttributeOutputDirectory=*/directory, params);
     RETURN_IF_STATUS_ERROR(status, "dump files to [%s] failed", tmpDirectory->GetLogicalPath().c_str());
     if (_invertedIndexSegmentUpdater) {
-        const std::vector<docid_t>* old2NewDocId = params ? &params->old2new : nullptr;
+        const std::vector<docid32_t>* old2NewDocId = params ? &params->old2new : nullptr;
         auto [status, patchFileInfo] =
             _invertedIndexSegmentUpdater->DumpToIndexDir(tmpDirectory->GetIDirectory(), /*srcSegment=*/0, old2NewDocId);
         RETURN_IF_STATUS_ERROR(status, "dump patch to [%s] failed", tmpDirectory->GetLogicalPath().c_str());
@@ -564,7 +628,7 @@ Status InvertedMemIndexer::DoDumpFiles(autil::mem_pool::PoolBase* dumpPool,
         return Status::IOError();
     }
 
-    const std::vector<docid_t>* old2NewDocId = dumpParams ? &dumpParams->old2new : nullptr;
+    const std::vector<docid32_t>* old2NewDocId = dumpParams ? &dumpParams->old2new : nullptr;
     autil::mem_pool::Pool dumpTempPool(_allocator.get(), DEFAULT_CHUNK_SIZE * 1024 * 1024);
     autil::mem_pool::RecyclePool recycleTempPool(_allocator.get(), DEFAULT_CHUNK_SIZE * 1024 * 1024, 8);
     PostingWriterResource dumpResource(_postingWriterResource->simplePool, &dumpTempPool, &recycleTempPool,
@@ -637,7 +701,7 @@ InvertedMemIndexer::MergeModifiedTokens(const std::shared_ptr<file_system::Direc
 
 std::pair<Status, dictvalue_t>
 InvertedMemIndexer::DumpPosting(PostingWriter* writer, const std::shared_ptr<file_system::FileWriter>& fileWriter,
-                                const std::vector<docid_t>* old2NewDocId, PostingWriterResource* resource,
+                                const std::vector<docid32_t>* old2NewDocId, PostingWriterResource* resource,
                                 InvertedIndexMetrics::SortDumpMetrics* metrics)
 {
     uint64_t inlinePostingValue;
@@ -714,11 +778,7 @@ InvertedMemIndexer::DumpNormalPosting(PostingWriter* writer, const std::shared_p
 }
 
 bool InvertedMemIndexer::IsValidDocument(IDocument* doc) { return _docInfoExtractor->IsValidDocument(doc); }
-bool InvertedMemIndexer::IsValidField(const IIndexFields* fields)
-{
-    assert(0);
-    return false;
-}
+bool InvertedMemIndexer::IsValidField(const IIndexFields* fields) { return true; }
 
 void InvertedMemIndexer::ValidateDocumentBatch(IDocumentBatch* docBatch)
 {
@@ -831,7 +891,7 @@ uint32_t InvertedMemIndexer::GetDistinctTermCount() const
     return termCount;
 }
 
-void InvertedMemIndexer::UpdateTokens(docid_t docId, const document::ModifiedTokens& modifiedTokens)
+void InvertedMemIndexer::UpdateTokens(docid32_t docId, const document::ModifiedTokens& modifiedTokens)
 {
     for (size_t i = 0; i < modifiedTokens.NonNullTermSize(); ++i) {
         auto [termKey, op] = modifiedTokens[i];
@@ -845,7 +905,7 @@ void InvertedMemIndexer::UpdateTokens(docid_t docId, const document::ModifiedTok
     }
 }
 
-void InvertedMemIndexer::UpdateOneTerm(docid_t docId, const DictKeyInfo& dictKeyInfo,
+void InvertedMemIndexer::UpdateOneTerm(docid32_t docId, const DictKeyInfo& dictKeyInfo,
                                        document::ModifiedTokens::Operation op)
 {
     if (_invertedIndexSegmentUpdater) {

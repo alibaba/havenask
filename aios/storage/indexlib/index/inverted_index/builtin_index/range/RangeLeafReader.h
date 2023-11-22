@@ -32,7 +32,7 @@ public:
     ~RangeLeafReader();
 
     future_lite::coro::Lazy<indexlib::index::Result<SegmentPostingsVec>>
-    Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId, autil::mem_pool::Pool* sessionPool,
+    Lookup(uint64_t leftTerm, uint64_t rightTerm, docid64_t baseDocId, autil::mem_pool::Pool* sessionPool,
            file_system::ReadOption option, InvertedIndexSearchTracer* tracer) noexcept;
 
 private:

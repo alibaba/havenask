@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 #pragma once
-#include <bits/stdint-uintn.h>
-#include <cstddef>
+#include <assert.h>
+#include <cstdint>
+#include <cstring>
 #include <iomanip>
 #include <limits>
 #include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "fslib/fs/FileSystem.h"
 #include "fslib/util/URLParser.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/base/PathUtil.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibFileWrapper.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/TabletId.h"

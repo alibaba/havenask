@@ -81,10 +81,9 @@ private:
     bool initResourceGraph(const NaviConfig &config);
     BizPtr doGetBiz(const std::string &bizName) const;
     const BizMapPtr &getBizMap() const;
-    void logUpdateGraphDef() const;
 private:
     DECLARE_LOGGER();
-    TestMode _testMode = TM_NOT_TEST;
+    TestMode _testMode = TM_NONE;
     std::string _naviName;
     std::vector<multi_call::SignatureTy> _publishSignatures;
     multi_call::GigRpcServer *_gigRpcServer = nullptr;

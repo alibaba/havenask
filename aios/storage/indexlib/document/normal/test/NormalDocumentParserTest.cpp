@@ -13,6 +13,7 @@
 #include "indexlib/document/normal/SummaryFormatter.h"
 #include "indexlib/document/normal/test/TokenizeHelper.h"
 #include "indexlib/document/raw_document/DefaultRawDocument.h"
+#include "indexlib/document/raw_document/test/RawDocumentMaker.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
@@ -109,11 +110,11 @@ void NormalDocumentParserTest::setUp()
             .release());
     ASSERT_TRUE(_schemaPtr);
     ASSERT_TRUE(framework::TabletSchemaLoader::ResolveSchema(nullptr, "", _schemaPtr.get()).IsOK());
-
+    _schemaPtr->SetSchemaId(1);
     _extendDoc.reset(new NormalExtendDocument());
     std::shared_ptr<RawDocument> rawDoc(new DefaultRawDocument(_hashMapManager));
-    _extendDoc->setRawDocument(rawDoc);
-    _extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    _extendDoc->SetRawDocument(rawDoc);
+    _extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
     _classifiedDocument = _extendDoc->getClassifiedDocument();
 
     _tokenizeHelper.reset(new TokenizeHelper);
@@ -219,6 +220,7 @@ TEST_F(NormalDocumentParserTest, testSimpleProcess)
     checkSectionAttribute(document->GetIndexDocument());
     ASSERT_TRUE(document->GetSummaryDocument());
     ASSERT_TRUE(document->GetTraceId().empty());
+    ASSERT_EQ(1u, document->GetSchemaId());
 }
 
 TEST_F(NormalDocumentParserTest, testConvertError)
@@ -248,7 +250,7 @@ TEST_F(NormalDocumentParserTest, testConvertError)
     // clear
     {
         _extendDoc.reset(new NormalExtendDocument());
-        _extendDoc->setRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
+        _extendDoc->SetRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
         string fieldValue = "title:A b# c d e,nid:1,user_id:1";
         prepare(fieldValue);
         ASSERT_TRUE(ParseDocument(parser, _extendDoc));
@@ -258,7 +260,7 @@ TEST_F(NormalDocumentParserTest, testConvertError)
     // clear
     {
         _extendDoc.reset(new NormalExtendDocument());
-        _extendDoc->setRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
+        _extendDoc->SetRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
         string fieldValue = "title:A b# c d e,nid:c,user_id:1";
         prepare(fieldValue);
         ASSERT_TRUE(ParseDocument(parser, _extendDoc));
@@ -269,7 +271,7 @@ TEST_F(NormalDocumentParserTest, testConvertError)
     {
         // pk is invalid
         _extendDoc.reset(new NormalExtendDocument());
-        _extendDoc->setRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
+        _extendDoc->SetRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
         string fieldValue = "title:A b# c d e,user_id:c";
         prepare(fieldValue);
         AssertParseEmpty(parser, _extendDoc);
@@ -279,7 +281,7 @@ TEST_F(NormalDocumentParserTest, testConvertError)
 
 TEST_F(NormalDocumentParserTest, testShapeIndex)
 {
-    std::shared_ptr<RawDocument> rawDoc = _extendDoc->getRawDocument();
+    std::shared_ptr<RawDocument> rawDoc = _extendDoc->GetRawDocument();
     string lineStr = "0.1 30.1,30.1 30.1,30.1 0.1";
     string polygonStr = "0.1 30.1,30.1 30.1,30.1 0.1,0.1 0.1,0.1 30.1";
     rawDoc->setField("line", lineStr);
@@ -323,7 +325,7 @@ TEST_F(NormalDocumentParserTest, testShapeIndex)
 // TODO: uncomment this test when spatial index migrated to indexlibv2
 // TEST_F(NormalDocumentParserTest, testSpatialIndex)
 // {
-//     std::shared_ptr<RawDocument> rawDoc = _extendDoc->getRawDocument();
+//     std::shared_ptr<RawDocument> rawDoc = _extendDoc->GetRawDocument();
 //     rawDoc->setField("location", "180.0 30.0140.1 31.1");
 //     rawDoc->setField("nid", "1");
 //     ASSERT_TRUE(_tokenizeHelper->process(_extendDoc));
@@ -368,7 +370,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
     {
         tearDown();
         setUp();
-        _extendDoc->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+        _extendDoc->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
         prepare(fieldValue);
 
         auto document = ParseDocument(_schemaPtr, nullptr, _extendDoc);
@@ -378,7 +380,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
     {
         tearDown();
         setUp();
-        _extendDoc->getRawDocument()->setDocOperateType(DELETE_DOC);
+        _extendDoc->GetRawDocument()->setDocOperateType(DELETE_DOC);
         prepare(fieldValue);
 
         auto document = ParseDocument(_schemaPtr, nullptr, _extendDoc);
@@ -388,7 +390,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
     {
         tearDown();
         setUp();
-        _extendDoc->getRawDocument()->setDocOperateType(DELETE_SUB_DOC);
+        _extendDoc->GetRawDocument()->setDocOperateType(DELETE_SUB_DOC);
         prepare(fieldValue);
 
         auto document = ParseDocument(_schemaPtr, nullptr, _extendDoc);
@@ -399,7 +401,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
         tearDown();
         setUp();
         string newFieldValue = "nid:1,user_id:12345";
-        _extendDoc->getRawDocument()->setDocOperateType(DELETE_DOC);
+        _extendDoc->GetRawDocument()->setDocOperateType(DELETE_DOC);
         prepare(newFieldValue);
 
         ASSERT_TRUE(_schemaPtr->_impl->SetRuntimeSetting<std::string>("order_preserving_field", "user_id", true));
@@ -413,7 +415,7 @@ TEST_F(NormalDocumentParserTest, testSectionAttributeForNonAddDocType)
 
 TEST_F(NormalDocumentParserTest, testNonUpdateField)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    _extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
     string fieldValue = "content:A b# c d e,user_id:1234,nid:123,multi_string:111222333,auction_type:sale";
     prepare(fieldValue);
 
@@ -444,7 +446,7 @@ TEST_F(NormalDocumentParserTest, testNonUpdateField)
 
 TEST_F(NormalDocumentParserTest, testUpdateField)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+    _extendDoc->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
 
     string fieldValue = "content:A b# c d e,user_id:1234,nid:123,multi_string:111222333";
     prepare(fieldValue);
@@ -529,7 +531,7 @@ TEST_F(NormalDocumentParserTest, testSetFieldValue)
 
 void NormalDocumentParserTest::prepare(const std::string& fieldValue)
 {
-    std::shared_ptr<RawDocument> rawDoc = _extendDoc->getRawDocument();
+    std::shared_ptr<RawDocument> rawDoc = _extendDoc->GetRawDocument();
     vector<vector<string>> splitValue;
     autil::StringUtil::fromString(fieldValue, splitValue, ":", ",");
     for (size_t i = 0; i < splitValue.size(); ++i) {
@@ -545,7 +547,7 @@ NormalDocumentParserTest::makeExtendDoc(const std::shared_ptr<config::ITabletSch
 {
     std::shared_ptr<NormalExtendDocument> extDoc(new NormalExtendDocument);
     std::shared_ptr<RawDocument> rawDoc(new DefaultRawDocument(_hashMapManager));
-    extDoc->setRawDocument(rawDoc);
+    extDoc->SetRawDocument(rawDoc);
 
     vector<vector<string>> splitValue;
     autil::StringUtil::fromString(docValues, splitValue, ":", ",");
@@ -676,8 +678,8 @@ TEST_F(NormalDocumentParserTest, testValidateWithPkEmpty)
     // no raw doc
     AssertParseEmpty(parser, extendDoc);
 
-    extendDoc->setRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
-    extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    extendDoc->SetRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
+    extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
     TokenizeHelper tokenizeHelper;
     tokenizeHelper.init(_schemaPtr);
     ASSERT_TRUE(tokenizeHelper.process(extendDoc));
@@ -686,7 +688,7 @@ TEST_F(NormalDocumentParserTest, testValidateWithPkEmpty)
     AssertParseEmpty(parser, extendDoc);
 
     // pk not empty
-    extendDoc->getRawDocument()->setField("f2", "notempty");
+    extendDoc->GetRawDocument()->setField("f2", "notempty");
     auto document = ParseDocument(parser, extendDoc);
     ASSERT_TRUE(document);
 }
@@ -702,8 +704,8 @@ TEST_F(NormalDocumentParserTest, testValidateNoIndexField)
     ASSERT_TRUE(parser->Init(_schemaPtr, nullptr).IsOK());
     std::shared_ptr<NormalExtendDocument> document(new NormalExtendDocument);
 
-    document->setRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
-    document->getRawDocument()->setDocOperateType(ADD_DOC);
+    document->SetRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
+    document->GetRawDocument()->setDocOperateType(ADD_DOC);
     TokenizeHelper tokenizeHelper;
     tokenizeHelper.init(_schemaPtr);
     ASSERT_TRUE(tokenizeHelper.process(document));
@@ -713,9 +715,9 @@ TEST_F(NormalDocumentParserTest, testValidateNoIndexField)
 
     // no pk, with index field
     document.reset(new NormalExtendDocument);
-    document->setRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
-    document->getRawDocument()->setDocOperateType(ADD_DOC);
-    document->getRawDocument()->setField("f1", "123");
+    document->SetRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
+    document->GetRawDocument()->setDocOperateType(ADD_DOC);
+    document->GetRawDocument()->setField("f1", "123");
     ASSERT_TRUE(tokenizeHelper.process(document));
     ASSERT_TRUE(ParseDocument(parser, document));
 }
@@ -731,17 +733,17 @@ TEST_F(NormalDocumentParserTest, testValidateNonAddDoc)
         ASSERT_TRUE(framework::TabletSchemaLoader::ResolveSchema(nullptr, "", _schemaPtr.get()).IsOK());
 
         std::shared_ptr<NormalExtendDocument> document(new NormalExtendDocument);
-        document->setRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
+        document->SetRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
         auto parser = std::make_shared<NormalDocumentParser>(nullptr, false);
         ASSERT_TRUE(parser->Init(_schemaPtr, nullptr).IsOK());
 
-        document->getRawDocument()->setDocOperateType(DELETE_DOC);
+        document->GetRawDocument()->setDocOperateType(DELETE_DOC);
         AssertParseEmpty(parser, document);
 
-        document->getRawDocument()->setDocOperateType(DELETE_SUB_DOC);
+        document->GetRawDocument()->setDocOperateType(DELETE_SUB_DOC);
         AssertParseEmpty(parser, document);
 
-        document->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+        document->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
         AssertParseEmpty(parser, document);
     }
     {
@@ -750,10 +752,10 @@ TEST_F(NormalDocumentParserTest, testValidateNonAddDoc)
         _schemaPtr = table::NormalTabletSchemaMaker::Make(field, index, attr, "");
         ASSERT_TRUE(framework::TabletSchemaLoader::ResolveSchema(nullptr, "", _schemaPtr.get()).IsOK());
         std::shared_ptr<NormalExtendDocument> document(new NormalExtendDocument);
-        document->setRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
+        document->SetRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
 
-        document->getRawDocument()->setField("f2", "1234");
-        document->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+        document->GetRawDocument()->setField("f2", "1234");
+        document->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
 
         TokenizeHelper tokenizeHelper;
         tokenizeHelper.init(_schemaPtr);
@@ -762,9 +764,9 @@ TEST_F(NormalDocumentParserTest, testValidateNonAddDoc)
 
         // test error OP Type
         document.reset(new NormalExtendDocument);
-        document->setRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
-        document->getRawDocument()->setField("f2", "1234");
-        document->getRawDocument()->setDocOperateType(DocOperateType(123));
+        document->SetRawDocument(std::shared_ptr<RawDocument>(new DefaultRawDocument(_hashMapManager)));
+        document->GetRawDocument()->setField("f2", "1234");
+        document->GetRawDocument()->setDocOperateType(DocOperateType(123));
         ASSERT_TRUE(tokenizeHelper.process(document));
         AssertParseEmpty(_schemaPtr, nullptr, document);
     }
@@ -800,7 +802,7 @@ TEST_F(NormalDocumentParserTest, testCompitableSerialzeForModifyOperation)
         // old schema with out modify operation
         std::shared_ptr<NormalExtendDocument> mainDoc = makeExtendDoc(_schemaPtr, "f1:1,f2:2,f3:abc efg");
         auto document = ParseDocument(_schemaPtr, nullptr, mainDoc);
-        ASSERT_EQ(6, document->GetSerializedVersion());
+        ASSERT_EQ(12, document->GetSerializedVersion());
     }
 
     {
@@ -825,7 +827,7 @@ TEST_F(NormalDocumentParserTest, testCompitableSerialize)
         // doc no field doc trace
         std::shared_ptr<NormalExtendDocument> mainDoc = makeExtendDoc(_schemaPtr, "f1:1,f2:2,f3:abc efg");
         auto document = ParseDocument(_schemaPtr, nullptr, mainDoc);
-        ASSERT_EQ(6, document->GetSerializedVersion());
+        ASSERT_EQ(12, document->GetSerializedVersion());
     }
     {
         // doc has doc trace
@@ -906,7 +908,7 @@ std::shared_ptr<NormalExtendDocument> NormalDocumentParserTest::createExtendDoc(
         rawDoc->setField(kv[0], kv[1]);
     }
     rawDoc->setDocOperateType(ADD_DOC);
-    extendDoc->setRawDocument(rawDoc);
+    extendDoc->SetRawDocument(rawDoc);
     return extendDoc;
 }
 
@@ -924,5 +926,50 @@ const autil::StringView* NormalDocumentParserTest::getSummaryField(fieldid_t fid
     formatter.TEST_DeserializeSummaryDoc(normalDoc->GetSummaryDocument(), _searchSummaryDoc.get());
 
     return _searchSummaryDoc->GetFieldValue(summaryConfig->GetSummaryFieldId(fid));
+}
+
+TEST_F(NormalDocumentParserTest, testValidSourceNotChange)
+{
+    auto schema =
+        framework::TabletSchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "schema_summary_reuse_source.json");
+    ASSERT_TRUE(schema);
+    ASSERT_TRUE(framework::TabletSchemaLoader::ResolveSchema(nullptr, "", schema.get()).IsOK());
+    auto parser = std::make_unique<NormalDocumentParser>(nullptr, false);
+    ASSERT_TRUE(parser->Init(std::shared_ptr<config::ITabletSchema>(schema.release()), nullptr).IsOK());
+
+    {
+        // before process
+        std::shared_ptr<RawDocument> rawDoc;
+        rawDoc.reset(RawDocumentMaker::Make("string1=1,price=3").release());
+        ASSERT_TRUE(rawDoc);
+        NormalExtendDocument extendDoc;
+        extendDoc.SetRawDocument(rawDoc);
+        auto classfiedDoc = extendDoc.getClassifiedDocument();
+        classfiedDoc->setOriginalSnapshot(std::shared_ptr<RawDocument::Snapshot>(rawDoc->GetSnapshot()));
+
+        // change not reuse field is valid
+        rawDoc->setField("string1", "111");
+
+        auto [st, docBatch] = parser->Parse(extendDoc);
+        ASSERT_TRUE(st.IsOK());
+        ASSERT_TRUE(docBatch);
+    }
+
+    {
+        // before process
+        std::shared_ptr<RawDocument> rawDoc;
+        rawDoc.reset(RawDocumentMaker::Make("string1=1,price=3").release());
+        ASSERT_TRUE(rawDoc);
+        NormalExtendDocument extendDoc;
+        extendDoc.SetRawDocument(rawDoc);
+        auto classfiedDoc = extendDoc.getClassifiedDocument();
+        classfiedDoc->setOriginalSnapshot(std::shared_ptr<RawDocument::Snapshot>(rawDoc->GetSnapshot()));
+
+        // change reuse field is invalid
+        rawDoc->setField("price", "111");
+        auto [st, docBatch] = parser->Parse(extendDoc);
+        ASSERT_TRUE(st.IsOK());
+        ASSERT_FALSE(docBatch);
+    }
 }
 }} // namespace indexlibv2::document

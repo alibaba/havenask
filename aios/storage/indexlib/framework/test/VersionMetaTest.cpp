@@ -27,7 +27,7 @@ TEST_F(VersionMetaTest, testConstruct)
     progress.push_back({0, 100, {2023, 0}});
     progress.push_back({101, 200, {2000, 0}});
     Locator locator;
-    locator.SetProgress(progress);
+    locator.SetMultiProgress({progress});
     version.SetLocator(locator);
     version.SetCommitTime(1234);
     version.Finalize();

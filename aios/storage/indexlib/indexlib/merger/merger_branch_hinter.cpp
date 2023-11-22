@@ -15,9 +15,18 @@
  */
 #include "indexlib/merger/merger_branch_hinter.h"
 
-#include "autil/EnvUtil.h"
+#include <algorithm>
+#include <cstddef>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

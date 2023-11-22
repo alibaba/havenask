@@ -96,12 +96,19 @@ message BorderDef
 message SessionIdDef
 {
     uint64 instance = 1;
-    uint32 query_id = 2;
+    uint64 query_id = 2;
+    uint64 current_instance = 3;
+}
+
+enum ErrorHandleStrategy {
+    EHS_ERROR_AS_FATAL = 0;
+    EHS_ERROR_AS_EOF = 1;
 }
 
 message SubGraphOption {
     bool inline_mode = 1;
     bool ignore_isolate = 2;
+    ErrorHandleStrategy error_handle_strategy = 3;
 }
 
 message GraphCounterInfo {
@@ -114,6 +121,12 @@ message ResourceReplaceInfoDef {
     string to = 2;
 }
 
+message SubGraphScopeDef {
+    int32 id = 1;
+    bool has_terminator = 2;
+    ErrorHandleStrategy error_handle_strategy = 3;
+}
+
 message SubGraphDef
 {
     int32 graph_id = 1;
@@ -123,7 +136,7 @@ message SubGraphDef
     repeated BorderDef borders = 5;
     SubGraphOption option = 6;
     map<string, bytes> binary_attrs = 7;
-    repeated int32 scopes = 8;
+    repeated SubGraphScopeDef scopes = 8;
     int32 next_scope_id = 9;
     repeated ResourceReplaceInfoDef replace_infos = 10;
 }

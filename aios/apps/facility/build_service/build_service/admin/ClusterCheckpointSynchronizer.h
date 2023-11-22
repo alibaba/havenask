@@ -15,12 +15,24 @@
  */
 #pragma once
 
+#include <map>
+#include <memory>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "autil/Lock.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/CheckpointMetricReporter.h"
 #include "build_service/common/Checkpoint.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionMeta.h"
 

@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CUSTOMMERGERCREATOR_H
-#define ISEARCH_BS_CUSTOMMERGERCREATOR_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/config/MergePluginConfig.h"
@@ -22,9 +24,11 @@
 #include "build_service/custom_merger/CustomMerger.h"
 #include "build_service/custom_merger/MergeResourceProvider.h"
 #include "build_service/util/Log.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace build_service { namespace plugin {
 class PlugInManager;
+
 BS_TYPEDEF_PTR(PlugInManager);
 }} // namespace build_service::plugin
 
@@ -71,5 +75,3 @@ private:
 BS_TYPEDEF_PTR(CustomMergerCreator);
 
 }} // namespace build_service::custom_merger
-
-#endif // ISEARCH_BS_CUSTOMMERGERCREATOR_H

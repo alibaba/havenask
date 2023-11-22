@@ -112,7 +112,7 @@ TEST_F(TabletMetricsTest, EmptyTest)
     EXPECT_CALL(*tabletLoader, FinalLoad(_))
         .WillOnce(Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
     auto tabletReader = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader, DoOpen(_, _)).WillOnce(Return(Status::OK()));
 
     mockFactory = new MockTabletFactory();
     EXPECT_CALL(*mockFactory, CreateTabletReader(_)).Times(1).WillOnce(Return(ByMove(std::move(tabletReader))));
@@ -177,7 +177,7 @@ TEST_F(TabletMetricsTest, 1BuildingSegment)
         .WillOnce(
             Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), finalTabletData.release()))));
     auto tabletReader = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader, DoOpen(_, _)).WillOnce(Return(Status::OK()));
 
     mockFactory = new MockTabletFactory();
     EXPECT_CALL(*mockFactory, CreateTabletReader(_)).Times(1).WillOnce(Return(ByMove(std::move(tabletReader))));
@@ -252,7 +252,7 @@ TEST_F(TabletMetricsTest, 1BuildingSegment2Dumping)
 
     auto tabletLoader = std::make_unique<MockTabletLoader>();
     EXPECT_CALL(*tabletLoader, DoPreLoad(_, _, _)).WillOnce(Return(Status::OK()));
-    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(0));
+    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(std::make_pair(Status::OK(), 0)));
     auto finalTabletData = std::make_unique<TabletData>("demo");
     finalTabletData->_resourceMap = std::make_shared<ResourceMap>();
     EXPECT_CALL(*tabletLoader, FinalLoad(_))
@@ -271,13 +271,13 @@ TEST_F(TabletMetricsTest, 1BuildingSegment2Dumping)
     EXPECT_CALL(*tabletWriter2, GetTotalMemSize()).WillRepeatedly(Return(buildingSegmentMemsize));
     EXPECT_CALL(*tabletWriter2, Build(_)).WillOnce(Return(Status::OK()));
     auto tabletReader = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader, DoOpen(_, _)).WillOnce(Return(Status::OK()));
     auto tabletReader1 = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader1, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader1, DoOpen(_, _)).WillOnce(Return(Status::OK()));
     auto tabletReader2 = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader2, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader2, DoOpen(_, _)).WillOnce(Return(Status::OK()));
     auto tabletReader3 = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader3, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader3, DoOpen(_, _)).WillOnce(Return(Status::OK()));
 
     segmentid_t segId = Segment::PUBLIC_SEGMENT_ID_MASK;
     SegmentMeta segMeta;
@@ -430,11 +430,11 @@ TEST_F(TabletMetricsTest, testAddTabletFault)
     EXPECT_CALL(*tabletLoader, DoPreLoad(_, _, _)).WillOnce(Return(Status::OK()));
     auto tabletData = std::make_unique<TabletData>("demo");
     tabletData->_resourceMap = std::make_shared<ResourceMap>();
-    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(0));
+    EXPECT_CALL(*tabletLoader, EstimateMemUsed(_, _)).WillOnce(Return(std::make_pair(Status::OK(), 0)));
     EXPECT_CALL(*tabletLoader, FinalLoad(_))
         .WillOnce(Return(ByMove(std::pair<Status, std::unique_ptr<TabletData>>(Status::OK(), tabletData.release()))));
     auto tabletReader = std::make_unique<MockTabletReader>();
-    EXPECT_CALL(*tabletReader, Open(_, _)).WillOnce(Return(Status::OK()));
+    EXPECT_CALL(*tabletReader, DoOpen(_, _)).WillOnce(Return(Status::OK()));
 
     mockFactory = new MockTabletFactory();
     EXPECT_CALL(*mockFactory, CreateTabletReader(_)).Times(1).WillOnce(Return(ByMove(std::move(tabletReader))));

@@ -15,8 +15,16 @@
  */
 #include "build_service/custom_merger/MergeResourceProvider.h"
 
+#include <assert.h>
+#include <iosfwd>
+
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/index_base/segment/partition_segment_iterator.h"
+#include "indexlib/index_base/segment/segment_data.h"
+#include "indexlib/partition/remote_access/partition_iterator.h"
 #include "indexlib/partition/remote_access/partition_resource_provider_factory.h"
 
 using namespace std;

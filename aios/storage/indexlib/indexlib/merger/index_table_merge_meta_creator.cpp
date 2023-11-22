@@ -15,21 +15,41 @@
  */
 #include "indexlib/merger/index_table_merge_meta_creator.h"
 
+#include <algorithm>
+#include <assert.h>
 #include <beeper/beeper.h>
+#include <memory>
+#include <ostream>
+#include <set>
+#include <vector>
 
+#include "alog/Logger.h"
 #include "autil/TimeUtility.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/index/calculator/on_disk_segment_size_calculator.h"
-#include "indexlib/index/merger_util/reclaim_map/reclaim_map_creator.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/merge_io_config.h"
+#include "indexlib/config/module_class_config.h"
+#include "indexlib/config/truncate_option_config.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/fslib/IoConfig.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/util/segment_directory_base.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
 #include "indexlib/index_base/merge_task_resource_manager.h"
+#include "indexlib/index_base/partition_data.h"
+#include "indexlib/merger/dump_strategy.h"
 #include "indexlib/merger/merge_meta_work_item.h"
+#include "indexlib/merger/merge_task_item.h"
 #include "indexlib/merger/merge_task_item_creator.h"
 #include "indexlib/merger/merge_task_item_dispatcher.h"
 #include "indexlib/merger/segment_directory.h"
 #include "indexlib/merger/split_strategy/split_segment_strategy_factory.h"
 #include "indexlib/plugin/plugin_manager.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/resource_control_thread_pool.h"
+#include "indexlib/util/resource_control_work_item.h"
 
 using namespace std;
 using namespace autil;

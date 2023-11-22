@@ -28,7 +28,7 @@ template <typename T>
 class RemoveOperation : public OperationBase
 {
 public:
-    RemoveOperation(const indexlibv2::document::IDocument::DocInfo& docInfo) : OperationBase(docInfo) {}
+    RemoveOperation(const indexlibv2::framework::Locator::DocInfo& docInfo) : OperationBase(docInfo) {}
     ~RemoveOperation() {}
 
 public:

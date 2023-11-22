@@ -4,14 +4,15 @@ cc_library(
     hdrs=['WalReaderWorker.h'],
     include_prefix='general_task_wal_reader',
     deps=[
-        '//aios/apps/facility/build_service:bs_proto',
-        '//aios/storage/indexlib/file_system/wal', '//aios/autil:string_helper',
-        '//third_party/readline', '@com_google_absl//absl/flags:flag'
+        '//aios/apps/facility/build_service:proto_cc_proto',
+        '//aios/autil:string_helper', '//aios/storage/indexlib/file_system/wal',
+        '//third_party/readline', '@com_google_absl//absl/flags:flag',
+        '@com_google_absl//absl/flags:usage'
     ]
 )
 cc_binary(
     name='general_task_wal_reader',
     srcs=['WalReader.cpp'],
-    deps=[':wal_reader_worker', '@com_google_absl//absl/flags:parse'],
-    visibility=['//visibility:public']
+    visibility=['//visibility:public'],
+    deps=[':wal_reader_worker', '@com_google_absl//absl/flags:parse']
 )

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_COMPRESS_SINGLE_FLOAT_ATTRIBUTE_CONVERTOR_H
-#define __INDEXLIB_COMPRESS_SINGLE_FLOAT_ATTRIBUTE_CONVERTOR_H
+#pragma once
 
 #include <memory>
 
@@ -82,5 +81,3 @@ inline autil::StringView CompressSingleFloatAttributeConvertor<T>::InnerEncode(c
     return autil::StringView((char*)output, sizeof(T));
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_COMPRESS_SINGLE_FLOAT_ATTRIBUTE_CONVERTOR_H

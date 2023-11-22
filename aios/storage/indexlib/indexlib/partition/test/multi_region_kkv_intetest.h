@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIREGIONKKVTEST_H
-#define __INDEXLIB_MULTIREGIONKKVTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -52,5 +51,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MULTIREGIONKKVTEST_H

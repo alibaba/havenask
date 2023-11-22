@@ -15,6 +15,10 @@
  */
 #include "indexlib/table/table_merge_plan.h"
 
+#include <cstddef>
+#include <utility>
+#include <vector>
+
 using namespace std;
 
 namespace indexlib { namespace table {

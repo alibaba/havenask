@@ -15,10 +15,23 @@
  */
 #include "build_service/admin/ConfigCleaner.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <memory>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "build_service/admin/CheckpointCreator.h"
 #include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/proto/Admin.pb.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 using namespace build_service::config;

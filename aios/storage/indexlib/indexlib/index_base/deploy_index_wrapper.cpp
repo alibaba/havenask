@@ -379,7 +379,7 @@ void DeployIndexWrapper::DumpDeployMeta(const DirectoryPtr& partitionDirectory, 
 bool DeployIndexWrapper::GenerateDisableLoadConfig(const string& rootPath, versionid_t versionId,
                                                    LoadConfig& loadConfig)
 {
-    if (versionId == INVALID_VERSION) {
+    if (versionId == INVALID_VERSIONID) {
         auto ret = IndexFileDeployer::GetLastVersionId(rootPath);
         if (!ret.OK()) {
             return false;
@@ -454,7 +454,7 @@ bool DeployIndexWrapper::GenerateDisableLoadConfig(const string& rootPath, versi
         disableSourceField = true;
     }
 
-    vector<groupid_t> disableGroupIds;
+    vector<sourcegroupid_t> disableGroupIds;
     if (sourceSchema) {
         sourceSchema->GetDisableGroupIds(disableGroupIds);
     }
@@ -587,7 +587,7 @@ bool DeployIndexWrapper::GetDeployIndexMeta(const GetDeployIndexMetaInputParams&
                localPath.c_str());
         return false;
     }
-    if (baseVersionId == INVALID_VERSION) {
+    if (baseVersionId == INVALID_VERSIONID) {
         localDeployIndexMetaVec = std::move(targetLocalDeployIndexMetaVec);
         remoteDeployIndexMetaVec = std::move(targetRemoteDeployIndexMetaVec);
         return true;
@@ -649,7 +649,7 @@ bool DeployIndexWrapper::GenerateDisableLoadConfig(const indexlibv2::config::Tab
                                                    file_system::LoadConfig& loadConfig)
 {
     config::DisableFieldsConfig disableFieldsConfig;
-    if (auto status = tabletOptions.GetFromRawJson("online_index_config.disable_fields", &disableFieldsConfig);
+    if (auto status = tabletOptions.GetFromRawJson("%index_config%.disable_fields", &disableFieldsConfig);
         !status.IsOKOrNotFound()) {
         IE_LOG(ERROR, "get config from tablet options failed, status[%s]", status.ToString().c_str());
     } else if (!status.IsOK()) {

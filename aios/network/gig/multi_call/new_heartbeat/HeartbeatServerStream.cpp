@@ -60,13 +60,16 @@ void HeartbeatServerStream::updateClientSignatureMap(const NewHeartbeatRequest &
     newSignatureMap->serverSignature = request.server_signature();
     auto count = request.topo_request_size();
     for (int32_t i = 0; i < count; i++) {
-        const auto &sigDef = request.topo_request(i).signature();
-        BizTopoSignature sig;
+        const auto &topoRequest = request.topo_request(i);
+        const auto &sigDef = topoRequest.signature();
+        BizTopoClientInfo clientInfo;
+        clientInfo.allProviderStopped = topoRequest.all_provider_stopped();
+        auto &sig = clientInfo.sig;
         sig.topo = sigDef.topo();
         sig.meta = sigDef.meta();
         sig.tag = sigDef.tag();
         sig.publishId = sigDef.publish_id();
-        newSignatureMap->topoSignatureMap[sig.topo] = sig;
+        newSignatureMap->topoSignatureMap[sig.topo] = clientInfo;
     }
     setClientSignatureMap(newSignatureMap);
 }
@@ -133,7 +136,6 @@ void HeartbeatServerStream::fillResponse(NewHeartbeatResponse &response) {
     serverId->fillServerIdDef(clientSignatureMap, response);
     auto topoMapPtr = _serverTopoMap->getBizTopoMap();
     if (topoMapPtr) {
-        auto clientSignatureMap = getClientSignatureMap();
         const auto &topoMap = *topoMapPtr;
         for (const auto &pair : topoMap) {
             const auto &topo = *pair.second;
@@ -143,7 +145,7 @@ void HeartbeatServerStream::fillResponse(NewHeartbeatResponse &response) {
                 const auto &id = pair.first;
                 auto it = signatureMap.find(id);
                 if (signatureMap.end() != it) {
-                    const auto &clientSignature = it->second;
+                    const auto &clientSignature = it->second.sig;
                     if (clientSignature.publishId == topo.getPublishId()) {
                         topo.fillBizTopoDiff(clientSignature, topoDef);
                         topo.fillPropagationStat(topoDef);
@@ -155,6 +157,19 @@ void HeartbeatServerStream::fillResponse(NewHeartbeatResponse &response) {
             topo.fillPropagationStat(topoDef);
         }
     }
+}
+
+bool HeartbeatServerStream::isAllReplicaStopped(SignatureTy sig) {
+    auto clientSignatureMap = getClientSignatureMap();
+    if (!clientSignatureMap) {
+        return false;
+    }
+    const auto &signatureMap = clientSignatureMap->topoSignatureMap;
+    auto it = signatureMap.find(sig);
+    if (signatureMap.end() != it) {
+        return it->second.allProviderStopped;
+    }
+    return false;
 }
 
 } // namespace multi_call

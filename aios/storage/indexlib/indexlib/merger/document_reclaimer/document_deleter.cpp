@@ -15,7 +15,28 @@
  */
 #include "indexlib/merger/document_reclaimer/document_deleter.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <iterator>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/mem_pool/MemoryChunk.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/CompressTypeOption.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/fslib/FslibOption.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/common/Constant.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_reader_factory.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/partition_data.h"
+#include "indexlib/index_base/segment/segment_data.h"
+#include "indexlib/index_define.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace autil::mem_pool;

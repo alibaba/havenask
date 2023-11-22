@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_LOGSETUPGUARD_H
-#define ISEARCH_BS_LOGSETUPGUARD_H
+#pragma once
 
 #include <string>
 
@@ -36,5 +35,3 @@ private:
 };
 
 }} // namespace build_service::util
-
-#endif // ISEARCH_BS_LOGSETUPGUARD_H

@@ -6,7 +6,10 @@ cc_library(
     copts=['-Werror'],
     include_prefix='iquan/common/catalog',
     visibility=['//visibility:public'],
-    deps=['//aios/sql/iquan/cpp/common:iquan_common']
+    deps=[
+        '//aios/sql/common:sql_common_h',
+        '//aios/sql/iquan/cpp/common:iquan_common'
+    ]
 )
 cc_test(
     name='catalog_test',

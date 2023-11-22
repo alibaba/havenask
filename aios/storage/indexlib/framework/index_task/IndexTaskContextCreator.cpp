@@ -27,6 +27,7 @@
 #include "indexlib/file_system/relocatable/RelocatableFolder.h"
 #include "indexlib/file_system/relocatable/Relocator.h"
 #include "indexlib/framework/DiskSegment.h"
+#include "indexlib/framework/EnvironmentVariablesProvider.h"
 #include "indexlib/framework/Fence.h"
 #include "indexlib/framework/MetricsManager.h"
 #include "indexlib/framework/ResourceMap.h"
@@ -81,6 +82,12 @@ IndexTaskContextCreator& IndexTaskContextCreator::SetTabletName(const std::strin
 IndexTaskContextCreator& IndexTaskContextCreator::SetTaskEpochId(const std::string& taskEpochId)
 {
     _context._taskEpochId = taskEpochId;
+    return *this;
+}
+
+IndexTaskContextCreator& IndexTaskContextCreator::SetTaskTraceId(const std::string& taskTraceId)
+{
+    _context._taskTraceId = taskTraceId;
     return *this;
 }
 
@@ -470,8 +477,13 @@ std::unique_ptr<IndexTaskContext> IndexTaskContextCreator::CreateContext()
             _srcInfos.push_back(info);
         }
         if (!_fileBlockCacheContainer) {
+            auto envProvider = _tabletFactory->CreateEnvironmentVariablesProvider();
+            std::string blockCacheParam;
+            if (envProvider != nullptr) {
+                blockCacheParam = envProvider->Get("BS_BLOCK_CACHE", "");
+            }
             _fileBlockCacheContainer = std::make_shared<indexlib::file_system::FileBlockCacheContainer>();
-            _fileBlockCacheContainer->Init(/*configStr*/ "", /*globalMemoryQuotaController*/ nullptr,
+            _fileBlockCacheContainer->Init(blockCacheParam, /*globalMemoryQuotaController*/ nullptr,
                                            /*taskScheduler*/ nullptr,
                                            /*metricProvider*/ nullptr);
         }

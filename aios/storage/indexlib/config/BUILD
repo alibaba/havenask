@@ -45,7 +45,8 @@ strict_cc_library(
 strict_cc_library(
     name='IndexTaskConfig',
     deps=[
-        '//aios/autil:json', '//aios/storage/indexlib/base:Status',
+        ':CustomIndexTaskClassInfo', '//aios/autil:json',
+        '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/legacy/config:OfflineMergeConfig'
     ]
 )
@@ -132,7 +133,7 @@ strict_cc_library(
     name='UnresolvedSchema',
     srcs=['LegacySchemaConvertor.cpp', 'UnresolvedSchema.cpp'],
     hdrs=['LegacySchemaConvertor.h', 'UnresolvedSchema.h'],
-    implementation_deps=['//aios/storage/indexlib/indexlib/config'],
+    implementation_deps=['//aios/storage/indexlib/legacy/config:schema'],
     deps=[
         ':FieldConfig', ':IIndexConfig', ':IndexConfigDeserializeResource',
         ':MutableJson', '//aios/autil:json', '//aios/autil:log',
@@ -214,3 +215,4 @@ strict_cc_library(
     ]
 )
 strict_cc_library(name='TabletSchemaDelegation', deps=[':SchemaResolver'])
+strict_cc_library(name='CustomIndexTaskClassInfo', deps=['//aios/autil:json'])

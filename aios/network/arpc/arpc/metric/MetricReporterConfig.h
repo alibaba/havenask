@@ -19,18 +19,20 @@
 
 namespace arpc {
 
-class MetricReporterConfig : public autil::legacy::Jsonizable {
+class MetricReporterConfig : public autil::legacy::Jsonizable
+{
 public:
     MetricReporterConfig(bool enable = false);
     ~MetricReporterConfig() = default;
 
 public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override;
+    void Jsonize(autil::legacy::Jsonizable::JsonWrapper& json) override;
 
 public:
-    bool enableArpcMetric{false};
-    bool enableSlowRequestLog{false};
-    uint64_t slowRequestThresholdInUs{20 * 1000};
+    bool enableArpcMetric {false};
+    bool enableSlowRequestLog {false};
+    uint64_t slowRequestThresholdInUs {20 * 1000};
+    std::string type{"unknown"};
 };
 
 } // namespace arpc

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_HASHTABLEREADERTEST_H
-#define __INDEXLIB_HASHTABLEREADERTEST_H
+#pragma once
 
 #include "indexlib/common/hash_table/hash_table_reader.h"
 #include "indexlib/common_define.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(HashTableReaderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(HashTableReaderTest, TestException);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_HASHTABLEREADERTEST_H

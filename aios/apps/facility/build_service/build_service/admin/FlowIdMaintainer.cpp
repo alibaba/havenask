@@ -15,8 +15,20 @@
  */
 #include "build_service/admin/FlowIdMaintainer.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "build_service/admin/taskcontroller/BuildServiceTask.h"
 #include "fslib/util/LongIntervalLog.h"
+#include "indexlib/misc/common.h"
 
 using namespace std;
 using namespace autil;

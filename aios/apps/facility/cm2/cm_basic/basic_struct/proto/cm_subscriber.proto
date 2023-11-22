@@ -33,7 +33,7 @@ message SubReqMsg
     required SubType            sub_type            = 1;
     repeated ClusterVersion     cluster_version_vec = 2;  // ST_PART 时需要指定订阅的集群名
     optional CompressType       compress_type       = 3 [default=CT_NONE];
-    repeated string             used_clusters       = 4; // the used cluster names in previous N minutes
+    repeated string             used_clusters       = 4 [deprecated = true]; // the used cluster names in previous N minutes
     repeated string             belong_vec          = 5; // ST_BELONG时需要指定
     optional int32              cli_ver             = 6;
 }
@@ -58,8 +58,8 @@ message ClusterUpdateInfo
     {
         MT_UNKNOWN              = 0;
         MT_NODE_STATUS          = 1;
-        MT_LB_INFO              = 2;
-        MT_NODE_STATUS_LB_INFO  = 3;
+        MT_LB_INFO              = 2 [deprecated = true];
+        MT_NODE_STATUS_LB_INFO  = 3 [deprecated = true];
         MT_CLUSTER_REINIT       = 4;
         MT_CLUSTER_BUILDING     = 5;
         MT_CLUSTER_DEL          = 6;

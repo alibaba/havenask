@@ -28,7 +28,7 @@ using indexlibv2::config::IIndexConfig;
 
 AUTIL_LOG_SETUP(indexlib.index, DateDiskIndexer);
 
-DateDiskIndexer::DateDiskIndexer(const indexlibv2::index::IndexerParameter& indexerParam)
+DateDiskIndexer::DateDiskIndexer(const indexlibv2::index::DiskIndexerParameter& indexerParam)
     : InvertedDiskIndexer(indexerParam)
 {
 }

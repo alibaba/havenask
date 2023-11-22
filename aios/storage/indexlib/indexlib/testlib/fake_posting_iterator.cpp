@@ -38,10 +38,10 @@ FakePostingIterator::~FakePostingIterator()
     _truncateTermMeta = NULL;
 }
 
-docid_t FakePostingIterator::SeekDoc(docid_t id)
+docid64_t FakePostingIterator::SeekDoc(docid64_t id)
 {
     while (++_pos < (int32_t)_richPostings.second.size()) {
-        IE_LOG(TRACE3, "id: %d, _pos: %d]", id, _pos);
+        IE_LOG(TRACE3, "id: %ld, _pos: %d]", id, _pos);
         if (_richPostings.second[_pos].docid >= id) {
             _occPos = -1;
             return _richPostings.second[_pos].docid;

@@ -1,10 +1,14 @@
 package com.taobao.search.iquan.core.api.config;
 
-import com.google.common.collect.ImmutableMap;
-import com.taobao.search.iquan.core.api.common.*;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-
 import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
+import com.taobao.search.iquan.core.api.common.ConstantDefine;
+import com.taobao.search.iquan.core.api.common.IquanErrorCode;
+import com.taobao.search.iquan.core.api.common.OptimizeLevel;
+import com.taobao.search.iquan.core.api.common.PlanFormatType;
+import com.taobao.search.iquan.core.api.common.SqlExecPhase;
+import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 
 public class SqlConfigOptions {
 
@@ -201,7 +205,7 @@ public class SqlConfigOptions {
                     .defaultValue(true)
                     .description("enable cte optimize.")
                     .build();
-    
+
 
     // ===========================================
     // Note: should contain all option keys

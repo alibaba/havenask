@@ -16,7 +16,11 @@
 #include "build_service/util/IndexPathConstructor.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <memory>
 
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/proto/ProtoUtil.h"

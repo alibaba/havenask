@@ -15,12 +15,15 @@
  */
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
+#include <utility>
 
+#include "autil/Log.h"
 #include "autil/NoCopyable.h"
-#include "build_service/util/Log.h"
 #include "indexlib/config/FieldConfig.h"
 
 namespace build_service::util {

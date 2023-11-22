@@ -1,5 +1,8 @@
 package com.taobao.search.iquan.core.rel.convert.physical;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.rel.convention.IquanConvention;
@@ -14,12 +17,15 @@ import org.apache.calcite.rel.convert.ConverterRule;
 import org.apache.calcite.rel.logical.LogicalCalc;
 import org.apache.calcite.rel.logical.LogicalTableModify;
 import org.apache.calcite.rel.logical.LogicalValues;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.rex.RexLocalRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexProgram;
+import org.apache.calcite.rex.RexShuttle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class IquanTableModifyConverterRule extends ConverterRule {
     private static final Logger logger = LoggerFactory.getLogger(IquanTableModifyConverterRule.class);
@@ -87,8 +93,7 @@ public class IquanTableModifyConverterRule extends ConverterRule {
             if (calcInput instanceof LogicalValues) {
                 values = (LogicalValues) calcInput;
             }
-        }
-        else if (input instanceof LogicalValues) {
+        } else if (input instanceof LogicalValues) {
             values = (LogicalValues) input;
             return RexProgram.create(
                     emptyValues.getRowType(),
@@ -115,8 +120,7 @@ public class IquanTableModifyConverterRule extends ConverterRule {
             RexProgram program,
             List<RexLiteral> inputs,
             RexBuilder rexBuilder,
-            LogicalValues emptyValues)
-    {
+            LogicalValues emptyValues) {
         RexShuttle shuttle = new RexShuttle() {
             @Override
             public RexNode visitInputRef(RexInputRef inputRef) {

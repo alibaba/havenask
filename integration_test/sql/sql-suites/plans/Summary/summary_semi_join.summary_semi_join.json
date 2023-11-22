@@ -10,8 +10,8 @@
           "db_name": "phone", 
           "limit": 2147483647, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "phone"
+            "node_name": "phone", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -254,8 +254,8 @@
             ]
           }, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "phone"
+            "node_name": "phone", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -322,8 +322,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "phone"
+            "node_name": "phone", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {
@@ -360,8 +360,8 @@
         "attrs": {
           "limit": 100, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "phone"
+            "node_name": "phone", 
+            "partition_cnt": 1
           }, 
           "offset": 0, 
           "op_scope": "default", 
@@ -402,6 +402,7 @@
             "DOUBLE", 
             "DOUBLE"
           ], 
+          "node_name": "phone", 
           "op_scope": "default", 
           "output_distribution": {
             "hash_mode": {
@@ -418,8 +419,7 @@
             }, 
             "partition_cnt": 1, 
             "type": "BROADCAST_DISTRIBUTED"
-          }, 
-          "table_group_name": "phone"
+          }
         }, 
         "id": 4, 
         "inputs": {
@@ -435,8 +435,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {

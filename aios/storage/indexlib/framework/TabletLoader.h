@@ -16,29 +16,16 @@
 #pragma once
 
 #include <memory>
+#include <stddef.h>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "autil/Log.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/framework/ITabletLoader.h"
 
-namespace indexlibv2 {
-class MemoryQuotaController;
-}
-
-namespace indexlibv2::config {
-class ITabletSchema;
-}
-
-namespace indexlib::util {
-class MemoryReserver;
-}
-
 namespace indexlibv2::framework {
-class Segment;
-class Version;
-class TabletData;
-class Locator;
 
 class TabletLoader : public ITabletLoader
 {
@@ -66,8 +53,8 @@ private:
     virtual Status DoPreLoad(const TabletData& lastTabletData,
                              std::vector<std::shared_ptr<Segment>> newOnDiskVersionSegments,
                              const Version& newOnDiskVersion) = 0;
-    virtual size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
-                                   const std::vector<Segment*>& segments);
+    virtual std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema,
+                                                      const std::vector<Segment*>& segments);
     std::vector<Segment*> GetNeedOpenSegments(const SegmentPairs& onDiskSegments) const;
 
     static Status

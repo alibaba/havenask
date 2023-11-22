@@ -15,18 +15,39 @@
  */
 #include "build_service/admin/taskcontroller/BuilderTaskWrapper.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
 #include "build_service/admin/CheckpointCreator.h"
 #include "build_service/admin/taskcontroller/EndBuildTaskController.h"
+#include "build_service/admin/taskcontroller/TaskController.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/BuilderCheckpointAccessor.h"
 #include "build_service/common/CheckpointAccessor.h"
+#include "build_service/common/IndexCheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
 #include "build_service/config/BuildRuleConfig.h"
-#include "build_service/config/BuilderClusterConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/ErrorCollector.h"
 #include "build_service/proto/WorkerNode.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
 
 using namespace std;
 using namespace autil;
@@ -153,7 +174,7 @@ void BuilderTaskWrapper::addCheckpoint(proto::BuilderCheckpoint& builderCheckpoi
         const TaskControllerPtr& controller = _endBuildTask->getController();
         EndBuildTaskControllerPtr endBuildController = DYNAMIC_POINTER_CAST(EndBuildTaskController, controller);
         assert(endBuildController);
-        assert(endBuildController->getBuilderVersion() != INVALID_VERSION);
+        assert(endBuildController->getBuilderVersion() != indexlib::INVALID_VERSIONID);
         builderCheckpoint.set_versionid(endBuildController->getBuilderVersion());
     }
     BuilderCheckpointAccessorPtr checkpointAccessor =

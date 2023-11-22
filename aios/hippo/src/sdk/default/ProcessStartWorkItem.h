@@ -40,7 +40,8 @@ public:
     void process();
     static std::string getContainerName(const hippo::SlotId &slotId,
             const std::string& applicationId);
-
+    bool checkProcessExist(bool &exist, std::vector<int32_t> &pids) const;
+    virtual bool checkProcessExist(bool &exist) const; // virtual for test
 private:
     std::string getContainerParameter() const;
     std::string getUserDefineParameter() const;

@@ -16,7 +16,6 @@ function stepRunFlow()
     then   
        if (fullBuilder:isTaskRunning())
        then
-            Log.log("", "full builder running--------")
             local fullProcessorFlowId = Flow.parameter['fullProcessorFlowId']
             local processorFlowStatus = Flow.getFlowStatus(fullProcessorFlowId)
             if (processorFlowStatus == "finish")

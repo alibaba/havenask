@@ -1,12 +1,12 @@
 #include "indexlib/config/test/value_config_unittest.h"
 
-#include "indexlib/test/schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, ValueConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, ValueConfigTest);
 
 ValueConfigTest::ValueConfigTest() {}
 

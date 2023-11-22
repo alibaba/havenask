@@ -19,7 +19,7 @@ using namespace std;
 using namespace autil::legacy;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, OfflineConfigBase);
+AUTIL_LOG_SETUP(indexlib.config, OfflineConfigBase);
 
 OfflineConfigBase::OfflineConfigBase()
     : enableRecoverIndex(true)

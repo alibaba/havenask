@@ -1,11 +1,22 @@
 #include "build_service/common/RemoteVersionCommitter.h"
 
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
 #include "build_service/util/IndexPathConstructor.h"
+#include "fslib/util/FileUtil.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/VersionMeta.h"
-#include "indexlib/util/PathUtil.h"
+#include "indexlib/indexlib.h"
+#include "unittest/unittest.h"
 
 namespace build_service::common {
 

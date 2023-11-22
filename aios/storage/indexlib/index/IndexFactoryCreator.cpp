@@ -15,6 +15,10 @@
  */
 #include "indexlib/index/IndexFactoryCreator.h"
 
+#include <iosfwd>
+#include <type_traits>
+#include <typeinfo>
+
 #include "indexlib/index/IIndexFactory.h"
 
 using namespace std;

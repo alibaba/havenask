@@ -16,13 +16,20 @@
 #pragma once
 
 #include <map>
-#include <set>
+#include <memory>
+#include <string>
 #include <vector>
 
+#include "build_service/common_define.h"
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/DocumentProcessor.h"
 #include "build_service/processor/ModifiedFieldsModifier.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/document/extend_document/indexlib_extend_document.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace processor {
 // ModifiedFieldsDocumentProcessor does 3 things:

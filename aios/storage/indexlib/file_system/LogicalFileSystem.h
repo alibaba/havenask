@@ -25,27 +25,26 @@
 
 #include "autil/Lock.h"
 #include "autil/Log.h"
-#include "indexlib/file_system/DiskStorage.h"
 #include "indexlib/file_system/EntryMeta.h"
+#include "indexlib/file_system/EntryTable.h"
 #include "indexlib/file_system/EntryTableBuilder.h"
-#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/FileSystemMetrics.h"
 #include "indexlib/file_system/FileSystemMetricsReporter.h"
 #include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/LifecycleTable.h"
+#include "indexlib/file_system/MountOption.h"
 #include "indexlib/file_system/ReaderOption.h"
+#include "indexlib/file_system/Storage.h"
+#include "indexlib/file_system/WriterOption.h"
+#include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/FileWriter.h"
+#include "indexlib/file_system/file/ResourceFile.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/util/memory_control/BlockMemoryQuotaController.h"
 #include "indexlib/util/memory_control/MemoryReserver.h"
 #include "indexlib/util/metrics/MetricProvider.h"
-
-namespace indexlib { namespace file_system {
-class Storage;
-struct FileInfo;
-struct FileSystemOptions;
-struct WriterOption;
-struct DirectoryOption;
-}} // namespace indexlib::file_system
 
 namespace indexlib { namespace file_system {
 

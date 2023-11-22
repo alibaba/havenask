@@ -193,7 +193,7 @@ void DocumentCreator::SetDocumentValue(config::IndexPartitionSchemaPtr schema, R
 
     SourceSchemaPtr sourceSchema = schema->GetSourceSchema();
     if (sourceSchema) {
-        groupid_t groupId = 0;
+        sourcegroupid_t groupId = 0;
         SourceDocumentPtr srcDocument(new SourceDocument(pool));
         for (auto iter = sourceSchema->Begin(); iter != sourceSchema->End(); iter++, groupId++) {
             vector<string> fieldNames = (*iter)->GetSpecifiedFields();
@@ -337,7 +337,7 @@ document::KVDocumentPtr DocumentCreator::CreateKVDocument(const config::IndexPar
         doc->SetUserTimestamp(userTimestamp);
     }
     kvDoc->SetTimestamp(rawDoc->GetTimestamp());
-    kvDoc->SetDocInfo({0, rawDoc->GetTimestamp(), 0});
+    kvDoc->SetDocInfo({0, rawDoc->GetTimestamp(), 0, 0});
 
     regionid_t regionId = ExtractRegionIdFromRawDocument(schema, rawDoc, defaultRegionName);
     if (regionId == INVALID_REGIONID) {
@@ -376,10 +376,12 @@ NormalDocumentPtr DocumentCreator::CreateNormalDocument(const config::IndexParti
     NormalDocumentPtr doc(new NormalDocument);
     doc->SetDocOperateType(rawDoc->GetDocOperateType());
     doc->SetTimestamp(rawDoc->GetTimestamp());
-    doc->SetDocInfo({0, rawDoc->GetTimestamp(), 0});
+    doc->SetDocInfo({0, rawDoc->GetTimestamp(), 0, 0});
     doc->SetUserTimestamp(
         autil::StringUtil::strToInt64WithDefault(rawDoc->GetField(HA_RESERVED_TIMESTAMP).c_str(), INVALID_TIMESTAMP));
-    doc->SetLocator(rawDoc->GetLocator());
+    indexlibv2::framework::Locator locator;
+    locator.Deserialize(rawDoc->GetLocator().GetLocator());
+    doc->SetLocator(locator);
     IndexDocumentPtr indexDoc(new IndexDocument(doc->GetPool()));
     doc->SetIndexDocument(indexDoc);
     AttributeDocumentPtr attrDoc;

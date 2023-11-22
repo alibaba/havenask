@@ -15,21 +15,44 @@
  */
 #include "indexlib/merger/multi_partition_merger.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
 #include <vector>
 
-#include "indexlib/config/configurator_define.h"
+#include "alog/Logger.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/FileSystemDefine.h"
+#include "indexlib/file_system/FileSystemOptions.h"
+#include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/MountOption.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/framework/LevelInfo.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index/normal/inverted_index/customized_index/index_plugin_resource.h"
 #include "indexlib/index_base/index_meta/index_format_version.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/index_base/meta_cache_preloader.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/index_base/schema_adapter.h"
+#include "indexlib/merger/dump_strategy.h"
 #include "indexlib/merger/multi_part_segment_directory.h"
+#include "indexlib/merger/segment_directory.h"
 #include "indexlib/merger/sorted_index_partition_merger.h"
 #include "indexlib/plugin/index_plugin_loader.h"
 #include "indexlib/plugin/plugin_manager.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;
@@ -60,7 +83,7 @@ MultiPartitionMerger::~MultiPartitionMerger() {}
 
 void MultiPartitionMerger::GetFirstVersion(const file_system::DirectoryPtr& partDirectory, index_base::Version& version)
 {
-    VersionLoader::GetVersion(partDirectory, version, INVALID_VERSION);
+    VersionLoader::GetVersion(partDirectory, version, INVALID_VERSIONID);
     MetaCachePreloader::Load(partDirectory, version.GetVersionId());
 }
 
@@ -131,8 +154,8 @@ IndexPartitionMergerPtr MultiPartitionMerger::CreatePartitionMerger(const std::v
         destVersion.SetFormatVersion(versions[0].GetFormatVersion());
     }
     // TODO: if exist, right?
-    VersionLoader::GetVersion(destDirectory, destVersion, INVALID_VERSION);
-    if (destVersion == index_base::Version(INVALID_VERSION)) {
+    VersionLoader::GetVersion(destDirectory, destVersion, INVALID_VERSIONID);
+    if (destVersion == index_base::Version(INVALID_VERSIONID)) {
         const indexlibv2::framework::LevelInfo& srcLevelInfo = mSegmentDirectory->GetVersion().GetLevelInfo();
         indexlibv2::framework::LevelInfo& levelInfo = destVersion.GetLevelInfo();
         levelInfo.Init(srcLevelInfo.GetTopology(), srcLevelInfo.GetLevelCount(), srcLevelInfo.GetShardCount());
@@ -150,8 +173,8 @@ IndexPartitionMergerPtr MultiPartitionMerger::CreatePartitionMerger(const std::v
     if (!pluginManager) {
         INDEXLIB_FATAL_ERROR(Runtime, "load index plugin failed for schema[%s]", mSchema->GetSchemaName().c_str());
     }
-    PluginResourcePtr resource(
-        new IndexPluginResource(mSchema, mOptions, util::CounterMapPtr(), partitionMeta, mIndexPluginPath));
+    PluginResourcePtr resource(new IndexPluginResource(mSchema, mOptions, util::CounterMapPtr(), partitionMeta,
+                                                       mIndexPluginPath, mMetricProvider));
     pluginManager->SetPluginResource(resource);
     IE_LOG(INFO, "prepare pluginManager done");
 
@@ -168,7 +191,7 @@ IndexPartitionMergerPtr MultiPartitionMerger::CreatePartitionMerger(const std::v
 
 void MultiPartitionMerger::Merge(const vector<string>& mergeSrc, const string& destPath)
 {
-    vector<DirectoryPtr> mergeSrcDirs = CreateMergeSrcDirs(mergeSrc, INVALID_VERSION, mMetricProvider);
+    vector<DirectoryPtr> mergeSrcDirs = CreateMergeSrcDirs(mergeSrc, INVALID_VERSIONID, mMetricProvider);
     IndexPartitionMergerPtr merger = CreatePartitionMerger(mergeSrcDirs, destPath);
     merger->Merge(true);
 }
@@ -203,7 +226,7 @@ void MultiPartitionMerger::CheckSrcPath(const vector<DirectoryPtr>& mergeDirs, c
 {
     versions.resize(mergeDirs.size());
     for (size_t i = 0; i < mergeDirs.size(); ++i) {
-        VersionLoader::GetVersion(mergeDirs[i], versions[i], INVALID_VERSION);
+        VersionLoader::GetVersion(mergeDirs[i], versions[i], INVALID_VERSIONID);
         MetaCachePreloader::Load(mergeDirs[i], versions[i].GetVersionId());
         CheckPartitionConsistence(mergeDirs[i], schema, partMeta);
     }

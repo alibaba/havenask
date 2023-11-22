@@ -17,7 +17,6 @@
 
 #include "autil/memory.h"
 #include "indexlib/config/TabletSchema.h"
-#include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/common/Term.h"
 #include "indexlib/index/deletionmap/DeletionMapPatchWriter.h"
 #include "indexlib/index/inverted_index/Common.h"

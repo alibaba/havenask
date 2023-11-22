@@ -15,8 +15,13 @@
  */
 #include "indexlib/config/SortDescription.h"
 
+#include <map>
+
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/legacy_jsonizable.h"
 
 namespace indexlibv2 { namespace config {
 

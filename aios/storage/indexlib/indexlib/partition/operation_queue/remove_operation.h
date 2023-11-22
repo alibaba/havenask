@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_REMOVE_OPERATION_H
-#define __INDEXLIB_REMOVE_OPERATION_H
+#pragma once
 
 #include <memory>
 
@@ -132,7 +131,7 @@ bool RemoveOperation<T>::DeleteDocInCachedSegments(const partition::PartitionMod
                                                    const std::vector<segmentid_t>& cacheSegments, bool doAll)
 {
     for (size_t i = 0; i < cacheSegments.size(); i++) {
-        docid_t docid = INVALID_DOCID;
+        docid64_t docid = INVALID_DOCID;
         pkReader->LookupWithPKHash(mPkHash, cacheSegments[i], &docid);
         if (docid != INVALID_DOCID) {
             modifier->RemoveDocument(docid);
@@ -196,5 +195,3 @@ bool RemoveOperation<T>::Load(autil::mem_pool::Pool* pool, char*& cursor)
     return true;
 }
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_REMOVE_OPERATION_H

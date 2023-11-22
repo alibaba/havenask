@@ -15,13 +15,19 @@
  */
 #pragma once
 
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/legacy/any.h"
+#include "build_service/admin/AgentRoleInfo.h"
 #include "build_service/admin/AgentRolePlanMaker.h"
 #include "build_service/admin/AppPlanMaker.h"
 #include "build_service/common_define.h"
 #include "build_service/config/AgentGroupConfig.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
-#include "master_framework/AppPlan.h"
+#include "hippo/DriverCommon.h"
 
 namespace build_service { namespace admin {
 

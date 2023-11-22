@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DENSE_HASH_TABLE_H
-#define __INDEXLIB_DENSE_HASH_TABLE_H
+#pragma once
 
 #include <vector> // for shrink, use as bitmap
 //#include <immintrin.h>
@@ -842,5 +841,3 @@ private:
     friend class DenseHashTableTest;
 };
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_DENSE_HASH_TABLE_H

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ZIPFILEUTIL_H
-#define ISEARCH_BS_ZIPFILEUTIL_H
+#pragma once
 
+#include <string>
 #include <unordered_map>
 
 #include "build_service/common_define.h"
@@ -48,5 +48,3 @@ private:
 BS_TYPEDEF_PTR(ZipFileUtil);
 
 }} // namespace build_service::util
-
-#endif // ISEARCH_BS_ZIPFILEUTIL_H

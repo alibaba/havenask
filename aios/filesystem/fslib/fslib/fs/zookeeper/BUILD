@@ -5,48 +5,47 @@ load(
 )
 cc_shared_library(
     name='fslib_plugin_zfs',
-    visibility=['//visibility:public'],
-    roots=[':zfs'],
+    exports_filter=[],
     preloaded_deps=[
         '//aios/autil:time', '//aios/autil:log', '//aios/autil:string_helper',
         '//aios/filesystem/fslib/fslib/fs:fs'
     ],
+    roots=[':zfs'],
     static_deps=[
         '//third_party/zookeeper:zookeeper_import',
         '//third_party/zookeeper:zookeeper'
     ],
-    exports_filter=[]
+    visibility=['//visibility:public']
 )
 cc_library(
     name='zfs',
     srcs=glob(['*.cpp']),
     hdrs=glob(['*.h']),
-    deps=[
-        '//aios/filesystem/fslib/fslib/fs:fs', '//aios/autil:time',
-        '//aios/autil:log', '//aios/autil:string_helper',
-        '//third_party/zookeeper:zookeeper'
-    ],
     include_prefix='fslib/fs/zookeeper',
+    deps=[
+        '//aios/autil:log', '//aios/autil:string_helper', '//aios/autil:time',
+        '//aios/filesystem/fslib/fslib/fs', '//third_party/zookeeper'
+    ],
     alwayslink=True
 )
 cc_library(
     name='fslib_zookeeper_casehelper',
-    visibility=['//visibility:public'],
     srcs=[
-        'test/ZookeeperFsCaseHelper.cpp', 'test/FsCaseHelperFactory.cpp',
-        'test/ZkServer.cpp'
+        'test/FsCaseHelperFactory.cpp', 'test/ZkServer.cpp',
+        'test/ZookeeperFsCaseHelper.cpp'
     ],
     hdrs=[
-        'test/ZkServer.h', 'test/FsCaseHelperBase.h',
-        'test/FsCaseHelperFactory.h', 'test/ZookeeperFsCaseHelper.h'
-    ],
-    deps=[
-        ':zfs', '//aios/filesystem/fslib:fslib-framework', '//aios/autil:time',
-        '//aios/autil:net'
+        'test/FsCaseHelperBase.h', 'test/FsCaseHelperFactory.h',
+        'test/ZkServer.h', 'test/ZookeeperFsCaseHelper.h'
     ],
     data=['zookeeper_server'],
     include_prefix='fslib/fs/zookeeper',
-    linkopts=[]
+    linkopts=[],
+    visibility=['//visibility:public'],
+    deps=[
+        ':zfs', '//aios/autil:net', '//aios/autil:time',
+        '//aios/filesystem/fslib:fslib-framework'
+    ]
 )
 filegroup(
     name='zookeeper_server',

@@ -74,7 +74,8 @@ TEST_F(RemoteLoggerTest, testUsage)
     delete appender;
     uploader.stop();
     runThread->join();
-    targetDir += "/biz_order_summary/generation_999/logs/builder/32768_49151/";
+    targetDir += "/biz_order_buyer/generation_999/logs/xiaohao.biz_order_summary.999.builder.full.32768.49151."
+                 "biz_order_summary";
     std::string ip;
     ASSERT_TRUE(autil::NetUtil::GetDefaultIp(ip));
     std::string content;
@@ -218,7 +219,8 @@ TEST_F(RemoteLoggerTest, testSlowWrite)
     delete appender;
     uploader.stop();
     runThread->join();
-    targetDir += "/biz_order_summary/generation_999/logs/builder/32768_49151/";
+    targetDir +=
+        "/biz_order_buyer/generation_999/logs/xiaohao.biz_order_summary.999.builder.full.32768.49151.biz_order_summary";
     std::string ip;
     ASSERT_TRUE(autil::NetUtil::GetDefaultIp(ip));
     std::string content;
@@ -228,5 +230,39 @@ TEST_F(RemoteLoggerTest, testSlowWrite)
     std::string fullTargetPath = FileSystem::joinFilePath(targetDir, logFileName);
     ASSERT_EQ(fslib::EC_TRUE, FileSystem::isExist(fullTargetPath)) << fullTargetPath;
     ASSERT_EQ(fslib::EC_OK, FileSystem::readFile(fullTargetPath, content));
+}
+
+TEST_F(RemoteLoggerTest, testDirPath)
+{
+    std::string logFile(GET_TEMP_DATA_PATH());
+
+    logFile += "/pipe_access.log";
+    alog::Appender* appender = new alog::PipeAppender(logFile.c_str());
+    auto logger = alog::Logger::getLogger("test_logger");
+    logger->setAppender(appender);
+
+    std::string srcDir = GET_TEMP_DATA_PATH() + "/src";
+    std::string targetDir = GET_TEMP_DATA_PATH() + "/target";
+
+    std::string srcDataPath = GET_PRIVATE_TEST_DATA_PATH() + "/log_uploader";
+    std::string tmpDataPath = GET_TEMP_DATA_PATH() + "/src/config/log_uploader";
+    std::string jsonStr;
+    fslib::util::FileUtil::readFile(srcDataPath + "/build_app.json.template", jsonStr);
+    autil::StringUtil::replaceAll(jsonStr, "$template", targetDir.c_str());
+    fslib::util::FileUtil::atomicCopy(srcDataPath, tmpDataPath);
+    fslib::util::FileUtil::writeFile(tmpDataPath + "/build_app.json", jsonStr);
+
+    RemoteLogger uploader;
+    uploader._TEST_cwd =
+        "/slave/disk_links/1/"
+        "bs_biz_order_his_na630_ssd_biz_order_summary_33280_33407.biz_order_summary.1677749059.task.taskId="
+        "7277846261137501277-taskName=general_task.0.32767.biz_order_summary_26_138/log_uploader";
+    uploader._bsWorkDir = srcDir;
+    ASSERT_TRUE(uploader.initPid());
+    ASSERT_TRUE(uploader.calculateRemoteDir());
+    auto finalPath = targetDir + "/biz_order_buyer/generation_1677749059/logs/"
+                                 "biz_order_summary_33280_33407.biz_order_summary.1677749059.task.taskName=general_"
+                                 "task.0.32767.biz_order_summary";
+    ASSERT_EQ(finalPath, uploader._remoteLogDir);
 }
 } // namespace build_service::tools

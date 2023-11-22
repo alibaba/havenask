@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXTABLEMERGEMETACREATORTEST_H
-#define __INDEXLIB_INDEXTABLEMERGEMETACREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/index_table_merge_meta_creator.h"
@@ -35,5 +34,3 @@ INDEXLIB_UNIT_TEST_CASE(IndexTableMergeMetaCreatorTest, TestGetNotMergedSegIds);
 INDEXLIB_UNIT_TEST_CASE(IndexTableMergeMetaCreatorTest, TestCreateMergeTaskForIncTruncate);
 INDEXLIB_UNIT_TEST_CASE(IndexTableMergeMetaCreatorTest, TestExceedMaxDocId);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_INDEXTABLEMERGEMETACREATORTEST_H

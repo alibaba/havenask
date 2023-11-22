@@ -25,14 +25,19 @@ namespace indexlibv2::index::ann {
 class PkDataExtractor
 {
 public:
-    PkDataExtractor(const MergeTask& mergeTask) : _mergeTask(mergeTask) {}
+    PkDataExtractor(const MergeTask& mergeTask, bool compactIndex) : _mergeTask(mergeTask), _compactIndex(compactIndex)
+    {
+    }
     ~PkDataExtractor() = default;
 
 public:
     bool Extract(const std::vector<NormalSegmentPtr>& segments, PkDataHolder& result);
 
+    bool ExtractWithoutDocIdMap(const NormalSegmentPtr& segment, PkDataHolder& result);
+
 private:
     MergeTask _mergeTask;
+    bool _compactIndex;
     AUTIL_LOG_DECLARE();
 };
 

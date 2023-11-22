@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_DATA_PATCHER_H
-#define __INDEXLIB_ATTRIBUTE_DATA_PATCHER_H
+#pragma once
 
 #include <memory>
 
@@ -131,5 +130,3 @@ inline void AttributeDataPatcher::AppendFieldValueFromRawIndex(const autil::Stri
 
 ////////////////////////////////////////////////////////////////////////
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ATTRIBUTE_DATA_PATCHER_H

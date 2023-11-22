@@ -1,16 +1,16 @@
 package com.taobao.search.iquan.client.common.model;
 
-import com.taobao.search.iquan.client.common.common.ConstantDefine;
-import com.taobao.search.iquan.client.common.json.table.JsonLayerTable;
-import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
-
 import java.util.Map;
 import java.util.TreeMap;
 
-public class IquanLayerTableModel extends IquanModelBase{
+import com.taobao.search.iquan.client.common.common.ConstantDefine;
+import com.taobao.search.iquan.client.common.json.table.JsonLayerTableContent;
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+
+public class IquanLayerTableModel extends IquanModelBase {
     private String layerTableName = ConstantDefine.EMPTY;
     private String content = ConstantDefine.EMPTY;
-    private JsonLayerTable contentObj = null;
+    private JsonLayerTableContent contentObj = null;
     @Override
     public boolean isQualifierValid() {
         return false;
@@ -46,10 +46,10 @@ public class IquanLayerTableModel extends IquanModelBase{
         if (contentObj != null) {
             return;
         }
-        contentObj = IquanRelOptUtils.fromJson(content, JsonLayerTable.class);
+        contentObj = IquanRelOptUtils.fromJson(content, JsonLayerTableContent.class);
     }
 
-    public JsonLayerTable getContentObj() {
+    public JsonLayerTableContent getContentObj() {
         parseContent();
         return contentObj;
     }
@@ -76,12 +76,10 @@ public class IquanLayerTableModel extends IquanModelBase{
         return IquanRelOptUtils.toJson(maps);
     }
 
-    public static IquanLayerTableModel createFromMap(Map<String, Object> map) {
+    public static IquanLayerTableModel createFromMap(Map<String, Object> map, String catalogName, String databaseName) {
         IquanLayerTableModel layerTableModel = new IquanLayerTableModel();
 
         String layerTableName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.LAYER_TABLE_NAME, ConstantDefine.EMPTY);
-        String catalogName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.CATALOG_NAME, ConstantDefine.EMPTY);
-        String databaseName = IquanRelOptUtils.getValueFromMap(map, ConstantDefine.DATABASE_NAME, ConstantDefine.EMPTY);
         String content = ConstantDefine.EMPTY;
         if (map.containsKey(ConstantDefine.CONTENT)) {
             Object contentObj = map.get(ConstantDefine.CONTENT);

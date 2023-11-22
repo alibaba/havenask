@@ -1173,4 +1173,167 @@ TEST_F(VersionCleanerTest, TestReservedPrivateVersion)
     AssertSegmentsExist(Mode::MERGE, {0, 1, 2});
 }
 
+TEST_F(VersionCleanerTest, TestIgnoreKeepVersionCountNormal)
+{
+    FakeVersionCleaner cleaner;
+    std::string oldVersionStr = ";2,3,4"; // v1 [Seg2,Seg3,Seg4]
+    prepareIndex(oldVersionStr, /*versionCommitTime=*/ {1}, "", cleaner);
+    std::string newMergeVersion = ";;2,3,4,5"; // v2 [Seg2,Seg3,Seg4,Seg5]
+    prepareIndex(newMergeVersion, /*versionCommitTime=*/ {3}, "", cleaner);
+    std::string newBuildVersionStr =
+        "2,3,4#0,1;2,3,4,5#2"; // vp0 [Seg2,Seg3,Seg4,SegP0,SegP1] vp1 [Seg2,Seg3,Seg4,Seg5,SegP2]
+    prepareIndex(newBuildVersionStr, /*versionCommitTime=*/ {2, 4}, fence_1_0_32767, cleaner);
+
+    VersionCleaner::VersionCleanerOptions options;
+    options.keepVersionCount = 0;
+    options.currentMaxVersionId = GetPublicVersionId(1);
+    options.fenceTsTolerantDeviation = 0;
+    options.ignoreKeepVersionCount = true;
+    ASSERT_TRUE(cleaner.Clean(_rootDir, options, {1}).IsOK());
+
+    AssertVersionsExist(Mode::MERGE, {1});
+    AssertVersionsNotExist(Mode::MERGE, {2});
+    AssertVersionsNotExist(Mode::BUILD, {0, 1}, fence_1_0_32767);
+
+    AssertSegmentsExist(Mode::MERGE, {2, 3, 4});
+    AssertSegmentsNotExist(Mode::MERGE, {5});
+    AssertSegmentsNotExist(Mode::BUILD, {0, 1, 2}, fence_1_0_32767);
+    ASSERT_FALSE(IsFenceDirExist(fence_1_0_32767));
+}
+
+// some old segment has expired in new versions
+TEST_F(VersionCleanerTest, TestIgnoreKeepVersionCountWithExpiredSegment)
+{
+    FakeVersionCleaner cleaner;
+    std::string oldVersionStr = ";2,3,4"; // v1 [Seg2,Seg3,Seg4]
+    prepareIndex(oldVersionStr, /*versionCommitTime=*/ {1}, "", cleaner);
+    std::string newMergeVersion = ";;3,4,5"; // v2 [Seg3,Seg4,Seg5]
+    prepareIndex(newMergeVersion, /*versionCommitTime=*/ {3}, "", cleaner);
+    // old Seg2 has expired
+    std::string newBuildVersionStr = "2,3,4#0,1;3,4,5#2"; // vp0 [Seg2,Seg3,Seg4,SegP0,SegP1] vp1 [Seg3,Seg4,Seg5,SegP2]
+    prepareIndex(newBuildVersionStr, /*versionCommitTime=*/ {2, 4}, fence_1_0_32767, cleaner);
+
+    VersionCleaner::VersionCleanerOptions options;
+    options.keepVersionCount = 0;
+    options.currentMaxVersionId = GetPublicVersionId(1);
+    options.fenceTsTolerantDeviation = 0;
+    options.ignoreKeepVersionCount = true;
+    ASSERT_TRUE(cleaner.Clean(_rootDir, options, {1}).IsOK());
+
+    AssertVersionsExist(Mode::MERGE, {1});
+    AssertVersionsNotExist(Mode::MERGE, {2});
+    AssertVersionsNotExist(Mode::BUILD, {0, 1}, fence_1_0_32767);
+
+    AssertSegmentsExist(Mode::MERGE, {2, 3, 4});
+    AssertSegmentsNotExist(Mode::MERGE, {5});
+    AssertSegmentsNotExist(Mode::BUILD, {0, 1, 2}, fence_1_0_32767);
+    ASSERT_FALSE(IsFenceDirExist(fence_1_0_32767));
+}
+
+// build segment does not in any version
+TEST_F(VersionCleanerTest, TestIgnoreKeepVersionCountBuildSegNotExistInAnyVersion)
+{
+    FakeVersionCleaner cleaner;
+    std::string oldVersionStr = ";2,3,4"; // v1 [Seg2,Seg3,Seg4]
+    prepareIndex(oldVersionStr, /*versionCommitTime=*/ {1}, "", cleaner);
+    std::string newMergeVersion = ";;3,4,5"; // v2 [Seg3,Seg4,Seg5]
+    prepareIndex(newMergeVersion, /*versionCommitTime=*/ {3}, "", cleaner);
+    // old Seg2 has expired
+    std::string newBuildVersionStr = "2,3,4#0,1;3,4,5#2"; // vp0 [Seg2,Seg3,Seg4,SegP0,SegP1] vp1 [Seg3,Seg4,Seg5,SegP2]
+    prepareIndex(newBuildVersionStr, /*versionCommitTime=*/ {2, 4}, fence_1_0_32767, cleaner);
+
+    std::string segNotInVersion = "3"; // SegP3
+    std::shared_ptr<FakeSegmentFenceDirFinder> fakeFinder(new FakeSegmentFenceDirFinder());
+    Version fakeVersion;
+    fakeVersion.SetFenceName(fence_1_0_32767);
+    prepareSegments(segNotInVersion, /*isBuildSegment*/ true, fence_1_0_32767, fakeVersion, fakeFinder);
+
+    VersionCleaner::VersionCleanerOptions options;
+    options.keepVersionCount = 0;
+    options.currentMaxVersionId = GetPublicVersionId(1);
+    options.fenceTsTolerantDeviation = 0;
+    options.ignoreKeepVersionCount = true;
+    ASSERT_TRUE(cleaner.Clean(_rootDir, options, {1}).IsOK());
+
+    AssertVersionsExist(Mode::MERGE, {1});
+    AssertVersionsNotExist(Mode::MERGE, {2});
+    AssertVersionsNotExist(Mode::BUILD, {0, 1}, fence_1_0_32767);
+
+    AssertSegmentsExist(Mode::MERGE, {2, 3, 4});
+    AssertSegmentsNotExist(Mode::MERGE, {5});
+    AssertSegmentsNotExist(Mode::BUILD, {0, 1, 2, 3}, fence_1_0_32767);
+    ASSERT_FALSE(IsFenceDirExist(fence_1_0_32767));
+}
+
+// merge segment does not in any version
+TEST_F(VersionCleanerTest, TestIgnoreKeepVersionCountMergeSegNotExistInAnyVersion)
+{
+    FakeVersionCleaner cleaner;
+    std::string oldVersionStr = ";2,3,4"; // v1 [Seg2,Seg3,Seg4]
+    prepareIndex(oldVersionStr, /*versionCommitTime=*/ {1}, "", cleaner);
+    std::string newMergeVersion = ";;3,4,5"; // v2 [Seg3,Seg4,Seg5]
+    prepareIndex(newMergeVersion, /*versionCommitTime=*/ {3}, "", cleaner);
+    // old Seg2 has expired
+    std::string newBuildVersionStr = "2,3,4#0,1;3,4,5#2"; // vp0 [Seg2,Seg3,Seg4,SegP0,SegP1] vp1 [Seg3,Seg4,Seg5,SegP2]
+    prepareIndex(newBuildVersionStr, /*versionCommitTime=*/ {2, 4}, fence_1_0_32767, cleaner);
+
+    std::string segNotInVersion = "6"; // Seg6
+    std::shared_ptr<FakeSegmentFenceDirFinder> fakeFinder(new FakeSegmentFenceDirFinder());
+    Version fakeVersion;
+    prepareSegments(segNotInVersion, /*isBuildSegment*/ false, /*fenceDir*/ "", fakeVersion, fakeFinder);
+
+    VersionCleaner::VersionCleanerOptions options;
+    options.keepVersionCount = 0;
+    options.currentMaxVersionId = GetPublicVersionId(1);
+    options.fenceTsTolerantDeviation = 0;
+    options.ignoreKeepVersionCount = true;
+    ASSERT_TRUE(cleaner.Clean(_rootDir, options, {1}).IsOK());
+
+    AssertVersionsExist(Mode::MERGE, {1});
+    AssertVersionsNotExist(Mode::MERGE, {2});
+    AssertVersionsNotExist(Mode::BUILD, {0, 1}, fence_1_0_32767);
+
+    AssertSegmentsExist(Mode::MERGE, {2, 3, 4});
+    AssertSegmentsNotExist(Mode::MERGE, {5});
+    // if a merge version in root directory does not in any version, it will not be cleaned
+    AssertSegmentsExist(Mode::MERGE, {6});
+
+    AssertSegmentsNotExist(Mode::BUILD, {0, 1, 2}, fence_1_0_32767);
+    ASSERT_FALSE(IsFenceDirExist(fence_1_0_32767));
+}
+
+// test multi-fence
+TEST_F(VersionCleanerTest, TestIgnoreKeepVersionCountMultiFence)
+{
+    FakeVersionCleaner cleaner;
+    std::string oldVersionStr = ";2,3,4"; // v1 [Seg2,Seg3,Seg4]
+    prepareIndex(oldVersionStr, /*versionCommitTime=*/ {1}, "", cleaner);
+    std::string newMergeVersion = ";;3,4,5"; // v2 [Seg3,Seg4,Seg5]
+    prepareIndex(newMergeVersion, /*versionCommitTime=*/ {3}, "", cleaner);
+    std::string newBuildVersionStr = "2,3,4#0,1;3,4,5#2"; // vp0 [Seg2,Seg3,Seg4,SegP0,SegP1] vp1 [Seg3,Seg4,Seg5,SegP2]
+    prepareIndex(newBuildVersionStr, /*versionCommitTime=*/ {2, 4}, fence_0_0_32767, cleaner);
+
+    std::string newBuildVersionStr1 = ";;3,4,5#3"; // vp2 [Seg3,Seg4,Seg5,SegP3]
+    prepareIndex(newBuildVersionStr1, /*versionCommitTime=*/ {5, 6}, fence_1_0_32767, cleaner);
+
+    VersionCleaner::VersionCleanerOptions options;
+    options.keepVersionCount = 0;
+    options.currentMaxVersionId = GetPublicVersionId(2);
+    options.fenceTsTolerantDeviation = 0;
+    options.ignoreKeepVersionCount = true;
+    ASSERT_TRUE(cleaner.Clean(_rootDir, options, {1}).IsOK());
+
+    AssertVersionsExist(Mode::MERGE, {1});
+    AssertVersionsNotExist(Mode::MERGE, {2});
+    AssertVersionsNotExist(Mode::BUILD, {0, 1}, fence_0_0_32767);
+    AssertVersionsNotExist(Mode::BUILD, {0, 1}, fence_1_0_32767);
+
+    AssertSegmentsExist(Mode::MERGE, {2, 3, 4});
+    AssertSegmentsNotExist(Mode::MERGE, {5});
+    AssertSegmentsNotExist(Mode::BUILD, {0, 1, 2}, fence_0_0_32767);
+    AssertSegmentsNotExist(Mode::BUILD, {3}, fence_1_0_32767);
+    ASSERT_FALSE(IsFenceDirExist(fence_0_0_32767));
+    ASSERT_FALSE(IsFenceDirExist(fence_1_0_32767));
+}
+
 }} // namespace indexlibv2::framework

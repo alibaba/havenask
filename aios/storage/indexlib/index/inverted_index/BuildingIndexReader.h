@@ -31,7 +31,7 @@ public:
     ~BuildingIndexReader() {}
 
 public:
-    void AddSegmentReader(docid_t baseDocId, const std::shared_ptr<IndexSegmentReader>& inMemSegReader);
+    void AddSegmentReader(docid64_t baseDocId, const std::shared_ptr<IndexSegmentReader>& inMemSegReader);
     void GetSegmentPosting(const index::DictKeyInfo& key, std::vector<SegmentPosting>& segPostings,
                            autil::mem_pool::Pool* sessionPool, InvertedIndexSearchTracer* tracer = nullptr) const;
     size_t GetSegmentCount() const;
@@ -41,10 +41,10 @@ public:
     void Update(docid_t docId, const index::DictKeyInfo& key, bool isDelete);
 
 private:
-    std::pair<docid_t, IndexSegmentReader*> GetSegmentReader(docid_t docId);
+    std::pair<docid64_t, IndexSegmentReader*> GetSegmentReader(docid64_t docId);
 
 protected:
-    typedef std::pair<docid_t, std::shared_ptr<IndexSegmentReader>> SegmentReaderItem; //{baseDocId, segReader}
+    typedef std::pair<docid64_t, std::shared_ptr<IndexSegmentReader>> SegmentReaderItem; //{baseDocId, segReader}
     typedef std::vector<SegmentReaderItem> SegmentReaders;
 
     SegmentReaders _innerSegReaders;

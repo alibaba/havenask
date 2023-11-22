@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVINDEXOPTIONSTEST_H
-#define __INDEXLIB_KVINDEXOPTIONSTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kv/kv_index_options.h"
@@ -31,5 +30,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(KvIndexOptionsTest, TestGetRegionId);
 INDEXLIB_UNIT_TEST_CASE(KvIndexOptionsTest, TestGetLookupKeyHash);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KVINDEXOPTIONSTEST_H

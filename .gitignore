@@ -7,10 +7,6 @@ bep.json*
 .DS_Store
 __pycache__
 *.pyc
-*.rpm
 rpm/*.log
-*.tgz
-*.tar
-*.so
+*.bak
 hape/conf/generated
-

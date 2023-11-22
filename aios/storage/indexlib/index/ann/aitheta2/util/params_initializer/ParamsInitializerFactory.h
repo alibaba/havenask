@@ -25,7 +25,7 @@ public:
     ~ParamsInitializerFactory() = default;
 
 public:
-    static ParamsInitializerPtr Create(const std::string& name, size_t docCount);
+    static ParamsInitializerPtr Create(const std::string& name, size_t indexDocCount = 0);
 
 private:
     AUTIL_LOG_DECLARE();

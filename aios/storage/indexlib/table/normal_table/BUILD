@@ -28,6 +28,7 @@ strict_cc_library(
         '//aios/storage/indexlib/config:TabletSchema',
         '//aios/storage/indexlib/document:DocumentBatch',
         '//aios/storage/indexlib/document/normal:NormalDocumentFactory',
+        '//aios/storage/indexlib/framework:EnvironmentVariablesProvider',
         '//aios/storage/indexlib/framework:ITabletFactory',
         '//aios/storage/indexlib/framework/index_task:IIndexOperationCreator',
         '//aios/storage/indexlib/framework/index_task:IIndexTaskPlanCreator',
@@ -58,6 +59,7 @@ strict_cc_library(
         '//aios/storage/indexlib/index/deletionmap:factory',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/date:DateIndexReader',
         '//aios/storage/indexlib/index/inverted_index/builtin_index/range:RangeIndexReader',
+        '//aios/storage/indexlib/index/source:reader',
         '//aios/storage/indexlib/index/summary:reader',
         '//aios/storage/indexlib/table/common:SearchUtil',
         '//aios/storage/indexlib/util:ProtoJsonizer'
@@ -145,7 +147,7 @@ strict_cc_library(
         ':NormalMemSegment', ':NormalTabletBuiltinIndex',
         ':NormalTabletInfoHolder', ':NormalTabletModifier',
         ':NormalTabletParallelBuilder',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/table/common:CommonTabletWriter'
     ]
 )
@@ -174,10 +176,12 @@ strict_cc_library(
         '//aios/storage/indexlib/index/ann:factory',
         '//aios/storage/indexlib/index/attribute:factory',
         '//aios/storage/indexlib/index/deletionmap:factory',
+        '//aios/storage/indexlib/index/field_meta:factory',
         '//aios/storage/indexlib/index/inverted_index:factory',
         '//aios/storage/indexlib/index/operation_log:factory',
         '//aios/storage/indexlib/index/pack_attribute:factory',
         '//aios/storage/indexlib/index/primary_key:factory',
+        '//aios/storage/indexlib/index/source:factory',
         '//aios/storage/indexlib/index/statistics_term:factory',
         '//aios/storage/indexlib/index/summary:factory'
     ]
@@ -228,7 +232,7 @@ strict_cc_library(
 )
 strict_cc_library(
     name='NormalSchemaResolver',
-    implementation_deps=['//aios/storage/indexlib/indexlib/config'],
+    implementation_deps=['//aios/storage/indexlib/legacy/config:schema'],
     deps=[
         ':Common', '//aios/storage/indexlib/base:Status',
         '//aios/storage/indexlib/config:FileCompressConfigV2',
@@ -239,10 +243,12 @@ strict_cc_library(
         '//aios/storage/indexlib/config:UnresolvedSchema',
         '//aios/storage/indexlib/document/document_rewriter:DocumentInfoToAttributeRewriter',
         '//aios/storage/indexlib/index/deletionmap:config',
+        '//aios/storage/indexlib/index/field_meta/config',
         '//aios/storage/indexlib/index/inverted_index:constants',
         '//aios/storage/indexlib/index/inverted_index/config:TruncateIndexNameMapper',
         '//aios/storage/indexlib/index/inverted_index/config:TruncateProfileConfig',
         '//aios/storage/indexlib/index/operation_log:config',
+        '//aios/storage/indexlib/index/source:config',
         '//aios/storage/indexlib/index/statistics_term:StatisticsTermIndexConfig',
         '//aios/storage/indexlib/index/statistics_term:constants',
         '//aios/storage/indexlib/index/summary:config',
@@ -323,10 +329,12 @@ strict_cc_library(
         '//aios/storage/indexlib/index/attribute:AttributeBuildWorkItem',
         '//aios/storage/indexlib/index/common:BuildWorkItem',
         '//aios/storage/indexlib/index/deletionmap:DeletionMapBuildWorkItem',
+        '//aios/storage/indexlib/index/field_meta:FieldMetaBuildWorkItem',
         '//aios/storage/indexlib/index/inverted_index:InvertedIndexBuildWorkItem',
         '//aios/storage/indexlib/index/operation_log:OperationLogBuildWorkItem',
         '//aios/storage/indexlib/index/primary_key:PrimaryKeyBuildWorkItem',
         '//aios/storage/indexlib/index/primary_key:reader',
+        '//aios/storage/indexlib/index/source:SourceBuildWorkItem',
         '//aios/storage/indexlib/index/summary:SummaryBuildWorkItem',
         '//aios/storage/indexlib/table/normal_table/virtual_attribute:VirtualAttributeBuildWorkItem',
         '//aios/storage/indexlib/util:GroupedThreadPool'

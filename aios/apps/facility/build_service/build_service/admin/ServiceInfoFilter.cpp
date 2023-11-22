@@ -15,9 +15,23 @@
  */
 #include "build_service/admin/ServiceInfoFilter.h"
 
+#include <google/protobuf/descriptor.h>
+#include <map>
+#include <ostream>
+#include <typeinfo>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/Lock.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "worker_framework/WorkerState.h"
+#include "worker_framework/ZkState.h"
 
 using namespace std;
 using namespace build_service::proto;

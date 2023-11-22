@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_PATCH_META_CREATOR_H
-#define __INDEXLIB_PARTITION_PATCH_META_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -44,7 +43,7 @@ public:
 
 private:
     static PartitionPatchMetaPtr GetLastPartitionPatchMeta(const file_system::DirectoryPtr& rootDirectory,
-                                                           schemavid_t& lastSchemaId);
+                                                           schemaid_t& lastSchemaId);
 
     static void GetPatchIndexInfos(const file_system::DirectoryPtr& segDir,
                                    const config::IndexPartitionSchemaPtr& schema, std::vector<std::string>& indexNames,
@@ -53,12 +52,12 @@ private:
     static PartitionPatchMetaPtr CreatePatchMeta(const file_system::DirectoryPtr& rootDirectory,
                                                  const config::IndexPartitionSchemaPtr& schema,
                                                  const index_base::Version& version,
-                                                 const PartitionPatchMetaPtr& lastPatchMeta, schemavid_t lastSchemaId);
+                                                 const PartitionPatchMetaPtr& lastPatchMeta, schemaid_t lastSchemaId);
 
     static PartitionPatchMetaPtr CreatePatchMeta(const file_system::DirectoryPtr& rootDirectory,
                                                  const config::IndexPartitionSchemaPtr& schema,
                                                  const index_base::Version& version,
-                                                 const std::vector<schemavid_t>& schemaIdVec,
+                                                 const std::vector<schemaid_t>& schemaIdVec,
                                                  const PartitionPatchMetaPtr& lastPatchMeta);
 
     static void GetValidIndexAndAttribute(const config::IndexPartitionSchemaPtr& schema,
@@ -80,5 +79,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionPatchMetaCreator);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_PARTITION_PATCH_META_CREATOR_H

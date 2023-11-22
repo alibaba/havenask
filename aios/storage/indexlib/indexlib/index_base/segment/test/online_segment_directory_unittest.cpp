@@ -191,7 +191,7 @@ void OnlineSegmentDirectoryTest::TestInitSub()
     DirectoryPtr partDirectory = GET_PARTITION_DIRECTORY();
     Version onDiskVersion = VersionMaker::Make(partDirectory, 0, "0,1", "3", "2", 0, true);
     OnlineSegmentDirectory segDir;
-    segDir.Init(partDirectory, index_base::Version(INVALID_VERSION), true);
+    segDir.Init(partDirectory, index_base::Version(INVALID_VERSIONID), true);
 
     SegmentDirectoryPtr subSegDir = segDir.GetSubSegmentDirectory();
     ASSERT_TRUE(subSegDir);
@@ -218,7 +218,7 @@ void OnlineSegmentDirectoryTest::TestInitSubForEmptyVersion()
     RESET_FILE_SYSTEM("ut", true /* auto mount */, fsOptions);
     DirectoryPtr partDirectory = GET_PARTITION_DIRECTORY();
     OnlineSegmentDirectory segDir;
-    segDir.Init(partDirectory, index_base::Version(INVALID_VERSION), true);
+    segDir.Init(partDirectory, index_base::Version(INVALID_VERSIONID), true);
 
     SegmentDirectoryPtr subSegDir = segDir.GetSubSegmentDirectory();
     ASSERT_TRUE(subSegDir);

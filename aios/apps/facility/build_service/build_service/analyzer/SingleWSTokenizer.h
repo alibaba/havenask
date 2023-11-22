@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SINGLEWSTOKENIZER_H
-#define ISEARCH_BS_SINGLEWSTOKENIZER_H
+#pragma once
+
+#include <iosfwd>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "build_service/analyzer/SingleWSScanner.h"
 #include "build_service/analyzer/Tokenizer.h"
+#include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/util/Log.h"
-
-namespace indexlibv2::analyzer {
-class ITokenizer;
-}
+#include "indexlib/analyzer/ITokenizer.h"
 
 namespace build_service { namespace analyzer {
 
@@ -56,5 +58,3 @@ private:
 BS_TYPEDEF_PTR(SingleWSTokenizer);
 
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_SINGLEWSTOKENIZER_H

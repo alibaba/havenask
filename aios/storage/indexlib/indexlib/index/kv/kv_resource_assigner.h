@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_RESOURCE_ASSIGNER_H
-#define __INDEXLIB_KV_RESOURCE_ASSIGNER_H
+#pragma once
 
 #include <memory>
 
@@ -59,5 +58,3 @@ private:
 
 DEFINE_SHARED_PTR(KvResourceAssigner);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_RESOURCE_ASSIGNER_H

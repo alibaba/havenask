@@ -66,7 +66,7 @@ public:
                      const std::shared_ptr<file_system::ResourceFile>& expandResource, uint64_t docCount);
     ~BitmapLeafReader() = default;
 
-    Result<bool> GetSegmentPosting(const DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+    Result<bool> GetSegmentPosting(const DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                                    file_system::ReadOption option, InvertedIndexSearchTracer* tracer) const noexcept;
     void Update(docid_t docId, const DictKeyInfo& key, bool isDelete);
 
@@ -75,14 +75,14 @@ public:
     size_t EvaluateCurrentMemUsed() const;
 
 private:
-    static bool TryUpdateInOriginalBitmap(uint8_t* segmentPostingBaseAddr, docid_t docId, bool isDelete,
+    static bool TryUpdateInOriginalBitmap(uint8_t* segmentPostingBaseAddr, docid64_t docId, bool isDelete,
                                           BitmapPostingExpandData* expandData);
     static BitmapPostingExpandData* CreateExpandData(ExpandDataTable* dataTable, DictionaryReader* dictReader,
                                                      file_system::FileReader* postingReader,
                                                      const DictKeyInfo& key) noexcept;
 
 private:
-    Result<bool> GetSegmentPostingFromIndex(const DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+    Result<bool> GetSegmentPostingFromIndex(const DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                                             file_system::ReadOption option,
                                             InvertedIndexSearchTracer* tracer) const noexcept;
 

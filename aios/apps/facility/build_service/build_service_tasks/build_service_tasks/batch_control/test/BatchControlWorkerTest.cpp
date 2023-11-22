@@ -1,13 +1,31 @@
 #include "build_service_tasks/batch_control/BatchControlWorker.h"
 
-#include "autil/StringUtil.h"
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <stdlib.h>
+#include <string>
+#include <type_traits>
+#include <unistd.h>
+#include <vector>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/task_base/Task.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service_tasks/batch_control/BatchReporter.h"
 #include "build_service_tasks/batch_control/test/MockBatchControlWorker.h"
 #include "build_service_tasks/test/unittest.h"
 #include "fslib/util/FileUtil.h"
+#include "swift/protocol/ErrCode.pb.h"
+#include "swift/protocol/SwiftMessage.pb.h"
+#include "unittest/unittest.h"
+#include "worker_framework/WorkerState.h"
 
 using namespace std;
 using namespace autil;

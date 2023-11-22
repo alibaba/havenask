@@ -15,8 +15,16 @@
  */
 #include "build_service/admin/taskcontroller/DropBuildingIndexTaskController.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
+#include "build_service/config/ConfigDefine.h"
 
 using namespace std;
 using namespace autil;

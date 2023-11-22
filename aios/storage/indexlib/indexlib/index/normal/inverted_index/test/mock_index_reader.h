@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCK_INDEX_READER_H
-#define __INDEXLIB_MOCK_INDEX_READER_H
+#pragma once
 
 #include <memory>
 
@@ -77,7 +76,7 @@ public:
 
 public:
     MOCK_METHOD(bool, GetSegmentPosting,
-                (const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+                (const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                  autil::mem_pool::Pool* sessionPool, InvertedIndexSearchTracer*),
                 (const, override));
 };
@@ -117,12 +116,10 @@ class MockBuilingSegmentReader : public IndexSegmentReader
 {
 public:
     MOCK_METHOD(bool, GetSegmentPosting,
-                (const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+                (const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                  autil::mem_pool::Pool* sessionPool, InvertedIndexSearchTracer*),
                 (const, override));
 };
 
 DEFINE_SHARED_PTR(MockTieredDictionaryReader);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_MOCK_INDEX_READER_H

@@ -1,3 +1,4 @@
+#pragma once
 #include <memory>
 
 #include "indexlib/index/inverted_index/truncate/BucketMap.h"

@@ -1,9 +1,11 @@
 #include "indexlib/index/primary_key/PrimaryKeyIndexFactory.h"
 
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IIndexMerger.h"
 #include "indexlib/index/IIndexReader.h"
 #include "indexlib/index/IndexFactoryCreator.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/primary_key/Common.h"
 #include "indexlib/index/primary_key/config/PrimaryKeyIndexConfig.h"
 #include "indexlib/util/testutil/unittest.h"
@@ -47,10 +49,13 @@ void PrimaryKeyIndexFactoryTest::TestSimpleProcess()
     auto [status, indexFactory] = indexFactoryCreator->Create(config->GetIndexType());
     ASSERT_TRUE(status.IsOK());
     ASSERT_EQ(typeid(PrimaryKeyIndexFactory), typeid(*indexFactory));
-    IndexerParameter indexParam;
-    ASSERT_TRUE(indexFactory->CreateDiskIndexer(config, indexParam));
-    ASSERT_TRUE(indexFactory->CreateMemIndexer(config, indexParam));
-    ASSERT_TRUE(indexFactory->CreateIndexReader(config, indexParam));
+    DiskIndexerParameter diskIndexParam;
+    MemIndexerParameter memIndexParam;
+    IndexReaderParameter indexReaderParam;
+
+    ASSERT_TRUE(indexFactory->CreateDiskIndexer(config, diskIndexParam));
+    ASSERT_TRUE(indexFactory->CreateMemIndexer(config, memIndexParam));
+    ASSERT_TRUE(indexFactory->CreateIndexReader(config, indexReaderParam));
     ASSERT_TRUE(indexFactory->CreateIndexMerger(config));
     std::string jsonStr = R"(
     {

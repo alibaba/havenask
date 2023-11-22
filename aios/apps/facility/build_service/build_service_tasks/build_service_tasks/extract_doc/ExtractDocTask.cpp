@@ -15,19 +15,44 @@
  */
 #include "build_service_tasks/extract_doc/ExtractDocTask.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
 #include <mutex>
+#include <unistd.h>
 
-#include "build_service/config/BuilderClusterConfig.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/TaskOutputConfig.h"
 #include "build_service/document/RawDocument.h"
-#include "build_service/plugin/PlugInManager.h"
+#include "build_service/io/Input.h"
+#include "build_service/io/OutputCreator.h"
 #include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/reader/MultiIndexDocReader.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
-#include "build_service/util/MemUtil.h"
+#include "build_service/util/Monitor.h"
 #include "build_service/util/RangeUtil.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/module_info.h"
+#include "indexlib/document/RawDocFieldIterator.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/raw_doc_field_iterator.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/partition/index_partition.h"
+#include "indexlib/partition/partition_group_resource.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace build_service::config;
@@ -318,7 +343,7 @@ bool ExtractDocTask::prepareReader(const std::string& generationRoot, KeyValueMa
         }
     }
 
-    versionid_t versionId = INVALID_VERSION;
+    versionid_t versionId = indexlib::INVALID_VERSIONID;
     if (!target.getTargetDescription(BS_SNAPSHOT_VERSION, versionId)) {
         BS_LOG(ERROR, "fail to get snapshot version");
         return false;

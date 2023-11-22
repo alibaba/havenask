@@ -1,14 +1,16 @@
 package com.taobao.search.iquan.core.rel.rules.logical.layer.table;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LogicalLayerTableScan;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelVisitor;
-import org.apache.calcite.rel.logical.*;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import org.apache.calcite.rel.logical.LogicalAggregate;
+import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.calcite.rel.logical.LogicalSort;
+import org.apache.calcite.rel.logical.LogicalTableScan;
+import org.apache.calcite.rel.logical.LogicalUnion;
 
 public class FuseScanInfo {
     private final Deque<RelNode> ancestors;

@@ -1,8 +1,13 @@
 #include "build_service/proto/ProtoJsonizer.h"
 
-#include "build_service/proto/Admin.pb.h"
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
 #include "build_service/proto/test/TestJsonize.pb.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
+
 using namespace std;
 using namespace testing;
 

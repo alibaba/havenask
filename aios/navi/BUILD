@@ -49,8 +49,8 @@ cc_library(
         'log/TraceCollector.h', 'log/LogBtFilter.h', 'perf/NaviPerfResult.h',
         'resource/*.h', 'ops/DefaultMergeKernel.h', 'ops/DefaultSplitKernel.h',
         'rpc_server/*.h', 'util/NaviTestPool.h', 'util/NaviClosure.h',
-        'util/ReadyBitMap.h', 'util/BitMap.h', 'test_cluster/NaviTestCluster.h',
-        'test_cluster/NaviFuncClosure.h'
+        'util/ReadyBitMap.h', 'util/BitMap.h', 'util/EnvParam.h',
+        'test_cluster/NaviTestCluster.h', 'test_cluster/NaviFuncClosure.h'
     ]),
     include_prefix='navi',
     deps=([
@@ -135,8 +135,8 @@ cc_library(
 )
 cc_library(
     name='navi_common',
-    srcs=glob(['common.cpp'], exclude=[]),
-    hdrs=glob(['common.h', 'util/NaviTestPool.h'], exclude=[]),
+    srcs=['common.cpp'],
+    hdrs=['common.h', 'util/NaviTestPool.h'],
     include_prefix='navi',
     deps=['//aios/network/anet:anet', '//aios/autil:mem_pool_base'],
     copts=['-Werror', '-Wno-aligned-new'],
@@ -239,8 +239,7 @@ cc_test(
         ':testdata', ':test_alog_conf', ':copy_test_plugin',
         ':navi_python_home_scripts'
     ],
-    copts=['-fno-access-control'],
-    shard_count=1
+    copts=['-fno-access-control']
 )
 cc_test(
     name='navi_resource_test',
@@ -266,8 +265,9 @@ cc_test(
         ':navi_python_home_scripts'
     ],
     linkstatic=False,
+    tags=['exclusive'],
     copts=['-fno-access-control'],
-    shard_count=20
+    shard_count=5
 )
 cc_test(
     name='navi_run_graph_test',
@@ -295,8 +295,7 @@ cc_test(
         ':testdata', ':test_alog_conf', ':copy_test_plugin',
         ':navi_python_home_scripts'
     ],
-    copts=['-fno-access-control'],
-    shard_count=1
+    copts=['-fno-access-control']
 )
 cc_test(
     name='navi_test',
@@ -312,14 +311,13 @@ cc_test(
         ':navi_python_home_scripts'
     ],
     copts=['-fno-access-control'],
-    shard_count=5
+    shard_count=2
 )
 cc_test(
     name='navi_util_test',
     srcs=glob(['util/test/*Test.cpp']),
     deps=[':navi_inner_lib', '//aios/unittest_framework:unittest_framework'],
-    copts=['-fno-access-control'],
-    shard_count=1
+    copts=['-fno-access-control']
 )
 cc_test(
     name='navi_builder_test',
@@ -328,8 +326,7 @@ cc_test(
         ':navi_builder_headers', '//aios/unittest_framework:unittest_framework',
         '//aios/network/gig:multi_call'
     ],
-    copts=['-fno-access-control'],
-    shard_count=1
+    copts=['-fno-access-control']
 )
 bundle_files(
     name='navi_tools_package',

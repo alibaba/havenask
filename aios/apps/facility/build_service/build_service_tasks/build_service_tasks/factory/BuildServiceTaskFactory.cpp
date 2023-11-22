@@ -15,6 +15,9 @@
  */
 #include "build_service_tasks/factory/BuildServiceTaskFactory.h"
 
+#include <iostream>
+#include <memory>
+
 #include "build_service_tasks/cloneIndex/CloneIndexTask.h"
 #include "build_service_tasks/doc_reclaim/DocReclaimTask.h"
 #include "build_service_tasks/endbuild/EndBuildTask.h"
@@ -26,8 +29,13 @@
 #include "build_service_tasks/script_task/RunScriptTask.h"
 #include "build_service_tasks/syncIndex/SyncIndexTask.h"
 // #include "build_service_tasks/table_meta_synchronizer/TableMetaSynchronizer.h"
+#include "alog/Logger.h"
+#include "build_service/io/Input.h"
+#include "build_service/plugin/ModuleFactory.h"
 #include "build_service_tasks/batch_control/BatchControlTask.h"
+#include "build_service_tasks/io/IODefine.h"
 #include "build_service_tasks/prepare_data_source/PrepareDataSourceTask.h"
+#include "build_service_tasks/reset_version_task/ResetVersionTask.h"
 
 using namespace std;
 using namespace build_service::io;
@@ -55,6 +63,7 @@ TaskPtr BuildServiceTaskFactory::createTask(const std::string& taskName)
     ENUM_TASK(RollbackTask);
     ENUM_TASK(EndBuildTask);
     ENUM_TASK(CloneIndexTask);
+    ENUM_TASK(ResetVersionTask);
     ENUM_TASK(SyncIndexTask);
     ENUM_TASK(BatchControlTask);
     if (taskName == "drop_building_index") {

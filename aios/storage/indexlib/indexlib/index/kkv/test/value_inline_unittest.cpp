@@ -2,12 +2,12 @@
 
 #include "future_lite/CoroInterface.h"
 #include "future_lite/executors/SimpleExecutor.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/test/LoadConfigListCreator.h"
 #include "indexlib/index/kkv/kkv_reader.h"
 #include "indexlib/index/kv/kv_metrics_collector.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 
 using namespace std;

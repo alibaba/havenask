@@ -3,9 +3,9 @@
 #include "future_lite/CoroInterface.h"
 #include "future_lite/executors/SimpleExecutor.h"
 #include "indexlib/common/hash_table/dense_hash_table_traits.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 

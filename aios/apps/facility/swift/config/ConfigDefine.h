@@ -36,10 +36,12 @@ constexpr char INNER_SYS_USER[] = "inner_sys_user";
 constexpr char USER_NAME[] = "user_name";
 constexpr char SERVICE_NAME[] = "service_name";
 constexpr char HIPPO_ROOT_PATH[] = "hippo_root";
+constexpr char GATEWAY_ROOT_PATH[] = "gateway_root";
 constexpr char ZOOKEEPER_ROOT_PATH[] = "zookeeper_root";
 constexpr char ADMIN_COUNT[] = "admin_count";
 constexpr char BROKER_COUNT[] = "broker_count";
 constexpr char GROUP_BROKER_COUNT[] = "group_broker_count";
+constexpr char GROUP_NET_PRIORITY[] = "group_net_priority";
 constexpr char BROKER_EXCLUSIVE_LEVEL[] = "broker_exclusive_level";
 
 constexpr char AMONITOR_PORT[] = "amon_agent_port";

@@ -49,12 +49,13 @@ ErrorCode DefaultMergeKernel::doInit(KernelInitContext &ctx) {
 }
 
 ErrorCode DefaultMergeKernel::compute(KernelComputeContext &ctx) {
-    for (auto loopCount = 0; loopCount < getUsedPartCount(); ++loopCount) {
+    auto usedPartCount = getUsedPartCount();
+    for (auto loopCount = 0; loopCount < usedPartCount; ++loopCount) {
         StreamData streamData;
         auto index = getUsedPartId(_loopIndex);
         auto ec = getData(ctx, index, streamData);
         _loopIndex++;
-        if (_loopIndex >= getUsedPartCount()) {
+        if (_loopIndex >= usedPartCount) {
             _loopIndex = 0;
         }
         if (EC_NONE != ec) {

@@ -1,12 +1,31 @@
-#ifndef ISEARCH_BS_GENERATIONTASKSTATEMACHINE_H
-#define ISEARCH_BS_GENERATIONTASKSTATEMACHINE_H
+#pragma once
 
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/GenerationTask.h"
+#include "build_service/admin/GenerationTaskBase.h"
+#include "build_service/admin/WorkerTable.h"
+#include "build_service/admin/controlflow/TaskBase.h"
+#include "build_service/admin/controlflow/TaskFlow.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/admin/taskcontroller/BuildServiceTask.h"
 #include "build_service/admin/taskcontroller/SingleMergerTask.h"
+#include "build_service/admin/test/BuilderV2Node.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/DataDescriptions.h"
-#include "build_service/util/Log.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/WorkerNode.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace admin {
 
@@ -24,7 +43,7 @@ private:
 public: // action
     bool init(const std::string& tableName, const std::string& configPath, const std::string& rootDir,
               proto::DataDescriptions dataDescriptions = proto::DataDescriptions(),
-              proto::BuildStep buildStep = proto::BUILD_STEP_FULL);
+              proto::BuildStep buildStep = proto::BUILD_STEP_FULL, bool useV2Build = false);
     bool initFromString(const std::string& rootDir, const std::string& tableName, const std::string& jsonStr);
     bool updateConfig(const std::string& configPath)
     {
@@ -63,6 +82,7 @@ public: // action
     bool createVersion(const std::string& clusterName, const std::string& mergeConfigName);
     bool waitCreateVersion(const std::string& clusterName, versionid_t targetVersion, int64_t waitTimes = 15,
                            int64_t indexSize = 0);
+    bool waitCreateVersionV2(const std::string& clusterName, versionid_t& createdVersion, int64_t waitTimes = 15);
 
     bool waitAlterField(const std::string& clusterName, int64_t rollBackVersion, int64_t alterFieldVersion);
 
@@ -105,6 +125,7 @@ public:
                                       std::string taskId = std::string(""));
     static proto::WorkerNodes getWorkerNodes(const std::string& clusterName, proto::RoleType roleType,
                                              WorkerTable* workerTable, std::string taskId = std::string(""));
+    std::vector<BuilderV2Node> getBuilderV2Nodes(std::string clusterName = "");
 
 public:
     bool checkTaskZkStatus(const std::string& flowTag, const std::string& taskId, const std::string& nodePath,
@@ -142,16 +163,19 @@ public:
     TaskFlowPtr getFlowByTag(const std::string& flowTag);
     proto::BuildId getBuildId();
     static void finishTasks(proto::WorkerNodes& nodes, std::string status = "");
+    versionid_t getPublishedVersion(const std::string& clusterName);
 
 private:
     static void finishTasks(proto::TaskNodes& taskNodes, std::string status = "");
     static void finishBuilder(const std::string& clusterName, WorkerTable* workerTable, const std::string& status = "",
                               bool needStopEndBuilder = true);
+    static void finishBuilderV2(const std::string& clusterName, WorkerTable* workerTable);
     static void finishProcessor(WorkerTable* workerTable);
     static void finishTask(const std::string& taskId, WorkerTable* workerTable, std::string status = "");
 
     static proto::ProcessorNodes getProcessorNodes(WorkerTable* workerTable, const std::string& processorId);
     static proto::BuilderNodes getBuilderNodes(WorkerTable* workerTable, std::string clusterName = "");
+    static std::vector<BuilderV2Node> getBuilderV2Nodes(WorkerTable* workerTable, std::string clusterName = "");
     static proto::MergerNodes getMergerNodes(WorkerTable* workerTable, std::string clusterName = "");
     static proto::TaskNodes getTaskNodes(WorkerTable* workerTable, const std::string& taskId,
                                          std::string clusterName = "");
@@ -192,6 +216,7 @@ private:
     bool _needDeletePointer;
     bool _isJobTask;
     bool _autoRestart;
+    bool _useV2Build;
 
 private:
     BS_LOG_DECLARE();
@@ -200,5 +225,3 @@ private:
 BS_TYPEDEF_PTR(GenerationTaskStateMachine);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_GENERATIONTASKSTATEMACHINE_H

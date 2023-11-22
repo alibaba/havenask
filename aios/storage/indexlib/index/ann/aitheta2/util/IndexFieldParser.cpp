@@ -19,6 +19,7 @@
 #include "indexlib/document/normal/IndexRawField.h"
 #include "indexlib/document/normal/IndexTokenizeField.h"
 #include "indexlib/index/ann/aitheta2/CommonDefine.h"
+#include "indexlib/index/ann/aitheta2/util/EmbeddingUtil.h"
 #include "indexlib/util/FloatUint64Encoder.h"
 
 using namespace std;
@@ -49,33 +50,37 @@ bool IndexFieldParser::Init(const shared_ptr<indexlibv2::config::ANNIndexConfig>
 }
 
 IndexFieldParser::ParseStatus IndexFieldParser::Parse(const indexlib::document::IndexDocument* doc,
-                                                      EmbeddingFieldData& fieldData)
+                                                      IndexFields& fieldData)
 {
     std::vector<const indexlib::document::Field*> fields;
     for (size_t i = 0; i != _fieldIds.size(); ++i) {
         const indexlib::document::Field* field = doc->GetField(_fieldIds[i]);
-        if (nullptr == field) {
-            if (_aithetaConfig.buildConfig.ignoreFieldCountMismatch) {
-                AUTIL_INTERVAL_LOG(1024, WARN, "field [%s] is miss in index [%s]",
-                                   _fieldConfigMap[_fieldIds[i]]->GetFieldName().c_str(), _indexName.c_str());
-                return IndexFieldParser::ParseStatus::PS_IGNORE;
-            } else {
-                AUTIL_LOG(WARN, "field [%s] is miss in index [%s]",
-                          _fieldConfigMap[_fieldIds[i]]->GetFieldName().c_str(), _indexName.c_str());
-                return IndexFieldParser::ParseStatus::PS_FAIL;
-            }
+        if (field != nullptr) {
+            fields.push_back(field);
+            continue;
         }
-        fields.push_back(field);
+        if (_aithetaConfig.buildConfig.ignoreFieldCountMismatch || _aithetaConfig.buildConfig.ignoreInvalidDoc) {
+            AUTIL_INTERVAL_LOG(1024, WARN, "field[%s] is miss in index[%s]",
+                               _fieldConfigMap[_fieldIds[i]]->GetFieldName().c_str(), _indexName.c_str());
+            return IndexFieldParser::ParseStatus::PS_IGNORE;
+        }
+        AUTIL_LOG(ERROR, "missing field[%s] in index[%s]", _fieldConfigMap[_fieldIds[i]]->GetFieldName().c_str(),
+                  _indexName.c_str());
+        return IndexFieldParser::ParseStatus::PS_FAIL;
     }
 
     if (!DoParse(fields, doc->GetDocId(), fieldData)) {
+        if (_aithetaConfig.buildConfig.ignoreInvalidDoc) {
+            AUTIL_LOG(DEBUG, "fields parse failed, ignore");
+            return IndexFieldParser::ParseStatus::PS_IGNORE;
+        }
         return IndexFieldParser::ParseStatus::PS_FAIL;
     }
     return ParseStatus::PS_OK;
 }
 
 bool IndexFieldParser::DoParse(const std::vector<const indexlib::document::Field*>& fields, docid_t docId,
-                               EmbeddingFieldData& fieldData)
+                               IndexFields& fieldData)
 {
     ANN_CHECK(ParseKey(fields[0], fieldData.pk), "parse pk failed in[%s]", _indexName.c_str());
     if (fields.size() == 3) {
@@ -113,7 +118,8 @@ bool IndexFieldParser::ParseKey(const Field* field, int64_t& pk)
 bool IndexFieldParser::ParseIndexId(const Field* field, vector<index_id_t>& indexIds)
 {
     if (field->GetFieldTag() == Field::FieldTag::TOKEN_FIELD) {
-        ANN_CHECK(FieldConfig::IsIntegerType(GetFieldType(field->GetFieldId())),
+        FieldType fieldType = GetFieldType(field->GetFieldId());
+        ANN_CHECK(FieldConfig::IsIntegerType(fieldType) || fieldType == ft_string,
                   "index id field need builtin integer field");
 
         auto indexTokenizeField = dynamic_cast<const IndexTokenizeField*>(field);
@@ -143,49 +149,85 @@ bool IndexFieldParser::ParseIndexId(const Field* field, vector<index_id_t>& inde
 
 bool IndexFieldParser::ParseEmbedding(const Field* field, embedding_t& embedding)
 {
-    vector<float> vals;
+    vector<float> floatEmb;
     if (field->GetFieldTag() == Field::FieldTag::TOKEN_FIELD) {
-        FieldType fieldType = GetFieldType(field->GetFieldId());
-        ANN_CHECK(fieldType == ft_float || fieldType == ft_double,
-                  "embedding field need builtin multi float/double field");
-
-        auto indexTokenizeField = dynamic_cast<const IndexTokenizeField*>(field);
-        ANN_CHECK(indexTokenizeField != nullptr, "embedding field cast to IndexTokenizeField failed");
-        ANN_CHECK(indexTokenizeField->GetSectionCount() > 0, "embedding IndexTokenizeField no section");
-
-        assert(indexTokenizeField->GetSectionCount() == 1);
-        auto iterField = indexTokenizeField->Begin();
-        const Section* section = *iterField;
-        ANN_CHECK((section != nullptr) && (section->GetTokenCount() > 0),
-                  "embedding IndexTokenizeField section no token");
-
-        vals.reserve(section->GetTokenCount());
-        for (size_t i = 0; i < section->GetTokenCount(); ++i) {
-            const Token* token = section->GetToken(i);
-            if (fieldType == ft_float) {
-                vals.push_back(FloatUint64Encoder::Uint32ToFloat(static_cast<uint32_t>(token->GetHashKey())));
-            } else {
-                vals.push_back(FloatUint64Encoder::Uint64ToDouble(token->GetHashKey()));
-            }
-        }
+        ANN_CHECK(ParseFromTokenField(field, floatEmb), "parse embedding from token field failed");
     } else {
         auto rawField = dynamic_cast<const IndexRawField*>(field);
         ANN_CHECK(rawField, "cast to IndexRawField failed");
-
         const string str = string(rawField->GetData().data(), rawField->GetData().size());
         const string& del = _aithetaConfig.embeddingDelimiter;
-        ANN_CHECK(ParseFromString(str, vals, del), "parse embedding[%s] failed", str.c_str());
+        ANN_CHECK(ParseFromString(str, floatEmb, del), "parse embedding[%s] failed", str.c_str());
         AUTIL_LOG(DEBUG, "build embedding[%s] in[%s]", str.c_str(), _indexName.c_str());
     }
-    uint32_t dim = _aithetaConfig.dimension;
-    ANN_CHECK(vals.size() == dim, "dimension of[%lu] != expected[%u]", vals.size(), dim);
+    ANN_CHECK(floatEmb.size() == _aithetaConfig.dimension, "dimension[%lu] mismatch expected[%u]", floatEmb.size(),
+              _aithetaConfig.dimension);
 
-    embedding.reset(new (std::nothrow) float[dim], [](float* p) { delete[] p; });
-    if (nullptr == embedding) {
-        AUTIL_LOG(ERROR, "alloc size[%lu] in type[float] failed", (size_t)dim);
-        return false;
+    if (_aithetaConfig.distanceType == HAMMING) {
+        return ConvertToBinaryEmbedding(floatEmb, _aithetaConfig.dimension, embedding);
     }
-    std::copy_n(vals.begin(), dim, embedding.get());
+
+    size_t elemSize = floatEmb.size() * sizeof(float);
+    embedding.reset(new (std::nothrow) char[elemSize], std::default_delete<char[]>());
+    ANN_CHECK(embedding, "alloc size[%lu]  failed", elemSize);
+    memcpy(embedding.get(), floatEmb.data(), elemSize);
+    return true;
+}
+
+bool IndexFieldParser::ConvertToBinaryEmbedding(const std::vector<float>& floatEmb, uint32_t dimension,
+                                                embedding_t& embedding)
+{
+    vector<int32_t> binaryEmb;
+    auto status = EmbeddingUtil::ConvertFloatToBinary(floatEmb.data(), dimension, binaryEmb);
+    ANN_CHECK(status.IsOK(), "convert failed, %s", status.ToString().c_str());
+
+    size_t elemSize = binaryEmb.size() * sizeof(int32_t);
+    embedding.reset(new (std::nothrow) char[elemSize], std::default_delete<char[]>());
+    ANN_CHECK(embedding, "alloc size[%lu] failed", elemSize);
+    memcpy(embedding.get(), binaryEmb.data(), elemSize);
+    return true;
+}
+
+bool IndexFieldParser::ParseFromTokenField(const Field* field, vector<float>& vals)
+{
+    FieldType fieldType = GetFieldType(field->GetFieldId());
+    ANN_CHECK(fieldType == ft_float || fieldType == ft_double, "embedding field need builtin multi float/double field");
+
+    auto indexTokenizeField = dynamic_cast<const IndexTokenizeField*>(field);
+    ANN_CHECK(indexTokenizeField != nullptr, "embedding field cast to IndexTokenizeField failed");
+    ANN_CHECK(indexTokenizeField->GetSectionCount() > 0, "embedding IndexTokenizeField no section");
+
+    size_t tokenCount = 0;
+    for (auto iterField = indexTokenizeField->Begin(); iterField != indexTokenizeField->End(); ++iterField) {
+        const Section* section = *iterField;
+        if (section) {
+            tokenCount += section->GetTokenCount();
+        }
+    }
+    ANN_CHECK(tokenCount > 0, "embedding IndexTokenizeField no token");
+
+    vals.reserve(tokenCount);
+    for (auto iterField = indexTokenizeField->Begin(); iterField != indexTokenizeField->End(); ++iterField) {
+        const Section* section = *iterField;
+        if (!section) {
+            continue;
+        }
+
+        for (size_t i = 0; i < section->GetTokenCount(); ++i) {
+            const Token* token = section->GetToken(i);
+            float val = 0.0f;
+            if (fieldType == ft_float) {
+                val = FloatUint64Encoder::Uint32ToFloat(static_cast<uint32_t>(token->GetHashKey()));
+            } else if (fieldType == ft_double) {
+                val = (float)FloatUint64Encoder::Uint64ToDouble(token->GetHashKey());
+            } else {
+                AUTIL_LOG(ERROR, "no support for field type[%d]", fieldType);
+                return false;
+            }
+            ANN_CHECK(!std::isnan(val) && std::isfinite(val), "val[%f] is invalid", val);
+            vals.push_back(val);
+        }
+    }
     return true;
 }
 

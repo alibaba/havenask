@@ -285,9 +285,10 @@ bool SearchService::bind(const GigClientStreamPtr &stream, const QuerySessionPtr
     childNodeReply->setMetricReportManager(_metricReporterManager);
     auto disableRetry = !childNodeCaller.isRetryOn();
     auto forceStop = stream->getForceStop();
+    auto allowLack = stream->getAllowLack();
     auto streamImpl = stream->getImpl();
     return streamImpl->init(childNodeReply, resourceVec, childNodeCaller.getCaller(), disableRetry,
-                            forceStop);
+                            forceStop, stream->getPartIds(), allowLack);
 }
 
 bool SearchService::setSnapshotChangeCallback(SnapshotChangeCallback *callback) {

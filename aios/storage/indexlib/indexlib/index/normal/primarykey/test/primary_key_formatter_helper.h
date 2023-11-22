@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PRIMARY_KEY_FORMATTER_HELPER_H
-#define __INDEXLIB_PRIMARY_KEY_FORMATTER_HELPER_H
+#pragma once
 
 #include <memory>
 
@@ -51,5 +50,3 @@ string PrimaryKeyFormatterHelper::PreparePkData(const vector<PKPair<Key>>& data,
     return PK_FILE_NAME;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PRIMARY_KEY_FORMATTER_HELPER_H

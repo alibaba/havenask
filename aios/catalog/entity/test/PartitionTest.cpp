@@ -326,7 +326,7 @@ TEST_F(PartitionTest, testCreate) {
 }
 
 TEST_F(PartitionTest, testUpdate) {
-    { // data_source update in partition is unsupported
+    { // data_source update in partition is supported now
         Partition entity;
         proto::Partition inputProto = createFullPartitionProto();
         ASSERT_EQ(Status::OK, entity.fromProto(inputProto).code());
@@ -334,16 +334,16 @@ TEST_F(PartitionTest, testUpdate) {
         proto::Partition request = createFullPartitionProto();
         request.clear_table_structure();
         request.mutable_data_source()->add_process_configs()->set_detail("yyy");
-        ASSERT_EQ(Status::UNSUPPORTED, entity.update(request).code());
+        ASSERT_EQ(Status::OK, entity.update(request).code());
     }
-    { // direct update table_structure is unsupported
+    { // direct update table_structure is supported now
         Partition entity;
         proto::Partition inputProto = createFullPartitionProto();
         ASSERT_EQ(Status::OK, entity.fromProto(inputProto).code());
 
         proto::Partition request = createFullPartitionProto();
         request.mutable_table_structure()->mutable_table_structure_config()->mutable_shard_info()->set_shard_count(16);
-        ASSERT_EQ(Status::UNSUPPORTED, entity.update(request).code());
+        ASSERT_EQ(Status::OK, entity.update(request).code());
     }
     { // success
         Partition entity;
@@ -383,7 +383,7 @@ TEST_F(PartitionTest, testUpdate) {
         ASSERT_EQ(Status::OK, entity.toProto(&outputProto).code());
         ASSERT_TRUE(ProtoUtil::compareProto(expectedProto, outputProto));
     }
-    { // no acutal update
+    { // update partition config
         Partition entity;
         proto::Partition inputProto = createFullPartitionProto();
         ASSERT_EQ(Status::OK, entity.fromProto(inputProto).code());
@@ -391,7 +391,7 @@ TEST_F(PartitionTest, testUpdate) {
         proto::Partition request = createFullPartitionProto();
         request.clear_data_source();
         request.clear_table_structure();
-        ASSERT_EQ(Status::INVALID_ARGUMENTS, entity.update(request).code());
+        ASSERT_EQ(Status::OK, entity.update(request).code());
     }
 }
 

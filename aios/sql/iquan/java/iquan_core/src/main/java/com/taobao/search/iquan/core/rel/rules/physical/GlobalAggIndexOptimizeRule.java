@@ -1,7 +1,6 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -13,28 +12,14 @@ import com.taobao.search.iquan.core.catalog.IquanCatalogTable;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
-import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
-import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
-import com.taobao.search.iquan.core.rel.ops.physical.Scope;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
-import org.apache.calcite.plan.RelOptTable;
-import org.apache.calcite.prepare.RelOptTableImpl;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.AggregateCall;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rex.RexCall;
-import org.apache.calcite.rex.RexInputRef;
-import org.apache.calcite.rex.RexLiteral;
-import org.apache.calcite.rex.RexLocalRef;
-import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.rex.RexProgram;
 import org.apache.calcite.sql.SqlAggFunction;
 import org.apache.calcite.sql.SqlKind;
-import org.apache.calcite.sql.SqlOperator;
-import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.tools.RelBuilderFactory;
 
 public class GlobalAggIndexOptimizeRule extends RelOptRule {
@@ -42,11 +27,11 @@ public class GlobalAggIndexOptimizeRule extends RelOptRule {
 
     private GlobalAggIndexOptimizeRule(RelBuilderFactory relBuilderFactory) {
         super(operand(
-            IquanAggregateOp.class,
-            operand(
-                IquanTableScanBase.class,
-                none()
-            )
+                IquanAggregateOp.class,
+                operand(
+                        IquanTableScanBase.class,
+                        none()
+                )
         ), relBuilderFactory, null);
     }
 
@@ -75,7 +60,7 @@ public class GlobalAggIndexOptimizeRule extends RelOptRule {
             // TODO: MIN, MAX
             return;
         }
-        IquanTableScanOp scan = (IquanTableScanOp)scanBase;
+        IquanTableScanOp scan = (IquanTableScanOp) scanBase;
 
         Map<String, List<Map.Entry<String, String>>> conditions = new TreeMap<>();
         if (!scan.getConditions(conditions)) {
@@ -104,7 +89,7 @@ public class GlobalAggIndexOptimizeRule extends RelOptRule {
             if (index.match(equalConditions)) {
                 IquanTableScanBase newScan = (IquanTableScanBase) scan.copy(aggregateOp.getRowType());
                 newScan.setAggArgs(index.getIndexName(), index.getIndexFields(), index.getAggregationKeys(equalConditions),
-                    type.lowerName, null, Boolean.FALSE, new ArrayList<>(), new ArrayList<>());
+                        type.lowerName, null, Boolean.FALSE, new ArrayList<>(), new ArrayList<>());
                 if (type == SqlKind.SUM) {
                     String inputName = aggregateOp.getInputParams().get(0).get(0);
                     // 取sum的字段

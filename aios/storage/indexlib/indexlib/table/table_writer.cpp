@@ -15,8 +15,12 @@
  */
 #include "indexlib/table/table_writer.h"
 
+#include <iosfwd>
+#include <memory>
+#include <stdint.h>
+
+#include "indexlib/base/Constant.h"
 #include "indexlib/index_base/segment/segment_data_base.h"
-#include "indexlib/plugin/plugin_manager.h"
 #include "indexlib/table/building_segment_reader.h"
 
 using namespace std;

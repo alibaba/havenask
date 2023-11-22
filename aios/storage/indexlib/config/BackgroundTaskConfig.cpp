@@ -15,7 +15,12 @@
  */
 #include "indexlib/config/BackgroundTaskConfig.h"
 
+#include <exception>
+#include <string>
+
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
+#include "autil/legacy/legacy_jsonizable.h"
 
 namespace indexlibv2::config {
 
@@ -28,7 +33,6 @@ struct BackgroundTaskConfig::Impl {
     int64_t reportMetricsIntervalMs = 10 * 1000;        // 10s
     int64_t asyncDumpIntervalMs = 10 * 1000;            // 10s
     int64_t mergeIntervalMs = 1 * 60 * 1000;            // 1min
-    int64_t memReclaimIntervalMs = 1 * 1000;            // 1s
     int64_t subscribeRemoteIndexIntervalMs = 0;         // do not subscribe remote index, for madrox
 };
 
@@ -81,7 +85,6 @@ void BackgroundTaskConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("report_metrics_interval_ms", _impl->reportMetricsIntervalMs, _impl->reportMetricsIntervalMs);
     json.Jsonize("async_dump_interval_ms", _impl->asyncDumpIntervalMs, _impl->asyncDumpIntervalMs);
     json.Jsonize("merge_interval_ms", _impl->mergeIntervalMs, _impl->mergeIntervalMs);
-    json.Jsonize("mem_reclaim_interval_ms", _impl->memReclaimIntervalMs, _impl->memReclaimIntervalMs);
     json.Jsonize("subscribe_remote_index_interval_ms", _impl->subscribeRemoteIndexIntervalMs,
                  _impl->subscribeRemoteIndexIntervalMs);
 }
@@ -92,7 +95,6 @@ int64_t BackgroundTaskConfig::GetDumpIntervalMs() const { return _impl->dumpInte
 int64_t BackgroundTaskConfig::GetReportMetricsIntervalMs() const { return _impl->reportMetricsIntervalMs; }
 int64_t BackgroundTaskConfig::GetAsyncDumpIntervalMs() const { return _impl->asyncDumpIntervalMs; }
 int64_t BackgroundTaskConfig::GetMergeIntervalMs() const { return _impl->mergeIntervalMs; }
-int64_t BackgroundTaskConfig::GetMemReclaimIntervalMs() const { return _impl->memReclaimIntervalMs; }
 int64_t BackgroundTaskConfig::GetSubscribeRemoteIndexIntervalMs() const
 {
     return _impl->subscribeRemoteIndexIntervalMs;
@@ -105,7 +107,6 @@ void BackgroundTaskConfig::SwitchToTestDefault()
     _impl->reportMetricsIntervalMs = 10;
     _impl->asyncDumpIntervalMs = 10;
     _impl->mergeIntervalMs = 10;
-    _impl->memReclaimIntervalMs = 10;
     _impl->subscribeRemoteIndexIntervalMs = 0;
 }
 
@@ -118,7 +119,6 @@ void BackgroundTaskConfig::DisableAll()
     _impl->reportMetricsIntervalMs = INVALID_INTERVAL;
     _impl->asyncDumpIntervalMs = INVALID_INTERVAL;
     _impl->mergeIntervalMs = INVALID_INTERVAL;
-    _impl->memReclaimIntervalMs = INVALID_INTERVAL;
     _impl->subscribeRemoteIndexIntervalMs = INVALID_INTERVAL;
 }
 

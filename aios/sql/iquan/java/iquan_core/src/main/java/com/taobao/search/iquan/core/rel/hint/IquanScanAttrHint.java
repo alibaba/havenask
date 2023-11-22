@@ -1,26 +1,24 @@
 package com.taobao.search.iquan.core.rel.hint;
 
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.ops.logical.LayerTable.LogicalLayerTableScan;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.hint.HintPredicate;
 import org.apache.calcite.rel.hint.RelHint;
-import com.google.common.collect.ImmutableList;
-
-import java.util.List;
-import java.util.Map;
 
 public class IquanScanAttrHint implements IquanHint {
+    public static final IquanScanAttrHint INSTANCE = new IquanScanAttrHint(ConstantDefine.SCAN_ATTR_HINT);
     public static List<HintPredicate> precedingPredicates = ImmutableList.of(new HintPredicate() {
         @Override
         public boolean apply(RelHint hint, RelNode rel) {
             return rel instanceof TableScan || rel instanceof LogicalLayerTableScan;
         }
     });
-
-    public static final IquanScanAttrHint INSTANCE = new IquanScanAttrHint(ConstantDefine.SCAN_ATTR_HINT);
-
     private final String name;
 
     public IquanScanAttrHint(String name) {

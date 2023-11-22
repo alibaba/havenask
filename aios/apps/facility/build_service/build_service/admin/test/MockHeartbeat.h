@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKHEARTBEAT_H
-#define ISEARCH_BS_MOCKHEARTBEAT_H
+#pragma once
 
 #include "build_service/admin/Heartbeat.h"
 #include "build_service/test/test.h"
@@ -22,5 +21,3 @@ typedef ::testing::StrictMock<MockHeartbeat> StrictMockHeartbeat;
 typedef ::testing::NiceMock<MockHeartbeat> NiceMockHeartbeat;
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_MOCKHEARTBEAT_H

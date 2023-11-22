@@ -1,19 +1,43 @@
 
 #include "build_service_tasks/rollback/RollbackTask.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
 #include "build_service/config/BuildRuleConfig.h"
+#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/io/Input.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/task_base/Task.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/RangeUtil.h"
 #include "build_service_tasks/test/unittest.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/locator.h"
 #include "indexlib/file_system/IndexFileList.h"
+#include "indexlib/framework/VersionMeta.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
-#include "indexlib/test/partition_state_machine.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/test/version_maker.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

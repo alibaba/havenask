@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_MERGER_H
-#define __INDEXLIB_ATTRIBUTE_MERGER_H
+#pragma once
 
 #include <memory>
 #include <queue>
@@ -148,5 +147,3 @@ private:
 
 DEFINE_SHARED_PTR(AttributeMerger);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_MERGER_H

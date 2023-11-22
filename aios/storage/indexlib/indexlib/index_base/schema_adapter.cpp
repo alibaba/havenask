@@ -45,7 +45,7 @@ SchemaAdapter::SchemaAdapter() {}
 
 SchemaAdapter::~SchemaAdapter() {}
 
-IndexPartitionSchemaPtr SchemaAdapter::LoadSchema(const DirectoryPtr& rootDir, schemavid_t schemaId)
+IndexPartitionSchemaPtr SchemaAdapter::LoadSchema(const DirectoryPtr& rootDir, schemaid_t schemaId)
 {
     IndexPartitionSchemaPtr schema = LoadSchema(rootDir, Version::GetSchemaFileName(schemaId));
     if (schema && schema->GetSchemaVersionId() != schemaId) {
@@ -57,7 +57,7 @@ IndexPartitionSchemaPtr SchemaAdapter::LoadSchema(const DirectoryPtr& rootDir, s
 
 IndexPartitionSchemaPtr SchemaAdapter::LoadAndRewritePartitionSchema(const DirectoryPtr& rootDir,
                                                                      const IndexPartitionOptions& options,
-                                                                     schemavid_t schemaId)
+                                                                     schemaid_t schemaId)
 {
     IndexPartitionSchemaPtr schemaPtr = LoadSchema(rootDir, schemaId);
     if (schemaPtr) {
@@ -153,7 +153,7 @@ void SchemaAdapter::ListSchemaFile(const DirectoryPtr& rootDir, FileList& fileLi
     FileList tmpFiles;
     rootDir->ListDir("", tmpFiles);
     for (const auto& file : tmpFiles) {
-        schemavid_t schemaId = DEFAULT_SCHEMAID;
+        schemaid_t schemaId = DEFAULT_SCHEMAID;
         if (Version::ExtractSchemaIdBySchemaFile(file, schemaId)) {
             fileList.push_back(file);
         }
@@ -163,7 +163,7 @@ void SchemaAdapter::ListSchemaFile(const DirectoryPtr& rootDir, FileList& fileLi
 IndexPartitionSchemaPtr SchemaAdapter::LoadSchema(const file_system::DirectoryPtr& rootDirectory)
 {
     Version version;
-    VersionLoader::GetVersion(rootDirectory, version, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDirectory, version, INVALID_VERSIONID);
     return LoadSchema(rootDirectory, version.GetSchemaVersionId());
 }
 

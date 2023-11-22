@@ -35,9 +35,7 @@ vector<string> convertRawDocument2SwiftFieldFilter(const std::vector<indexlib::d
             writer.addProductionField(iter->GetFieldName(), iter->GetFieldValue(), true);
         }
         delete iter;
-        if (doc->exist(indexlib::document::CMD_TAG)) {
-            writer.addProductionField(indexlib::document::CMD_TAG, doc->getField(indexlib::document::CMD_TAG));
-        }
+
         results.push_back(writer.toString());
         writer.reset();
     }

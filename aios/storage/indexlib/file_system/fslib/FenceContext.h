@@ -17,6 +17,9 @@
 
 #include <cassert>
 
+#include "autil/Log.h"
+#include "autil/NoCopyable.h"
+
 namespace indexlib::file_system {
 
 struct FenceContext {

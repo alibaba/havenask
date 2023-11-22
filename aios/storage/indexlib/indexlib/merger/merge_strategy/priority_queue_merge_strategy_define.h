@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIORITY_QUEUE_MERGE_STRATEGY_DEFINE_H
-#define __INDEXLIB_PRIORITY_QUEUE_MERGE_STRATEGY_DEFINE_H
+#pragma once
 
-#include <memory>
+#include <limits>
 #include <queue>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -132,5 +133,3 @@ struct QueueItemCompare {
 
 typedef std::priority_queue<QueueItem, std::vector<QueueItem>, QueueItemCompare> PriorityQueue;
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_PRIORITY_QUEUE_MERGE_STRATEGY_DEFINE_H

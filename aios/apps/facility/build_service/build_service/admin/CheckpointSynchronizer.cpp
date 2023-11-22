@@ -15,11 +15,13 @@
  */
 #include "build_service/admin/CheckpointSynchronizer.h"
 
-#include "build_service/common/IndexCheckpointAccessor.h"
-#include "build_service/util/IndexPathConstructor.h"
-#include "fslib/util/FileUtil.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include <algorithm>
+#include <assert.h>
+
+#include "alog/Logger.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/framework/VersionCoord.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace admin {
 BS_LOG_SETUP(admin, CheckpointSynchronizer);

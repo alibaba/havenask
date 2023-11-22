@@ -18,8 +18,10 @@
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "autil/mem_pool/Pool.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/framework/ITabletDocIterator.h"
+#include "indexlib/index/source/Types.h"
 #include "indexlib/index/summary/Types.h"
 
 namespace indexlibv2::document {
@@ -31,6 +33,7 @@ class IndexTermInfo;
 class IndexQueryCondition;
 } // namespace indexlib::index
 namespace indexlibv2::index {
+class SourceReader;
 class SummaryReader;
 class DeletionMapIndexReader;
 class AttributeIteratorBase;
@@ -38,7 +41,8 @@ class AttributeIteratorBase;
 
 namespace indexlibv2::config {
 class ITabletSchema;
-}
+class SourceIndexConfig;
+} // namespace indexlibv2::config
 
 namespace indexlibv2::table {
 class NormalTabletReader;
@@ -53,16 +57,17 @@ public:
     Status Init(const std::shared_ptr<framework::TabletData>& tabletData,
                 std::pair<uint32_t /*0-99*/, uint32_t /*0-99*/> rangeInRatio,
                 const std::shared_ptr<indexlibv2::framework::MetricsManager>& metricsManager,
-                const std::vector<std::string>& requiredFields,
+                const std::optional<std::vector<std::string>>& requiredFields,
                 const std::map<std::string, std::string>& params) override;
     Status Next(indexlibv2::document::RawDocument* rawDocument, std::string* checkpoint,
-                document::IDocument::DocInfo* docInfo) override;
+                framework::Locator::DocInfo* docInfo) override;
     bool HasNext() const override;
     Status Seek(const std::string& checkpoint) override;
 
 private:
+    bool IsReadAllField() const;
     Status SeekByDocId(docid_t docId);
-    Status InitFieldReaders(const std::vector<std::string>& fieldNames);
+    Status InitFieldReaders(const std::optional<std::vector<std::string>>& fieldNames);
 
     Status InitPostingExecutor(const std::string& userDefineIndexParamStr);
     std::shared_ptr<indexlib::index::PostingExecutor>
@@ -71,13 +76,18 @@ private:
     CreateSinglePostingExecutor(const indexlib::index::IndexQueryCondition& indexQueryCondition);
     std::shared_ptr<indexlib::index::PostingExecutor>
     CreateTermPostingExecutor(const indexlib::index::IndexTermInfo& termInfo);
+    void InitSource(const std::shared_ptr<config::SourceIndexConfig>& sourceIndexConfig);
 
 private:
     std::shared_ptr<NormalTabletReader> _tabletReader;
     std::map<std::string, std::unique_ptr<index::AttributeIteratorBase>> _attrFieldIters;
     std::shared_ptr<index::SummaryReader> _summaryReader;
+    std::shared_ptr<index::SourceReader> _sourceReader;
     std::vector<std::pair<std::string, index::summaryfieldid_t>> _summaryFields;
     std::map<std::string, std::string> _params;
+    std::vector<index::sourcegroupid_t> _readSourceGroups;
+    std::optional<std::set<std::string>> _requiredFields;
+    bool _hasUDFSourceGroup = false;
     size_t _summaryCount = 0;
     autil::mem_pool::Pool _invertedIndexPool;
     std::shared_ptr<index::DeletionMapIndexReader> _deletionMapReader;

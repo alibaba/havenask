@@ -31,7 +31,7 @@ public:
 
 public:
     bool Init(const SegmentBuildResourcePtr& segmentBuildResource) override;
-    bool Build(const EmbeddingFieldData& data) override;
+    bool Build(const IndexFields& data) override;
     bool Dump(const indexlib::file_system::DirectoryPtr& directory,
               const std::vector<docid_t>* old2NewDocId = nullptr) override;
 
@@ -46,7 +46,7 @@ public:
 private:
     RealtimeIndexBuilderPtr GetRealtimeIndexBuilder(index_id_t indexId);
     bool DoDelete(int64_t pk);
-    bool DoBuild(const EmbeddingFieldData& data);
+    bool DoBuild(const IndexFields& data);
 
 private:
     void InitBuildMetrics();
@@ -55,8 +55,9 @@ private:
 protected:
     RealtimeIndexBuilderMap _indexBuilderMap;
     RealtimeSegmentPtr _segment;
+    AiThetaMeta _indexMeta;
     AiThetaContextHolderPtr _buildContextHolder;
-    PkDataHolder _pkDataHolder;
+    PkDataHolder _pkHolder;
     size_t _buildMemoryUse {0};
 
 private:

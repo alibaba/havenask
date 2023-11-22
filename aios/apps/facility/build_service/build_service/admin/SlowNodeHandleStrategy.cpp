@@ -15,6 +15,8 @@
  */
 #include "build_service/admin/SlowNodeHandleStrategy.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace build_service { namespace admin {

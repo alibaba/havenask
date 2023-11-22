@@ -76,13 +76,13 @@ void InMemoryIndexCleanerTest::TestCleanVersions()
     InMemoryIndexCleaner cleaner(container, mRootDir);
 
     // only one version
-    MakeVersions(INVALID_VERSION, "", 2, "", 2, "");
+    MakeVersions(INVALID_VERSIONID, "", 2, "", 2, "");
     cleaner.Execute();
     ASSERT_TRUE(mRtPartitionDir->IsExist("version.2"));
 
     // multiple versions, version.2 already exists
-    MakeVersions(INVALID_VERSION, "", 3, "", 3, "");
-    MakeVersions(INVALID_VERSION, "", 4, "", 4, "");
+    MakeVersions(INVALID_VERSIONID, "", 3, "", 3, "");
+    MakeVersions(INVALID_VERSIONID, "", 4, "", 4, "");
     cleaner.Execute();
     ASSERT_TRUE(!mRtPartitionDir->IsExist("version.2"));
     ASSERT_TRUE(!mRtPartitionDir->IsExist("version.3"));
@@ -159,7 +159,7 @@ void InMemoryIndexCleanerTest::MakeVersionInDrectory(versionid_t versionId, cons
                                                      const file_system::DirectoryPtr& directory)
 {
     Version version = VersionMaker::Make(versionId, segmentIds);
-    if (versionId != INVALID_VERSION) {
+    if (versionId != INVALID_VERSIONID) {
         version.Store(directory, false);
     }
     for (size_t i = 0; i < version.GetSegmentCount(); ++i) {

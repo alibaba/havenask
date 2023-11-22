@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILTIN_FUNCTION_EXECUTOR_FACTORY_H
-#define __INDEXLIB_BUILTIN_FUNCTION_EXECUTOR_FACTORY_H
+#pragma once
 
 #include <memory>
 
@@ -39,5 +38,3 @@ private:
 
 DEFINE_SHARED_PTR(BuiltinFunctionExecutorFactory);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_BUILTIN_FUNCTION_EXECUTOR_FACTORY_H

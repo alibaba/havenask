@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_RECLAIMER_H
-#define __INDEXLIB_DOCUMENT_RECLAIMER_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/index_base/partition_data.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/merger/document_reclaimer/document_deleter.h"
 #include "indexlib/merger/document_reclaimer/index_reclaimer_param.h"
 #include "indexlib/merger/multi_part_segment_directory.h"
+#include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace merger {
@@ -74,5 +76,3 @@ private:
 
 DEFINE_SHARED_PTR(DocumentReclaimer);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_DOCUMENT_RECLAIMER_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SORTEDPRIMARYKEYPAIRSEGMENTITERATORTEST_H
-#define __INDEXLIB_SORTEDPRIMARYKEYPAIRSEGMENTITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/primarykey/sorted_primary_key_pair_segment_iterator.h"
@@ -31,5 +30,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(SortedPrimaryKeyPairSegmentIteratorTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SORTEDPRIMARYKEYPAIRSEGMENTITERATORTEST_H

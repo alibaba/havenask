@@ -15,7 +15,10 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 #include "autil/Log.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/framework/IdGenerator.h"
 

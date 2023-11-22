@@ -22,7 +22,7 @@ using namespace std;
 using namespace autil::legacy;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, IndexPartitionOptionsImpl);
+AUTIL_LOG_SETUP(indexlib.config, IndexPartitionOptionsImpl);
 
 IndexPartitionOptionsImpl::IndexPartitionOptionsImpl() : mIsOnline(true), mNeedRewriteFieldType(true) {}
 
@@ -79,13 +79,13 @@ void IndexPartitionOptionsImpl::RewriteBuildConfig(TableType tableType, BuildCon
     if (buildConfig.levelTopology == indexlibv2::framework::topo_default) {
         buildConfig.levelTopology = (tableType == tt_kv || tableType == tt_kkv) ? indexlibv2::framework::topo_hash_mod
                                                                                 : indexlibv2::framework::topo_sequence;
-        IE_LOG(INFO, "default levelTopology use [%s]",
-               indexlibv2::framework::LevelMeta::TopologyToStr(buildConfig.levelTopology).c_str());
+        AUTIL_LOG(INFO, "default levelTopology use [%s]",
+                  indexlibv2::framework::LevelMeta::TopologyToStr(buildConfig.levelTopology).c_str());
     }
 
     if (buildConfig.levelTopology == indexlibv2::framework::topo_hash_mod && buildConfig.levelNum <= 1) {
         buildConfig.levelNum = 2;
-        IE_LOG(INFO, "kv & kkv table use topo_hash_mode, levelNum should >= 1, rewrite to 2");
+        AUTIL_LOG(INFO, "kv & kkv table use topo_hash_mode, levelNum should >= 1, rewrite to 2");
     }
 }
 

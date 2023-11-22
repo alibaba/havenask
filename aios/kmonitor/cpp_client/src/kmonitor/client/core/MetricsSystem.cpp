@@ -7,7 +7,9 @@
 
 #include "kmonitor/client/core/MetricsSystem.h"
 
+#include <chrono>
 #include <map>
+#include <random>
 #include <set>
 #include <string>
 #include <vector>
@@ -35,16 +37,31 @@ MetricsSystem::MetricsSystem() {
     period_us_ = 1 * 1000 * 1000;
     last_trigger_ = 0;
     started_ = false;
+
+    auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+    // Generate random numbers using the Mersenne Twister algorithm
+    std::mt19937 gen(seed);
+    // Generate a random integer between 0-MAX_LATENCY seconds with a precision of us
+    std::uniform_int_distribution<> dist(0, MAX_LATENCY * 1000 * 1000);
+    random_time_ = dist(gen);
 }
 
-MetricsSystem::~MetricsSystem() { timer_thread_ptr_.reset(); }
+MetricsSystem::~MetricsSystem() {
+    timer_thread_ptr_.reset();
+    send_thread_ptr_.reset();
+}
 
 void MetricsSystem::Init(MetricsConfig *config) {
     if (!initSink(config)) {
         AUTIL_LOG(ERROR, "sink init fail, metric system event timer stop");
         return;
     }
-    StartTimer();
+    if (config->manually_mode()) {
+        AUTIL_LOG(WARN, "manually mode enabled, skip start timer");
+    } else {
+        StartTimer();
+        AUTIL_LOG(INFO, "timer started");
+    }
     started_ = true;
 }
 
@@ -76,14 +93,18 @@ void MetricsSystem::Stop() {
     if (timer_thread_ptr_) {
         timer_thread_ptr_->stop();
     }
+    if (send_thread_ptr_) {
+        send_thread_ptr_->stop();
+    }
     started_ = false;
     AUTIL_LOG(INFO, "metrics system stoped");
 }
 
-void MetricsSystem::PublishMetrics(const MetricsRecords &records) {
+void MetricsSystem::PublishMetrics(MetricsRecords &records) {
     for (auto e : sinks_) {
         auto &sink = e.second;
-        for (auto record : records) {
+        auto &rawRecords = records.getRecords();
+        for (auto record : rawRecords) {
             sink->PutMetrics(record);
         }
         sink->Flush();
@@ -91,14 +112,14 @@ void MetricsSystem::PublishMetrics(const MetricsRecords &records) {
     }
 }
 
-const MetricsRecords &MetricsSystem::SampleMetrics(const set<MetricLevel> &levels, int64_t timeMs) {
+MetricsRecords MetricsSystem::SampleMetrics(const set<MetricLevel> &levels, int64_t timeMs) {
     collector_.Clear();
     autil::ScopedReadLock lock(source_lock_);
     map<string, MetricsSource *>::iterator iter = source_map_.begin();
     for (; iter != source_map_.end(); iter++) {
         iter->second->GetMetrics(&collector_, levels, timeMs);
     }
-    return collector_.GetRecords();
+    return collector_.StealRecords();
 }
 
 void MetricsSystem::OnTimerEvent(int64_t nowUs) {
@@ -114,8 +135,33 @@ void MetricsSystem::OnTimerEvent(int64_t nowUs) {
     set<MetricLevel> levels = MetricLevelManager::GetLevel(timeAlignUs / 1000 / 1000);
     AUTIL_LOG(DEBUG, "metric level size:%lu", levels.size());
     // default metric level is NORMAL, it will report for 10S/period
-    auto sampleRes = SampleMetrics(levels, timeAlignUs / 1000);
-    PublishMetrics(sampleRes);
+    DoSnapshot(levels, timeAlignUs);
+}
+
+void MetricsSystem::DoSnapshot(const set<MetricLevel> &levels, int64_t timeAlignUs) {
+    auto records = SampleMetrics(levels, timeAlignUs / 1000);
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    publish_queue_.push(std::make_pair(timeAlignUs, std::move(records)));
+}
+
+void MetricsSystem::SendEvent(int64_t nowUs) {
+    if (nowUs == 0) {
+        nowUs = autil::TimeUtility::currentTime();
+    }
+    std::pair<int64_t, MetricsRecords> sampleRes;
+    {
+        std::lock_guard<std::mutex> lock(queue_mutex_);
+        if (publish_queue_.empty()) {
+            return;
+        }
+        if (nowUs < publish_queue_.front().first + random_time_) {
+            return;
+        }
+        sampleRes = std::move(publish_queue_.front());
+        publish_queue_.pop();
+    }
+    auto &records = sampleRes.second;
+    PublishMetrics(records);
 }
 
 void MetricsSystem::StartTimer() {
@@ -123,6 +169,11 @@ void MetricsSystem::StartTimer() {
         std::bind(&MetricsSystem::OnTimerEvent, this, 0), timer_interval_us_, "KmonReport");
     if (!timer_thread_ptr_) {
         AUTIL_LOG(WARN, "create kmon sample metrics thread failed");
+    }
+    send_thread_ptr_ = autil::LoopThread::createLoopThread(
+        std::bind(&MetricsSystem::SendEvent, this, 0), timer_interval_us_, "KmonSend");
+    if (!send_thread_ptr_) {
+        AUTIL_LOG(WARN, "create kmon send metrics thread failed");
     }
     AUTIL_LOG(INFO, "sample metrics thread started");
 }
@@ -140,6 +191,22 @@ SinkPtr MetricsSystem::GetSink(const std::string &name) const {
     } else {
         return SinkPtr();
     }
+}
+
+void MetricsSystem::SetRandomTime(int64_t randomTime) { random_time_ = randomTime; }
+int64_t MetricsSystem::GetRandomTime() const { return random_time_; }
+
+void MetricsSystem::ManuallySnapshot() {
+    int64_t nowUs = autil::TimeUtility::currentTime();
+    AUTIL_LOG(DEBUG, "sample metrics running[%ld]....", nowUs);
+    int64_t timeAlignUs = nowUs - nowUs % 1000;
+    if (timeAlignUs == last_trigger_) {
+        return;
+    }
+    last_trigger_ = timeAlignUs;
+    auto levels = MetricLevelManager::GetLevel(0);
+    DoSnapshot(levels, timeAlignUs);
+    SendEvent(std::numeric_limits<int64_t>::max());
 }
 
 END_KMONITOR_NAMESPACE(kmonitor);

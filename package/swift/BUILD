@@ -20,6 +20,14 @@ bundle_install(
     srcs=[':swift_dailyrun_package'],
     visibility=['//visibility:public']
 )
+bundle_install(
+    name='swift_dailyrun_ci_test_pacakge',
+    srcs=[
+        ':swift_dailyrun_package',
+        '//package/dispatch_framework:dispatch_framework_package'
+    ],
+    visibility=['//visibility:public']
+)
 fuse_debug_bundle_files(
     name='swift_client_bundle',
     deps=['//aios/apps/facility/swift:swift_client_package'],
@@ -48,8 +56,8 @@ bundle_files(
 bundle_files(
     name='shared_library_package',
     prefix='usr/local/lib64',
-    srcs=[
+    srcs=([
         '//third_party/lzma:lzma_shared', '//third_party/lz4:lz4_shared',
         '//third_party/tbb:tbb_shared'
-    ]
+    ] + [])
 )

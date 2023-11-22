@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCUMENT_SERIALIZE_TEST_HELPER_H
-#define __INDEXLIB_DOCUMENT_SERIALIZE_TEST_HELPER_H
+#pragma once
 
 #define TEST_SUMMARY_SERIALIZED_DOCUMENT_SERIALIZE_EQUAL(doc1, doc2)                                                   \
     do {                                                                                                               \
@@ -65,5 +64,3 @@
         INDEXLIB_TEST_EQUAL(doc1.GetRegionId(), doc2.GetRegionId());                                                   \
         INDEXLIB_TEST_EQUAL(doc1.NeedTrace(), doc2.NeedTrace());                                                       \
     } while (0)
-
-#endif

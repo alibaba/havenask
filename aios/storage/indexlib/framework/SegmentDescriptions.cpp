@@ -15,7 +15,11 @@
  */
 #include "indexlib/framework/SegmentDescriptions.h"
 
-#include "indexlib/base/Constant.h"
+#include <ext/alloc_traits.h>
+#include <map>
+#include <stddef.h>
+
+#include "autil/legacy/json.h"
 
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, SegmentDescriptions);
@@ -26,8 +30,9 @@ void SegmentDescriptions::Jsonize(JsonWrapper& json)
             json.Jsonize("level_info", *_levelInfo);
         }
         if (!_segmentStats.empty()) {
-            sort(_segmentStats.begin(), _segmentStats.end(), SegmentStatistics::CompareBySegmentId);
-            json.Jsonize(SegmentStatistics::JSON_KEY, _segmentStats);
+            std::vector<SegmentStatistics> tmpSegStats = _segmentStats;
+            sort(tmpSegStats.begin(), tmpSegStats.end(), SegmentStatistics::CompareBySegmentId);
+            json.Jsonize(SegmentStatistics::JSON_KEY, tmpSegStats);
         }
     } else {
         autil::legacy::json::JsonMap jsonMap = json.GetMap();

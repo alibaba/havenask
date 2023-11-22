@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_MERGE_INFO_HEAP_H
-#define __INDEXLIB_DOCUMENT_MERGE_INFO_HEAP_H
+#pragma once
 
 #include <memory>
 #include <queue>
@@ -67,5 +66,3 @@ private:
 
 DEFINE_SHARED_PTR(DocumentMergeInfoHeap);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DOCUMENT_MERGE_INFO_HEAP_H

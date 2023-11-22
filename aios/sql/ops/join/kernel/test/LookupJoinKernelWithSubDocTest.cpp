@@ -195,7 +195,7 @@ private:
         multiIds.init(buf);
         IF_FAILURE_RET_NULL(_matchDocUtil.extendMatchDocAllocator<MultiInt32>(
             _allocator, leftDocs, "ids", {multiIds}));
-        TablePtr table(new Table(leftDocs, _allocator));
+        TablePtr table = Table::fromMatchDocs(leftDocs, _allocator);
         return table;
     }
 

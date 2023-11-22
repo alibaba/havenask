@@ -15,9 +15,10 @@ public:
     }
     std::unique_ptr<framework::IndexTaskContext>
     CreateTaskContext(versionid_t baseVersionId, const std::string& taskType, const std::string& taskName,
-                      const std::map<std::string, std::string>& params) override
+                      const std::string& taskTraceId, const std::map<std::string, std::string>& params) override
     {
-        auto context = LocalTabletMergeController::CreateTaskContext(baseVersionId, taskType, taskName, params);
+        auto context =
+            LocalTabletMergeController::CreateTaskContext(baseVersionId, taskType, taskName, taskTraceId, params);
         if (!context) {
             return nullptr;
         }
@@ -33,7 +34,6 @@ public:
                 return nullptr;
             }
         }
-        _extendResources.clear();
         return context;
     }
     void SetTaskResources(std::vector<std::shared_ptr<framework::IndexTaskResource>> extendResources)

@@ -85,6 +85,7 @@
 #include "suez/turing/expression/framework/JoinDocIdConverterCreator.h"
 #include "suez/turing/expression/provider/MetaInfo.h"
 #include "suez/turing/expression/provider/common.h"
+#include "suez/turing/expression/util/FieldMetaReaderWrapper.h"
 #include "suez/turing/expression/util/IndexInfoHelper.h"
 #include "suez/turing/expression/util/LegacyIndexInfoHelper.h"
 
@@ -139,11 +140,11 @@ navi::ErrorCode ScanIteratorCreatorR::init(navi::ResourceInitContext &ctx) {
                 conditionInfo.c_str());
         return navi::EC_ABORT;
     }
-    isearch::search::LayerMetaPtr layerMeta = createLayerMeta();
-    if (!layerMeta) {
-        SQL_LOG(WARN, "table name [%s], create layer meta failed.", tableName.c_str());
-        return navi::EC_ABORT;
+    if (_indexPartitionReaderWrapper->getFieldMetaReadersMap() != nullptr) {
+        _fieldMetaReaderWrapper = std::make_shared<suez::turing::FieldMetaReaderWrapper>(
+            pool, _indexPartitionReaderWrapper->getFieldMetaReadersMap());
     }
+    isearch::search::LayerMetaPtr layerMeta = createLayerMeta();
     SQL_LOG(DEBUG, "layer meta: %s", layerMeta->toString().c_str());
     const auto &tableSortDescription = _ha3TableInfoR->getTableSortDescMap();
     auto iter = tableSortDescription.find(tableName);
@@ -161,6 +162,15 @@ navi::ErrorCode ScanIteratorCreatorR::init(navi::ResourceInitContext &ctx) {
         SQL_LOG(DEBUG, "not find table [%s] sort description", tableName.c_str());
     }
     if (layerMeta) {
+        layerMeta = splitLayerMetaByStep(pool,
+                                         layerMeta,
+                                         _scanInitParamR->parallelIndex,
+                                         _scanInitParamR->parallelNum,
+                                         _scanInitParamR->parallelBlockCount);
+        if (!layerMeta) {
+            SQL_LOG(WARN, "table name [%s], split layer meta failed.", tableName.c_str());
+            return navi::EC_ABORT;
+        }
         layerMeta->quotaMode = QM_PER_DOC;
         proportionalLayerQuota(*layerMeta.get());
         SQL_LOG(
@@ -254,7 +264,7 @@ bool ScanIteratorCreatorR::initMatchData() {
     if (matchType.empty()) {
         return true;
     }
-    SQL_LOG(TRACE1,
+    SQL_LOG(DEBUG,
             "require match data, match types [%s]",
             autil::StringUtil::toString(matchType).c_str());
     _matchDataManager->requireMatchData();
@@ -274,7 +284,7 @@ bool ScanIteratorCreatorR::initTruncateDesc(isearch::common::QueryPtr &query) {
     }
     const auto &truncateDesc = iter->second;
     if (!truncateDesc.empty()) {
-        SQL_LOG(TRACE1, "use truncate query");
+        SQL_LOG(DEBUG, "use truncate query");
         try {
             truncateQuery(query, truncateDesc);
         } catch (const autil::legacy::ExceptionBase &e) {
@@ -352,7 +362,12 @@ void ScanIteratorCreatorR::postInitMatchData() {
         _functionProvider->initMatchInfoReader(std::move(metaInfo));
         _functionProvider->setIndexInfoHelper(_indexInfoHelper);
         _functionProvider->setIndexReaderPtr(_indexPartitionReaderWrapper->getIndexReader());
+        _functionProvider->setFieldMetaReaderWrapper(_fieldMetaReaderWrapper);
     }
+
+    const auto &partitionInfo = _indexPartitionReaderWrapper->getPartitionInfo();
+    _functionProvider->getMatchInfoReader()->getMetaInfoPtr()->setPartTotalDocCount(
+        partitionInfo->GetTotalDocCount() - partitionInfo->GetDelDocCount());
 }
 
 bool ScanIteratorCreatorR::updateQuery(const StreamQueryPtr &inputQuery) {
@@ -493,7 +508,7 @@ ScanIteratorPtr ScanIteratorCreatorR::createScanIterator(bool &emptyScan) {
     std::vector<isearch::search::LayerMetaPtr> layerMetas;
     ScanIteratorPtr scanIterator = ScanIteratorPtr();
     if (_scanInitParamR->sortDesc.topk != 0) { // has sort desc
-        SQL_LOG(TRACE2, "create ordered ha3 scan iter");
+        SQL_LOG(DEBUG, "create ordered ha3 scan iter");
         for (size_t i = 0; i < layerMeta->size(); ++i) {
             isearch::search::LayerMetaPtr singleLayerMeta(
                 new isearch::search::LayerMeta(*layerMeta));
@@ -505,18 +520,18 @@ ScanIteratorPtr ScanIteratorCreatorR::createScanIterator(bool &emptyScan) {
             createOrderedHa3ScanIterator(query, filterWrapper, layerMetas, emptyScan));
     } else if (dynamic_cast<isearch::common::DocIdsQuery *>(query.get()) != nullptr
                && filterWrapper == nullptr) {
-        SQL_LOG(TRACE2, "create docids scan iter");
+        SQL_LOG(DEBUG, "create docids scan iter");
         scanIterator.reset(createDocIdScanIterator(query));
     } else if (needHa3Scan(query)) {
-        SQL_LOG(TRACE2, "create ha3 scan iter");
+        SQL_LOG(DEBUG, "create ha3 scan iter");
         scanIterator.reset(createHa3ScanIterator(query, filterWrapper, layerMeta, emptyScan));
         layerMetas = {layerMeta};
     } else if (nullptr == query) {
-        SQL_LOG(TRACE2, "create range scan iter");
+        SQL_LOG(DEBUG, "create range scan iter");
         scanIterator.reset(createRangeScanIterator(filterWrapper, layerMeta));
         layerMetas = {layerMeta};
     } else {
-        SQL_LOG(TRACE2, "create query scan iter");
+        SQL_LOG(DEBUG, "create query scan iter");
         scanIterator.reset(createQueryScanIterator(query, filterWrapper, layerMeta, emptyScan));
         layerMetas = {layerMeta};
     }
@@ -839,19 +854,13 @@ bool ScanIteratorCreatorR::createFilterWrapper(
 }
 
 isearch::search::LayerMetaPtr ScanIteratorCreatorR::createLayerMeta() {
-    auto index = _scanInitParamR->parallelIndex;
-    auto num = _scanInitParamR->parallelNum;
     auto limit = _scanInitParamR->limit;
     auto pool = _queryMemPoolR->getPool().get();
     isearch::search::LayerMeta fullLayerMeta
         = isearch::search::DefaultLayerMetaUtil::createFullRange(
             pool, _indexPartitionReaderWrapper.get());
     fullLayerMeta.quota = limit;
-    isearch::search::LayerMetaPtr tmpLayerMeta(new isearch::search::LayerMeta(fullLayerMeta));
-    if (num > 1) {
-        tmpLayerMeta = splitLayerMeta(tmpLayerMeta, index, num);
-    }
-    return tmpLayerMeta;
+    return std::make_shared<isearch::search::LayerMeta>(fullLayerMeta);
 }
 
 void ScanIteratorCreatorR::proportionalLayerQuota(isearch::search::LayerMeta &layerMeta) {
@@ -878,55 +887,69 @@ void ScanIteratorCreatorR::proportionalLayerQuota(isearch::search::LayerMeta &la
     layerMeta.quota = 0;
 }
 
-isearch::search::LayerMetaPtr ScanIteratorCreatorR::splitLayerMeta(
-    const isearch::search::LayerMetaPtr &layerMeta, uint32_t index, uint32_t num) {
-    return splitLayerMeta(_queryMemPoolR->getPool().get(), layerMeta, index, num);
-}
-
 isearch::search::LayerMetaPtr
-ScanIteratorCreatorR::splitLayerMeta(autil::mem_pool::Pool *pool,
-                                     const isearch::search::LayerMetaPtr &layerMeta,
-                                     uint32_t index,
-                                     uint32_t num) {
-    if (index >= num) {
-        return {};
+ScanIteratorCreatorR::splitLayerMetaByStep(autil::mem_pool::Pool *pool,
+                                           const isearch::search::LayerMetaPtr &layerMeta,
+                                           uint32_t parallelIndex,
+                                           uint32_t parallelNum,
+                                           uint32_t parallelBlockCount) {
+    if (parallelNum <= 1) {
+        return layerMeta;
     }
-    const auto &meta = *layerMeta;
-    uint32_t df = 0;
-    for (auto &rangeMeta : meta) {
-        df += rangeMeta.end - rangeMeta.begin + 1;
+    if (unlikely(parallelIndex >= parallelNum)) {
+        SQL_LOG(ERROR,
+                "unexpected invalid param parallelNum=[%u], parallelIndex=[%u]",
+                parallelNum,
+                parallelIndex);
+        return isearch::search::LayerMetaPtr(nullptr);
     }
-    uint32_t count = df / num;
-    uint32_t left = df % num;
-    uint32_t beginCount = count * index;
-    if (index + 1 == num) {
-        count += left;
+    parallelBlockCount = std::min((uint32_t)PARALLEL_MAX_BLOCK_COUNT, parallelBlockCount);
+
+    uint32_t rangeSizeSum = 0;
+    uint32_t blockSize = PARALLEL_MIN_BLOCK_SIZE;
+    const auto &originMeta = *layerMeta;
+    for (size_t i = 0; i < originMeta.size(); ++i) {
+        rangeSizeSum += originMeta[i].end - originMeta[i].begin + 1;
     }
+    blockSize = std::max(
+        (uint32_t)std::ceil((double)rangeSizeSum / (parallelNum * parallelBlockCount)), blockSize);
+    SQL_LOG(TRACE1, "parallel block size is %u", blockSize);
+    const uint64_t stepSize = blockSize * parallelNum;
     isearch::search::LayerMetaPtr newMeta(new isearch::search::LayerMeta(pool));
-    uint32_t leftCount = count;
-    for (size_t i = 0; i < meta.size() && leftCount > 0; i++) {
-        uint32_t rangeCount = meta[i].end - meta[i].begin + 1;
-        if (beginCount >= rangeCount) {
-            beginCount -= rangeCount;
-            continue;
-        } else {
-            uint32_t newRangeBegin = meta[i].begin + beginCount;
-            uint32_t rangeLeftCount = rangeCount - beginCount;
-            uint32_t newRangeEnd = newRangeBegin;
-            if (leftCount > rangeLeftCount) {
-                newRangeEnd = meta[i].end;
-                leftCount -= rangeLeftCount;
-            } else {
-                newRangeEnd = newRangeBegin + leftCount - 1;
-                leftCount = 0;
+    uint64_t curRangeStart = blockSize * parallelIndex;
+    uint64_t curRangeEnd = curRangeStart + blockSize - 1;
+    size_t curMetaIdx = 0;
+    uint64_t offset = originMeta[0].begin;
+    while (curMetaIdx < originMeta.size()) {
+        uint64_t realRangeStart = curRangeStart + offset;
+        uint64_t realRangeEnd = curRangeEnd + offset;
+        intersectRange(newMeta, realRangeStart, realRangeEnd, originMeta, curMetaIdx);
+        if (realRangeEnd > originMeta[curMetaIdx].end) {
+            ++curMetaIdx;
+            if (curMetaIdx >= originMeta.size()) {
+                break;
             }
-            isearch::search::DocIdRangeMeta newRangeMeta(
-                newRangeBegin, newRangeEnd, meta[i].ordered, newRangeEnd - newRangeBegin + 1);
-            newMeta->push_back(newRangeMeta);
-            beginCount = 0;
+            offset += originMeta[curMetaIdx].begin - originMeta[curMetaIdx - 1].end - 1;
+        } else {
+            curRangeStart += stepSize;
+            curRangeEnd += stepSize;
         }
     }
     return newMeta;
+}
+
+void ScanIteratorCreatorR::intersectRange(isearch::search::LayerMetaPtr newMeta,
+                                          uint64_t rangeStart,
+                                          uint64_t rangeEnd,
+                                          const isearch::search::LayerMeta &oldMeta,
+                                          size_t metaIdx) {
+    uint64_t maxRangeStart = std::max(rangeStart, (uint64_t)oldMeta[metaIdx].begin);
+    uint64_t minRangeEnd = std::min(rangeEnd, (uint64_t)oldMeta[metaIdx].end);
+    if (minRangeEnd >= maxRangeStart) {
+        isearch::search::DocIdRangeMeta rangeMeta(
+            maxRangeStart, minRangeEnd, oldMeta[metaIdx].ordered, minRangeEnd - maxRangeStart + 1);
+        newMeta->push_back(rangeMeta);
+    }
 }
 
 ScanIterator *

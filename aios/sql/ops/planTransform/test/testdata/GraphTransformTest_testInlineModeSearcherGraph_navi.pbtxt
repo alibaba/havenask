@@ -1,3 +1,4 @@
+version: 196608
 sub_graphs {
   nodes {
     name: "3"
@@ -66,11 +67,15 @@ sub_graphs {
       node: "merge:1:0"
     }
   }
+  option {
+    error_handle_strategy: EHS_ERROR_AS_EOF
+  }
   binary_attrs {
     key: "table_distribution"
     value: "{\"assigned_hash_values\":\"\",\"assigned_partition_ids\":\"\",\"hash_mode\":{\"hash_field\":\"\",\"hash_fields\":[],\"hash_function\":\"HASH\",\"hash_params\":{}},\"hash_values\":{},\"hash_values_sep\":{},\"partition_cnt\":1,\"type\":\"\"}"
   }
-  scopes: 0
+  scopes {
+  }
   next_scope_id: 1
 }
 sub_graphs {
@@ -210,8 +215,10 @@ sub_graphs {
   }
   option {
     inline_mode: true
+    error_handle_strategy: EHS_ERROR_AS_EOF
   }
-  scopes: 0
+  scopes {
+  }
   next_scope_id: 1
 }
 counter_info {

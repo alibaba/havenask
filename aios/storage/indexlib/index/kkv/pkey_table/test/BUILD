@@ -6,6 +6,7 @@ strict_cc_fast_test(
         'OnDiskSeparateChainHashIteratorTest.cpp',
         'SeparateChainPrefixKeyTableTest.cpp'
     ],
+    copts=['-fno-access-control'],
     shard_count=3,
     deps=[
         '//aios/storage/indexlib/config:schema',

@@ -105,7 +105,7 @@ void VersionLoader::ListVersion(const DirectoryPtr& directory, fslib::FileList& 
 void VersionLoader::GetVersionS(const string& dirPath, Version& version, versionid_t versionId)
 {
     string path = "";
-    if (versionId == INVALID_VERSION) {
+    if (versionId == INVALID_VERSIONID) {
         fslib::FileList fileList;
         ListVersionS(dirPath, fileList);
         if (fileList.size() == 0) {
@@ -124,7 +124,7 @@ void VersionLoader::GetVersionS(const string& dirPath, Version& version, version
 
 void VersionLoader::GetVersion(const DirectoryPtr& directory, Version& version, versionid_t versionId)
 {
-    if (versionId == INVALID_VERSION) {
+    if (versionId == INVALID_VERSIONID) {
         fslib::FileList fileList;
         ListVersion(directory, fileList);
         if (fileList.size() != 0) {

@@ -15,8 +15,13 @@
  */
 #include "build_service/proto/ErrorCollector.h"
 
+#include <iosfwd>
+#include <stdarg.h>
+#include <stdio.h>
+
 #include "autil/TimeUtility.h"
 #include "beeper/beeper.h"
+#include "build_service/common_define.h"
 #include "build_service/proto/ProtoUtil.h"
 
 using namespace std;

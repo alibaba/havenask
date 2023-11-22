@@ -2,6 +2,7 @@
 
 #include "autil/StringUtil.h"
 #include "indexlib/config/primary_key_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/MemDirectory.h"
 #include "indexlib/index/calculator/partition_size_calculator.h"
 #include "indexlib/index/calculator/segment_lock_size_calculator.h"
@@ -11,7 +12,6 @@
 #include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_define.h"
 #include "indexlib/partition/on_disk_partition_data.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/version_maker.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/counter/MultiCounter.h"
@@ -99,7 +99,7 @@ void PartitionSizeCalculatorTest::TestCalculateVersionLockSizeWithoutPatch()
         PartitionDataPtr partitionData = OnDiskPartitionData::CreateOnDiskPartitionData(
             mRootDir->GetFileSystem(), version, mRootDir->GetLogicalPath(), false, false);
         EXPECT_EQ((size_t)120, cal.CalculateDiffVersionLockSizeWithoutPatch(
-                                   version, index_base::Version(INVALID_VERSION), partitionData, MultiCounterPtr()));
+                                   version, index_base::Version(INVALID_VERSIONID), partitionData, MultiCounterPtr()));
     }
     {
         tearDown();
@@ -142,7 +142,7 @@ void PartitionSizeCalculatorTest::TestCalculateVersionLockSizeWithoutPatchWithSu
         mRootDir->GetFileSystem(), version, mRootDir->GetLogicalPath(), true, false);
 
     // mainpk = subpk = 12(pk data) + 8(pk attribute)
-    ASSERT_EQ((size_t)340, cal.CalculateDiffVersionLockSizeWithoutPatch(version, index_base::Version(INVALID_VERSION),
+    ASSERT_EQ((size_t)340, cal.CalculateDiffVersionLockSizeWithoutPatch(version, index_base::Version(INVALID_VERSIONID),
                                                                         partitionData));
 }
 
@@ -154,7 +154,7 @@ void PartitionSizeCalculatorTest::TestCalculatePkSize()
     version.Store(mRootDir, false);
     PartitionSizeCalculator calculator(mRootDir, mSchema, true, plugin::PluginManagerPtr());
     PartitionDataPtr partitionData = OnDiskPartitionData::CreateOnDiskPartitionData(
-        mRootDir->GetFileSystem(), mSchema, index_base::Version(INVALID_VERSION), mRootDir->GetLogicalPath());
+        mRootDir->GetFileSystem(), mSchema, index_base::Version(INVALID_VERSIONID), mRootDir->GetLogicalPath());
     Version invalidVersion;
     MultiCounterPtr counter(new MultiCounter(""));
     ASSERT_EQ((size_t)20, calculator.CalculatePkSize(partitionData, invalidVersion, counter));

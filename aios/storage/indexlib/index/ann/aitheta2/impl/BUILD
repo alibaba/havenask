@@ -65,7 +65,9 @@ strict_cc_library(
         '//aios/storage/indexlib/index/ann/aitheta2:AithetaAuxSearchInfo',
         '//aios/storage/indexlib/index/ann/aitheta2:AithetaFilterCreator',
         '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
-        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_util',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_buffer_holder',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_dumper',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_extractor',
         '//aios/storage/indexlib/index/ann/aitheta2/util:index_context_holder',
         '//aios/storage/indexlib/index/ann/aitheta2/util:metric_reporter',
         '//aios/storage/indexlib/index/ann/aitheta2/util:query_parser',
@@ -96,15 +98,19 @@ strict_cc_library(
         'SegmentBuilder.cpp'
     ],
     hdrs=[
-        'NormalIndexBuilder.h', 'NormalSegmentBuilder.h',
-        'RealtimeIndexBuilder.h', 'RealtimeSegmentBuilder.h',
-        'SegmentBuildResource.h', 'SegmentBuilder.h'
+        'NormalIndexBuilder.h', 'NormalSegmentBuildResource.h',
+        'NormalSegmentBuilder.h', 'RealtimeIndexBuilder.h',
+        'RealtimeSegmentBuilder.h', 'SegmentBuildResource.h', 'SegmentBuilder.h'
     ],
     deps=[
         ':realtime_segment', ':segment_base',
         '//aios/storage/indexlib/index/ann/aitheta2:aitheta2_index_common',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:customized_ckpt_manager',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_attr_segment',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_buffer_holder',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_dumper',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_extractor',
         '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_field_data',
-        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_util',
         '//aios/storage/indexlib/index/ann/aitheta2/util:index_context_holder',
         '//aios/storage/indexlib/index/ann/aitheta2/util:metric_reporter',
         '//aios/storage/indexlib/index/ann/aitheta2/util:pk_data_util'
@@ -114,7 +120,10 @@ strict_cc_library(
     name='aitheta2_segment_merger',
     srcs=['NormalSegmentMerger.cpp'],
     hdrs=['NormalSegmentMerger.h'],
-    deps=[':aitheta2_segment_builder']
+    deps=[
+        ':aitheta2_segment_builder',
+        '//aios/storage/indexlib/index/ann/aitheta2/util:embedding_util'
+    ]
 )
 strict_cc_library(
     name='customized_aitheta_logger',

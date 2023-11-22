@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DOCUMENT_EXTEND_DOC_FIELDS_CONVERTOR_H
-#define __INDEXLIB_DOCUMENT_EXTEND_DOC_FIELDS_CONVERTOR_H
+#pragma once
 
 #include "indexlib/common/field_format/attribute/attribute_convertor.h"
 #include "indexlib/common/field_format/customized_index/customized_index_field_encoder.h"
@@ -162,5 +161,3 @@ void ExtendDocFieldsConvertor::addSectionTokens(const EncoderPtr& encoder, Index
 }
 
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_DOCUMENT_EXTEND_DOC_FIELDS_CONVERTOR_H

@@ -26,6 +26,7 @@
 #include "fslib/fslib.h"
 #include "future_lite/coro/Lazy.h"
 #include "indexlib/base/Define.h"
+#include "indexlib/config/SortDescription.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/ReaderOption.h"
 #include "indexlib/file_system/WriterOption.h"
@@ -68,7 +69,7 @@ class SingleValueAttributeDiskIndexer : public AttributeDiskIndexer
 {
 public:
     SingleValueAttributeDiskIndexer(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                                    const IndexerParameter& indexerParam);
+                                    const DiskIndexerParameter& indexerParam);
     ~SingleValueAttributeDiskIndexer() = default;
 
     struct ReadContext : public ReadContextBase {
@@ -91,7 +92,7 @@ public:
         FieldType GetAttributeType() const override { return TypeInfo<T>::GetFieldType(); }
 
         std::unique_ptr<AttributeDiskIndexer> Create(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                                                     const IndexerParameter& indexerParam) const override
+                                                     const DiskIndexerParameter& indexerParam) const override
         {
             return std::make_unique<SingleValueAttributeDiskIndexer<T>>(attributeMetrics, indexerParam);
         }
@@ -120,21 +121,14 @@ public:
               uint32_t& dataLen, bool& isNull) override;
     bool Read(docid_t docId, std::string* value, autil::mem_pool::Pool* pool) override
     {
-        bool isNull = false;
         T attrValue {};
-        auto globalCtx = (ReadContext*)GetGlobalReadContext();
-        if (globalCtx) {
-            if (!Read(docId, attrValue, isNull, *globalCtx)) {
-                return false;
-            }
-        } else {
-            auto ctx = CreateReadContext(pool);
-            if (!Read(docId, attrValue, isNull, ctx)) {
-                return false;
-            }
+        bool isNull = false;
+        if (!InnerRead(docId, &attrValue, pool, isNull)) {
+            return false;
         }
         return _fieldPrinter->Print(isNull, attrValue, value);
     }
+    bool ReadBinaryValue(docid_t docId, autil::StringView* value, autil::mem_pool::Pool* pool) override;
     inline bool Read(docid_t docId, T& value, bool& isNull, ReadContext& ctx) const __ALWAYS_INLINE;
     template <class Compare>
     Status Search(T value, const DocIdRange& rangeLimit, const config::SortPattern& sortType, docid_t& docId) const;
@@ -147,6 +141,7 @@ public:
 private:
     void Init();
     Status ReadWithoutCtx(docid_t docId, T& value, bool& isNull) const;
+    bool InnerRead(docid_t docId, T* value, autil::mem_pool::Pool* pool, bool& isNull);
 
 protected:
     std::unique_ptr<SingleValueAttributeCompressReader<T>> _compressReader;
@@ -161,7 +156,7 @@ AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, SingleValueAttributeDiskIndexer, T);
 
 template <typename T>
 inline SingleValueAttributeDiskIndexer<T>::SingleValueAttributeDiskIndexer(
-    std::shared_ptr<AttributeMetrics> attributeMetrics, const IndexerParameter& indexerParam)
+    std::shared_ptr<AttributeMetrics> attributeMetrics, const DiskIndexerParameter& indexerParam)
     : AttributeDiskIndexer(attributeMetrics, indexerParam)
 {
 }
@@ -194,7 +189,7 @@ SingleValueAttributeDiskIndexer<T>::Open(const std::shared_ptr<config::IIndexCon
     auto [status, isExist] = indexDirectory->IsExist(attrPath).StatusWith();
     RETURN_IF_STATUS_ERROR(status, "IsExist attribute dir [%s] failed", attrName.c_str());
     if (!isExist) {
-        if (_indexerParam.readerOpenType == index::IndexerParameter::READER_DEFAULT_VALUE) {
+        if (_indexerParam.readerOpenType == index::DiskIndexerParameter::READER_DEFAULT_VALUE) {
             auto defaultValuePatch = std::make_shared<DefaultValueAttributePatch>();
             auto status = defaultValuePatch->Open(_attrConfig);
             RETURN_IF_STATUS_ERROR(status, "open defaultValuePatch [%s] failed", attrName.c_str());
@@ -535,6 +530,41 @@ uint64_t SingleValueAttributeDiskIndexer<T>::TEST_GetDocCount() const
     uint64_t docCount = 0;
     DISPATCH(GetDocCount, docCount);
     return docCount;
+}
+
+template <typename T>
+bool SingleValueAttributeDiskIndexer<T>::ReadBinaryValue(docid_t docId, autil::StringView* value,
+                                                         autil::mem_pool::Pool* pool)
+{
+    if (!pool) {
+        return false;
+    }
+    T attrValue {};
+    bool isNull = false;
+    if (!InnerRead(docId, &attrValue, pool, isNull)) {
+        return false;
+    }
+    char* copyBuf = (char*)pool->allocate(sizeof(T));
+    *(T*)copyBuf = attrValue;
+    *value = autil::StringView((const char*)copyBuf, sizeof(T));
+    return true;
+}
+
+template <typename T>
+bool SingleValueAttributeDiskIndexer<T>::InnerRead(docid_t docId, T* value, autil::mem_pool::Pool* pool, bool& isNull)
+{
+    auto globalCtx = (ReadContext*)GetGlobalReadContext();
+    if (globalCtx) {
+        if (!Read(docId, *value, isNull, *globalCtx)) {
+            return false;
+        }
+    } else {
+        auto ctx = CreateReadContext(pool);
+        if (!Read(docId, *value, isNull, ctx)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 } // namespace indexlibv2::index

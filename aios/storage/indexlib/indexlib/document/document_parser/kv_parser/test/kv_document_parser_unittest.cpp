@@ -40,17 +40,17 @@ void KvDocumentParserTest::CaseSetUp()
 {
     _extendDoc.reset(new IndexlibExtendDocument());
     RawDocumentPtr rawDoc(new DefaultRawDocument());
-    _extendDoc->setRawDocument(rawDoc);
+    _extendDoc->SetRawDocument(rawDoc);
 }
 
 void KvDocumentParserTest::CaseTearDown() {}
 
 TEST_F(KvDocumentParserTest, testKVAdd)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    _extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
     _schemaPtr = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "/document_parser_kv_schema.json");
 
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("usernick", "jack");
     rawDoc->setField("userid", "1");
 
@@ -75,10 +75,10 @@ TEST_F(KvDocumentParserTest, testKVAdd)
 
 TEST_F(KvDocumentParserTest, testKVUpdate)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(UPDATE_FIELD);
+    _extendDoc->GetRawDocument()->setDocOperateType(UPDATE_FIELD);
     _schemaPtr = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "/document_parser_kv_schema.json");
 
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("usernick", "jack");
     rawDoc->setField("userid", "1");
 
@@ -133,10 +133,10 @@ TEST_F(KvDocumentParserTest, testKVWithMultiRegion)
 
 TEST_F(KvDocumentParserTest, testKVAddFieldLatencyTag)
 {
-    _extendDoc->getRawDocument()->setDocOperateType(ADD_DOC);
+    _extendDoc->GetRawDocument()->setDocOperateType(ADD_DOC);
     _schemaPtr = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "/document_parser_kv_schema.json");
 
-    RawDocumentPtr rawDoc = _extendDoc->getRawDocument();
+    RawDocumentPtr rawDoc = _extendDoc->GetRawDocument();
     rawDoc->setField("usernick", "jack");
     rawDoc->setField("userid", "123");
     rawDoc->setField("timestamp", "10000");
@@ -161,7 +161,7 @@ IndexlibExtendDocumentPtr KvDocumentParserTest::createExtendDoc(const string& fi
         rawDoc->setField(kv[0], kv[1]);
     }
     rawDoc->setDocOperateType(ADD_DOC);
-    extendDoc->setRawDocument(rawDoc);
+    extendDoc->SetRawDocument(rawDoc);
     extendDoc->setRegionId(regionId);
     return extendDoc;
 }

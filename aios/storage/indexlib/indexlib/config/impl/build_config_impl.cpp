@@ -28,7 +28,7 @@ using namespace autil::legacy::json;
 using namespace autil;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, BuildConfigImpl);
+AUTIL_LOG_SETUP(indexlib.config, BuildConfigImpl);
 
 BuildConfigImpl::BuildConfigImpl()
     : enableAsyncDumpSegment(false)
@@ -94,8 +94,8 @@ void BuildConfigImpl::Jsonize(Jsonizable::JsonWrapper& json)
             }
         }
         if (bloomFilterMultipleNum <= 1 || bloomFilterMultipleNum > 16) {
-            IE_LOG(INFO, "invalid bloom_filter_multiple_num [%u], use default [%u].", bloomFilterMultipleNum,
-                   DEFAULT_BLOOM_FILTER_MULTIPLE_NUM);
+            AUTIL_LOG(INFO, "invalid bloom_filter_multiple_num [%u], use default [%u].", bloomFilterMultipleNum,
+                      DEFAULT_BLOOM_FILTER_MULTIPLE_NUM);
             bloomFilterMultipleNum = DEFAULT_BLOOM_FILTER_MULTIPLE_NUM;
         }
     }
@@ -178,8 +178,8 @@ void BuildConfigImpl::EnableBloomFilterForPkReader(uint32_t multipleNum)
     enableBloomFilterForPKReader = true;
     bloomFilterMultipleNum = multipleNum;
     if (bloomFilterMultipleNum <= 1 || bloomFilterMultipleNum > 16) {
-        IE_LOG(INFO, "invalid bloom_filter_multiple_num [%u], use default [%u].", bloomFilterMultipleNum,
-               DEFAULT_BLOOM_FILTER_MULTIPLE_NUM);
+        AUTIL_LOG(INFO, "invalid bloom_filter_multiple_num [%u], use default [%u].", bloomFilterMultipleNum,
+                  DEFAULT_BLOOM_FILTER_MULTIPLE_NUM);
         bloomFilterMultipleNum = DEFAULT_BLOOM_FILTER_MULTIPLE_NUM;
     }
 }

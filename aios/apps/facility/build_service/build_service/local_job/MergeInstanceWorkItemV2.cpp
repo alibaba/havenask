@@ -15,37 +15,43 @@
  */
 #include "build_service/local_job/MergeInstanceWorkItemV2.h"
 
+#include <assert.h>
+#include <map>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
 #include "autil/MemUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/common_define.h"
 #include "build_service/config/BuilderConfig.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/config/ConfigDefine.h"
-#include "build_service/config/OfflineIndexConfigMap.h"
 #include "build_service/config/ResourceReader.h"
-#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/task_base/JobConfig.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/ParallelIdGenerator.h"
-#include "fslib/fs/FileSystem.h"
-#include "fslib/util/FileUtil.h"
+#include "fslib/common/common_type.h"
 #include "future_lite/ExecutorCreator.h"
-#include "indexlib/base/PathUtil.h"
-#include "indexlib/file_system/ErrorCode.h"
-#include "indexlib/file_system/IDirectory.h"
-#include "indexlib/file_system/JsonUtil.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/framework/ITabletFactory.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/framework/CommitOptions.h"
 #include "indexlib/framework/IdGenerator.h"
+#include "indexlib/framework/IndexRoot.h"
 #include "indexlib/framework/TabletCreator.h"
-#include "indexlib/framework/TabletFactoryCreator.h"
 #include "indexlib/framework/TabletId.h"
-#include "indexlib/framework/TabletInfos.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
 #include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
 #include "indexlib/table/index_task/LocalTabletMergeController.h"
-#include "indexlib/util/PathUtil.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricsReporter.h"
 
 namespace build_service::local_job {
 
@@ -117,9 +123,9 @@ void MergeInstanceWorkItemV2::setFailFlag() { *_failFlag = true; }
 indexlib::Status MergeInstanceWorkItemV2::getLatestVersion(indexlibv2::framework::Version* version) const
 {
     std::string sourceVersionRoot;
-    if (_buildMode == "full") {
+    if (_buildMode == config::BUILD_STEP_FULL_STR) {
         sourceVersionRoot = _indexRoot;
-    } else if (_buildMode == "incremental") {
+    } else if (_buildMode == config::BUILD_STEP_INC_STR) {
         sourceVersionRoot = _finalIndexRoot;
     } else {
         return indexlib::Status::InternalError("invalid build mode");
@@ -129,6 +135,10 @@ indexlib::Status MergeInstanceWorkItemV2::getLatestVersion(indexlibv2::framework
     fslib::FileList fileList;
     auto st = indexlibv2::framework::VersionLoader::ListVersion(indexDir, &fileList);
     RETURN_IF_STATUS_ERROR(st, "list version in path [%s] failed.", sourceVersionRoot.c_str());
+    if (fileList.empty()) {
+        RETURN_IF_STATUS_ERROR(indexlibv2::Status::InternalError(), "no version file found under index directory [%s]",
+                               indexDir->GetPhysicalPath("").c_str());
+    }
     const auto& versionFileName = *fileList.rbegin();
     st = indexlibv2::framework::VersionLoader::LoadVersion(indexDir, versionFileName, version);
     RETURN_IF_STATUS_ERROR(st, "load version [%s:%s] failed.", sourceVersionRoot.c_str(), versionFileName.c_str());

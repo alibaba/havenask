@@ -67,6 +67,7 @@ public:
     bool NeedStoreSummary();
     void SetNeedStoreSummary(bool needStoreSummary);
     void SetNeedStoreSummary(fieldid_t fieldId);
+    bool NeedStoreSummary(fieldid_t fieldId) const;
 
     void DisableAllFields();
     bool IsAllFieldsDisabled() const;

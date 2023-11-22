@@ -15,8 +15,13 @@
  */
 #pragma once
 
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "autil/Log.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/framework/Fence.h"
 #include "indexlib/framework/Version.h"

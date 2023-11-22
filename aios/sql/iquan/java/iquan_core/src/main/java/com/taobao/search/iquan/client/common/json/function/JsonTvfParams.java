@@ -1,15 +1,17 @@
 package com.taobao.search.iquan.client.common.json.function;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.taobao.search.iquan.client.common.json.common.JsonType;
 import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
+@Getter
 public class JsonTvfParams {
     private static final Logger logger = LoggerFactory.getLogger(JsonTvfParams.class);
 
@@ -18,14 +20,6 @@ public class JsonTvfParams {
 
     @JsonProperty(value = "tables", required = true)
     private List<JsonTvfInputTable> inputTables;
-
-    public List<JsonType> getScalars() {
-        return scalars;
-    }
-
-    public List<JsonTvfInputTable> getInputTables() {
-        return inputTables;
-    }
 
     @JsonIgnore
     public boolean isValid() {

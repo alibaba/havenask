@@ -21,7 +21,9 @@
 #include "sql/ops/calc/CalcInitParamR.h"
 #include "sql/ops/externalTable/ha3sql/Ha3SqlRemoteScanR.h"
 #include "sql/ops/join/JoinKernelBase.h"
+#include "sql/ops/join/LookupR.h"
 #include "sql/ops/scan/ScanInitParamR.h"
+#include "sql/resource/WatermarkR.h"
 
 namespace sql {
 
@@ -34,13 +36,14 @@ void ExternalLookupJoinKernel::def(navi::KernelDefBuilder &builder) const {
         .input("input0", TableType::TYPE_ID)
         .output("output0", TableType::TYPE_ID)
         .dependOn(Ha3SqlRemoteScanR::RESOURCE_ID, true, BIND_RESOURCE_TO(_scanBase))
+        .dependOn(LookupR::RESOURCE_ID, true, BIND_RESOURCE_TO(_lookupR))
         .resourceConfigKey(ScanInitParamR::RESOURCE_ID, "build_node")
         .resourceConfigKey(CalcInitParamR::RESOURCE_ID, "build_node")
+        .resourceConfigKey(WatermarkR::RESOURCE_ID, "build_node")
         .jsonAttrs(R"json(
 {
     "remote_scan_init_fire" : false
 })json");
-    JoinKernelBase::addDepend(builder);
 }
 
 REGISTER_KERNEL(ExternalLookupJoinKernel);

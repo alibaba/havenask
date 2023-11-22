@@ -106,7 +106,7 @@ std::string AttributeMerger::GetAttributePath(const std::string& dir) const
 Status AttributeMerger::LoadPatchReader(const std::vector<IIndexMerger::SourceSegment>& srcSegments)
 {
     std::map<segmentid_t, std::shared_ptr<AttributePatchReader>> segId2PatchReader;
-    auto st = CreatePatchReader(srcSegments, segId2PatchReader);
+    auto st = CreatePatchReader(srcSegments, _allPatchInfos, _attributeConfig, segId2PatchReader);
     RETURN_IF_STATUS_ERROR(st, "load patch reader failed.");
     for (const auto& [_, segment] : srcSegments) {
         auto segId = segment->GetSegmentId();
@@ -137,15 +137,17 @@ Status AttributeMerger::LoadPatchReader(const std::vector<IIndexMerger::SourceSe
 
 Status
 AttributeMerger::CreatePatchReader(const std::vector<IIndexMerger::SourceSegment>& srcSegments,
+                                   const PatchInfos& allPatchInfos,
+                                   const std::shared_ptr<AttributeConfig>& attributeConfig,
                                    std::map<segmentid_t, std::shared_ptr<AttributePatchReader>>& segId2PatchReader)
 {
     for (const auto& [_, segment] : srcSegments) {
         auto segId = segment->GetSegmentId();
-        auto it = _allPatchInfos.find(segId);
-        if (it == _allPatchInfos.end()) {
+        auto it = allPatchInfos.find(segId);
+        if (it == allPatchInfos.end()) {
             continue;
         }
-        auto patchReader = index::AttributePatchReaderCreator::Create(_attributeConfig);
+        auto patchReader = index::AttributePatchReaderCreator::Create(attributeConfig);
         const index::PatchFileInfos& patchInfoVec = it->second;
         for (size_t i = 0; i < patchInfoVec.Size(); ++i) {
             auto status = patchReader->AddPatchFile(patchInfoVec[i].patchDirectory, patchInfoVec[i].patchFileName,

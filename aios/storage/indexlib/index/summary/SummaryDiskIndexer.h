@@ -20,8 +20,8 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/file_system/file/ReadOption.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IDiskIndexer.h"
-#include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/common/ErrorCode.h"
 #include "indexlib/index/summary/LocalDiskSummaryDiskIndexer.h"
 #include "indexlib/index/summary/Types.h"
@@ -48,7 +48,7 @@ namespace indexlibv2::index {
 class SummaryDiskIndexer : public IDiskIndexer
 {
 public:
-    SummaryDiskIndexer(const IndexerParameter& indexerParam);
+    SummaryDiskIndexer(const DiskIndexerParameter& indexerParam);
     ~SummaryDiskIndexer();
 
     using SummaryGroupIdVec = std::vector<summarygroupid_t>;
@@ -93,7 +93,7 @@ private:
     std::vector<std::shared_ptr<LocalDiskSummaryDiskIndexer>> _summaryGroups;
     SummaryGroupIdVec _allGroupIds;
     std::shared_ptr<config::SummaryIndexConfig> _summaryIndexConfig;
-    IndexerParameter _indexerParam;
+    DiskIndexerParameter _indexerParam;
 
 private:
     AUTIL_LOG_DECLARE();

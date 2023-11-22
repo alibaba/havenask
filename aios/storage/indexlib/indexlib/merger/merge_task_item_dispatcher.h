@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_TASK_ITEM_DISPATCHER_H
-#define __INDEXLIB_MERGE_TASK_ITEM_DISPATCHER_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/truncate_option_config.h"
-#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index/util/segment_directory_base.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/index_merge_meta.h"
-#include "indexlib/merger/merge_task.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/merge_task_item.h"
-#include "indexlib/merger/merge_work_item_typed.h"
+#include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -109,5 +115,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeTaskItemDispatcher);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_TASK_ITEM_DISPATCHER_H

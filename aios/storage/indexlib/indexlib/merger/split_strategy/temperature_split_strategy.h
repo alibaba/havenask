@@ -13,14 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TEMPERATURE_SPLIT_STRATEGY_H
-#define __INDEXLIB_TEMPERATURE_SPLIT_STRATEGY_H
+#pragma once
 
-#include <memory>
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+#include <map>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/index/normal/attribute/accessor/offline_attribute_segment_reader_container.h"
+#include "indexlib/index/segment_metrics_updater/segment_metrics_updater.h"
 #include "indexlib/index/segment_metrics_updater/temperature_segment_metrics_updater.h"
+#include "indexlib/index/util/segment_directory_base.h"
+#include "indexlib/index_base/index_meta/segment_merge_info.h"
+#include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/split_strategy/split_segment_strategy.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
+#include "indexlib/util/KeyValueMap.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace indexlib { namespace merger {
 
@@ -79,5 +94,3 @@ private:
 
 DEFINE_SHARED_PTR(TemperatureSplitStrategy);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TEMPERATURE_SPLIT_STRATEGY_H

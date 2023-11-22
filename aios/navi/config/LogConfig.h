@@ -55,6 +55,9 @@ public:
     size_t flushInterval;
     std::vector<LogBtFilterParam> btFilters;
 private:
+    static const size_t DEFAULT_MAX_FILE_SIZE_IN_MB = 1024; // 1024MB
+    static const size_t DEFAULT_CACHE_LIMIT_IN_MB = 128; // 128MB
+    static const size_t DEFAULT_LOG_KEEP_COUNT = 20;
     static const size_t DEFAULT_FLUSH_THRESHOLD_IN_KB = 1024;
     static const size_t DEFAULT_FLUSH_INTERVAL_IN_MS = 1000;
 };

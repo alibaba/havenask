@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_CONFIG_BASE_H
-#define __INDEXLIB_MERGE_CONFIG_BASE_H
+#pragma once
 
 #include <memory>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/merge_io_config.h"
 #include "indexlib/config/merge_strategy_parameter.h"
 #include "indexlib/config/truncate_option_config.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -69,10 +68,8 @@ public:
     static const size_t DEFAULT_UNIQ_ENCODE_PACK_ATTR_MERGE_BUFFER_SIZE = 64; // 64 MB
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(MergeConfigBase);
+typedef std::shared_ptr<MergeConfigBase> MergeConfigBasePtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_MERGE_CONFIG_BASE_H

@@ -15,9 +15,32 @@
  */
 #include "indexlib/merger/document_reclaimer/index_field_reclaimer.h"
 
-#include "beeper/beeper.h"
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/common/ErrorCode.h"
+#include "indexlib/index/common/Term.h"
+#include "indexlib/index/inverted_index/InvertedIndexReader.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
+#include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
+#include "indexlib/index/normal/attribute/accessor/attribute_reader.h"
+#include "indexlib/index/normal/deletionmap/deletion_map_writer.h"
+#include "indexlib/index/normal/framework/legacy_index_reader_interface.h"
 #include "indexlib/index/normal/inverted_index/accessor/index_reader_factory.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/merger/document_reclaimer/document_deleter.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "kmonitor/client/MetricLevel.h"
+#include "kmonitor/client/MetricType.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 using namespace kmonitor;

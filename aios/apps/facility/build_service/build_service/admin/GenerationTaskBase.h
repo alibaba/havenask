@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_GENERATIONTASKBASE_H
-#define ISEARCH_BS_GENERATIONTASKBASE_H
+#pragma once
 
+#include <assert.h>
+#include <map>
+#include <memory>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/Lock.h"
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
-#include "build_service/admin/AdminTaskBase.h"
 #include "build_service/admin/CheckpointMetricReporter.h"
 #include "build_service/admin/ConfigCleaner.h"
 #include "build_service/admin/CounterCollector.h"
@@ -29,26 +38,30 @@
 #include "build_service/admin/FlowIdMaintainer.h"
 #include "build_service/admin/SlowNodeMetricReporter.h"
 #include "build_service/admin/TaskStatusMetricReporter.h"
+#include "build_service/admin/WorkerTable.h"
 #include "build_service/admin/catalog/CatalogPartitionIdentifier.h"
+#include "build_service/admin/controlflow/TaskFactory.h"
 #include "build_service/admin/controlflow/TaskFlowManager.h"
-#include "build_service/admin/controlflow/TaskResourceManager.h"
-#include "build_service/admin/taskcontroller/BuildServiceTaskFactory.h"
 #include "build_service/admin/taskcontroller/TaskMaintainer.h"
 #include "build_service/admin/taskcontroller/TaskOptimizerFactory.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CounterConfig.h"
+#include "build_service/config/MultiClusterRealtimeSchemaListKeeper.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskConfig.h"
 #include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/DataDescriptions.h"
-#include "build_service/util/Log.h"
+#include "build_service/proto/ErrorCollector.h"
 #include "build_service/util/SharedPtrGuard.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/VersionCoord.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/table/BuiltinDefine.h"
 
 namespace build_service { namespace admin {
-class CatalogPartitionIdentifier;
-class WorkerTable;
 class GenerationTaskBase : public autil::legacy::Jsonizable, public proto::ErrorCollector
 {
 public:
@@ -78,6 +91,9 @@ public:
     typedef std::vector<std::string> TargetRoleNames;
     // agentRole -> <agentIdentifier, [normal roles]>
     typedef std::map<std::string, std::pair<std::string, TargetRoleNames>> AgentRoleTargetMap;
+
+    // clusterName->importedVersionId
+    typedef std::map<std::string, indexlib::versionid_t> ImportedVersionIdMap;
 
 public:
     GenerationTaskBase(const proto::BuildId& buildId, TaskType taskType, cm_basic::ZkWrapper* zkWrapper);
@@ -128,7 +144,7 @@ public:
     virtual bool checkFullBuildFinish() const { return false; }
 
     virtual bool importBuild(const std::string& configPath, const std::string& generationDir,
-                             const std::string& dataDescriptionKvs, indexlib::versionid_t importVersionId,
+                             const std::string& dataDescriptionKvs, const ImportedVersionIdMap& importedVersionIdMap,
                              proto::StartBuildResponse* response) = 0;
 
     void setCheckpointMetricReporter(const CheckpointMetricReporterPtr& reporter);
@@ -159,7 +175,9 @@ public:
     bool getBulkloadInfo(const std::string& clusterName, const std::string& bulkloadId,
                          const ::google::protobuf::RepeatedPtrField<proto::Range>& ranges, std::string* resultStr,
                          std::string* errorMsg) const;
-
+    bool bulkload(const std::string& clusterName, const std::string& bulkloadId,
+                  const ::google::protobuf::RepeatedPtrField<proto::ExternalFiles>& externalFiles,
+                  const std::string& options, const std::string& action, std::string* errorMsg);
     virtual bool markCheckpoint(const std::string& clusterName, versionid_t versionId, bool reserveFlag,
                                 std::string& errorMsg)
     {
@@ -246,6 +264,9 @@ private:
     virtual bool doGetBulkloadInfo(const std::string& clusterName, const std::string& bulkloadId,
                                    const ::google::protobuf::RepeatedPtrField<proto::Range>& ranges,
                                    std::string* resultStr, std::string* errorMsg) const = 0;
+    virtual bool doBulkload(const std::string& clusterName, const std::string& bulkloadId,
+                            const ::google::protobuf::RepeatedPtrField<proto::ExternalFiles>& externalFiles,
+                            const std::string& options, const std::string& action, std::string* errorMsg) = 0;
     virtual bool doRollBack(const std::string& clusterName, const std::string& generationZkRoot, versionid_t versionId,
                             int64_t startTimestamp, std::string& errorMsg) = 0;
     virtual bool doRollBackCheckpoint(const std::string& clusterName, const std::string& generationZkRoot,
@@ -292,13 +313,14 @@ public:
     const TaskFlowManagerPtr& getTaskFlowManager() const { return _taskFlowManager; }
 
 protected:
+    virtual std::shared_ptr<config::MultiClusterRealtimeSchemaListKeeper> getSchemaListKeeper() const;
     bool isActive() const;
     bool loadBuildServiceConfig(const std::string& configPath, config::BuildServiceConfig& buildServiceConfig);
     bool readHeartbeatType(const std::string& configPath);
     bool checkCounterConfig(const std::string& configPath);
     bool parseDataDescriptions(const std::string& dataDescriptionKvs, proto::DataDescriptions& dataDescriptions);
     bool loadDataDescriptions(const std::string& configPath, proto::DataDescriptions& dataDescriptions);
-    bool doWriteRealtimeInfoToIndex(const std::string& clusterName, const std::string& realtimeInfoContent);
+    bool doWriteRealtimeInfoToIndex(const std::string& clusterName, autil::legacy::json::JsonMap realtimeInfoJsonMap);
     TaskMaintainerPtr getUserTask(int64_t taskId);
 
     static std::string convertTableType(const std::string& tableType)
@@ -349,6 +371,7 @@ protected:
     std::map<std::string, int64_t> _callGraphHistory;
     util::SharedPtrGuard<AgentRoleTargetMap> _agentRoleTargetMapGuard;
     std::shared_ptr<CatalogPartitionIdentifier> _catalogPartitionIdentifier;
+    mutable std::shared_ptr<config::MultiClusterRealtimeSchemaListKeeper> _schemaListKeeper;
 
 private:
     BS_LOG_DECLARE();
@@ -356,5 +379,3 @@ private:
 
 BS_TYPEDEF_PTR(GenerationTaskBase);
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_GENERATIONTASKBASE_H

@@ -15,6 +15,12 @@
  */
 #include "build_service/config/CheckpointList.h"
 
+#include <ostream>
+
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+
 using namespace std;
 
 namespace build_service { namespace config {

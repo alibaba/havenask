@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONFIGCLEANER_H
-#define ISEARCH_BS_CONFIGCLEANER_H
+#pragma once
 
 #include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
 
@@ -45,5 +44,3 @@ private:
 BS_TYPEDEF_PTR(ConfigCleaner);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CONFIGCLEANER_H

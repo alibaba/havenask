@@ -15,12 +15,29 @@
  */
 #include "build_service/admin/taskcontroller/AlterFieldTask.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
+#include "build_service/admin/AdminTaskBase.h"
 #include "build_service/admin/CheckpointTools.h"
-#include "build_service/admin/ProcessorCheckpointFormatter.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/ErrorCollector.h"
 #include "build_service/proto/TaskIdentifier.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 using namespace autil;

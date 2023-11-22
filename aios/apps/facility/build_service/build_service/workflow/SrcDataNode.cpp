@@ -15,34 +15,82 @@
  */
 #include "build_service/workflow/SrcDataNode.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <exception>
+#include <functional>
+#include <memory>
+#include <ostream>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "autil/memory.h"
+#include "beeper/beeper.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/BuildRuleConfig.h"
-#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ProcessorRuleConfig.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/Monitor.h"
 #include "build_service/util/RangeUtil.h"
 #include "fslib/util/FileUtil.h"
+#include "future_lite/coro/Lazy.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/attribute_schema.h"
+#include "indexlib/config/build_config.h"
 #include "indexlib/config/disable_fields_config.h"
 #include "indexlib/config/field_config.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/online_config.h"
+#include "indexlib/config/pack_attribute_config.h"
+#include "indexlib/config/region_schema.h"
+#include "indexlib/config/schema_modify_operation.h"
+#include "indexlib/document/document.h"
 #include "indexlib/document/index_document/normal_document/attribute_document.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 #include "indexlib/document/index_document/normal_document/source_document_formatter.h"
+#include "indexlib/document/normal/AttributeDocument.h"
+#include "indexlib/document/normal/SerializedSourceDocument.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
+#include "indexlib/file_system/load_config/LoadConfig.h"
+#include "indexlib/file_system/load_config/LoadConfigList.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/attribute/Types.h"
 #include "indexlib/index/common/FieldTypeTraits.h"
+#include "indexlib/index/common/Types.h"
+#include "indexlib/index/kv/Constant.h"
+#include "indexlib/index/normal/attribute/accessor/attribute_iterator_base.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_iterator_typed.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_reader.h"
-#include "indexlib/index/normal/primarykey/primary_key_index_reader.h"
 #include "indexlib/index/normal/source/source_reader.h"
-#include "indexlib/index_base/index_meta/index_format_version.h"
-#include "indexlib/index_base/index_meta/version_loader.h"
+#include "indexlib/index/primary_key/PrimaryKeyIndexReader.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/online_join_policy.h"
 #include "indexlib/index_base/schema_adapter.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/partition/builder_branch_hinter.h"
 #include "indexlib/partition/index_partition_creator.h"
 #include "indexlib/partition/index_partition_reader.h"
 #include "indexlib/partition/index_partition_resource.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/memory_control/QuotaControl.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;
@@ -99,12 +147,12 @@ vector<string> SrcDataNode::getIndexRootFromResource(const ResourceKeeperPtr& ke
 
 versionid_t SrcDataNode::getIndexVersion(const ResourceKeeperPtr& keeper) const noexcept
 {
-    versionid_t ret = INVALID_VERSION;
+    versionid_t ret = indexlib::INVALID_VERSIONID;
     string versionStr;
     if (keeper && keeper->getParam(INDEX_VERSION, &versionStr) && StringUtil::numberFromString(versionStr, ret)) {
         return ret;
     }
-    return INVALID_VERSION;
+    return indexlib::INVALID_VERSIONID;
 }
 
 string SrcDataNode::getIndexCluster(const ResourceKeeperPtr& keeper) const noexcept
@@ -122,7 +170,7 @@ bool SrcDataNode::init(const config::ResourceReaderPtr& configReader, const prot
     {
         ScopedLock lock(_targetMutex);
         _targetResource = checkpointKeeper;
-        if (!_targetResource || getIndexVersion(_targetResource) == INVALID_VERSION) {
+        if (!_targetResource || getIndexVersion(_targetResource) == indexlib::INVALID_VERSIONID) {
             BS_LOG(ERROR, "no target resource or version is INVALID VERSION");
             return false;
         }
@@ -258,8 +306,8 @@ bool SrcDataNode::loadFull(const string& localPartitionRoot) noexcept
         }
         indexResource.reset(new IndexPartitionResource(*partitionGroupResource, "defaultPartitionName"));
         auto option = _config.options;
-        indexPartition =
-            IndexPartitionCreator(*indexResource).CreateByLoadSchema(option, localPartitionRoot, INVALID_VERSION);
+        indexPartition = IndexPartitionCreator(*indexResource)
+                             .CreateByLoadSchema(option, localPartitionRoot, indexlib::INVALID_VERSIONID);
 
         if (!indexPartition) {
             BS_LOG(WARN, "create index partition failed");
@@ -558,7 +606,7 @@ bool SrcDataNode::rewriteSchemaAndLoadconfig(const ResourceReaderPtr& resourceRe
     }
 
     string normalizeDir = fslib::util::FileUtil::normalizeDir(localPartitionRoot);
-    schemavid_t schemaId = schema->GetSchemaVersionId();
+    schemaid_t schemaId = schema->GetSchemaVersionId();
     string schemaPath = fslib::util::FileUtil::joinFilePath(normalizeDir, Version::GetSchemaFileName(schemaId));
     try {
         fslib::util::FileUtil::removeIfExist(schemaPath);

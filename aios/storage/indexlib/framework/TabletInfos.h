@@ -15,9 +15,12 @@
  */
 #pragma once
 
+#include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Lock.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/framework/IndexRoot.h"
 #include "indexlib/framework/Locator.h"
 #include "indexlib/framework/TabletId.h"

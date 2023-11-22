@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_INDEXRECLAIMCONFIGMAKER_H
-#define ISEARCH_BS_INDEXRECLAIMCONFIGMAKER_H
+#pragma once
 
-#include "build_service/common_define.h"
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "build_service/util/Log.h"
 #include "indexlib/table/normal_table/index_task/document_reclaim/IndexReclaimerParam.h"
 
@@ -51,5 +55,3 @@ private:
 };
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_INDEXRECLAIMCONFIGMAKER_H

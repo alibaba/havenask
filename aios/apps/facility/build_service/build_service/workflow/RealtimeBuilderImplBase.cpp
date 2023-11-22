@@ -15,16 +15,32 @@
  */
 #include "build_service/workflow/RealtimeBuilderImplBase.h"
 
-#include "build_service/config/CLIOptionNames.h"
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/builder/BuildSpeedLimiter.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/reader/RawDocumentReader.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/Monitor.h"
 #include "build_service/workflow/BuildFlow.h"
 #include "build_service/workflow/RealTimeBuilderTaskItem.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/index_base/branch_fs.h"
 #include "indexlib/index_base/online_join_policy.h"
+#include "indexlib/partition/builder_branch_hinter.h"
 #include "indexlib/partition/index_partition.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/TaskItem.h"
 #include "indexlib/util/TaskScheduler.h"
-#include "indexlib/util/metrics/Metric.h"
-#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;
@@ -419,7 +435,7 @@ void RealtimeBuilderImplBase::autoResume()
 BuildFlow* RealtimeBuilderImplBase::createBuildFlow(const indexlib::partition::IndexPartitionPtr& indexPartition,
                                                     const SwiftClientCreatorPtr& swiftClientCreator) const
 {
-    return new BuildFlow(swiftClientCreator, indexPartition->GetSchema(), _buildFlowThreadResource);
+    return new BuildFlow(indexPartition->GetSchema(), _buildFlowThreadResource);
 }
 
 void RealtimeBuilderImplBase::setErrorInfoUnsafe(RealtimeErrorCode errorCode, const string& errorMsg)

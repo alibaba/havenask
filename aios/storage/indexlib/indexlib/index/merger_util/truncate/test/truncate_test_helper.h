@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TRUNCATE_TEST_HELPER_H
-#define __INDEXLIB_TRUNCATE_TEST_HELPER_H
+#pragma once
 
 #include <memory>
 
@@ -28,5 +27,3 @@ private:
 
 DEFINE_SHARED_PTR(TruncateTestHelper);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_TRUNCATE_TEST_HELPER_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CUSTOMONLINEPARTITIONTEST_H
-#define __INDEXLIB_CUSTOMONLINEPARTITIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -100,5 +99,3 @@ INDEXLIB_UNIT_TEST_CASE(CustomOnlinePartitionTest, TestOpenWithVersionDeployDesc
 INDEXLIB_UNIT_TEST_CASE(CustomOnlinePartitionTest, TestRefreshLifecycleWhenCommitVersion);
 
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_CUSTOMONLINEPARTITIONTEST_H

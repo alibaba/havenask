@@ -38,7 +38,7 @@ Document::Document()
     , mSerializedVersion(INVALID_DOC_VERSION)
     , mTTL(0)
     , mTimestamp(INVALID_TIMESTAMP)
-    , mDocInfo(0, INVALID_TIMESTAMP, 0)
+    , mDocInfo(0, INVALID_TIMESTAMP, 0, 0)
     , mTrace(false)
 {
 }
@@ -214,20 +214,11 @@ void Document::SetLocator(const indexlib::document::IndexLocator& indexLocator)
 {
     mLocator.SetLocator(indexLocator.toString());
     mLocatorV2.SetSrc(indexLocator.getSrc());
-    // may need to set concurrentIdx
     mLocatorV2.SetOffset({indexLocator.getOffset(), 0});
-    // TODO(tianxiao.ttx) may need to test progress and offset suitable
     if (indexLocator.getProgress().size() > 0) {
-        mLocatorV2.SetProgress(indexLocator.getProgress());
+        mLocatorV2.SetMultiProgress({indexLocator.getProgress()});
     }
-}
-
-static void TranslateLocator(const Locator& locator, indexlibv2::framework::Locator& locatorV2)
-{
-    indexlib::document::IndexLocator indexLocator;
-    indexLocator.fromString(locator.GetLocator());
-    locatorV2.SetSrc(indexLocator.getSrc());
-    locatorV2.SetOffset({indexLocator.getOffset(), 0});
+    mLocatorV2.SetUserData(indexLocator.getUserData());
 }
 
 void Document::SetLocator(const indexlibv2::framework::Locator& locator)
@@ -235,18 +226,6 @@ void Document::SetLocator(const indexlibv2::framework::Locator& locator)
     mLocatorV2 = locator;
     indexlib::document::IndexLocator indexLocator(locator.GetSrc(), locator.GetOffset().first, locator.GetUserData());
     mLocator.SetLocator(indexLocator.toString());
-}
-
-void Document::SetLocator(const Locator& locator)
-{
-    mLocator = locator;
-    TranslateLocator(mLocator, mLocatorV2);
-}
-
-void Document::SetLocator(const std::string& locatorStr)
-{
-    mLocator.SetLocator(locatorStr);
-    TranslateLocator(mLocator, mLocatorV2);
 }
 
 void Document::ToRawDocument(RawDocument* rawDoc)

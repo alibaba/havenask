@@ -81,6 +81,7 @@ private:
     std::string getDefaultCatalogName(const sql::SqlQueryRequest *sqlRequest);
     std::string getDefaultDatabaseName(const sql::SqlQueryRequest *sqlRequest);
     void reportMetrics() const;
+    std::string ToSqlPlanString(const iquan::SqlPlan &sqlPlan);
 
 private:
     KERNEL_DEPEND_DECLARE();

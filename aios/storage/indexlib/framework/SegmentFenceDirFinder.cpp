@@ -15,11 +15,17 @@
  */
 #include "indexlib/framework/SegmentFenceDirFinder.h"
 
+#include "indexlib/base/PathUtil.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/MountOption.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/framework/Fence.h"
 
 namespace indexlibv2::framework {

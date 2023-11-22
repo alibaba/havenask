@@ -36,7 +36,6 @@
 #include "sql/common/IndexInfo.h"
 #include "sql/common/TableDistribution.h"
 #include "sql/common/TableMeta.h"
-#include "sql/common/WatermarkType.h"
 #include "sql/ops/calc/CalcInitParamR.h"
 #include "sql/ops/sort/SortInitParam.h"
 #include "sql/proto/SqlSearchInfo.pb.h"
@@ -125,10 +124,10 @@ public:
     void incEvaluateTime(int64_t time);
     void incOutputTime(int64_t time);
     void incTotalTime(int64_t time);
-    void incTotalScanCount(int64_t count);
-    void incTotalSeekCount(int64_t count);
     void incTotalOutputCount(int64_t count);
-    void setTotalSeekCount(int64_t count);
+    void setTotalScanCount(int64_t count);
+    void setTotalSeekedCount(int64_t count);
+    void setTotalWholeDocCount(int64_t count);
     void updateDurationTime(int64_t time);
     void updateExtraInfo(const std::string &info);
     void incDegradedDocsCount(int64_t count);
@@ -144,6 +143,7 @@ public:
     std::map<std::string, FieldInfo> fieldInfos;
     std::vector<std::string> hashFields;
     std::vector<std::string> usedFields;
+    std::vector<std::string> usedFieldsType;
     TableMeta tableMeta;
     std::string opName;
     std::string nodeName;
@@ -155,12 +155,11 @@ public:
     std::string hashType;
     iquan::LocationDef location;
     TableDistribution tableDist;
-    int64_t targetWatermark;
-    WatermarkType targetWatermarkType;
     uint32_t batchSize;
     uint32_t limit;
     uint32_t parallelNum;
     uint32_t parallelIndex;
+    uint32_t parallelBlockCount;
     int32_t opId;
     std::set<std::string> matchType;
     int32_t reserveMaxCount;

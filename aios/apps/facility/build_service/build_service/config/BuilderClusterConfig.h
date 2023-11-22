@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDERCLUSTERCONFIG_H
-#define ISEARCH_BS_BUILDERCLUSTERCONFIG_H
+#pragma once
 
-#include "build_service/common_define.h"
+#include <string>
+
 #include "build_service/config/BuilderConfig.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/util/Log.h"
@@ -52,5 +52,3 @@ private:
 };
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_BUILDERCLUSTERCONFIG_H

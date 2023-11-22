@@ -15,6 +15,15 @@
  */
 #include "build_service/processor/TaoliveBusinessProcessor.h"
 
+#include <limits>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+
+#include "autil/Span.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
+
 namespace build_service { namespace processor {
 BS_LOG_SETUP(processor, TaoliveBusinessProcessor);
 

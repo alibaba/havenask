@@ -1,8 +1,7 @@
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/diversity_constrain.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/testutil/unittest.h"
 using namespace std;
 
 namespace indexlib { namespace config {
@@ -24,9 +23,9 @@ public:
             int64_t beginTime = 7402; // 2:3:22
             int64_t baseTime = 0;     // 1970-1-1
             constrain.ParseTimeStampFilter(beginTime, baseTime);
-            INDEXLIB_TEST_EQUAL(string("ends_1"), constrain.mFilterField);
-            INDEXLIB_TEST_EQUAL(7402, constrain.mFilterMinValue);
-            INDEXLIB_TEST_EQUAL(82800, constrain.mFilterMaxValue);
+            ASSERT_EQ(string("ends_1"), constrain.mFilterField);
+            ASSERT_EQ(7402, constrain.mFilterMinValue);
+            ASSERT_EQ(82800, constrain.mFilterMaxValue);
         }
         {
             DiversityConstrain constrain;
@@ -35,9 +34,9 @@ public:
             int64_t beginTime = 7402; // 2:3:22
             int64_t baseTime = 0;     // 1970-1-1
             constrain.ParseTimeStampFilter(beginTime, baseTime);
-            INDEXLIB_TEST_EQUAL(string("ends_1"), constrain.mFilterField);
-            INDEXLIB_TEST_EQUAL(7200, constrain.mFilterMinValue);
-            INDEXLIB_TEST_EQUAL(82800, constrain.mFilterMaxValue);
+            ASSERT_EQ(string("ends_1"), constrain.mFilterField);
+            ASSERT_EQ(7200, constrain.mFilterMinValue);
+            ASSERT_EQ(82800, constrain.mFilterMaxValue);
         }
         {
             DiversityConstrain constrain;
@@ -48,9 +47,9 @@ public:
             constrain.ParseTimeStampFilter(beginTime, baseTime);
             int64_t defaultMin = DiversityConstrain::DEFAULT_FILTER_MIN_VALUE;
             int64_t defaultMax = DiversityConstrain::DEFAULT_FILTER_MAX_VALUE;
-            INDEXLIB_TEST_EQUAL(string(""), constrain.mFilterField);
-            INDEXLIB_TEST_EQUAL(defaultMin, constrain.mFilterMinValue);
-            INDEXLIB_TEST_EQUAL(defaultMax, constrain.mFilterMaxValue);
+            ASSERT_EQ(string(""), constrain.mFilterField);
+            ASSERT_EQ(defaultMin, constrain.mFilterMinValue);
+            ASSERT_EQ(defaultMax, constrain.mFilterMaxValue);
         }
         {
             DiversityConstrain constrain;
@@ -59,33 +58,33 @@ public:
             int64_t beginTime = 7402; // 2:3:22
             int64_t baseTime = 0;     // 1970-1-1
 
-            INDEXLIB_EXPECT_EXCEPTION(constrain.ParseTimeStampFilter(beginTime, baseTime), util::BadParameterException);
+            ASSERT_THROW(constrain.ParseTimeStampFilter(beginTime, baseTime), util::BadParameterException);
         }
         {
             DiversityConstrain constrain;
             constrain.mFilterType = "FilterByMeta";
             constrain.mFilterParameter = "fieldName=ends_1";
             constrain.ParseFilterParam();
-            INDEXLIB_TEST_EQUAL(string("ends_1"), constrain.mFilterField);
+            ASSERT_EQ(string("ends_1"), constrain.mFilterField);
         }
         {
             DiversityConstrain constrain;
             constrain.mFilterType = "Default";
             constrain.mFilterParameter = "fieldName=DOC_PAYLOAD;filterMask=0xFFFF;filterMinValue=1;filterMaxValue=100";
             constrain.ParseFilterParam();
-            INDEXLIB_TEST_EQUAL(string("DOC_PAYLOAD"), constrain.mFilterField);
-            INDEXLIB_TEST_EQUAL((uint64_t)0xFFFF, constrain.mFilterMask);
-            INDEXLIB_TEST_EQUAL(1l, constrain.mFilterMinValue);
-            INDEXLIB_TEST_EQUAL(100l, constrain.mFilterMaxValue);
+            ASSERT_EQ(string("DOC_PAYLOAD"), constrain.mFilterField);
+            ASSERT_EQ((uint64_t)0xFFFF, constrain.mFilterMask);
+            ASSERT_EQ(1l, constrain.mFilterMinValue);
+            ASSERT_EQ(100l, constrain.mFilterMaxValue);
         }
     }
 
     void TestCaseForGetTimeFromString()
     {
         DiversityConstrain constrain;
-        INDEXLIB_TEST_EQUAL(10983, constrain.GetTimeFromString("3:3:3"));
-        INDEXLIB_TEST_EQUAL(83106, constrain.GetTimeFromString("23:5:6"));
-        INDEXLIB_TEST_EQUAL(0, constrain.GetTimeFromString("0:0:0"));
+        ASSERT_EQ(10983, constrain.GetTimeFromString("3:3:3"));
+        ASSERT_EQ(83106, constrain.GetTimeFromString("23:5:6"));
+        ASSERT_EQ(0, constrain.GetTimeFromString("0:0:0"));
     }
 
     void TestCaseForEndTimeLessThanBeginTime()
@@ -93,14 +92,14 @@ public:
         DiversityConstrain constrain;
         constrain.mFilterType = "FilterByTimeStamp";
         constrain.mFilterParameter = "beginTime=10:0:0;adviseEndTime=9:0:0;fieldName=ends";
-        INDEXLIB_EXPECT_EXCEPTION(constrain.ParseTimeStampFilter(0, 0), util::BadParameterException);
+        ASSERT_THROW(constrain.ParseTimeStampFilter(0, 0), util::BadParameterException);
     }
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-IE_LOG_SETUP(index, DiversityConstrainTest);
+AUTIL_LOG_SETUP(index, DiversityConstrainTest);
 
 INDEXLIB_UNIT_TEST_CASE(DiversityConstrainTest, TestCaseForParseTimeStampFilter);
 INDEXLIB_UNIT_TEST_CASE(DiversityConstrainTest, TestCaseForGetTimeFromString);

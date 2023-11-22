@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 #include "gmock/gmock.h"
 #include <memory>
 
@@ -41,11 +42,11 @@ public:
     ~MockIndexFactory() = default;
 
     MOCK_METHOD(std::shared_ptr<IDiskIndexer>, CreateDiskIndexer,
-                (const std::shared_ptr<config::IIndexConfig>&, const IndexerParameter&), (const, override));
+                (const std::shared_ptr<config::IIndexConfig>&, const DiskIndexerParameter&), (const, override));
     MOCK_METHOD(std::shared_ptr<IMemIndexer>, CreateMemIndexer,
-                (const std::shared_ptr<config::IIndexConfig>&, const IndexerParameter&), (const, override));
+                (const std::shared_ptr<config::IIndexConfig>&, const MemIndexerParameter&), (const, override));
     MOCK_METHOD(std::unique_ptr<IIndexReader>, CreateIndexReader,
-                (const std::shared_ptr<config::IIndexConfig>&, const IndexerParameter&), (const, override));
+                (const std::shared_ptr<config::IIndexConfig>&, const IndexReaderParameter&), (const, override));
     MOCK_METHOD(std::unique_ptr<IIndexMerger>, CreateIndexMerger, (const std::shared_ptr<config::IIndexConfig>&),
                 (const, override));
     MOCK_METHOD(std::unique_ptr<config::IIndexConfig>, CreateIndexConfig, (const autil::legacy::Any&),

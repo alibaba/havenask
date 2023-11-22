@@ -15,10 +15,14 @@
  */
 #pragma once
 
+#include <memory>
+#include <string>
+
 #include "autil/Log.h"
 #include "fslib/common/common_type.h"
-#include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/config/TabletSchemaDelegation.h"
 #include "indexlib/file_system/IDirectory.h"

@@ -35,7 +35,7 @@ GigClientStreamImpl::GigClientStreamImpl(GigClientStream *stream)
 
 GigClientStreamImpl::~GigClientStreamImpl() {
     if (_reply) {
-        _reply->endStreamQuery();
+        _reply->setNeedEndStream(true);
     }
     if (_caller) {
         _caller->stop();
@@ -44,31 +44,74 @@ GigClientStreamImpl::~GigClientStreamImpl() {
 
 bool GigClientStreamImpl::init(const ChildNodeReplyPtr &reply,
                                const SearchServiceResourceVector &resourceVec,
-                               const CallerPtr &caller, bool disableRetry, bool forceStop) {
+                               const CallerPtr &caller, bool disableRetry, bool forceStop,
+                               const std::set<PartIdTy> &enablePartIds, bool allowLack)
+{
     _reply = reply;
     _caller = caller;
+    bool hasError = false;
+    int32_t enableCount = enablePartIds.size();
+    int32_t enableReadyCount = 0;
+    int32_t normalCount = 0;
     for (const auto &resource : resourceVec) {
         if (resource->getHasError()) {
             AUTIL_LOG(ERROR, "stream post has error, check stream port or provider post");
-            return false;
+            hasError = true;
+            break;
         }
         auto request = resource->getRequest();
         auto streamRequest = dynamic_pointer_cast<GigStreamRequest>(request);
         if (!streamRequest) {
             AUTIL_LOG(ERROR, "null stream request");
-            return false;
+            hasError = true;
+            break;
         }
         streamRequest->setDisableRetry(disableRetry);
         streamRequest->setForceStop(forceStop);
-        _requestMap[resource->getPartId()] = streamRequest;
+        auto partId = resource->getPartId();
+        _requestMap[partId] = streamRequest;
         _partCount = resource->getPartCnt();
+        if (resource->isNormalRequest()) {
+            if (enableCount > 0) {
+                if (enablePartIds.end() == enablePartIds.find(partId)) {
+                    AUTIL_INTERVAL_LOG(
+                        200, ERROR,
+                        "provider partId mismatch, partId [%d] not enabled, partCount[%d]", partId,
+                        _partCount);
+                    hasError = true;
+                    break;
+                } else {
+                    enableReadyCount++;
+                }
+            } else {
+                normalCount++;
+            }
+        }
     }
     if (INVALID_PART_COUNT == _partCount) {
+        hasError = true;
+    }
+    if (!hasError && !allowLack) {
+        if (enableCount > 0) {
+            if (enableCount != enableReadyCount) {
+                AUTIL_INTERVAL_LOG(
+                    200, ERROR,
+                    "lack enabled provider, expect count [%d] actual count [%d], lack not allowed",
+                    enableCount, enableReadyCount);
+                hasError = true;
+            }
+        } else if (_partCount != normalCount) {
+            AUTIL_INTERVAL_LOG(
+                200, ERROR, "lack provider, expect count [%d] actual count [%d], lack not allowed",
+                _partCount, normalCount);
+            hasError = true;
+        }
+    }
+    if (hasError) {
         abort();
         return false;
-    } else {
-        return true;
     }
+    return true;
 }
 
 void GigClientStreamImpl::abort() {

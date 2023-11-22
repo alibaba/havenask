@@ -43,7 +43,7 @@ const operation_id_t INVALID_OPERATION_ID = -1;
 
 #define END_DOCID ((docid_t)0x7FFFFFFF)
 #define MAX_QUOTA ((quota_t)-1)
-#define UNINITIALIZED_DOCID ((docid_t)-2)
+//#define UNINITIALIZED_DOCID ((docid_t)-2)
 
 const uint8_t SL_QRS = SL_PROXY;
 

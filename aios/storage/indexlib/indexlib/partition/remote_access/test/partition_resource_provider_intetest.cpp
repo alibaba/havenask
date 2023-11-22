@@ -729,7 +729,7 @@ void PartitionResourceProviderInteTest::TestPartitionSizeCalculatorForPatch()
     PartitionSizeCalculatorPtr calculator0(
         new PartitionSizeCalculator(part0->GetRootDirectory(), part0->GetSchema(), true, plugin::PluginManagerPtr()));
     size_t v0LockSize = calculator0->CalculateDiffVersionLockSizeWithoutPatch(
-        version0, index_base::Version(INVALID_VERSION), partitionData);
+        version0, index_base::Version(INVALID_VERSIONID), partitionData);
     PreparePatchIndex();
 
     OnlinePartitionPtr part1 = CreateOnlinePartition();
@@ -740,7 +740,7 @@ void PartitionResourceProviderInteTest::TestPartitionSizeCalculatorForPatch()
     PartitionSizeCalculatorPtr calculator1(
         new PartitionSizeCalculator(part1->GetRootDirectory(), part1->GetSchema(), true, plugin::PluginManagerPtr()));
     size_t v1LockSize = calculator1->CalculateDiffVersionLockSizeWithoutPatch(
-        version1, index_base::Version(INVALID_VERSION), partitionData);
+        version1, index_base::Version(INVALID_VERSIONID), partitionData);
     ASSERT_LT(v0LockSize, v1LockSize);
 
     size_t expectSize = calculator1->CalculateDiffVersionLockSizeWithoutPatch(version1, version0, partitionData);
@@ -807,8 +807,8 @@ void PartitionResourceProviderInteTest::TestPatchMetaFileExist()
 
     Version version = psm.GetIndexPartition()->GetPartitionData()->GetOnDiskVersion();
     IndexPartitionSchemaPtr schema = psm.GetIndexPartition()->GetSchema();
-    ASSERT_EQ((schemavid_t)1, version.GetSchemaVersionId());
-    ASSERT_EQ((schemavid_t)1, schema->GetSchemaVersionId());
+    ASSERT_EQ((schemaid_t)1, version.GetSchemaVersionId());
+    ASSERT_EQ((schemaid_t)1, schema->GetSchemaVersionId());
 
     // version.3, merger commit version
     ASSERT_TRUE(psm.Transfer(BUILD_INC, "", "", ""));
@@ -1143,7 +1143,7 @@ void PartitionResourceProviderInteTest::CheckPatchMeta(const file_system::Direct
     while (metaIter.HasNext()) {
         ASSERT_TRUE(schemaIdCount < metaInfoVec.size());
         assert(metaInfoVec[schemaIdCount].size() == 2);
-        schemavid_t expectSchemaId = StringUtil::fromString<schemavid_t>(metaInfoVec[schemaIdCount][0]);
+        schemaid_t expectSchemaId = StringUtil::fromString<schemaid_t>(metaInfoVec[schemaIdCount][0]);
 
         vector<segmentid_t> expectSegIds;
         StringUtil::fromString(metaInfoVec[schemaIdCount][1], expectSegIds, ",");

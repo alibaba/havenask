@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ADMINHEALTHCHECKER_H
-#define ISEARCH_BS_ADMINHEALTHCHECKER_H
+#pragma once
+
+#include <map>
+#include <stdint.h>
+#include <string>
 
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/util/Log.h"
+#include "kmonitor_adapter/Metric.h"
 #include "kmonitor_adapter/Monitor.h"
 
 namespace build_service { namespace admin {
 
 class ServiceKeeper;
 class GenerationKeeper;
+
 BS_TYPEDEF_PTR(GenerationKeeper);
 
 class AdminHealthChecker
@@ -66,5 +71,3 @@ private:
 BS_TYPEDEF_PTR(AdminHealthChecker);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_ADMINHEALTHCHECKER_H

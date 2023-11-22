@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SINGLEWSSCANNER_H
-#define ISEARCH_BS_SINGLEWSSCANNER_H
+#pragma once
 #include "build_service/util/Log.h"
 #ifndef __FLEX_LEXER_H
 #include <FlexLexer.h>
@@ -53,4 +52,3 @@ private:
 };
 
 }} // namespace build_service::analyzer
-#endif

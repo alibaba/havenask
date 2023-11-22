@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_FACTORY_H
-#define __INDEXLIB_KV_FACTORY_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kv/kv_format_options.h"
@@ -56,5 +55,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_FACTORY_H

@@ -480,7 +480,7 @@ void NormalKKVBuiltSegmentIteratorTest::PrepareSchema()
 
 void NormalKKVBuiltSegmentIteratorTest::PrepareIndexData(const std::string& docStr)
 {
-    KKVMemIndexer<int32_t> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true);
+    KKVMemIndexer<int32_t> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true, true);
     ASSERT_TRUE(memIndexer.Init(_indexConfig, nullptr).IsOK());
 
     auto rawDocs = document::RawDocumentMaker::MakeBatch(docStr);

@@ -15,6 +15,9 @@
  */
 #include "indexlib/util/ProtoJsonizer.h"
 
+#include <google/protobuf/message.h>
+#include <google/protobuf/stubs/status.h>
+
 #include "google/protobuf/util/json_util.h"
 
 using google::protobuf::util::JsonParseOptions;

@@ -1,0 +1,20 @@
+load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
+    name='indexlib',
+    srcs=[],
+    visibility=['//visibility:public'],
+    deps=[
+        '//aios/autil:multi_value',
+        '//aios/storage/indexlib/base:FieldTypeUtil',
+        '//aios/storage/indexlib/base:constants',
+        '//aios/storage/indexlib/index/attribute:constants',
+        '//aios/storage/indexlib/index/common:constants',
+        '//aios/storage/indexlib/index/inverted_index:constants',
+        '//aios/storage/indexlib/index/kkv:constants',
+        '//aios/storage/indexlib/index/kv:constants',
+        '//aios/storage/indexlib/index/operation_log:constants',
+        '//aios/storage/indexlib/index/primary_key:constants',
+        '//aios/storage/indexlib/index/source:constants',
+        '//aios/storage/indexlib/index/summary:constants'
+    ]
+)

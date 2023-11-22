@@ -15,26 +15,53 @@
  */
 #include "build_service/processor/DocumentProcessorChainCreatorV2.h"
 
-#include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include <algorithm>
+#include <any>
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/analyzer/AnalyzerFactory.h"
+#include "build_service/common_define.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/BuilderClusterConfig.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/plugin/Module.h"
+#include "build_service/plugin/ModuleFactory.h"
+#include "build_service/plugin/ModuleInfo.h"
 #include "build_service/processor/BuildInDocProcessorFactory.h"
 #include "build_service/processor/DocumentProcessor.h"
-#include "build_service/processor/HashDocumentProcessor.h"
-#include "build_service/processor/MainSubDocProcessorChain.h"
+#include "build_service/processor/DocumentProcessorFactory.h"
 #include "build_service/processor/RegionDocumentProcessor.h"
-#include "build_service/util/Monitor.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/config/MergeConfig.h"
+#include "indexlib/config/MutableJson.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/document/BuiltinParserInitParam.h"
 #include "indexlib/document/IDocumentFactory.h"
-#include "indexlib/document/document_rewriter/document_rewriter_creator.h"
+#include "indexlib/document/document_rewriter/IDocumentRewriter.h"
+#include "indexlib/document/normal/Field.h"
 #include "indexlib/document/normal/rewriter/AddToUpdateDocumentRewriter.h"
 #include "indexlib/framework/ITabletFactory.h"
 #include "indexlib/framework/TabletFactoryCreator.h"
-#include "indexlib/index_base/schema_adapter.h"
+#include "indexlib/index/inverted_index/Common.h"
+#include "indexlib/index/inverted_index/Constant.h"
+#include "indexlib/index/inverted_index/config/TruncateOptionConfig.h"
+#include "indexlib/index/inverted_index/config/TruncateProfileConfig.h"
+#include "indexlib/index/inverted_index/config/TruncateStrategy.h"
+#include "indexlib/index/source/Common.h"
+#include "indexlib/index_base/index_meta/partition_meta.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/counter/CounterMap.h"
 
 using namespace std;
 using namespace autil;
@@ -75,7 +102,7 @@ bool DocumentProcessorChainCreatorV2::init(const config::ResourceReaderPtr& reso
 
 DocumentProcessorChainPtr
 DocumentProcessorChainCreatorV2::create(const DocProcessorChainConfig& docProcessorChainConfig,
-                                        const vector<string>& clusterNames) const
+                                        const vector<string>& clusterNames, const KeyValueMap& kvMap) const
 {
     string tableName = checkAndGetTableName(clusterNames);
     if (tableName.empty()) {
@@ -111,7 +138,7 @@ DocumentProcessorChainCreatorV2::create(const DocProcessorChainConfig& docProces
     retChain.reset(mainChain);
 
     if (!initDocumentProcessorChain(docProcessorChainConfig, mainProcessorInfos, schema, clusterNames, tableName,
-                                    retChain)) {
+                                    retChain, kvMap)) {
         return DocumentProcessorChainPtr();
     }
     return retChain;
@@ -136,28 +163,31 @@ DocumentProcessorChainCreatorV2::createDocumentFactory(const std::shared_ptr<ind
     return tabletFactory->CreateDocumentFactory(schema);
 }
 
+bool DocumentProcessorChainCreatorV2::needOriginalSnapshot(
+    const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema) const
+{
+    auto [status, ret] = schema->GetRuntimeSettings().GetValue<bool>("need_original_field_value");
+    if (!status.IsOKOrNotFound()) {
+        AUTIL_LOG(ERROR, "parse need_original_field_value failed");
+        return false;
+    }
+    return status.IsOK() ? ret : false;
+}
+
 bool DocumentProcessorChainCreatorV2::initDocumentProcessorChain(
     const DocProcessorChainConfig& docProcessorChainConfig, const ProcessorInfos& mainProcessorInfos,
     const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema, const vector<string>& clusterNames,
-    const string& tableName, DocumentProcessorChainPtr retChain) const
+    const string& tableName, DocumentProcessorChainPtr retChain, const KeyValueMap& kvMap) const
 {
     DocumentInitParamPtr docInitParam =
-        createBuiltInInitParam(schema, clusterNames, needAdd2UpdateRewriter(mainProcessorInfos));
+        createBuiltInInitParam(schema, clusterNames, needAdd2UpdateRewriter(mainProcessorInfos), kvMap);
     if (!docInitParam) {
         BS_LOG(ERROR, "create builtin init param fail!");
         return false;
     }
-    // const SourceSchemaPtr& sourceSchema = schema->GetSourceSchema();
-    SourceSchemaParserFactoryGroupPtr parserFactoryGroup(new SourceSchemaParserFactoryGroup);
-    // if (sourceSchema) {
-    //     if (!parserFactoryGroup->Init(schema, _resourceReaderPtr->getPluginPath())) {
-    //         BS_LOG(ERROR, "init source schema parser factory group failed.");
-    //         return false;
-    //     }
-    // }
 
     auto documentFactory = createDocumentFactory(schema, clusterNames);
-    if (!retChain->initV2(std::move(documentFactory), docInitParam, parserFactoryGroup, schema)) {
+    if (!retChain->initV2(std::move(documentFactory), docInitParam, needOriginalSnapshot(schema), schema)) {
         BS_LOG(ERROR, "init document parser fail!");
         return false;
     }
@@ -421,7 +451,7 @@ DocumentProcessorChainCreatorV2::createAndInitAdd2UpdateRewriter(
 
 DocumentInitParamPtr DocumentProcessorChainCreatorV2::createBuiltInInitParam(
     const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema, const vector<string>& clusterNames,
-    bool needAdd2Update) const
+    bool needAdd2Update, const KeyValueMap& kvMap) const
 {
     std::vector<std::shared_ptr<indexlibv2::document::IDocumentRewriter>> documentRewriters;
     if (needAdd2Update) {
@@ -445,7 +475,6 @@ DocumentInitParamPtr DocumentProcessorChainCreatorV2::createBuiltInInitParam(
         return DocumentInitParamPtr(
             new indexlibv2::document::BuiltInParserInitParam(/*docParserConfig->GetParameters()*/ {}, resource));
     }
-    DocumentInitParam::KeyValueMap kvMap;
     return DocumentInitParamPtr(new indexlibv2::document::BuiltInParserInitParam(kvMap, resource));
 }
 }} // namespace build_service::processor

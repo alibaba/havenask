@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGER_RESOURCE_H
-#define __INDEXLIB_MERGER_RESOURCE_H
+#pragma once
 
 #include <memory>
 
 #include "indexlib/common_define.h"
+#include "indexlib/file_system/Directory.h"
 #include "indexlib/index/util/reclaim_map.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
-
 namespace indexlib { namespace index {
 
 struct MergerResource {
@@ -33,7 +32,7 @@ struct MergerResource {
     size_t targetSegmentCount;
     bool isEntireDataSet;
     std::vector<docid_t> mainBaseDocIds;
-
+    indexlib::file_system::DirectoryPtr distributedBuildInputDir;
     segmentindex_t GetOutputSegmentIndex(docid_t newDocId) const
     {
         assert(reclaimMap.get());
@@ -44,5 +43,3 @@ struct MergerResource {
 
 DEFINE_SHARED_PTR(MergerResource);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_MERGER_RESOURCE_H

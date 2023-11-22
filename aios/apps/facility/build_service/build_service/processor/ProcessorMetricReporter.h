@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORMETRICSREPORTER_H
-#define ISEARCH_BS_PROCESSORMETRICSREPORTER_H
+#pragma once
+
+#include <memory>
+#include <stdint.h>
 
 #include "build_service/util/Log.h"
 
 namespace indexlib { namespace util {
 class MetricProvider;
 class Metric;
+
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util
@@ -55,5 +58,3 @@ private:
 };
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_PROCESSORMETRICSREPORTER_H

@@ -88,6 +88,7 @@ MessageCommitter::MessageCommitter(const PartitionId &partitionId,
     , _lastCommitTime(_fileCreateTime)
     , _fileMessageCount(0)
     , _writedSizeForReport(0)
+    , _committedSizeForReport(0)
     , _maxMessageCountInOneFile(config.getMaxMessageCountInOneFile())
     , _writeFailDataCount(0)
     , _writeFailMetaCount(0)
@@ -231,6 +232,7 @@ ErrorCode MessageCommitter::commitFile() {
                 return ERROR_BROKER_WRITE_FILE;
             }
             leftLen -= writeLen;
+            _committedSizeForReport += writeLen;
         }
         resetBuffer();
         fslib::ErrorCode ec = fslib::EC_OK;
@@ -249,6 +251,7 @@ ErrorCode MessageCommitter::commitFile() {
             _metricsReporter->reportDFSWriteRate(committedMetaSize, &_tags);
         }
     }
+
     int64_t endTime = TimeUtility::currentTime();
     int64_t commitLatency = endTime - begTime;
     collector.dfsCommitLatency = commitLatency / 1000.0;
@@ -452,6 +455,7 @@ ErrorCode MessageCommitter::writeDataBuffer(ErrorCode emptyError) {
             return ERROR_BROKER_WRITE_FILE;
         }
         leftLen -= writeLen;
+        _committedSizeForReport += writeLen;
     }
     _dataBuffer.clear();
     return ERROR_NONE;
@@ -479,6 +483,9 @@ void MessageCommitter::resetBuffer() {
     }
     _dataBuffer.clear();
     _writeBufferSize = _meta.capacity() + _dataBuffer.capacity();
+
+    _fileManager->addUsedDfsSize(_committedSizeForReport);
+    _committedSizeForReport = 0;
 }
 
 File *MessageCommitter::openFileForWrite(const string &fileName, fslib::ErrorCode &ec) {

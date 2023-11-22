@@ -11,6 +11,8 @@ public enum IquanHintCategory {
     CAT_CTE_ATTR("cat_cte_attr"),
     CAT_INVALID("cat_invalid");
 
+    private final String name;
+
     IquanHintCategory(String name) {
         this.name = name;
     }
@@ -18,6 +20,4 @@ public enum IquanHintCategory {
     public String getName() {
         return name;
     }
-
-    private final String name;
 }

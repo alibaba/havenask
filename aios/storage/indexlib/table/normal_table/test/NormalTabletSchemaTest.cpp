@@ -3,6 +3,7 @@
 #include "indexlib/config/GroupDataParameter.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/UnresolvedSchema.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
 #include "indexlib/index/ann/ANNIndexConfig.h"
 #include "indexlib/index/ann/Common.h"
@@ -15,11 +16,14 @@
 #include "indexlib/index/inverted_index/config/SingleFieldIndexConfig.h"
 #include "indexlib/index/primary_key/Common.h"
 #include "indexlib/index/primary_key/config/PrimaryKeyIndexConfig.h"
+#include "indexlib/index/source/Common.h"
+#include "indexlib/index/source/config/SourceIndexConfig.h"
 #include "indexlib/index/summary/Common.h"
 #include "indexlib/index/summary/Constant.h"
 #include "indexlib/index/summary/config/SummaryGroupConfig.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
 #include "indexlib/table/normal_table/NormalSchemaResolver.h"
+#include "indexlib/table/normal_table/test/NormalTabletSchemaMaker.h"
 #include "unittest/unittest.h"
 
 namespace indexlibv2::config {
@@ -305,6 +309,14 @@ TEST_F(TabletSchemaTest, testLoadV2Schema)
         ASSERT_FALSE(group->NeedStoreSummary());
     }
     {
+        const auto& config =
+            schema->GetIndexConfig(indexlibv2::index::SOURCE_INDEX_TYPE_STR, indexlibv2::index::SOURCE_INDEX_NAME);
+        ASSERT_TRUE(config);
+        const auto& sourceConfig = std::dynamic_pointer_cast<SourceIndexConfig>(config);
+        ASSERT_TRUE(sourceConfig);
+        ASSERT_EQ(3, sourceConfig->GetSourceGroupCount());
+    }
+    {
         const auto& configs = schema->GetIndexConfigs(indexlib::index::GENERAL_INVERTED_INDEX_TYPE_STR);
         std::set<int> indexIds;
         ASSERT_EQ(4, configs.size());
@@ -334,6 +346,63 @@ TEST_F(TabletSchemaTest, testSummaryConfigCompatible)
     ASSERT_TRUE(group);
     auto parameter = group->GetSummaryGroupDataParam();
     ASSERT_EQ("zstd", parameter.GetDocCompressor());
+}
+
+TEST_F(TabletSchemaTest, testCheckUpdateSchema)
+{
+    {
+        SCOPED_TRACE("normal");
+        auto schema1 = table::NormalTabletSchemaMaker::Make("pk:uint64:pk;", "pk:primarykey64:pk;", "", "");
+        auto schema2 = table::NormalTabletSchemaMaker::Make(
+            "pk:uint64:pk;string1:string", "pk:primarykey64:pk;string1:string:string1:false:2", "string1", "");
+        schema2->TEST_GetImpl()->SetSchemaId(1);
+        ASSERT_TRUE(TabletSchema::CheckUpdateSchema(schema1, schema2).IsOK());
+        auto schema3 = table::NormalTabletSchemaMaker::Make("pk:uint64:pk;", "pk:primarykey64:pk;", "", "");
+        schema3->TEST_GetImpl()->SetSchemaId(2);
+        ASSERT_TRUE(TabletSchema::CheckUpdateSchema(schema2, schema3).IsOK());
+    }
+    {
+        SCOPED_TRACE("same version id");
+        auto schema1 = table::NormalTabletSchemaMaker::Make("pk:uint64:pk;", "pk:primarykey64:pk;", "", "");
+        auto schema2 = table::NormalTabletSchemaMaker::Make(
+            "pk:uint64:pk;string1:string", "pk:primarykey64:pk;string1:string:string1:false:2", "string1", "");
+        auto status = TabletSchema::CheckUpdateSchema(schema1, schema2);
+        ASSERT_TRUE(status.IsOK()) << status.ToString();
+    }
+    {
+        SCOPED_TRACE("version id is smaller");
+        auto schema1 = table::NormalTabletSchemaMaker::Make("pk:uint64:pk;", "pk:primarykey64:pk;", "", "");
+        schema1->TEST_GetImpl()->SetSchemaId(2);
+        auto schema2 = table::NormalTabletSchemaMaker::Make(
+            "pk:uint64:pk;string1:string", "pk:primarykey64:pk;string1:string:string1:false:2", "string1", "");
+        schema2->TEST_GetImpl()->SetSchemaId(1);
+        auto status = TabletSchema::CheckUpdateSchema(schema1, schema2);
+        ASSERT_TRUE(status.IsInvalidArgs()) << status.ToString();
+    }
+    {
+        SCOPED_TRACE("field config change");
+        auto schema1 =
+            table::NormalTabletSchemaMaker::Make("pk:uint64:pk;string1:string", "pk:primarykey64:pk;", "string1", "");
+        auto schema2 = table::NormalTabletSchemaMaker::Make(
+            "pk:uint64:pk;string1:string", "pk:primarykey64:pk;string1:string:string1:false:2", "string1", "");
+        schema2->TEST_GetImpl()->SetSchemaId(2);
+        schema2->GetFieldConfig("string1")->SetFieldType(ft_int32);
+        ASSERT_TRUE(TabletSchema::CheckUpdateSchema(schema1, schema2).IsInvalidArgs());
+    }
+    {
+        SCOPED_TRACE("index config not compatible");
+        auto schema1 =
+            table::NormalTabletSchemaMaker::Make("pk:uint64:pk;string1:string", "pk:primarykey64:pk;", "string1", "");
+        auto schema2 = table::NormalTabletSchemaMaker::Make(
+            "pk:uint64:pk;string1:string", "pk:primarykey64:pk;string1:string:string1:false:2", "string1", "");
+        schema2->TEST_GetImpl()->SetSchemaId(2);
+        const auto& config = schema2->GetIndexConfig(indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR, "string1");
+        ASSERT_TRUE(config);
+        const auto& attrConfig = std::dynamic_pointer_cast<indexlibv2::index::AttributeConfig>(config);
+        ASSERT_TRUE(attrConfig);
+        attrConfig->SetUpdatable(true);
+        ASSERT_TRUE(TabletSchema::CheckUpdateSchema(schema1, schema2).IsInvalidArgs());
+    }
 }
 
 } // namespace indexlibv2::config

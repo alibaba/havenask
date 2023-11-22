@@ -12,6 +12,7 @@ public class ConvertFuseLayerTableRule extends RelRule<RelRule.Config> implement
     protected ConvertFuseLayerTableRule(RelRule.Config config) {
         super(config);
     }
+
     @Override
     public void onMatch(RelOptRuleCall call) {
         LogicalLayerTableScan scan = call.rel(0);

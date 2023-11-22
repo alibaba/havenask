@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_NORMAL_INDEX_SEGMENT_READER_H
-#define __INDEXLIB_NORMAL_INDEX_SEGMENT_READER_H
+#pragma once
 
 #include <memory>
 
@@ -40,7 +39,7 @@ public:
     virtual void Open(const config::IndexConfigPtr& indexConfig, const index_base::SegmentData& segmentData,
                       const NormalIndexSegmentReader* hintReader);
     // TODO: remove arg baseDocId
-    bool GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+    bool GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                            autil::mem_pool::Pool* sessionPool,
                            InvertedIndexSearchTracer* tracer = nullptr) const override;
 
@@ -88,5 +87,3 @@ private:
 
 DEFINE_SHARED_PTR(NormalIndexSegmentReader);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_NORMAL_INDEX_SEGMENT_READER_H

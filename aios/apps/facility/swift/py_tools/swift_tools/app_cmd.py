@@ -34,11 +34,17 @@ class AppBaseCmd(BaseCmd):
             self.adminCount = config.get('common', 'admin_count')
             self.brokerCount = config.get('common', 'broker_count')
             self.zkRoot = config.get('common', 'zookeeper_root')
+            self.c2GatewayRoot = config.get('common', 'c2_gateway_root')
             self.appName = self.userName + '_' + self.serviceName
             return True
         return False
 
     def getAppInfo(self):
+        if len(self.c2GatewayRoot) != 0:
+            from hippo_py_sdk.c2gateway_client import C2GatewayClient
+            gatewayClient = C2GatewayClient(self.c2GatewayRoot)
+            response = gatewayClient.get_appstatus(self.appName)
+            return response
         from hippo_py_sdk.hippo_client import HippoClient
         hippoClient = HippoClient(self.hippoRoot)
         response = hippoClient.get_app_status(self.appName)

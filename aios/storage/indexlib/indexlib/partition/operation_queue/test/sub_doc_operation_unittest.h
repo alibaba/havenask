@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SUBDOCOPERATIONTEST_H
-#define __INDEXLIB_SUBDOCOPERATIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/operation_queue/sub_doc_operation.h"
@@ -38,5 +37,3 @@ INDEXLIB_UNIT_TEST_CASE(SubDocOperationTest, TestGetMemoryUse);
 INDEXLIB_UNIT_TEST_CASE(SubDocOperationTest, TestClone);
 INDEXLIB_UNIT_TEST_CASE(SubDocOperationTest, TestSerialize);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_SUBDOCOPERATIONTEST_H

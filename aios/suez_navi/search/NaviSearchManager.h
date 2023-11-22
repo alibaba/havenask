@@ -53,7 +53,7 @@ private:
     std::string _installRoot;
     std::string _configLoader;
     navi::ResourcePtr _asyncExecutorR;
-    navi::Navi _navi;
+    std::unique_ptr<navi::Navi> _navi;
     kmonitor::MetricsReporterPtr _metricsReporter;
     kmonitor::MetricsReporterRPtr _metricsReporterR;
 };

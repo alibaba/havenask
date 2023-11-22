@@ -1,12 +1,12 @@
 package com.taobao.search.iquan.core.rel.programs;
 
+import java.util.List;
+import java.util.Map;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.impl.IquanExecutorFactory;
 import com.taobao.search.iquan.core.catalog.GlobalCatalogManager;
 import org.apache.calcite.plan.Context;
-
-import java.util.List;
-import java.util.Map;
 
 public abstract class IquanOptContext implements Context {
     private final List<List<Object>> dynamicParams;

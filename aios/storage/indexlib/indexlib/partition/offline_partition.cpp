@@ -149,13 +149,13 @@ IndexPartition::OpenStatus OfflinePartition::DoOpen(const string& root, const In
 
     Version version;
     version.SyncSchemaVersionId(schema);
-    if (versionId != INVALID_VERSION) {
+    if (versionId != INVALID_VERSIONID) {
         // offline partition reader
         mOptions.GetOfflineConfig().enableRecoverIndex = false;
     }
     // inc build
     VersionLoader::GetVersionS(root, version, versionId);
-    if (version.GetVersionId() != INVALID_VERSION) {
+    if (version.GetVersionId() != INVALID_VERSIONID) {
         THROW_IF_FS_ERROR(mFileSystem->MountVersion(root, version.GetVersionId(), "", FSMT_READ_ONLY, nullptr),
                           "mount version failed");
     } else {
@@ -222,7 +222,7 @@ IndexPartition::OpenStatus OfflinePartition::DoOpen(const string& root, const In
     CheckPartitionMeta(mSchema, partitionMeta);
 
     PluginResourcePtr resource(
-        new IndexPluginResource(mSchema, mOptions, mCounterMap, partitionMeta, mIndexPluginPath));
+        new IndexPluginResource(mSchema, mOptions, mCounterMap, partitionMeta, mIndexPluginPath, mMetricProvider));
     mPluginManager->SetPluginResource(resource);
 
     if (!mOptions.GetOfflineConfig().enableRecoverIndex) {
@@ -267,7 +267,7 @@ void OfflinePartition::ReportTemperatureIndexSize(const Version& version) const
 void OfflinePartition::InitPartitionData(Version& version, const CounterMapPtr& counterMap,
                                          const PluginManagerPtr& pluginManager)
 {
-    if (version.GetVersionId() == INVALID_VERSION) {
+    if (version.GetVersionId() == INVALID_VERSIONID) {
         indexlibv2::framework::LevelInfo& levelInfo = version.GetLevelInfo();
         const BuildConfig& buildConfig = mOptions.GetBuildConfig();
         levelInfo.Init(buildConfig.levelTopology, buildConfig.levelNum, buildConfig.shardingColumnNum);

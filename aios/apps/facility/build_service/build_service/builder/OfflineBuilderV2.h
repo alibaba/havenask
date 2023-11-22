@@ -16,21 +16,27 @@
 #pragma once
 
 #include <memory>
+#include <optional>
+#include <stdint.h>
+#include <string>
+#include <utility>
 
 #include "build_service/builder/BuilderV2.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/util/Log.h"
+#include "future_lite/Executor.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/framework/ITabletMergeController.h"
+#include "indexlib/framework/Locator.h"
 #include "indexlib/framework/VersionCoord.h"
 
 namespace future_lite {
-class Executor;
 class TaskScheduler;
 } // namespace future_lite
-
-namespace indexlibv2::config {
-class TabletOptions;
-class ITabletSchema;
-} // namespace indexlibv2::config
 
 namespace build_service::builder {
 class BuilderV2Impl;

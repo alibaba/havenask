@@ -1,0 +1,37 @@
+{
+    "data_descriptions" : [
+        {
+            "reader_config" : "",
+            "src" : "full-swift",
+            "swift_root" : "zfs://root",
+            "topic_name" : "raw_doc",
+            "type" : "swift"
+        }        
+        {
+            "reader_config" : "",
+            "src" : "inc-swift",
+            "swift_root" : "zfs://root",
+            "topic_name" : "raw_doc",
+            "type" : "swift"
+        }
+    ],
+    "processor_chain_config" : [
+        {
+            "clusters" : [
+                "cluster1"
+            ],
+            "document_processor_chain" : []
+        }
+    ],
+    "processor_config" : {
+        "processor_queue_size" : 1000,
+        "processor_thread_num" : 10
+    },
+    "processor_rule_config" : {
+        "parallel_num" : 2,
+        "partition_count" : 2
+    },
+    "control_config" : {
+        "data_link_mode" : "npc"
+    }
+}

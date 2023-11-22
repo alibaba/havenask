@@ -19,25 +19,69 @@
 
 #include "arpc/common/LockFreeQueue.h"
 #include "navi/common.h"
+#include "navi/engine/NaviThreadPool.h"
 
 namespace navi {
 
 class NaviWorkerBase;
 class NaviThreadPool;
+class ConcurrencyConfig;
+class NaviThreadPoolItemBase;
 
-struct TaskQueue {
+struct TaskQueueStat {
+    size_t activeThreadCount = 0;
+    size_t activeThreadQueueSize = 0;
+    size_t idleThreadQueueSize = 0;
+    size_t processingCount = 0;
+    size_t queueCount = 0;
+    size_t processingCountRatio = 0;
+    size_t queueCountRatio = 0;
+};
+
+class TaskQueueScheduleItemBase : public NaviThreadPoolItemBase {
 public:
-    TaskQueue() = default;
-    ~TaskQueue() = default;
-    TaskQueue(const TaskQueue&) = delete;
-    TaskQueue &operator=(const TaskQueue&) = delete;
+    TaskQueueScheduleItemBase();
+    virtual ~TaskQueueScheduleItemBase();
+    TaskQueueScheduleItemBase(const TaskQueueScheduleItemBase &) = delete;
+    const TaskQueueScheduleItemBase &operator=(const TaskQueueScheduleItemBase &) = delete;
+
 public:
-    std::string name;
-    std::shared_ptr<NaviThreadPool> threadPool;
-    atomic64_t processingCount;
-    size_t processingMax;
-    size_t scheduleQueueMax;
-    arpc::common::LockFreeQueue<NaviWorkerBase *> sessionScheduleQueue;
+    bool syncMode() const override { return _sync; }
+    void setSyncMode(bool sync) { _sync = sync; }
+
+private:
+    bool _sync = false;
+};
+
+class TaskQueue {
+public:
+    TaskQueue();
+    virtual ~TaskQueue();
+    TaskQueue(const TaskQueue &) = delete;
+    TaskQueue &operator=(const TaskQueue &) = delete;
+
+public:
+    bool init(const std::string &name, const ConcurrencyConfig &config, TestMode testMode);
+    void stop();
+    bool push(TaskQueueScheduleItemBase *item);
+    NaviThreadPool *getThreadPool() const { return _threadPool.get(); }
+    void scheduleNext();
+    TaskQueueStat getStat() const;
+    size_t getProcessingCount() const { return atomic_read(&_processingCount); }
+
+private:
+    virtual void schedule(); // virtual for test
+    void incProcessingCount();
+    void decProcessingCount();
+
+private:
+    TestMode _testMode;
+    std::string _desc;
+    std::unique_ptr<NaviThreadPool> _threadPool;
+    atomic64_t _processingCount;
+    size_t _processingMax = 0;
+    size_t _scheduleQueueMax = 0;
+    arpc::common::LockFreeQueue<TaskQueueScheduleItemBase *> _scheduleQueue;
 };
 
 NAVI_TYPEDEF_PTR(TaskQueue);

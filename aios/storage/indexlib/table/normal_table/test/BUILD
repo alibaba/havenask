@@ -1,5 +1,20 @@
 load('//aios/storage:defs.bzl', 'strict_cc_fast_test', 'strict_cc_library')
-load('//aios/storage:defs.bzl', 'strict_cc_library')
+strict_cc_library(
+    name='normal_table_test_helper',
+    testonly=True,
+    srcs=['NormalTableTestHelper.cpp', 'NormalTableTestSearcher.cpp'],
+    hdrs=['NormalTableTestHelper.h', 'NormalTableTestSearcher.h', 'Query.h'],
+    visibility=['//visibility:public'],
+    deps=[
+        ':NormalTabletSchemaMaker', ':RangeQueryParser',
+        '//aios/storage/indexlib/document/normal/rewriter:AddToUpdateDocumentRewriter',
+        '//aios/storage/indexlib/document/test:NormalDocumentMaker',
+        '//aios/storage/indexlib/framework:VersionCommitter',
+        '//aios/storage/indexlib/table/normal_table:NormalTabletSessionReader',
+        '//aios/storage/indexlib/table/normal_table/index_task/test:FakeNormalTabletDocIterator',
+        '//aios/storage/indexlib/table/test:table_test_helper'
+    ]
+)
 strict_cc_library(
     name='NormalTabletSchemaMaker',
     testonly=True,
@@ -10,9 +25,22 @@ strict_cc_library(
         '//aios/storage/indexlib/config/test:field_config_test_helper',
         '//aios/storage/indexlib/index/ann:config',
         '//aios/storage/indexlib/index/attribute:config',
+        '//aios/storage/indexlib/index/field_meta:config',
         '//aios/storage/indexlib/index/inverted_index:config',
+        '//aios/storage/indexlib/index/source:config',
         '//aios/storage/indexlib/index/summary:config',
+        '//aios/storage/indexlib/legacy/config:module_info',
         '//aios/storage/indexlib/table/normal_table:NormalTableFactory'
+    ]
+)
+strict_cc_library(
+    name='RangeQueryParser',
+    srcs=['RangeQueryParser.cpp'],
+    hdrs=['RangeQueryParser.h'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
+    deps=[
+        '//aios/autil:log', '//aios/autil:string_helper',
+        '//aios/storage/indexlib/index/inverted_index:config'
     ]
 )
 strict_cc_fast_test(
@@ -33,13 +61,14 @@ strict_cc_fast_test(
     copts=['-fno-access-control'],
     data=glob(['testdata/**']),
     deps=[
-        '//aios/filesystem/fslib:fslib-framework',
+        ':NormalTabletSchemaMaker', '//aios/filesystem/fslib:fslib-framework',
         '//aios/storage/indexlib/config:TabletSchema',
         '//aios/storage/indexlib/framework:tablet_schema_loader',
         '//aios/storage/indexlib/index/ann:factory',
         '//aios/storage/indexlib/index/attribute:factory',
         '//aios/storage/indexlib/index/inverted_index:factory',
         '//aios/storage/indexlib/index/primary_key:factory',
+        '//aios/storage/indexlib/index/source:factory',
         '//aios/storage/indexlib/index/summary:factory',
         '//aios/storage/indexlib/table/normal_table:NormalTableFactory',
         '//aios/unittest_framework'

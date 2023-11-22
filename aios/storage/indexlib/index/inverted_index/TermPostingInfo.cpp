@@ -33,14 +33,14 @@ TermPostingInfo::~TermPostingInfo() {}
 void TermPostingInfo::LoadPosting(ByteSliceReader* sliceReader)
 {
     assert(sliceReader != nullptr);
-    _postingSkipSize = sliceReader->ReadVUInt32();
-    _postingListSize = sliceReader->ReadVUInt32();
+    _postingSkipSize = sliceReader->ReadVUInt32().GetOrThrow();
+    _postingListSize = sliceReader->ReadVUInt32().GetOrThrow();
 }
 
 void TermPostingInfo::LoadPositon(ByteSliceReader* sliceReader)
 {
     assert(sliceReader != nullptr);
-    _positionSkipSize = sliceReader->ReadVUInt32();
-    _positionListSize = sliceReader->ReadVUInt32();
+    _positionSkipSize = sliceReader->ReadVUInt32().GetOrThrow();
+    _positionListSize = sliceReader->ReadVUInt32().GetOrThrow();
 }
 }} // namespace indexlib::index

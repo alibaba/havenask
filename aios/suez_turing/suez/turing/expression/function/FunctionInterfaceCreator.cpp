@@ -57,12 +57,7 @@ bool FunctionInterfaceCreator::addFactory(SyntaxExpressionFactory *factory,
                                           const FuncConfig &funcConfig,
                                           const std::map<std::string, KeyValueMap> &funcKVMap,
                                           bool initFunctionCreator) {
-    AUTIL_LOG(INFO, "begin initBuildInFactory");
-    KeyValueMap parameters;
-    if (!factory->init(parameters)) {
-        AUTIL_LOG(ERROR, "init build in function factory failed.");
-        return false;
-    }
+    AUTIL_LOG(INFO, "begin add factory");
     if (!factory->registeFunctions()) {
         AUTIL_LOG(ERROR, "registe function failed.");
         return false;
@@ -70,7 +65,7 @@ bool FunctionInterfaceCreator::addFactory(SyntaxExpressionFactory *factory,
     if (initFunctionCreator) {
         auto functionInfos = getFunctionInfo(funcConfig, "");
         if (!addFunctions(factory, funcKVMap, _funcCreatorResource, functionInfos)) {
-            AUTIL_LOG(ERROR, "buildInFactory add Functions failed");
+            AUTIL_LOG(ERROR, "factory add Functions failed");
             return false;
         }
         if (!addFuncCreators(factory)) {
@@ -82,7 +77,7 @@ bool FunctionInterfaceCreator::addFactory(SyntaxExpressionFactory *factory,
         return false;
     }
 
-    AUTIL_LOG(INFO, "end initBuildInFactory");
+    AUTIL_LOG(INFO, "end add factory");
     return true;
 } // namespace turing
 
@@ -177,21 +172,21 @@ bool FunctionInterfaceCreator::init(const FuncConfig &funcConfig,
     _funcCreatorResource = funcCreatorResource;
     map<string, KeyValueMap> funcKVMap;
     if (!funcParamToMap(funcInfos, funcKVMap)) {
-        AUTIL_LOG(INFO, "funcParamToMap failed");
+        AUTIL_LOG(ERROR, "funcParamToMap failed");
         return false;
     }
     if (!addFactory(&_buildInFactory, funcConfig, funcKVMap, initFunctionCreator)) {
-        AUTIL_LOG(INFO, "initBuildInFactory");
+        AUTIL_LOG(ERROR, "add buildin factory failed");
         return false;
     }
     for (auto factory : addFactorys) {
         if (factory && !addFactory(factory, funcConfig, funcKVMap, initFunctionCreator)) {
-            AUTIL_LOG(INFO, "addFactory failed [%s]", typeid(*factory).name());
+            AUTIL_LOG(ERROR, "add factory failed [%s]", typeid(*factory).name());
             return false;
         }
     }
     if (!initPluginFactory(funcConfig, funcKVMap, initFunctionCreator)) {
-        AUTIL_LOG(INFO, "initPluginFactory failed");
+        AUTIL_LOG(ERROR, "initPluginFactory failed");
         return false;
     }
     AUTIL_LOG(INFO, "init success");

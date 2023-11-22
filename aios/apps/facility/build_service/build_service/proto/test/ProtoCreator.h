@@ -1,5 +1,8 @@
-#ifndef ISEARCH_BS_PROTOCREATOR_H
-#define ISEARCH_BS_PROTOCREATOR_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/common_define.h"
 #include "build_service/proto/BasicDefs.pb.h"
@@ -38,5 +41,3 @@ private:
 };
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_PROTOCREATOR_H

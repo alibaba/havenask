@@ -28,7 +28,10 @@ public:
     {
         _indexers[{type, indexName}] = indexer;
     }
-    size_t EstimateMemUsed(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema) override { return 0; }
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema) override
+    {
+        return {Status::OK(), 0};
+    }
     size_t EvaluateCurrentMemUsed() override { return 0; }
 
 private:
@@ -73,6 +76,10 @@ public:
         return true;
     }
     bool Read(docid_t docId, std::string* value, autil::mem_pool::Pool* pool) override { return false; }
+    bool ReadBinaryValue(docid_t docId, autil::StringView* value, autil::mem_pool::Pool* pool) override
+    {
+        return false;
+    }
     uint32_t TEST_GetDataLength(docid_t, autil::mem_pool::Pool*) const override { return sizeof(int32_t); }
 
 private:

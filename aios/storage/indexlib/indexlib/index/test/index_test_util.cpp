@@ -484,16 +484,17 @@ SegmentData IndexTestUtil::CreateSegmentData(const file_system::DirectoryPtr& di
     return segmentData;
 }
 
-index_base::PartitionDataPtr IndexTestUtil::CreatePartitionData(const file_system::IFileSystemPtr& fileSystem,
-                                                                uint32_t segCount, segmentid_t baseSegId)
+index_base::PartitionDataPtr
+IndexTestUtil::CreatePartitionData(const std::shared_ptr<file_system::IFileSystem>& fileSystem, uint32_t segCount,
+                                   segmentid_t baseSegId)
 {
     // TODO: by default, baseSegId=0
     Version version = CreateVersion(segCount, baseSegId);
     return CreatePartitionData(fileSystem, version);
 }
 
-index_base::PartitionDataPtr IndexTestUtil::CreatePartitionData(const file_system::IFileSystemPtr& fileSystem,
-                                                                Version version)
+index_base::PartitionDataPtr
+IndexTestUtil::CreatePartitionData(const std::shared_ptr<file_system::IFileSystem>& fileSystem, Version version)
 {
     return OnDiskPartitionData::CreateOnDiskPartitionData(fileSystem, version);
 }

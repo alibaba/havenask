@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TIMESERIESSEGMENTMETRICSUPDATERTEST_H
-#define __INDEXLIB_TIMESERIESSEGMENTMETRICSUPDATERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/indexlib.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(TimeSeriesSegmentMetricsUpdaterTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TIME_SERIES_SEGMENT_METRICS_UPDATER_UNITTEST_H

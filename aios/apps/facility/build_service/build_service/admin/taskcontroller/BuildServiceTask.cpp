@@ -15,12 +15,28 @@
  */
 #include "build_service/admin/taskcontroller/BuildServiceTask.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "beeper/beeper.h"
 #include "build_service/admin/TaskStatusMetricReporter.h"
+#include "build_service/admin/taskcontroller/ProcessorTask.h"
 #include "build_service/admin/taskcontroller/ProcessorTaskWrapper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/config/CLIOptionNames.h"
 #include "build_service/proto/DataDescriptions.h"
 #include "build_service/proto/ProtoUtil.h"
+#include "indexlib/misc/common.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 using namespace autil::legacy;
@@ -526,7 +542,10 @@ void BuildServiceTask::clearWorkerZkNode(const string& generationDir) const
 void BuildServiceTask::supplementLableInfo(KeyValueMap& info) const
 {
     info["clusterName"] = _clusterName;
-    info["buildStep"] = (_buildStep == BUILD_STEP_FULL) ? "full" : "incremental";
+    if (_buildStep != NO_BUILD_STEP && _buildStep != BUILD_STEP_IDLE) {
+        info["buildStep"] =
+            (_buildStep == proto::BUILD_STEP_FULL) ? config::BUILD_STEP_FULL_STR : config::BUILD_STEP_INC_STR;
+    }
     info["workNodeCount"] = string("total:") + StringUtil::toString(_nodeInfo.totalCnt) +
                             ";finish:" + StringUtil::toString(_nodeInfo.finishCnt);
     if (_taskImpl) {

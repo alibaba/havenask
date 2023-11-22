@@ -1,5 +1,7 @@
 package com.taobao.search.iquan.core.rel.rules.logical;
 
+import java.util.List;
+
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelRule;
 import org.apache.calcite.rel.logical.LogicalFilter;
@@ -8,11 +10,8 @@ import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.rex.RexShuttle;
-import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.immutables.value.Value;
-
-import java.util.List;
 
 @Value.Enclosing
 public class ExtractNotInRule
@@ -42,8 +41,7 @@ public class ExtractNotInRule
                 }
                 if (update[0]) {
                     return call.clone(call.getType(), clonedOperands);
-                }
-                else {
+                } else {
                     return call;
                 }
             }
@@ -58,7 +56,7 @@ public class ExtractNotInRule
     @Value.Immutable
     public interface Config extends RelRule.Config {
         Config DEFAULT = ImmutableExtractNotInRule.Config.builder().operandSupplier(b0 ->
-                b0.operand(LogicalFilter.class).anyInputs())
+                        b0.operand(LogicalFilter.class).anyInputs())
                 .build();
 
         @Override

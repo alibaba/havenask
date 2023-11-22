@@ -1,28 +1,38 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
+import com.taobao.search.iquan.client.common.json.catalog.IquanLocation;
+import com.taobao.search.iquan.client.common.json.catalog.JsonTableIdentity;
+import com.taobao.search.iquan.client.common.json.table.JsonJoinInfo;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.api.schema.Distribution;
-import com.taobao.search.iquan.core.api.schema.Table;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.api.schema.TableType;
+import com.taobao.search.iquan.core.catalog.GlobalCatalogManager;
+import com.taobao.search.iquan.core.catalog.IquanLocationNodeManager;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.hint.IquanHintCategory;
 import com.taobao.search.iquan.core.rel.hint.IquanHintOptUtils;
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanJoinOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanRelNode;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanOp;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
-import com.taobao.search.iquan.core.rel.rules.physical.join_utils.RowCountPredicator;
+import com.taobao.search.iquan.core.rel.programs.IquanOptContext;
 import com.taobao.search.iquan.core.rel.rules.physical.join_utils.DecisionRuleTable;
 import com.taobao.search.iquan.core.rel.rules.physical.join_utils.Pattern;
 import com.taobao.search.iquan.core.rel.rules.physical.join_utils.PhysicalJoinFactory;
+import com.taobao.search.iquan.core.rel.rules.physical.join_utils.RowCountPredicator;
 import com.taobao.search.iquan.core.utils.IquanJoinUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import com.taobao.search.iquan.core.utils.RelDistributionUtil;
-import org.javatuples.Pair;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptSchema;
@@ -32,12 +42,18 @@ import org.apache.calcite.rel.core.JoinInfo;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rel.type.RelDataTypeField;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexProgram;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.rex.RexVisitor;
+import org.apache.calcite.rex.RexVisitorImpl;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.tools.RelBuilderFactory;
 import org.apache.calcite.util.ImmutableIntList;
 import org.apache.calcite.util.Util;
-
+import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,8 +84,8 @@ public class ExecEquiJoinBaseRule extends RelOptRule {
 
         RelNode leftInput = IquanRelOptUtils.toRel(join.getLeft());
         RelNode rightInput = IquanRelOptUtils.toRel(join.getRight());
-        Table leftTable = IquanRelOptUtils.getIquanTable(leftInput);
-        Table rightTable = IquanRelOptUtils.getIquanTable(rightInput);
+        IquanTable leftIquanTable = IquanRelOptUtils.getIquanTable(leftInput);
+        IquanTable rightIquanTable = IquanRelOptUtils.getIquanTable(rightInput);
 
         /**
          * calc attributes of Pattern
@@ -81,12 +97,12 @@ public class ExecEquiJoinBaseRule extends RelOptRule {
         boolean leftBroadcast = checkBottomBroadcast(leftInput);
         boolean rightBroadcast = checkBottomBroadcast(rightInput);
         if (!forceHashJoin) {
-            leftUseIndex = isUseIndex(join, leftInput, leftTable, new ArrayList<>(join.getLeftKeyNameMap().values()), true, rightBroadcast);
-            rightUseIndex = isUseIndex(join, rightInput, rightTable, new ArrayList<>(join.getRightKeyNameMap().values()), false, leftBroadcast);
+            leftUseIndex = isUseIndex(join, leftInput, leftIquanTable, new ArrayList<>(join.getLeftKeyNameMap().values()), true, rightBroadcast);
+            rightUseIndex = isUseIndex(join, rightInput, rightIquanTable, new ArrayList<>(join.getRightKeyNameMap().values()), false, leftBroadcast);
         }
 
-        boolean leftScannable = IquanJoinUtils.isScannable(leftTable, leftInput);
-        boolean rightScannable = IquanJoinUtils.isScannable(rightTable, rightInput);
+        boolean leftScannable = IquanJoinUtils.isScannable(leftIquanTable, leftInput);
+        boolean rightScannable = IquanJoinUtils.isScannable(rightIquanTable, rightInput);
 
         RowCountPredicator predicator = new RowCountPredicator();
         long leftRowCount = predicator.rowCount(leftInput);
@@ -131,7 +147,7 @@ public class ExecEquiJoinBaseRule extends RelOptRule {
         /**
          * transform
          */
-        call.transformTo(physicalJoinFactory.create(join, leftTable, rightTable));
+        call.transformTo(physicalJoinFactory.create(join, leftIquanTable, rightIquanTable));
     }
 
     private boolean checkBottomBroadcast(RelNode input) {
@@ -139,11 +155,11 @@ public class ExecEquiJoinBaseRule extends RelOptRule {
         if (relOptTable == null) {
             return false;
         }
-        Table table = IquanRelOptUtils.getIquanTable(relOptTable);
-        if (table == null) {
+        IquanTable iquanTable = IquanRelOptUtils.getIquanTable(relOptTable);
+        if (iquanTable == null) {
             return false;
         }
-        return table.getDistribution().getPartitionCnt() == 1;
+        return iquanTable.getDistribution().getPartitionCnt() == 1;
     }
 
     private Pattern rewritePatternWithHint(Pair<RelHint, Boolean> validHintInfo, Pattern pattern) {
@@ -170,19 +186,19 @@ public class ExecEquiJoinBaseRule extends RelOptRule {
         return null;
     }
 
-    protected boolean isUseIndex(IquanJoinOp join, RelNode input, Table table,
+    protected boolean isUseIndex(IquanJoinOp join, RelNode input, IquanTable iquanTable,
                                  List<String> joinKeys, boolean isLeft, boolean otherBroadcast) {
-        if (table == null || table.getTableType() == TableType.TT_ORC) {
+        if (iquanTable == null || iquanTable.getTableType() == TableType.TT_ORC) {
             // TODO: use table meta feature instead of table type
             return false;
         }
         //check need shuffle
         if (!otherBroadcast) {
-            Distribution distribution = table.getDistribution();
+            Distribution distribution = iquanTable.getDistribution();
             if (distribution.getPartitionCnt() > 1) {
                 List<Integer> hashFieldsPos = IquanJoinUtils.calcHashFieldsPos(distribution, joinKeys);
                 if (hashFieldsPos == null) {
-                    List<String> pkList = table.getPrimaryMap().keySet().stream()
+                    List<String> pkList = iquanTable.getPrimaryMap().keySet().stream()
                             .map(PlanWriteUtils::unFormatFieldName)
                             .collect(Collectors.toList());
                     if (!joinKeys.stream().anyMatch(pkList::contains)) {
@@ -196,29 +212,30 @@ public class ExecEquiJoinBaseRule extends RelOptRule {
     }
 }
 
-class MainAuxOpt extends Object{
+class MainAuxOpt extends Object {
     private static final Logger logger = LoggerFactory.getLogger(MainAuxOpt.class);
     private final IquanJoinOp join;
+    private final IquanLocationNodeManager locationNodeManager;
     private final IquanTableScanBase leftInput;
     private final IquanTableScanBase rightInput;
-    private final Table leftTable;
-    private final Table rightTable;
+    private final IquanTable leftIquanTable;
+    private final IquanTable rightIquanTable;
     private final JoinInfo joinInfo;
-    private boolean isLeftMain;
     private final RexBuilder builder;
     private final List<RexNode> leftProjects;
     private final List<RexNode> rightProjects;
     private final RexNode leftCond;
     private final RexNode rightCond;
     private final RexNode joinCond;
+    private boolean isLeftMain;
     private int mainAuxCondIndex = -1;
 
     MainAuxOpt(IquanJoinOp join) {
         this.join = join;
         this.leftInput = (IquanTableScanBase) IquanRelOptUtils.toRel(join.getLeft());
         this.rightInput = (IquanTableScanBase) IquanRelOptUtils.toRel(join.getRight());
-        this.leftTable = IquanRelOptUtils.getIquanTable(leftInput);
-        this.rightTable = IquanRelOptUtils.getIquanTable(rightInput);
+        this.leftIquanTable = IquanRelOptUtils.getIquanTable(leftInput);
+        this.rightIquanTable = IquanRelOptUtils.getIquanTable(rightInput);
         this.joinInfo = join.analyzeCondition();
         this.isLeftMain = true;
         this.builder = join.getCluster().getRexBuilder();
@@ -227,6 +244,27 @@ class MainAuxOpt extends Object{
         this.leftCond = genCondition(leftInput.getNearestRexProgram());
         this.rightCond = genCondition(rightInput.getNearestRexProgram());
         this.joinCond = join.getCondition();
+
+        IquanOptContext context = join.getCluster().getPlanner().getContext().unwrap(IquanOptContext.class);
+        GlobalCatalogManager globalCatalogManager = context.getCatalogManager();
+        String defaultCatalogName = context.getConfiguration().getString(SqlConfigOptions.IQUAN_DEFAULT_CATALOG_NAME);
+        this.locationNodeManager = globalCatalogManager.getCatalog(defaultCatalogName).getLocationNodeManager();
+    }
+
+    public static RelNode tryMainAuxOpt(IquanJoinOp join, Pair<RelHint, Boolean> validHintInfo) {
+        RelHint validHint = validHintInfo.getValue0();
+        if (validHint != null) {
+            if (ConstantDefine.LOOKUP_JOIN_HINT.equals(validHint.hintName)) {
+                logger.debug("force lookup join, disable main aux opt");
+                return null;
+            }
+            if (ConstantDefine.HASH_JOIN_HINT.equals(validHint.hintName)) {
+                logger.debug("force hash join, disable main aux opt");
+                return null;
+            }
+        }
+        MainAuxOpt opt = new MainAuxOpt(join);
+        return opt.tryGenNewScanOp();
     }
 
     private List<RexNode> genProjects(IquanTableScanBase input) {
@@ -235,7 +273,7 @@ class MainAuxOpt extends Object{
             List<RexNode> projects = new ArrayList<>();
             List<RelDataTypeField> fields = input.getRowType().getFieldList();
             for (int i = 0; i < fields.size(); ++i) {
-                projects.add(builder.makeInputRef(fields.get(i).getType(),i));
+                projects.add(builder.makeInputRef(fields.get(i).getType(), i));
             }
             return projects;
         }
@@ -257,15 +295,19 @@ class MainAuxOpt extends Object{
             ImmutableIntList auxKeys,
             List<RexNode> mainProjects,
             List<RexNode> auxProjects,
-            Table mainTable,
-            Table auxTable,
+            IquanTable mainIquanTable,
+            IquanTable auxIquanTable,
             IquanTableScanBase mainInput)
     {
-        for (com.taobao.search.iquan.core.api.schema.JoinInfo tJoinInfo : mainTable.getJoinInfos()) {
-            if (!tJoinInfo.getTableName().equals(auxTable.getTableName())) {
+        // ToDo deduce location strategy
+        JsonTableIdentity mainTableIdentity = mainIquanTable.getJsonTableIdentity();
+        JsonTableIdentity auxTableIdentity = auxIquanTable.getJsonTableIdentity();
+        for (IquanLocation location : locationNodeManager.getLocationByTable(mainTableIdentity)) {
+            JsonJoinInfo jsonJoinInfo = location.getJsonJoinInfo(mainTableIdentity, auxTableIdentity);
+            if (jsonJoinInfo == null) {
                 continue;
             }
-            String fieldName = tJoinInfo.getJoinField();
+            String fieldName = jsonJoinInfo.getJoinField();
             for (int i = 0; i < mainKeys.size(); ++i) {
                 RexNode mainNode = mainProjects.get(mainKeys.get(0));
                 if (!(mainNode instanceof RexInputRef)) {
@@ -277,21 +319,22 @@ class MainAuxOpt extends Object{
                     continue;
                 }
                 RexInputRef auxRef = (RexInputRef) auxNode;
-                if (!fieldName.equals(mainTable.getFields().get(mainRef.getIndex()).getFieldName())) {
+                if (!fieldName.equals(mainIquanTable.getFields().get(mainRef.getIndex()).getFieldName())) {
                     continue;
                 }
-                String rightFieldName = auxTable.getFields().get(auxRef.getIndex()).getFieldName();
-                if (auxTable.getPrimaryMap().containsKey("$" + rightFieldName)) {
+                String rightFieldName = auxIquanTable.getFields().get(auxRef.getIndex()).getFieldName();
+                if (auxIquanTable.getPrimaryMap().containsKey("$" + rightFieldName)) {
                     mainAuxCondIndex = i;
                     RelOptTable relOptTable = mainInput.getTable();
                     List<String> tableName = relOptTable.getQualifiedName();
                     List<String> newTableName = new ArrayList<>(tableName);
-                    newTableName.set(newTableName.size() - 1, tJoinInfo.getMainAuxTableName());
+                    newTableName.set(newTableName.size() - 1, jsonJoinInfo.getMainAuxTableName());
                     RelOptSchema relOptSchema = relOptTable.getRelOptSchema();
                     return relOptSchema.getTableForMember(newTableName);
                 }
             }
         }
+
         return null;
     }
 
@@ -301,8 +344,7 @@ class MainAuxOpt extends Object{
                 removeMainAuxJoinKey(joinInfo.rightKeys));
         if (newJoinInfo.leftKeys.isEmpty()) {
             return null;
-        }
-        else {
+        } else {
             return newJoinInfo.getEquiCondition(leftInput, rightInput, builder);
         }
     }
@@ -322,8 +364,8 @@ class MainAuxOpt extends Object{
         RelOptTable mergedTable = checkMainAuxJoinRule(
                 joinInfo.leftKeys,
                 joinInfo.rightKeys,
-                leftTable,
-                rightTable,
+                leftIquanTable,
+                rightIquanTable,
                 leftProjects,
                 rightProjects,
                 leftInput,
@@ -334,8 +376,8 @@ class MainAuxOpt extends Object{
             mergedTable = checkMainAuxJoinRule(
                     joinInfo.rightKeys,
                     joinInfo.leftKeys,
-                    rightTable,
-                    leftTable,
+                    rightIquanTable,
+                    leftIquanTable,
                     rightProjects,
                     leftProjects,
                     rightInput,
@@ -345,39 +387,39 @@ class MainAuxOpt extends Object{
         }
         if (null == mergedTable) {
             logger.debug("miss match MainAuxJoinOpt: mergedTable from {} and {} not exist",
-                    leftTable.getTableName(), rightTable.getTableName());
+                    leftIquanTable.getTableName(), rightIquanTable.getTableName());
         }
         return mergedTable;
     }
+
     private RelOptTable checkMainAuxJoinRule(
             ImmutableIntList mainKeys,
             ImmutableIntList auxKeys,
-            Table mainTable,
-            Table auxTable,
+            IquanTable mainIquanTable,
+            IquanTable auxIquanTable,
             List<RexNode> mainProjects,
             List<RexNode> auxProjects,
             IquanTableScanBase mainInput,
             IquanTableScanBase auxInput,
-            RexNode auxCond)
-    {
+            RexNode auxCond) {
         RelOptTable relOptTable = checkMainAuxJoin(
                 mainKeys,
                 auxKeys,
                 mainProjects,
                 auxProjects,
-                mainTable,
-                auxTable,
+                mainIquanTable,
+                auxIquanTable,
                 mainInput);
-        if (null == relOptTable){
+        if (null == relOptTable) {
             return null;
         }
-        if (!(checkAuxHasAllAttribute(auxTable, auxInput, auxCond) && checkJoinAllAttribute())) {
+        if (!(checkAuxHasAllAttribute(auxIquanTable, auxInput, auxCond) && checkJoinAllAttribute())) {
             return null;
         }
         return relOptTable;
     }
 
-    private boolean checkAuxHasAllAttribute(Table table, IquanTableScanBase input, RexNode condition) {
+    private boolean checkAuxHasAllAttribute(IquanTable iquanTable, IquanTableScanBase input, RexNode condition) {
         List<IquanRelNode> pushDownOps = input.getPushDownOps();
         if (pushDownOps.size() > 1) {
             logger.debug("miss match MainAuxJoinOpt: pushDownOps size > 1");
@@ -388,7 +430,7 @@ class MainAuxOpt extends Object{
             RexVisitor<Void> visitor = new RexVisitorImpl<Void>(true) {
                 @Override
                 public Void visitInputRef(RexInputRef inputRef) {
-                    if (!(table.getFieldMetaList().get(inputRef.getIndex()).isAttribute)) {
+                    if (!(iquanTable.getFieldMetaList().get(inputRef.getIndex()).isAttribute)) {
                         throw new Util.FoundOne(null);
                     }
                     return null;
@@ -399,7 +441,7 @@ class MainAuxOpt extends Object{
             }
             return true;
         } catch (Util.FoundOne e) {
-            logger.debug("miss match MainAuxJoinOpt: auxTable: {} has non-attribute field", table.getTableName());
+            logger.debug("miss match MainAuxJoinOpt: auxTable: {} has non-attribute field", iquanTable.getTableName());
             return false;
         }
     }
@@ -407,18 +449,18 @@ class MainAuxOpt extends Object{
     private boolean checkJoinAllAttribute() {
         int leftCnt = leftProjects.size();
         try {
-            RexVisitor<Void> visitor = new RexVisitorImpl<Void>(true){
+            RexVisitor<Void> visitor = new RexVisitorImpl<Void>(true) {
                 @Override
                 public Void visitInputRef(RexInputRef inputRef) {
                     int id = inputRef.getIndex();
                     RexNode project = id < leftCnt ? leftProjects.get(id) : rightProjects.get(id - leftCnt);
-                    Table table = id < leftCnt ? leftTable : rightTable;
+                    IquanTable iquanTable = id < leftCnt ? leftIquanTable : rightIquanTable;
 
                     RexVisitor<Void> innerVisitor = new RexVisitorImpl<Void>(true) {
                         @Override
                         public Void visitInputRef(RexInputRef inputRef1) {
                             int innerId = inputRef1.getIndex();
-                            if (!table.getFieldMetaList().get(innerId).isAttribute) {
+                            if (!iquanTable.getFieldMetaList().get(innerId).isAttribute) {
                                 throw new Util.FoundOne(null);
                             }
                             return null;
@@ -447,12 +489,12 @@ class MainAuxOpt extends Object{
         IquanTableScanBase mainInput = isLeftMain ? leftInput : rightInput;
         IquanTableScanBase newScan = new IquanTableScanOp(
                 mainInput.getCluster(), mainInput.getTraitSet(), mainInput.getHints(), mergedTable);
-        final int leftCnt = leftTable.getFields().size();
-        final int rightCnt = rightTable.getFields().size();
-        final int leftInc = isLeftMain ? 0 : rightCnt - rightTable.getSubTablesCnt();
-        final int rightInc = isLeftMain ? leftCnt - leftTable.getSubTablesCnt() : 0;
-        final int leftLimit = leftCnt - leftTable.getSubTablesCnt();
-        final int rightLimit = rightCnt - rightTable.getSubTablesCnt();
+        final int leftCnt = leftIquanTable.getFields().size();
+        final int rightCnt = rightIquanTable.getFields().size();
+        final int leftInc = isLeftMain ? 0 : rightCnt - rightIquanTable.getSubTablesCnt();
+        final int rightInc = isLeftMain ? leftCnt - leftIquanTable.getSubTablesCnt() : 0;
+        final int leftLimit = leftCnt - leftIquanTable.getSubTablesCnt();
+        final int rightLimit = rightCnt - rightIquanTable.getSubTablesCnt();
 
         List<RexNode> newProjects = new ArrayList<>();
         addNewProject(leftProjects, newProjects, newScan, leftInc, leftLimit);
@@ -504,6 +546,7 @@ class MainAuxOpt extends Object{
             }));
         }
     }
+
     private void addNewCondition(List<RexNode> conditions, RexNode condition, IquanTableScanBase scan, int inc) {
         if (condition == null) {
             return;
@@ -511,24 +554,10 @@ class MainAuxOpt extends Object{
         RexNode cond = condition.accept(new RexShuttle() {
             @Override
             public RexNode visitInputRef(RexInputRef inputRef) {
-                return builder.makeInputRef(scan, inputRef.getIndex() + inc);}});
+                return builder.makeInputRef(scan, inputRef.getIndex() + inc);
+            }
+        });
 
         conditions.add(cond);
-    }
-
-    public static RelNode tryMainAuxOpt(IquanJoinOp join, Pair<RelHint, Boolean> validHintInfo) {
-        RelHint validHint = validHintInfo.getValue0();
-        if (validHint != null) {
-            if (ConstantDefine.LOOKUP_JOIN_HINT.equals(validHint.hintName)) {
-                logger.debug("force lookup join, disable main aux opt");
-                return null;
-            }
-            if (ConstantDefine.HASH_JOIN_HINT.equals(validHint.hintName)) {
-                logger.debug("force hash join, disable main aux opt");
-                return null;
-            }
-        }
-        MainAuxOpt opt = new MainAuxOpt(join);
-        return opt.tryGenNewScanOp();
     }
 }

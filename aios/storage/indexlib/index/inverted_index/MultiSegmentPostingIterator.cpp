@@ -25,7 +25,7 @@ MultiSegmentPostingIterator::~MultiSegmentPostingIterator()
     // fileWriterPtr->Close().GetOrThrow(); //todo
 }
 
-index::ErrorCode MultiSegmentPostingIterator::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+index::ErrorCode MultiSegmentPostingIterator::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
     if (unlikely(_cursor >= _size)) {
         result = INVALID_DOCID;
@@ -37,7 +37,7 @@ index::ErrorCode MultiSegmentPostingIterator::SeekDocWithErrorCode(docid_t docId
             continue;
         }
 
-        docid_t localDocid = docId - _postingIterators[_cursor].first;
+        docid32_t localDocid = docId - _postingIterators[_cursor].first;
         auto errorCode = _postingIterators[_cursor].second->SeekDocWithErrorCode(localDocid, result);
         if (errorCode != index::ErrorCode::OK) {
             return errorCode;
@@ -53,7 +53,7 @@ index::ErrorCode MultiSegmentPostingIterator::SeekDocWithErrorCode(docid_t docId
     return index::ErrorCode::OK;
 }
 
-docid_t MultiSegmentPostingIterator::SeekDoc(docid_t docId)
+docid64_t MultiSegmentPostingIterator::SeekDoc(docid64_t docId)
 {
     if (unlikely(_cursor >= _size)) {
         return INVALID_DOCID;
@@ -64,8 +64,8 @@ docid_t MultiSegmentPostingIterator::SeekDoc(docid_t docId)
             continue;
         }
 
-        docid_t localDocid = docId - _postingIterators[_cursor].first;
-        docid_t docid = _postingIterators[_cursor].second->SeekDoc(localDocid);
+        docid32_t localDocid = docId - _postingIterators[_cursor].first;
+        docid32_t docid = _postingIterators[_cursor].second->SeekDoc(localDocid);
         if (docid != INVALID_DOCID) {
             return _postingIterators[_cursor].first + docid;
         }

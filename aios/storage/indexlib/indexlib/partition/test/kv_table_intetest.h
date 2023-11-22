@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVTABLEINTETESTTEST_H
-#define __INDEXLIB_KVTABLEINTETESTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -180,5 +179,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_KVTABLEINTETEST_H

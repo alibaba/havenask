@@ -15,6 +15,8 @@
  */
 #include "build_service/reader/CombinedRawDocumentParser.h"
 
+#include "build_service/config/CLIOptionNames.h"
+
 using namespace std;
 
 using namespace indexlib::document;
@@ -22,13 +24,22 @@ using namespace indexlib::document;
 namespace build_service { namespace reader {
 BS_LOG_SETUP(build_service, CombinedRawDocumentParser);
 
+bool CombinedRawDocumentParser::init(const std::map<std::string, std::string>& kvMap)
+{
+    string keepParserOrder = getValueFromKeyValueMap(kvMap, config::KEEP_PARSER_ORDER, "false");
+    if (keepParserOrder == "true") {
+        _keepParserOrder = true;
+    }
+    return true;
+}
+
 bool CombinedRawDocumentParser::parse(const string& docString, RawDocument& rawDoc)
 {
     size_t curParser = _lastParser;
     size_t retryCount = 0;
     do {
         if (_parsers[curParser]->parse(docString, rawDoc)) {
-            _lastParser = curParser;
+            _lastParser = _keepParserOrder ? 0 : curParser;
             return true;
         } else {
             rawDoc.clear();

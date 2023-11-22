@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_SINGLE_TRUNCATE_INDEX_WRITER_H
-#define __INDEXLIB_FAKE_SINGLE_TRUNCATE_INDEX_WRITER_H
+#pragma once
 
 #include <memory>
 
@@ -33,5 +32,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeSingleTruncateIndexWriter);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_FAKE_SINGLE_TRUNCATE_INDEX_WRITER_H

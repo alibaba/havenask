@@ -1,12 +1,10 @@
+#pragma once
 //
 //  httplib.h
 //
 //  Copyright (c) 2022 Yuji Hirose. All rights reserved.
 //  MIT License
 //
-
-#ifndef CPPHTTPLIB_HTTPLIB_H
-#define CPPHTTPLIB_HTTPLIB_H
 
 #define CPPHTTPLIB_VERSION "0.12.0"
 
@@ -8632,5 +8630,3 @@ inline SSL_CTX* Client::ssl_context() const
 #if defined(_WIN32) && defined(CPPHTTPLIB_USE_POLL)
 #undef poll
 #endif
-
-#endif // CPPHTTPLIB_HTTPLIB_H

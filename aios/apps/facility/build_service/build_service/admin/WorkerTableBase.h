@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKERTABLEBASE_H
-#define ISEARCH_BS_WORKERTABLEBASE_H
+#pragma once
+
+#include <string>
+#include <vector>
 
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
 #include "build_service/admin/Heartbeat.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/WorkerNode.h"
 #include "build_service/util/Log.h"
 
@@ -56,5 +59,3 @@ private:
 BS_TYPEDEF_PTR(WorkerTableBase);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_WORKERTABLEBASE_H

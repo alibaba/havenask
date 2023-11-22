@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_SIZE_CALCULATOR_H_
-#define __INDEXLIB_PARTITION_SIZE_CALCULATOR_H_
+#pragma once
 
 #include <memory>
 
@@ -73,5 +72,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionSizeCalculator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_PARTITION_SIZE_CALCULATOR_H

@@ -10,6 +10,7 @@ namespace indexlibv2::document {
 
 const std::string RawDocumentMaker::CMD("cmd");
 const std::string RawDocumentMaker::INGESTION_TIMESTAMP("_ingest_ts");
+const std::string RawDocumentMaker::SOURCE_IDX("source_idx");
 const std::string RawDocumentMaker::TIMESTAMP("ts");
 const std::string RawDocumentMaker::LOCATOR("locator");
 const std::string RawDocumentMaker::DOC_BATCH_SEP(";");
@@ -60,21 +61,43 @@ std::unique_ptr<RawDocument> RawDocumentMaker::Make(const std::string& docStr)
                 }
                 doc->SetLocator(framework::Locator(src, offset));
             } else if (strVec.size() == 1) {
-                int64_t offset = 0;
-                if (!autil::StringUtil::fromString(strVec[0], offset)) {
-                    return nullptr;
+                auto offsetVec = autil::StringUtil::split(strVec[0], "#");
+                base::MultiProgress multiPorgress;
+                for (auto offsetStr : offsetVec) {
+                    int64_t offset = 0;
+                    if (!autil::StringUtil::fromString(offsetStr, offset)) {
+                        return nullptr;
+                    }
+                    multiPorgress.push_back({base::Progress({offset, 0})});
                 }
-                doc->SetLocator(framework::Locator(0, offset));
-            } else {
+                framework::Locator locator;
+                locator.SetMultiProgress(multiPorgress);
+                doc->SetLocator(locator);
+            } else if (strVec.size() == 3) {
                 assert(strVec.size() == 3);
-                int64_t src, offset;
-                uint32_t concurrentIdx;
-                if (!autil::StringUtil::fromString(strVec[0], src) ||
-                    !autil::StringUtil::fromString(strVec[1], offset) ||
-                    !autil::StringUtil::fromString(strVec[2], concurrentIdx)) {
+                int64_t src;
+                if (!autil::StringUtil::fromString(strVec[0], src)) {
                     return nullptr;
                 }
-                doc->SetLocator(framework::Locator(src, {offset, concurrentIdx}));
+                auto offsetVec = autil::StringUtil::split(strVec[1], "#");
+                auto concurrentIdxVec = autil::StringUtil::split(strVec[2], "#");
+                assert(offsetVec.size() == concurrentIdxVec.size());
+                base::MultiProgress multiPorgress;
+                for (size_t i = 0; i < offsetVec.size(); i++) {
+                    int64_t offset = 0;
+                    uint32_t concurrentIdx;
+                    if (!autil::StringUtil::fromString(offsetVec[i], offset)) {
+                        return nullptr;
+                    }
+                    if (!autil::StringUtil::fromString(concurrentIdxVec[i], concurrentIdx)) {
+                        return nullptr;
+                    }
+                    multiPorgress.push_back({base::Progress({offset, concurrentIdx})});
+                }
+                framework::Locator locator;
+                locator.SetSrc(src);
+                locator.SetMultiProgress(multiPorgress);
+                doc->SetLocator(locator);
             }
         } else if (kv[0] == INGESTION_TIMESTAMP) {
             int64_t ingestTimestamp = 0;
@@ -91,6 +114,14 @@ std::unique_ptr<RawDocument> RawDocumentMaker::Make(const std::string& docStr)
             }
             auto docInfo = doc->GetDocInfo();
             docInfo.concurrentIdx = concurrentIdx;
+            doc->SetDocInfo(docInfo);
+        } else if (kv[0] == SOURCE_IDX) {
+            uint8_t sourceIdx = 0;
+            if (!autil::StringUtil::fromString(kv[1], sourceIdx)) {
+                return nullptr;
+            }
+            auto docInfo = doc->GetDocInfo();
+            docInfo.sourceIdx = sourceIdx;
             doc->SetDocInfo(docInfo);
         }
     }

@@ -3,7 +3,7 @@ strict_cc_library(
     name='KVTabletSchemaMaker',
     testonly=True,
     copts=['-fno-access-control'],
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/config:schema',
         '//aios/storage/indexlib/config/test:field_config_test_helper',
@@ -98,6 +98,18 @@ strict_cc_fast_test(
     ]
 )
 strict_cc_fast_test(
+    name='KVTabletCompatibleTest',
+    srcs=['KVTabletCompatibleTest.cpp'],
+    copts=['-fno-access-control'],
+    data=glob(['testdata/**']),
+    deps=[
+        ':kv_table_test_helper', '//aios/storage/indexlib/config:TabletOptions',
+        '//aios/storage/indexlib/framework:IndexRoot',
+        '//aios/storage/indexlib/table/kv_table:KVTabletFactory',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
     name='KVTabletSchemaTest',
     srcs=['KVTabletSchemaTest.cpp'],
     copts=['-fno-access-control'],
@@ -124,6 +136,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='VersionValidatorTest',
     srcs=['VersionValidatorTest.cpp'],
+    copts=['-fno-access-control'],
     data=['testdata/order_kv.json'],
     deps=[
         ':kv_table_test_helper',
@@ -148,7 +161,10 @@ strict_cc_fast_test(
     name='KVSchemaResolverTest',
     srcs=['KVSchemaResolverTest.cpp'],
     copts=['-fno-access-control'],
-    data=['testdata/legacy_ttl_schema.json'],
+    data=[
+        'testdata/legacy_ttl_schema.json',
+        'testdata/legacy_store_pk_schema.json'
+    ],
     deps=[
         ':kv_table_test_helper',
         '//aios/storage/indexlib/framework:tablet_schema_loader',

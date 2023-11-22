@@ -4,6 +4,8 @@
 #include "future_lite/CoroInterface.h"
 #include "indexlib/common/chunk/chunk_define.h"
 #include "indexlib/config/impl/merge_config_impl.h"
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/fslib/DataFlushController.h"
@@ -25,8 +27,6 @@
 #include "indexlib/partition/partition_writer.h"
 #include "indexlib/test/directory_creator.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/slow_dump_segment_container.h"
 #include "indexlib/util/cache/SearchCache.h"
 #include "indexlib/util/cache/SearchCachePartitionWrapper.h"
@@ -501,7 +501,7 @@ void KKVTableTest::DoTestDocTTL(bool valueInline)
 
         psm.Transfer(BUILD_INC, "", "", "");
         Version version;
-        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+        VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
         ASSERT_EQ(1u, version.GetSegmentCount());
         auto segId = version[0];
         auto segData = psm.GetIndexPartition()->GetPartitionData()->GetSegmentData(segId);
@@ -819,7 +819,7 @@ void KKVTableTest::TestBuildSegmentInLevel0()
     ASSERT_TRUE(psm.Transfer(PE_BUILD_INC, incDocString, "", ""));
 
     Version version;
-    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
 
     indexlibv2::framework::LevelInfo info = version.GetLevelInfo();
     ASSERT_EQ(1u, info.GetLevelCount());
@@ -1401,7 +1401,7 @@ void KKVTableTest::Transfer(PsmEvent event, size_t docCount, const vector<string
 void KKVTableTest::CheckLocator(int64_t locator, int64_t ts)
 {
     Version version;
-    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
     indexlibv2::framework::Locator versionLocator;
     versionLocator.Deserialize(version.GetLocator().ToString());
     ASSERT_EQ(locator, versionLocator.GetOffset().first);
@@ -2157,7 +2157,7 @@ void KKVTableTest::InnerTestMultiPartMerge(uint32_t shardCount)
     ASSERT_TRUE(psm.Init(mSchema, mOptions, targetPath));
     CheckResult(psm, resultInfos, 0);
 
-    DeployIndexChecker::CheckDeployIndexMeta(targetPath, 0, INVALID_VERSION);
+    DeployIndexChecker::CheckDeployIndexMeta(targetPath, 0, INVALID_VERSIONID);
 }
 
 string KKVTableTest::MakeDocs(size_t docCount, ExpectResultInfos& resultInfo, uint32_t pkeyTimesNum, bool pKeyUnique)
@@ -2260,7 +2260,7 @@ void KKVTableTest::BuildDoc(uint32_t docCount)
 void KKVTableTest::CheckLevelInfo(const vector<LevelMetaInfo>& levelInfos)
 {
     Version version;
-    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
     indexlibv2::framework::LevelInfo info = version.GetLevelInfo();
 
     ASSERT_EQ(levelInfos.size(), info.GetLevelCount());

@@ -15,9 +15,20 @@
  */
 #include "build_service/admin/ServiceKeeperObsoleteDataCleaner.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <limits>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/TimeUtility.h"
+#include "build_service/admin/AdminHealthChecker.h"
 #include "build_service/admin/ServiceKeeper.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 #include "fslib/util/LongIntervalLog.h"
 

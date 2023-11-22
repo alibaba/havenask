@@ -15,7 +15,13 @@
  */
 #include "build_service/builder/SortDocumentConverter.h"
 
-#include "autil/HashAlgorithm.h"
+#include <iosfwd>
+
+#include "autil/LongHashValue.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/index/inverted_index/config/AdaptiveDictionaryConfig.h"
+#include "indexlib/index_base/index_meta/partition_meta.h"
+
 using namespace std;
 using namespace autil;
 

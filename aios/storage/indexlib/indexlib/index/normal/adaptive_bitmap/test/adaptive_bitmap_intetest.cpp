@@ -343,8 +343,8 @@ public:
         string subExpectedBtimapStr2 = "s1#0,1,2;s2#1,2,3,4;";
         CheckIndex(subIndexName, subExpectedBtimapStr2, type, subReader, false, subDictName, subSchema);
 
-        DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 1, INVALID_VERSION);
-        DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 2, INVALID_VERSION);
+        DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 1, INVALID_VERSIONID);
+        DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 2, INVALID_VERSIONID);
         DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 2, 1);
     }
 
@@ -403,8 +403,8 @@ public:
         CheckIndex(subIndexName, subExpectedBtimapStr2, type, subReader, false, subDictName, subSchema);
 
         // TODO: @qingran
-        // DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 1, INVALID_VERSION);
-        // DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 2, INVALID_VERSION);
+        // DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 1, INVALID_VERSIONID);
+        // DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 2, INVALID_VERSIONID);
         // DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 2, 1);
     }
 

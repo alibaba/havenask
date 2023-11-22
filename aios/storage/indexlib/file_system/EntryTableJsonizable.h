@@ -16,8 +16,10 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <stdint.h>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "autil/Log.h"

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_UNCOMPRESSOFFSETREADERTEST_H
-#define __INDEXLIB_UNCOMPRESSOFFSETREADERTEST_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
@@ -35,5 +34,3 @@ INDEXLIB_UNIT_TEST_CASE(UncompressOffsetReaderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(UncompressOffsetReaderTest, TestInit);
 INDEXLIB_UNIT_TEST_CASE(UncompressOffsetReaderTest, TestExtendOffsetVector);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_UNCOMPRESSOFFSETREADERTEST_H

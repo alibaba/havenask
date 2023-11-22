@@ -1,6 +1,11 @@
 #include "build_service/proto/test/ProtoCreator.h"
 
+#include <cstddef>
+#include <memory>
+
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RangeUtil.h"
 
 using namespace std;

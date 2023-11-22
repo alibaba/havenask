@@ -1,9 +1,9 @@
 #include "indexlib/merger/merge_strategy/test/time_series_merge_strategy_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/index/test/partition_schema_maker.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

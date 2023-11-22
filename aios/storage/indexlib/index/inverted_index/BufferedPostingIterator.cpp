@@ -30,16 +30,15 @@ BufferedPostingIterator::BufferedPostingIterator(const PostingFormatOption& post
     , _docBufferCursor(NULL)
     , _currentTTF(0)
     , _tfBufferCursor(0)
-    , _tfBuffer(NULL)
-    , _docPayloadBuffer(NULL)
-    , _fieldMapBuffer(NULL)
     , _decoder(NULL)
     , _needMoveToCurrentDoc(false)
     , _inDocPosIterInited(false)
     , _inDocPositionIterator(NULL)
     , _state(0, postingFormatOption.GetPosListFormatOption())
 {
-    AllocateBuffers();
+    _tfBuffer = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, tf_t, MAX_DOC_PER_RECORD);
+    _docPayloadBuffer = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, docpayload_t, MAX_DOC_PER_RECORD);
+    _fieldMapBuffer = IE_POOL_COMPATIBLE_NEW_VECTOR(_sessionPool, fieldmap_t, MAX_DOC_PER_RECORD);
     _docBufferBase = _docBuffer;
 }
 
@@ -69,15 +68,15 @@ BufferedPostingDecoder* BufferedPostingIterator::CreateBufferedPostingDecoder()
     return IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, BufferedPostingDecoder, &_state, _sessionPool);
 }
 
-docid_t BufferedPostingIterator::SeekDoc(docid_t docId)
+docid64_t BufferedPostingIterator::SeekDoc(docid64_t docId)
 {
-    docid_t ret = INVALID_DOCID;
+    docid64_t ret = INVALID_DOCID;
     auto ec = InnerSeekDoc(docId, ret);
     index::ThrowIfError(ec);
     return ret;
 }
 
-index::ErrorCode BufferedPostingIterator::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+index::ErrorCode BufferedPostingIterator::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
     return InnerSeekDoc(docId, result);
 }

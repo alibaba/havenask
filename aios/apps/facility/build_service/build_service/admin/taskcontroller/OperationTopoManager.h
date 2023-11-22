@@ -15,13 +15,16 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <stddef.h>
 #include <string>
-#include <string_view>
+#include <vector>
 
-#include "build_service/common_define.h"
 #include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/util/Log.h"
-#include "indexlib/framework/index_task/BasicDefs.h"
+
 namespace build_service::admin {
 
 class OperationTopoManager
@@ -49,11 +52,12 @@ public:
     void finish(int64_t opId, std::string workerEpochId, std::string resultInfo);
     bool isFinished(int64_t opId) const;
     void cancelRunningOps();
-    const std::map<int64_t, proto::OperationDescription>& getCurrentExecutableOperations() const;
+    const std::map<int64_t, proto::OperationDescription>& getNewExecutableOperations() const;
 
     size_t finishedOpCount() const { return _finishedOpCount; }
     size_t totalOpCount() const { return _opMap.size(); }
     std::string getTaskResultInfo() const { return _taskResultInfo; }
+    std::string DebugString() const;
 
     auto begin() { return _opMap.begin(); }
     auto end() { return _opMap.end(); }

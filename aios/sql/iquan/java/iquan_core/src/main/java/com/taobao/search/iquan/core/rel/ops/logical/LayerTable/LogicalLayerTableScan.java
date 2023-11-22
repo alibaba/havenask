@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel.ops.logical.LayerTable;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.schema.LayerTable;
 import com.taobao.search.iquan.core.common.ConstantDefine;
@@ -16,10 +20,6 @@ import org.apache.calcite.rel.hint.Hintable;
 import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.SqlExplainLevel;
-
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class LogicalLayerTableScan extends AbstractRelNode implements Hintable {
     private final String name;
@@ -82,7 +82,7 @@ public class LogicalLayerTableScan extends AbstractRelNode implements Hintable {
 
     @Override
     public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs) {
-        return new LogicalLayerTableScan(getCluster(),traitSet, name, qualifiedName, rowType, hints, layerTable, relOptSchema);
+        return new LogicalLayerTableScan(getCluster(), traitSet, name, qualifiedName, rowType, hints, layerTable, relOptSchema);
     }
 
     private void explainInternal(final Map<String, Object> map, SqlExplainLevel level) {

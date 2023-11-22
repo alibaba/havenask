@@ -81,8 +81,8 @@ template <typename InputType, typename AccumulatorType>
 bool SampleAggFunc<InputType, AccumulatorType>::initAccumulatorOutput(
     const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
-    _sumColumn = table::TableUtil::declareAndGetColumnData<AccumulatorType>(
-        outputTable, _outputFields[0], false);
+    _sumColumn
+        = table::TableUtil::declareAndGetColumnData<AccumulatorType>(outputTable, _outputFields[0]);
     if (_sumColumn == nullptr) {
         return false;
     }

@@ -16,6 +16,7 @@
 #include "indexlib/util/MmapPool.h"
 
 #include <cassert>
+#include <cstddef>
 
 using namespace std;
 using namespace indexlib::util;

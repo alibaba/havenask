@@ -66,6 +66,7 @@ void SqlResultFormatter::formatJson(QrsSessionSqlResult &sqlResult,
         auto *accessLog = accessLogHelper->getAccessLog();
         response.hasSoftFailure = accessLogHelper->hasSoftFailure();
         response.coveredPercent = accessLogHelper->coveredPercent();
+        response.softFailureCodes = accessLogHelper->getSoftFailureCodes();
 
         response.processTime = accessLog->getProcessTime() / 1000.0;
         response.rowCount = accessLog->getRowCount();
@@ -84,16 +85,10 @@ void SqlResultFormatter::formatJson(QrsSessionSqlResult &sqlResult,
     }
     response.formatType = sqlResult.typeToStr(sqlResult.formatType);
     response.trace = std::move(sqlResult.sqlTrace);
-    if (sqlResult.naviResult) {
-        response.fillTrace(sqlResult.naviResult);
-    }
     response.sqlQuery = sqlResult.sqlQuery;
     response.naviGraph = sqlResult.naviGraph;
     try {
-        if (sqlResult.readable) {
-            response.iquanResponseWrapper
-                = sqlResult.iquanResponseWrapper; // iquan response create by FastFromJsonString
-        }
+        response.iquanResponseWrapper = sqlResult.iquanResponseWrapper;
         sqlResult.resultStr = FastToJsonString(response);
     } catch (std::exception &e) { SQL_LOG(ERROR, "format json result error, msg: [%s]", e.what()); }
 }
@@ -104,6 +99,7 @@ void SqlResultFormatter::formatFullJson(QrsSessionSqlResult &sqlResult,
     if (accessLogHelper) {
         auto *accessLog = accessLogHelper->getAccessLog();
         response.hasSoftFailure = accessLogHelper->hasSoftFailure();
+        response.softFailureCodes = accessLogHelper->getSoftFailureCodes();
         response.coveredPercent = accessLogHelper->coveredPercent();
 
         response.processTime = accessLog->getProcessTime() / 1000.0;
@@ -123,16 +119,10 @@ void SqlResultFormatter::formatFullJson(QrsSessionSqlResult &sqlResult,
     }
     response.formatType = sqlResult.typeToStr(sqlResult.formatType);
     response.trace = std::move(sqlResult.sqlTrace);
-    if (sqlResult.naviResult) {
-        response.fillTrace(sqlResult.naviResult);
-    }
     response.sqlQuery = sqlResult.sqlQuery;
     response.naviGraph = sqlResult.naviGraph;
     try {
-        if (sqlResult.readable) {
-            response.iquanResponseWrapper
-                = sqlResult.iquanResponseWrapper; // iquan response create by FastFromJsonString
-        }
+        response.iquanResponseWrapper = sqlResult.iquanResponseWrapper;
         sqlResult.resultStr = FastToJsonString(response);
     } catch (std::exception &e) { SQL_LOG(ERROR, "format json result error, msg: [%s]", e.what()); }
 }
@@ -150,6 +140,9 @@ void SqlResultFormatter::formatString(QrsSessionSqlResult &sqlResult,
         sqlResult.resultStr
             += "HAS_SOFT_FAILURE: " + autil::StringUtil::toString(accessLogHelper->hasSoftFailure())
                + ", ";
+        sqlResult.resultStr
+            += "SOFT_FAILURE_CODES: ["
+               + autil::StringUtil::toString(accessLogHelper->getSoftFailureCodes(), ",") + "], ";
         sqlResult.resultStr
             += "COVERAGE: " + autil::StringUtil::toString(accessLogHelper->coveredPercent()) + "\n";
 
@@ -195,13 +188,6 @@ void SqlResultFormatter::formatString(QrsSessionSqlResult &sqlResult,
     for (const auto &trace : sqlResult.sqlTrace) {
         sqlResult.resultStr += trace;
     }
-    if (sqlResult.naviResult) {
-        std::vector<std::string> traceVec;
-        sqlResult.naviResult->traceCollector.format(traceVec);
-        for (const auto &trace : traceVec) {
-            sqlResult.resultStr += trace;
-        }
-    }
 }
 
 void SqlResultFormatter::formatFlatbuffers(QrsSessionSqlResult &sqlResult,
@@ -216,10 +202,12 @@ void SqlResultFormatter::formatFlatbuffers(QrsSessionSqlResult &sqlResult,
     map<string, bool> leaderInfo;
     map<string, int64_t> watermarkInfo;
     bool hasSoftFailure = false;
+    vector<int64_t> softFailureCodes;
     if (accessLogHelper) {
         auto *accessLog = accessLogHelper->getAccessLog();
         coveredPercent = accessLogHelper->coveredPercent();
         hasSoftFailure = accessLogHelper->hasSoftFailure();
+        softFailureCodes = accessLogHelper->getSoftFailureCodes();
 
         processTime = accessLog->getProcessTime() / 1000.0;
         rowCount = accessLog->getRowCount();
@@ -248,6 +236,7 @@ void SqlResultFormatter::formatFlatbuffers(QrsSessionSqlResult &sqlResult,
                              leaderInfo,
                              watermarkInfo,
                              hasSoftFailure,
+                             softFailureCodes,
                              pool);
 }
 

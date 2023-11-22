@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_GENERATIONRECOVERWORKITEM_H
-#define ISEARCH_BS_GENERATIONRECOVERWORKITEM_H
+#pragma once
+
+#include <string>
 
 #include "autil/WorkItem.h"
 #include "build_service/admin/GenerationKeeper.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/util/Log.h"
+#include "build_service/proto/BasicDefs.pb.h"
 
 namespace build_service { namespace admin {
 
@@ -63,5 +64,3 @@ private:
 BS_TYPEDEF_PTR(GenerationRecoverWorkItem);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_GENERATIONRECOVERWORKITEM_H

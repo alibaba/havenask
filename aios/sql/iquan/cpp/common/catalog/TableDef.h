@@ -122,30 +122,6 @@ public:
     std::string order;
 };
 
-class JoinInfoDef : public autil::legacy::Jsonizable {
-public:
-    void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
-        if (json.GetMode() == TO_JSON) {
-            if (!tableName.empty() && !joinField.empty()) {
-                json.Jsonize("table_name", tableName);
-                json.Jsonize("join_field", joinField);
-            }
-        } else {
-            json.Jsonize("table_name", tableName, tableName);
-            json.Jsonize("join_field", joinField, joinField);
-        }
-    }
-
-    bool isValid() const {
-        return (tableName.empty() && joinField.empty())
-               || (!tableName.empty() && !joinField.empty());
-    }
-
-public:
-    std::string tableName = "";
-    std::string joinField = "";
-};
-
 class SubTableDef : public autil::legacy::Jsonizable {
 public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
@@ -186,30 +162,23 @@ public:
         json.Jsonize("sub_tables", subTables, subTables);
         json.Jsonize("distribution", distribution);
         json.Jsonize("sort_desc", sortDesc, sortDesc);
-        json.Jsonize("location", location, location);
         json.Jsonize("properties", properties);
         json.Jsonize("indexes", indexes, indexes);
-        jsonJoinInfo(json);
     }
 
     bool isValid() const {
+        if (tableName.empty()) {
+            return false;
+        }
         return true;
     }
 
-private:
-    void jsonJoinInfo(autil::legacy::Jsonizable::JsonWrapper &json) {
-        if (json.GetMode() == FROM_JSON) {
-            // compatible to old config format
-            try {
-                JoinInfoDef def;
-                json.Jsonize("join_info", def);
-                if (!def.tableName.empty() && !def.joinField.empty()) {
-                    joinInfo.push_back(def);
-                }
-                return;
-            } catch (...) {}
-        }
-        json.Jsonize("join_info", joinInfo, joinInfo);
+    void addFieldByMove(FieldDef &&field) {
+        fields.emplace_back(field);
+    }
+
+    void addField(const FieldDef &field) {
+        fields.push_back(field);
     }
 
 public:
@@ -219,9 +188,7 @@ public:
     std::vector<FieldDef> summaryFields;
     std::vector<SubTableDef> subTables;
     DistributionDef distribution;
-    LocationDef location;
     std::vector<SortDescDef> sortDesc;
-    std::vector<JoinInfoDef> joinInfo;
     std::map<std::string, std::string> properties;
     std::map<std::string, std::vector<IndexDef>> indexes;
 };

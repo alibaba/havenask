@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DLLWRAPPER_H
-#define ISEARCH_BS_DLLWRAPPER_H
+#pragma once
 
 #include <dlfcn.h>
 #include <string>
@@ -46,4 +45,3 @@ private:
 };
 
 }} // namespace build_service::plugin
-#endif

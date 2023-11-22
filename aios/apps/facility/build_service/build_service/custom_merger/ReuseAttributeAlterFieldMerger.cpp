@@ -15,7 +15,17 @@
  */
 #include "build_service/custom_merger/ReuseAttributeAlterFieldMerger.h"
 
-#include "build_service/custom_merger/MergeResourceProvider.h"
+#include <iosfwd>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "indexlib/config/CompressTypeOption.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/field_config.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/normal/attribute/accessor/attribute_data_iterator.h"
+#include "indexlib/partition/remote_access/attribute_data_seeker.h"
 
 using namespace std;
 using namespace indexlib::partition;

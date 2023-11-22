@@ -88,7 +88,7 @@ public:
     google::protobuf::RpcController *getRpcController() {
         return _rpcController;
     }
-
+    std::string getClientIp() const;
 private:
     MultiCallErrorCode _ec;
     std::string _reason;

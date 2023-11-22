@@ -1,10 +1,8 @@
-#ifndef __INDEXLIB_KKVINDEXCONFIGTEST_H
-#define __INDEXLIB_KKVINDEXCONFIGTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/kkv_index_config.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -27,7 +25,7 @@ public:
     void TestAutoValueImpact();
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(KKVIndexConfigTest, TestSimpleProcess);
@@ -38,5 +36,3 @@ INDEXLIB_UNIT_TEST_CASE(KKVIndexConfigTest, TestCheckValueFormat);
 INDEXLIB_UNIT_TEST_CASE(KKVIndexConfigTest, TestAutoValueImpact);
 
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_KKVINDEXCONFIGTEST_H

@@ -31,7 +31,7 @@ namespace indexlibv2::index {
     public:                                                                                                            \
         FieldType GetAttributeType() const override { return indextype; }                                              \
         std::unique_ptr<AttributeDiskIndexer> Create(std::shared_ptr<AttributeMetrics> attributeMetrics,               \
-                                                     const IndexerParameter& indexerParam) const override              \
+                                                     const DiskIndexerParameter& indexerParam) const override          \
         {                                                                                                              \
             return std::make_unique<classname>(attributeMetrics, indexerParam);                                        \
         }                                                                                                              \
@@ -46,7 +46,7 @@ public:
 public:
     virtual FieldType GetAttributeType() const = 0;
     virtual std::unique_ptr<AttributeDiskIndexer> Create(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                                                         const IndexerParameter& indexerParam) const = 0;
+                                                         const DiskIndexerParameter& indexerParam) const = 0;
 };
 
 class AttributeDefaultDiskIndexerFactory

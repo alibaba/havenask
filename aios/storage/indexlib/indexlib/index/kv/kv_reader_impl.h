@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_READER_IMPL_H
-#define __INDEXLIB_KV_READER_IMPL_H
+#pragma once
 
 #include <memory>
 
+#include "indexlib/codegen/code_factory.h"
 #include "indexlib/common_define.h"
 #include "indexlib/config/kv_index_config.h"
 #include "indexlib/file_system/Directory.h"
@@ -467,5 +467,3 @@ inline KVReaderPtr KVReaderImpl::CreateCodegenKVReader()
 
 inline KVReader* KVReaderImpl::Clone() { return new KVReaderImpl(*this); }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_READER_IMPL_H

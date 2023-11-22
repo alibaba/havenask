@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CPUSPEEDESTIMATER_H
-#define ISEARCH_BS_CPUSPEEDESTIMATER_H
+#pragma once
 
 #include <autil/LoopThread.h>
 #include <indexlib/util/metrics/MetricProvider.h>
+#include <iostream>
+#include <stddef.h>
+#include <stdint.h>
+#include <vector>
 
+#include "alog/Logger.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
+#include "indexlib/util/metrics/Metric.h"
 
 namespace build_service { namespace common {
 
@@ -114,5 +119,3 @@ private:
 BS_TYPEDEF_PTR(CpuSpeedEstimater);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_CPUSPEEDESTIMATER_H

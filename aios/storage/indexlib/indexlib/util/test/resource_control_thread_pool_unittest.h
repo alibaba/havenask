@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_RESOURCECONTROLTHREADPOOLTEST_H
-#define __INDEXLIB_RESOURCECONTROLTHREADPOOLTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/test.h"
@@ -33,5 +32,3 @@ INDEXLIB_UNIT_TEST_CASE(ResourceControlThreadPoolTest, TestResourceNotEnough);
 INDEXLIB_UNIT_TEST_CASE(ResourceControlThreadPoolTest, TestInit);
 INDEXLIB_UNIT_TEST_CASE(ResourceControlThreadPoolTest, TestThrowException);
 }} // namespace indexlib::util
-
-#endif //__INDEXLIB_RESOURCECONTROLTHREADPOOLTEST_H

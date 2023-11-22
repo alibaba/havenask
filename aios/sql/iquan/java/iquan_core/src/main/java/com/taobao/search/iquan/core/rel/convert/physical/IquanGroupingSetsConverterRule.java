@@ -8,7 +8,6 @@ import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.rel.convention.IquanConvention;
 import com.taobao.search.iquan.core.utils.IquanAggregateUtils;
-import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 import org.apache.calcite.plan.Convention;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelTraitSet;
@@ -20,10 +19,11 @@ import org.apache.calcite.rel.logical.LogicalAggregate;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.sql.SqlKind;
+import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 
 public class IquanGroupingSetsConverterRule extends ConverterRule {
-    public static IquanGroupingSetsConverterRule INSTANCE = new IquanGroupingSetsConverterRule();
     private static final int MaxGroupingArgSize = 31;
+    public static IquanGroupingSetsConverterRule INSTANCE = new IquanGroupingSetsConverterRule();
 
     private IquanGroupingSetsConverterRule() {
         super(LogicalAggregate.class, Convention.NONE, IquanConvention.PHYSICAL, IquanGroupingSetsConverterRule.class.getSimpleName());

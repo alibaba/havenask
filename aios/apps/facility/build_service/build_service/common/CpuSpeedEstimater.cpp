@@ -16,11 +16,20 @@
 #include "build_service/common/CpuSpeedEstimater.h"
 
 #include <algorithm>
+#include <assert.h>
 #include <autil/HashAlgorithm.h>
+#include <cstddef>
+#include <cstdint>
 #include <functional>
+#include <string>
 #include <vector>
 
+#include "autil/CommonMacros.h"
+#include "autil/LoopThread.h"
+#include "autil/TimeUtility.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;

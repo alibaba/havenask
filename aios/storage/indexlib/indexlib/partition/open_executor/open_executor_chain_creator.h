@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OPEN_EXECUTOR_CHAIN_CREATOR_H
-#define __INDEXLIB_OPEN_EXECUTOR_CHAIN_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -107,5 +106,3 @@ private:
 
 DEFINE_SHARED_PTR(OpenExecutorChainCreator);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPEN_EXECUTOR_CHAIN_CREATOR_H

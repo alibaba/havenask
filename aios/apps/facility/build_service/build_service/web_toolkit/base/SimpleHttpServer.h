@@ -15,9 +15,21 @@
  */
 #pragma once
 
+#include <functional>
+#include <memory>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <vector>
+
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "build_service/web_toolkit/base/HtmlTemplateRender.h"
+#include "build_service/web_toolkit/base/TemplateDataAccessor.h"
+#include "build_service/web_toolkit/third_party/inja/inja.hpp"
+#include "indexlib/util/httplib.h"
 
 namespace build_service::web_toolkit {
 

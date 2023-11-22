@@ -37,7 +37,7 @@ AUTIL_LOG_SETUP(indexlib.document, NormalDocument);
 
 NormalDocument::NormalDocument()
     : _pool(std::make_shared<autil::mem_pool::Pool>(1024))
-    , _docInfo(0, INVALID_TIMESTAMP, 0)
+    , _docInfo(0, INVALID_TIMESTAMP, 0, 0)
     , _deletedDocId(INVALID_DOCID)
 {
     assert(_pool);
@@ -45,7 +45,7 @@ NormalDocument::NormalDocument()
 
 NormalDocument::NormalDocument(const std::shared_ptr<autil::mem_pool::Pool>& pool)
     : _pool(pool)
-    , _docInfo(0, INVALID_TIMESTAMP, 0)
+    , _docInfo(0, INVALID_TIMESTAMP, 0, 0)
     , _deletedDocId(INVALID_DOCID)
 {
     assert(_pool);
@@ -199,6 +199,10 @@ bool NormalDocument::operator==(const NormalDocument& doc) const
         return false;
     }
 
+    if (_schemaId != doc._schemaId) {
+        return false;
+    }
+
     // index document
     if (_indexDocument) {
         if (doc._indexDocument == NULL || *_indexDocument != *(doc._indexDocument)) {
@@ -234,6 +238,14 @@ bool NormalDocument::operator==(const NormalDocument& doc) const
         return false;
     }
 
+    if (_fieldMetaDocument) {
+        if (doc._fieldMetaDocument == NULL || *_fieldMetaDocument != *(doc._fieldMetaDocument)) {
+            return false;
+        }
+    } else if (doc._fieldMetaDocument != NULL) {
+        return false;
+    }
+
     if (_modifiedFields.size() != doc._modifiedFields.size()) {
         return false;
     } else {
@@ -257,6 +269,14 @@ void NormalDocument::DoSerialize(DataBuffer& dataBuffer, uint32_t serializedVers
 {
     switch (serializedVersion) {
     case DOCUMENT_BINARY_VERSION:
+        serializeVersion7(dataBuffer);
+        serializeVersion8(dataBuffer);
+        serializeVersion9(dataBuffer);
+        serializeVersion10(dataBuffer);
+        serializeVersion11(dataBuffer);
+        serializeVersion12(dataBuffer);
+        break;
+    case 11:
         serializeVersion7(dataBuffer);
         serializeVersion8(dataBuffer);
         serializeVersion9(dataBuffer);
@@ -457,7 +477,7 @@ void NormalDocument::serializeVersion7(DataBuffer& dataBuffer) const
     std::shared_ptr<AttributeDocument> null;
     dataBuffer.write(null);
 
-    dataBuffer.write(DEFAULT_SCHEMAID);
+    dataBuffer.write(_schemaId);
     dataBuffer.write(_trace);
 }
 
@@ -647,8 +667,7 @@ void NormalDocument::deserializeVersion7(DataBuffer& dataBuffer)
     // use attribute document to avoid dependency of kv index document
     deserializeObject<AttributeDocument>(dataBuffer, _pool.get(), documentVersion);
 
-    uint32_t schemaId; // schemavid_t
-    dataBuffer.read(schemaId);
+    dataBuffer.read(_schemaId);
     dataBuffer.read(_trace);
 }
 
@@ -665,9 +684,17 @@ void NormalDocument::DoDeserialize(DataBuffer& dataBuffer, uint32_t serializedVe
         deserializeVersion9(dataBuffer);
         deserializeVersion10(dataBuffer);
         deserializeVersion11(dataBuffer);
+        deserializeVersion12(dataBuffer);
         return;
     }
     switch (serializedVersion) {
+    case 11:
+        deserializeVersion7(dataBuffer);
+        deserializeVersion8(dataBuffer);
+        deserializeVersion9(dataBuffer);
+        deserializeVersion10(dataBuffer);
+        deserializeVersion11(dataBuffer);
+        break;
     case 10:
         deserializeVersion7(dataBuffer);
         deserializeVersion8(dataBuffer);

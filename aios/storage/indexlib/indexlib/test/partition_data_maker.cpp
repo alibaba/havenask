@@ -2,6 +2,7 @@
 
 #include "autil/StringUtil.h"
 #include "indexlib/config/field_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/FileSystemCreator.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
@@ -14,7 +15,6 @@
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/test/directory_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 
@@ -171,7 +171,7 @@ PartitionDataPtr PartitionDataMaker::CreatePartitionData(const IFileSystemPtr& f
                                  metricProvider, document::SrcSignature());
 
     PartitionDataPtr partitionData = PartitionDataCreator::CreateBuildingPartitionData(
-        param, fileSystem, index_base::Version(INVALID_VERSION), "", index_base::InMemorySegmentPtr());
+        param, fileSystem, index_base::Version(INVALID_VERSIONID), "", index_base::InMemorySegmentPtr());
     return partitionData;
 }
 

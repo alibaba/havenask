@@ -15,9 +15,13 @@
  */
 #include "indexlib/config/IndexTaskConfig.h"
 
+#include <assert.h>
+#include <map>
+
 #include "autil/StringTokenizer.h"
+#include "autil/StringUtil.h"
 #include "autil/legacy/json.h"
-#include "indexlib/config/IndexTaskConfig.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/legacy/config/OfflineMergeConfig.h"
 
 namespace indexlibv2::config {
@@ -163,16 +167,26 @@ void IndexTaskConfig::FillMergeConfig(const std::string& name, const indexlibv2:
 void IndexTaskConfig::FillLegacyMergeConfig(const std::string& name,
                                             const indexlib::legacy::config::OfflineMergeConfig& legacyMergeConfig)
 {
-    _impl->taskName = (name == "full") ? "full_merge" : name;
-    _impl->taskType = "merge";
-    std::string period = legacyMergeConfig.periodMergeDescription;
-    if (!period.empty()) {
-        _impl->trigger = Trigger(legacyMergeConfig.periodMergeDescription);
+    autil::legacy::json::JsonMap settings;
+    if (name == "alter_field") {
+        _impl->taskName = "alter_table";
+        _impl->taskType = "alter_table";
+        const auto& pluginConfig = legacyMergeConfig.pluginConfig;
+        auto iter = pluginConfig.find("class_info");
+        if (pluginConfig.end() != iter) {
+            settings["class_info"] = iter->second;
+        }
     } else {
-        _impl->trigger = Trigger("manual");
+        _impl->taskName = (name == "full") ? "full_merge" : name;
+        _impl->taskType = "merge";
+        std::string period = legacyMergeConfig.periodMergeDescription;
+        if (!period.empty()) {
+            _impl->trigger = Trigger(legacyMergeConfig.periodMergeDescription);
+        } else {
+            _impl->trigger = Trigger("manual");
+        }
     }
 
-    autil::legacy::json::JsonMap settings;
     auto parallelNum = legacyMergeConfig.mergeParallelNum;
     if (parallelNum > 0) {
         settings["parallel_num"] = parallelNum;
@@ -214,6 +228,18 @@ void IndexTaskConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
         _impl->trigger = Trigger(triggerStr);
     }
     json.Jsonize("settings", _impl->settings, _impl->settings);
+}
+
+Status IndexTaskConfig::TEST_SetSetting(const std::string& key, const std::string& str) const
+{
+    try {
+        _impl->settings[key] = autil::legacy::json::ParseJson(str);
+    } catch (const autil::legacy::ExceptionBase& e) {
+        Status status = Status::ConfigError("set setting [%s] failed, exception[%s]", key.c_str(), e.what());
+        AUTIL_LOG(ERROR, "%s", status.ToString().c_str());
+        return status;
+    }
+    return Status::OK();
 }
 
 } // namespace indexlibv2::config

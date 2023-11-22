@@ -40,7 +40,7 @@ public:
 public:
     void SetIndexConfig(const AithetaIndexConfig& config) { _indexConfig = config; }
     void SetDirectory(const indexlib::file_system::DirectoryPtr& dir) { _directory = dir; }
-    void SetMergedSegment() { _segmentMeta.SetMergedSegment(); }
+    void SetMergedSegment(bool isMergedSegment) { _segmentMeta.SetMergedSegment(isMergedSegment); }
     const indexlib::file_system::DirectoryPtr& GetDirectory() const { return _directory; }
     const SegmentMeta& GetSegmentMeta() const { return _segmentMeta; }
     bool AddIndexMeta(index_id_t id, const IndexMeta& meta) { return _segmentMeta.AddIndexMeta(id, meta); }

@@ -87,7 +87,7 @@ void PostingDecoderImpl::Init(TermMeta* termMeta, dictvalue_t dictValue, bool is
     _posPayloadEncoder = nullptr;
 
     if (_isDocListDictInline) {
-        docid_t beginDocid;
+        docid32_t beginDocid;
         df_t df;
         DictInlineDecoder::DecodeContinuousDocId({dfFirst, _inlineDictValue}, beginDocid, df);
         _termMeta->SetDocFreq(df);
@@ -102,7 +102,7 @@ void PostingDecoderImpl::Init(TermMeta* termMeta, dictvalue_t dictValue, bool is
     _postingDataLength = 0;
 }
 
-uint32_t PostingDecoderImpl::DecodeDocList(docid_t* docIdBuf, tf_t* tfListBuf, docpayload_t* docPayloadBuf,
+uint32_t PostingDecoderImpl::DecodeDocList(docid32_t* docIdBuf, tf_t* tfListBuf, docpayload_t* docPayloadBuf,
                                            fieldmap_t* fieldMapBuf, size_t len)
 {
     if (_decodedDocCount >= _termMeta->GetDocFreq()) {
@@ -110,7 +110,7 @@ uint32_t PostingDecoderImpl::DecodeDocList(docid_t* docIdBuf, tf_t* tfListBuf, d
     }
 
     if (_isDocListDictInline) {
-        docid_t beginDocid;
+        docid32_t beginDocid;
         df_t df;
         assert(_dfFirstDictInline != std::nullopt);
         DictInlineDecoder::DecodeContinuousDocId({_dfFirstDictInline.value(), _inlineDictValue}, beginDocid, df);
@@ -119,7 +119,7 @@ uint32_t PostingDecoderImpl::DecodeDocList(docid_t* docIdBuf, tf_t* tfListBuf, d
         uint32_t docLen = std::min((uint32_t)len, (uint32_t)remainDocCount);
         if (_postingFormatOption.IsReferenceCompress()) {
             for (uint32_t i = 0; i < docLen; i++) {
-                docIdBuf[i] = beginDocid + (docid_t)i;
+                docIdBuf[i] = beginDocid + (docid32_t)i;
             }
         } else {
             docIdBuf[0] = (_decodedDocCount == 0) ? beginDocid : 1;

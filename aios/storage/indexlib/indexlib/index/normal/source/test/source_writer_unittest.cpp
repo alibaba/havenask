@@ -106,7 +106,8 @@ void SourceWriterTest::TestSimpleProcess()
         rawDoc->setField("f5", "v5");
         rawDoc->setField("nid", "1");
         document::ClassifiedDocument doc;
-        doc.createSourceDocument(_grps, rawDoc);
+        std::shared_ptr<document::RawDocument::Snapshot> snapshot(rawDoc->GetSnapshot());
+        doc.createSourceDocument(_grps, snapshot.get());
         document::SerializedSourceDocumentPtr serDoc =
             createSerializedSourceDocument(doc.getSourceDocument(), _sourceSchema, pool);
         writer->AddDocument(serDoc);
@@ -118,7 +119,8 @@ void SourceWriterTest::TestSimpleProcess()
         rawDoc->setField("f5", "value5");
         rawDoc->setField("nid", "2");
         document::ClassifiedDocument doc;
-        doc.createSourceDocument(_grps, rawDoc);
+        std::shared_ptr<document::RawDocument::Snapshot> snapshot(rawDoc->GetSnapshot());
+        doc.createSourceDocument(_grps, snapshot.get());
         document::SerializedSourceDocumentPtr serDoc =
             createSerializedSourceDocument(doc.getSourceDocument(), _sourceSchema, pool);
         writer->AddDocument(serDoc);
@@ -267,7 +269,8 @@ void SourceWriterTest::WriteFunc(SourceWriterPtr& writer, autil::mem_pool::Pool*
         rawDoc->setField("nid", "1");
         // std::cout << "write " << docId++ << std::endl;
         document::ClassifiedDocument doc;
-        doc.createSourceDocument(_grps, rawDoc);
+        std::shared_ptr<document::RawDocument::Snapshot> snapshot(rawDoc->GetSnapshot());
+        doc.createSourceDocument(_grps, snapshot.get());
         document::SerializedSourceDocumentPtr serDoc =
             createSerializedSourceDocument(doc.getSourceDocument(), _sourceSchema, pool);
         writer->AddDocument(serDoc);

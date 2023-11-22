@@ -37,7 +37,7 @@ bool MyDocumentParser::DoInit() { return true; }
 
 DocumentPtr MyDocumentParser::Parse(const IndexlibExtendDocumentPtr& extendDoc)
 {
-    const RawDocumentPtr& rawDoc = extendDoc->getRawDocument();
+    const RawDocumentPtr& rawDoc = extendDoc->GetRawDocument();
     string myId = rawDoc->getField("myId");
 
     docid_t realId = -1;

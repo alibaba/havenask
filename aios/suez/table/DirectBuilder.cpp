@@ -19,15 +19,18 @@
 #include "autil/Scope.h"
 #include "autil/ThreadNameScope.h"
 #include "autil/legacy/base64.h"
+#include "build_service/build_task/BuildTask.h"
 #include "build_service/builder/BuilderV2Impl.h"
 #include "build_service/common/ConfigDownloader.h"
 #include "build_service/config/BuilderClusterConfig.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/processor/Processor.h"
+#include "build_service/proto/ProtoComparator.h"
 #include "build_service/reader/RawDocumentReader.h"
 #include "build_service/reader/RawDocumentReaderCreator.h"
 #include "build_service/reader/SwiftRawDocumentReader.h"
 #include "build_service/util/LocatorUtil.h"
+#include "build_service/workflow/RawDocumentRewriter.h"
 #include "build_service/workflow/RealtimeBuilderDefine.h"
 #include "fslib/util/FileUtil.h"
 #include "indexlib/config/TabletOptions.h"
@@ -45,6 +48,8 @@
 
 namespace suez {
 AUTIL_DECLARE_AND_SETUP_LOGGER(suez, DirectBuilder);
+
+using BuildTask = build_service::build_task::BuildTask;
 
 DirectBuilder::Pipeline::Pipeline() {}
 
@@ -157,9 +162,9 @@ bool DirectBuilder::isRecovered() {
         _isRecovered = true;
         return true;
     }
-    auto locator = _tablet->GetTabletInfos()->GetLatestLocator();
-    if (!locator.IsValid() || (_srcSignature && _srcSignature.value() != locator.GetSrc()) ||
-        build_service::util::LocatorUtil::GetSwiftWatermark(locator) + _buildDelayInUs < maxTimestamp) {
+    if (!_lastLocator || !(_lastLocator->IsValid()) ||
+        (_srcSignature && _srcSignature.value() != _lastLocator->GetSrc()) ||
+        build_service::util::LocatorUtil::getSwiftWatermark(*_lastLocator) + _buildDelayInUs < maxTimestamp) {
         usleep(SLEEP_TIME);
         return false;
     }
@@ -256,123 +261,31 @@ bool DirectBuilder::runBuildPipeline() {
         usleep(1 * 1000);
         return false;
     }
+    // update read locator
+    auto locator = std::make_shared<indexlibv2::framework::Locator>();
+    locator->SetMultiProgress(ckpt.progress);
+    locator->SetUserData(ckpt.userData);
+    if (_srcSignature) {
+        locator->SetSrc(_srcSignature.value());
+    }
+    setLastLocator(locator);
 
     if (rawDoc->getDocOperateType() == ALTER_DOC) {
-        build_service::proto::BuildId buildId;
-        auto buildIdStr = rawDoc->getField(BUILD_ID_KEY);
-        if (!buildId.ParseFromString(buildIdStr)) {
-            AUTIL_LOG(ERROR,
-                      "%s: build id %s parse from string failed, raw doc %s",
-                      _pid.ShortDebugString().c_str(),
-                      buildIdStr.c_str(),
-                      rawDoc->toString().c_str());
-            return false;
-        }
-
-        if (buildId != _pid.buildid()) {
-            AUTIL_LOG(WARN,
-                      "%s: skip alter tablet doc build id %s is diff from pid build id %s, raw doc %s",
-                      _pid.ShortDebugString().c_str(),
-                      buildId.ShortDebugString().c_str(),
-                      _pid.buildid().ShortDebugString().c_str(),
-                      rawDoc->toString().c_str());
-            return false;
-        }
-
-        auto configPath = rawDoc->getField(CONFIG_PATH_KEY);
-        uint32_t schemaVersion = 0;
-        auto schemaVersionStr = rawDoc->getField(SCHEMA_VERSION_KEY);
-        if (!autil::StringUtil::fromString(schemaVersionStr, schemaVersion)) {
-            AUTIL_LOG(
-                ERROR, "%s: schema version %s is invalid", _pid.ShortDebugString().c_str(), schemaVersionStr.c_str());
-            return false;
-        }
-        if (!alterTable(schemaVersion, configPath)) {
-            AUTIL_LOG(ERROR,
-                      "%s: alter table with config %s failed, ignore it",
-                      _pid.ShortDebugString().c_str(),
-                      configPath.c_str());
-        }
-        // do not need build
-        return false;
+        return processAlterTableDoc(rawDoc);
     } else if (rawDoc->getDocOperateType() == BULKLOAD_DOC) {
-        build_service::proto::BuildId buildId;
-        auto buildIdRawStr = rawDoc->getField(BUILD_ID_KEY);
-        std::string buildIdStr = autil::legacy::Base64DecodeFast(buildIdRawStr);
-        if (buildIdStr.empty()) {
-            AUTIL_LOG(ERROR,
-                      "%s: skip bulkload doc, build id is decode from base64 return empty str",
-                      _pid.ShortDebugString().c_str());
-            return false;
-        }
-        if (!buildId.ParseFromString(buildIdStr)) {
-            AUTIL_LOG(ERROR,
-                      "%s: build id %s parse from string failed, raw doc %s",
-                      _pid.ShortDebugString().c_str(),
-                      buildIdStr.c_str(),
-                      rawDoc->toString().c_str());
-            return false;
-        }
-        if (buildId != _pid.buildid()) {
-            AUTIL_LOG(WARN,
-                      "%s: skip bulkload doc, build id %s is diff from pid build id %s, raw doc %s",
-                      _pid.ShortDebugString().c_str(),
-                      buildId.ShortDebugString().c_str(),
-                      _pid.buildid().ShortDebugString().c_str(),
-                      rawDoc->toString().c_str());
-            return false;
-        }
-        std::string bulkloadId = rawDoc->getField(indexlibv2::framework::PARAM_BULKLOAD_ID);
-        if (bulkloadId.empty()) {
-            AUTIL_LOG(ERROR, "skip bulkload doc, bulkload id is empty, raw doc %s", rawDoc->toString().c_str());
-            return false;
-        }
-        OP_LOG("bulkload");
-        std::string externalFilesStr = rawDoc->getField(indexlibv2::framework::PARAM_EXTERNAL_FILES);
-        std::string optionsStr = rawDoc->getField(indexlibv2::framework::PARAM_IMPORT_EXTERNAL_FILE_OPTIONS);
-        std::string actionStr = rawDoc->getField(indexlibv2::framework::ACTION_KEY);
-        if (actionStr.empty()) {
-            actionStr = "add";
-        }
-        indexlibv2::framework::Action action = indexlibv2::framework::ActionConvertUtil::StrToAction(actionStr);
-        assert(action != indexlibv2::framework::Action::UNKNOWN);
-        std::vector<std::string> externalFiles;
-        std::shared_ptr<indexlibv2::framework::ImportExternalFileOptions> options = nullptr;
-        if (externalFilesStr.empty()) {
-            externalFilesStr = autil::legacy::FastToJsonString(std::vector<std::string>());
-        }
-        if (optionsStr.empty()) {
-            optionsStr = autil::legacy::FastToJsonString(indexlibv2::framework::ImportExternalFileOptions());
-        }
-        try {
-            autil::legacy::FastFromJsonString(externalFiles, externalFilesStr);
-            autil::legacy::FastFromJsonString(options, optionsStr);
-        } catch (const autil::legacy::ExceptionBase &e) {
-            AUTIL_LOG(WARN, "parse from string failed, raw doc %s, exception %s", rawDoc->toString().c_str(), e.what());
-        } catch (const std::exception &e) {
-            AUTIL_LOG(WARN, "parse from string failed, raw doc %s, exception %s", rawDoc->toString().c_str(), e.what());
-        } catch (...) { AUTIL_LOG(WARN, "parse from string failed, raw doc %s", rawDoc->toString().c_str()); }
+        return processBulkloadDoc(rawDoc);
+    }
 
-        auto status = _tablet->ImportExternalFiles(bulkloadId, externalFiles, options, action);
-        if (status.IsOK()) {
-            AUTIL_LOG(INFO, "%s: bulkload external files success", _pid.ShortDebugString().c_str());
-        } else {
-            if (status.IsInvalidArgs()) {
-                AUTIL_LOG(ERROR,
-                          "%s: bulkload failed, error: %s",
-                          _pid.ShortDebugString().c_str(),
-                          status.ToString().c_str());
-            } else {
-                _needReload = true;
-                AUTIL_LOG(ERROR,
-                          "%s: bulkload failed, need reload, error: %s",
-                          _pid.ShortDebugString().c_str(),
-                          status.ToString().c_str());
-            }
-        }
-        // do not need build
+    // rewrite
+    auto rewriter = _pipeline->rewriter.get();
+    if (!rewriteWithRetry(rewriter, rawDoc)) {
+        AUTIL_LOG(ERROR,
+                  "%s: rewrite with retry failed at rawDoc: %s, will stop pipeline soon",
+                  _pid.ShortDebugString().c_str(),
+                  rawDoc->toString().c_str());
         return false;
     }
+
     // process
     auto processor = _pipeline->processor.get();
     build_service::document::RawDocumentVecPtr rawDocVec(new build_service::document::RawDocumentVec);
@@ -398,14 +311,7 @@ bool DirectBuilder::runBuildPipeline() {
     }
     const auto &indexDoc = (*docBatch)[0];
     assert(indexDoc);
-
-    indexlibv2::framework::Locator locator;
-    locator.SetProgress(ckpt.progress);
-    locator.SetUserData(ckpt.userData);
-    if (_srcSignature) {
-        locator.SetSrc(_srcSignature.value());
-    }
-    indexDoc->SetLocator(locator);
+    indexDoc->SetLocator(*locator);
 
     // build
     auto builder = _pipeline->builder.get();
@@ -419,6 +325,7 @@ bool DirectBuilder::runBuildPipeline() {
         AUTIL_LOG(WARN, "%s: pipeline need reconstruct", _pid.ShortDebugString().c_str());
         // TODO: maybe recreate reader only, do not recreate processor/builder
         OP_LOG("stopBuildPipeline");
+        autil::ScopedLock lock(_mutex);
         _pipeline->stop();
         _pipeline.reset();
     }
@@ -444,6 +351,28 @@ bool DirectBuilder::buildWithRetry(build_service::builder::BuilderV2Impl *builde
     return false;
 }
 
+bool DirectBuilder::rewriteWithRetry(build_service::workflow::RawDocumentRewriter *rewriter,
+                                     const std::shared_ptr<indexlibv2::document::RawDocument> &rawDoc) {
+    assert(rawDoc);
+    if (!rewriter) {
+        return true;
+    }
+    int32_t retryCount = 0;
+    while (!_buildLoopStop) {
+        AUTIL_LOG(TRACE3, "[%p] start rewrite raw doc [%s]", this, rawDoc->toString().c_str());
+        if (rewriter->rewrite(rawDoc.get())) {
+            return true;
+        }
+        retryCount++;
+        if (retryCount % 10 == 0) {
+            AUTIL_LOG(WARN, "[%p] raw doc [%s] has retry [%d] times", this, rawDoc->toString().c_str(), retryCount);
+        }
+    }
+    //这个方法只能在收到stop命令时才能返回false，否则需要一直重试
+    //如果失败了若干次后返回false了，这个build loop会丢，导致丢doc
+    return false;
+}
+
 void DirectBuilder::maybeInitBuildPipeline() {
     if (_pipeline) {
         return;
@@ -458,12 +387,15 @@ void DirectBuilder::maybeInitBuildPipeline() {
         return;
     }
 
-    // processor
     auto schema = _tablet->GetTabletSchema();
     if (!schema) {
         AUTIL_LOG(ERROR, "get tablet schema for %s failed", _pid.ShortDebugString().c_str());
         return;
     }
+    // rewriter
+    std::unique_ptr<build_service::workflow::RawDocumentRewriter> rewriter = createRawDocRewriter();
+
+    // processor
     auto processor = createProcessor(_resourceReader, schema);
     if (!processor) {
         AUTIL_LOG(ERROR, "create processor for %s failed", _pid.ShortDebugString().c_str());
@@ -478,6 +410,7 @@ void DirectBuilder::maybeInitBuildPipeline() {
 
     auto pipeline = std::make_unique<Pipeline>();
     pipeline->reader = std::move(reader);
+    pipeline->rewriter = std::move(rewriter);
     pipeline->processor = std::move(processor);
     pipeline->builder = std::move(builder);
 
@@ -517,7 +450,8 @@ DirectBuilder::createReader(const std::shared_ptr<build_service::config::Resourc
                   locator.DebugString().c_str());
         return nullptr;
     }
-    build_service::reader::Checkpoint ckpt(locator.GetOffset().first, locator.GetProgress(), locator.GetUserData());
+    build_service::reader::Checkpoint ckpt(
+        locator.GetOffset().first, locator.GetMultiProgress(), locator.GetUserData());
     AUTIL_LOG(INFO,
               "%s: seek to locator: %s, checkpoint: %s",
               _pid.ShortDebugString().c_str(),
@@ -557,12 +491,13 @@ DirectBuilder::createProcessor(const std::shared_ptr<build_service::config::Reso
     auto counterMap = _tablet->GetTabletInfos()->GetCounterMap();
     AUTIL_LOG(
         INFO, "create processor, pid [%s], schema id [%d]", _pid.ShortDebugString().c_str(), schema->GetSchemaId());
-
+    build_service::KeyValueMap param;
+    param["is_online_build"] = "true";
     if (!processor->start(configReader,
                           _pid,
                           _rtBuilderResource->metricProvider,
                           counterMap,
-                          build_service::KeyValueMap(),
+                          param,
                           /*forceSingleThreaded=*/true,
                           /*isTablet=*/true)) {
         AUTIL_LOG(
@@ -591,6 +526,116 @@ DirectBuilder::createBuilder(const std::shared_ptr<build_service::config::Resour
         return nullptr;
     }
     return builder;
+}
+
+std::unique_ptr<build_service::workflow::RawDocumentRewriter> DirectBuilder::createRawDocRewriter() const {
+    auto rewriter = std::make_unique<build_service::workflow::RawDocumentRewriter>();
+    if (!rewriter->init(_tablet)) {
+        AUTIL_LOG(WARN, "init raw doc rewriter for [%s] failed, will not do rewrite", _pid.ShortDebugString().c_str());
+        return nullptr;
+    }
+    return rewriter;
+}
+
+bool DirectBuilder::processBulkloadDoc(const std::shared_ptr<indexlibv2::document::RawDocument> &rawDoc) {
+    build_service::proto::BuildId buildId;
+    auto buildIdRawStr = rawDoc->getField(BUILD_ID_KEY);
+    std::string buildIdStr = autil::legacy::Base64DecodeFast(buildIdRawStr);
+    if (buildIdStr.empty()) {
+        AUTIL_LOG(ERROR,
+                  "%s: skip bulkload doc, build id is decode from base64 return empty str",
+                  _pid.ShortDebugString().c_str());
+        return false;
+    }
+    if (!buildId.ParseFromString(buildIdStr)) {
+        AUTIL_LOG(ERROR,
+                  "%s: build id %s parse from string failed, raw doc %s",
+                  _pid.ShortDebugString().c_str(),
+                  buildIdStr.c_str(),
+                  rawDoc->toString().c_str());
+        return false;
+    }
+    if (buildId != _pid.buildid()) {
+        AUTIL_LOG(WARN,
+                  "%s: skip bulkload doc, build id %s is diff from pid build id %s, raw doc %s",
+                  _pid.ShortDebugString().c_str(),
+                  buildId.ShortDebugString().c_str(),
+                  _pid.buildid().ShortDebugString().c_str(),
+                  rawDoc->toString().c_str());
+        return false;
+    }
+    std::string bulkloadId = rawDoc->getField(indexlibv2::framework::PARAM_BULKLOAD_ID);
+    if (bulkloadId.empty()) {
+        AUTIL_LOG(ERROR, "skip bulkload doc, bulkload id is empty, raw doc %s", rawDoc->toString().c_str());
+        return false;
+    }
+    OP_LOG("bulkload");
+    std::string externalFilesStr = rawDoc->getField(indexlibv2::framework::PARAM_EXTERNAL_FILES);
+    std::string optionsStr = rawDoc->getField(indexlibv2::framework::PARAM_IMPORT_EXTERNAL_FILE_OPTIONS);
+    std::string actionStr = rawDoc->getField(indexlibv2::framework::ACTION_KEY);
+    std::string errMsg;
+    auto [externalFiles, options, action] =
+        BuildTask::prepareBulkloadParams(externalFilesStr, optionsStr, actionStr, &errMsg);
+    if (!errMsg.empty()) {
+        AUTIL_LOG(WARN, "%s", errMsg.c_str());
+    }
+    auto status = _tablet->ImportExternalFiles(
+        bulkloadId, externalFiles, options, action, /*eventTimeInSecs=*/indexlib::INVALID_TIMESTAMP);
+    if (status.IsOK()) {
+        AUTIL_LOG(INFO, "%s: bulkload external files success", _pid.ShortDebugString().c_str());
+    } else {
+        if (status.IsInvalidArgs()) {
+            AUTIL_LOG(
+                ERROR, "%s: bulkload failed, error: %s", _pid.ShortDebugString().c_str(), status.ToString().c_str());
+        } else {
+            _needReload = true;
+            AUTIL_LOG(ERROR,
+                      "%s: bulkload failed, need reload, error: %s",
+                      _pid.ShortDebugString().c_str(),
+                      status.ToString().c_str());
+        }
+    }
+    // do not need build
+    return false;
+}
+
+bool DirectBuilder::processAlterTableDoc(const std::shared_ptr<indexlibv2::document::RawDocument> &rawDoc) {
+    build_service::proto::BuildId buildId;
+    auto buildIdStr = rawDoc->getField(BUILD_ID_KEY);
+    if (!buildId.ParseFromString(buildIdStr)) {
+        AUTIL_LOG(ERROR,
+                  "%s: build id %s parse from string failed, raw doc %s",
+                  _pid.ShortDebugString().c_str(),
+                  buildIdStr.c_str(),
+                  rawDoc->toString().c_str());
+        return false;
+    }
+
+    if (buildId != _pid.buildid()) {
+        AUTIL_LOG(WARN,
+                  "%s: skip alter tablet doc build id %s is diff from pid build id %s, raw doc %s",
+                  _pid.ShortDebugString().c_str(),
+                  buildId.ShortDebugString().c_str(),
+                  _pid.buildid().ShortDebugString().c_str(),
+                  rawDoc->toString().c_str());
+        return false;
+    }
+
+    auto configPath = rawDoc->getField(CONFIG_PATH_KEY);
+    uint32_t schemaVersion = 0;
+    auto schemaVersionStr = rawDoc->getField(SCHEMA_VERSION_KEY);
+    if (!autil::StringUtil::fromString(schemaVersionStr, schemaVersion)) {
+        AUTIL_LOG(ERROR, "%s: schema version %s is invalid", _pid.ShortDebugString().c_str(), schemaVersionStr.c_str());
+        return false;
+    }
+    if (!alterTable(schemaVersion, configPath)) {
+        AUTIL_LOG(ERROR,
+                  "%s: alter table with config %s failed, ignore it",
+                  _pid.ShortDebugString().c_str(),
+                  configPath.c_str());
+    }
+    // do not need build
+    return false;
 }
 
 bool DirectBuilder::alterTable(uint32_t version, const std::string &configPath) {
@@ -664,6 +709,11 @@ bool DirectBuilder::alterTable(uint32_t version, const std::string &configPath) 
         }
         return false;
     }
+}
+
+void DirectBuilder::setLastLocator(const std::shared_ptr<indexlibv2::framework::Locator> &locator) {
+    autil::ScopedLock lock(_mutex);
+    _lastLocator = locator;
 }
 
 #undef OP_LOG

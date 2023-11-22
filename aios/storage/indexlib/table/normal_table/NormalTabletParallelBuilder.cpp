@@ -26,6 +26,10 @@
 #include "indexlib/index/deletionmap/DeletionMapBuildWorkItem.h"
 #include "indexlib/index/deletionmap/DeletionMapConfig.h"
 #include "indexlib/index/deletionmap/SingleDeletionMapBuilder.h"
+#include "indexlib/index/field_meta/Common.h"
+#include "indexlib/index/field_meta/FieldMetaBuildWorkItem.h"
+#include "indexlib/index/field_meta/SingleFieldMetaBuilder.h"
+#include "indexlib/index/field_meta/config/FieldMetaConfig.h"
 #include "indexlib/index/inverted_index/InvertedIndexBuildWorkItem.h"
 #include "indexlib/index/inverted_index/SingleInvertedIndexBuilder.h"
 #include "indexlib/index/inverted_index/config/PackageIndexConfig.h"
@@ -33,6 +37,10 @@
 #include "indexlib/index/primary_key/PrimaryKeyBuildWorkItem.h"
 #include "indexlib/index/primary_key/SinglePrimaryKeyBuilder.h"
 #include "indexlib/index/primary_key/config/PrimaryKeyIndexConfig.h"
+#include "indexlib/index/source/Common.h"
+#include "indexlib/index/source/SingleSourceBuilder.h"
+#include "indexlib/index/source/SourceBuildWorkItem.h"
+#include "indexlib/index/source/config/SourceIndexConfig.h"
 #include "indexlib/index/summary/SingleSummaryBuilder.h"
 #include "indexlib/index/summary/SummaryBuildWorkItem.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
@@ -105,12 +113,15 @@ Status NormalTabletParallelBuilder::ValidateConfigs(const std::shared_ptr<indexl
             indexConfig->GetIndexType() != indexlibv2::index::ATTRIBUTE_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::table::VIRTUAL_ATTRIBUTE_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::index::SUMMARY_INDEX_TYPE_STR &&
+            indexConfig->GetIndexType() != indexlibv2::index::SOURCE_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::index::ANN_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != index::OPERATION_LOG_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR &&
+            indexConfig->GetIndexType() != index::FIELD_META_INDEX_TYPE_STR &&
             indexConfig->GetIndexType() != indexlibv2::index::DELETION_MAP_INDEX_TYPE_STR) {
-            AUTIL_LOG(ERROR, "type [%s] index [%s] does not support multi-thread build",
+            AUTIL_LOG(WARN, "type [%s] index [%s] does not support multi-thread build",
                       indexConfig->GetIndexType().c_str(), indexConfig->GetIndexName().c_str());
+            _parallelable = false;
             return SwitchBuildMode(OpenOptions::STREAM);
         }
     }
@@ -132,8 +143,12 @@ NormalTabletParallelBuilder::PrepareForWrite(const std::shared_ptr<indexlibv2::c
         schema, tabletData, indexlibv2::index::ANN_INDEX_TYPE_STR, &_singleAnnBuilders));
     RETURN_STATUS_DIRECTLY_IF_ERROR(InitSingleBuilders<index::SingleSummaryBuilder>(
         schema, tabletData, indexlibv2::index::SUMMARY_INDEX_TYPE_STR, &_singleSummaryBuilders));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(InitSingleBuilders<index::SingleSourceBuilder>(
+        schema, tabletData, indexlibv2::index::SOURCE_INDEX_TYPE_STR, &_singleSourceBuilders));
     RETURN_STATUS_DIRECTLY_IF_ERROR(InitSingleBuilders<index::SingleOperationLogBuilder>(
         schema, tabletData, index::OPERATION_LOG_INDEX_TYPE_STR, &_singleOpLogBuilders));
+    RETURN_STATUS_DIRECTLY_IF_ERROR(InitSingleBuilders<index::SingleFieldMetaBuilder>(
+        schema, tabletData, index::FIELD_META_INDEX_TYPE_STR, &_singleFieldMetaBuilders));
     _isPreparedForWrite = true;
     return Status::OK();
 }
@@ -154,6 +169,9 @@ NormalTabletParallelBuilder::Init(const std::shared_ptr<indexlibv2::table::Norma
 
 Status NormalTabletParallelBuilder::SwitchBuildMode(OpenOptions::BuildMode buildMode)
 {
+    if (!_parallelable) {
+        buildMode = OpenOptions::STREAM;
+    }
     if (buildMode == _buildMode) {
         return Status::OK();
     }
@@ -376,10 +394,14 @@ Status NormalTabletParallelBuilder::Build(const std::shared_ptr<indexlibv2::docu
         _singleInvertedIndexBuilders, batch);
     CreateBuildWorkItems<indexlib::index::SingleSummaryBuilder, index::SummaryBuildWorkItem>(_singleSummaryBuilders,
                                                                                              batch);
+    CreateBuildWorkItems<indexlib::index::SingleSourceBuilder, indexlib::index::SourceBuildWorkItem>(
+        _singleSourceBuilders, batch);
     CreateBuildWorkItems<indexlib::index::ann::SingleAithetaBuilder, index::ann::AithetaBuildWorkItem>(
         _singleAnnBuilders, batch);
     CreateBuildWorkItems<indexlib::index::SingleOperationLogBuilder, index::OperationLogBuildWorkItem>(
         _singleOpLogBuilders, batch);
+    CreateBuildWorkItems<indexlib::index::SingleFieldMetaBuilder, index::FieldMetaBuildWorkItem>(
+        _singleFieldMetaBuilders, batch);
 
     // TODO (远轫）这里写的太丑了，在这里释放batch非常危险！
     // 通过 hook 并行析构参与 build 的 docs，确保不会干预 build 任务

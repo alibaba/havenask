@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DUMPSEGMENTCONTAINERTEST_H
-#define __INDEXLIB_DUMPSEGMENTCONTAINERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/custom_partition_data.h"
@@ -55,5 +54,3 @@ INDEXLIB_UNIT_TEST_CASE(DumpSegmentQueueTest, TestGetDumpingSegmentsSize);
 INDEXLIB_UNIT_TEST_CASE(DumpSegmentQueueTest, TestReclaimSegments);
 INDEXLIB_UNIT_TEST_CASE(DumpSegmentQueueTest, TestGetBuildingSegmentReaders);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_DUMPSEGMENTCONTAINERTEST_H

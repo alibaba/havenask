@@ -34,6 +34,7 @@ constexpr uint32_t BUFFER_SIZE = 256 * PAGE_SIZE;
 
 NaviPerfThread::NaviPerfThread(pid_t pid)
     : _pid(pid)
+    , _enabled(false)
     , _bufferSize(0)
     , _mmapSize(0)
     , _fd(-1)
@@ -118,6 +119,10 @@ void NaviPerfThread::flushLBR(int32_t depth) {
 }
 
 bool NaviPerfThread::enable() {
+    bool expect = false;
+    if (!_enabled.compare_exchange_weak(expect, true)) {
+        return false;
+    }
     int ret = ioctl(_fd, PERF_EVENT_IOC_ENABLE, 0);
     if (0 != ret) {
         NAVI_LOG(ERROR, "begin thread sample error");
@@ -127,6 +132,10 @@ bool NaviPerfThread::enable() {
 }
 
 bool NaviPerfThread::disable() {
+    bool expect = true;
+    if (!_enabled.compare_exchange_weak(expect, false)) {
+        return false;
+    }
     return ioctl(_fd, PERF_EVENT_IOC_DISABLE, 0);
 }
 

@@ -11,17 +11,32 @@ function graphDef()
    local lastFlowId = incFlowIds[#incFlowIds]
    local lastIncFlow = Graph.getFlow(lastFlowId)
    Log.log("", "last inc flow id:"..lastFlowId)
+   local kvMap = KVParamUtil()
+   for k,v in pairs(param) do
+       kvMap:setValue(k, v)
+   end
    if (lastIncFlow)
    then
       Log.log("", "finishing task:"..lastFlowId)
-      local kvMap = KVParamUtil()
-      for k,v in pairs(param) do
-          kvMap:setValue(k, v)
-      end
       if (lastIncFlow:finishTask("incBuilder", kvMap:toJsonString()))
       then
          Log.log("", "inc builder finishing")
-         local incBuild = Graph.loadSimpleFlow("builderV2", "incBuilder", kvMap:toJsonString())
+         lastIncFlow:setProperty("_flow_status_", "finishing")
+         local incProcessorIds = Graph.getFlowIdByTag(clusterName..":BSIncProcessor")
+         if ((#incProcessorIds) > 0)
+         then
+              local lastProcessorFlowId = incProcessorIds[#incProcessorIds]
+              param['incProcessorFlowId'] = lastProcessorFlowId
+              incProcessor = Graph.getFlow(lastProcessorFlowId)
+         else
+              local dsJson = Graph.parameter["realtimeDataDescription"]
+              param["data_description"] = dsJson
+         end
+         local incBuild = Graph.loadFlow("IncBuildV2.flow", param)
+         if ((#incProcessorIds) > 0)
+         then
+              Graph.declareFriend(incProcessor, incBuild)
+         end
          incBuild:addTag(clusterName..":IncBuild")
          incBuild:addTag("BSBuildV2")
          Graph.setUpstream(incBuild, lastIncFlow)

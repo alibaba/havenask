@@ -32,6 +32,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='InlineSKeyDumperTest',
     srcs=['InlineSKeyDumperTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/kkv/common:Trait',
         '//aios/storage/indexlib/index/kkv/dump:InlineSKeyDumper',
@@ -65,6 +66,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='PKeyDumperTest',
     srcs=['PKeyDumperTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/kkv/dump:PKeyDumper',
         '//aios/unittest_framework'
@@ -85,6 +87,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='KKVDocSorterFactoryTest',
     srcs=['KKVDocSorterFactoryTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/kkv/dump:KKVDocSorterFactory',
         '//aios/unittest_framework'

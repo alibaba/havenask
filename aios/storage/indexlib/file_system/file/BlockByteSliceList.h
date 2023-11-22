@@ -65,8 +65,8 @@ public:
     void AddBlock(size_t fileOffset, size_t dataSize) noexcept;
     void Clear(autil::mem_pool::Pool* pool) noexcept override;
     future_lite::coro::Lazy<bool> Prefetch(size_t length) noexcept override;
-    util::ByteSlice* GetNextSlice(util::ByteSlice* slice);
-    util::ByteSlice* GetSlice(size_t offset, util::ByteSlice* slice);
+    FSResult<util::ByteSlice*> GetNextSlice(util::ByteSlice* slice) noexcept;
+    FSResult<util::ByteSlice*> GetSlice(size_t offset, util::ByteSlice* slice) noexcept;
 
 private:
     BlockDataRetriever* CreateCompressBlockDataRetriever(const ReadOption& option,

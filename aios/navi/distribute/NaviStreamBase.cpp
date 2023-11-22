@@ -93,6 +93,7 @@ bool NaviStreamBase::setDomain(const GraphDomainRemoteBasePtr &domain) {
     NAVI_LOG(SCHEDULE1, "set domain [%p]", domain.get());
     auto ret = _domainHolder.init(domain);
     _initialized = true;
+    _domainGdb = domain.get();
     return ret;
 }
 

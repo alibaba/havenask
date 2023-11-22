@@ -1,5 +1,7 @@
 #include "build_service/util/test/FakeSwiftWriter.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace build_service { namespace util {

@@ -15,20 +15,25 @@
  */
 #pragma once
 
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
 #include "build_service/common_define.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
 #include "indexlib/misc/common.h"
+#include "indexlib/util/metrics/Metric.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 #include "kmonitor/client/core/MetricsTags.h"
 #include "swift/client/SwiftReader.h"
 #include "swift/common/RangeUtil.h"
-#include "swift/network/SwiftAdminAdapter.h"
 
 namespace indexlib { namespace util {
-class MetricProvider;
 DEFINE_SHARED_PTR(MetricProvider);
 }} // namespace indexlib::util
 

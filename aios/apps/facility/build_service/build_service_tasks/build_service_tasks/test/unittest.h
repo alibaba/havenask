@@ -1,5 +1,4 @@
-#ifndef __BUILD_SERVICE_TASKS_UNITTEST_H
-#define __BUILD_SERVICE_TASKS_UNITTEST_H
+#pragma once
 
 #include <dlfcn.h>
 #include <execinfo.h>
@@ -26,5 +25,3 @@ using testing::Throw;
 typedef TESTBASE BUILD_SERVICE_TASKS_TESTBASE;
 
 AUTIL_DECLARE_AND_SETUP_LOGGER(build_service_tasks, test);
-
-#endif

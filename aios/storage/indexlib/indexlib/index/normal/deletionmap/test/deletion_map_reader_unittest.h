@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DELETIONMAPREADERTEST_H
-#define __INDEXLIB_DELETIONMAPREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
@@ -50,5 +49,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(DeletionMapReaderTest, TestCaseForMultiInMemo
 
 INSTANTIATE_TEST_CASE_P(BuildMode, DeletionMapReaderTest, testing::Values(0, 1, 2));
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DELETIONMAPREADERTEST_H

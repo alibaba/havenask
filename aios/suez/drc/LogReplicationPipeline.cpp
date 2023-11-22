@@ -24,15 +24,17 @@
 #include "autil/Scope.h"
 #include "autil/TimeUtility.h"
 #include "build_service/util/LocatorUtil.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/TabletInfos.h"
 #include "kmonitor/client/MetricsReporter.h"
 #include "kmonitor/client/core/MutableMetric.h"
 #include "suez/drc/IgnoredLog.h"
+#include "suez/drc/KVUpdate2Add.h"
 #include "suez/drc/LogReader.h"
 #include "suez/drc/LogTracer.h"
 #include "suez/drc/LogWriter.h"
-#include "suez/drc/Update2Add.h"
+#include "suez/drc/SourceUpdate2Add.h"
 #include "worker_framework/WorkerState.h"
 
 namespace suez {
@@ -254,8 +256,20 @@ bool LogReplicationPipeline::recover() {
 }
 
 LogRewriter *LogReplicationPipeline::createLogRewriter() const {
-    auto rewriter = std::make_unique<Update2Add>();
-    if (!rewriter->init(_index.get())) {
+    if (!_index) {
+        return nullptr;
+    }
+    auto schema = _index->GetTabletSchema();
+    if (!schema) {
+        return nullptr;
+    }
+    std::unique_ptr<LogRewriter> rewriter;
+    if (schema->GetTableType() == "kv") {
+        rewriter.reset(new KVUpdate2Add);
+    } else if (schema->GetTableType() == "normal") {
+        rewriter.reset(new SourceUpdate2Add);
+    }
+    if (rewriter && !rewriter->init(_index.get())) {
         return nullptr;
     }
     return rewriter.release();
@@ -341,7 +355,7 @@ bool LogReplicationPipeline::replicateLogRange(int64_t start, int64_t end, size_
 int64_t LogReplicationPipeline::getVisibleLogId() const {
     auto tabletInfos = _index->GetTabletInfos();
     auto locator = tabletInfos->GetBuildLocator();
-    return build_service::util::LocatorUtil::GetSwiftWatermark(locator);
+    return build_service::util::LocatorUtil::getSwiftWatermark(locator);
 }
 
 bool LogReplicationPipeline::replicateLog(const LogRecord &log) {

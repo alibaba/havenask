@@ -51,7 +51,7 @@ IndexSummary::IndexSummary(versionid_t _versionId, int64_t _timestamp)
 {
 }
 
-IndexSummary::IndexSummary() : mVersionId(INVALID_VERSION), mTimestamp(INVALID_TIMESTAMP), mChanged(false) {}
+IndexSummary::IndexSummary() : mVersionId(INVALID_VERSIONID), mTimestamp(INVALID_TIMESTAMP), mChanged(false) {}
 
 IndexSummary::~IndexSummary() {}
 
@@ -116,7 +116,7 @@ IndexSummary IndexSummary::Load(const DirectoryPtr& rootDir, const vector<string
 
     // versionFiles must be ordered by versionId
     versionid_t vid = VersionLoader::GetVersionId(*versionFiles.rbegin());
-    versionid_t preVid = INVALID_VERSION;
+    versionid_t preVid = INVALID_VERSIONID;
     if (versionFiles.size() > 1) {
         preVid = VersionLoader::GetVersionId(versionFiles[versionFiles.size() - 2]);
     }
@@ -138,7 +138,7 @@ IndexSummary IndexSummary::Load(const DirectoryPtr& rootDir, const Version& vers
         return summary;
     }
 
-    if (preVersionId != INVALID_VERSION) {
+    if (preVersionId != INVALID_VERSIONID) {
         if (summary.Load(rootDir, util::PathUtil::JoinPath(INDEX_SUMMARY_INFO_DIR_NAME,
                                                            IndexSummary::GetFileName(preVersionId)))) {
             vector<SegmentSummary> segSummarys = GetSegmentSummaryForVersion(rootDir, version);

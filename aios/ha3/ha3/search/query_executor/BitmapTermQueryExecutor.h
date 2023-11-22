@@ -64,7 +64,7 @@ private:
         _bitmapIter = dynamic_cast<indexlib::index::BitmapPostingIterator *>(_iter);
     }
     indexlib::index::ErrorCode doSeek(docid_t id, docid_t &result) override {
-        docid_t tempDocId = INVALID_DOCID;
+        indexlib::docid64_t tempDocId = INVALID_DOCID;
         auto ec = _bitmapIter->InnerSeekDoc(id, tempDocId);
         IE_RETURN_CODE_IF_ERROR(ec);
         ++_seekDocCount;

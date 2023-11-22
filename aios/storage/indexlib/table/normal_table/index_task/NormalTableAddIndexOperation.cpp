@@ -31,7 +31,7 @@
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IndexFactoryCreator.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/table/normal_table/NormalTabletExportLoader.h"
 #include "indexlib/util/SimplePool.h"
 #include "indexlib/util/memory_control/BlockMemoryQuotaController.h"
@@ -97,7 +97,7 @@ Status NormalTableAddIndexOperation::PrepareMemIndexer(const framework::IndexTas
     auto [status, indexFactory] = indexFactoryCreator->Create(indexerType);
     RETURN_IF_STATUS_ERROR(status, "get index factory for index type [%s] failed", indexerType.c_str());
 
-    index::IndexerParameter indexerParam;
+    index::MemIndexerParameter indexerParam;
     indexerParam.metricsManager = context.GetMetricsManager().get();
 
     auto indexer = indexFactory->CreateMemIndexer(_indexConfig, indexerParam);
@@ -185,7 +185,7 @@ Status NormalTableAddIndexOperation::Execute(const framework::IndexTaskContext& 
     docid_t localDocId = 0;
     while (_docIter->HasNext()) {
         std::string ckpt;
-        document::IDocument::DocInfo docInfo;
+        framework::Locator::DocInfo docInfo;
         auto rawDoc = std::make_shared<document::DefaultRawDocument>();
         auto status = _docIter->Next(rawDoc.get(), &ckpt, &docInfo);
         RETURN_IF_STATUS_ERROR(status, "doc iter get next doc failed");
@@ -194,6 +194,9 @@ Status NormalTableAddIndexOperation::Execute(const framework::IndexTaskContext& 
         auto doc = dynamic_cast<document::NormalDocument*>((*docBatch)[0].get());
         assert(doc);
         doc->SetDocId(localDocId);
+        if (!_indexer->IsValidDocument(doc)) {
+            RETURN_STATUS_ERROR(Corruption, "validate document failed");
+        }
         status = _indexer->Build(docBatch.get());
         RETURN_IF_STATUS_ERROR(status, "build doc failed");
         localDocId++;

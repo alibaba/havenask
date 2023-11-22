@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#include <memory>
+#include <stdint.h>
+
 #include "autil/legacy/jsonizable.h"
 
 namespace indexlibv2::config {
@@ -39,7 +42,6 @@ public:
     int64_t GetReportMetricsIntervalMs() const;
     int64_t GetAsyncDumpIntervalMs() const;
     int64_t GetMergeIntervalMs() const;
-    int64_t GetMemReclaimIntervalMs() const;
     int64_t GetSubscribeRemoteIndexIntervalMs() const;
 
 private:
@@ -47,6 +49,7 @@ private:
 
 private:
     struct Impl;
+
     std::unique_ptr<Impl> _impl;
 };
 

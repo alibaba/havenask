@@ -31,6 +31,7 @@ class GraphBuilder;
 class KernelComputeContext;
 class KernelDefBuilder;
 class KernelInitContext;
+struct NamedData;
 }; // namespace navi
 
 namespace sql {

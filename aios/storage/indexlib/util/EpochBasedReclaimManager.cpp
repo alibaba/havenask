@@ -15,6 +15,8 @@
  */
 #include "indexlib/util/EpochBasedReclaimManager.h"
 
+#include <limits>
+
 #include "autil/TimeUtility.h"
 
 namespace indexlib::util {

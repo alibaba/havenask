@@ -31,7 +31,8 @@ bool RealtimeSegmentSearcher::Init(const SegmentPtr& segment, docid_t segmentBas
     return true;
 }
 
-bool RealtimeSegmentSearcher::DoSearch(const AithetaQueries& indexQuery, const std::shared_ptr<AithetaAuxSearchInfoBase>& searchInfo,
+bool RealtimeSegmentSearcher::DoSearch(const AithetaQueries& indexQuery,
+                                       const std::shared_ptr<AithetaAuxSearchInfoBase>& searchInfo,
                                        ResultHolder& resultHolder)
 {
     for (const auto& query : indexQuery.aithetaqueries()) {

@@ -6,1334 +6,1414 @@ package com.taobao.search.iquan.client.common.pb;
 /**
  * Protobuf type {@code iquan.pb.AnyValue}
  */
-public  final class AnyValue extends
-    com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:iquan.pb.AnyValue)
-    AnyValueOrBuilder {
-private static final long serialVersionUID = 0L;
-  // Use AnyValue.newBuilder() to construct.
-  private AnyValue(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
-    super(builder);
-  }
-  private AnyValue() {
-  }
-
-  @java.lang.Override
-  @SuppressWarnings({"unused"})
-  protected java.lang.Object newInstance(
-      UnusedPrivateParameter unused) {
-    return new AnyValue();
-  }
-
-  @java.lang.Override
-  public final com.google.protobuf.UnknownFieldSet
-  getUnknownFields() {
-    return this.unknownFields;
-  }
-  private AnyValue(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    this();
-    if (extensionRegistry == null) {
-      throw new java.lang.NullPointerException();
-    }
-    com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-        com.google.protobuf.UnknownFieldSet.newBuilder();
-    try {
-      boolean done = false;
-      while (!done) {
-        int tag = input.readTag();
-        switch (tag) {
-          case 0:
-            done = true;
-            break;
-          case 8: {
-            anyValueOneofCase_ = 1;
-            anyValueOneof_ = input.readBool();
-            break;
-          }
-          case 16: {
-            anyValueOneofCase_ = 2;
-            anyValueOneof_ = input.readInt32();
-            break;
-          }
-          case 24: {
-            anyValueOneofCase_ = 3;
-            anyValueOneof_ = input.readInt64();
-            break;
-          }
-          case 33: {
-            anyValueOneofCase_ = 4;
-            anyValueOneof_ = input.readDouble();
-            break;
-          }
-          case 42: {
-            java.lang.String s = input.readStringRequireUtf8();
-            anyValueOneofCase_ = 5;
-            anyValueOneof_ = s;
-            break;
-          }
-          case 50: {
-            com.taobao.search.iquan.client.common.pb.AnyValueList.Builder subBuilder = null;
-            if (anyValueOneofCase_ == 6) {
-              subBuilder = ((com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_).toBuilder();
-            }
-            anyValueOneof_ =
-                input.readMessage(com.taobao.search.iquan.client.common.pb.AnyValueList.parser(), extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom((com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_);
-              anyValueOneof_ = subBuilder.buildPartial();
-            }
-            anyValueOneofCase_ = 6;
-            break;
-          }
-          case 58: {
-            com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder subBuilder = null;
-            if (anyValueOneofCase_ == 7) {
-              subBuilder = ((com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_).toBuilder();
-            }
-            anyValueOneof_ =
-                input.readMessage(com.taobao.search.iquan.client.common.pb.AnyValueMap.parser(), extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom((com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_);
-              anyValueOneof_ = subBuilder.buildPartial();
-            }
-            anyValueOneofCase_ = 7;
-            break;
-          }
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
+public final class AnyValue extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:iquan.pb.AnyValue)
+        AnyValueOrBuilder {
+    public static final int BOOL_VALUE_FIELD_NUMBER = 1;
+    public static final int INT_VALUE_FIELD_NUMBER = 2;
+    public static final int LONG_VALUE_FIELD_NUMBER = 3;
+    public static final int DOUBLE_VALUE_FIELD_NUMBER = 4;
+    public static final int STRING_VALUE_FIELD_NUMBER = 5;
+    public static final int LIST_VALUE_FIELD_NUMBER = 6;
+    public static final int MAP_VALUE_FIELD_NUMBER = 7;
+    private static final long serialVersionUID = 0L;
+    // @@protoc_insertion_point(class_scope:iquan.pb.AnyValue)
+    private static final com.taobao.search.iquan.client.common.pb.AnyValue DEFAULT_INSTANCE;
+    private static final com.google.protobuf.Parser<AnyValue>
+            PARSER = new com.google.protobuf.AbstractParser<AnyValue>() {
+        @java.lang.Override
+        public AnyValue parsePartialFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws com.google.protobuf.InvalidProtocolBufferException {
+            return new AnyValue(input, extensionRegistry);
         }
-      }
-    } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-      throw e.setUnfinishedMessage(this);
-    } catch (java.io.IOException e) {
-      throw new com.google.protobuf.InvalidProtocolBufferException(
-          e).setUnfinishedMessage(this);
-    } finally {
-      this.unknownFields = unknownFields.build();
-      makeExtensionsImmutable();
-    }
-  }
-  public static final com.google.protobuf.Descriptors.Descriptor
-      getDescriptor() {
-    return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_descriptor;
-  }
+    };
 
-  @java.lang.Override
-  protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internalGetFieldAccessorTable() {
-    return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_fieldAccessorTable
-        .ensureFieldAccessorsInitialized(
-            com.taobao.search.iquan.client.common.pb.AnyValue.class, com.taobao.search.iquan.client.common.pb.AnyValue.Builder.class);
-  }
-
-  private int anyValueOneofCase_ = 0;
-  private java.lang.Object anyValueOneof_;
-  public enum AnyValueOneofCase
-      implements com.google.protobuf.Internal.EnumLite {
-    BOOL_VALUE(1),
-    INT_VALUE(2),
-    LONG_VALUE(3),
-    DOUBLE_VALUE(4),
-    STRING_VALUE(5),
-    LIST_VALUE(6),
-    MAP_VALUE(7),
-    ANYVALUEONEOF_NOT_SET(0);
-    private final int value;
-    private AnyValueOneofCase(int value) {
-      this.value = value;
-    }
-    /**
-     * @deprecated Use {@link #forNumber(int)} instead.
-     */
-    @java.lang.Deprecated
-    public static AnyValueOneofCase valueOf(int value) {
-      return forNumber(value);
+    static {
+        DEFAULT_INSTANCE = new com.taobao.search.iquan.client.common.pb.AnyValue();
     }
 
-    public static AnyValueOneofCase forNumber(int value) {
-      switch (value) {
-        case 1: return BOOL_VALUE;
-        case 2: return INT_VALUE;
-        case 3: return LONG_VALUE;
-        case 4: return DOUBLE_VALUE;
-        case 5: return STRING_VALUE;
-        case 6: return LIST_VALUE;
-        case 7: return MAP_VALUE;
-        case 0: return ANYVALUEONEOF_NOT_SET;
-        default: return null;
-      }
-    }
-    public int getNumber() {
-      return this.value;
-    }
-  };
+    ;
 
-  public AnyValueOneofCase
-  getAnyValueOneofCase() {
-    return AnyValueOneofCase.forNumber(
-        anyValueOneofCase_);
-  }
+    private int anyValueOneofCase_ = 0;
+    private java.lang.Object anyValueOneof_;
+    private byte memoizedIsInitialized = -1;
 
-  public static final int BOOL_VALUE_FIELD_NUMBER = 1;
-  /**
-   * <code>bool bool_value = 1;</code>
-   */
-  public boolean getBoolValue() {
-    if (anyValueOneofCase_ == 1) {
-      return (java.lang.Boolean) anyValueOneof_;
+    // Use AnyValue.newBuilder() to construct.
+    private AnyValue(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
     }
-    return false;
-  }
 
-  public static final int INT_VALUE_FIELD_NUMBER = 2;
-  /**
-   * <code>int32 int_value = 2;</code>
-   */
-  public int getIntValue() {
-    if (anyValueOneofCase_ == 2) {
-      return (java.lang.Integer) anyValueOneof_;
+    private AnyValue() {
     }
-    return 0;
-  }
 
-  public static final int LONG_VALUE_FIELD_NUMBER = 3;
-  /**
-   * <code>int64 long_value = 3;</code>
-   */
-  public long getLongValue() {
-    if (anyValueOneofCase_ == 3) {
-      return (java.lang.Long) anyValueOneof_;
+    private AnyValue(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        this();
+        if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+        }
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+                com.google.protobuf.UnknownFieldSet.newBuilder();
+        try {
+            boolean done = false;
+            while (!done) {
+                int tag = input.readTag();
+                switch (tag) {
+                    case 0:
+                        done = true;
+                        break;
+                    case 8: {
+                        anyValueOneofCase_ = 1;
+                        anyValueOneof_ = input.readBool();
+                        break;
+                    }
+                    case 16: {
+                        anyValueOneofCase_ = 2;
+                        anyValueOneof_ = input.readInt32();
+                        break;
+                    }
+                    case 24: {
+                        anyValueOneofCase_ = 3;
+                        anyValueOneof_ = input.readInt64();
+                        break;
+                    }
+                    case 33: {
+                        anyValueOneofCase_ = 4;
+                        anyValueOneof_ = input.readDouble();
+                        break;
+                    }
+                    case 42: {
+                        java.lang.String s = input.readStringRequireUtf8();
+                        anyValueOneofCase_ = 5;
+                        anyValueOneof_ = s;
+                        break;
+                    }
+                    case 50: {
+                        com.taobao.search.iquan.client.common.pb.AnyValueList.Builder subBuilder = null;
+                        if (anyValueOneofCase_ == 6) {
+                            subBuilder = ((com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_).toBuilder();
+                        }
+                        anyValueOneof_ =
+                                input.readMessage(com.taobao.search.iquan.client.common.pb.AnyValueList.parser(), extensionRegistry);
+                        if (subBuilder != null) {
+                            subBuilder.mergeFrom((com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_);
+                            anyValueOneof_ = subBuilder.buildPartial();
+                        }
+                        anyValueOneofCase_ = 6;
+                        break;
+                    }
+                    case 58: {
+                        com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder subBuilder = null;
+                        if (anyValueOneofCase_ == 7) {
+                            subBuilder = ((com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_).toBuilder();
+                        }
+                        anyValueOneof_ =
+                                input.readMessage(com.taobao.search.iquan.client.common.pb.AnyValueMap.parser(), extensionRegistry);
+                        if (subBuilder != null) {
+                            subBuilder.mergeFrom((com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_);
+                            anyValueOneof_ = subBuilder.buildPartial();
+                        }
+                        anyValueOneofCase_ = 7;
+                        break;
+                    }
+                    default: {
+                        if (!parseUnknownField(
+                                input, unknownFields, extensionRegistry, tag)) {
+                            done = true;
+                        }
+                        break;
+                    }
+                }
+            }
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(this);
+        } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(
+                    e).setUnfinishedMessage(this);
+        } finally {
+            this.unknownFields = unknownFields.build();
+            makeExtensionsImmutable();
+        }
     }
-    return 0L;
-  }
 
-  public static final int DOUBLE_VALUE_FIELD_NUMBER = 4;
-  /**
-   * <code>double double_value = 4;</code>
-   */
-  public double getDoubleValue() {
-    if (anyValueOneofCase_ == 4) {
-      return (java.lang.Double) anyValueOneof_;
-    }
-    return 0D;
-  }
-
-  public static final int STRING_VALUE_FIELD_NUMBER = 5;
-  /**
-   * <code>string string_value = 5;</code>
-   */
-  public java.lang.String getStringValue() {
-    java.lang.Object ref = "";
-    if (anyValueOneofCase_ == 5) {
-      ref = anyValueOneof_;
-    }
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (anyValueOneofCase_ == 5) {
-        anyValueOneof_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>string string_value = 5;</code>
-   */
-  public com.google.protobuf.ByteString
-      getStringValueBytes() {
-    java.lang.Object ref = "";
-    if (anyValueOneofCase_ == 5) {
-      ref = anyValueOneof_;
-    }
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      if (anyValueOneofCase_ == 5) {
-        anyValueOneof_ = b;
-      }
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int LIST_VALUE_FIELD_NUMBER = 6;
-  /**
-   * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-   */
-  public boolean hasListValue() {
-    return anyValueOneofCase_ == 6;
-  }
-  /**
-   * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-   */
-  public com.taobao.search.iquan.client.common.pb.AnyValueList getListValue() {
-    if (anyValueOneofCase_ == 6) {
-       return (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_;
-    }
-    return com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
-  }
-  /**
-   * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-   */
-  public com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder getListValueOrBuilder() {
-    if (anyValueOneofCase_ == 6) {
-       return (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_;
-    }
-    return com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
-  }
-
-  public static final int MAP_VALUE_FIELD_NUMBER = 7;
-  /**
-   * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-   */
-  public boolean hasMapValue() {
-    return anyValueOneofCase_ == 7;
-  }
-  /**
-   * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-   */
-  public com.taobao.search.iquan.client.common.pb.AnyValueMap getMapValue() {
-    if (anyValueOneofCase_ == 7) {
-       return (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_;
-    }
-    return com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
-  }
-  /**
-   * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-   */
-  public com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder getMapValueOrBuilder() {
-    if (anyValueOneofCase_ == 7) {
-       return (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_;
-    }
-    return com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
-  }
-
-  private byte memoizedIsInitialized = -1;
-  @java.lang.Override
-  public final boolean isInitialized() {
-    byte isInitialized = memoizedIsInitialized;
-    if (isInitialized == 1) return true;
-    if (isInitialized == 0) return false;
-
-    memoizedIsInitialized = 1;
-    return true;
-  }
-
-  @java.lang.Override
-  public void writeTo(com.google.protobuf.CodedOutputStream output)
-                      throws java.io.IOException {
-    if (anyValueOneofCase_ == 1) {
-      output.writeBool(
-          1, (boolean)((java.lang.Boolean) anyValueOneof_));
-    }
-    if (anyValueOneofCase_ == 2) {
-      output.writeInt32(
-          2, (int)((java.lang.Integer) anyValueOneof_));
-    }
-    if (anyValueOneofCase_ == 3) {
-      output.writeInt64(
-          3, (long)((java.lang.Long) anyValueOneof_));
-    }
-    if (anyValueOneofCase_ == 4) {
-      output.writeDouble(
-          4, (double)((java.lang.Double) anyValueOneof_));
-    }
-    if (anyValueOneofCase_ == 5) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, anyValueOneof_);
-    }
-    if (anyValueOneofCase_ == 6) {
-      output.writeMessage(6, (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_);
-    }
-    if (anyValueOneofCase_ == 7) {
-      output.writeMessage(7, (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_);
-    }
-    unknownFields.writeTo(output);
-  }
-
-  @java.lang.Override
-  public int getSerializedSize() {
-    int size = memoizedSize;
-    if (size != -1) return size;
-
-    size = 0;
-    if (anyValueOneofCase_ == 1) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(
-            1, (boolean)((java.lang.Boolean) anyValueOneof_));
-    }
-    if (anyValueOneofCase_ == 2) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(
-            2, (int)((java.lang.Integer) anyValueOneof_));
-    }
-    if (anyValueOneofCase_ == 3) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(
-            3, (long)((java.lang.Long) anyValueOneof_));
-    }
-    if (anyValueOneofCase_ == 4) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeDoubleSize(
-            4, (double)((java.lang.Double) anyValueOneof_));
-    }
-    if (anyValueOneofCase_ == 5) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, anyValueOneof_);
-    }
-    if (anyValueOneofCase_ == 6) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(6, (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_);
-    }
-    if (anyValueOneofCase_ == 7) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(7, (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_);
-    }
-    size += unknownFields.getSerializedSize();
-    memoizedSize = size;
-    return size;
-  }
-
-  @java.lang.Override
-  public boolean equals(final java.lang.Object obj) {
-    if (obj == this) {
-     return true;
-    }
-    if (!(obj instanceof com.taobao.search.iquan.client.common.pb.AnyValue)) {
-      return super.equals(obj);
-    }
-    com.taobao.search.iquan.client.common.pb.AnyValue other = (com.taobao.search.iquan.client.common.pb.AnyValue) obj;
-
-    if (!getAnyValueOneofCase().equals(other.getAnyValueOneofCase())) return false;
-    switch (anyValueOneofCase_) {
-      case 1:
-        if (getBoolValue()
-            != other.getBoolValue()) return false;
-        break;
-      case 2:
-        if (getIntValue()
-            != other.getIntValue()) return false;
-        break;
-      case 3:
-        if (getLongValue()
-            != other.getLongValue()) return false;
-        break;
-      case 4:
-        if (java.lang.Double.doubleToLongBits(getDoubleValue())
-            != java.lang.Double.doubleToLongBits(
-                other.getDoubleValue())) return false;
-        break;
-      case 5:
-        if (!getStringValue()
-            .equals(other.getStringValue())) return false;
-        break;
-      case 6:
-        if (!getListValue()
-            .equals(other.getListValue())) return false;
-        break;
-      case 7:
-        if (!getMapValue()
-            .equals(other.getMapValue())) return false;
-        break;
-      case 0:
-      default:
-    }
-    if (!unknownFields.equals(other.unknownFields)) return false;
-    return true;
-  }
-
-  @java.lang.Override
-  public int hashCode() {
-    if (memoizedHashCode != 0) {
-      return memoizedHashCode;
-    }
-    int hash = 41;
-    hash = (19 * hash) + getDescriptor().hashCode();
-    switch (anyValueOneofCase_) {
-      case 1:
-        hash = (37 * hash) + BOOL_VALUE_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-            getBoolValue());
-        break;
-      case 2:
-        hash = (37 * hash) + INT_VALUE_FIELD_NUMBER;
-        hash = (53 * hash) + getIntValue();
-        break;
-      case 3:
-        hash = (37 * hash) + LONG_VALUE_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            getLongValue());
-        break;
-      case 4:
-        hash = (37 * hash) + DOUBLE_VALUE_FIELD_NUMBER;
-        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-            java.lang.Double.doubleToLongBits(getDoubleValue()));
-        break;
-      case 5:
-        hash = (37 * hash) + STRING_VALUE_FIELD_NUMBER;
-        hash = (53 * hash) + getStringValue().hashCode();
-        break;
-      case 6:
-        hash = (37 * hash) + LIST_VALUE_FIELD_NUMBER;
-        hash = (53 * hash) + getListValue().hashCode();
-        break;
-      case 7:
-        hash = (37 * hash) + MAP_VALUE_FIELD_NUMBER;
-        hash = (53 * hash) + getMapValue().hashCode();
-        break;
-      case 0:
-      default:
-    }
-    hash = (29 * hash) + unknownFields.hashCode();
-    memoizedHashCode = hash;
-    return hash;
-  }
-
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
-      java.nio.ByteBuffer data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
-      java.nio.ByteBuffer data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
-      com.google.protobuf.ByteString data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
-      com.google.protobuf.ByteString data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(byte[] data)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
-      byte[] data,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws com.google.protobuf.InvalidProtocolBufferException {
-    return PARSER.parseFrom(data, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseDelimitedFrom(java.io.InputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseDelimitedWithIOException(PARSER, input);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseDelimitedFrom(
-      java.io.InputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
-      com.google.protobuf.CodedInputStream input)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input);
-  }
-  public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
-      com.google.protobuf.CodedInputStream input,
-      com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-      throws java.io.IOException {
-    return com.google.protobuf.GeneratedMessageV3
-        .parseWithIOException(PARSER, input, extensionRegistry);
-  }
-
-  @java.lang.Override
-  public Builder newBuilderForType() { return newBuilder(); }
-  public static Builder newBuilder() {
-    return DEFAULT_INSTANCE.toBuilder();
-  }
-  public static Builder newBuilder(com.taobao.search.iquan.client.common.pb.AnyValue prototype) {
-    return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-  }
-  @java.lang.Override
-  public Builder toBuilder() {
-    return this == DEFAULT_INSTANCE
-        ? new Builder() : new Builder().mergeFrom(this);
-  }
-
-  @java.lang.Override
-  protected Builder newBuilderForType(
-      com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-    Builder builder = new Builder(parent);
-    return builder;
-  }
-  /**
-   * Protobuf type {@code iquan.pb.AnyValue}
-   */
-  public static final class Builder extends
-      com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:iquan.pb.AnyValue)
-      com.taobao.search.iquan.client.common.pb.AnyValueOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_descriptor;
+    getDescriptor() {
+        return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_descriptor;
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
+            java.nio.ByteBuffer data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
+            java.nio.ByteBuffer data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
+            com.google.protobuf.ByteString data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
+            com.google.protobuf.ByteString data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(byte[] data)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
+            byte[] data,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(java.io.InputStream input)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
+            java.io.InputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseDelimitedFrom(java.io.InputStream input)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseDelimitedFrom(
+            java.io.InputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
+            com.google.protobuf.CodedInputStream input)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue parseFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+                .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+    }
+
+    public static Builder newBuilder(com.taobao.search.iquan.client.common.pb.AnyValue prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+
+    public static com.taobao.search.iquan.client.common.pb.AnyValue getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+    }
+
+    public static com.google.protobuf.Parser<AnyValue> parser() {
+        return PARSER;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+            UnusedPrivateParameter unused) {
+        return new AnyValue();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+        return this.unknownFields;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              com.taobao.search.iquan.client.common.pb.AnyValue.class, com.taobao.search.iquan.client.common.pb.AnyValue.Builder.class);
+    internalGetFieldAccessorTable() {
+        return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_fieldAccessorTable
+                .ensureFieldAccessorsInitialized(
+                        com.taobao.search.iquan.client.common.pb.AnyValue.class, com.taobao.search.iquan.client.common.pb.AnyValue.Builder.class);
     }
 
-    // Construct using com.taobao.search.iquan.client.common.pb.AnyValue.newBuilder()
-    private Builder() {
-      maybeForceBuilderInitialization();
-    }
-
-    private Builder(
-        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
-      super(parent);
-      maybeForceBuilderInitialization();
-    }
-    private void maybeForceBuilderInitialization() {
-      if (com.google.protobuf.GeneratedMessageV3
-              .alwaysUseFieldBuilders) {
-      }
-    }
-    @java.lang.Override
-    public Builder clear() {
-      super.clear();
-      anyValueOneofCase_ = 0;
-      anyValueOneof_ = null;
-      return this;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor
-        getDescriptorForType() {
-      return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_descriptor;
-    }
-
-    @java.lang.Override
-    public com.taobao.search.iquan.client.common.pb.AnyValue getDefaultInstanceForType() {
-      return com.taobao.search.iquan.client.common.pb.AnyValue.getDefaultInstance();
-    }
-
-    @java.lang.Override
-    public com.taobao.search.iquan.client.common.pb.AnyValue build() {
-      com.taobao.search.iquan.client.common.pb.AnyValue result = buildPartial();
-      if (!result.isInitialized()) {
-        throw newUninitializedMessageException(result);
-      }
-      return result;
-    }
-
-    @java.lang.Override
-    public com.taobao.search.iquan.client.common.pb.AnyValue buildPartial() {
-      com.taobao.search.iquan.client.common.pb.AnyValue result = new com.taobao.search.iquan.client.common.pb.AnyValue(this);
-      if (anyValueOneofCase_ == 1) {
-        result.anyValueOneof_ = anyValueOneof_;
-      }
-      if (anyValueOneofCase_ == 2) {
-        result.anyValueOneof_ = anyValueOneof_;
-      }
-      if (anyValueOneofCase_ == 3) {
-        result.anyValueOneof_ = anyValueOneof_;
-      }
-      if (anyValueOneofCase_ == 4) {
-        result.anyValueOneof_ = anyValueOneof_;
-      }
-      if (anyValueOneofCase_ == 5) {
-        result.anyValueOneof_ = anyValueOneof_;
-      }
-      if (anyValueOneofCase_ == 6) {
-        if (listValueBuilder_ == null) {
-          result.anyValueOneof_ = anyValueOneof_;
-        } else {
-          result.anyValueOneof_ = listValueBuilder_.build();
-        }
-      }
-      if (anyValueOneofCase_ == 7) {
-        if (mapValueBuilder_ == null) {
-          result.anyValueOneof_ = anyValueOneof_;
-        } else {
-          result.anyValueOneof_ = mapValueBuilder_.build();
-        }
-      }
-      result.anyValueOneofCase_ = anyValueOneofCase_;
-      onBuilt();
-      return result;
-    }
-
-    @java.lang.Override
-    public Builder clone() {
-      return super.clone();
-    }
-    @java.lang.Override
-    public Builder setField(
-        com.google.protobuf.Descriptors.FieldDescriptor field,
-        java.lang.Object value) {
-      return super.setField(field, value);
-    }
-    @java.lang.Override
-    public Builder clearField(
-        com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return super.clearField(field);
-    }
-    @java.lang.Override
-    public Builder clearOneof(
-        com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return super.clearOneof(oneof);
-    }
-    @java.lang.Override
-    public Builder setRepeatedField(
-        com.google.protobuf.Descriptors.FieldDescriptor field,
-        int index, java.lang.Object value) {
-      return super.setRepeatedField(field, index, value);
-    }
-    @java.lang.Override
-    public Builder addRepeatedField(
-        com.google.protobuf.Descriptors.FieldDescriptor field,
-        java.lang.Object value) {
-      return super.addRepeatedField(field, value);
-    }
-    @java.lang.Override
-    public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.taobao.search.iquan.client.common.pb.AnyValue) {
-        return mergeFrom((com.taobao.search.iquan.client.common.pb.AnyValue)other);
-      } else {
-        super.mergeFrom(other);
-        return this;
-      }
-    }
-
-    public Builder mergeFrom(com.taobao.search.iquan.client.common.pb.AnyValue other) {
-      if (other == com.taobao.search.iquan.client.common.pb.AnyValue.getDefaultInstance()) return this;
-      switch (other.getAnyValueOneofCase()) {
-        case BOOL_VALUE: {
-          setBoolValue(other.getBoolValue());
-          break;
-        }
-        case INT_VALUE: {
-          setIntValue(other.getIntValue());
-          break;
-        }
-        case LONG_VALUE: {
-          setLongValue(other.getLongValue());
-          break;
-        }
-        case DOUBLE_VALUE: {
-          setDoubleValue(other.getDoubleValue());
-          break;
-        }
-        case STRING_VALUE: {
-          anyValueOneofCase_ = 5;
-          anyValueOneof_ = other.anyValueOneof_;
-          onChanged();
-          break;
-        }
-        case LIST_VALUE: {
-          mergeListValue(other.getListValue());
-          break;
-        }
-        case MAP_VALUE: {
-          mergeMapValue(other.getMapValue());
-          break;
-        }
-        case ANYVALUEONEOF_NOT_SET: {
-          break;
-        }
-      }
-      this.mergeUnknownFields(other.unknownFields);
-      onChanged();
-      return this;
-    }
-
-    @java.lang.Override
-    public final boolean isInitialized() {
-      return true;
-    }
-
-    @java.lang.Override
-    public Builder mergeFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      com.taobao.search.iquan.client.common.pb.AnyValue parsedMessage = null;
-      try {
-        parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (com.taobao.search.iquan.client.common.pb.AnyValue) e.getUnfinishedMessage();
-        throw e.unwrapIOException();
-      } finally {
-        if (parsedMessage != null) {
-          mergeFrom(parsedMessage);
-        }
-      }
-      return this;
-    }
-    private int anyValueOneofCase_ = 0;
-    private java.lang.Object anyValueOneof_;
     public AnyValueOneofCase
-        getAnyValueOneofCase() {
-      return AnyValueOneofCase.forNumber(
-          anyValueOneofCase_);
+    getAnyValueOneofCase() {
+        return AnyValueOneofCase.forNumber(
+                anyValueOneofCase_);
     }
-
-    public Builder clearAnyValueOneof() {
-      anyValueOneofCase_ = 0;
-      anyValueOneof_ = null;
-      onChanged();
-      return this;
-    }
-
 
     /**
      * <code>bool bool_value = 1;</code>
      */
     public boolean getBoolValue() {
-      if (anyValueOneofCase_ == 1) {
-        return (java.lang.Boolean) anyValueOneof_;
-      }
-      return false;
-    }
-    /**
-     * <code>bool bool_value = 1;</code>
-     */
-    public Builder setBoolValue(boolean value) {
-      anyValueOneofCase_ = 1;
-      anyValueOneof_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>bool bool_value = 1;</code>
-     */
-    public Builder clearBoolValue() {
-      if (anyValueOneofCase_ == 1) {
-        anyValueOneofCase_ = 0;
-        anyValueOneof_ = null;
-        onChanged();
-      }
-      return this;
+        if (anyValueOneofCase_ == 1) {
+            return (java.lang.Boolean) anyValueOneof_;
+        }
+        return false;
     }
 
     /**
      * <code>int32 int_value = 2;</code>
      */
     public int getIntValue() {
-      if (anyValueOneofCase_ == 2) {
-        return (java.lang.Integer) anyValueOneof_;
-      }
-      return 0;
-    }
-    /**
-     * <code>int32 int_value = 2;</code>
-     */
-    public Builder setIntValue(int value) {
-      anyValueOneofCase_ = 2;
-      anyValueOneof_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>int32 int_value = 2;</code>
-     */
-    public Builder clearIntValue() {
-      if (anyValueOneofCase_ == 2) {
-        anyValueOneofCase_ = 0;
-        anyValueOneof_ = null;
-        onChanged();
-      }
-      return this;
+        if (anyValueOneofCase_ == 2) {
+            return (java.lang.Integer) anyValueOneof_;
+        }
+        return 0;
     }
 
     /**
      * <code>int64 long_value = 3;</code>
      */
     public long getLongValue() {
-      if (anyValueOneofCase_ == 3) {
-        return (java.lang.Long) anyValueOneof_;
-      }
-      return 0L;
-    }
-    /**
-     * <code>int64 long_value = 3;</code>
-     */
-    public Builder setLongValue(long value) {
-      anyValueOneofCase_ = 3;
-      anyValueOneof_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>int64 long_value = 3;</code>
-     */
-    public Builder clearLongValue() {
-      if (anyValueOneofCase_ == 3) {
-        anyValueOneofCase_ = 0;
-        anyValueOneof_ = null;
-        onChanged();
-      }
-      return this;
+        if (anyValueOneofCase_ == 3) {
+            return (java.lang.Long) anyValueOneof_;
+        }
+        return 0L;
     }
 
     /**
      * <code>double double_value = 4;</code>
      */
     public double getDoubleValue() {
-      if (anyValueOneofCase_ == 4) {
-        return (java.lang.Double) anyValueOneof_;
-      }
-      return 0D;
-    }
-    /**
-     * <code>double double_value = 4;</code>
-     */
-    public Builder setDoubleValue(double value) {
-      anyValueOneofCase_ = 4;
-      anyValueOneof_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>double double_value = 4;</code>
-     */
-    public Builder clearDoubleValue() {
-      if (anyValueOneofCase_ == 4) {
-        anyValueOneofCase_ = 0;
-        anyValueOneof_ = null;
-        onChanged();
-      }
-      return this;
+        if (anyValueOneofCase_ == 4) {
+            return (java.lang.Double) anyValueOneof_;
+        }
+        return 0D;
     }
 
     /**
      * <code>string string_value = 5;</code>
      */
     public java.lang.String getStringValue() {
-      java.lang.Object ref = "";
-      if (anyValueOneofCase_ == 5) {
-        ref = anyValueOneof_;
-      }
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
+        java.lang.Object ref = "";
         if (anyValueOneofCase_ == 5) {
-          anyValueOneof_ = s;
+            ref = anyValueOneof_;
         }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
+        if (ref instanceof java.lang.String) {
+            return (java.lang.String) ref;
+        } else {
+            com.google.protobuf.ByteString bs =
+                    (com.google.protobuf.ByteString) ref;
+            java.lang.String s = bs.toStringUtf8();
+            if (anyValueOneofCase_ == 5) {
+                anyValueOneof_ = s;
+            }
+            return s;
+        }
     }
+
     /**
      * <code>string string_value = 5;</code>
      */
     public com.google.protobuf.ByteString
-        getStringValueBytes() {
-      java.lang.Object ref = "";
-      if (anyValueOneofCase_ == 5) {
-        ref = anyValueOneof_;
-      }
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
+    getStringValueBytes() {
+        java.lang.Object ref = "";
         if (anyValueOneofCase_ == 5) {
-          anyValueOneof_ = b;
+            ref = anyValueOneof_;
         }
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>string string_value = 5;</code>
-     */
-    public Builder setStringValue(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  anyValueOneofCase_ = 5;
-      anyValueOneof_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string string_value = 5;</code>
-     */
-    public Builder clearStringValue() {
-      if (anyValueOneofCase_ == 5) {
-        anyValueOneofCase_ = 0;
-        anyValueOneof_ = null;
-        onChanged();
-      }
-      return this;
-    }
-    /**
-     * <code>string string_value = 5;</code>
-     */
-    public Builder setStringValueBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-      anyValueOneofCase_ = 5;
-      anyValueOneof_ = value;
-      onChanged();
-      return this;
+        if (ref instanceof java.lang.String) {
+            com.google.protobuf.ByteString b =
+                    com.google.protobuf.ByteString.copyFromUtf8(
+                            (java.lang.String) ref);
+            if (anyValueOneofCase_ == 5) {
+                anyValueOneof_ = b;
+            }
+            return b;
+        } else {
+            return (com.google.protobuf.ByteString) ref;
+        }
     }
 
-    private com.google.protobuf.SingleFieldBuilderV3<
-        com.taobao.search.iquan.client.common.pb.AnyValueList, com.taobao.search.iquan.client.common.pb.AnyValueList.Builder, com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder> listValueBuilder_;
     /**
      * <code>.iquan.pb.AnyValueList list_value = 6;</code>
      */
     public boolean hasListValue() {
-      return anyValueOneofCase_ == 6;
+        return anyValueOneofCase_ == 6;
     }
+
     /**
      * <code>.iquan.pb.AnyValueList list_value = 6;</code>
      */
     public com.taobao.search.iquan.client.common.pb.AnyValueList getListValue() {
-      if (listValueBuilder_ == null) {
         if (anyValueOneofCase_ == 6) {
-          return (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_;
+            return (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_;
         }
         return com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
-      } else {
-        if (anyValueOneofCase_ == 6) {
-          return listValueBuilder_.getMessage();
-        }
-        return com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
-      }
     }
-    /**
-     * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-     */
-    public Builder setListValue(com.taobao.search.iquan.client.common.pb.AnyValueList value) {
-      if (listValueBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        anyValueOneof_ = value;
-        onChanged();
-      } else {
-        listValueBuilder_.setMessage(value);
-      }
-      anyValueOneofCase_ = 6;
-      return this;
-    }
-    /**
-     * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-     */
-    public Builder setListValue(
-        com.taobao.search.iquan.client.common.pb.AnyValueList.Builder builderForValue) {
-      if (listValueBuilder_ == null) {
-        anyValueOneof_ = builderForValue.build();
-        onChanged();
-      } else {
-        listValueBuilder_.setMessage(builderForValue.build());
-      }
-      anyValueOneofCase_ = 6;
-      return this;
-    }
-    /**
-     * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-     */
-    public Builder mergeListValue(com.taobao.search.iquan.client.common.pb.AnyValueList value) {
-      if (listValueBuilder_ == null) {
-        if (anyValueOneofCase_ == 6 &&
-            anyValueOneof_ != com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance()) {
-          anyValueOneof_ = com.taobao.search.iquan.client.common.pb.AnyValueList.newBuilder((com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_)
-              .mergeFrom(value).buildPartial();
-        } else {
-          anyValueOneof_ = value;
-        }
-        onChanged();
-      } else {
-        if (anyValueOneofCase_ == 6) {
-          listValueBuilder_.mergeFrom(value);
-        }
-        listValueBuilder_.setMessage(value);
-      }
-      anyValueOneofCase_ = 6;
-      return this;
-    }
-    /**
-     * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-     */
-    public Builder clearListValue() {
-      if (listValueBuilder_ == null) {
-        if (anyValueOneofCase_ == 6) {
-          anyValueOneofCase_ = 0;
-          anyValueOneof_ = null;
-          onChanged();
-        }
-      } else {
-        if (anyValueOneofCase_ == 6) {
-          anyValueOneofCase_ = 0;
-          anyValueOneof_ = null;
-        }
-        listValueBuilder_.clear();
-      }
-      return this;
-    }
-    /**
-     * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-     */
-    public com.taobao.search.iquan.client.common.pb.AnyValueList.Builder getListValueBuilder() {
-      return getListValueFieldBuilder().getBuilder();
-    }
+
     /**
      * <code>.iquan.pb.AnyValueList list_value = 6;</code>
      */
     public com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder getListValueOrBuilder() {
-      if ((anyValueOneofCase_ == 6) && (listValueBuilder_ != null)) {
-        return listValueBuilder_.getMessageOrBuilder();
-      } else {
         if (anyValueOneofCase_ == 6) {
-          return (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_;
+            return (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_;
         }
         return com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
-      }
-    }
-    /**
-     * <code>.iquan.pb.AnyValueList list_value = 6;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        com.taobao.search.iquan.client.common.pb.AnyValueList, com.taobao.search.iquan.client.common.pb.AnyValueList.Builder, com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder> 
-        getListValueFieldBuilder() {
-      if (listValueBuilder_ == null) {
-        if (!(anyValueOneofCase_ == 6)) {
-          anyValueOneof_ = com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
-        }
-        listValueBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            com.taobao.search.iquan.client.common.pb.AnyValueList, com.taobao.search.iquan.client.common.pb.AnyValueList.Builder, com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder>(
-                (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_,
-                getParentForChildren(),
-                isClean());
-        anyValueOneof_ = null;
-      }
-      anyValueOneofCase_ = 6;
-      onChanged();;
-      return listValueBuilder_;
     }
 
-    private com.google.protobuf.SingleFieldBuilderV3<
-        com.taobao.search.iquan.client.common.pb.AnyValueMap, com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder, com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder> mapValueBuilder_;
     /**
      * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
      */
     public boolean hasMapValue() {
-      return anyValueOneofCase_ == 7;
+        return anyValueOneofCase_ == 7;
     }
+
     /**
      * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
      */
     public com.taobao.search.iquan.client.common.pb.AnyValueMap getMapValue() {
-      if (mapValueBuilder_ == null) {
         if (anyValueOneofCase_ == 7) {
-          return (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_;
+            return (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_;
         }
         return com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
-      } else {
-        if (anyValueOneofCase_ == 7) {
-          return mapValueBuilder_.getMessage();
-        }
-        return com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
-      }
     }
-    /**
-     * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-     */
-    public Builder setMapValue(com.taobao.search.iquan.client.common.pb.AnyValueMap value) {
-      if (mapValueBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        anyValueOneof_ = value;
-        onChanged();
-      } else {
-        mapValueBuilder_.setMessage(value);
-      }
-      anyValueOneofCase_ = 7;
-      return this;
-    }
-    /**
-     * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-     */
-    public Builder setMapValue(
-        com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder builderForValue) {
-      if (mapValueBuilder_ == null) {
-        anyValueOneof_ = builderForValue.build();
-        onChanged();
-      } else {
-        mapValueBuilder_.setMessage(builderForValue.build());
-      }
-      anyValueOneofCase_ = 7;
-      return this;
-    }
-    /**
-     * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-     */
-    public Builder mergeMapValue(com.taobao.search.iquan.client.common.pb.AnyValueMap value) {
-      if (mapValueBuilder_ == null) {
-        if (anyValueOneofCase_ == 7 &&
-            anyValueOneof_ != com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance()) {
-          anyValueOneof_ = com.taobao.search.iquan.client.common.pb.AnyValueMap.newBuilder((com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_)
-              .mergeFrom(value).buildPartial();
-        } else {
-          anyValueOneof_ = value;
-        }
-        onChanged();
-      } else {
-        if (anyValueOneofCase_ == 7) {
-          mapValueBuilder_.mergeFrom(value);
-        }
-        mapValueBuilder_.setMessage(value);
-      }
-      anyValueOneofCase_ = 7;
-      return this;
-    }
-    /**
-     * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-     */
-    public Builder clearMapValue() {
-      if (mapValueBuilder_ == null) {
-        if (anyValueOneofCase_ == 7) {
-          anyValueOneofCase_ = 0;
-          anyValueOneof_ = null;
-          onChanged();
-        }
-      } else {
-        if (anyValueOneofCase_ == 7) {
-          anyValueOneofCase_ = 0;
-          anyValueOneof_ = null;
-        }
-        mapValueBuilder_.clear();
-      }
-      return this;
-    }
-    /**
-     * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-     */
-    public com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder getMapValueBuilder() {
-      return getMapValueFieldBuilder().getBuilder();
-    }
+
     /**
      * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
      */
     public com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder getMapValueOrBuilder() {
-      if ((anyValueOneofCase_ == 7) && (mapValueBuilder_ != null)) {
-        return mapValueBuilder_.getMessageOrBuilder();
-      } else {
         if (anyValueOneofCase_ == 7) {
-          return (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_;
+            return (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_;
         }
         return com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
-      }
     }
-    /**
-     * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        com.taobao.search.iquan.client.common.pb.AnyValueMap, com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder, com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder> 
-        getMapValueFieldBuilder() {
-      if (mapValueBuilder_ == null) {
-        if (!(anyValueOneofCase_ == 7)) {
-          anyValueOneof_ = com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
+
+    @java.lang.Override
+    public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+            throws java.io.IOException {
+        if (anyValueOneofCase_ == 1) {
+            output.writeBool(
+                    1, (boolean) ((java.lang.Boolean) anyValueOneof_));
         }
-        mapValueBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            com.taobao.search.iquan.client.common.pb.AnyValueMap, com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder, com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder>(
-                (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_,
-                getParentForChildren(),
-                isClean());
-        anyValueOneof_ = null;
-      }
-      anyValueOneofCase_ = 7;
-      onChanged();;
-      return mapValueBuilder_;
+        if (anyValueOneofCase_ == 2) {
+            output.writeInt32(
+                    2, (int) ((java.lang.Integer) anyValueOneof_));
+        }
+        if (anyValueOneofCase_ == 3) {
+            output.writeInt64(
+                    3, (long) ((java.lang.Long) anyValueOneof_));
+        }
+        if (anyValueOneofCase_ == 4) {
+            output.writeDouble(
+                    4, (double) ((java.lang.Double) anyValueOneof_));
+        }
+        if (anyValueOneofCase_ == 5) {
+            com.google.protobuf.GeneratedMessageV3.writeString(output, 5, anyValueOneof_);
+        }
+        if (anyValueOneofCase_ == 6) {
+            output.writeMessage(6, (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_);
+        }
+        if (anyValueOneofCase_ == 7) {
+            output.writeMessage(7, (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_);
+        }
+        unknownFields.writeTo(output);
     }
+
     @java.lang.Override
-    public final Builder setUnknownFields(
-        final com.google.protobuf.UnknownFieldSet unknownFields) {
-      return super.setUnknownFields(unknownFields);
+    public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (anyValueOneofCase_ == 1) {
+            size += com.google.protobuf.CodedOutputStream
+                    .computeBoolSize(
+                            1, (boolean) ((java.lang.Boolean) anyValueOneof_));
+        }
+        if (anyValueOneofCase_ == 2) {
+            size += com.google.protobuf.CodedOutputStream
+                    .computeInt32Size(
+                            2, (int) ((java.lang.Integer) anyValueOneof_));
+        }
+        if (anyValueOneofCase_ == 3) {
+            size += com.google.protobuf.CodedOutputStream
+                    .computeInt64Size(
+                            3, (long) ((java.lang.Long) anyValueOneof_));
+        }
+        if (anyValueOneofCase_ == 4) {
+            size += com.google.protobuf.CodedOutputStream
+                    .computeDoubleSize(
+                            4, (double) ((java.lang.Double) anyValueOneof_));
+        }
+        if (anyValueOneofCase_ == 5) {
+            size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, anyValueOneof_);
+        }
+        if (anyValueOneofCase_ == 6) {
+            size += com.google.protobuf.CodedOutputStream
+                    .computeMessageSize(6, (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_);
+        }
+        if (anyValueOneofCase_ == 7) {
+            size += com.google.protobuf.CodedOutputStream
+                    .computeMessageSize(7, (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_);
+        }
+        size += unknownFields.getSerializedSize();
+        memoizedSize = size;
+        return size;
     }
 
     @java.lang.Override
-    public final Builder mergeUnknownFields(
-        final com.google.protobuf.UnknownFieldSet unknownFields) {
-      return super.mergeUnknownFields(unknownFields);
+    public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof com.taobao.search.iquan.client.common.pb.AnyValue)) {
+            return super.equals(obj);
+        }
+        com.taobao.search.iquan.client.common.pb.AnyValue other = (com.taobao.search.iquan.client.common.pb.AnyValue) obj;
+
+        if (!getAnyValueOneofCase().equals(other.getAnyValueOneofCase())) return false;
+        switch (anyValueOneofCase_) {
+            case 1:
+                if (getBoolValue()
+                        != other.getBoolValue()) return false;
+                break;
+            case 2:
+                if (getIntValue()
+                        != other.getIntValue()) return false;
+                break;
+            case 3:
+                if (getLongValue()
+                        != other.getLongValue()) return false;
+                break;
+            case 4:
+                if (java.lang.Double.doubleToLongBits(getDoubleValue())
+                        != java.lang.Double.doubleToLongBits(
+                        other.getDoubleValue())) return false;
+                break;
+            case 5:
+                if (!getStringValue()
+                        .equals(other.getStringValue())) return false;
+                break;
+            case 6:
+                if (!getListValue()
+                        .equals(other.getListValue())) return false;
+                break;
+            case 7:
+                if (!getMapValue()
+                        .equals(other.getMapValue())) return false;
+                break;
+            case 0:
+            default:
+        }
+        if (!unknownFields.equals(other.unknownFields)) return false;
+        return true;
     }
 
-
-    // @@protoc_insertion_point(builder_scope:iquan.pb.AnyValue)
-  }
-
-  // @@protoc_insertion_point(class_scope:iquan.pb.AnyValue)
-  private static final com.taobao.search.iquan.client.common.pb.AnyValue DEFAULT_INSTANCE;
-  static {
-    DEFAULT_INSTANCE = new com.taobao.search.iquan.client.common.pb.AnyValue();
-  }
-
-  public static com.taobao.search.iquan.client.common.pb.AnyValue getDefaultInstance() {
-    return DEFAULT_INSTANCE;
-  }
-
-  private static final com.google.protobuf.Parser<AnyValue>
-      PARSER = new com.google.protobuf.AbstractParser<AnyValue>() {
     @java.lang.Override
-    public AnyValue parsePartialFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return new AnyValue(input, extensionRegistry);
+    public int hashCode() {
+        if (memoizedHashCode != 0) {
+            return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        switch (anyValueOneofCase_) {
+            case 1:
+                hash = (37 * hash) + BOOL_VALUE_FIELD_NUMBER;
+                hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+                        getBoolValue());
+                break;
+            case 2:
+                hash = (37 * hash) + INT_VALUE_FIELD_NUMBER;
+                hash = (53 * hash) + getIntValue();
+                break;
+            case 3:
+                hash = (37 * hash) + LONG_VALUE_FIELD_NUMBER;
+                hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+                        getLongValue());
+                break;
+            case 4:
+                hash = (37 * hash) + DOUBLE_VALUE_FIELD_NUMBER;
+                hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+                        java.lang.Double.doubleToLongBits(getDoubleValue()));
+                break;
+            case 5:
+                hash = (37 * hash) + STRING_VALUE_FIELD_NUMBER;
+                hash = (53 * hash) + getStringValue().hashCode();
+                break;
+            case 6:
+                hash = (37 * hash) + LIST_VALUE_FIELD_NUMBER;
+                hash = (53 * hash) + getListValue().hashCode();
+                break;
+            case 7:
+                hash = (37 * hash) + MAP_VALUE_FIELD_NUMBER;
+                hash = (53 * hash) + getMapValue().hashCode();
+                break;
+            case 0:
+            default:
+        }
+        hash = (29 * hash) + unknownFields.hashCode();
+        memoizedHashCode = hash;
+        return hash;
     }
-  };
 
-  public static com.google.protobuf.Parser<AnyValue> parser() {
-    return PARSER;
-  }
+    @java.lang.Override
+    public Builder newBuilderForType() {
+        return newBuilder();
+    }
 
-  @java.lang.Override
-  public com.google.protobuf.Parser<AnyValue> getParserForType() {
-    return PARSER;
-  }
+    @java.lang.Override
+    public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+                ? new Builder() : new Builder().mergeFrom(this);
+    }
 
-  @java.lang.Override
-  public com.taobao.search.iquan.client.common.pb.AnyValue getDefaultInstanceForType() {
-    return DEFAULT_INSTANCE;
-  }
+    @java.lang.Override
+    protected Builder newBuilderForType(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AnyValue> getParserForType() {
+        return PARSER;
+    }
+
+    @java.lang.Override
+    public com.taobao.search.iquan.client.common.pb.AnyValue getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+    }
+
+    public enum AnyValueOneofCase
+            implements com.google.protobuf.Internal.EnumLite {
+        BOOL_VALUE(1),
+        INT_VALUE(2),
+        LONG_VALUE(3),
+        DOUBLE_VALUE(4),
+        STRING_VALUE(5),
+        LIST_VALUE(6),
+        MAP_VALUE(7),
+        ANYVALUEONEOF_NOT_SET(0);
+        private final int value;
+
+        private AnyValueOneofCase(int value) {
+            this.value = value;
+        }
+
+        /**
+         * @deprecated Use {@link #forNumber(int)} instead.
+         */
+        @java.lang.Deprecated
+        public static AnyValueOneofCase valueOf(int value) {
+            return forNumber(value);
+        }
+
+        public static AnyValueOneofCase forNumber(int value) {
+            switch (value) {
+                case 1:
+                    return BOOL_VALUE;
+                case 2:
+                    return INT_VALUE;
+                case 3:
+                    return LONG_VALUE;
+                case 4:
+                    return DOUBLE_VALUE;
+                case 5:
+                    return STRING_VALUE;
+                case 6:
+                    return LIST_VALUE;
+                case 7:
+                    return MAP_VALUE;
+                case 0:
+                    return ANYVALUEONEOF_NOT_SET;
+                default:
+                    return null;
+            }
+        }
+
+        public int getNumber() {
+            return this.value;
+        }
+    }
+
+    /**
+     * Protobuf type {@code iquan.pb.AnyValue}
+     */
+    public static final class Builder extends
+            com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+            // @@protoc_insertion_point(builder_implements:iquan.pb.AnyValue)
+            com.taobao.search.iquan.client.common.pb.AnyValueOrBuilder {
+        private int anyValueOneofCase_ = 0;
+        private java.lang.Object anyValueOneof_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+                com.taobao.search.iquan.client.common.pb.AnyValueList, com.taobao.search.iquan.client.common.pb.AnyValueList.Builder, com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder> listValueBuilder_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+                com.taobao.search.iquan.client.common.pb.AnyValueMap, com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder, com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder> mapValueBuilder_;
+
+        // Construct using com.taobao.search.iquan.client.common.pb.AnyValue.newBuilder()
+        private Builder() {
+            maybeForceBuilderInitialization();
+        }
+
+        private Builder(
+                com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+            super(parent);
+            maybeForceBuilderInitialization();
+        }
+
+        public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+            return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+            return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_fieldAccessorTable
+                    .ensureFieldAccessorsInitialized(
+                            com.taobao.search.iquan.client.common.pb.AnyValue.class, com.taobao.search.iquan.client.common.pb.AnyValue.Builder.class);
+        }
+
+        private void maybeForceBuilderInitialization() {
+            if (com.google.protobuf.GeneratedMessageV3
+                    .alwaysUseFieldBuilders) {
+            }
+        }
+
+        @java.lang.Override
+        public Builder clear() {
+            super.clear();
+            anyValueOneofCase_ = 0;
+            anyValueOneof_ = null;
+            return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+        getDescriptorForType() {
+            return com.taobao.search.iquan.client.common.pb.Iquan.internal_static_iquan_pb_AnyValue_descriptor;
+        }
+
+        @java.lang.Override
+        public com.taobao.search.iquan.client.common.pb.AnyValue getDefaultInstanceForType() {
+            return com.taobao.search.iquan.client.common.pb.AnyValue.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public com.taobao.search.iquan.client.common.pb.AnyValue build() {
+            com.taobao.search.iquan.client.common.pb.AnyValue result = buildPartial();
+            if (!result.isInitialized()) {
+                throw newUninitializedMessageException(result);
+            }
+            return result;
+        }
+
+        @java.lang.Override
+        public com.taobao.search.iquan.client.common.pb.AnyValue buildPartial() {
+            com.taobao.search.iquan.client.common.pb.AnyValue result = new com.taobao.search.iquan.client.common.pb.AnyValue(this);
+            if (anyValueOneofCase_ == 1) {
+                result.anyValueOneof_ = anyValueOneof_;
+            }
+            if (anyValueOneofCase_ == 2) {
+                result.anyValueOneof_ = anyValueOneof_;
+            }
+            if (anyValueOneofCase_ == 3) {
+                result.anyValueOneof_ = anyValueOneof_;
+            }
+            if (anyValueOneofCase_ == 4) {
+                result.anyValueOneof_ = anyValueOneof_;
+            }
+            if (anyValueOneofCase_ == 5) {
+                result.anyValueOneof_ = anyValueOneof_;
+            }
+            if (anyValueOneofCase_ == 6) {
+                if (listValueBuilder_ == null) {
+                    result.anyValueOneof_ = anyValueOneof_;
+                } else {
+                    result.anyValueOneof_ = listValueBuilder_.build();
+                }
+            }
+            if (anyValueOneofCase_ == 7) {
+                if (mapValueBuilder_ == null) {
+                    result.anyValueOneof_ = anyValueOneof_;
+                } else {
+                    result.anyValueOneof_ = mapValueBuilder_.build();
+                }
+            }
+            result.anyValueOneofCase_ = anyValueOneofCase_;
+            onBuilt();
+            return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+            return super.clone();
+        }
+
+        @java.lang.Override
+        public Builder setField(
+                com.google.protobuf.Descriptors.FieldDescriptor field,
+                java.lang.Object value) {
+            return super.setField(field, value);
+        }
+
+        @java.lang.Override
+        public Builder clearField(
+                com.google.protobuf.Descriptors.FieldDescriptor field) {
+            return super.clearField(field);
+        }
+
+        @java.lang.Override
+        public Builder clearOneof(
+                com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+            return super.clearOneof(oneof);
+        }
+
+        @java.lang.Override
+        public Builder setRepeatedField(
+                com.google.protobuf.Descriptors.FieldDescriptor field,
+                int index, java.lang.Object value) {
+            return super.setRepeatedField(field, index, value);
+        }
+
+        @java.lang.Override
+        public Builder addRepeatedField(
+                com.google.protobuf.Descriptors.FieldDescriptor field,
+                java.lang.Object value) {
+            return super.addRepeatedField(field, value);
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+            if (other instanceof com.taobao.search.iquan.client.common.pb.AnyValue) {
+                return mergeFrom((com.taobao.search.iquan.client.common.pb.AnyValue) other);
+            } else {
+                super.mergeFrom(other);
+                return this;
+            }
+        }
+
+        public Builder mergeFrom(com.taobao.search.iquan.client.common.pb.AnyValue other) {
+            if (other == com.taobao.search.iquan.client.common.pb.AnyValue.getDefaultInstance()) return this;
+            switch (other.getAnyValueOneofCase()) {
+                case BOOL_VALUE: {
+                    setBoolValue(other.getBoolValue());
+                    break;
+                }
+                case INT_VALUE: {
+                    setIntValue(other.getIntValue());
+                    break;
+                }
+                case LONG_VALUE: {
+                    setLongValue(other.getLongValue());
+                    break;
+                }
+                case DOUBLE_VALUE: {
+                    setDoubleValue(other.getDoubleValue());
+                    break;
+                }
+                case STRING_VALUE: {
+                    anyValueOneofCase_ = 5;
+                    anyValueOneof_ = other.anyValueOneof_;
+                    onChanged();
+                    break;
+                }
+                case LIST_VALUE: {
+                    mergeListValue(other.getListValue());
+                    break;
+                }
+                case MAP_VALUE: {
+                    mergeMapValue(other.getMapValue());
+                    break;
+                }
+                case ANYVALUEONEOF_NOT_SET: {
+                    break;
+                }
+            }
+            this.mergeUnknownFields(other.unknownFields);
+            onChanged();
+            return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+            return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+                com.google.protobuf.CodedInputStream input,
+                com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+                throws java.io.IOException {
+            com.taobao.search.iquan.client.common.pb.AnyValue parsedMessage = null;
+            try {
+                parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+            } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+                parsedMessage = (com.taobao.search.iquan.client.common.pb.AnyValue) e.getUnfinishedMessage();
+                throw e.unwrapIOException();
+            } finally {
+                if (parsedMessage != null) {
+                    mergeFrom(parsedMessage);
+                }
+            }
+            return this;
+        }
+
+        public AnyValueOneofCase
+        getAnyValueOneofCase() {
+            return AnyValueOneofCase.forNumber(
+                    anyValueOneofCase_);
+        }
+
+        public Builder clearAnyValueOneof() {
+            anyValueOneofCase_ = 0;
+            anyValueOneof_ = null;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>bool bool_value = 1;</code>
+         */
+        public boolean getBoolValue() {
+            if (anyValueOneofCase_ == 1) {
+                return (java.lang.Boolean) anyValueOneof_;
+            }
+            return false;
+        }
+
+        /**
+         * <code>bool bool_value = 1;</code>
+         */
+        public Builder setBoolValue(boolean value) {
+            anyValueOneofCase_ = 1;
+            anyValueOneof_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>bool bool_value = 1;</code>
+         */
+        public Builder clearBoolValue() {
+            if (anyValueOneofCase_ == 1) {
+                anyValueOneofCase_ = 0;
+                anyValueOneof_ = null;
+                onChanged();
+            }
+            return this;
+        }
+
+        /**
+         * <code>int32 int_value = 2;</code>
+         */
+        public int getIntValue() {
+            if (anyValueOneofCase_ == 2) {
+                return (java.lang.Integer) anyValueOneof_;
+            }
+            return 0;
+        }
+
+        /**
+         * <code>int32 int_value = 2;</code>
+         */
+        public Builder setIntValue(int value) {
+            anyValueOneofCase_ = 2;
+            anyValueOneof_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>int32 int_value = 2;</code>
+         */
+        public Builder clearIntValue() {
+            if (anyValueOneofCase_ == 2) {
+                anyValueOneofCase_ = 0;
+                anyValueOneof_ = null;
+                onChanged();
+            }
+            return this;
+        }
+
+        /**
+         * <code>int64 long_value = 3;</code>
+         */
+        public long getLongValue() {
+            if (anyValueOneofCase_ == 3) {
+                return (java.lang.Long) anyValueOneof_;
+            }
+            return 0L;
+        }
+
+        /**
+         * <code>int64 long_value = 3;</code>
+         */
+        public Builder setLongValue(long value) {
+            anyValueOneofCase_ = 3;
+            anyValueOneof_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>int64 long_value = 3;</code>
+         */
+        public Builder clearLongValue() {
+            if (anyValueOneofCase_ == 3) {
+                anyValueOneofCase_ = 0;
+                anyValueOneof_ = null;
+                onChanged();
+            }
+            return this;
+        }
+
+        /**
+         * <code>double double_value = 4;</code>
+         */
+        public double getDoubleValue() {
+            if (anyValueOneofCase_ == 4) {
+                return (java.lang.Double) anyValueOneof_;
+            }
+            return 0D;
+        }
+
+        /**
+         * <code>double double_value = 4;</code>
+         */
+        public Builder setDoubleValue(double value) {
+            anyValueOneofCase_ = 4;
+            anyValueOneof_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>double double_value = 4;</code>
+         */
+        public Builder clearDoubleValue() {
+            if (anyValueOneofCase_ == 4) {
+                anyValueOneofCase_ = 0;
+                anyValueOneof_ = null;
+                onChanged();
+            }
+            return this;
+        }
+
+        /**
+         * <code>string string_value = 5;</code>
+         */
+        public java.lang.String getStringValue() {
+            java.lang.Object ref = "";
+            if (anyValueOneofCase_ == 5) {
+                ref = anyValueOneof_;
+            }
+            if (!(ref instanceof java.lang.String)) {
+                com.google.protobuf.ByteString bs =
+                        (com.google.protobuf.ByteString) ref;
+                java.lang.String s = bs.toStringUtf8();
+                if (anyValueOneofCase_ == 5) {
+                    anyValueOneof_ = s;
+                }
+                return s;
+            } else {
+                return (java.lang.String) ref;
+            }
+        }
+
+        /**
+         * <code>string string_value = 5;</code>
+         */
+        public Builder setStringValue(
+                java.lang.String value) {
+            if (value == null) {
+                throw new NullPointerException();
+            }
+            anyValueOneofCase_ = 5;
+            anyValueOneof_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>string string_value = 5;</code>
+         */
+        public com.google.protobuf.ByteString
+        getStringValueBytes() {
+            java.lang.Object ref = "";
+            if (anyValueOneofCase_ == 5) {
+                ref = anyValueOneof_;
+            }
+            if (ref instanceof String) {
+                com.google.protobuf.ByteString b =
+                        com.google.protobuf.ByteString.copyFromUtf8(
+                                (java.lang.String) ref);
+                if (anyValueOneofCase_ == 5) {
+                    anyValueOneof_ = b;
+                }
+                return b;
+            } else {
+                return (com.google.protobuf.ByteString) ref;
+            }
+        }
+
+        /**
+         * <code>string string_value = 5;</code>
+         */
+        public Builder setStringValueBytes(
+                com.google.protobuf.ByteString value) {
+            if (value == null) {
+                throw new NullPointerException();
+            }
+            checkByteStringIsUtf8(value);
+            anyValueOneofCase_ = 5;
+            anyValueOneof_ = value;
+            onChanged();
+            return this;
+        }
+
+        /**
+         * <code>string string_value = 5;</code>
+         */
+        public Builder clearStringValue() {
+            if (anyValueOneofCase_ == 5) {
+                anyValueOneofCase_ = 0;
+                anyValueOneof_ = null;
+                onChanged();
+            }
+            return this;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+         */
+        public boolean hasListValue() {
+            return anyValueOneofCase_ == 6;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.AnyValueList getListValue() {
+            if (listValueBuilder_ == null) {
+                if (anyValueOneofCase_ == 6) {
+                    return (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_;
+                }
+                return com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
+            } else {
+                if (anyValueOneofCase_ == 6) {
+                    return listValueBuilder_.getMessage();
+                }
+                return com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
+            }
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+         */
+        public Builder setListValue(com.taobao.search.iquan.client.common.pb.AnyValueList value) {
+            if (listValueBuilder_ == null) {
+                if (value == null) {
+                    throw new NullPointerException();
+                }
+                anyValueOneof_ = value;
+                onChanged();
+            } else {
+                listValueBuilder_.setMessage(value);
+            }
+            anyValueOneofCase_ = 6;
+            return this;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+         */
+        public Builder setListValue(
+                com.taobao.search.iquan.client.common.pb.AnyValueList.Builder builderForValue) {
+            if (listValueBuilder_ == null) {
+                anyValueOneof_ = builderForValue.build();
+                onChanged();
+            } else {
+                listValueBuilder_.setMessage(builderForValue.build());
+            }
+            anyValueOneofCase_ = 6;
+            return this;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+         */
+        public Builder mergeListValue(com.taobao.search.iquan.client.common.pb.AnyValueList value) {
+            if (listValueBuilder_ == null) {
+                if (anyValueOneofCase_ == 6 &&
+                        anyValueOneof_ != com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance()) {
+                    anyValueOneof_ = com.taobao.search.iquan.client.common.pb.AnyValueList.newBuilder((com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_)
+                            .mergeFrom(value).buildPartial();
+                } else {
+                    anyValueOneof_ = value;
+                }
+                onChanged();
+            } else {
+                if (anyValueOneofCase_ == 6) {
+                    listValueBuilder_.mergeFrom(value);
+                }
+                listValueBuilder_.setMessage(value);
+            }
+            anyValueOneofCase_ = 6;
+            return this;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+         */
+        public Builder clearListValue() {
+            if (listValueBuilder_ == null) {
+                if (anyValueOneofCase_ == 6) {
+                    anyValueOneofCase_ = 0;
+                    anyValueOneof_ = null;
+                    onChanged();
+                }
+            } else {
+                if (anyValueOneofCase_ == 6) {
+                    anyValueOneofCase_ = 0;
+                    anyValueOneof_ = null;
+                }
+                listValueBuilder_.clear();
+            }
+            return this;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.AnyValueList.Builder getListValueBuilder() {
+            return getListValueFieldBuilder().getBuilder();
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder getListValueOrBuilder() {
+            if ((anyValueOneofCase_ == 6) && (listValueBuilder_ != null)) {
+                return listValueBuilder_.getMessageOrBuilder();
+            } else {
+                if (anyValueOneofCase_ == 6) {
+                    return (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_;
+                }
+                return com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
+            }
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueList list_value = 6;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+                com.taobao.search.iquan.client.common.pb.AnyValueList, com.taobao.search.iquan.client.common.pb.AnyValueList.Builder, com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder>
+        getListValueFieldBuilder() {
+            if (listValueBuilder_ == null) {
+                if (!(anyValueOneofCase_ == 6)) {
+                    anyValueOneof_ = com.taobao.search.iquan.client.common.pb.AnyValueList.getDefaultInstance();
+                }
+                listValueBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                        com.taobao.search.iquan.client.common.pb.AnyValueList, com.taobao.search.iquan.client.common.pb.AnyValueList.Builder, com.taobao.search.iquan.client.common.pb.AnyValueListOrBuilder>(
+                        (com.taobao.search.iquan.client.common.pb.AnyValueList) anyValueOneof_,
+                        getParentForChildren(),
+                        isClean());
+                anyValueOneof_ = null;
+            }
+            anyValueOneofCase_ = 6;
+            onChanged();
+            ;
+            return listValueBuilder_;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+         */
+        public boolean hasMapValue() {
+            return anyValueOneofCase_ == 7;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.AnyValueMap getMapValue() {
+            if (mapValueBuilder_ == null) {
+                if (anyValueOneofCase_ == 7) {
+                    return (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_;
+                }
+                return com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
+            } else {
+                if (anyValueOneofCase_ == 7) {
+                    return mapValueBuilder_.getMessage();
+                }
+                return com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
+            }
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+         */
+        public Builder setMapValue(com.taobao.search.iquan.client.common.pb.AnyValueMap value) {
+            if (mapValueBuilder_ == null) {
+                if (value == null) {
+                    throw new NullPointerException();
+                }
+                anyValueOneof_ = value;
+                onChanged();
+            } else {
+                mapValueBuilder_.setMessage(value);
+            }
+            anyValueOneofCase_ = 7;
+            return this;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+         */
+        public Builder setMapValue(
+                com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder builderForValue) {
+            if (mapValueBuilder_ == null) {
+                anyValueOneof_ = builderForValue.build();
+                onChanged();
+            } else {
+                mapValueBuilder_.setMessage(builderForValue.build());
+            }
+            anyValueOneofCase_ = 7;
+            return this;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+         */
+        public Builder mergeMapValue(com.taobao.search.iquan.client.common.pb.AnyValueMap value) {
+            if (mapValueBuilder_ == null) {
+                if (anyValueOneofCase_ == 7 &&
+                        anyValueOneof_ != com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance()) {
+                    anyValueOneof_ = com.taobao.search.iquan.client.common.pb.AnyValueMap.newBuilder((com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_)
+                            .mergeFrom(value).buildPartial();
+                } else {
+                    anyValueOneof_ = value;
+                }
+                onChanged();
+            } else {
+                if (anyValueOneofCase_ == 7) {
+                    mapValueBuilder_.mergeFrom(value);
+                }
+                mapValueBuilder_.setMessage(value);
+            }
+            anyValueOneofCase_ = 7;
+            return this;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+         */
+        public Builder clearMapValue() {
+            if (mapValueBuilder_ == null) {
+                if (anyValueOneofCase_ == 7) {
+                    anyValueOneofCase_ = 0;
+                    anyValueOneof_ = null;
+                    onChanged();
+                }
+            } else {
+                if (anyValueOneofCase_ == 7) {
+                    anyValueOneofCase_ = 0;
+                    anyValueOneof_ = null;
+                }
+                mapValueBuilder_.clear();
+            }
+            return this;
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder getMapValueBuilder() {
+            return getMapValueFieldBuilder().getBuilder();
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+         */
+        public com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder getMapValueOrBuilder() {
+            if ((anyValueOneofCase_ == 7) && (mapValueBuilder_ != null)) {
+                return mapValueBuilder_.getMessageOrBuilder();
+            } else {
+                if (anyValueOneofCase_ == 7) {
+                    return (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_;
+                }
+                return com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
+            }
+        }
+
+        /**
+         * <code>.iquan.pb.AnyValueMap map_value = 7;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+                com.taobao.search.iquan.client.common.pb.AnyValueMap, com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder, com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder>
+        getMapValueFieldBuilder() {
+            if (mapValueBuilder_ == null) {
+                if (!(anyValueOneofCase_ == 7)) {
+                    anyValueOneof_ = com.taobao.search.iquan.client.common.pb.AnyValueMap.getDefaultInstance();
+                }
+                mapValueBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                        com.taobao.search.iquan.client.common.pb.AnyValueMap, com.taobao.search.iquan.client.common.pb.AnyValueMap.Builder, com.taobao.search.iquan.client.common.pb.AnyValueMapOrBuilder>(
+                        (com.taobao.search.iquan.client.common.pb.AnyValueMap) anyValueOneof_,
+                        getParentForChildren(),
+                        isClean());
+                anyValueOneof_ = null;
+            }
+            anyValueOneofCase_ = 7;
+            onChanged();
+            ;
+            return mapValueBuilder_;
+        }
+
+        @java.lang.Override
+        public final Builder setUnknownFields(
+                final com.google.protobuf.UnknownFieldSet unknownFields) {
+            return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+                final com.google.protobuf.UnknownFieldSet unknownFields) {
+            return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:iquan.pb.AnyValue)
+    }
 
 }
 

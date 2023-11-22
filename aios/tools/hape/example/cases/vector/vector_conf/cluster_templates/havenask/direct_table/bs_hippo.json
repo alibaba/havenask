@@ -1,0 +1,149 @@
+{
+    "packages": [
+        {
+            "packageURI": "${bs_worker_package_uri}",
+            "type": "ARCHIVE"
+        }
+    ],
+    "role_customize": [
+        {
+            "_bs_role": "processor.*",
+            "priority": {
+                "minor_priority": 0,
+                "major_priority": 64
+            },
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 300,
+                            "name": "cpu"
+                        },
+                        {
+                            "amount": 8192,
+                            "name": "mem"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_bs_role": "builder.*",
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 300,
+                            "name": "cpu"
+                        },
+                        {
+                            "amount": 10240,
+                            "name": "mem"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_bs_role": "merger.*",
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 300,
+                            "name": "cpu"
+                        },
+                        {
+                            "amount": 10240,
+                            "name": "mem"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_bs_role": ".*taskName=.*",
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 200,
+                            "name": "cpu"
+                        },
+                        {
+                            "amount": 10240,
+                            "name": "mem"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "role_default": {
+        "processInfos": [
+            {
+                "args": [
+                    [
+                        "-l",
+                        "/usr/local/etc/bs/bs_alog.conf"
+                    ]
+                ],
+                "stopTimeout": 10,
+                "envs": [
+                    [
+                        "INDEXLIB_DATA_FLUSH_PARAM",
+                        "quota_size=62914560,quota_interval=1000,flush_unit=4194304,force_flush=true"
+                    ],
+                    [
+                        "HADOOP_HOME",
+                       "${common.hadoopHome}"
+                    ],
+                    [
+                        "JAVA_HOME",
+                        "/binary/usr/local/java/jdk"
+                    ],
+                    [
+                        "LD_LIBRARY_PATH",
+                        "/usr/local/java/jdk/jre/lib/amd64/server:/home/admin/sap/lib/:/home/admin/sap/lib64/:/home/admin/eagleeye-core/lib/:/home/admin/diamond-client4cpp/lib/:/usr/local/lib64:/usr/local/lib:/usr/lib64:/usr/lib"
+                    ],
+                    [
+                        "COLLECT_ERROR_LOG",
+                        "true"
+                    ],
+                    [
+                        "FSLIB_KMON_SERVICE_NAME",
+                        "havenask"
+                    ],
+                    [
+                        "FSLIB_ENABLE_META_CACHE",
+                        "true"
+                    ],
+                    [
+                        "FSLIB_ENABLE_DATA_CACHE",
+                        "true"
+                    ],
+                    [
+                        "KMONITOR_ADAPTER_APP",
+                        "havenask"
+                    ],
+                    [
+                        "FSLIB_ENABLE_REPORT_METRIC",
+                        "true"
+                    ],
+                    [
+                        "PATH",
+                        "/usr/local/bin"
+                    ],
+                    [
+                        "INDEXLIB_METRIC_REPORT_MODE",
+                        "KMON_ONLY"
+                    ]
+                ]
+            }
+        ],
+        "priority": {
+            "minor_priority": 0,
+            "major_priority": 64
+        }
+    }
+}

@@ -67,7 +67,7 @@ ErrorCode PortMergeKernel::init(KernelInitContext &ctx) {
         NAVI_KERNEL_LOG(ERROR, "port is null");
         return EC_UNKNOWN;
     }
-    _dataVec.resize(_port->getPartInfo().getUsedPartCount());
+    _dataVec.resize(getPartInfo().getUsedPartCount());
     return doInit(ctx);
 }
 
@@ -97,8 +97,10 @@ ErrorCode PortMergeKernel::compute(KernelComputeContext &ctx) {
 
 ErrorCode PortMergeKernel::fillInputs(KernelComputeContext &ctx) {
     const PartInfo &partInfo = getPartInfo();
-    for (NaviPartId partId : partInfo) {
-        auto &streamData = _dataVec[partId];
+    auto usedPartCount = partInfo.getUsedPartCount();
+    for (auto index = 0; index < usedPartCount; ++index) {
+        auto partId = partInfo.getUsedPartId(index);
+        auto &streamData = _dataVec[index];
         bool oldEof = streamData.eof;
         auto ec = _port->getData(partId, streamData.data, streamData.eof);
         if (EC_NONE != ec) {

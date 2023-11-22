@@ -112,11 +112,11 @@ void TableSplitKernel::outputSplitData(table::Table &table,
             continue;
         }
         const auto &rows = partRows[partId];
-        TablePtr partTable(new Table(rows, table.getMatchDocAllocatorPtr()));
+        TablePtr partTable = Table::fromMatchDocs(rows, Table::toMatchDocs(table));
         dataVec[i].reset(new TableData(partTable));
         NAVI_KERNEL_LOG(
-            DEBUG, "set dataVec[%ld], table row count:%ld", i, partTable->getRowCount());
-        NAVI_KERNEL_LOG(TRACE3, "table:\n%s", TableUtil::toString(partTable, 10).c_str());
+            TRACE2, "set dataVec[%ld], table row count:%ld", i, partTable->getRowCount());
+        NAVI_KERNEL_LOG(TRACE2, "table:\n%s", TableUtil::toString(partTable, 10).c_str());
     }
 }
 

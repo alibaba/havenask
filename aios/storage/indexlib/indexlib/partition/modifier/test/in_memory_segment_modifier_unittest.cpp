@@ -1,11 +1,11 @@
 #include "in_memory_segment_modifier_unittest.h"
 
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/normal/attribute/accessor/in_memory_attribute_segment_writer.h"
 #include "indexlib/index/normal/attribute/accessor/string_attribute_writer.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_segment_writer.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

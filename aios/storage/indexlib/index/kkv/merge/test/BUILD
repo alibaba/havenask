@@ -2,7 +2,8 @@ load('//aios/storage:defs.bzl', 'strict_cc_fast_test')
 strict_cc_fast_test(
     name='indexlib_merge_test',
     srcs=['OnDiskKKVIteratorTest.cpp'],
-    shard_count=10,
+    copts=['-fno-access-control'],
+    shard_count=2,
     deps=[
         '//aios/future_lite/future_lite/executors:simple_executor',
         '//aios/storage/indexlib/config:schema',

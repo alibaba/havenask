@@ -15,20 +15,45 @@
  */
 #include "build_service/workflow/BuildFlow.h"
 
-#include "autil/StringTokenizer.h"
+#include <algorithm>
+#include <assert.h>
+#include <functional>
+#include <map>
+#include <optional>
+#include <ostream>
+#include <stddef.h>
+#include <string>
+#include <typeinfo>
+#include <unistd.h>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
-#include "build_service/common/SwiftAdminFacade.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "beeper/beeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/config/BuilderClusterConfig.h"
+#include "build_service/config/BuilderConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ControlConfig.h"
+#include "build_service/config/DataLinkModeUtil.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/config/SwiftConfig.h"
+#include "build_service/config/SwiftTopicConfig.h"
+#include "build_service/document/ClassifiedDocument.h"
 #include "build_service/document/ProcessedDocument.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/LocatorUtil.h"
-#include "build_service/util/SwiftClientCreator.h"
-#include "build_service/workflow/DocBuilderConsumer.h"
+#include "build_service/workflow/Consumer.h"
+#include "build_service/workflow/DataFlowFactory.h"
 #include "build_service/workflow/FlowFactory.h"
-#include "build_service/workflow/SwiftProcessedDocProducer.h"
+#include "build_service/workflow/Producer.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/framework/Locator.h"
 
 using namespace std;
 using namespace autil;
@@ -45,11 +70,9 @@ namespace build_service { namespace workflow {
 
 BS_LOG_SETUP(workflow, BuildFlow);
 
-BuildFlow::BuildFlow(const util::SwiftClientCreatorPtr& swiftClientCreator,
-                     const indexlib::config::IndexPartitionSchemaPtr& schema,
+BuildFlow::BuildFlow(const indexlib::config::IndexPartitionSchemaPtr& schema,
                      const BuildFlowThreadResource& threadResource)
     : _schema(schema)
-    , _swiftClientCreator(swiftClientCreator)
     , _factory(NULL)
     , _mode(BuildFlowMode::NONE)
     , _workflowMode(SERVICE)
@@ -59,17 +82,12 @@ BuildFlow::BuildFlow(const util::SwiftClientCreatorPtr& swiftClientCreator,
     , _isTablet(false)
 {
     setBeeperCollector(WORKER_ERROR_COLLECTOR_NAME);
-    if (!_swiftClientCreator) {
-        _swiftClientCreator.reset(new util::SwiftClientCreator);
-    }
 }
 
-BuildFlow::BuildFlow(const util::SwiftClientCreatorPtr& swiftClientCreator,
-                     std::shared_ptr<indexlibv2::config::ITabletSchema> schema,
+BuildFlow::BuildFlow(std::shared_ptr<indexlibv2::config::ITabletSchema> schema,
                      const BuildFlowThreadResource& threadResource)
     : _schema(nullptr)
     , _schemav2(schema)
-    , _swiftClientCreator(swiftClientCreator)
     , _factory(NULL)
     , _mode(BuildFlowMode::NONE)
     , _workflowMode(SERVICE)
@@ -79,9 +97,6 @@ BuildFlow::BuildFlow(const util::SwiftClientCreatorPtr& swiftClientCreator,
     , _isTablet(true)
 {
     setBeeperCollector(WORKER_ERROR_COLLECTOR_NAME);
-    if (!_swiftClientCreator) {
-        _swiftClientCreator.reset(new util::SwiftClientCreator);
-    }
 }
 
 BuildFlow::~BuildFlow()
@@ -158,38 +173,19 @@ bool BuildFlow::startBuildFlow(const ResourceReaderPtr& resourceReader, const pr
 
     // clear members
     clear();
-
     _mode = buildFlowMode;
     _workflowMode = workflowMode;
     _factory = factory;
     _buildFlowFatalError = false;
 
-    bool hasBuilder = _mode & BuildFlowMode::BUILDER;
-
+    if (!initDataLinkParameters(resourceReader, partitionId, kvMap)) {
+        BS_LOG(ERROR, "init DataLink parameters failed");
+        return false;
+    }
     // todo: determine workflow mode from BuildFlowMode: JOB or SERVICE
     FlowFactory::RoleInitParam param;
     if (!initRoleInitParam(resourceReader, partitionId, workflowMode, metricProvider, kvMap, param)) {
         return false;
-    }
-
-    string realTimeMode = getValueFromKeyValueMap(kvMap, REALTIME_MODE);
-    if (realTimeMode == REALTIME_SERVICE_RAWDOC_RT_BUILD_MODE) {
-        kvMap[INPUT_DOC_TYPE] = param.kvMap[INPUT_DOC_TYPE] = INPUT_DOC_RAW;
-    }
-    if (hasBuilder && partitionId.step() == BUILD_STEP_INC) {
-        config::ControlConfig controlConfig;
-        if (resourceReader->getDataTableConfigWithJsonPath(partitionId.buildid().datatable(), "control_config",
-                                                           controlConfig)) {
-            const string& clusterName = partitionId.clusternames(0);
-            if (controlConfig.getDataLinkMode() == ControlConfig::DataLinkMode::FP_INP_MODE &&
-                !controlConfig.isIncProcessorExist(clusterName)) {
-                kvMap[INPUT_DOC_TYPE] = INPUT_DOC_RAW;
-                if (_mode & BuildFlowMode::PROCESSOR) {
-                    assert(_mode == BuildFlowMode::ALL);
-                    _mode = BuildFlowMode::BUILDER;
-                }
-            }
-        }
     }
     _counterMap = param.counterMap;
     _dataFlows = DataFlowFactory::createDataFlow(param, _mode, _factory);
@@ -263,8 +259,14 @@ bool BuildFlow::seek(std::vector<std::unique_ptr<Workflow>>& dataFlow, const pro
                     BS_LOG(ERROR, "not support diff src seek");
                     return false;
                 }
-                minLocator.SetProgress(util::LocatorUtil::ComputeProgress(
-                    minLocator.GetProgress(), currentLocator.GetProgress(), util::LocatorUtil::minOffset));
+                auto minProgressOptional = util::LocatorUtil::computeMultiProgress(
+                    minLocator.GetMultiProgress(), currentLocator.GetMultiProgress(), util::LocatorUtil::minOffset);
+                if (minProgressOptional.has_value()) {
+                    minLocator.SetMultiProgress(minProgressOptional.value());
+                } else {
+                    BS_LOG(ERROR, "seek compute min offset failed");
+                    return false;
+                }
             }
         }
         locators.push_back(minLocator);
@@ -483,24 +485,80 @@ bool BuildFlow::needReconstruct() const
     return false;
 }
 
+bool BuildFlow::initDataLinkParameters(const ResourceReaderPtr& resourceReader, const PartitionId& partitionId,
+                                       KeyValueMap& kvMap)
+{
+    string realTimeMode = getValueFromKeyValueMap(kvMap, REALTIME_MODE);
+    if (realTimeMode == REALTIME_SERVICE_RAWDOC_RT_BUILD_MODE) {
+        kvMap[INPUT_DOC_TYPE] = INPUT_DOC_RAW;
+    }
+    if (config::DataLinkModeUtil::isDataLinkNPCMode(kvMap)) {
+        kvMap[INPUT_DOC_TYPE] = INPUT_DOC_BATCHDOC;
+    }
+    bool hasBuilder = _mode & BuildFlowMode::BUILDER;
+    if (hasBuilder && partitionId.step() == BUILD_STEP_INC) {
+        config::ControlConfig controlConfig;
+        if (resourceReader->getDataTableConfigWithJsonPath(partitionId.buildid().datatable(), "control_config",
+                                                           controlConfig)) {
+            if (partitionId.clusternames_size() == 0) {
+                BS_LOG(ERROR, "bad partitionId[%s], no clustername defined", partitionId.ShortDebugString().c_str());
+                return false;
+            }
+            const string& clusterName = partitionId.clusternames(0);
+            if (controlConfig.getDataLinkMode() == ControlConfig::DataLinkMode::FP_INP_MODE &&
+                !controlConfig.isIncProcessorExist(clusterName)) {
+                kvMap[INPUT_DOC_TYPE] = INPUT_DOC_RAW;
+                if (_mode & BuildFlowMode::PROCESSOR) {
+                    assert(_mode == BuildFlowMode::ALL);
+                    _mode = BuildFlowMode::BUILDER;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 bool BuildFlow::initRoleInitParam(const ResourceReaderPtr& resourceReader, const PartitionId& partitionId,
                                   WorkflowMode workflowMode, indexlib::util::MetricProviderPtr metricProvider,
                                   KeyValueMap& kvMap, FlowFactory::RoleInitParam& param)
+
+{
+    const string& clusterName = partitionId.clusternames(0);
+    if (!initReaderParameters(resourceReader, clusterName, workflowMode, kvMap)) {
+        return false;
+    }
+    param.resourceReader = resourceReader;
+    param.kvMap = kvMap;
+    param.partitionId = partitionId;
+    param.metricProvider = metricProvider;
+    param.schema = _schema;
+    param.schemav2 = _schemav2;
+    param.isTablet = _isTablet;
+    if (!param.schema && !param.schemav2) {
+        auto schema = resourceReader->getTabletSchema(clusterName);
+        if (schema && schema->GetLegacySchema() && !schema->GetLegacySchema()->IsTablet()) {
+            param.schema = schema->GetLegacySchema();
+        } else {
+            param.schemav2 = schema;
+        }
+    }
+    if (!initCounterMap(_mode, _factory, param)) {
+        BS_LOG(WARN, "init counter map failed");
+    }
+    return true;
+}
+
+bool BuildFlow::initReaderParameters(const ResourceReaderPtr& resourceReader, const std::string& clusterName,
+                                     WorkflowMode workflowMode, KeyValueMap& kvMap)
 {
     config::BuilderClusterConfig clusterConfig;
-    const string& clusterName = partitionId.clusternames(0);
     string mergeConfigName = getValueFromKeyValueMap(kvMap, MERGE_CONFIG_NAME);
     config::BuilderConfig builderConfig;
-    kvMap[SWIFT_FILTER_MASK] = StringUtil::toString(0);
-    kvMap[SWIFT_FILTER_RESULT] = StringUtil::toString(0);
-
-    string batchMask = getValueFromKeyValueMap(kvMap, BATCH_MASK);
-    string useInnerBatchMaskFilter = getValueFromKeyValueMap(kvMap, USE_INNER_BATCH_MASK_FILTER);
     if (clusterConfig.init(clusterName, *resourceReader, mergeConfigName)) {
         builderConfig = clusterConfig.builderConfig;
     }
-    param.resourceReader = resourceReader;
-
+    string batchMask = getValueFromKeyValueMap(kvMap, BATCH_MASK);
+    string useInnerBatchMaskFilter = getValueFromKeyValueMap(kvMap, USE_INNER_BATCH_MASK_FILTER);
     auto it = kvMap.find(DATA_DESCRIPTION_KEY);
     if (it != kvMap.end()) {
         SwiftConfig swiftConfig;
@@ -516,14 +574,19 @@ bool BuildFlow::initRoleInitParam(const ResourceReaderPtr& resourceReader, const
         }
     }
 
-    if (clusterConfig.enableFastSlowQueue) {
+    bool enableFastSlowQueue = clusterConfig.enableFastSlowQueue;
+    if (!enableFastSlowQueue && kvMap.find(ENABLE_FAST_SLOW_QUEUE) != kvMap.end()) {
+        enableFastSlowQueue |= (kvMap[ENABLE_FAST_SLOW_QUEUE] == "true");
+    }
+    if (enableFastSlowQueue) {
         // for middle-convert topic
-        kvMap[ENABLE_FAST_SLOW_QUEUE] = StringUtil::toString((bool)clusterConfig.enableFastSlowQueue);
+        kvMap[ENABLE_FAST_SLOW_QUEUE] = StringUtil::toString((bool)enableFastSlowQueue);
         BS_LOG(INFO, "cluster: %s enable fast slow queue", clusterName.c_str());
     }
-
+    kvMap[SWIFT_FILTER_MASK] = StringUtil::toString(0);
+    kvMap[SWIFT_FILTER_RESULT] = StringUtil::toString(0);
     if (workflowMode == build_service::workflow::REALTIME) {
-        if (clusterConfig.enableFastSlowQueue) {
+        if (enableFastSlowQueue) {
             if (builderConfig.documentFilter) {
                 kvMap[SWIFT_FILTER_MASK] =
                     StringUtil::toString((uint8_t)(ProcessedDocument::SWIFT_FILTER_BIT_REALTIME |
@@ -566,7 +629,7 @@ bool BuildFlow::initRoleInitParam(const ResourceReaderPtr& resourceReader, const
         }
     } else {
         kvMap[SWIFT_FILTER_MASK] = StringUtil::toString((uint8_t)ProcessedDocument::SWIFT_FILTER_BIT_NONE);
-        if (clusterConfig.enableFastSlowQueue) {
+        if (enableFastSlowQueue) {
             kvMap[SWIFT_FILTER_MASK] = StringUtil::toString((uint8_t)ProcessedDocument::SWIFT_FILTER_BIT_FASTQUEUE);
             kvMap[FAST_QUEUE_SWIFT_FILTER_MASK] =
                 StringUtil::toString((uint8_t)ProcessedDocument::SWIFT_FILTER_BIT_FASTQUEUE);
@@ -574,35 +637,14 @@ bool BuildFlow::initRoleInitParam(const ResourceReaderPtr& resourceReader, const
                 StringUtil::toString((uint8_t)ProcessedDocument::SWIFT_FILTER_BIT_FASTQUEUE);
         }
     }
-    param.kvMap = kvMap;
 
     it = kvMap.find(RAW_TOPIC_SWIFT_READER_CONFIG);
     if (it == kvMap.end()) {
         BS_LOG(INFO, "init swift filter mask[%s], swift filter result[%s], use bs inner mask filter [%s].",
-               param.kvMap[SWIFT_FILTER_MASK].c_str(), param.kvMap[SWIFT_FILTER_RESULT].c_str(),
-               useInnerBatchMaskFilter.c_str());
+               kvMap[SWIFT_FILTER_MASK].c_str(), kvMap[SWIFT_FILTER_RESULT].c_str(), useInnerBatchMaskFilter.c_str());
     } else {
         BS_LOG(INFO, "init swift topic reader config = [%s], use bs inner mask filter [%s]", it->second.c_str(),
                useInnerBatchMaskFilter.c_str());
-    }
-
-    param.partitionId = partitionId;
-    param.metricProvider = metricProvider;
-    if (!initCounterMap(_mode, _factory, param)) {
-        BS_LOG(WARN, "init counter map failed");
-    }
-
-    param.schema = _schema;
-    param.schemav2 = _schemav2;
-    param.isTablet = _isTablet;
-
-    if (!param.schema && !param.schemav2) {
-        auto schema = resourceReader->getTabletSchema(clusterName);
-        if (schema && schema->GetLegacySchema() && !schema->GetLegacySchema()->IsTablet()) {
-            param.schema = schema->GetLegacySchema();
-        } else {
-            param.schemav2 = schema;
-        }
     }
     return true;
 }

@@ -13,18 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TIMESERIESSEGMENTMERGEINFOCREATOR_H
-#define __INDEXLIB_TIMESERIESSEGMENTMERGEINFOCREATOR_H
+#pragma once
 
+#include <assert.h>
+#include <limits>
+#include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "alog/Logger.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/framework/SegmentGroupMetrics.h"
+#include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/index/segment_metrics_updater/max_min_segment_metrics_updater.h"
 #include "indexlib/index/segment_metrics_updater/time_series_segment_metrics_updater.h"
 #include "indexlib/index_base/index_meta/segment_merge_info.h"
-#include "indexlib/index_define.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/merger/merge_strategy/strategy_config_value_creator.h"
 #include "indexlib/merger/merge_strategy/time_series_merge_strategy_define.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -137,5 +145,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TIMESERIESSEGMENTMERGEINFO_H

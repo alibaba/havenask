@@ -34,8 +34,8 @@ class Directory;
 namespace indexlibv2::framework {
 
 struct ReadResource {
-    IIndexMemoryReclaimer* indexMemoryReclaimer = nullptr;
     MetricsManager* metricsManager = nullptr;
+    std::shared_ptr<IIndexMemoryReclaimer> indexMemoryReclaimer;
     std::shared_ptr<indexlib::file_system::Directory> rootDirectory;
     std::shared_ptr<indexlib::util::SearchCachePartitionWrapper> searchCache;
 };

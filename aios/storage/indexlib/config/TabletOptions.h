@@ -18,9 +18,12 @@
 #include <inttypes.h>
 #include <memory>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include "autil/Log.h"
 #include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Status.h"
 #include "indexlib/config/MutableJson.h"
@@ -114,6 +117,7 @@ private:
 
 private:
     struct Impl;
+
     std::unique_ptr<Impl> _impl;
 
 private:

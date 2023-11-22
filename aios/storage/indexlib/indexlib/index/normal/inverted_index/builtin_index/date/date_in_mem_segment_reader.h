@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DATE_IN_MEM_SEGMENT_READER_H
-#define __INDEXLIB_DATE_IN_MEM_SEGMENT_READER_H
+#pragma once
 
 #include <memory>
 
@@ -46,7 +45,7 @@ public:
     bool Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId,
                 const std::shared_ptr<SegmentPostings>& segPosting, autil::mem_pool::Pool* sessionPool) const;
 
-    bool GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+    bool GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                            autil::mem_pool::Pool* sessionPool,
                            InvertedIndexSearchTracer* tracer = nullptr) const override;
 
@@ -60,5 +59,3 @@ private:
 
 DEFINE_SHARED_PTR(DateInMemSegmentReader);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DATE_IN_MEM_SEGMENT_READER_H

@@ -22,7 +22,7 @@ namespace navi {
 ConsoleAppender::ConsoleAppender(const std::string &levelStr)
     : Appender(levelStr, nullptr)
 {
-    auto patternLayout = new PatternLayout();
+    auto patternLayout = std::make_shared<PatternLayout>();
     patternLayout->setLogPattern(DEFAULT_LOG_PATTERN);
     setLayout(patternLayout);
 }

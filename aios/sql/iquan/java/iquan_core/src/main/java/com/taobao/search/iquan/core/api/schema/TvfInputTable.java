@@ -1,13 +1,13 @@
 package com.taobao.search.iquan.core.api.schema;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.utils.IquanTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class TvfInputTable {
     private static final Logger logger = LoggerFactory.getLogger(TvfInputTable.class);
@@ -23,6 +23,10 @@ public class TvfInputTable {
     private List<RelDataTypeField> checkRelFields = null;
 
     public TvfInputTable() {
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     @Override
@@ -88,7 +92,7 @@ public class TvfInputTable {
         checkRelFields = IquanTypeFactory.DEFAULT.createRelTypeFieldList(checkFields);
 
         if (inputRelFields == null
-        || checkRelFields == null) {
+                || checkRelFields == null) {
             logger.error("tvf input table valid fail: convert AbstractField to RelDataTypeField fail");
             return false;
         }
@@ -110,10 +114,6 @@ public class TvfInputTable {
         }
 
         setDigest(sb.toString());
-    }
-
-    public static Builder newBuilder() {
-        return new Builder();
     }
 
     public static class Builder {

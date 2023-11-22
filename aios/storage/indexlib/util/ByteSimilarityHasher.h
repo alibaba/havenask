@@ -23,13 +23,15 @@
  **********************************************************************************/
 
 #include <emmintrin.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "autil/Log.h"
-#include "indexlib/util/Singleton.h"
 
 namespace indexlib::util {
 
 class U16TokenHashTable;
+
 class ByteSimilarityHasher
 {
 public:

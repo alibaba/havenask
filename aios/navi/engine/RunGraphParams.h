@@ -63,16 +63,19 @@ public:
     void setTaskQueueName(const std::string &taskQueueName);
     const std::string &getTaskQueueName() const;
     void setTraceLevel(const std::string &traceLevelStr);
-    std::string getTraceLevel() const;
+    std::string getTraceLevelStr() const;
+    LogLevel getTraceLevel() const;
     void setTraceFormatPattern(const std::string &pattern);
     const std::string &getTraceFormatPattern() const;
     void addTraceBtFilter(const std::string &file, int line);
     const std::vector<std::pair<std::string, int>> &getTraceBtFilter() const;
-    void fillFilterParam(TraceAppender *traceApppender);
+    void fillFilterParam(TraceAppender *traceApppender) const;
     void setCollectMetric(bool collect);
     bool collectMetric() const;
     void setCollectPerf(bool collect);
     bool collectPerf() const;
+    void setDebugParamStr(const std::string &debugParamStr);
+    bool needCollect() const;
     void setAsyncIo(bool async);
     bool asyncIo() const;
     int32_t getMaxInline() const;
@@ -91,12 +94,9 @@ public:
     static bool fromProto(const RunParams &pbParams,
                           CreatorManager *creatorManager,
                           RunGraphParams &params);
-    static bool toProto(const RunGraphParams &params,
-                        GraphId matchGraphId,
-                        CreatorManager *creatorManager,
-                        NaviPartId partId,
-                        int64_t timeoutMs,
-                        RunParams &pbParams);
+    static ErrorCode toProto(const RunGraphParams &params, GraphId matchGraphId,
+                             CreatorManager *creatorManager, NaviPartId partId,
+                             int64_t timeoutMs, RunParams &pbParams);
 private:
     static void deserializeTraceBtFilter(const RunParams &pbParams,
                                          RunGraphParams &params);
@@ -121,6 +121,8 @@ private:
     static bool deserializeNamedData(const RunParams &pbParams,
                                      CreatorManager *creatorManager,
                                      RunGraphParams &params);
+private:
+    void addBtFilterStr(const std::string &btFilterStr);
 private:
     SessionId _id;
     uint32_t _threadLimit;

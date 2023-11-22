@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ANALYZERFACTORY_H
-#define ISEARCH_BS_ANALYZERFACTORY_H
+#pragma once
+
+#include <map>
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/util/Log.h"
 #include "indexlib/analyzer/IAnalyzerFactory.h"
 
-namespace indexlibv2::analyzer {
-class Analyzer;
-}
-
 namespace build_service { namespace analyzer {
 
 class AnalyzerInfos;
+
 BS_TYPEDEF_PTR(AnalyzerInfos);
 class TokenizerManager;
+
 BS_TYPEDEF_PTR(TokenizerManager);
 class AnalyzerFactory;
+
 BS_TYPEDEF_PTR(AnalyzerFactory);
 
 class AnalyzerFactory : public indexlibv2::analyzer::IAnalyzerFactory
@@ -56,5 +57,3 @@ private:
 };
 
 }} // namespace build_service::analyzer
-
-#endif // ISEARCH_BS_ANALYZERFACTORY_H

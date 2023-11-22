@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXAPPLICATIONTEST_H
-#define __INDEXLIB_INDEXAPPLICATIONTEST_H
+#pragma once
 
 #include "future_lite/coro/Lazy.h"
 #include "future_lite/executors/SimpleExecutor.h"
@@ -87,5 +86,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(IndexApplicationTest, TestAddIndexPartitionsA
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(IndexApplicationTest, TestCreateSnapshot4PartitionAndTablet);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(IndexApplicationTest, TestParseJoinRelationsWithTablet);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INDEXAPPLICATIONTEST_H

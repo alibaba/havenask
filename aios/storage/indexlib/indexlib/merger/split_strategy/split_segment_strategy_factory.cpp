@@ -15,10 +15,20 @@
  */
 #include "indexlib/merger/split_strategy/split_segment_strategy_factory.h"
 
+#include <iosfwd>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index/normal/attribute/accessor/offline_attribute_segment_reader_container.h"
-#include "indexlib/index/util/segment_directory_base.h"
+#include "indexlib/index/segment_metrics_updater/segment_metrics_updater.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/merger/merge_plan.h"
 #include "indexlib/merger/split_strategy/default_split_strategy.h"
 #include "indexlib/merger/split_strategy/simple_split_strategy.h"
+#include "indexlib/merger/split_strategy/split_segment_strategy.h"
 #include "indexlib/merger/split_strategy/temperature_split_strategy.h"
 #include "indexlib/merger/split_strategy/test_split_strategy.h"
 #include "indexlib/merger/split_strategy/time_series_split_strategy.h"

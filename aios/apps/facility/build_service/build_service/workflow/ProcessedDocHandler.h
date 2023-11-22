@@ -13,25 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSEDDOCHANDLER_H
-#define ISEARCH_BS_PROCESSEDDOCHANDLER_H
+#pragma once
 
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <memory>
+#include <stdint.h>
 #include <unordered_set>
+#include <utility>
 
 #include "autil/Lock.h"
-#include "autil/ThreadPool.h"
+#include "autil/Thread.h"
+#include "build_service/common/Locator.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/document/ProcessedDocument.h"
 #include "build_service/processor/Processor.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/reader/RawDocumentReader.h"
-#include "build_service/reader/RawDocumentReaderCreator.h"
 #include "build_service/util/ConditionQueue.h"
-#include "build_service/util/Log.h"
 #include "build_service/util/StreamQueue.h"
 #include "build_service/workflow/FlowError.h"
 #include "build_service/workflow/SourceOpConverter.h"
 #include "build_service/workflow/SrcDataNode.h"
 #include "build_service/workflow/SrcWorkItem.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/partition/index_builder.h"
+#include "indexlib/partition/partition_group_resource.h"
 
 namespace build_service { namespace workflow {
 
@@ -154,5 +165,3 @@ private:
 BS_TYPEDEF_PTR(ProcessedDocHandler);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_PROCESSEDDOCHANDLER_H

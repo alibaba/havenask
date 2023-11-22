@@ -15,9 +15,13 @@
  */
 #include "build_service/common/CheckpointAccessor.h"
 
-#include "build_service/common/PathDefine.h"
-#include "fslib/util/FileUtil.h"
-#include "hippo/proto/Common.pb.h"
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "build_service/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace build_service::common;

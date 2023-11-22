@@ -77,8 +77,9 @@ public:
     autil::Result<bool> batchSeek(size_t batchSize,
                                   std::vector<matchdoc::MatchDoc> &matchDocs) override;
     bool useTruncate() override;
-    uint32_t getTotalScanCount() override;
-    uint32_t getTotalSeekDocCount() override;
+    uint32_t getTotalScanCount() const override;
+    uint32_t getTotalSeekedCount() const override;
+    uint32_t getTotalWholeDocCount() const override;
 
 private:
     bool _needSubDoc;

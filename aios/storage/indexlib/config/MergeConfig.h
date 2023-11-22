@@ -17,6 +17,10 @@
 
 #include <any>
 #include <functional>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
 
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
@@ -75,6 +79,7 @@ public:
 
 public:
     struct Impl;
+
     std::unique_ptr<Impl> _impl;
 
 private:

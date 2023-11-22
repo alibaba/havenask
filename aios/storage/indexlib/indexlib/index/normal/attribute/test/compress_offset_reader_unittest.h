@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_COMPRESSOFFSETREADERTEST_H
-#define __INDEXLIB_COMPRESSOFFSETREADERTEST_H
+#pragma once
 
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
@@ -99,5 +98,3 @@ INDEXLIB_UNIT_TEST_CASE(CompressOffsetReaderTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(CompressOffsetReaderTest, TestInit);
 INDEXLIB_UNIT_TEST_CASE(CompressOffsetReaderTest, TestSetOffset);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_COMPRESSOFFSETREADERTEST_H

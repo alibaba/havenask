@@ -1,6 +1,10 @@
 #include "build_service/util/test/FakeSwiftClientCreator.h"
 
+#include <ostream>
+
+#include "alog/Logger.h"
 #include "build_service/util/test/FakeSwiftClient.h"
+#include "swift/client/SwiftClientConfig.h"
 
 using namespace std;
 using namespace swift::client;

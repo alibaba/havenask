@@ -15,23 +15,33 @@
  */
 #include "indexlib/framework/TabletDeployer.h"
 
+#include <assert.h>
+#include <map>
+#include <memory>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "autil/CommonMacros.h"
+#include "autil/Log.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/config/OnlineConfig.h"
 #include "indexlib/config/TabletOptions.h"
+#include "indexlib/config/TabletSchema.h"
 #include "indexlib/file_system/DeployIndexMeta.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/IndexFileDeployer.h"
-#include "indexlib/file_system/IndexFileList.h"
 #include "indexlib/file_system/LifecycleConfig.h"
 #include "indexlib/file_system/LifecycleTable.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/file_system/load_config/LoadConfig.h"
 #include "indexlib/file_system/load_config/LoadConfigList.h"
-#include "indexlib/framework/SegmentDescriptions.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
 #include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionLoader.h"
 #include "indexlib/framework/hooks/ITabletDeployerHook.h"
 #include "indexlib/framework/hooks/TabletHooksCreator.h"
+#include "indexlib/framework/lifecycle/LifecycleStrategy.h"
 #include "indexlib/framework/lifecycle/LifecycleStrategyFactory.h"
 #include "indexlib/util/PathUtil.h"
 

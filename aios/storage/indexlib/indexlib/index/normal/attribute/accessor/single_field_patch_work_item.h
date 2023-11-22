@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_FIELD_PATCH_WORK_ITEM_H
-#define __INDEXLIB_SINGLE_FIELD_PATCH_WORK_ITEM_H
+#pragma once
 
 #include <memory>
 
@@ -66,5 +65,3 @@ private:
 
 DEFINE_SHARED_PTR(SingleFieldPatchWorkItem);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_FIELD_PATCH_WORK_ITEM_H

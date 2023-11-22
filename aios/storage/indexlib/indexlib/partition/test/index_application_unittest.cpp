@@ -1,6 +1,7 @@
 #include "indexlib/partition/test/index_application_unittest.h"
 
 #include "indexlib/base/Status.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
 #include "indexlib/index/attribute/AttributeReader.h"
@@ -15,7 +16,6 @@
 #include "indexlib/table/table_resource.h"
 #include "indexlib/table/table_writer.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/TaskScheduler.h"
 #include "indexlib/util/memory_control/MemoryQuotaController.h"
 #include "indexlib/util/test/build_test_util.h"
@@ -346,7 +346,7 @@ void IndexApplicationTest::TestCreateSnapshotWithCache()
     ASSERT_EQ(readerA, indexPartReaderInfos[0].indexPartReader);
     PartitionReaderSnapshotPtr snapshot2 = app.CreateSnapshot("", 100 * 1000);
     ASSERT_TRUE(snapshot2.get() == snapshot.get());
-    usleep(500 * 1000);
+    usleep(2000 * 1000);
     PartitionReaderSnapshotPtr snapshot3 = app.CreateSnapshot("", 100 * 1000);
     ASSERT_TRUE(snapshot2.get() == snapshot.get());
     ASSERT_TRUE(snapshot3.get() != snapshot.get());

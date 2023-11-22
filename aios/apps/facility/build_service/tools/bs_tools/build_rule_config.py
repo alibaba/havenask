@@ -6,6 +6,7 @@ import zipfile
 import include.json_wrapper as json
 from common_define import *
 
+
 class BuildRuleConfig(object):
     def __init__(self, fsUtil, clusterName, configPath):
         clusterZipPath = os.path.join(configPath, BUILD_CLUSTERS_ZIP_FILE_NAME)
@@ -28,7 +29,7 @@ class BuildRuleConfig(object):
         self.mapReduceRatio = self.__getValueWithDefault(jsonMap, BUILD_RULE_MAP_REDUCE_RATIO, 1)
         self.needPartition = self.__getValueWithDefault(jsonMap, BUILD_RULE_NEED_PARTITION, True)
 
-    def __getValueWithDefault(self, jsonMap, name, defaultValue = None):
+    def __getValueWithDefault(self, jsonMap, name, defaultValue=None):
         if jsonMap.has_key(name):
             return jsonMap[name]
         return defaultValue

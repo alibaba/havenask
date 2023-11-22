@@ -36,6 +36,8 @@ public:
     void stop();
     void notify();
     void addStream(const HeartbeatServerStreamPtr &stream);
+    bool isEmpty() const;
+    bool isAllReplicaStopped(SignatureTy sig) const;
 
 private:
     void flush();

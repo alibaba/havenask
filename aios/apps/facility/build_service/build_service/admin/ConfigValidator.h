@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONFIGVALIDATOR_H
-#define ISEARCH_BS_CONFIGVALIDATOR_H
+#pragma once
 
-#include "build_service/common_define.h"
+#include <string>
+
 #include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/BuildServiceConfig.h"
-#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/SwiftConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
 #include "build_service/util/Log.h"
+#include "indexlib/config/index_partition_schema.h"
 
 namespace build_service { namespace admin {
 
@@ -70,9 +72,10 @@ private:
                        const indexlib::config::IndexPartitionSchemaPtr& updateSchema);
 
 private:
+    proto::BuildId _buildId;
+
+private:
     BS_LOG_DECLARE();
 };
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_CONFIGVALIDATOR_H

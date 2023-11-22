@@ -19,7 +19,7 @@ cc_library(
 cc_slow_test(
     name='primarykey_slow_unittest',
     srcs=['hash_primary_key_perf_unittest.cpp'],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     deps=[':primarykey_test_helper']
 )

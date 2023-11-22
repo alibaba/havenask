@@ -63,7 +63,7 @@ private:
             _matchDocUtil.extendMatchDocAllocator(_allocator, docs, "b", {"b1", "b2", "b3", "b4"}));
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<char>(
             _allocator, docs, "c", {{'c', '1'}, {'2'}, {'3'}, {'4'}}));
-        _table.reset(new Table(docs, _allocator));
+        _table = Table::fromMatchDocs(docs, _allocator);
     }
     KernelTesterPtr buildTester(KernelTesterBuilder &builder) {
         setResource(builder);
@@ -109,7 +109,6 @@ TEST_F(CalcKernelTest, testSimpleProcess) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {2, 3, 4}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {6, 7, 8}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputExprs) {
@@ -129,7 +128,6 @@ TEST_F(CalcKernelTest, testOutputExprs) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {12, 13, 14}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {6, 7, 8}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputExprsWithIn) {
@@ -149,7 +147,6 @@ TEST_F(CalcKernelTest, testOutputExprsWithIn) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {11, 12}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {5, 6}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputExprsWithHaIn) {
@@ -170,7 +167,6 @@ TEST_F(CalcKernelTest, testOutputExprsWithHaIn) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {11, 12}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {5, 6}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputExprsWithInString) {
@@ -190,7 +186,6 @@ TEST_F(CalcKernelTest, testOutputExprsWithInString) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {11, 12}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {5, 6}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputExprsWithHaInString) {
@@ -211,7 +206,6 @@ TEST_F(CalcKernelTest, testOutputExprsWithHaInString) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {11, 12}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {5, 6}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputExprsWithNotIn) {
@@ -231,7 +225,6 @@ TEST_F(CalcKernelTest, testOutputExprsWithNotIn) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {13, 14}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {7, 8}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testBatchInput) {
@@ -251,7 +244,6 @@ TEST_F(CalcKernelTest, testBatchInput) {
         ASSERT_EQ(2, outputTable->getColumnCount());
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {1, 2}));
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {5, 6}));
-        checkDependentTable(_table, outputTable);
     }
     {
         prepareTable();
@@ -262,7 +254,6 @@ TEST_F(CalcKernelTest, testBatchInput) {
         ASSERT_EQ(2, outputTable->getColumnCount());
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {1, 2}));
         ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {5, 6}));
-        checkDependentTable(_table, outputTable);
     }
 }
 
@@ -281,7 +272,6 @@ TEST_F(CalcKernelTest, testAlias) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "a", {1, 2, 3, 4}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "id", {5, 6, 7, 8}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testMultiAlias) {
@@ -299,7 +289,6 @@ TEST_F(CalcKernelTest, testMultiAlias) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "a", {1, 2, 3, 4}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {1, 2, 3, 4}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testMultiValue) {
@@ -317,7 +306,6 @@ TEST_F(CalcKernelTest, testMultiValue) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "b", {1, 2, 3, 4}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn(outputTable, "c", {"b1", "b2", "b3", "b4"}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputConstValue) {
@@ -341,7 +329,6 @@ TEST_F(CalcKernelTest, testOutputConstValue) {
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn(outputTable, "b", {"bb", "bb", "bb", "bb"}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int32_t>(outputTable, "c", {123, 123, 123, 123}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<float>(outputTable, "e", {7.77, 7.77, 7.77, 7.77}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputConstValueWithCast) {
@@ -359,7 +346,6 @@ TEST_F(CalcKernelTest, testOutputConstValueWithCast) {
     TablePtr outputTable;
     getOutputTable(tester, outputTable);
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "id", {12, 12, 12, 12}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputNullNumberWithCast) {
@@ -377,7 +363,6 @@ TEST_F(CalcKernelTest, testOutputNullNumberWithCast) {
     TablePtr outputTable;
     getOutputTable(tester, outputTable);
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "i1", {0, 0, 0, 0}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputNullIntWithCast) {
@@ -395,7 +380,6 @@ TEST_F(CalcKernelTest, testOutputNullIntWithCast) {
     TablePtr outputTable;
     getOutputTable(tester, outputTable);
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int32_t>(outputTable, "i1", {0, 0, 0, 0}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputNullStringWithCast) {
@@ -413,7 +397,6 @@ TEST_F(CalcKernelTest, testOutputNullStringWithCast) {
     TablePtr outputTable;
     getOutputTable(tester, outputTable);
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn(outputTable, "i1", {"", "", "", ""}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testSkipCopyTable) {
@@ -428,7 +411,6 @@ TEST_F(CalcKernelTest, testSkipCopyTable) {
     TablePtr outputTable;
     getOutputTable(tester, outputTable);
     ASSERT_EQ(_table, outputTable);
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testCopyTable) {
@@ -443,7 +425,6 @@ TEST_F(CalcKernelTest, testCopyTable) {
     TablePtr outputTable;
     getOutputTable(tester, outputTable);
     ASSERT_TRUE(_table != outputTable);
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testCopyTable2) {
@@ -458,7 +439,6 @@ TEST_F(CalcKernelTest, testCopyTable2) {
     TablePtr outputTable;
     getOutputTable(tester, outputTable);
     ASSERT_TRUE(_table != outputTable);
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testOutputExprsWithSimpleCaseWhen) {
@@ -478,7 +458,6 @@ TEST_F(CalcKernelTest, testOutputExprsWithSimpleCaseWhen) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {11, 12, 13, 14}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {5, 6, 3, 0}));
-    checkDependentTable(_table, outputTable);
 }
 
 // TODO: to support until
@@ -527,7 +506,6 @@ TEST_F(CalcKernelTest, testConditionWithBoolCaseWhen) {
     ASSERT_EQ(2, outputTable->getColumnCount());
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {11, 12, 13}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {5, 6, 3}));
-    checkDependentTable(_table, outputTable);
 }
 
 // TODO: to support until
@@ -577,7 +555,6 @@ TEST_F(CalcKernelTest, testReuseInputSucc) {
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {2, 3, 4}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {6, 7, 8}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(_table, "id", {1, 2, 3, 4}));
-    checkDependentTable(_table, outputTable);
 }
 
 TEST_F(CalcKernelTest, testReuseInputFailed) {
@@ -597,7 +574,6 @@ TEST_F(CalcKernelTest, testReuseInputFailed) {
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(outputTable, "id", {2, 3, 4}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<int64_t>(outputTable, "new_a", {6, 7, 8}));
     ASSERT_NO_FATAL_FAILURE(checkOutputColumn<uint32_t>(_table, "id", {2, 3, 4}));
-    checkDependentTable(_table, outputTable);
 }
 
 } // namespace sql

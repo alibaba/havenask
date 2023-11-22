@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_REMOVEOPERATIONCREATORTEST_H
-#define __INDEXLIB_REMOVEOPERATIONCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/operation_queue/remove_operation_creator.h"
@@ -33,5 +32,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(RemoveOperationCreatorTest, TestCreate);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_REMOVEOPERATIONCREATORTEST_H

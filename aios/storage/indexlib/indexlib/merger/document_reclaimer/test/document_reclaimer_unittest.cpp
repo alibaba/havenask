@@ -1,13 +1,13 @@
 #include "indexlib/merger/document_reclaimer/test/document_reclaimer_unittest.h"
 
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/merger/document_reclaimer/index_reclaimer_param.h"
 #include "indexlib/merger/multi_partition_merger.h"
 #include "indexlib/merger/partition_merger_creator.h"
 #include "indexlib/partition/online_partition.h"
 #include "indexlib/partition/partition_data_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

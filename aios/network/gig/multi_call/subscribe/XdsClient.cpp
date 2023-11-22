@@ -242,12 +242,16 @@ bool XdsClient::reWatch(bool async) {
         AUTIL_LOG(ERROR, "Error xdsclient has empty _grpcAdsClient.");
         return false;
     }
+
     bool ret = _grpcAdsClient->SendDiscoveryRequest(kCDSUrl, watchedResourceNames) &&
                _grpcAdsClient->SendDiscoveryRequest(kEDSUrl, watchedResourceNames);
     _CDSRequestTimestamp = autil::TimeUtility::currentTime();
     _EDSRequestTimestamp = _CDSRequestTimestamp.load();
     if (ret == false) {
-        AUTIL_LOG(ERROR, "Failed subscribe clusters len [%lu]", watchedResourceNames.size());
+        if (watchedResourceNames.size() > 0) {
+            // watch empty resource will always failed
+            AUTIL_LOG(ERROR, "Failed subscribe clusters len [%lu]", watchedResourceNames.size());
+        }
     } else if (_config.asyncSubscribe) {
         autil::ScopedLock lock(_mutex);
         _needSendSubRequest = false;
@@ -361,8 +365,6 @@ void XdsClient::asyncSubThreadFunc() {
                 bool succ = reWatch(false);
                 if (succ) {
                     last = now;
-                } else {
-                    AUTIL_LOG(ERROR, "Failed: async reWatch.");
                 }
             } else {
                 last = now;

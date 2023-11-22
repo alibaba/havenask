@@ -1,10 +1,23 @@
 #include "build_service/admin/test/FakeGenerationKeeper.h"
 
-#include "autil/Thread.h"
-#include "build_service/admin/GenerationTask.h"
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+#include <set>
+#include <stdint.h>
+
+#include "autil/Lock.h"
+#include "build_service/admin/GenerationKeeper.h"
+#include "build_service/admin/WorkerTable.h"
 #include "build_service/admin/catalog/CatalogVersionPublisher.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/ProtoComparator.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/util/FileUtil.h"
+#include "hippo/DriverCommon.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 

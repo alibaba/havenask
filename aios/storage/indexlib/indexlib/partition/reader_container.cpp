@@ -123,7 +123,7 @@ versionid_t ReaderContainer::GetLatestReaderVersion() const
     if (!mReaderVec.empty()) {
         return mReaderVec.back().second->GetVersion().GetVersionId();
     }
-    return INVALID_VERSION;
+    return INVALID_VERSIONID;
 }
 
 versionid_t ReaderContainer::GetOldestReaderVersion() const
@@ -132,7 +132,7 @@ versionid_t ReaderContainer::GetOldestReaderVersion() const
     if (!mReaderVec.empty()) {
         return (*mReaderVec.begin()).second->GetVersion().GetVersionId();
     }
-    return INVALID_VERSION;
+    return INVALID_VERSIONID;
 }
 
 void ReaderContainer::EvictOldestReader()

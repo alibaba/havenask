@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_END2ENDLATENCYREPORTER_H
-#define ISEARCH_BS_END2ENDLATENCYREPORTER_H
+#pragma once
+
+#include <atomic>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
 #include "indexlib/util/metrics/Metric.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace indexlib { namespace util {
 class MetricProvider;
+
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 }} // namespace indexlib::util
 
@@ -65,5 +72,3 @@ private:
 BS_TYPEDEF_PTR(End2EndLatencyReporter);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_END2ENDLATENCYREPORTER_H

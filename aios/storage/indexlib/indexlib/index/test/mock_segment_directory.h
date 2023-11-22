@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCK_SEGMENT_DIRECTORY_H
-#define __INDEXLIB_MOCK_SEGMENT_DIRECTORY_H
+#pragma once
 
 #include <memory>
 
@@ -28,5 +27,3 @@ private:
 
 DEFINE_SHARED_PTR(MockSegmentDirectory);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_MOCK_SEGMENT_DIRECTORY_H

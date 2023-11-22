@@ -1,5 +1,9 @@
 #include "build_service/admin/test/FakeBuildServiceTaskFactory.h"
 
+#include <iosfwd>
+
+#include "build_service/admin/controlflow/TaskBase.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/MergeCrontabTask.h"
 #include "build_service/admin/test/FakeBuildServiceTask.h"
 

@@ -15,62 +15,67 @@
  */
 #pragma once
 
+#include <atomic>
+#include <functional>
+#include <map>
+#include <memory>
 #include <mutex>
+#include <optional>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "autil/Log.h"
-#include "future_lite/Future.h"
+#include "autil/ThreadPool.h"
 #include "future_lite/NamedTaskScheduler.h"
+#include "indexlib/base/MemoryQuotaController.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/TabletOptions.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/framework/BuildResource.h"
+#include "indexlib/framework/CommitOptions.h"
+#include "indexlib/framework/Fence.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/framework/ITabletFactory.h"
+#include "indexlib/framework/ITabletMergeController.h"
 #include "indexlib/framework/ITabletReader.h"
 #include "indexlib/framework/IdGenerator.h"
+#include "indexlib/framework/ImportOptions.h"
+#include "indexlib/framework/IndexRoot.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/framework/MemSegment.h"
 #include "indexlib/framework/OpenOptions.h"
 #include "indexlib/framework/ReadResource.h"
-#include "indexlib/framework/SegmentDumper.h"
+#include "indexlib/framework/TabletCommitter.h"
 #include "indexlib/framework/TabletData.h"
+#include "indexlib/framework/TabletDumper.h"
+#include "indexlib/framework/TabletInfos.h"
 #include "indexlib/framework/TabletMetrics.h"
 #include "indexlib/framework/TabletReaderContainer.h"
 #include "indexlib/framework/TabletResource.h"
 #include "indexlib/framework/TabletWriter.h"
 #include "indexlib/framework/Version.h"
+#include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionMerger.h"
-#include "indexlib/framework/index_task/Constant.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/framework/index_task/MergeTaskDefine.h"
 #include "indexlib/framework/mem_reclaimer/IIndexMemoryReclaimer.h"
 
-namespace indexlib {
-namespace util {
-class CounterMap;
-class SearchCachePartitionWrapper;
-} // namespace util
-
-namespace file_system {
-class IFileSystem;
-class Directory;
-class FileBlockCacheContainer;
+namespace indexlib { namespace file_system {
 class LifecycleTable;
-} // namespace file_system
-} // namespace indexlib
+}} // namespace indexlib::file_system
 
 namespace indexlibv2 {
-class MemoryQuotaController;
-class MemoryQuotaSynchronizer;
 
 namespace document {
 class IDocumentParser;
 }
 
 namespace framework {
-struct VersionDeployDescription;
-class TabletDumper;
-class TabletCommitter;
-class TabletReaderContainer;
-class MetricsManager;
-class OnDiskIndexCleaner;
-class ITabletMergeController;
-class IIndexTaskResourceCreator;
+class ResourceCleaner;
 class TabletSchemaManager;
 class MemSegmentCreator;
 
@@ -99,7 +104,8 @@ public:
                                                const std::map<std::string, std::string>& params) override;
     Status Import(const std::vector<Version>& versions, const ImportOptions& options) override;
     Status ImportExternalFiles(const std::string& bulkloadId, const std::vector<std::string>& externalFiles,
-                               const std::shared_ptr<ImportExternalFileOptions>& options, Action action) override;
+                               const std::shared_ptr<ImportExternalFileOptions>& options, Action action,
+                               int64_t eventTimeInSecs) override;
 
     std::shared_ptr<ITabletReader> GetTabletReader() const override;
     const TabletInfos* GetTabletInfos() const override;
@@ -165,7 +171,8 @@ private:
     void UpdateDocCount();
 
     Status CheckAlterTableCompatible(const std::shared_ptr<TabletData>& tabletData,
-                                     const config::ITabletSchema& oldSchema, const config::ITabletSchema& newSchema);
+                                     const std::shared_ptr<config::ITabletSchema>& oldSchema,
+                                     const std::shared_ptr<config::ITabletSchema>& newSchema);
     Status FinalizeTabletData(TabletData* tabletData, const std::shared_ptr<config::ITabletSchema>& writeSchema);
     std::shared_ptr<config::ITabletSchema> GetReadSchema(const std::shared_ptr<TabletData>& tabletData);
     Status DoAlterTable(const std::shared_ptr<config::ITabletSchema>& newSchema);
@@ -173,6 +180,7 @@ private:
     Version MakeEmptyVersion(schemaid_t schemaId) const;
     void SetTabletData(std::shared_ptr<TabletData> tabletData);
     void MemoryReclaim();
+    std::shared_ptr<framework::ResourceCleaner> CreateResourceCleaner();
     int64_t GetSuggestBuildingSegmentMemoryUse();
     std::shared_ptr<indexlib::file_system::LifecycleTable> GetLifecycleTableFromVersion(const Version& version);
     Status RenewFenceLease(bool createIfNotExist);
@@ -181,8 +189,6 @@ private:
     bool NeedRecoverFromLocal() const;
     std::string GetDiffSegmentDebugString(const Version& targetVersion,
                                           const std::shared_ptr<TabletData>& currentTabletData) const;
-    void HandleIndexTask(const std::string& taskType, const std::string& taskName,
-                         const std::map<std::string, std::string>& params, Action action, const std::string& comment);
 
 private:
     mutable std::mutex _dataMutex;
@@ -191,14 +197,14 @@ private:
 
     std::mutex _reopenMutex;
     std::mutex _cleanerMutex;
-
+    std::shared_ptr<framework::IIndexMemoryReclaimer> _memReclaimer;
     std::unique_ptr<TabletInfos> _tabletInfos;
     std::atomic<bool> _needSeek; // TODO: rename
     std::optional<Locator> _sealedSourceLocator;
     std::shared_ptr<config::TabletOptions> _tabletOptions;
     framework::OpenOptions _openOptions;
     std::shared_ptr<MemoryQuotaController> _tabletMemoryQuotaController;
-    std::unique_ptr<MemoryQuotaSynchronizer> _buildMemoryQuotaSynchronizer;
+    std::shared_ptr<MemoryQuotaSynchronizer> _buildMemoryQuotaSynchronizer;
     std::shared_ptr<indexlib::file_system::FileBlockCacheContainer> _fileBlockCacheContainer;
     std::shared_ptr<indexlib::util::SearchCachePartitionWrapper> _searchCache;
     Fence _fence;
@@ -221,7 +227,7 @@ private:
     std::shared_ptr<ITabletMergeController> _mergeController;
     std::shared_ptr<IdGenerator> _idGenerator;
     std::shared_ptr<VersionMerger> _versionMerger;
-    std::shared_ptr<framework::IIndexMemoryReclaimer> _memReclaimer;
+    std::unique_ptr<IMemoryControlStrategy> _memControlStrategy;
 
     // TODO: Build thread pools should be passed in from outside(suez). The thread pools here exist only because
     // suez does not implement global thread pool control yet. REMOVE.

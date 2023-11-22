@@ -331,8 +331,7 @@ bool DelayDpInfo::replaceSubGraph(plan::PlanNode &node,
 } // namespace plan
 
 AUTIL_LOG_SETUP(sql, GraphTransform);
-
-static const string EMPTY_STRING;
+const string GraphTransform::EMPTY_STRING = "";
 
 GraphTransformEnv::GraphTransformEnv() {
     disableWatermark = autil::EnvUtil::getEnv("disableWatermark", disableWatermark);
@@ -353,12 +352,12 @@ GraphTransform::Config::Config(const iquan::ExecConfig &execConfig,
     , _request(request)
     , _innerDynamicParams(innerDynamicParams)
     , parallelNum(_execConfig.parallelConfig.parallelNum)
-    , lackResultEnable(_execConfig.lackResultEnable)
+    , resultAllowSoftFailure(_execConfig.resultAllowSoftFailure)
     , sourceId(getRequestParam(IQUAN_EXEC_SOURCE_ID))
     , sourceSpec(getRequestParam(IQUAN_EXEC_SOURCE_SPEC))
     , taskQueue(getRequestParam(IQUAN_EXEC_TASK_QUEUE))
     , otherRunGraphParam(getRequestParam(IQUAN_EXEC_USER_KV))
-    , qrsBizName(getRequestParam(IQUAN_EXEC_QRS_BIZ_NAME))
+    , qrsBizName(getRequestParam(IQUAN_EXEC_QRS_BIZ_NAME, execConfig.thisBizName))
     , searcherBizName(getRequestParam(IQUAN_EXEC_SEARCHER_BIZ_NAME))
     , leaderPreferLevel(getRequestParam(IQUAN_EXEC_LEADER_PREFER_LEVEL)) {
     {
@@ -385,13 +384,14 @@ GraphTransform::Config::Config(const iquan::ExecConfig &execConfig,
     innerParams = &_innerDynamicParams;
 }
 
-const std::string &GraphTransform::Config::getRequestParam(const std::string &key) const {
+const std::string &GraphTransform::Config::getRequestParam(const std::string &key,
+                                                           const std::string &defaultValue) const {
     const auto &execParams = _request.execParams;
     auto iter = execParams.find(key);
     if (iter != execParams.end()) {
         return iter->second;
     } else {
-        return EMPTY_STRING;
+        return defaultValue;
     }
 }
 
@@ -416,7 +416,7 @@ static string getJsonStringValue(iquan::PlanOp &op, const string &key) {
     if (p != nullptr && p->IsString()) {
         return p->GetString();
     } else {
-        return EMPTY_STRING;
+        return GraphTransform::EMPTY_STRING;
     }
 }
 
@@ -484,7 +484,7 @@ GraphTransform::ErrorCode GraphTransform::getErrorCode() const {
 }
 
 plan::PlanNode *GraphTransform::visitNode(plan::PlanNode &node) {
-    SQL_LOG(DEBUG, "visit common nodeId:%ld", node.op->id);
+    SQL_LOG(TRACE3, "visit common nodeId:%ld", node.op->id);
     switch (node.inputMap.size()) {
     case 0:
         buildNode(node, 1);
@@ -497,7 +497,7 @@ plan::PlanNode *GraphTransform::visitNode(plan::PlanNode &node) {
 }
 
 plan::PlanNode *GraphTransform::visitScan(plan::ScanNode &node) {
-    SQL_LOG(DEBUG, "visit scan nodeId:%ld", node.op->id);
+    SQL_LOG(TRACE3, "visit scan nodeId:%ld", node.op->id);
     addTargetWatermark(node);
     auto parallel = getScanParallel(*(node.op));
     buildNode(node, parallel);
@@ -505,7 +505,7 @@ plan::PlanNode *GraphTransform::visitScan(plan::ScanNode &node) {
 }
 
 plan::PlanNode *GraphTransform::visitExchange(plan::ExchangeNode &node) {
-    SQL_LOG(DEBUG, "visit exchange nodeId:%ld", node.op->id);
+    SQL_LOG(TRACE3, "visit exchange nodeId:%ld", node.op->id);
     auto childIter = node.inputMap.begin();
     if (childIter == node.inputMap.end()) {
         _errorCode = ErrorCode::LACK_NODE_INPUT;
@@ -550,20 +550,16 @@ plan::PlanNode *GraphTransform::visitExchange(plan::ExchangeNode &node) {
 }
 
 std::string GraphTransform::getQrsBizName() {
-    if (_config.qrsBizName.empty()) {
-        return isearch::DEFAULT_QRS_SQL_BIZ_NAME;
-    } else {
-        return _config.qrsBizName;
-    }
+    return _config.qrsBizName;
 }
 
 std::string GraphTransform::getRemoteBizName(iquan::PlanOp &op) {
     if (_config.searcherBizName.empty()) {
-        auto name = getJsonStringValue(op, "table_group_name");
+        auto name = getJsonStringValue(op, "node_name");
         if (name.empty()) {
             name = getJsonStringValue(op, "db_name");
             if (name == SQL_DEFAULT_EXTERNAL_DATABASE_NAME) {
-                return std::string("qrs") + "." + isearch::DEFAULT_SQL_BIZ_NAME;
+                return getQrsBizName();
             }
         }
         return name + "." + isearch::DEFAULT_SQL_BIZ_NAME;
@@ -730,21 +726,21 @@ plan::PlanNode *GraphTransform::linkVisit(size_t nodeId, plan::GraphRoot &root) 
 plan::PlanNode *GraphTransform::linkVisit(plan::PlanNode &node, plan::GraphRoot &root) {
     auto nodeId = node.op->id;
     plan::PlanNode *p = nullptr;
-    SQL_LOG(DEBUG, "link nodeId:%ld", nodeId);
+    SQL_LOG(TRACE3, "link nodeId:%ld", nodeId);
     switch (node.status) {
     case plan::NodeStatus::LINKING:
         _errorCode = ErrorCode::GRAPH_CIRCLE;
         SQL_LOG(WARN, "nodeId:%ld is linking, detect graph circle", nodeId);
         break;
     case plan::NodeStatus::INIT:
-        SQL_LOG(DEBUG, "first link nodeId:%ld", nodeId);
+        SQL_LOG(TRACE3, "first link nodeId:%ld", nodeId);
         node.status = plan::NodeStatus::LINKING;
         node.root = &root;
         p = linkInitNode(node, root);
         node.status = plan::NodeStatus::LINKED;
         break;
     case plan::NodeStatus::LINKED:
-        SQL_LOG(DEBUG, "share link nodeId:%ld", nodeId);
+        SQL_LOG(TRACE3, "share link nodeId:%ld", nodeId);
         p = linkSharedNode(node, root);
         break;
     default:
@@ -767,12 +763,12 @@ plan::PlanNode *GraphTransform::linkInitNode(plan::PlanNode &node, plan::GraphRo
 plan::PlanNode *GraphTransform::linkSharedNode(plan::PlanNode &node, plan::GraphRoot &curRoot) {
     auto nodeId = node.op->id;
     if (dynamic_cast<plan::ExchangeNode *>(&node) != nullptr) {
-        SQL_LOG(DEBUG, "exchange nodeId:%ld has share", nodeId);
+        SQL_LOG(TRACE3, "exchange nodeId:%ld has share", nodeId);
         return &node;
     }
 
     if (node.root == &curRoot) {
-        SQL_LOG(DEBUG, "nodeId:%ld shared in same graph", nodeId);
+        SQL_LOG(TRACE3, "nodeId:%ld shared in same graph", nodeId);
         return &node;
     }
 
@@ -781,23 +777,23 @@ plan::PlanNode *GraphTransform::linkSharedNode(plan::PlanNode &node, plan::Graph
     bool curEmptyLeaf = curShared->getLeafs().empty();
     bool nodeEmptyLeaf = nodeShared->getLeafs().empty();
     if (curEmptyLeaf == true && nodeEmptyLeaf == true) {
-        SQL_LOG(DEBUG, "nodeId:%ld and current root all have no share", nodeId);
+        SQL_LOG(TRACE3, "nodeId:%ld and current root all have no share", nodeId);
         curShared->addLeaf(nodeShared);
     } else if (curEmptyLeaf == false && nodeEmptyLeaf == false) {
-        SQL_LOG(DEBUG, "nodeId:%ld and current root all have share", nodeId);
+        SQL_LOG(TRACE3, "nodeId:%ld and current root all have share", nodeId);
         plan::GraphRoot::mergeRoot(curShared, nodeShared);
     } else if (nodeEmptyLeaf == false) {
-        SQL_LOG(DEBUG, "only nodeId:%ld root has share, add current to it", nodeId);
+        SQL_LOG(TRACE3, "only nodeId:%ld root has share, add current to it", nodeId);
         nodeShared->addLeaf(curShared);
     } else {
-        SQL_LOG(DEBUG, "only current root has share, add nodeId:%ld to it", nodeId);
+        SQL_LOG(TRACE3, "only current root has share, add nodeId:%ld to it", nodeId);
         curShared->addLeaf(nodeShared);
     }
     return &node;
 }
 
 plan::PlanNode *GraphTransform::linkExchangeNode(plan::ExchangeNode &node, plan::GraphRoot &root) {
-    SQL_LOG(DEBUG, "link exchange node");
+    SQL_LOG(TRACE3, "link exchange node");
     auto subRoot = addGraphRoot();
     root.addInput(subRoot);
     subRoot->setOutput(&root);
@@ -817,7 +813,7 @@ plan::PlanNode *GraphTransform::linkExchangeNode(plan::ExchangeNode &node, plan:
     subRoot->setRemoteDist(remoteDist);
     auto remoteDelayDp = getJsonSegment(op, "output_prunable");
     if (remoteDelayDp == "1") {
-        SQL_LOG(DEBUG, "enable remote_delay_deploy, node:%ld", op.id);
+        SQL_LOG(TRACE3, "enable remote_delay_deploy, node:%ld", op.id);
         subRoot->setRemoteDelayDp(true);
     }
     node.root = subRoot;
@@ -825,7 +821,7 @@ plan::PlanNode *GraphTransform::linkExchangeNode(plan::ExchangeNode &node, plan:
 }
 
 plan::PlanNode *GraphTransform::linkCommonNode(plan::PlanNode &node, plan::GraphRoot &root) {
-    SQL_LOG(DEBUG, "link common node");
+    SQL_LOG(TRACE3, "link common node");
     for (const auto &pair : node.op->inputs) {
         const auto &inputIds = pair.second;
         auto &inputNodes = node.inputMap[pair.first];
@@ -846,13 +842,13 @@ plan::PlanNode *GraphTransform::buildVisit(plan::PlanNode &node) {
     plan::PlanNode *p = nullptr;
     switch (node.status) {
     case plan::NodeStatus::LINKED:
-        SQL_LOG(DEBUG, "visit build nodeId:%ld", nodeId);
+        SQL_LOG(TRACE3, "visit build nodeId:%ld", nodeId);
         node.status = plan::NodeStatus::BUILDING;
         p = node.accept(*this);
         node.status = plan::NodeStatus::FINISH;
         break;
     case plan::NodeStatus::FINISH:
-        SQL_LOG(DEBUG, "share finish nodeId:%ld", nodeId);
+        SQL_LOG(TRACE3, "share finish nodeId:%ld", nodeId);
         p = &node;
         break;
     default:
@@ -864,7 +860,7 @@ plan::PlanNode *GraphTransform::buildVisit(plan::PlanNode &node) {
 }
 
 void GraphTransform::buildNode(plan::PlanNode &node, size_t parallel) {
-    SQL_LOG(DEBUG, "build nodeId:%ld, parallel:%ld", node.op->id, parallel);
+    SQL_LOG(TRACE3, "build nodeId:%ld, parallel:%ld", node.op->id, parallel);
     if (parallel <= 1u) {
         auto nodeName = StringUtil::toString(node.op->id);
         node.nodeNames = {nodeName};
@@ -886,7 +882,7 @@ void GraphTransform::buildMergedNode(plan::PlanNode &node) {
     if (parallel <= 1u) {
         return;
     }
-    SQL_LOG(DEBUG, "merge parallel:%ld for nodeId:%ld", parallel, node.op->id);
+    SQL_LOG(TRACE3, "merge parallel:%ld for nodeId:%ld", parallel, node.op->id);
     node.mergedName = addMergedNode();
     auto buildInput = _builder->node(node.mergedName).in(DEFAULT_INPUT_PORT);
     for (size_t i = 0; i < parallel; ++i) {
@@ -898,7 +894,7 @@ void GraphTransform::buildMergedNode(plan::PlanNode &node) {
 std::string GraphTransform::addMergedNode() {
     auto nodeName = UNION_OP + "_" + StringUtil::toString(_mergedNodeCount);
     ++_mergedNodeCount;
-    SQL_LOG(DEBUG, "add merge node:%s", nodeName.c_str());
+    SQL_LOG(TRACE3, "add merge node:%s", nodeName.c_str());
     _builder->node(nodeName).kernel(UNION_OP);
     return nodeName;
 }
@@ -925,7 +921,7 @@ plan::PlanNode *GraphTransform::buildSingleInputNode(plan::PlanNode &node) {
 }
 
 plan::PlanNode *GraphTransform::buildSinglePlainInputNode(plan::PlanNode &node) {
-    SQL_LOG(DEBUG, "build single plain input node");
+    SQL_LOG(TRACE3, "build single plain input node");
     auto childIter = node.inputMap.begin();
     const auto &inputPort = childIter->first;
     auto p = buildVisit(*(childIter->second[0]));
@@ -952,7 +948,7 @@ plan::PlanNode *GraphTransform::buildSinglePlainInputNode(plan::PlanNode &node) 
 }
 
 plan::PlanNode *GraphTransform::buildSingleGroupInputNode(plan::PlanNode &node) {
-    SQL_LOG(DEBUG, "build single group input node");
+    SQL_LOG(TRACE3, "build single group input node");
     auto childIter = node.inputMap.begin();
     const auto &inputPort = childIter->first;
     auto &inputNodes = childIter->second;
@@ -994,7 +990,7 @@ plan::PlanNode *GraphTransform::buildMultiInputNode(plan::PlanNode &node) {
 }
 
 plan::PlanNode *GraphTransform::buildMultiPlainInputNode(plan::PlanNode &node) {
-    SQL_LOG(DEBUG, "build multi plain input node");
+    SQL_LOG(TRACE3, "build multi plain input node");
     struct InputInfo {
         const string &inputPort;
         plan::PlanNode *p;
@@ -1058,7 +1054,7 @@ void GraphTransform::switchToSubGraph(plan::PlanNode &node) {
 }
 
 void GraphTransform::switchToSubGraph(navi::GraphId id, navi::GraphBuilder *builder) {
-    SQL_LOG(DEBUG, "switchToSubGraph: builder: %p, graphId: %d", builder, id);
+    SQL_LOG(TRACE3, "switchToSubGraph: builder: %p, graphId: %d", builder, id);
     _builder = builder;
     builder->subGraph(id);
 }
@@ -1067,7 +1063,10 @@ navi::GraphId GraphTransform::newSubGraph(plan::GraphRoot &root, navi::GraphBuil
     const auto &bizName = root.getBizName();
     _builder = builder;
     auto graphId = _builder->newSubGraph(bizName);
-    SQL_LOG(DEBUG, "new subGraph: %s, builder: %p, graphId: %d", bizName.c_str(), builder, graphId);
+    builder->errorHandleStrategy(_config.resultAllowSoftFailure ? EHS_ERROR_AS_EOF
+                                                                : EHS_ERROR_AS_FATAL);
+    SQL_LOG(
+        TRACE3, "new subGraph: %s, builder: %p, graphId: %d", bizName.c_str(), builder, graphId);
     root.setGraphId(graphId);
     root.setBuilder(_builder);
     if (root.getInlineMode()) {
@@ -1093,7 +1092,7 @@ void GraphTransform::addDelayDpInfo(plan::ExchangeNode &node) {
     if (curRoot->canDelayDp()) {
         auto &info = getDelayDpInfo(*curRoot);
         info.addOutputExchange(&node);
-        SQL_LOG(DEBUG, "delay dp info %p add output node %ld", &info, node.op->id);
+        SQL_LOG(TRACE3, "delay dp info %p add output node %ld", &info, node.op->id);
     }
 
     auto outputRoot = node.root->getOutput();
@@ -1104,7 +1103,7 @@ void GraphTransform::addDelayDpInfo(plan::ExchangeNode &node) {
     if (outputRoot->canDelayDp()) {
         auto &info = getDelayDpInfo(*outputRoot);
         info.addInputExchange(&node);
-        SQL_LOG(DEBUG, "delay dp info %p add input node %ld", &info, node.op->id);
+        SQL_LOG(TRACE3, "delay dp info %p add input node %ld", &info, node.op->id);
     }
 }
 
@@ -1122,7 +1121,7 @@ bool GraphTransform::buildDelayDpGraph() {
     size_t newNodeCount = 0;
     auto rootRoot = _subRoots[0]->getRoot();
     for (auto info : _delayDpInfos) {
-        SQL_LOG(DEBUG, "build delay dp %p begin", info);
+        SQL_LOG(TRACE3, "build delay dp %p begin", info);
         if (!info->prepareSubGraph()) {
             return false;
         }
@@ -1151,7 +1150,7 @@ bool GraphTransform::buildDelayDpGraph() {
         if (!info->replaceSubGraph(*p, buildInput, buildOutput, rootCreator)) {
             return false;
         }
-        SQL_LOG(DEBUG, "build delay dp graph end");
+        SQL_LOG(TRACE3, "build delay dp graph end");
     }
     return true;
 }
@@ -1160,7 +1159,7 @@ void GraphTransform::addExchangeBorder() {
     _builder = _rootBuilder;
     for (auto p : _exchangeNodes) {
         auto &node = *p;
-        SQL_LOG(DEBUG, "link exchange border, nodeId:%ld", node.op->id);
+        SQL_LOG(TRACE3, "link exchange border, nodeId:%ld", node.op->id);
         auto graphId = node.root->getRoot()->getGraphId();
         const auto &buildOutput = node.input2buildOutput.begin()->second;
         for (const auto &pair : node.output2buildInputs) {

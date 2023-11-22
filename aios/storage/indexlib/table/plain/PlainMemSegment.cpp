@@ -54,6 +54,7 @@ AUTIL_LOG_SETUP(indexlib.table, PlainMemSegment);
 Status PlainMemSegment::Open(const framework::BuildResource& resource,
                              indexlib::framework::SegmentMetrics* lastSegMetrics)
 {
+    _currentBuildDocId.reset(new docid64_t(0));
     SEGMENT_LOG(INFO, "begin open mem segment");
     _buildResourceMetrics = resource.buildResourceMetrics;
     _segmentMemController = std::make_unique<MemoryQuotaController>("in_memory_segment", resource.memController);
@@ -77,12 +78,9 @@ Status PlainMemSegment::Open(const framework::BuildResource& resource,
 }
 
 void PlainMemSegment::PrepareIndexerParameter(const framework::BuildResource& resource, int64_t maxMemoryUseInBytes,
-                                              index::IndexerParameter& indexerParam) const
+                                              index::MemIndexerParameter& indexerParam) const
 {
     indexerParam.segmentId = GetSegmentId();
-    indexerParam.docCount = GetSegmentInfo()->docCount;
-    indexerParam.counterMap = resource.counterMap;
-    indexerParam.counterPrefix = resource.counterPrefix;
     indexerParam.metricsManager = resource.metricsManager;
     indexerParam.buildResourceMetrics = _buildResourceMetrics.get();
     indexerParam.indexMemoryReclaimer = resource.indexMemoryReclaimer;
@@ -91,8 +89,10 @@ void PlainMemSegment::PrepareIndexerParameter(const framework::BuildResource& re
     indexerParam.isOnline = _options->IsOnline();
     indexerParam.segmentInfo = GetSegmentInfo();
     indexerParam.segmentMetrics = GetSegmentMetrics();
-    indexerParam.tabletOptions = _options;
+    indexerParam.isTolerateDocError = _options->GetBuildConfig().GetIsTolerateDocError();
+    indexerParam.tabletName = _options->GetTabletName();
     indexerParam.sortDescriptions = _sortDescriptions;
+    indexerParam.currentBuildDocId = _currentBuildDocId;
 }
 
 Status PlainMemSegment::PrepareIndexers(const framework::BuildResource& resource)
@@ -211,7 +211,8 @@ std::pair<Status, std::shared_ptr<index::IIndexer>> PlainMemSegment::GetIndexer(
     return std::make_pair(Status::OK(), indexerAndMemUpdaterPair.first);
 }
 
-void PlainMemSegment::ValidateDocumentBatch(document::TemplateDocumentBatch<document::PlainDocument>* plainDocBatch)
+void PlainMemSegment::ValidateDocumentBatch(
+    document::TemplateDocumentBatch<document::PlainDocument>* plainDocBatch) const
 {
     for (size_t i = 0; i < plainDocBatch->GetBatchSize(); i++) {
         if (plainDocBatch->IsDropped(i)) {
@@ -235,7 +236,7 @@ void PlainMemSegment::ValidateDocumentBatch(document::TemplateDocumentBatch<docu
         }
     }
 }
-void PlainMemSegment::ValidateDocumentBatch(document::IDocumentBatch* docBatch)
+void PlainMemSegment::ValidateDocumentBatch(document::IDocumentBatch* docBatch) const
 {
     auto plainDocBatch = dynamic_cast<document::TemplateDocumentBatch<document::PlainDocument>*>(docBatch);
     if (plainDocBatch) {
@@ -293,7 +294,9 @@ Status PlainMemSegment::Build(document::IDocumentBatch* batch)
 Status PlainMemSegment::BuildPlainDoc(document::TemplateDocumentBatch<document::PlainDocument>* plainDocBatch)
 {
     const auto& buildIndexers = GetBuildIndexers();
+    auto startDocId = (*_currentBuildDocId);
     for (auto& memIndexer : buildIndexers) {
+        *_currentBuildDocId = startDocId;
         auto indexType = memIndexer->GetIndexType();
         std::unique_ptr<indexlibv2::document::DocumentIterator<indexlibv2::document::PlainDocument>> iter =
             document::DocumentIterator<indexlibv2::document::PlainDocument>::Create(plainDocBatch);
@@ -309,6 +312,7 @@ Status PlainMemSegment::BuildPlainDoc(document::TemplateDocumentBatch<document::
                 UpdateMemUse();
                 return status;
             }
+            (*_currentBuildDocId)++;
         }
     }
     return Status::OK();

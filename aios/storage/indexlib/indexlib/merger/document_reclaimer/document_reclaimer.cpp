@@ -15,14 +15,42 @@
  */
 #include "indexlib/merger/document_reclaimer/document_reclaimer.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "beeper/beeper.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/FileCompressSchema.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/merge_config.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/WriterOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/normal/attribute/accessor/attribute_data_iterator.h"
 #include "indexlib/index_base/deploy_index_wrapper.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/partition_data.h"
+#include "indexlib/index_base/segment/segment_data.h"
 #include "indexlib/index_define.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/merger/document_reclaimer/index_reclaimer.h"
 #include "indexlib/merger/document_reclaimer/index_reclaimer_creator.h"
 #include "indexlib/merger/document_reclaimer/obsolete_doc_reclaimer.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

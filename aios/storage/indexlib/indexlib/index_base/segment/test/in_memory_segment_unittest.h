@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMORYSEGMENTTEST_H
-#define __INDEXLIB_INMEMORYSEGMENTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -33,5 +32,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(InMemorySegmentTest, TestDump);
 INDEXLIB_UNIT_TEST_CASE(InMemorySegmentTest, TestDumpForSub);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_INMEMORYSEGMENTTEST_H

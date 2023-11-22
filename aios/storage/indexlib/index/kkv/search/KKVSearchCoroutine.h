@@ -302,7 +302,7 @@ inline FL_LAZY(Status) KKVSearchCoroutine<SKeyType>::CollectSKeysFromBuiltSegmen
                               SKeySearchContext<SKeyType>* skeyContext,
                               uint64_t minimumTsInSecond) mutable -> TaskType {
                 auto ret = FL_COAWAIT docIter->GetSKeysAsync(skeyContext, minimumTsInSecond, segResult.kkvDocs,
-                                                  segResult.valueFetcher);
+                                                             segResult.valueFetcher);
                 if (!ret) {
                     FL_CORETURN std::make_pair(Status::IOError(), std::move(segResult));
                 } else {

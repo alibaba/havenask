@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVREADERTEST_H
-#define __INDEXLIB_KVREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -55,5 +54,3 @@ INDEXLIB_UNIT_TEST_CASE(KVReaderTest, TestGetWithRegionId);
 INDEXLIB_UNIT_TEST_CASE(KVReaderTest, TestBatchGet);
 // INDEXLIB_UNIT_TEST_CASE(KVReaderTest, TestSearchCacheIncReclaimAllRtBug);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KVREADERTEST_H

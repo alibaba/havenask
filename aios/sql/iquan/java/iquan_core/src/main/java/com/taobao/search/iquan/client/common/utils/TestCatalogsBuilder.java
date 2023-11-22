@@ -1,37 +1,43 @@
 package com.taobao.search.iquan.client.common.utils;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.CharStreams;
-import com.taobao.search.iquan.client.common.common.ConstantDefine;
-import com.taobao.search.iquan.client.common.json.catalog.JsonCatalogInfo;
-import com.taobao.search.iquan.client.common.json.catalog.JsonDatabaseInfo;
-import com.taobao.search.iquan.client.common.json.common.JsonComputeNode;
-import com.taobao.search.iquan.client.common.service.CatalogService;
-import com.taobao.search.iquan.core.api.common.IquanErrorCode;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.api.schema.*;
-import com.taobao.search.iquan.client.common.response.SqlResponse;
-import com.taobao.search.iquan.client.common.service.FunctionService;
-import com.taobao.search.iquan.client.common.service.TableService;
-import com.taobao.search.iquan.core.api.SqlTranslator;
-import com.taobao.search.iquan.core.utils.IquanTypeFactory;
-import com.taobao.search.iquan.core.utils.FunctionUtils;
-import com.taobao.search.iquan.core.catalog.function.IquanFunction;
-import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
-import org.apache.calcite.rel.RelDistribution;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.taobao.search.iquan.client.common.json.catalog.JsonCatalog;
+import com.taobao.search.iquan.client.common.service.CatalogService;
+import com.taobao.search.iquan.core.api.SqlTranslator;
+import com.taobao.search.iquan.core.api.schema.AbstractField;
+import com.taobao.search.iquan.core.api.schema.ArrayField;
+import com.taobao.search.iquan.core.api.schema.AtomicField;
+import com.taobao.search.iquan.core.api.schema.ColumnListField;
+import com.taobao.search.iquan.core.api.schema.Distribution;
+import com.taobao.search.iquan.core.api.schema.Function;
+import com.taobao.search.iquan.core.api.schema.FunctionType;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
+import com.taobao.search.iquan.core.api.schema.TvfFunction;
+import com.taobao.search.iquan.core.api.schema.TvfInputTable;
+import com.taobao.search.iquan.core.api.schema.TvfOutputTable;
+import com.taobao.search.iquan.core.api.schema.TvfSignature;
+import com.taobao.search.iquan.core.api.schema.UdxfFunction;
+import com.taobao.search.iquan.core.api.schema.UdxfSignature;
+import com.taobao.search.iquan.core.catalog.ConcatCatalogComponent;
+import com.taobao.search.iquan.core.catalog.FullPath;
+import com.taobao.search.iquan.core.catalog.function.IquanFunction;
+import com.taobao.search.iquan.core.utils.FunctionUtils;
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import com.taobao.search.iquan.core.utils.IquanTypeFactory;
+import org.apache.calcite.rel.RelDistribution;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 public class TestCatalogsBuilder {
     private static final Logger logger = LoggerFactory.getLogger(TestCatalogsBuilder.class);
 
-    public static Table buildTestTable(int version, String name) {
+    public static IquanTable buildTestTable(int version, String name) {
         List<AbstractField> fieldList = new ArrayList<>();
         {
             AtomicField field1 = AtomicField.newBuilder().fieldType("int32").fieldName("i1").indexType("number").indexName("i1").build();
@@ -40,9 +46,8 @@ public class TestCatalogsBuilder {
             fieldList.add(field2);
         }
         Distribution distribution = Distribution.newBuilder(RelDistribution.Type.HASH_DISTRIBUTED, Distribution.EMPTY).partitionCnt(5).hashFunction("hash").build();
-        Location location = new Location("searcher", 5);
-        return Table.newBuilder().version(version).tableName(name).tableType("normal").fields(fieldList)
-                .distribution(distribution).location(location).build();
+        return IquanTable.newBuilder().version(version).tableName(name).tableType("normal").fields(fieldList)
+                .distribution(distribution).build();
     }
 
     public static IquanFunction createContainFunction(int version, String name) {
@@ -79,7 +84,7 @@ public class TestCatalogsBuilder {
 
         return new TvfFunction(
                 version,
-                name,
+                new FullPath("default", "db1", name),
                 FunctionType.FT_TVF,
                 isDeterministic,
                 ImmutableList.of(signature)
@@ -114,7 +119,7 @@ public class TestCatalogsBuilder {
 
         return new TvfFunction(
                 version,
-                name,
+                new FullPath("default", "db1", name),
                 FunctionType.FT_TVF,
                 isDeterministic,
                 ImmutableList.of(signature)
@@ -142,7 +147,7 @@ public class TestCatalogsBuilder {
 
         return new TvfFunction(
                 version,
-                name,
+                new FullPath("default", "db1", name),
                 FunctionType.FT_TVF,
                 isDeterministic,
                 ImmutableList.of(signature)
@@ -212,160 +217,23 @@ public class TestCatalogsBuilder {
             signatureList.add(signature);
         }
 
-        return new UdxfFunction(version, name, FunctionType.FT_UDF, true, signatureList);
+        return new UdxfFunction(version, new FullPath("default", "db1", name),
+            FunctionType.FT_UDF, true, signatureList);
     }
 
+    public static boolean concatAndRegisterTestCatalogs(SqlTranslator sqlTranslator, String catalogFile) {
+        return registerTestCatalogs(sqlTranslator, ConcatCatalogComponent.createCatalogJson(catalogFile));
+    }
 
-    public static boolean registerTestCatalogs(SqlTranslator sqlTranslator, String catalogFile) {
-        if (catalogFile == null || catalogFile.isEmpty()) {
+    public static boolean registerTestCatalogs(SqlTranslator sqlTranslator, String catalogFileContent) {
+        if (StringUtils.isEmpty(catalogFileContent)) {
             logger.error("catalogFile == null || catalogFile.isEmpty()");
             return false;
         }
 
-        try {
-            InputStream inputStream = TestCatalogsBuilder.class.getClassLoader().getResourceAsStream(catalogFile);
-            if (inputStream == null) {
-                logger.error("Can not read catalog file : " + catalogFile);
-                throw new SqlQueryException(IquanErrorCode.IQUAN_EC_INVALID_CATALOG_PATH, catalogFile);
-            }
-            String catalogFileContent = CharStreams.toString(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            JsonCatalogInfo[] catalogInfos = IquanRelOptUtils.fromJson(catalogFileContent, JsonCatalogInfo[].class);
-
-            for (JsonCatalogInfo catalogInfo : catalogInfos) {
-                if (catalogInfo == null) {
-                    continue;
-                }
-
-                for (JsonDatabaseInfo databaseInfo : catalogInfo.getDatabases()) {
-                    if (databaseInfo == null) {
-                        continue;
-                    }
-
-                    // register functions
-                    for (String functionPath : databaseInfo.getFunctions()) {
-                        InputStream functionStream = TestCatalogsBuilder.class.getClassLoader().getResourceAsStream(functionPath);
-                        if (functionStream == null) {
-                            throw new SqlQueryException(IquanErrorCode.IQUAN_EC_INVALID_FUNCTION_PATH, functionPath);
-                        }
-                        String functionContent = CharStreams.toString(new InputStreamReader(functionStream, StandardCharsets.UTF_8));
-                        if (!registerFunctions(sqlTranslator, functionPath, functionContent)) {
-                            return false;
-                        }
-                    }
-
-                    // register tables
-                    List<String> tableContents = new ArrayList<>();
-                    for (String tablePath : databaseInfo.getTables()) {
-                        InputStream tableStream = TestCatalogsBuilder.class.getClassLoader().getResourceAsStream(tablePath);
-                        if (tableStream == null) {
-                            throw new SqlQueryException(IquanErrorCode.IQUAN_EC_INVALID_TABLE_PATH, tablePath);
-                        }
-                        String tableContent = CharStreams.toString(new InputStreamReader(tableStream, StandardCharsets.UTF_8));
-                        tableContents.add(tableContent);
-                    }
-                    if (!registerTables(sqlTranslator, tableContents)) {
-                        return false;
-                    }
-
-                    //register computes
-                    List<JsonComputeNode> computeNodes = databaseInfo.getComputeNodes();
-                    if (!computeNodes.isEmpty() && !registerComputeNodes(sqlTranslator, catalogInfo.getCatalogName(), computeNodes)) {
-                        return false;
-                    }
-                }
-
-                for (JsonDatabaseInfo databaseInfo : catalogInfo.getDatabases()) {
-                    if (databaseInfo == null) {
-                        continue;
-                    }
-
-                    //register LayerTables
-                    for (String layerTablePath : databaseInfo.getLayerTabls()) {
-                        InputStream stream = TestCatalogsBuilder.class.getClassLoader().getResourceAsStream(layerTablePath);
-                        if (stream == null) {
-                            throw new SqlQueryException(IquanErrorCode.IQUAN_EC_INVALID_LAYER_TABLE_PATH, layerTablePath);
-                        }
-                        String content = CharStreams.toString(new InputStreamReader(stream, StandardCharsets.UTF_8));
-                        if (!registerLayerTables(sqlTranslator, layerTablePath, content)) {
-                            return false;
-                        }
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            logger.error("caught exception in registerTestCatalogs:", ex);
-            throw new SqlQueryException(IquanErrorCode.IQUAN_EC_BOOT_COMMON, "caught exception in registerTestCatalogs:", ex);
-        }
-        return true;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static boolean registerFunctions(SqlTranslator sqlTranslator, String functionPath, String functionContent) {
-        Map<String, Object> reqMap = IquanRelOptUtils.fromJson(functionContent, Map.class);
-
-        SqlResponse response = FunctionService.updateFunctions(sqlTranslator, reqMap);
-        if (!response.isOk()) {
-            logger.error(String.format("register function file %s fail: content [%s], error message [%s]",
-                    functionPath, functionContent, response.getErrorMessage()));
-            return false;
-        }
-        logger.info(String.format("register function file %s success.", functionPath));
-        return true;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static boolean registerTables(SqlTranslator sqlTranslator, String tablePath, String tableContent) {
-        Map<String, Object> reqMap = IquanRelOptUtils.fromJson(tableContent, Map.class);
-
-        SqlResponse response = TableService.updateTables(sqlTranslator, reqMap);
-        if (!response.isOk()) {
-            logger.error(String.format("register table file %s fail: content [%s], error message [%s]",
-                    tablePath, tableContent, response.getErrorMessage()));
-            return false;
-        }
-        logger.info(String.format("register table file %s success.", tablePath));
-        return true;
-    }
-
-    private static boolean registerTables(SqlTranslator sqlTranslator, List<String> tableContents) {
-        List<Object> tables = new ArrayList<>();
-        for (String tableContent : tableContents) {
-            List<Object> items = (List<Object>) IquanRelOptUtils.fromJson(tableContent, Map.class).get(ConstantDefine.TABLES);
-            tables.addAll(items);
-        }
-        Map<String, Object> reqMap = new LinkedHashMap<>();
-        reqMap.put(ConstantDefine.TABLES, tables);
-
-        SqlResponse response = TableService.updateTables(sqlTranslator, reqMap);
-        if (!response.isOk()) {
-            logger.error("register Tables failed, error message [{}]", response.getErrorMessage());
-            return false;
-        }
-        return true;
-    }
-
-    private static boolean registerLayerTables(SqlTranslator sqlTranslator, String layerTablePath, String content) {
-        Map<String, Object> reqMap = IquanRelOptUtils.fromJson(content, Map.class);
-
-        SqlResponse response = TableService.updateLayerTables(sqlTranslator, reqMap);
-        if (!response.isOk()) {
-            logger.error(String.format("register layerTable file %s fail: content [%s], error message [%s]",
-                    layerTablePath, content, response.getErrorMessage()));
-            return false;
-        }
-        logger.info(String.format("register layerTable file %s success.", layerTablePath));
-        return true;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static boolean registerComputeNodes(SqlTranslator sqlTranslator, String catalogName, Object computeContent) {
-        SqlResponse response = CatalogService.updateComputeNodes(sqlTranslator, catalogName, computeContent);
-        if (!response.isOk()) {
-            logger.error(String.format("register compute node fail: content [%s], error message [%s]",
-                    computeContent, response.getErrorMessage()));
-            return false;
-        }
-        logger.info(String.format("register compute node success."));
+        JsonCatalog[] catalogInfos = IquanRelOptUtils.fromJson(catalogFileContent, JsonCatalog[].class);
+        List<Object> catalogInfoList = Arrays.asList(catalogInfos);
+        CatalogService.registerCatalogs(sqlTranslator, catalogInfoList);
         return true;
     }
 }

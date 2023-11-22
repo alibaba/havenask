@@ -46,6 +46,20 @@ std::optional<std::string> KVTabletExporter::CreateTabletOptionsString()
             },
             {
                 "file_patterns":[
+                    "\\w+/index/raw_key/"
+                ],
+                "name":"raw_key_strategy",
+                "load_strategy":"mmap",
+                "load_strategy_param":{
+                    "slice":4194304,
+                    "lock":true,
+                    "interval":0
+                },
+                "remote":true,
+                "deploy":false
+            },
+            {
+                "file_patterns":[
                     ".*"
                 ],
                 "name":"default_strategy",

@@ -15,11 +15,16 @@
  */
 #pragma once
 
+#include <algorithm>
+#include <memory>
+#include <vector>
+
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
 
 namespace indexlibv2::config {
 class SortDescription;
+
 typedef std::vector<SortDescription> SortDescriptions;
 
 class BuildOptionConfig : public autil::legacy::Jsonizable
@@ -38,6 +43,7 @@ public:
 
 private:
     struct Impl;
+
     std::unique_ptr<Impl> _impl;
 
 private:

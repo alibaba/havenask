@@ -1,10 +1,21 @@
 #include "build_service/util/LocatorUtil.h"
 
+#include <cstdint>
+#include <limits>
+#include <map>
+#include <optional>
+#include <ostream>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
+
 #include "build_service/common/Locator.h"
 #include "build_service/test/unittest.h"
 #include "indexlib/base/Progress.h"
 #include "indexlib/framework/Locator.h"
 #include "swift/protocol/SwiftMessage.pb.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;
@@ -49,7 +60,46 @@ makeLocatorProgress(const std::vector<std::tuple<uint32_t, uint32_t, int64_t, ui
     return progress;
 }
 
-// DISABLE case for visit url fail
+TEST_F(LocatorUtilTest, TestConvertSwiftMultiProgress)
+{
+    {
+        ProgressParamMap progressParam;
+        // 两个progress
+        progressParam[1] = {{0, 500, 2, 0}, {501, 1000, 5, 0}};
+        progressParam[2] = {{0, 100, 1, 0}, {101, 900, 3, 0}, {901, 1000, 6, 0}};
+        auto swiftProgress = makeProgress(progressParam);
+        auto [ret, retProgress] = LocatorUtil::convertSwiftMultiProgress(swiftProgress);
+        ASSERT_TRUE(ret);
+
+        indexlibv2::framework::Locator locator1, locator2;
+        indexlibv2::base::MultiProgress multiProgress;
+        multiProgress.emplace_back(makeLocatorProgress({{0, 500, 2, 0}, {501, 1000, 5, 0}}));
+        multiProgress.emplace_back(makeLocatorProgress({{0, 100, 1, 0}, {101, 900, 3, 0}, {901, 1000, 6, 0}}));
+        locator1.SetMultiProgress(multiProgress);
+        locator2.SetMultiProgress(retProgress);
+        ASSERT_EQ(locator1.GetMultiProgress(), locator2.GetMultiProgress());
+    }
+    {
+        // 三个progress
+        ProgressParamMap progressParam;
+        progressParam[1] = {{0, 500, 2, 0}, {501, 1000, 5, 0}};
+        progressParam[2] = {{0, 100, 1, 0}, {101, 900, 3, 0}, {901, 1000, 6, 0}};
+        progressParam[3] = {{0, 600, 0, 0}, {601, 1000, 4, 0}};
+        auto swiftProgress = makeProgress(progressParam);
+        auto [ret, retProgress] = LocatorUtil::convertSwiftMultiProgress(swiftProgress);
+        ASSERT_TRUE(ret);
+
+        indexlibv2::framework::Locator locator1, locator2;
+        indexlibv2::base::MultiProgress multiProgress;
+        multiProgress.emplace_back(makeLocatorProgress({{0, 500, 2, 0}, {501, 1000, 5, 0}}));
+        multiProgress.emplace_back(makeLocatorProgress({{0, 100, 1, 0}, {101, 900, 3, 0}, {901, 1000, 6, 0}}));
+        multiProgress.emplace_back(makeLocatorProgress({{0, 600, 0, 0}, {601, 1000, 4, 0}}));
+        locator1.SetMultiProgress(multiProgress);
+        locator2.SetMultiProgress(retProgress);
+        ASSERT_EQ(locator1.GetMultiProgress(), locator2.GetMultiProgress());
+    }
+}
+
 TEST_F(LocatorUtilTest, TestConvertSwiftProgress)
 {
     {
@@ -64,8 +114,8 @@ TEST_F(LocatorUtilTest, TestConvertSwiftProgress)
         ASSERT_TRUE(ret);
 
         indexlibv2::framework::Locator locator1, locator2;
-        locator1.SetProgress(locatorProgress);
-        locator2.SetProgress(retProgress);
+        locator1.SetMultiProgress({locatorProgress});
+        locator2.SetMultiProgress({retProgress});
         ASSERT_EQ(locator1.DebugString(), locator2.DebugString());
     }
     {
@@ -80,8 +130,8 @@ TEST_F(LocatorUtilTest, TestConvertSwiftProgress)
         ASSERT_TRUE(ret);
 
         indexlibv2::framework::Locator locator1, locator2;
-        locator1.SetProgress(locatorProgress);
-        locator2.SetProgress(retProgress);
+        locator1.SetMultiProgress({locatorProgress});
+        locator2.SetMultiProgress({retProgress});
         ASSERT_EQ(locator1.DebugString(), locator2.DebugString());
     }
     {
@@ -96,8 +146,8 @@ TEST_F(LocatorUtilTest, TestConvertSwiftProgress)
         ASSERT_TRUE(ret);
 
         indexlibv2::framework::Locator locator1, locator2;
-        locator1.SetProgress(locatorProgress);
-        locator2.SetProgress(retProgress);
+        locator1.SetMultiProgress({locatorProgress});
+        locator2.SetMultiProgress({retProgress});
         ASSERT_EQ(locator1.DebugString(), locator2.DebugString());
     }
     {
@@ -112,8 +162,8 @@ TEST_F(LocatorUtilTest, TestConvertSwiftProgress)
         ASSERT_TRUE(ret);
 
         indexlibv2::framework::Locator locator1, locator2;
-        locator1.SetProgress(locatorProgress);
-        locator2.SetProgress(retProgress);
+        locator1.SetMultiProgress({locatorProgress});
+        locator2.SetMultiProgress({retProgress});
         ASSERT_EQ(locator1.DebugString(), locator2.DebugString());
     }
 }
@@ -129,11 +179,33 @@ TEST_F(LocatorUtilTest, TestComputeMinProgress)
 
         indexlibv2::framework::Locator locator1, locator2;
 
-        auto ret = LocatorUtil::ComputeProgress(locatorProgress1, locatorProgress2, LocatorUtil::minOffset);
-        locator1.SetProgress(ret);
-        locator2.SetProgress(locatorProgress3);
+        auto ret = LocatorUtil::computeProgress(locatorProgress1, locatorProgress2, LocatorUtil::minOffset);
+        locator1.SetMultiProgress({ret});
+        locator2.SetMultiProgress({locatorProgress3});
 
         ASSERT_EQ(locator2.DebugString(), locator1.DebugString());
+    }
+}
+
+TEST_F(LocatorUtilTest, TestComputeMinMultiProgress)
+{
+    {
+        auto progressA1 = makeLocatorProgress({{0, 400, 2, 0}, {601, 1000, 5, 0}});
+        auto progressB1 = makeLocatorProgress({{0, 100, 1, 0}, {501, 1000, 6, 0}, {1001, 2000, 5, 0}});
+        auto expectProgress1 =
+            makeLocatorProgress({{0, 100, 1, 0}, {101, 400, 2, 0}, {501, 600, 6, 0}, {601, 2000, 5, 0}});
+
+        auto progressA2 = makeLocatorProgress({{0, 300, 2, 0}, {601, 1000, 6, 0}});
+        auto progressB2 = makeLocatorProgress({{0, 300, 1, 0}, {301, 600, 6, 0}, {601, 2000, 5, 0}});
+        auto expectProgress2 = makeLocatorProgress({{0, 300, 1, 0}, {301, 600, 6, 0}, {601, 2000, 5, 0}});
+
+        auto ret = LocatorUtil::computeMultiProgress({progressA1, progressA2}, {progressB1, progressB2},
+                                                     LocatorUtil::minOffset);
+        ASSERT_TRUE(ret.has_value());
+        indexlibv2::framework::Locator locator, expectLocator;
+        locator.SetMultiProgress(ret.value());
+        expectLocator.SetMultiProgress({expectProgress1, expectProgress2});
+        ASSERT_EQ(expectLocator.DebugString(), locator.DebugString());
     }
 }
 
@@ -141,11 +213,11 @@ TEST_F(LocatorUtilTest, TestEncodeAndDecodeOffset)
 {
     auto checkFunc = [](int8_t streamIdx, int64_t timestamp) {
         int64_t offset = 0;
-        ASSERT_TRUE(LocatorUtil::EncodeOffset(streamIdx, timestamp, &offset))
+        ASSERT_TRUE(LocatorUtil::encodeOffset(streamIdx, timestamp, &offset))
             << "encode " << streamIdx << " : " << timestamp << " failed" << endl;
         int8_t decodedStreamIdx = streamIdx + 1;
         int64_t decodedTimestamp = timestamp + 1;
-        LocatorUtil::DecodeOffset(offset, &decodedStreamIdx, &decodedTimestamp);
+        LocatorUtil::decodeOffset(offset, &decodedStreamIdx, &decodedTimestamp);
         ASSERT_EQ(streamIdx, decodedStreamIdx)
             << "stream idx differ " << streamIdx << " input: " << streamIdx << " " << timestamp << endl;
         ASSERT_EQ(timestamp, decodedTimestamp)
@@ -164,12 +236,12 @@ TEST_F(LocatorUtilTest, TestEncodeAndDecodeOffset)
     // special case for invalid locator, unexpected to be called but we protect it
     int8_t streamIdx = 0;
     int64_t timestamp = 0;
-    LocatorUtil::DecodeOffset(-1, &streamIdx, &timestamp);
+    LocatorUtil::decodeOffset(-1, &streamIdx, &timestamp);
     ASSERT_EQ((int8_t)-1, streamIdx);
     ASSERT_EQ((int64_t)-1, timestamp);
 
     int64_t offset = 0;
-    ASSERT_TRUE(LocatorUtil::EncodeOffset(streamIdx, timestamp, &offset));
+    ASSERT_TRUE(LocatorUtil::encodeOffset(streamIdx, timestamp, &offset));
     ASSERT_EQ(-1, offset);
 }
 
@@ -177,7 +249,7 @@ TEST_F(LocatorUtilTest, TestEncodeDecodeInvalidLocator)
 {
     auto checkInvalidEncode = [](int8_t streamIdx, int64_t timestamp) {
         int64_t offset = 0;
-        ASSERT_FALSE(LocatorUtil::EncodeOffset(streamIdx, timestamp, &offset))
+        ASSERT_FALSE(LocatorUtil::encodeOffset(streamIdx, timestamp, &offset))
             << " unexpected sucessful encode :" << streamIdx << " " << timestamp << endl;
     };
     checkInvalidEncode(0, -1);
@@ -195,7 +267,7 @@ TEST_F(LocatorUtilTest, TestDecodedOffsetValid)
     // if streamIdx and timestamp is valid, the decoded offset is supposed to be equal of greater than 0
     auto checkOffsetValid = [](int8_t streamIdx, int64_t timestamp) {
         int64_t offset = 0;
-        ASSERT_TRUE(LocatorUtil::EncodeOffset(streamIdx, timestamp, &offset))
+        ASSERT_TRUE(LocatorUtil::encodeOffset(streamIdx, timestamp, &offset))
             << " encode failed :" << streamIdx << " " << timestamp << endl;
         ASSERT_GE(offset, 0);
     };
@@ -212,19 +284,19 @@ TEST_F(LocatorUtilTest, TestGetSwiftWatermark)
         std::vector<indexlibv2::base::Progress> progress;
         progress.push_back({0, 100, {100, 0}});
         progress.push_back({0, 100, {200, 0}});
-        locator.SetProgress(progress);
-        ASSERT_EQ(100, LocatorUtil::GetSwiftWatermark(locator));
+        locator.SetMultiProgress({progress});
+        ASSERT_EQ(100, LocatorUtil::getSwiftWatermark(locator));
     }
     {
         common::Locator locator;
         std::vector<indexlibv2::base::Progress> progress;
         int64_t offset = 0;
-        ASSERT_TRUE(LocatorUtil::EncodeOffset(1, 100, &offset));
+        ASSERT_TRUE(LocatorUtil::encodeOffset(1, 100, &offset));
         progress.push_back({0, 100, {offset, 0}});
-        ASSERT_TRUE(LocatorUtil::EncodeOffset(1, 200, &offset));
+        ASSERT_TRUE(LocatorUtil::encodeOffset(1, 200, &offset));
         progress.push_back({0, 100, {offset, 0}});
-        locator.SetProgress(progress);
-        ASSERT_EQ(100, LocatorUtil::GetSwiftWatermark(locator));
+        locator.SetMultiProgress({progress});
+        ASSERT_EQ(100, LocatorUtil::getSwiftWatermark(locator));
     }
 }
 }} // namespace build_service::util

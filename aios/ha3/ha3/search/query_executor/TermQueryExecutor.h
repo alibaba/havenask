@@ -111,7 +111,7 @@ public:
     }
     void getMetaInfo(rank::MetaInfo *metaInfo) const override;
 
-    matchvalue_t getMatchValue() override {
+    indexlib::matchvalue_t getMatchValue() override {
         return _iter->GetMatchValue();
     }
 

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_EXCEEDTSACTION_H
-#define ISEARCH_BS_EXCEEDTSACTION_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
@@ -22,5 +21,3 @@
 namespace build_service { namespace common {
 enum ExceedTsAction { ETA_SUSPEND = 0, ETA_STOP = 1, ETA_UNKOWN };
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_EXCEEDTSACTION_H

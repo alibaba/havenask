@@ -31,17 +31,17 @@ public:
     static std::string GetDocMapperType() { return "DOC_MAPPER"; }
 
 public:
-    virtual std::pair<segmentid_t, docid_t> Map(docid_t oldDocId) const = 0;
-    virtual std::pair<segmentid_t, docid_t> ReverseMap(docid_t newDocId) const = 0;
-    virtual segmentid_t GetTargetSegmentId(int32_t targetSegmentIdx) const = 0;
-    virtual int64_t GetTargetSegmentDocCount(int32_t idx) const = 0;
+    virtual int64_t GetTargetSegmentDocCount(segmentid_t segmentId) const = 0;
+    virtual std::pair<segmentid_t, docid32_t> Map(docid64_t oldDocId) const = 0;
+    virtual std::pair<segmentid_t, docid32_t> ReverseMap(docid64_t newDocId) const = 0;
+
     // oldGlobalDocId -> newDocId
-    virtual docid_t GetNewId(docid_t oldId) const = 0;
+    virtual docid64_t GetNewId(docid64_t oldId) const = 0;
 
     // new total doc count
+    // TODO(xiaohao.yxh) 应该用size_t, 因为暂时只有bitmap用就还没改
     virtual uint32_t GetNewDocCount() const = 0;
-    virtual segmentid_t GetLocalId(docid_t newId) const = 0;
-    virtual segmentid_t GetTargetSegmentIndex(docid_t newId) const = 0;
+    virtual segmentid_t GetLocalId(docid64_t newId) const = 0;
 };
 
 } // namespace indexlibv2::index

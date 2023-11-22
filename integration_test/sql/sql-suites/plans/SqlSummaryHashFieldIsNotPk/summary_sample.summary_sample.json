@@ -10,16 +10,19 @@
           "db_name": "phone", 
           "limit": 100, 
           "location": {
-            "partition_cnt": 4, 
-            "table_group_name": "phone"
+            "node_name": "phone", 
+            "partition_cnt": 4
           }, 
           "op_scope": "default", 
           "output_distribution": {
             "hash_mode": {
+              "hash_fields": [
+                "$nid"
+              ], 
               "hash_function": "HASH"
             }, 
             "partition_cnt": 4, 
-            "type": "RANDOM_DISTRIBUTED"
+            "type": "HASH_DISTRIBUTED"
           }, 
           "output_fields": [
             "$nid", 
@@ -162,6 +165,7 @@
             "DOUBLE", 
             "DOUBLE"
           ], 
+          "node_name": "phone", 
           "op_scope": "default", 
           "output_distribution": {
             "hash_mode": {
@@ -185,9 +189,8 @@
               ]
             }, 
             "partition_cnt": 4, 
-            "type": "RANDOM_DISTRIBUTED"
+            "type": "HASH_DISTRIBUTED"
           }, 
-          "table_group_name": "phone", 
           "table_name": "phone", 
           "table_type": "summary"
         }, 
@@ -206,8 +209,8 @@
         "attrs": {
           "limit": 100, 
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "offset": 0, 
           "op_scope": "default", 
@@ -234,8 +237,8 @@
       {
         "attrs": {
           "location": {
-            "partition_cnt": 1, 
-            "table_group_name": "qrs"
+            "node_name": "qrs", 
+            "partition_cnt": 1
           }, 
           "op_scope": "default", 
           "output_distribution": {

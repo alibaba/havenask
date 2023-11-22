@@ -1,6 +1,12 @@
 #include "build_service/util/BsMetricTagsHandler.h"
 
+#include <iosfwd>
+#include <string>
+
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/test/unittest.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

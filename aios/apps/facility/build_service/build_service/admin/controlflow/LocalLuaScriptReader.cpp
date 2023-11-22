@@ -15,11 +15,27 @@
  */
 #include "build_service/admin/controlflow/LocalLuaScriptReader.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <unistd.h>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ConfigReaderAccessor.h"
 #include "build_service/config/GraphConfig.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/ZipFileUtil.h"
 #include "fslib/util/FileUtil.h"
 

@@ -15,26 +15,62 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorTask.h"
 
-#include "autil/HashUtil.h"
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <limits>
+#include <ostream>
+#include <unordered_map>
+
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/string_tools.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
+#include "build_service/admin/CheckpointMetricReporter.h"
 #include "build_service/admin/DefaultBrokerTopicCreator.h"
-#include "build_service/admin/GenerationTaskBase.h"
+#include "build_service/admin/DefaultSlowNodeDetectStrategy.h"
+#include "build_service/admin/NewSlowNodeDetectStrategy.h"
+#include "build_service/admin/SlowNodeDetector.h"
 #include "build_service/admin/controlflow/ListParamParser.h"
+#include "build_service/admin/controlflow/TaskFactory.h"
+#include "build_service/admin/taskcontroller/NodeStatusManager.h"
 #include "build_service/admin/taskcontroller/ProcessorNodesUpdater.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/CounterSynchronizer.h"
+#include "build_service/common/CpuSpeedEstimater.h"
 #include "build_service/common/PathDefine.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ConfigReaderAccessor.h"
 #include "build_service/config/ControlConfig.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ProcessorAdaptiveScalingConfig.h"
 #include "build_service/config/ProcessorConfigReader.h"
-#include "build_service/config/ProcessorConfigurator.h"
+#include "build_service/config/SwiftConfig.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/DataDescriptions.h"
 #include "build_service/proto/ProcessorTaskIdentifier.h"
-#include "build_service/proto/ProtoComparator.h"
 #include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/SwiftRootUpgrader.h"
 #include "build_service/proto/WorkerNodeCreator.h"
 #include "build_service/util/DataSourceHelper.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "fslib/util/FileUtil.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/config/TabletSchema.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/misc/common.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 using namespace autil;
@@ -1010,11 +1046,7 @@ void ProcessorTask::ReportCheckpointFreshness(const proto::ProcessorNodes& proce
         if (processorNodes[i]->isFinished()) {
             continue;
         }
-        int64_t checkpoint = _input.offset == -1 ? 0 : _input.offset;
-        const ProcessorCurrent& current = processorNodes[i]->getCurrentStatus();
-        if (current.has_currentlocator()) {
-            checkpoint = current.currentlocator().checkpoint();
-        }
+        int64_t checkpoint = _lastTargetInfos.get(i).offset;
         kmonitor::MetricsTags tags;
         std::string clusterName;
         if (_clusterNames.size() > 1) {

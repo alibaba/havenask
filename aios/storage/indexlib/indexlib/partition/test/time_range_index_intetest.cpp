@@ -1,6 +1,7 @@
 #include "indexlib/partition/test/time_range_index_intetest.h"
 
 #include "indexlib/config/date_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/file/CompressFileReader.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
@@ -15,7 +16,6 @@
 #include "indexlib/test/document_parser.h"
 #include "indexlib/test/partition_state_machine.h"
 #include "indexlib/test/result_checker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/searcher.h"
 #include "indexlib/test/slow_dump_segment_container.h"
 #include "indexlib/util/PathUtil.h"

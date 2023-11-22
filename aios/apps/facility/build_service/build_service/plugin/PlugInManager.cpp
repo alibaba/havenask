@@ -15,14 +15,21 @@
  */
 #include "build_service/plugin/PlugInManager.h"
 
-#include <cassert>
+#include <ostream>
+#include <stddef.h>
+#include <utility>
+#include <vector>
 
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/plugin/Module.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/module_info.h"
 
 using namespace std;
 using namespace autil;

@@ -73,7 +73,6 @@ bool BizManager::preInit(const NaviLoggerPtr &logger,
         return false;
     }
     auto ret = initResourceGraph(config);
-    logUpdateGraphDef();
     if (!ret) {
         return false;
     }
@@ -421,23 +420,6 @@ void BizManager::cleanupModule() {
 
 ResourcePtr BizManager::getSnapshotResource(const std::string &name) const {
     return _snapshotMultiLayerResourceMap.getResource(name);
-}
-
-void BizManager::logUpdateGraphDef() const {
-    std::string binaryStr;
-    std::string debugStr;
-    if (_graphDef) {
-        binaryStr = _graphDef->SerializeAsString();
-        debugStr = _graphDef->DebugString();
-    }
-    std::string filePrefix;
-    if (!_naviName.empty()) {
-        filePrefix = "./navi." + _naviName + ".snapshot_graph";
-    } else {
-        filePrefix = "./navi.snapshot_graph";
-    }
-    NaviSnapshotSummary::writeFile(filePrefix + ".def", binaryStr);
-    NaviSnapshotSummary::writeFile(filePrefix + ".def.str", debugStr);
 }
 
 void BizManager::fillSummary(NaviSnapshotSummary &summary) const {

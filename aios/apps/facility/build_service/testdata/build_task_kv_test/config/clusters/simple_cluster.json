@@ -1,0 +1,29 @@
+{
+    "cluster_config": {
+        "hash_mode": {
+            "hash_function": "HASH",
+            "hash_field": "key"
+        },
+        "table_name": "simple"
+    },
+    "build_option_config": {
+        "max_recover_time": 1,
+        "sort_build": false
+    },
+    "merge_controller" : {
+        "mode" : "remote"
+    },
+    "offline_index_config": {
+        "build_config": {
+            "max_doc_count": 2
+        }
+    },
+    "online_index_config": {
+        "build_config": {
+            "max_doc_count": 2
+        },
+        "need_read_remote_index": true,
+        "need_deploy_index": false
+    },
+    "realtime": true
+}

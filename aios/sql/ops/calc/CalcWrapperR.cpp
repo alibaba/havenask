@@ -134,7 +134,7 @@ bool CalcWrapperR::compute(table::TablePtr &table, bool &isEof) {
 
     uint64_t totalComputeTimes = _calcInfo.totalcomputetimes();
     if (totalComputeTimes < 5) {
-        SQL_LOG(TRACE1,
+        SQL_LOG(TRACE2,
                 "calc batch [%lu] output table: [%s]",
                 totalComputeTimes,
                 TableUtil::toString(table, 10).c_str());
@@ -144,7 +144,7 @@ bool CalcWrapperR::compute(table::TablePtr &table, bool &isEof) {
     incTotalTime(endTime - beginTime);
 
     if (isEof) {
-        SQL_LOG(DEBUG, "calc info: [%s]", _calcInfo.ShortDebugString().c_str());
+        SQL_LOG(TRACE1, "calc info: [%s]", _calcInfo.ShortDebugString().c_str());
     }
     const auto &collector = _sqlSearchInfoCollectorR->getCollector();
     if (collector) {

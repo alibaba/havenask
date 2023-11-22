@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 #include "sdk/default/ProcessController.h"
+#include "sdk/default/ProcessStopWorkItem.h"
+#include <unistd.h>
 
 using namespace std;
 using namespace autil;
@@ -52,9 +54,21 @@ bool ProcessController::startProcess(ProcessStartWorkItem *workItem) {
     return _threadPool->pushWorkItem(workItem, false) == ThreadPool::ERROR_NONE;
 }
 
-void ProcessController::stopProcess(const hippo::SlotId &slotId) {
-    string container = ProcessStartWorkItem::getContainerName(slotId, _applicationId);
-    _cmdExecutor.stopContainer(slotId.slaveAddress, container);
+void ProcessController::stopProcess(const hippo::SlotId &slotId, std::vector<std::string> &processNames) {
+    ProcessStopWorkItem *workItem = new ProcessStopWorkItem();
+    workItem->cmdExecutor = &_cmdExecutor;
+    workItem->applicationId = _applicationId;
+    workItem->slotId = slotId;
+    workItem->processNames = processNames;
+    if (_threadPool->pushWorkItem(workItem, false) != ThreadPool::ERROR_NONE) {
+        delete workItem;
+    }
+}
+
+bool ProcessController::checkProcessExist(const ProcessStartWorkItem *workItem) {
+    bool exist = false;
+    workItem->checkProcessExist(exist);
+    return exist;
 }
 
 bool ProcessController::resetSlot(const hippo::SlotId &slotId) {

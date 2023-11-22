@@ -15,13 +15,25 @@
  */
 #pragma once
 
+#include <algorithm>
+#include <map>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <sys/types.h>
+#include <utility>
+#include <vector>
+
 #include "autil/Lock.h"
-#include "autil/Thread.h"
+#include "autil/LoopThread.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/util/Log.h"
 #include "build_service/util/SharedPtrGuard.h"
 #include "build_service/worker/WorkerStateHandler.h"
+#include "fslib/common/common_type.h"
 #include "hippo/DriverCommon.h"
 
 namespace build_service { namespace worker {
@@ -121,6 +133,7 @@ private:
                              std::vector<std::string>& toRemoveUnExpireSubDirs);
 
 private:
+    std::string _agentRoleName;
     std::map<std::string, std::string> _procArgMap;
     proto::AgentCurrent _current;
     mutable autil::RecursiveThreadMutex _lock;

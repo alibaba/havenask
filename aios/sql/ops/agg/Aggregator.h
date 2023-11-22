@@ -93,7 +93,6 @@ private:
     bool doAggregate(const table::Row &row,
                      size_t groupKey,
                      const std::vector<table::ColumnData<bool> *> &aggFilterColumn);
-    bool needDependInputTablePools() const;
 
 private:
     table::TablePtr _table;
@@ -108,6 +107,7 @@ private:
     std::vector<AggFunc *> _aggFuncVec;
     std::vector<int32_t> _aggFilterArgs;
     std::shared_ptr<autil::mem_pool::Pool> _aggregatorPoolPtr;
+    std::shared_ptr<autil::mem_pool::Pool> _dataPoolPtr;
     std::vector<autil::mem_pool::PoolVector<Accumulator *>> _accumulatorVec;
     std::unordered_map<size_t, size_t> _accumulatorIdxMap;
 };

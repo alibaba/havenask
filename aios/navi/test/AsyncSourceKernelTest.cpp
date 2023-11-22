@@ -33,7 +33,7 @@ void AsyncSourceKernelTest::tearDown() {
 
 TEST_F(AsyncSourceKernelTest, testPipeInInitKernel) {
     KernelTesterBuilder testerBuilder;
-    testerBuilder.module(GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+    testerBuilder.module(NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
     testerBuilder.kernel("AsyncInInitSourceKernel");
     testerBuilder.output("output1");
     testerBuilder.snapshotResourceConfig(GraphMemoryPoolR::RESOURCE_ID, R"json({"test" : true})json");
@@ -102,7 +102,7 @@ TEST_F(AsyncSourceKernelTest, testPipeInInitKernel) {
 
 TEST_F(AsyncSourceKernelTest, testPipeInInitKernel_Abort) {
     KernelTesterBuilder testerBuilder;
-    testerBuilder.module(GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+    testerBuilder.module(NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
     testerBuilder.kernel("AsyncInInitSourceKernel");
     testerBuilder.output("output1");
     testerBuilder.snapshotResourceConfig(GraphMemoryPoolR::RESOURCE_ID, R"json({"test" : true})json");
@@ -144,7 +144,7 @@ TEST_F(AsyncSourceKernelTest, testPipeInInitKernel_Abort) {
 
 TEST_F(AsyncSourceKernelTest, testPipeInInitKernel_Destruct) {
     KernelTesterBuilder testerBuilder;
-    testerBuilder.module(GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+    testerBuilder.module(NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
     testerBuilder.kernel("AsyncInInitSourceKernel");
     testerBuilder.output("output1");
     testerBuilder.snapshotResourceConfig(GraphMemoryPoolR::RESOURCE_ID, R"json({"test" : true})json");
@@ -216,15 +216,15 @@ TEST_F(AsyncSourceKernelTest, testPipeInInitKernel_Concurrent) {
         t->join();
     }
     auto result = naviUserResult->getNaviResult();
-    EXPECT_EQ(EC_NONE, result->ec);
-    EXPECT_EQ("", result->errorEvent.message);
+    EXPECT_EQ(EC_NONE, result->getErrorCode());
+    EXPECT_EQ("", result->getErrorMessage());
     ASSERT_EQ(THREAD_NUM * INPUT_NUM, dataCount);
 }
 
 TEST_F(AsyncSourceKernelTest, testPipeInInitKernel_Concurrent2) {
     KernelTesterBuilder testerBuilder;
     // testerBuilder.logLevel("SCHEDULE2");
-    testerBuilder.module(GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+    testerBuilder.module(NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
     testerBuilder.kernel("AsyncInInitSourceKernel");
     testerBuilder.output("output1");
     testerBuilder.snapshotResourceConfig(GraphMemoryPoolR::RESOURCE_ID, R"json({"test" : true})json");
@@ -284,7 +284,7 @@ TEST_F(AsyncSourceKernelTest, testPipeInInitKernel_Concurrent2) {
 
 TEST_F(AsyncSourceKernelTest, testPipeInComputeKernel) {
     KernelTesterBuilder testerBuilder;
-    testerBuilder.module(GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+    testerBuilder.module(NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
     testerBuilder.kernel("AsyncInComputeSourceKernel");
     testerBuilder.output("output1");
     testerBuilder.snapshotResourceConfig(GraphMemoryPoolR::RESOURCE_ID, R"json({"test" : true})json");
@@ -357,7 +357,7 @@ TEST_F(AsyncSourceKernelTest, testPipeInComputeKernel) {
 
 TEST_F(AsyncSourceKernelTest, testPipeInComputeKernel_Abort) {
     KernelTesterBuilder testerBuilder;
-    testerBuilder.module(GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+    testerBuilder.module(NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
     testerBuilder.kernel("AsyncInComputeSourceKernel");
     testerBuilder.output("output1");
     testerBuilder.snapshotResourceConfig(GraphMemoryPoolR::RESOURCE_ID, R"json({"test" : true})json");
@@ -455,15 +455,15 @@ TEST_F(AsyncSourceKernelTest, testPipeInComputeKernel_Concurrent) {
         t->join();
     }
     auto result = naviUserResult->getNaviResult();
-    EXPECT_EQ(EC_NONE, result->ec);
-    EXPECT_EQ("", result->errorEvent.message);
+    EXPECT_EQ(EC_NONE, result->getErrorCode());
+    EXPECT_EQ("", result->getErrorMessage());
     ASSERT_EQ(THREAD_NUM * INPUT_NUM, dataCount);
 }
 
 TEST_F(AsyncSourceKernelTest, testPipeWithoutOutputKernel) {
     // NaviLoggerProvider logProvider("SCHEDULE2");
     KernelTesterBuilder testerBuilder;
-    testerBuilder.module(GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+    testerBuilder.module(NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
     testerBuilder.kernel("AsyncWithoutOutputSourceKernel");
     testerBuilder.input("input1");
 
@@ -578,8 +578,8 @@ TEST_F(AsyncSourceKernelTest, testPipeInitSlowKernel) {
         t->join();
     }
     auto result = naviUserResult->getNaviResult();
-    EXPECT_EQ(EC_NONE, result->ec);
-    EXPECT_EQ("", result->errorEvent.message);
+    EXPECT_EQ(EC_NONE, result->getErrorCode());
+    EXPECT_EQ("", result->getErrorMessage());
     ASSERT_EQ(THREAD_NUM * INPUT_NUM, dataCount);
 }
 

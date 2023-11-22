@@ -34,10 +34,11 @@ static PartInfo createSinglePartInfo() {
 }
 
 
-SubGraphBorder::SubGraphBorder(GraphParam *param,
+SubGraphBorder::SubGraphBorder(const NaviLoggerPtr &logger,
+                               GraphParam *param,
                                NaviPartId partId,
                                const BorderId &borderId)
-    : _logger(this, "SubBorder", param->logger)
+    : _logger(this, "SubBorder", logger)
     , _param(param)
     , _partId(partId)
     , _borderId(borderId)

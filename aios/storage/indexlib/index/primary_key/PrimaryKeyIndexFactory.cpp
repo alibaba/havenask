@@ -15,8 +15,11 @@
  */
 #include "indexlib/index/primary_key/PrimaryKeyIndexFactory.h"
 
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/primary_key/Common.h"
+#include "indexlib/index/primary_key/PrimaryKeyIndexFieldsParser.h"
 #include "indexlib/index/primary_key/PrimaryKeyReader.h"
 #include "indexlib/index/primary_key/PrimaryKeyWriter.h"
 #include "indexlib/index/primary_key/config/PrimaryKeyIndexConfig.h"
@@ -43,7 +46,7 @@ InvertedIndexType PrimaryKeyIndexFactory::GetInvertedIndexType(const std::shared
 
 std::shared_ptr<IDiskIndexer>
 PrimaryKeyIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                          const IndexerParameter& indexerParam) const
+                                          const DiskIndexerParameter& indexerParam) const
 {
     auto indexType = GetInvertedIndexType(indexConfig);
     if (indexType == it_primarykey64) {
@@ -57,28 +60,30 @@ PrimaryKeyIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexCo
 }
 std::shared_ptr<IMemIndexer>
 PrimaryKeyIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                         const IndexerParameter& indexerParam) const
+                                         const MemIndexerParameter& indexerParam) const
 {
     auto indexType = GetInvertedIndexType(indexConfig);
     if (indexType == it_primarykey64) {
-        return std::make_shared<index::PrimaryKeyWriter<uint64_t>>(indexerParam.buildResourceMetrics);
+        return std::make_shared<index::PrimaryKeyWriter<uint64_t>>(indexerParam.buildResourceMetrics,
+                                                                   indexerParam.currentBuildDocId);
     }
     if (indexType == it_primarykey128) {
-        return std::make_shared<index::PrimaryKeyWriter<autil::uint128_t>>(indexerParam.buildResourceMetrics);
+        return std::make_shared<index::PrimaryKeyWriter<autil::uint128_t>>(indexerParam.buildResourceMetrics,
+                                                                           indexerParam.currentBuildDocId);
     }
     assert(false);
     return nullptr;
 }
 std::unique_ptr<IIndexReader>
 PrimaryKeyIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                          const IndexerParameter& indexerParam) const
+                                          const IndexReaderParameter& indexReaderParam) const
 {
     auto indexType = GetInvertedIndexType(indexConfig);
     if (indexType == it_primarykey64) {
-        return std::make_unique<index::PrimaryKeyReader<uint64_t>>(indexerParam.metricsManager);
+        return std::make_unique<index::PrimaryKeyReader<uint64_t>>(indexReaderParam.metricsManager);
     }
     if (indexType == it_primarykey128) {
-        return std::make_unique<index::PrimaryKeyReader<autil::uint128_t>>(indexerParam.metricsManager);
+        return std::make_unique<index::PrimaryKeyReader<autil::uint128_t>>(indexReaderParam.metricsManager);
     }
     assert(false);
     return nullptr;
@@ -123,6 +128,11 @@ std::unique_ptr<config::IIndexConfig> PrimaryKeyIndexFactory::CreateIndexConfig(
         return nullptr;
     }
     return std::make_unique<index::PrimaryKeyIndexConfig>(indexName, indexType);
+}
+
+std::unique_ptr<document::IIndexFieldsParser> PrimaryKeyIndexFactory::CreateIndexFieldsParser()
+{
+    return std::make_unique<PrimaryKeyIndexFieldsParser>();
 }
 
 std::string PrimaryKeyIndexFactory::GetIndexPath() const { return "index"; }

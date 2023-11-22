@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_VARNUMATTRIBUTEDEFRAGSLICEARRAYTEST_H
-#define __INDEXLIB_VARNUMATTRIBUTEDEFRAGSLICEARRAYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/var_num_attribute_defrag_slice_array.h"
@@ -87,5 +86,3 @@ INDEXLIB_UNIT_TEST_CASE(VarNumAttributeDefragSliceArrayTest, TestMoveDataTrigger
 INDEXLIB_UNIT_TEST_CASE(VarNumAttributeDefragSliceArrayTest, TestMoveDataTriggerDefragForEncodeFloat);
 INDEXLIB_UNIT_TEST_CASE(VarNumAttributeDefragSliceArrayTest, TestNeedDefrag);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VARNUMATTRIBUTEDEFRAGSLICEARRAYTEST_H

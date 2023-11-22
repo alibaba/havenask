@@ -15,9 +15,9 @@
  */
 #include "indexlib/document/source_timestamp_parser.h"
 
-#include "autil/legacy/any.h"
 #include "autil/EnvUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
 
 namespace indexlib { namespace document {
 
@@ -25,13 +25,15 @@ using namespace std;
 
 IE_LOG_SETUP(document, SourceTimestampParser);
 
-void SourceTimestampParser::Init() {
+void SourceTimestampParser::Init()
+{
     ExtractSouceTimestampFields(_schema->GetDefaultRegionId());
     _reportSourceCount = autil::EnvUtil::getEnv("indexlib_source_e2e_latency_report_count", MAX_SOURCE_COUNT);
-}   
+}
 
-void SourceTimestampParser::Parse(const IndexlibExtendDocumentPtr& extendDoc, Document* docment) {
-    const RawDocumentPtr& rawDoc = extendDoc->getRawDocument();
+void SourceTimestampParser::Parse(const IndexlibExtendDocumentPtr& extendDoc, Document* docment)
+{
+    const RawDocumentPtr& rawDoc = extendDoc->GetRawDocument();
     if (nullptr == rawDoc) {
         return;
     }
@@ -47,19 +49,21 @@ void SourceTimestampParser::Parse(const IndexlibExtendDocumentPtr& extendDoc, Do
         return;
     }
     std::stringstream ss;
-    for(const auto& rawFieldToSource : rawFieldToSourceVec) {
+    for (const auto& rawFieldToSource : rawFieldToSourceVec) {
         const std::string timestampValue = rawDoc->getField(rawFieldToSource.first);
         if (!timestampValue.empty()) {
-            ss << rawFieldToSource.second << SOURCE_TIMESTAMP_INNER_SEPARATOR << timestampValue << SOURCE_TIMESTAMP_OUTER_SEPARATOR;
+            ss << rawFieldToSource.second << SOURCE_TIMESTAMP_INNER_SEPARATOR << timestampValue
+               << SOURCE_TIMESTAMP_OUTER_SEPARATOR;
         }
     }
 
-    if(!ss.str().empty()) {
+    if (!ss.str().empty()) {
         docment->AddTag(SOURCE_TIMESTAMP_TAG_NAME, ss.str());
     }
 }
 
-void SourceTimestampParser::ExtractSouceTimestampFields(index::regionid_t regionId) {
+void SourceTimestampParser::ExtractSouceTimestampFields(regionid_t regionId)
+{
     std::vector<RawFieldToSource> rawFieldToSourceVec;
     rawFieldToSourceVec.reserve(MAX_SOURCE_COUNT);
     const auto& fieldSchema = _schema->GetFieldSchema(regionId);
@@ -74,7 +78,8 @@ void SourceTimestampParser::ExtractSouceTimestampFields(index::regionid_t region
         auto fieldType = (*fieldConfigIter)->GetFieldType();
         if (sourceTimestampIter != userDefineParam.end()) {
             if (fieldType != ft_int64 || (*fieldConfigIter)->IsMultiValue()) {
-                IE_LOG(WARN, "field [%s] in table [%s] with type [%d] and is multi [%d] can't as source timestamp.", fieldName.c_str(), tableName.c_str(), fieldType, (*fieldConfigIter)->IsMultiValue());
+                IE_LOG(WARN, "field [%s] in table [%s] with type [%d] and is multi [%d] can't as source timestamp.",
+                       fieldName.c_str(), tableName.c_str(), fieldType, (*fieldConfigIter)->IsMultiValue());
                 rawFieldToSourceVec.clear();
                 break;
             }
@@ -84,11 +89,11 @@ void SourceTimestampParser::ExtractSouceTimestampFields(index::regionid_t region
     }
 
     if (rawFieldToSourceVec.size() > _reportSourceCount) {
-        IE_LOG(WARN, "table [%s] source timestamp field count is bigger than [%d].", tableName.c_str(), _reportSourceCount);
+        IE_LOG(WARN, "table [%s] source timestamp field count is bigger than [%d].", tableName.c_str(),
+               _reportSourceCount);
         rawFieldToSourceVec.clear();
     }
     _regionIdToPairs[regionId] = rawFieldToSourceVec;
 }
 
-} // namespace document
-} // namespace indexlib
+}} // namespace indexlib::document

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TIME_SERIES_SEGMENT_METRICS_UPDATER_H
-#define __INDEXLIB_TIME_SERIES_SEGMENT_METRICS_UPDATER_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -235,5 +234,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_TIME_SERIES_SEGMENT_METRICS_UPDATER_H

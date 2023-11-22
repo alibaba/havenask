@@ -5,16 +5,17 @@
 
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/config/test/truncate_config_maker.h"
 #include "indexlib/file_system/file/BufferedFileWriter.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/test/mock_segment_directory.h"
 #include "indexlib/index/test/partition_schema_maker.h"
+#include "indexlib/index_define.h"
 #include "indexlib/merger/index_merge_meta.h"
 #include "indexlib/merger/merge_task_item_creator.h"
 #include "indexlib/merger/test/merge_helper.h"
 #include "indexlib/plugin/plugin_manager.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace autil;
@@ -707,9 +708,9 @@ void MergeTaskItemDispatcherTest::TestInitMergeTaskIdentifySubSchema()
     schema->SetSubIndexPartitionSchema(subSchema);
     Version v;
     merger::SegmentDirectoryPtr segDir(
-        new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION)));
+        new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID)));
     merger::SegmentDirectoryPtr subSegDir(
-        new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSION)));
+        new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), index_base::Version(INVALID_VERSIONID)));
     MergeConfig mergeConfig;
     IndexMergeMeta mergeMeta;
     MergeTaskItemCreator taskItemCreator(&mergeMeta, segDir, subSegDir, schema, PluginManagerPtr(), mergeConfig,

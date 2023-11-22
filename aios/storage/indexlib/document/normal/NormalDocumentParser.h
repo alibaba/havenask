@@ -55,6 +55,9 @@ public:
     std::pair<Status, std::unique_ptr<IDocumentBatch>>
     ParseRawDoc(const std::shared_ptr<RawDocument>& rawDoc) const override;
 
+    std::pair<Status, std::unique_ptr<IDocumentBatch>>
+    BatchParse(document::IMessageIterator* inputIterator) const override;
+
 protected:
     virtual std::unique_ptr<SingleDocumentParser> CreateSingleDocumentParser() const;
 
@@ -64,6 +67,8 @@ private:
     void ReportModifyFieldQps(const std::shared_ptr<NormalDocument>& doc) const;
     void ReportIndexAddToUpdateQps(const NormalDocument& doc) const;
     void ReportAddToUpdateFailQps(const NormalDocument& doc) const;
+    std::pair<Status, std::shared_ptr<NormalDocument>>
+    ParseSingleDocument(const autil::StringView& serializedData) const;
 
 private:
     std::shared_ptr<analyzer::IAnalyzerFactory> _analyzerFactory;
@@ -73,6 +78,7 @@ private:
     std::vector<std::shared_ptr<IDocumentRewriter>> _docRewriters;
     IE_DECLARE_METRIC(UselessUpdateQps);
     IE_DECLARE_METRIC(IndexUselessUpdateQps);
+    IE_DECLARE_METRIC(ParseFailedQps);
     IE_DECLARE_METRIC(ModifyFieldQps);
     IE_DECLARE_METRIC(IndexUpdateQps);
     IE_DECLARE_METRIC(AttributeUpdateQps);

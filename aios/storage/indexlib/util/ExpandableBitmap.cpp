@@ -15,6 +15,10 @@
  */
 #include "indexlib/util/ExpandableBitmap.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <string.h>
+
 #include "indexlib/util/PoolUtil.h"
 
 using namespace std;

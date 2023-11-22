@@ -80,6 +80,9 @@ enum ErrorCode : int32_t {
     EC_REWRITE_GRAPH = 52,
     EC_ADD_NAMED_DATA = 53,
     EC_NEED_REPLACE = 54,
+    EC_SERIALIZE_OVERRIDE_DATA = 55,
+    EC_SERIALIZE_NAMED_DATA = 56,
+    EC_ARPC_RESULT = 57,
     EC_UNKNOWN = 127,
     EC_NAVI_MAX,
 };
@@ -136,6 +139,7 @@ typedef uint32_t QueryId;
 struct SessionId {
     SessionId()
         : instance(0)
+        , currentInstance(0)
         , queryId(0)
     {
     }
@@ -143,6 +147,7 @@ struct SessionId {
         return 0 != instance && 0 != queryId;
     }
     InstanceId instance;
+    InstanceId currentInstance;
     QueryId queryId;
 };
 
@@ -244,7 +249,10 @@ inline LogLevel getLevelByString(const std::string &logLevel) {
     return level;
 }
 
-constexpr int64_t NAVI_VERSION = 0;
+constexpr int32_t NAVI_MAJOR_VERSION = 3;
+constexpr int32_t NAVI_MINOR_VERSION = 0;
+constexpr int32_t NAVI_VERSION =
+    (NAVI_MAJOR_VERSION << 16) | (NAVI_MINOR_VERSION);
 typedef int32_t GraphId;
 constexpr GraphId PARENT_GRAPH_ID = GraphId(-1);
 constexpr GraphId USER_GRAPH_ID = GraphId(-2);
@@ -334,6 +342,14 @@ extern const std::string NAVI_BUILDIN_STATIC_GRAPH_META;
 
 extern const std::string SIMD_PADING_STR;
 
+extern const std::string NAVI_DEBUG_METRIC_STR;
+extern const std::string NAVI_DEBUG_PERF_STR;
+extern const std::string NAVI_DEBUG_TRACE_STR;
+extern const std::string NAVI_DEBUG_BT_FILTER_STR;
+extern const std::string NAVI_DEBUG_DELIM1_STR;
+extern const std::string NAVI_DEBUG_DELIM2_STR;
+extern const std::string NAVI_DEBUG_BT_FILTER_DELIM_STR;
+
 typedef std::function<void()> NaviVoidFunc;
 class Creator;
 typedef std::function<::navi::Creator *()> NaviCreatorFunc;
@@ -392,6 +408,8 @@ constexpr size_t DEFAULT_PROCESSING_SIZE = 300u;
 constexpr int64_t FACTOR_MS_TO_US = 1000;
 constexpr int64_t DEFAULT_TIMEOUT_MS = 1000000000;
 constexpr int32_t DEFAULT_MAX_INLINE = 3;
+constexpr float RPC_TIMEOUT_DECAY_FACTOR = 0.9f;
+constexpr int64_t SUBGRAPH_TIMEOUT_DECAY_MS = 30;
 
 enum RegistryType : int32_t {
     RT_RESOURCE = 0,
@@ -423,7 +441,7 @@ class Arena;
 typedef std::shared_ptr<google::protobuf::Arena> ArenaPtr;
 
 enum TestMode : int32_t {
-    TM_NOT_TEST = 0,
+    TM_NONE = 0,
     TM_KERNEL_TEST = 1,
     TM_RESOURCE_TEST = 2,
     TM_UNKNOWN = 10

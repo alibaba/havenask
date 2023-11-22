@@ -15,6 +15,12 @@
  */
 #include "indexlib/config/IndexConfigDeserializeResource.h"
 
+#include <algorithm>
+#include <utility>
+
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/config/FieldConfig.h"
 #include "indexlib/config/FileCompressConfigV2.h"
 #include "indexlib/config/SingleFileCompressConfig.h"
@@ -70,6 +76,15 @@ IndexConfigDeserializeResource::GetFileCompressConfig(const std::string& compres
         return nullptr;
     }
     return std::make_shared<config::FileCompressConfigV2>(_fileCompressVec, compressName);
+}
+
+std::vector<std::shared_ptr<FieldConfig>> IndexConfigDeserializeResource::GetAllFieldConfigs() const
+{
+    std::vector<std::shared_ptr<FieldConfig>> configs;
+    for (const auto& [fieldName, fieldConfig] : _fieldConfigs) {
+        configs.push_back(fieldConfig);
+    }
+    return configs;
 }
 
 } // namespace indexlibv2::config

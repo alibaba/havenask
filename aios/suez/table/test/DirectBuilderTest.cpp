@@ -13,6 +13,7 @@
 #include "build_service/reader/test/MockRawDocumentReader.h"
 #include "build_service/util/SwiftClientCreator.h"
 #include "build_service/workflow/RealtimeBuilderDefine.h"
+#include "build_service/workflow/test/MockRawDocumentRewriter.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/config/UnresolvedSchema.h"
 #include "indexlib/document/IDocumentBatch.h"
@@ -58,6 +59,7 @@ struct MockPipeline {
 
     build_service::reader::MockRawDocumentReader *mockReader = nullptr;
     build_service::processor::MockProcessor *mockProcessor = nullptr;
+    build_service::workflow::MockRawDocumentRewriter *mockRewriter = nullptr;
     build_service::builder::MockBuilderV2 *mockBuilder = nullptr;
 };
 
@@ -81,6 +83,7 @@ public:
             std::move(metricsReporter),
             nullptr,
             swiftClientCreator,
+            GET_TEST_DATA_PATH(),
             build_service::workflow::BuildFlowThreadResource(),
             realtimeInfo);
     }
@@ -139,10 +142,10 @@ TEST_F(DirectBuilderTest, testConstructor) {
 ACTION_P(AssertCheckpoint, offset, userData) {
     ASSERT_EQ(offset, arg0.offset);
     ASSERT_EQ(userData, arg0.userData);
-    ASSERT_EQ(1, arg0.progress.size());
-    ASSERT_EQ(0, arg0.progress[0].from);
-    ASSERT_EQ(65535, arg0.progress[0].to);
-    ASSERT_EQ(offset, arg0.progress[0].offset.first);
+    ASSERT_EQ(1, arg0.progress[0].size());
+    ASSERT_EQ(0, arg0.progress[0][0].from);
+    ASSERT_EQ(65535, arg0.progress[0][0].to);
+    ASSERT_EQ(offset, arg0.progress[0][0].offset.first);
 }
 
 TEST_F(DirectBuilderTest, testCreateReader) {
@@ -228,7 +231,7 @@ ACTION_P2(doRead, fieldMap, offset, userData) {
     }
     arg1->offset = offset;
     arg1->userData = userData;
-    arg1->progress.push_back(indexlibv2::base::Progress({offset, 0}));
+    arg1->progress.push_back({indexlibv2::base::Progress({offset, 0})});
 }
 
 ACTION_P(AssertRawDoc, fieldMap) {
@@ -237,6 +240,13 @@ ACTION_P(AssertRawDoc, fieldMap) {
     const auto &rawDoc = (*arg0)[0];
     for (const auto &it : fieldMap) {
         ASSERT_EQ(it.second, rawDoc->getField(it.first));
+    }
+}
+
+ACTION_P(doRewrite, fieldMap) {
+    arg0->setDocOperateType(ADD_DOC);
+    for (const auto &it : fieldMap) {
+        arg0->setField(it.first, it.second);
     }
 }
 
@@ -273,8 +283,8 @@ ACTION_P(AssertDocLocator, from, to, offset, userData) {
     ASSERT_TRUE(batch);
     ASSERT_EQ(1, batch->GetValidDocCount());
     const auto &locator = batch->GetLastLocator();
-    ASSERT_EQ(1, locator.GetProgress().size());
-    ASSERT_EQ(indexlibv2::base::Progress(from, to, {offset, 0}), locator.GetProgress()[0]);
+    ASSERT_EQ(1, locator.GetMultiProgress()[0].size());
+    ASSERT_EQ(indexlibv2::base::Progress(from, to, {offset, 0}), locator.GetMultiProgress()[0][0]);
     ASSERT_EQ(userData, locator.GetUserData());
 }
 
@@ -538,19 +548,19 @@ TEST_F(DirectBuilderTest, testBulkload) {
     ASSERT_FALSE(builder->_needReload);
 
     // invalid args
-    EXPECT_CALL(*_tablet, ImportExternalFiles(_, _, _, _)).WillOnce(Return(indexlib::Status::InvalidArgs()));
+    EXPECT_CALL(*_tablet, ImportExternalFiles(_, _, _, _, _)).WillOnce(Return(indexlib::Status::InvalidArgs()));
     ASSERT_FALSE(builder->runBuildPipeline());
     ASSERT_FALSE(builder->_needReload);
     builder->_needReload = false;
 
     // fatal error
-    EXPECT_CALL(*_tablet, ImportExternalFiles(_, _, _, _)).WillOnce(Return(indexlib::Status::Corruption()));
+    EXPECT_CALL(*_tablet, ImportExternalFiles(_, _, _, _, _)).WillOnce(Return(indexlib::Status::Corruption()));
     ASSERT_FALSE(builder->runBuildPipeline());
     ASSERT_TRUE(builder->_needReload);
     builder->_needReload = false;
 
     // success
-    EXPECT_CALL(*_tablet, ImportExternalFiles(_, _, _, _)).WillOnce(Return(indexlib::Status::OK()));
+    EXPECT_CALL(*_tablet, ImportExternalFiles(_, _, _, _, _)).WillOnce(Return(indexlib::Status::OK()));
     ASSERT_FALSE(builder->runBuildPipeline());
     ASSERT_FALSE(builder->_needReload);
     builder->_needReload = false;
@@ -596,9 +606,6 @@ TEST_F(DirectBuilderTest, testRecoverByBuildDelay) {
     ASSERT_EQ(DirectBuilder::DEFAULT_BUILD_DELAY_IN_US, builder->_buildDelayInUs);
     builder->_buildDelayInUs = 1; // 1us
 
-    indexlibv2::framework::TabletInfos tabletInfos;
-    EXPECT_CALL(*_tablet, GetTabletInfos()).WillRepeatedly(Return(&tabletInfos));
-
     EXPECT_CALL(*swiftReader, getMaxTimestamp(_)).WillOnce(Return(false));
     ASSERT_FALSE(builder->isRecovered());
 
@@ -609,19 +616,68 @@ TEST_F(DirectBuilderTest, testRecoverByBuildDelay) {
 
     // locator src not equal
     EXPECT_CALL(*swiftReader, getMaxTimestamp(_)).WillOnce(DoAll(SetArgReferee<0>(maxTimestamp), Return(true)));
-    tabletInfos.SetBuildLocator(indexlibv2::framework::Locator(0, 1230));
+    builder->setLastLocator(std::make_shared<indexlibv2::framework::Locator>(0, 1230));
     ASSERT_FALSE(builder->isRecovered());
 
     // buildDelay too large
     EXPECT_CALL(*swiftReader, getMaxTimestamp(_)).WillOnce(DoAll(SetArgReferee<0>(maxTimestamp), Return(true)));
-    tabletInfos.SetBuildLocator(indexlibv2::framework::Locator(1, 1230));
+    builder->setLastLocator(std::make_shared<indexlibv2::framework::Locator>(1, 1230));
     ASSERT_FALSE(builder->isRecovered());
 
     // buildDelay is close enough
     EXPECT_CALL(*swiftReader, getMaxTimestamp(_)).WillOnce(DoAll(SetArgReferee<0>(maxTimestamp), Return(true)));
-    tabletInfos.SetBuildLocator(indexlibv2::framework::Locator(1, 1233));
+    builder->setLastLocator(std::make_shared<indexlibv2::framework::Locator>(1, 1233));
     ASSERT_TRUE(builder->isRecovered());
     ASSERT_TRUE(builder->_isRecovered);
+}
+
+TEST_F(DirectBuilderTest, testUpdate2add) {
+    _configRoot = GET_TEST_DATA_PATH() + "table_test/table_writer/config/2";
+    std::shared_ptr<indexlibv2::config::TabletSchema> schema(new indexlibv2::config::TabletSchema());
+    EXPECT_CALL(*_tablet, GetTabletSchema()).WillOnce(Return(schema));
+    auto builder = makeMockBuilder();
+    auto processedDocVec = std::make_shared<build_service::document::ProcessedDocumentVec>();
+    processedDocVec->push_back(makeProcessedDoc());
+    MockPipeline mp;
+    std::map<std::string, string> fieldMap = {{"id", "1"}, {"field1", "value1"}, {"CMD", "update_Field"}};
+    ON_CALL(*mp.mockReader, read(_, _))
+        .WillByDefault(DoAll(doRead(fieldMap, 1, "swift"), Return(RawDocumentReader::ERROR_NONE)));
+    EXPECT_CALL(*builder, createReader(_))
+        .WillOnce(Return(ByMove(std::unique_ptr<build_service::reader::RawDocumentReader>(mp.mockReader))));
+
+    std::map<std::string, string> finalMap = {{"id", "1"}, {"field1", "value1"}, {"CMD", "add"}, {"field2", "value2"}};
+    EXPECT_CALL(*mp.mockProcessor, process(_))
+        .WillOnce(DoAll(AssertRawDoc(finalMap), Return(processedDocVec)))
+        .WillOnce(DoAll(AssertRawDoc(finalMap), Return(processedDocVec)));
+    EXPECT_CALL(*builder, createProcessor(_, _))
+        .WillOnce(Return(ByMove(std::unique_ptr<build_service::processor::Processor>(mp.mockProcessor))));
+    EXPECT_CALL(*mp.mockBuilder, doBuild(_))
+        .WillOnce(Return(indexlib::Status::OK()))
+        .WillOnce(Return(indexlib::Status::OK()));
+    EXPECT_CALL(*builder, createBuilder(_))
+        .WillOnce(Return(ByMove(std::unique_ptr<build_service::builder::BuilderV2Impl>(mp.mockBuilder))));
+    build_service::workflow::MockRawDocumentRewriter *mockRewriterPtr =
+        new build_service::workflow::MockRawDocumentRewriter;
+    std::map<std::string, std::string> updateFieldMap = {{"CMD", "add"}, {"field2", "value2"}};
+    EXPECT_CALL(*mockRewriterPtr, rewrite(_))
+        .WillOnce(DoAll(doRewrite(updateFieldMap), Return(true)))
+        .WillOnce(Return(false))
+        .WillOnce(DoAll(doRewrite(updateFieldMap), Return(true)));
+
+    std::unique_ptr<build_service::workflow::RawDocumentRewriter> mockRewriter(mockRewriterPtr);
+    EXPECT_CALL(*builder, createRawDocRewriter()).WillOnce(Return(ByMove(std::move(mockRewriter))));
+    builder->maybeInitBuildPipeline();
+    ASSERT_TRUE(builder->_pipeline->rewriter);
+
+    // normal read
+    ASSERT_TRUE(builder->runBuildPipeline());
+
+    // read with retry
+    ASSERT_TRUE(builder->runBuildPipeline());
+
+    // rewrite but stopping
+    builder->_buildLoopStop = true;
+    ASSERT_FALSE(builder->runBuildPipeline());
 }
 
 } // namespace suez

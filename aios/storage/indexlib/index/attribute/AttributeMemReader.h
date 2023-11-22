@@ -36,6 +36,7 @@ public:
     virtual size_t EstimateMemUsed(const std::shared_ptr<config::IIndexConfig>& indexConfig,
                                    const std::shared_ptr<indexlib::file_system::Directory>& indexDirectory) = 0;
     virtual size_t EvaluateCurrentMemUsed() = 0;
+    virtual uint32_t GetDataLength(docid_t docId) const = 0;
 };
 
 } // namespace indexlibv2::index

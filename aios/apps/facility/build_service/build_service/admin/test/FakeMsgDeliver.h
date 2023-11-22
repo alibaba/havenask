@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_FAKEMSGDELIVERER_H
-#define ISEARCH_BS_FAKEMSGDELIVERER_H
+#pragma once
 
 #include "autil/legacy/any.h"
 #include "build_service/admin/MsgDeliverer.h"
@@ -42,5 +41,3 @@ private:
 BS_TYPEDEF_PTR(FakeMsgDeliverer);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_FAKEMSGDELIVERER_H

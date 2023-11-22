@@ -1,9 +1,9 @@
 #include "indexlib/partition/segment/test/compress_ratio_calculator_unittest.h"
 
 #include "indexlib/config/kkv_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

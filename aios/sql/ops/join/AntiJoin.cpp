@@ -24,7 +24,6 @@
 #include "sql/common/Log.h"
 #include "sql/ops/calc/CalcTableR.h"
 #include "sql/ops/join/JoinBase.h"
-#include "sql/ops/join/JoinInfoCollector.h"
 #include "table/Table.h"
 
 using namespace std;
@@ -33,7 +32,7 @@ using namespace table;
 
 namespace sql {
 
-AntiJoin::AntiJoin(const JoinBaseParam &joinBaseParam)
+AntiJoin::AntiJoin(const JoinBaseParamR &joinBaseParam)
     : JoinBase(joinBaseParam) {}
 
 bool AntiJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
@@ -46,8 +45,6 @@ bool AntiJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
     _joinedFlag.resize(joinedRowCount);
     if (_joinedTable == nullptr) {
         _joinedTable.reset(new table::Table(_joinBaseParam._poolPtr));
-        _joinedTable->mergeDependentPools(leftTable);
-        _joinedTable->mergeDependentPools(rightTable);
 
         if (!JoinBase::initJoinedTable(leftTable, rightTable, _joinedTable)) {
             SQL_LOG(ERROR, "init join table failed");
@@ -57,7 +54,7 @@ bool AntiJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
         _joinedTable->clearRows();
     }
     uint64_t afterInitTable = TimeUtility::currentTime();
-    JoinInfoCollector::incInitTableTime(_joinBaseParam._joinInfo, afterInitTable - beginOutput);
+    _joinBaseParam._joinInfoR->incInitTableTime(afterInitTable - beginOutput);
     if (!evaluateJoinedTable(
             leftTableIndexes, rightTableIndexes, leftTable, rightTable, _joinedTable)) {
         SQL_LOG(ERROR, "evaluate join table failed");
@@ -82,11 +79,9 @@ bool AntiJoin::generateResultTable(const std::vector<size_t> &leftTableIndexes,
             return false;
         }
     }
-    outputTable->mergeDependentPools(leftTable);
-    outputTable->mergeDependentPools(rightTable);
 
     uint64_t afterEvaluate = TimeUtility::currentTime();
-    JoinInfoCollector::incEvaluateTime(_joinBaseParam._joinInfo, afterEvaluate - afterInitTable);
+    _joinBaseParam._joinInfoR->incEvaluateTime(afterEvaluate - afterInitTable);
 
     return true;
 }
@@ -101,7 +96,7 @@ bool AntiJoin::finish(const table::TablePtr &leftTable,
             tableIndexes.emplace_back(i);
         }
     }
-    JoinInfoCollector::incJoinCount(_joinBaseParam._joinInfo, tableIndexes.size());
+    _joinBaseParam._joinInfoR->incJoinCount(tableIndexes.size());
     size_t joinIndexStart = outputTable->getRowCount();
     outputTable->batchAllocateRow(tableIndexes.size());
     if (!evaluateLeftTableColumns(tableIndexes, leftTable, joinIndexStart, outputTable)) {
@@ -109,7 +104,7 @@ bool AntiJoin::finish(const table::TablePtr &leftTable,
         return false;
     }
     uint64_t afterEvaluate = TimeUtility::currentTime();
-    JoinInfoCollector::incEvaluateTime(_joinBaseParam._joinInfo, afterEvaluate - beforeEvaluate);
+    _joinBaseParam._joinInfoR->incEvaluateTime(afterEvaluate - beforeEvaluate);
     _joinedFlag.erase(_joinedFlag.begin(), _joinedFlag.begin() + offset);
     return true;
 }

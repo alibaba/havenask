@@ -16,22 +16,21 @@
 #include "indexlib/table/kv_table/index_task/KVTableResourceCreator.h"
 
 #include "indexlib/table/index_task/IndexTaskConstant.h"
+#include "indexlib/table/index_task/VersionResource.h"
 #include "indexlib/table/index_task/merger/MergePlan.h"
-
-using namespace std;
+#include "indexlib/table/kv_table/index_task/KVTableBulkloadSegmentCreatePlan.h"
 
 namespace indexlibv2::table {
-AUTIL_LOG_SETUP(indexlib.table, KVTableResourceCreator);
-
-KVTableResourceCreator::KVTableResourceCreator() {}
-
-KVTableResourceCreator::~KVTableResourceCreator() {}
 
 std::unique_ptr<framework::IndexTaskResource>
 KVTableResourceCreator::CreateResource(const std::string& name, const framework::IndexTaskResourceType& type)
 {
     if (type == MERGE_PLAN) {
         return std::make_unique<MergePlan>(name, type);
+    } else if (type == VERSION_RESOURCE) {
+        return std::make_unique<VersionResource>(name, type);
+    } else if (type == BULKLOAD_SEGMENT_CREATE_PLAN) {
+        return std::make_unique<KVTableBulkloadSegmentCreatePlan>(name, type);
     } else {
         return nullptr;
     }

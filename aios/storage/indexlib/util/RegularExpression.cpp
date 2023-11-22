@@ -15,6 +15,9 @@
  */
 #include "indexlib/util/RegularExpression.h"
 
+#include <assert.h>
+#include <cstddef>
+
 #include "autil/CommonMacros.h"
 
 using namespace std;

@@ -1,6 +1,6 @@
 package com.taobao.search.iquan.core.rel.rules.physical.join_utils;
 
-import com.taobao.search.iquan.core.api.schema.Table;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanTableScanBase;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.rel.RelNode;
@@ -25,9 +25,9 @@ public class RowCountPredicator {
             return SMALL;
         }
 
-        Table table = IquanRelOptUtils.getIquanTable(op);
-        assert table != null;
-        int partitionCnt = table.getDistribution().getPartitionCnt();
+        IquanTable iquanTable = IquanRelOptUtils.getIquanTable(op);
+        assert iquanTable != null;
+        int partitionCnt = iquanTable.getDistribution().getPartitionCnt();
         if (partitionCnt == 1) {
             return TINY;
         }

@@ -73,6 +73,21 @@ void KVSchemaResolver::FillTTLToSettings(const indexlib::config::IndexPartitionS
     assert(ret);
 }
 
+void KVSchemaResolver::FillNeedStorePKValueToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,
+                                                      config::UnresolvedSchema* schema)
+{
+    auto [statusLegacy, needStorePKValue] = legacySchema.GetUserDefinedParam().Get<bool>("need_store_pk_value");
+    if (!statusLegacy.IsOK()) {
+        return;
+    }
+    auto [status, _] = schema->GetRuntimeSettings().GetValue<bool>("need_store_pk_value");
+    if (status.IsOK()) {
+        // tablet schema setting has need_store_pk_value config, not use legacy schema
+        return;
+    }
+    schema->SetRuntimeSetting("need_store_pk_value", needStorePKValue, false);
+}
+
 Status KVSchemaResolver::FillIndexConfigs(const indexlib::config::IndexPartitionSchema& legacySchema,
                                           config::UnresolvedSchema* schema)
 {
@@ -105,6 +120,7 @@ Status KVSchemaResolver::LegacySchemaToTabletSchema(const indexlib::config::Inde
     RETURN_IF_STATUS_ERROR(FillIndexConfigs(legacySchema, schema),
                            "fill index configs from legacy schema to tablet schema failed");
     FillTTLToSettings(legacySchema, schema);
+    FillNeedStorePKValueToSettings(legacySchema, schema);
     return Status::OK();
 }
 Status KVSchemaResolver::ResolveLegacySchema(const std::string& indexPath,

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SINGLEFIELDPATCHITERATORTEST_H
-#define __INDEXLIB_SINGLEFIELDPATCHITERATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/single_field_patch_iterator.h"
@@ -48,5 +47,3 @@ INDEXLIB_UNIT_TEST_CASE(SingleFieldPatchIteratorTest, TestAttributeSegmentPatchI
 INDEXLIB_UNIT_TEST_CASE(SingleFieldPatchIteratorTest, TestInit);
 INDEXLIB_UNIT_TEST_CASE(SingleFieldPatchIteratorTest, TestNext);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLEFIELDPATCHITERATORTEST_H

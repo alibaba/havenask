@@ -87,6 +87,7 @@ Packet *ANetRPCMessageCodec::EncodeRequest(const CodecContext *context, version_
         return NULL;
     }
 
+    auto packetDataLen = serializable->getSerializedSize();
     Packet *packet = createPacket(pcode, serializable);
 
     if (packet == NULL) {
@@ -95,6 +96,7 @@ Packet *ANetRPCMessageCodec::EncodeRequest(const CodecContext *context, version_
     }
 
     packet->setPacketVersion(version);
+    packet->setDataLen(packetDataLen);
     return packet;
 }
 
@@ -195,8 +197,10 @@ Packet *ANetRPCMessageCodec::EncodeResponse(RPCMessage *response,
         return NULL;
     }
 
+    auto packetDataLen = pSeri->getSerializedSize();
     Packet *packet = createPacket(pcode, pSeri);
     packet->setPacketVersion(version);
+    packet->setDataLen(packetDataLen);
     return packet;
 }
 

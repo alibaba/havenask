@@ -95,6 +95,7 @@ public:
     void setIdStr(const std::string &idStr) { _idStr = idStr; }
     void setAuthInfo(const protocol::AuthenticationInfo &authInfo) { _authInfo = authInfo; }
     std::string getUsername() const { return _username; }
+    bool brokerAddressIsSameAsLast() const { return _brokerAddressIsSame; }
 
 public: // for test
     void setSwiftTransportClient(SwiftTransportClient *transportClient) {
@@ -122,6 +123,8 @@ protected:
     int64_t _retryTimeInterval;
 
     SwiftTransportClient *_transportClient = nullptr;
+    bool _brokerAddressIsSame = false;
+    std::string _lastBrokerAddress;
     bool _ownNotifier;
     Notifier *_notifier = nullptr;
     protocol::BrokerVersionInfo _versionInfo;
@@ -300,6 +303,12 @@ protocol::ErrorCode SwiftTransportAdapter<EnumType>::createTransportClient() {
         return ec;
     }
     _transportClient = SwiftTransportClientCreator::createTransportClient(brokerAddress, _channelManager, _idStr);
+    if (_lastBrokerAddress != brokerAddress) {
+        _brokerAddressIsSame = false;
+        _lastBrokerAddress = brokerAddress;
+    } else {
+        _brokerAddressIsSame = true;
+    }
     return protocol::ERROR_NONE;
 }
 

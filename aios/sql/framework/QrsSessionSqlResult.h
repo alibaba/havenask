@@ -57,7 +57,6 @@ public:
         : multicallEc(multi_call::MULTI_CALL_ERROR_RPC_FAILED)
         , formatType(formatType_)
         , searchInfoLevel(SQL_SIL_NONE)
-        , readable(false)
         , resultCompressType(autil::CompressType::NO_COMPRESS)
         , allowSoftFailure(false) {}
     static SqlResultFormatType strToType(const std::string &format) {
@@ -119,7 +118,6 @@ public:
     SqlResultFormatType formatType;
     ErrorResult errorResult;
     table::TablePtr table;
-    navi::NaviResultPtr naviResult;
     std::string resultStr;
     std::string formatDesc;
     std::vector<std::string> sqlTrace;
@@ -127,7 +125,6 @@ public:
     std::string naviGraph;
     iquan::IquanDqlResponseWrapper iquanResponseWrapper;
     SearchInfoLevel searchInfoLevel;
-    bool readable;
     autil::CompressType resultCompressType;
     bool allowSoftFailure;
     iquan::IquanDqlRequest sqlQueryRequest;

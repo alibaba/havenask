@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_KKVSORTDOCCONVERTOR_H
-#define ISEARCH_BS_KKVSORTDOCCONVERTOR_H
+#pragma once
 
 #include "autil/ConstString.h"
 #include "build_service/builder/SortDocumentConverter.h"
@@ -67,5 +66,3 @@ private:
 BS_TYPEDEF_PTR(KKVSortDocConvertor);
 
 }} // namespace build_service::builder
-
-#endif // ISEARCH_BS_KKVSORTKEYGENERATOR_H

@@ -36,7 +36,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/partition/operation_queue',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/autil:net', '//aios/storage/indexlib/index/primary_key:util',
         '//aios/storage/indexlib/indexlib/common',

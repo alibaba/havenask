@@ -1,5 +1,8 @@
 package com.taobao.search.iquan.core.rel.hint;
 
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import org.apache.calcite.rel.RelNode;
@@ -7,14 +10,9 @@ import org.apache.calcite.rel.hint.HintPredicate;
 import org.apache.calcite.rel.hint.HintPredicates;
 import org.apache.calcite.rel.hint.RelHint;
 
-import java.util.List;
-import java.util.Map;
-
 public class IquanJoinAttrHint implements IquanHint {
-    private static List<HintPredicate> precedingPredicates = ImmutableList.of(HintPredicates.JOIN);
-
     public static final IquanJoinAttrHint INSTANCE = new IquanJoinAttrHint(ConstantDefine.JOIN_ATTR_HINT);
-
+    private static List<HintPredicate> precedingPredicates = ImmutableList.of(HintPredicates.JOIN);
     private final String name;
 
     public IquanJoinAttrHint(String name) {

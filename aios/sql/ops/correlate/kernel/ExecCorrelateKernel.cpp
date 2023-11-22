@@ -229,13 +229,12 @@ navi::ErrorCode ExecCorrelateKernel::compute(KernelComputeContext &ctx) {
         if (!outputTable) {
             return EC_ABORT;
         }
-        outputTable->mergeDependentPools(inputTable);
         incOutputCount(outputTable->getRowCount());
     }
 
     uint64_t totalComputeTimes = _calcInfo.totalcomputetimes();
     if (totalComputeTimes < 5) {
-        SQL_LOG(TRACE1,
+        SQL_LOG(TRACE2,
                 "calc batch [%lu] output table: [%s]",
                 totalComputeTimes,
                 TableUtil::toString(outputTable, 10).c_str());
@@ -248,7 +247,7 @@ navi::ErrorCode ExecCorrelateKernel::compute(KernelComputeContext &ctx) {
     incTotalTime(endTime - beginTime);
 
     if (isEof) {
-        SQL_LOG(DEBUG, "calc info: [%s]", _calcInfo.ShortDebugString().c_str());
+        SQL_LOG(TRACE1, "calc info: [%s]", _calcInfo.ShortDebugString().c_str());
     }
     _sqlSearchInfoCollectorR->getCollector()->overwriteCalcInfo(_calcInfo);
     return EC_NONE;
@@ -263,13 +262,13 @@ bool ExecCorrelateKernel::initOutputTable(const TablePtr inputTable, TablePtr ou
             SQL_LOG(ERROR, "can not found copy column [%s] in input table", copyField.c_str());
             return false;
         }
-        ColumnSchema *tmpSchema = tmpPtr->getColumnSchema();
+        const ColumnSchema *tmpSchema = tmpPtr->getColumnSchema();
         if (tmpSchema == nullptr) {
             SQL_LOG(ERROR, "can not fetch copy column schema from column [%s]", copyField.c_str());
             return false;
         }
         ValueType valueType = tmpSchema->getType();
-        outputTable->declareColumn(copyField, valueType, false);
+        outputTable->declareColumn(copyField, valueType);
     }
 
     // declare unnest field to output table
@@ -279,20 +278,19 @@ bool ExecCorrelateKernel::initOutputTable(const TablePtr inputTable, TablePtr ou
             SQL_LOG(ERROR, "can not found nest column [%s] in input table", kv.first.c_str());
             return false;
         }
-        ColumnSchema *tmpSchema = tmpPtr->getColumnSchema();
+        const ColumnSchema *tmpSchema = tmpPtr->getColumnSchema();
         if (tmpSchema == nullptr) {
             SQL_LOG(ERROR, "can not fetch nest column schema from column [%s]", kv.second.c_str());
             return false;
         }
         ValueType valueType = tmpSchema->getType();
         valueType.setMultiValue(false);
-        outputTable->declareColumn(kv.second, valueType, false);
+        outputTable->declareColumn(kv.second, valueType);
     }
 
     if (_hasOffset) {
-        outputTable->declareColumn(_offsetField, ValueTypeHelper<int32_t>::getValueType(), false);
+        outputTable->declareColumn<int32_t>(_offsetField);
     }
-    outputTable->endGroup();
 
     return true;
 }
@@ -308,7 +306,7 @@ bool ExecCorrelateKernel::calcOutputTableMultiRowOffset(const TablePtr &inputTab
     };
     for (auto &kv : _unnestFieldMapper) {
         Column *unnestColumnPtr = inputTable->getColumn(kv.first);
-        ColumnSchema *unnestColumnSchema = unnestColumnPtr->getColumnSchema();
+        const ColumnSchema *unnestColumnSchema = unnestColumnPtr->getColumnSchema();
         if (unnestColumnSchema == nullptr) {
             SQL_LOG(ERROR, "can not get unnest column schema");
             return false;
@@ -317,7 +315,7 @@ bool ExecCorrelateKernel::calcOutputTableMultiRowOffset(const TablePtr &inputTab
                 *unnestColumnPtr, *unnestColumnSchema, offset2InputTable)) {
             return false;
         }
-        SQL_LOG(DEBUG, "field [%s], offset2InputTable [%s]", kv.first.c_str(), debugStr().c_str())
+        SQL_LOG(TRACE2, "field [%s], offset2InputTable [%s]", kv.first.c_str(), debugStr().c_str())
     }
 
     return true;
@@ -351,7 +349,7 @@ bool ExecCorrelateKernel::copyUnnestFields(const TablePtr &inputTable,
     auto cit = _unnestFieldMapper.cbegin();
 
     Column *unnestColumnPtr = nullptr;
-    ColumnSchema *unnestColumnSchema = nullptr;
+    const ColumnSchema *unnestColumnSchema = nullptr;
     auto multiFunc = [&](auto a) -> bool {
         using Multi = typename decltype(a)::value_type;
         using Single = typename Multi::value_type;
@@ -484,7 +482,7 @@ TablePtr ExecCorrelateKernel::doUnnestTable(const TablePtr &inputTable) {
 
 void ExecCorrelateKernel::reportMetrics() {
     if (_queryMetricReporterR) {
-        std::string &&pathName = "sql.user.ops." + getKernelName();
+        static const std::string pathName = "sql.user.ops.ExecCorrelateKernel";
         auto opMetricReporter
             = _queryMetricReporterR->getReporter()->getSubReporter(pathName, {}).get();
         opMetricReporter->report<ExecCorrelateOpMetrics, CalcInfo>(nullptr, &_calcInfo);

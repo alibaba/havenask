@@ -1,8 +1,9 @@
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/config/temperature_layer_config.h"
-#include "indexlib/test/schema_maker.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/testutil/unittest.h"
 
 using namespace std;
 using namespace autil::legacy;
@@ -22,11 +23,11 @@ public:
     void TestCheck();
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(TemperatureLayerConfigTest, TestCheck);
-IE_LOG_SETUP(config, TemperatureLayerConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, TemperatureLayerConfigTest);
 
 TemperatureLayerConfigTest::TemperatureLayerConfigTest() {}
 

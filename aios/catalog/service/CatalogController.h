@@ -115,7 +115,7 @@ public:
 
     // ----------- API for TargetGenerator ----------
     Status getCatalog(Catalog *catalog);
-    std::map<PartitionId, proto::Build> getCurrentBuilds();
+    std::map<PartitionId, std::map<uint32_t, proto::Build>> getCurrentBuilds();
 
 private:
     using CheckFunction = std::function<Status(CatalogSnapshot *)>;
@@ -142,6 +142,7 @@ private:
     void createBuild(const Partition *partition, const std::string &storeRoot);
     void updateBuild(const Partition *partition, const std::string &storeRoot, uint32_t generationId);
     void dropBuild(const PartitionId &partitionId);
+    bool isSchemaChanged(const Partition *newPart, const Partition *oldPart);
 
 private:
     // virtual for test

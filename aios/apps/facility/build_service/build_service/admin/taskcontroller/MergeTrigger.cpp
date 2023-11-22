@@ -15,8 +15,15 @@
  */
 #include "build_service/admin/taskcontroller/MergeTrigger.h"
 
+#include <bits/types/struct_tm.h>
+#include <ostream>
+#include <stdint.h>
+#include <time.h>
+
+#include "alog/Logger.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 #include "build_service/admin/taskcontroller/PeriodMergeTrigger.h"
 
 using namespace std;

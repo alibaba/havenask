@@ -14,7 +14,7 @@ cc_library(
 cc_fast_test(
     name='indexlib_document_rewriter_unittest',
     srcs=glob(['*unittest.cpp']),
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=(['//aios/storage/indexlib:testdata'] + glob(['testdata/**'])),
     deps=[
         ':indexlib_document_rewriter_test_helper',

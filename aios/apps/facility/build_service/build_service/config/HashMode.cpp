@@ -15,6 +15,10 @@
  */
 #include "build_service/config/HashMode.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <memory>
+
 using namespace std;
 namespace build_service { namespace config {
 

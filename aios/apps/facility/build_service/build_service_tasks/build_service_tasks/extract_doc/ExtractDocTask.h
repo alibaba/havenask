@@ -13,21 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_EXTRACTDOCTASK_H
-#define ISEARCH_BS_EXTRACTDOCTASK_H
+#pragma once
 
 #include <mutex>
+#include <ostream>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "autil/LoopThread.h"
-#include "autil/StringUtil.h"
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
 #include "build_service/common_define.h"
 #include "build_service/config/BuildServiceConfig.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/TaskConfig.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/io/Output.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/reader/RawDocumentReader.h"
 #include "build_service/task_base/Task.h"
 #include "build_service/util/Log.h"
-#include "build_service/util/Monitor.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/util/counter/CounterMap.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
 namespace build_service { namespace task_base {
 
@@ -143,5 +156,3 @@ bool ExtractDocTask::getConfig(config::ResourceReader& resourceReader, const std
 }
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_EXTRACTDOCTASK_H

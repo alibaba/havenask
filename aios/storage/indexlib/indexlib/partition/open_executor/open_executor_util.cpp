@@ -159,13 +159,13 @@ PatchLoaderPtr OpenExecutorUtil::CreatePatchLoader(const ExecutorResource& resou
     }
     PatchLoaderPtr patchLoader(new PatchLoader(resource.mRtSchema, resource.mOptions.GetOnlineConfig()));
     segmentid_t startLoadSegment = 0;
-    if (resource.mLoadedIncVersion != index_base::Version(INVALID_VERSION)) {
+    if (resource.mLoadedIncVersion != index_base::Version(INVALID_VERSIONID)) {
         startLoadSegment = resource.mLoadedIncVersion.GetLastSegment() + 1;
     }
     string locatorStr = partitionData->GetLastLocator();
     index_base::Version onDiskIncVersion = partitionData->GetOnDiskVersion();
 
-    bool isIncConsistentWithRt = (resource.mLoadedIncVersion != index_base::Version(INVALID_VERSION)) &&
+    bool isIncConsistentWithRt = (resource.mLoadedIncVersion != index_base::Version(INVALID_VERSIONID)) &&
                                  resource.mOptions.GetOnlineConfig().isIncConsistentWithRealtime;
 
     document::IndexLocator indexLocator;

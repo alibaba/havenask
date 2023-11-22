@@ -5,6 +5,7 @@ import process
 import include.json_wrapper as json
 from common_define import *
 
+
 class BuildAppConfig(object):
     def __init__(self, fsUtil=None, configPath=None):
         if fsUtil is None and configPath is None:
@@ -27,7 +28,7 @@ class BuildAppConfig(object):
         self.hippoRoot = self.__getValueWithDefault(jsonMap, BUILD_APP_HIPPO_ROOT)
         self.amonitorPort = self.__getValueWithDefault(jsonMap, BUILD_APP_AMONITOR_PORT, '10086')
 
-    def __getValueWithDefault(self, jsonMap, name, defaultValue = None):
+    def __getValueWithDefault(self, jsonMap, name, defaultValue=None):
         if jsonMap.has_key(name):
             return jsonMap[name]
         return defaultValue

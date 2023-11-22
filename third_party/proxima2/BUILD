@@ -11,13 +11,7 @@ cc_library(
 
 cc_library(
     name = "proxima2_cpu",
-    srcs = ["usr/local/lib/arch_skylake/libailego.lo",
-            "usr/local/lib/arch_skylake/libaitheta2.lo",
-            "usr/local/lib/arch_skylake/libknn_cluster_cc.lo",
-            "usr/local/lib/arch_skylake/libknn_hc_cc.lo",
-            "usr/local/lib/arch_skylake/libknn_oswg_cc.lo",
-            "usr/local/lib/arch_skylake/libknn_hnsw_cc.lo",
-            "usr/local/lib/arch_skylake/libknn_qc_cc.lo"],
+    srcs = glob(["usr/local/lib/arch_skylake/**"]),
     hdrs = [],
     deps = [],
     alwayslink = 1,
@@ -26,17 +20,7 @@ cc_library(
 
 cc_library(
     name = "proxima2_gpu",
-    srcs = ["usr/local/lib/arch_skylake-avx512/libailego.lo",
-            "usr/local/lib/arch_skylake-avx512/libaitheta2.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_cluster_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_hc_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_oswg_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_hnsw_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_qc_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_gpu_qc_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libgpu_utils.lo",
-            "usr/local/lib/arch_skylake-avx512/libgpu_impl.lo",
-            "usr/local/lib/arch_skylake-avx512/libqc_internal_searcher.lo"],
+    srcs = glob(["usr/local/lib/arch_skylake-avx512/**"]),
     hdrs = [],
     deps = [],
     alwayslink = 1,
@@ -45,28 +29,7 @@ cc_library(
 
 cc_library(
     name = "proxima2_cpu_c11abi",
-    srcs = ["usr/local/lib/c11abi/arch_skylake/libailego.lo",
-            "usr/local/lib/c11abi/arch_skylake/libaitheta2.lo",
-            "usr/local/lib/c11abi/arch_skylake/libknn_cluster_cc.lo",
-            "usr/local/lib/c11abi/arch_skylake/libknn_hc_cc.lo",
-            "usr/local/lib/c11abi/arch_skylake/libknn_oswg_cc.lo",
-            "usr/local/lib/c11abi/arch_skylake/libknn_hnsw_cc.lo",
-            "usr/local/lib/c11abi/arch_skylake/libknn_qc_cc.lo"],
-    hdrs = [],
-    deps = [],
-    alwayslink = 1,
-    visibility = ["//visibility:public"],
-)
-
-cc_library(
-    name = "proxima2_cpu_avx512",
-    srcs = ["usr/local/lib/arch_skylake-avx512/libailego.lo",
-            "usr/local/lib/arch_skylake-avx512/libaitheta2.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_cluster_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_hc_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_oswg_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_hnsw_cc.lo",
-            "usr/local/lib/arch_skylake-avx512/libknn_qc_cc.lo"],
+    srcs =  glob(["usr/local/lib/c11abi/arch_skylake/**"]),
     hdrs = [],
     deps = [],
     alwayslink = 1,

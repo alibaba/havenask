@@ -29,6 +29,18 @@ MatchData::MatchData() : _numTerms(0), _maxNumTerms(0) {}
 
 MatchData::~MatchData() { reset(); }
 
+std::string MatchData::toString() const {
+    std::stringstream ss;
+    ss << "term_count = " << _numTerms << ", max_num_terms = " << _maxNumTerms << ", ";
+    for (uint32_t i = 0; i < getNumTerms(); ++i) {
+        const auto &tmd = getTermMatchData(i);
+        ss << "isMatched = " << (tmd.isMatched() ? "true" : "false") << ",";
+        ss << "tf=" << tmd.getTermFreq() << ",";
+        ss << "doc_pay_load=" << tmd.getDocPayload() << "\t";
+    }
+    return ss.str();
+}
+
 REGISTER_MATCHDOC_TYPE(MatchData);
 
 } // namespace turing

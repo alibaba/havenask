@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OFFLINE_ATTRIBUTE_SEGMENT_READER_CONTAINER_H
-#define __INDEXLIB_OFFLINE_ATTRIBUTE_SEGMENT_READER_CONTAINER_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -65,5 +64,3 @@ private:
 
 DEFINE_SHARED_PTR(OfflineAttributeSegmentReaderContainer);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_OFFLINE_ATTRIBUTE_SEGMENT_READER_CONTAINER_H

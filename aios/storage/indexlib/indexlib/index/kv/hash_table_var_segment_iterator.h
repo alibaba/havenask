@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_HASH_TABLE_VAR_SEGMENT_ITERATOR_H
-#define __INDEXLIB_HASH_TABLE_VAR_SEGMENT_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -233,5 +232,3 @@ HashTableVarSegmentIterator<Traits>::EstimateMemoryUse(const config::KVIndexConf
     return Iterator::EstimateMemoryUse(maxKeyCount) + file_system::ReaderOption ::DEFAULT_BUFFER_SIZE * 2;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASH_TABLE_VAR_SEGMENT_ITERATOR_H

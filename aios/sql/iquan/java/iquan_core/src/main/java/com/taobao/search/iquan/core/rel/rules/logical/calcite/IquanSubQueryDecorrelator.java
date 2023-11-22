@@ -1,22 +1,58 @@
 package com.taobao.search.iquan.core.rel.rules.logical.calcite;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Supplier;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
+import com.google.common.collect.SortedSetMultimap;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelShuttleImpl;
-import org.apache.calcite.rel.core.*;
-import org.apache.calcite.rel.logical.*;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rel.core.CorrelationId;
+import org.apache.calcite.rel.core.SetOp;
+import org.apache.calcite.rel.logical.LogicalAggregate;
+import org.apache.calcite.rel.logical.LogicalCorrelate;
+import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rel.logical.LogicalIntersect;
+import org.apache.calcite.rel.logical.LogicalJoin;
+import org.apache.calcite.rel.logical.LogicalMinus;
+import org.apache.calcite.rel.logical.LogicalProject;
+import org.apache.calcite.rel.logical.LogicalUnion;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexCall;
+import org.apache.calcite.rex.RexCorrelVariable;
+import org.apache.calcite.rex.RexFieldAccess;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexOver;
+import org.apache.calcite.rex.RexSubQuery;
+import org.apache.calcite.rex.RexUtil;
+import org.apache.calcite.rex.RexVisitor;
+import org.apache.calcite.rex.RexVisitorImpl;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.tools.RelBuilder;
-import org.apache.calcite.util.*;
-
-import javax.annotation.Nonnull;
-import java.util.*;
+import org.apache.calcite.util.Bug;
+import org.apache.calcite.util.Litmus;
+import org.apache.calcite.util.Pair;
 
 public class IquanSubQueryDecorrelator extends RelShuttleImpl {
     private final SubQueryRelDecorrelator decorrelator;
@@ -103,9 +139,9 @@ public class IquanSubQueryDecorrelator extends RelShuttleImpl {
     }
 
     public static class Result {
+        static final IquanSubQueryDecorrelator.Result EMPTY = new IquanSubQueryDecorrelator.Result(new HashMap<>());
         private final ImmutableMap<RexSubQuery, Pair<RelNode, RexNode>>
                 subQueryMap;
-        static final IquanSubQueryDecorrelator.Result EMPTY = new IquanSubQueryDecorrelator.Result(new HashMap<>());
 
         private Result(Map<RexSubQuery, Pair<RelNode, RexNode>> subQueryMap) {
             this.subQueryMap = com.google.common.collect.ImmutableMap.copyOf(subQueryMap);
@@ -130,6 +166,16 @@ class CorelMap {
         this.mapCorToCorRel = mapCorToCorRel;
         this.mapSubQueryNodeToCorSet =
                 ImmutableMap.copyOf(mapSubQueryNodeToCorSet);
+    }
+
+    /**
+     * Creates a CorelMap with given contents.
+     */
+    public static CorelMap of(
+            com.google.common.collect.SortedSetMultimap<RelNode, CorRef> mapRefRelToCorVar,
+            SortedMap<CorrelationId, RelNode> mapCorToCorRel,
+            Map<RelNode, Set<CorrelationId>> mapSubQueryNodeToCorSet) {
+        return new CorelMap(mapRefRelToCorVar, mapCorToCorRel, mapSubQueryNodeToCorSet);
     }
 
     public Multimap<RelNode, CorRef> getMapRefRelToCorRef() {
@@ -170,14 +216,6 @@ class CorelMap {
         return Objects.hash(mapRefRelToCorRef, mapCorToCorRel, mapSubQueryNodeToCorSet);
     }
 
-    /** Creates a CorelMap with given contents. */
-    public static CorelMap of(
-            com.google.common.collect.SortedSetMultimap<RelNode, CorRef> mapRefRelToCorVar,
-            SortedMap<CorrelationId, RelNode> mapCorToCorRel,
-            Map<RelNode, Set<CorrelationId>> mapSubQueryNodeToCorSet) {
-        return new CorelMap(mapRefRelToCorVar, mapCorToCorRel, mapSubQueryNodeToCorSet);
-    }
-
     /**
      * Returns whether there are any correlating variables in this statement.
      *
@@ -188,6 +226,17 @@ class CorelMap {
     }
 
     public static class CorelMapBuilder extends RelShuttleImpl {
+        final SortedMap<CorrelationId, RelNode> mapCorToCorRel = new TreeMap<>();
+        final SortedSetMultimap<RelNode, CorRef> mapRefRelToCorRef =
+                Multimaps.newSortedSetMultimap(
+                        new HashMap<>(),
+                        (Supplier<TreeSet<CorRef>>) () -> {
+                            Bug.upgrade("use MultimapBuilder when we're on Guava-16");
+                            return Sets.newTreeSet();
+                        });
+        final Map<RexFieldAccess, CorRef> mapFieldAccessToCorVar = new HashMap<>();
+        final Map<RelNode, Set<CorrelationId>> mapSubQueryNodeToCorSet = new HashMap<>();
+        final Deque<RelNode> corNodeStack = new ArrayDeque<>();
         private final int maxCnfNodeCount;
         // nested correlation variables in SubQuery, such as:
         // SELECT * FROM t1 WHERE EXISTS (SELECT * FROM t2 WHERE t1.a = t2.c AND
@@ -206,26 +255,14 @@ class CorelMap {
         boolean hasAggregateNode = false;
         // true if SubQuery rel tree has Over node, else false.
         boolean hasOverNode = false;
-
+        int corrIdGenerator = 0;
         public CorelMapBuilder(int maxCnfNodeCount) {
             this.maxCnfNodeCount = maxCnfNodeCount;
         }
 
-        final SortedMap<CorrelationId, RelNode> mapCorToCorRel = new TreeMap<>();
-        final SortedSetMultimap<RelNode, CorRef> mapRefRelToCorRef =
-                Multimaps.newSortedSetMultimap(
-                        new HashMap<>(),
-                        (Supplier<TreeSet<CorRef>>) () -> {
-                            Bug.upgrade("use MultimapBuilder when we're on Guava-16");
-                            return Sets.newTreeSet();
-                        });
-        final Map<RexFieldAccess, CorRef> mapFieldAccessToCorVar = new HashMap<>();
-        final Map<RelNode, Set<CorrelationId>> mapSubQueryNodeToCorSet = new HashMap<>();
-
-        int corrIdGenerator = 0;
-        final Deque<RelNode> corNodeStack = new ArrayDeque<>();
-
-        /** Creates a CorelMap by iterating over a {@link RelNode} tree. */
+        /**
+         * Creates a CorelMap by iterating over a {@link RelNode} tree.
+         */
         CorelMap build(RelNode... rels) {
             for (RelNode rel : rels) {
                 IquanRelOptUtils.toRel(rel).accept(this);
@@ -592,6 +629,15 @@ class Frame {
                 this.oldToNewOutputs.values(), r.getRowType().getFieldCount(), Litmus.THROW);
     }
 
+    private static boolean allLessThan(Collection<Integer> integers, int limit, Litmus ret) {
+        for (int value : integers) {
+            if (value >= limit) {
+                return ret.fail("out of range; value: {}, limit: {}", value, limit);
+            }
+        }
+        return ret.succeed();
+    }
+
     List<Integer> getCorInputRefIndices() {
         final List<Integer> inputRefIndices;
         if (c != null) {
@@ -600,15 +646,6 @@ class Frame {
             inputRefIndices = new ArrayList<>();
         }
         return inputRefIndices;
-    }
-
-    private static boolean allLessThan(Collection<Integer> integers, int limit, Litmus ret) {
-        for (int value : integers) {
-            if (value >= limit) {
-                return ret.fail("out of range; value: {}, limit: {}", value, limit);
-            }
-        }
-        return ret.succeed();
     }
 }
 

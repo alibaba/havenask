@@ -36,7 +36,7 @@ OneDocMerger::OneDocMerger(const PostingFormatOption& formatOption, PostingDecod
 
 OneDocMerger::~OneDocMerger() {}
 
-docid_t OneDocMerger::CurrentDoc() const
+docid32_t OneDocMerger::CurrentDoc() const
 {
     if (_lastReadFrom == PATCH) {
         return _patchDoc.DocId();
@@ -178,7 +178,7 @@ bool OneDocMerger::Next()
     return false;
 }
 
-void OneDocMerger::Merge(docid_t newDocId,
+void OneDocMerger::Merge(docid32_t newDocId,
                          PostingWriterImpl* postingWriter) // writer to new seg
 {
     tf_t tf = MergePosition(newDocId, postingWriter);
@@ -206,7 +206,7 @@ void OneDocMerger::Merge(docid_t newDocId,
     }
 }
 
-tf_t OneDocMerger::MergePosition(docid_t newDocId, PostingWriterImpl* postingWriter)
+tf_t OneDocMerger::MergePosition(docid32_t newDocId, PostingWriterImpl* postingWriter)
 {
     if (!_formatOption.HasTermFrequency()) {
         return 0;

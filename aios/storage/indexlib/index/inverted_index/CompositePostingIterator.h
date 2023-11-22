@@ -32,8 +32,8 @@ public:
     ~CompositePostingIterator();
 
     TermMeta* GetTermMeta() const override;
-    docid_t SeekDoc(docid_t docId) override;
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    docid64_t SeekDoc(docid64_t docId) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
     bool HasPosition() const override { return false; }
     void Unpack(TermMatchData& termMatchData) override { assert(false); }
     void Reset() override;
@@ -49,8 +49,8 @@ public:
 private:
     static constexpr int64_t DOCID_EOF = std::numeric_limits<int64_t>::max();
 
-    index::ErrorCode BufferedAdvance(docid_t docId);
-    void DynamicAdvance(docid_t docId);
+    index::ErrorCode BufferedAdvance(docid64_t docId);
+    void DynamicAdvance(docid64_t docId);
 
     autil::mem_pool::Pool* _sessionPool;
     BufferedIterator* _bufferedIterator;
@@ -66,19 +66,19 @@ AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, CompositePostingIterator, BufferedItera
 
 /////////////////////////////////////////////////////////////////////////////
 template <typename BufferedIterator>
-inline index::ErrorCode CompositePostingIterator<BufferedIterator>::BufferedAdvance(docid_t docId)
+inline index::ErrorCode CompositePostingIterator<BufferedIterator>::BufferedAdvance(docid64_t docId)
 {
     if (docId <= _bufferedDocId) {
         return index::ErrorCode::OK;
     }
-    docid_t result = INVALID_DOCID;
+    docid64_t result = INVALID_DOCID;
     auto ec = _bufferedIterator->InnerSeekDoc(docId, result);
     _bufferedDocId = (result == INVALID_DOCID) ? DOCID_EOF : result;
     return ec;
 }
 
 template <typename BufferedIterator>
-inline void CompositePostingIterator<BufferedIterator>::DynamicAdvance(docid_t docId)
+inline void CompositePostingIterator<BufferedIterator>::DynamicAdvance(docid64_t docId)
 {
     if (docId <= _dynamicDocId) {
         return;
@@ -93,7 +93,8 @@ inline void CompositePostingIterator<BufferedIterator>::DynamicAdvance(docid_t d
 }
 
 template <typename BufferedIterator>
-inline index::ErrorCode CompositePostingIterator<BufferedIterator>::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+inline index::ErrorCode CompositePostingIterator<BufferedIterator>::SeekDocWithErrorCode(docid64_t docId,
+                                                                                         docid64_t& result)
 {
     auto ec = index::ErrorCode::OK;
     if (docId != INVALID_DOCID) {
@@ -138,9 +139,9 @@ inline index::ErrorCode CompositePostingIterator<BufferedIterator>::SeekDocWithE
 }
 
 template <typename BufferedIterator>
-inline docid_t CompositePostingIterator<BufferedIterator>::SeekDoc(docid_t docId)
+inline docid64_t CompositePostingIterator<BufferedIterator>::SeekDoc(docid64_t docId)
 {
-    docid_t ret = INVALID_DOCID;
+    docid64_t ret = INVALID_DOCID;
     auto ec = SeekDocWithErrorCode(docId, ret);
     index::ThrowIfError(ec);
     return ret;

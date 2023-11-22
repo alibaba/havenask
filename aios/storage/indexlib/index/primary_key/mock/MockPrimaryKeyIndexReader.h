@@ -48,15 +48,15 @@ public:
         return Status::Unimplement();
     }
 
-    docid_t Lookup(const std::string& pkStr) const override
+    docid64_t Lookup(const std::string& pkStr) const override
     {
         if (_pkToDocIdMap.find(pkStr) != _pkToDocIdMap.end()) {
             return _pkToDocIdMap.at(pkStr);
         }
         return INVALID_DOCID;
     }
-    docid_t Lookup(const std::string& pkStr, future_lite::Executor* executor) const override { return Lookup(pkStr); }
-    docid_t Lookup(const autil::StringView& pkStr) const override { return INVALID_DOCID; }
+    docid64_t Lookup(const std::string& pkStr, future_lite::Executor* executor) const override { return Lookup(pkStr); }
+    docid64_t Lookup(const autil::StringView& pkStr) const override { return INVALID_DOCID; }
     index::Result<indexlib::index::PostingIterator*> Lookup(const indexlib::index::Term& term,
                                                             uint32_t statePoolSize = 1000,
                                                             PostingType type = pt_default,
@@ -74,12 +74,12 @@ public:
         }
     }
 
-    docid_t LookupWithPKHash(const autil::uint128_t& pkHash, future_lite::Executor* executor = nullptr) const override
+    docid64_t LookupWithPKHash(const autil::uint128_t& pkHash, future_lite::Executor* executor = nullptr) const override
     {
         assert(false);
         return INVALID_DOCID;
     }
-    bool LookupWithPKHash(const autil::uint128_t& pkHash, segmentid_t specifySegment, docid_t* docid) const override
+    bool LookupWithPKHash(const autil::uint128_t& pkHash, segmentid_t specifySegment, docid64_t* docid) const override
     {
         assert(false);
         return INVALID_DOCID;

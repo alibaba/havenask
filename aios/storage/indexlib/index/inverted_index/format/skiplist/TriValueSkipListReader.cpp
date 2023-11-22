@@ -80,9 +80,9 @@ void TriValueSkipListReader::InnerLoad(uint32_t start, uint32_t end, const uint3
         return;
     }
     if (itemCount <= MAX_UNCOMPRESSED_SKIP_LIST_SIZE) {
-        _byteSliceReader.Read(_docIdBuffer, itemCount * sizeof(_docIdBuffer[0]));
-        _byteSliceReader.Read(_ttfBuffer, (itemCount - 1) * sizeof(_ttfBuffer[0]));
-        _byteSliceReader.Read(_offsetBuffer, (itemCount - 1) * sizeof(_offsetBuffer[0]));
+        _byteSliceReader.Read(_docIdBuffer, itemCount * sizeof(_docIdBuffer[0])).GetOrThrow();
+        _byteSliceReader.Read(_ttfBuffer, (itemCount - 1) * sizeof(_ttfBuffer[0])).GetOrThrow();
+        _byteSliceReader.Read(_offsetBuffer, (itemCount - 1) * sizeof(_offsetBuffer[0])).GetOrThrow();
 
         _numInBuffer = itemCount;
         assert(_end == _byteSliceReader.Tell());

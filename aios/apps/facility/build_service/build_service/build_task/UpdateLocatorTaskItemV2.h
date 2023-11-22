@@ -15,7 +15,11 @@
  */
 #pragma once
 
-#include "build_service/util/Log.h"
+#include <memory>
+
+#include "build_service/common/ResourceContainer.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/Locator.h"
 #include "indexlib/util/TaskItem.h"
 

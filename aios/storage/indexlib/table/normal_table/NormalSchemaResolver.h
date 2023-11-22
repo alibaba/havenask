@@ -72,6 +72,7 @@ private:
     Status ResolveTTLField(config::UnresolvedSchema* schema);
     Status ResolveSpatialIndex(config::UnresolvedSchema* schema);
     Status ResolveSummary(config::UnresolvedSchema* schema, config::TabletOptions* options);
+    Status ResolveSource(config::UnresolvedSchema* schema, config::TabletOptions* options);
 
     std::pair<Status, std::shared_ptr<config::InvertedIndexConfig>>
     CreateInvertedIndexConfig(const std::shared_ptr<indexlib::config::IndexConfig>& indexConfig);
@@ -81,6 +82,10 @@ private:
     Status ResolveTruncateIndexConfigs(const std::string& indexPath, config::UnresolvedSchema* schema);
     Status FillTruncateProfile(const indexlib::config::IndexPartitionSchema& legacySchema,
                                config::UnresolvedSchema* schema) const;
+    Status FillDictionaryToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,
+                                    config::UnresolvedSchema* schema) const;
+    Status FillAdaptiveDictionaryToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,
+                                            config::UnresolvedSchema* schema) const;
     Status LoadTruncateTermVocabulary(const std::string& indexPath, config::UnresolvedSchema* schema) const;
     Status AppendTruncateIndexConfig(const std::vector<std::shared_ptr<config::IIndexConfig>>& indexConfigs,
                                      const std::vector<config::TruncateProfileConfig>& truncateProfileConfigs);
@@ -93,6 +98,7 @@ private:
                                    config::UnresolvedSchema* schema);
     Status ResolvePKIndexConfig(config::UnresolvedSchema* schema, config::TabletOptions* options);
     Status ResolveGeneralInvertedIndex(config::UnresolvedSchema* schema, config::TabletOptions* options);
+    Status ResolveFieldMeta(config::UnresolvedSchema* schema);
     Status ResolveInvertedIndexId(config::UnresolvedSchema* schema);
     Status CheckStatisticsTermConfig(const config::TabletSchema& schema) const;
     Status
@@ -104,6 +110,7 @@ private:
     Status CheckAttributeConfig(const config::TabletSchema& schema) const;
     Status CheckSpatialIndexConfig(const std::shared_ptr<config::InvertedIndexConfig>& spatialIndexConfig,
                                    const config::TabletSchema& schema) const;
+    Status CheckFieldMetaConfig(const config::TabletSchema& schema) const;
     Status
     CheckSingleFieldIndex(const std::shared_ptr<config::InvertedIndexConfig>& invertedIndexConfig,
                           const config::TabletSchema& schema, std::map<fieldid_t, std::string>* fieldId2IndexName,

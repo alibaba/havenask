@@ -37,11 +37,32 @@ bool AiThetaFactoryWrapper::CreateBuilder(const AithetaIndexConfig& config, size
         AUTIL_LOG(INFO, "update distance type from %s to %s", INNER_PRODUCT.c_str(), MIPS_SQUARED_EUCLIDEAN.c_str());
     }
     AiThetaParams params;
-    ANN_CHECK(intializer->InitBuildParams(config, params), "init failed");
+    ANN_CHECK(intializer->InitNormalBuildParams(config, params), "init failed");
     builder = AiThetaFactory::CreateBuilder(builderName);
     ANN_CHECK(builder != nullptr, "create failed");
     ANN_CHECK_OK(builder->init(meta, params), "init failed");
     AUTIL_LOG(INFO, "create index builder[%s] success", builderName.c_str());
+    return true;
+}
+
+bool AiThetaFactoryWrapper::CreateReducer(const AithetaIndexConfig& config, AiThetaReducerPtr& reducer)
+{
+    string reducerName = "";
+    if (config.buildConfig.builderName == HNSW_BUILDER) {
+        reducerName = "HnswDistributedReducer";
+    } else if (config.buildConfig.builderName == QGRAPH_BUILDER) {
+        reducerName = "QGraphDistributedReducer";
+    }
+    auto intializer = ParamsInitializerFactory::Create(config.buildConfig.builderName, 0);
+    ANN_CHECK(intializer, "create parameter initializer failed");
+
+    AiThetaParams params;
+    params.set("proxima.hnsw.distributed_reducer.num_of_prune_threads", 10);
+    ANN_CHECK(intializer->InitNormalBuildParams(config, params), "init failed");
+    reducer = AiThetaFactory::CreateReducer(reducerName);
+    ANN_CHECK(reducer != nullptr, "create failed");
+    ANN_CHECK_OK(reducer->init(params), "init failed");
+    AUTIL_LOG(INFO, "create index reducer[%s] success", reducerName.c_str());
     return true;
 }
 
@@ -58,7 +79,7 @@ bool AiThetaFactoryWrapper::CreateSearcher(const AithetaIndexConfig& config, con
     if (indexMeta.builderName == OSWG_STREAMER || indexMeta.builderName == QC_STREAMER) {
         newConfig.searchConfig.indexParams = config.realtimeConfig.indexParams;
     }
-    ANN_CHECK(initializer->InitSearchParams(newConfig, params), "init failed");
+    ANN_CHECK(initializer->InitNormalSearchParams(newConfig, params), "init failed");
 
     auto container = std::make_shared<CustomizedAiThetaContainer>(reader);
     ANN_CHECK_OK(container->init(params), "container init failed");
@@ -78,6 +99,7 @@ bool AiThetaFactoryWrapper::CreateStreamer(const AithetaIndexConfig& config,
 {
     string streamerName = config.realtimeConfig.streamerName;
     bool isColdStart = true;
+    bool hasMultiIndex = false;
     if (resource != nullptr) {
         std::string builderName = resource->normalIndexMeta.builderName;
         if (streamerName == QGRAPH_STREAMER && builderName == QGRAPH_BUILDER) {
@@ -85,17 +107,22 @@ bool AiThetaFactoryWrapper::CreateStreamer(const AithetaIndexConfig& config,
         } else if (streamerName == QC_STREAMER && builderName == QC_BUILDER) {
             isColdStart = false;
         }
+        // 多类目索引中indexId肯定不是kDefaultIndexId
+        hasMultiIndex = resource->indexId != kDefaultIndexId;
     }
-    // HNSW_STREAMER也支持冷启动
-    if (isColdStart && (streamerName != HNSW_STREAMER)) {
+
+    if (isColdStart && (streamerName != HNSW_STREAMER || streamerName != OSWG_STREAMER)) {
         AUTIL_LOG(INFO, "update streamer from %s to %s", streamerName.c_str(), OSWG_STREAMER.c_str());
         streamerName = OSWG_STREAMER;
     }
 
-    auto initializer = ParamsInitializerFactory::Create(streamerName, 0);
+    auto initializer = ParamsInitializerFactory::Create(streamerName);
     ANN_CHECK(initializer, "create parameter initializer failed");
     AiThetaParams params;
-    ANN_CHECK(initializer->InitRealtimeParams(config, params), "init failed");
+    ANN_CHECK(initializer->InitRealtimeBuildParams(config, params, hasMultiIndex), "init failed");
+    AiThetaParams searchParams;
+    ANN_CHECK(initializer->InitRealtimeSearchParams(config, searchParams), "init failed");
+    params.merge(searchParams);
 
     streamer = AiThetaFactory::CreateStreamer(streamerName);
     ANN_CHECK(streamer != nullptr, "create streamer %s failed", streamerName.c_str());

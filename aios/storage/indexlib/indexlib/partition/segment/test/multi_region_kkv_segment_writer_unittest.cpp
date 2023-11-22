@@ -1,7 +1,7 @@
 #include "indexlib/partition/segment/test/multi_region_kkv_segment_writer_unittest.h"
 
+#include "indexlib/config/test/region_schema_maker.h"
 #include "indexlib/framework/SegmentMetrics.h"
-#include "indexlib/test/region_schema_maker.h"
 #include "indexlib/util/memory_control/QuotaControl.h"
 
 using namespace std;

@@ -17,7 +17,8 @@
 
 namespace indexlibv2::index::ann {
 
-class AithetaAuxSearchInfoBase {
+class AithetaAuxSearchInfoBase
+{
 public:
     AithetaAuxSearchInfoBase() = default;
     virtual ~AithetaAuxSearchInfoBase() = default;

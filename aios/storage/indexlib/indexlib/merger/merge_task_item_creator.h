@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_TASK_ITEM_CREATOR_H
-#define __INDEXLIB_MERGE_TASK_ITEM_CREATOR_H
+#pragma once
 
 #include <functional>
-#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "autil/legacy/any.h"
-#include "indexlib/common_define.h"
+#include "indexlib/config/attribute_schema.h"
 #include "indexlib/config/merge_config.h"
+#include "indexlib/config/schema_modify_operation.h"
+#include "indexlib/config/summary_schema.h"
 #include "indexlib/index_base/index_meta/output_segment_merge_info.h"
 #include "indexlib/index_base/index_meta/parallel_merge_item.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/merger/index_merge_meta.h"
+#include "indexlib/merger/merge_task_item.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
-DECLARE_REFERENCE_CLASS(merger, MergeMeta);
-DECLARE_REFERENCE_CLASS(merger, MergePlan);
-DECLARE_REFERENCE_CLASS(merger, MergeTaskItem);
 DECLARE_REFERENCE_CLASS(merger, SegmentDirectory);
-DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
-DECLARE_REFERENCE_CLASS(config, AttributeSchema);
-DECLARE_REFERENCE_CLASS(config, SummarySchema);
-DECLARE_REFERENCE_CLASS(config, IndexSchema);
-DECLARE_REFERENCE_CLASS(config, IndexConfig);
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 DECLARE_REFERENCE_CLASS(index_base, SegmentData);
-DECLARE_REFERENCE_CLASS(index_base, MergeTaskResourceManager);
 DECLARE_REFERENCE_CLASS(index, SummaryMerger);
 DECLARE_REFERENCE_CLASS(index, AttributeMerger);
 DECLARE_REFERENCE_CLASS(index, IndexMerger);
@@ -152,5 +149,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeTaskItemCreator);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_TASK_ITEM_CREATOR_H

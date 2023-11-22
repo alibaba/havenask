@@ -29,7 +29,7 @@ public:
 public:
     std::shared_ptr<indexlibv2::index::IDiskIndexer>
     CreateDiskIndexer(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-                      const indexlibv2::index::IndexerParameter& indexerParam) const override;
+                      const indexlibv2::index::DiskIndexerParameter& indexerParam) const override;
     std::unique_ptr<indexlibv2::index::IIndexMerger>
     CreateIndexMerger(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig) const override;
 

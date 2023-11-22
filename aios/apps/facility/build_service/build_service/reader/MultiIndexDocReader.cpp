@@ -51,7 +51,7 @@ bool MultiIndexDocReader::init(const ReaderInitParam& params)
     }
 
     string versionStr = getValueFromKeyValueMap(params.kvMap, READ_INDEX_VERSION);
-    versionid_t versionId = INVALID_VERSION;
+    versionid_t versionId = indexlib::INVALID_VERSIONID;
     if (versionStr.empty() || !StringUtil::fromString(versionStr, versionId) || versionId < 0) {
         BS_LOG(ERROR, "index reader's version[%s] is invalid", versionStr.c_str());
         return false;

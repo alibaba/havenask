@@ -82,7 +82,7 @@ inline void NormalInDocPositionIterator::SeekSectionMeta()
             static_cast<const SectionAttributeReaderImpl*>(_state.GetSectionReader());
         assert(sectionReader);
         if (0 > sectionReader->Read(_state.GetDocId(), _sectionMetaBuf, sizeof(_sectionMetaBuf))) {
-            INDEXLIB_FATAL_ERROR(IndexCollapsed, "Read section attribute FAILED, docId: [%d]", _state.GetDocId());
+            INDEXLIB_FATAL_ERROR(IndexCollapsed, "Read section attribute FAILED, docId: [%ld]", _state.GetDocId());
         }
 
         _sectionMeta->Init(_sectionMetaBuf, sectionReader->HasFieldId(), sectionReader->HasSectionWeight());

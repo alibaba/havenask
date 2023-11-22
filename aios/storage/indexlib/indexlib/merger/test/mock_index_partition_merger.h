@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCK_INDEX_PARTITION_MERGER_H
-#define __INDEXLIB_MOCK_INDEX_PARTITION_MERGER_H
+#pragma once
 
 #include <memory>
 
@@ -34,5 +33,3 @@ private:
 
 DEFINE_SHARED_PTR(MockIndexPartitionMerger);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MOCK_INDEX_PARTITION_MERGER_H

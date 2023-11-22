@@ -1,5 +1,7 @@
-#ifndef ISEARCH_BS_PROTOTESTHELPER_H
-#define ISEARCH_BS_PROTOTESTHELPER_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/proto/Heartbeat.pb.h"
@@ -28,5 +30,3 @@ private:
 BS_TYPEDEF_PTR(ProtoTestHelper);
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_PROTOTESTHELPER_H

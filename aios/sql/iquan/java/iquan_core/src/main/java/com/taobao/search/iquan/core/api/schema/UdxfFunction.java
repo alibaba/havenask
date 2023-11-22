@@ -1,15 +1,16 @@
 package com.taobao.search.iquan.core.api.schema;
 
-import com.taobao.search.iquan.client.common.json.function.JsonUdxfFunction;
-import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
-import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.taobao.search.iquan.client.common.json.function.JsonUdxfFunction;
+import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
+import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import com.taobao.search.iquan.core.catalog.FullPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UdxfFunction extends Function {
     private static final Logger logger = LoggerFactory.getLogger(UdxfFunction.class);
@@ -17,23 +18,23 @@ public class UdxfFunction extends Function {
     private final List<UdxfSignature> signatureList;
     private final JsonUdxfFunction jsonUdxfFunction;
 
-    public UdxfFunction(long version, String name, FunctionType type, List<UdxfSignature> signatureList) {
-        this(version, name, type, signatureList, new JsonUdxfFunction());
+    public UdxfFunction(long version, FullPath fullPath, FunctionType type, List<UdxfSignature> signatureList) {
+        this(version, fullPath, type, signatureList, new JsonUdxfFunction());
     }
 
-    public UdxfFunction(long version, String name, FunctionType type, List<UdxfSignature> signatureList, JsonUdxfFunction jsonUdxfFunction) {
-        super(version, name, type);
+    public UdxfFunction(long version, FullPath fullPath, FunctionType type, List<UdxfSignature> signatureList, JsonUdxfFunction jsonUdxfFunction) {
+        super(version, fullPath, type);
         this.signatureList = signatureList;
         this.jsonUdxfFunction = jsonUdxfFunction;
     }
 
-    public UdxfFunction(long version, String name, FunctionType type, boolean isDeterministic, List<UdxfSignature> signatureList) {
-        this(version, name, type, isDeterministic, signatureList, new JsonUdxfFunction());
+    public UdxfFunction(long version, FullPath fullPath, FunctionType type, boolean isDeterministic, List<UdxfSignature> signatureList) {
+        this(version, fullPath, type, isDeterministic, signatureList, new JsonUdxfFunction());
     }
 
-    public UdxfFunction(long version, String name, FunctionType type, boolean isDeterministic,
+    public UdxfFunction(long version, FullPath fullPath, FunctionType type, boolean isDeterministic,
                         List<UdxfSignature> signatureList, JsonUdxfFunction jsonUdxfFunction) {
-        super(version, name, type, isDeterministic);
+        super(version, fullPath, type, isDeterministic);
         this.signatureList = signatureList;
         this.jsonUdxfFunction = jsonUdxfFunction;
     }

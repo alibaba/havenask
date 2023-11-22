@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_MERGE_PLAN_H
-#define __INDEXLIB_TABLE_MERGE_PLAN_H
+#pragma once
 
-#include <memory>
+#include <map>
 
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace table {
 
@@ -48,5 +49,3 @@ private:
 
 DEFINE_SHARED_PTR(TableMergePlan);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_MERGE_PLAN_H

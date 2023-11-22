@@ -1,4 +1,5 @@
 package(default_visibility=['//aios/sql:__subpackages__'])
+load('@flatbuffers//:build_defs.bzl', 'flatbuffer_library_public')
 cc_library(
     name='sql_framework',
     include_prefix='sql/framework',
@@ -75,7 +76,27 @@ cc_test(
     ],
     copts=['-fno-access-control'],
     deps=[
-        ':sql_result_util', '//aios/autil/autil/legacy/test:json_testlib',
-        '//aios/table/table/test:table_testlib', '//aios/unittest_framework'
+        ':fake_fbs_headers', ':sql_result_util',
+        '//aios/autil/autil/legacy/test:json_testlib',
+        '//aios/ha3:ha3_fbs_headers', '//aios/table/test:table_testlib',
+        '//aios/unittest_framework'
     ]
+)
+flatbuffer_library_public(
+    name='fake_fbs',
+    srcs=['test/FakeSqlResult.fbs'],
+    outs=['test/FakeSqlResult_generated.h'],
+    include_paths=['aios/ha3/ha3/proto'],
+    includes=['//aios/ha3:ha3_fbs_includes'],
+    language_flag='--include-prefix ha3/proto -c',
+    out_prefix='test'
+)
+cc_library(
+    name='fake_fbs_headers',
+    testonly=True,
+    hdrs=[':fake_fbs'],
+    include_prefix='sql/framework/test',
+    strip_include_prefix='test',
+    visibility=['//visibility:public'],
+    deps=['@flatbuffers']
 )

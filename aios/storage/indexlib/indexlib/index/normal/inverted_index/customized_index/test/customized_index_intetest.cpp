@@ -4,6 +4,7 @@
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/config/customized_index_config.h"
 #include "indexlib/config/module_info.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/normal/inverted_index/customized_index/customized_index_merger.h"
@@ -29,7 +30,6 @@
 #include "indexlib/plugin/Module.h"
 #include "indexlib/plugin/index_plugin_loader.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/memory_control/BuildResourceMetrics.h"
@@ -68,7 +68,8 @@ void CustomizedIndexInteTest::CaseSetUp()
     string pluginRoot = GET_PRIVATE_TEST_DATA_PATH() + "demo_indexer_plugins";
     mPluginManager.reset(new PluginManager(pluginRoot));
     mCounterMap.reset(new CounterMap());
-    PluginResourcePtr resource(new IndexPluginResource(mSchema, mOptions, mCounterMap, PartitionMeta(), pluginRoot));
+    PluginResourcePtr resource(
+        new IndexPluginResource(mSchema, mOptions, mCounterMap, PartitionMeta(), pluginRoot, nullptr));
     mPluginManager->SetPluginResource(resource);
     ModuleInfo moduleInfo;
     moduleInfo.moduleName = "demo_indexer";
@@ -89,7 +90,7 @@ void CustomizedIndexInteTest::TestSimpleProcess()
     ASSERT_TRUE(factory);
     CounterMapPtr counterMap(new CounterMap());
     IndexerResourcePtr resource(new IndexerResource(mSchema, mOptions, counterMap, PartitionMeta(), "customized_index",
-                                                    GET_PRIVATE_TEST_DATA_PATH() + "demo_indexer_plugins"));
+                                                    GET_PRIVATE_TEST_DATA_PATH() + "demo_indexer_plugins", nullptr));
     KeyValueMap parameters;
     IndexerPtr indexer(factory->createIndexer(parameters));
     indexer->Init(resource);
@@ -155,7 +156,7 @@ void CustomizedIndexInteTest::TestIndexRetrieverAsync()
     ASSERT_TRUE(factory);
     CounterMapPtr counterMap(new CounterMap());
     IndexerResourcePtr resource(new IndexerResource(mSchema, mOptions, counterMap, PartitionMeta(), "customized_index",
-                                                    GET_PRIVATE_TEST_DATA_PATH() + "demo_indexer_plugins"));
+                                                    GET_PRIVATE_TEST_DATA_PATH() + "demo_indexer_plugins", nullptr));
     KeyValueMap parameters;
     IndexerPtr indexer(factory->createIndexer(parameters));
     indexer->Init(resource);
@@ -270,7 +271,7 @@ void CustomizedIndexInteTest::TestMultiFieldBuild()
     RESET_FILE_SYSTEM("ut", false, fsOptions);
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     Version version;
-    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
     merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
     segDir->Init(false, true);
     mOptions.SetIsOnline(false);
@@ -471,7 +472,7 @@ void CustomizedIndexInteTest::TestEstimateMergeMemUse()
     }
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     Version version;
-    VersionLoader::GetVersion(mPartitionDirectory, version, INVALID_VERSION);
+    VersionLoader::GetVersion(mPartitionDirectory, version, INVALID_VERSIONID);
     merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(mPartitionDirectory, version));
     segDir->Init(false, true);
 
@@ -534,12 +535,12 @@ void CustomizedIndexInteTest::TestEstimateReopenMemUse()
     rootDir->Sync(true);
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     Version lastLoadedVersion;
-    VersionLoader::GetVersion(mPartitionDirectory, lastLoadedVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(mPartitionDirectory, lastLoadedVersion, INVALID_VERSIONID);
     ASSERT_TRUE(psm.Transfer(BUILD_INC_NO_MERGE, incDoc2, "", ""));
     rootDir->Sync(true);
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     Version newVersion;
-    VersionLoader::GetVersion(mPartitionDirectory, newVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(mPartitionDirectory, newVersion, INVALID_VERSIONID);
 
     PartitionResourceCalculator calculator(options.GetOnlineConfig());
     calculator.Init(rootDir, PartitionWriterPtr(), InMemorySegmentContainerPtr(), mPluginManager);
@@ -606,8 +607,8 @@ void CustomizedIndexInteTest::TestAddNewCustomIndexWithCustomIndexExist()
     INDEXLIB_TEST_TRUE(psm.Init(schema, options, rootDir));
     ASSERT_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDoc, "pk:pk0", "docid=0"));
 
-    PartitionResourceProviderPtr resourceProvider =
-        PartitionResourceProviderFactory::GetInstance()->CreateProvider(rootDir, options, pluginRoot, INVALID_VERSION);
+    PartitionResourceProviderPtr resourceProvider = PartitionResourceProviderFactory::GetInstance()->CreateProvider(
+        rootDir, options, pluginRoot, INVALID_VERSIONID);
     ASSERT_TRUE(resourceProvider);
     IndexPartitionSchemaPtr newSchema = PrepareCustomIndexSchema("pk:string;cfield1:raw;cfield2:raw",
                                                                  "pk:primarykey64:pk;"
@@ -655,8 +656,8 @@ void CustomizedIndexInteTest::TestPartitionResourceProviderSupportCustomIndex()
     ASSERT_TRUE(psm.Transfer(BUILD_FULL_NO_MERGE, fullDoc, "pk:pk0", "docid=0"));
 
     // test add custom index
-    PartitionResourceProviderPtr resourceProvider =
-        PartitionResourceProviderFactory::GetInstance()->CreateProvider(rootDir, options, pluginRoot, INVALID_VERSION);
+    PartitionResourceProviderPtr resourceProvider = PartitionResourceProviderFactory::GetInstance()->CreateProvider(
+        rootDir, options, pluginRoot, INVALID_VERSIONID);
     ASSERT_TRUE(resourceProvider);
     IndexPartitionSchemaPtr newSchema = PrepareCustomIndexSchema("pk:string;cfield1:raw;cfield2:raw",
                                                                  "pk:primarykey64:pk;"
@@ -704,7 +705,7 @@ void CustomizedIndexInteTest::TestPartitionResourceProviderSupportCustomIndex()
     // test drop custom index
     schema->SetSchemaVersionId(2);
     resourceProvider =
-        PartitionResourceProviderFactory::GetInstance()->CreateProvider(rootDir, options, "", INVALID_VERSION);
+        PartitionResourceProviderFactory::GetInstance()->CreateProvider(rootDir, options, "", INVALID_VERSIONID);
     patchDir = PathUtil::JoinPath(resourceProvider->GetPartition()->GetRootDirectory()->GetOutputPath(),
                                   PartitionPatchIndexAccessor::GetPatchRootDirName(2));
     FslibWrapper::MkDirE(patchDir, true, true);

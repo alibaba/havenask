@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_DOC_TIMESTAMP_DECIDER_H
-#define __INDEXLIB_KV_DOC_TIMESTAMP_DECIDER_H
+#pragma once
 
 #include <memory>
 
@@ -45,5 +44,3 @@ private:
 
 DEFINE_SHARED_PTR(KvDocTimestampDecider);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_DOC_TIMESTAMP_DECIDER_H

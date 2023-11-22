@@ -46,6 +46,7 @@ public:
     indexlib::index::PartitionInfoHint GetPartitionInfoHint() const;
     std::shared_ptr<indexlib::index_base::PartitionMeta> GetPartitionMeta() const;
     size_t GetTotalDocCount() const;
+    size_t GetDelDocCount() const;
     size_t GetSegmentCount() const;
     globalid_t GetGlobalId(docid_t docId) const;
     docid_t GetDocId(const indexlib::index::PartitionInfoHint &infoHint, globalid_t gid) const;
@@ -125,6 +126,14 @@ inline size_t PartitionInfoWrapper::GetTotalDocCount() const {
     }
     assert(_partitionInfoPtr);
     return _partitionInfoPtr->GetTotalDocCount();
+}
+
+inline size_t PartitionInfoWrapper::GetDelDocCount() const {
+    if (_normalTabletInfoPtr) {
+        return _normalTabletInfoPtr->GetDelDocCount();
+    }
+    assert(_partitionInfoPtr);
+    return _partitionInfoPtr->GetDelDocCount();
 }
 
 inline size_t PartitionInfoWrapper::GetSegmentCount() const {

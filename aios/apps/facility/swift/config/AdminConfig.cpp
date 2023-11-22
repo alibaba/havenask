@@ -109,6 +109,7 @@ string AdminConfig::getApplicationId() const { return userName + "_" + serviceNa
 string AdminConfig::getUserName() const { return userName; }
 string AdminConfig::getServiceName() const { return serviceName; }
 string AdminConfig::getHippoRoot() const { return hippoRoot; }
+string AdminConfig::getGatewayRoot() const { return gatewayRoot; }
 string AdminConfig::getZkRoot() const { return zkRoot; }
 uint16_t AdminConfig::getAmonitorPort() const { return amonitorPort; }
 uint32_t AdminConfig::getBrokerCount() const { return brokerCount; }
@@ -151,6 +152,7 @@ int64_t AdminConfig::getSyncTopicInfoInterval() { return syncTopicInfoInterval; 
 int64_t AdminConfig::getSyncHeartbeatInterval() { return syncHeartbeatInterval; }
 int64_t AdminConfig::getAdjustResourceDuration() { return adjustResourceDuration; }
 const map<string, uint32_t> &AdminConfig::getGroupBrokerCountMap() { return groupBrokerCountMap; }
+const map<string, uint32_t> &AdminConfig::getGroupNetPriorityMap() const { return groupNetPriorityMap; }
 BrokerExclusiveLevel AdminConfig::getExclusiveLevel() const {
     if (exclusiveLevel >= BROKER_EL_UNKNOWN) {
         return BROKER_EL_ALL;
@@ -254,6 +256,7 @@ AdminConfig *AdminConfig::loadConfig(const string &configPath) {
     GET_ADMIN_CONFIG_VALUE(string, USER_NAME, userName, true, SECTION_COMMON);
     GET_ADMIN_CONFIG_VALUE(string, SERVICE_NAME, serviceName, true, SECTION_COMMON);
     GET_ADMIN_CONFIG_VALUE(string, HIPPO_ROOT_PATH, hippoRoot, true, SECTION_COMMON);
+    GET_ADMIN_CONFIG_VALUE(string, GATEWAY_ROOT_PATH, gatewayRoot, false, SECTION_COMMON);
     GET_ADMIN_CONFIG_VALUE(string, ZOOKEEPER_ROOT_PATH, zkRoot, true, SECTION_COMMON);
     GET_ADMIN_CONFIG_VALUE(uint32_t, BROKER_COUNT, brokerCount, true, SECTION_COMMON);
     GET_ADMIN_CONFIG_VALUE(uint32_t, ADMIN_COUNT, adminCount, true, SECTION_COMMON);
@@ -355,6 +358,23 @@ AdminConfig *AdminConfig::loadConfig(const string &configPath) {
                 adminConfig->groupBrokerCountMap[infoVec[0]] = count;
                 adminConfig->veticalGroupBrokerCountMap[infoVec[0]] = count;
             }
+        }
+    }
+    string groupNetInfo;
+    if (reader.getOption(SECTION_COMMON, GROUP_NET_PRIORITY, groupNetInfo)) {
+        const vector<string> &groupNetVec = StringUtil::split(groupNetInfo, ";");
+        for (const auto &netInfo : groupNetVec) {
+            vector<string> infoVec = StringUtil::split(netInfo, ":");
+            if (infoVec.size() != 2) {
+                AUTIL_LOG(WARN, "parse group net priority failed [%s].", netInfo.c_str());
+                continue;
+            }
+            uint32_t value;
+            if (!StringUtil::fromString<uint32_t>(infoVec[1], value)) {
+                AUTIL_LOG(WARN, "parse group net priority failed [%s].", infoVec[1].c_str());
+                continue;
+            }
+            adminConfig->groupNetPriorityMap[std::move(infoVec[0])] = value;
         }
     }
     string groupTopicInfo;
@@ -518,6 +538,10 @@ std::string AdminConfig::getConfigStr() {
     }
     oss << "] veticalGroupBrokerCountMap:[";
     for (auto &item : veticalGroupBrokerCountMap) {
+        oss << item.first << ":" << item.second << " ";
+    }
+    oss << "] groupNetPriorityMap:[";
+    for (auto &item : groupNetPriorityMap) {
         oss << item.first << ":" << item.second << " ";
     }
     oss << "] adjustResourceDuration:" << adjustResourceDuration << " exclusiveLevel:" << exclusiveLevel

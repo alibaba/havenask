@@ -15,7 +15,14 @@
  */
 #include "build_service/admin/FatalErrorMetricReporter.h"
 
+#include <cstddef>
+#include <string>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "build_service/util/Monitor.h"
+#include "kmonitor/client/MetricLevel.h"
 
 using namespace std;
 using namespace autil;

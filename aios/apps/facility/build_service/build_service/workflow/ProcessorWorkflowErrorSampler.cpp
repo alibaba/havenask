@@ -15,6 +15,12 @@
  */
 #include "build_service/workflow/ProcessorWorkflowErrorSampler.h"
 
+#include <algorithm>
+#include <cstddef>
+
+#include "alog/Logger.h"
+#include "build_service/workflow/Workflow.h"
+
 using namespace std;
 
 namespace build_service { namespace workflow {

@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_FILEDOCUMENTREADERTESTBASE_H
-#define ISEARCH_BS_FILEDOCUMENTREADERTESTBASE_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/test/unittest.h"
@@ -43,5 +42,3 @@ protected:
 };
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_FILEDOCUMENTREADERTESTBASE_H

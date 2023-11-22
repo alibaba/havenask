@@ -27,10 +27,8 @@ class Ha3FunctionModel;
 
 class Ha3FunctionModelConverter {
 public:
-    static iquan::Status convert(iquan::FunctionModels &functionModels);
+    static iquan::Status convert(std::vector<iquan::FunctionModel> &functionModels);
     static iquan::Status convert(iquan::FunctionModel &functionModel);
-    static iquan::Status convert(const Ha3FunctionModel &ha3FunctionModel,
-                                 iquan::FunctionModels &functionModels);
 };
 
 } // namespace sql

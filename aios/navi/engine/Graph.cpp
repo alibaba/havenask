@@ -22,10 +22,10 @@
 #include "navi/engine/GraphDomainUser.h"
 #include "navi/engine/LocalSubGraph.h"
 #include "navi/engine/RemoteSubGraphBase.h"
+#include "navi/engine/Node.h"
 #include "navi/log/TraceAppender.h"
 #include "navi/resource/TimeoutCheckerR.h"
 #include "navi/resource/QuerySessionR.h"
-#include "navi/resource/NaviResultR.h"
 
 #include "navi/ops/ResourceKernelDef.h"
 #include "navi/util/CommonUtil.h"
@@ -38,7 +38,7 @@ class TimeoutItem : public NaviNoDropWorkerItem
 {
 public:
     TimeoutItem(NaviWorkerBase *worker, Graph *graph)
-        : NaviNoDropWorkerItem(worker)
+        : NaviNoDropWorkerItem(worker, false)
         , _graph(graph)
     {
     }
@@ -56,10 +56,12 @@ Graph::Graph(GraphParam *param, Graph *parent)
     , _param(param)
     , _graphDomainMap(new GraphDomainMap())
     , _parent(parent)
+    , _forkNode(nullptr)
     , _errorAsEof(false)
     , _terminated(false)
     , _timer(nullptr)
 {
+    _metricCollected = false;
 }
 
 Graph::~Graph() {
@@ -74,9 +76,13 @@ ErrorCode Graph::init(GraphDef *graphDef) {
     autil::ScopedLock lock(_terminateLock);
     NaviLoggerScope scope(_logger);
     auto ec = initGraphDef(graphDef);
+    if (_param->runParams.needCollect()) {
+        _param->graphResult->setGraphDef(graphDef);
+    }
     if (EC_NONE != ec) {
         return ec;
     }
+    initTimeoutChecker();
     if (!preInitGraphDomains(graphDef)) {
         return EC_INIT_GRAPH;
     }
@@ -94,8 +100,7 @@ ErrorCode Graph::init(GraphDef *graphDef) {
              "after init graph def [%s], graph border [%s]",
              graphDef->DebugString().c_str(),
              autil::StringUtil::toString(*_border).c_str());
-
-    return initNaviResult();
+    return initNaviUserResult();
 }
 
 ErrorCode Graph::initGraphDef(GraphDef *graphDef) {
@@ -234,6 +239,7 @@ bool Graph::preInitGraphDomains(GraphDef *graphDef) {
     }
     for (const auto &domain : _domainSet) {
         if (!domain->preInit()) {
+            domain->notifyFinish(EC_INIT_GRAPH, true);
             NAVI_LOG(ERROR, "domain preInit failed");
             return false;
         }
@@ -303,6 +309,10 @@ ErrorCode Graph::createSubGraphs(GraphDef *graphDef) {
     for (int32_t i = 0; i < subCount; i++) {
         auto subGraphDef = graphDef->mutable_sub_graphs(i);
         auto domain = getGraphDomain(subGraphDef->graph_id());
+        if (!domain) {
+            NAVI_LOG(ERROR, "get graph [%d] domain failed", subGraphDef->graph_id());
+            return EC_UNKNOWN;
+        }
         auto subGraph = createSubGraph(subGraphDef, domain);
         if (!subGraph) {
             NAVI_LOG(ERROR, "create graph failed");
@@ -345,7 +355,7 @@ SubGraphBase *Graph::createSubGraph(SubGraphDef *subGraphDef,
 }
 
 bool Graph::validateInputResource(const BizPtr &biz) const {
-    if (_param->worker->getTestMode() != TM_NOT_TEST) {
+    if (_param->worker->getTestMode() != TM_NONE) {
         return true;
     }
     bool ret = true;
@@ -398,11 +408,18 @@ bool Graph::tryInitThisPartIdFromPartIds(SubGraphDef *subGraphDef,
     }
     isLocalGraph = isLocal(*location);
     if (isLocalGraph) {
+        if (INVALID_NAVI_PART_COUNT == partInfo->part_count()) {
+            auto biz = getBiz(*subGraphDef);
+            if (!biz) {
+                return false;
+            }
+            partInfo->set_part_count(biz->getPartCount());
+        }
         _localBizName = location->biz_name();
         _localPartId = location->this_part_id();
     }
     initThisPartId(subGraphDef);
-    partCount = location->part_info().part_count();
+    partCount = partInfo->part_count();
     partId = location->this_part_id();
     return true;
 }
@@ -432,7 +449,7 @@ bool Graph::initBorder() {
     return true;
 }
 
-ErrorCode Graph::initNaviResult() {
+ErrorCode Graph::initNaviUserResult() {
     if (getGraphDomain(PARENT_GRAPH_ID)) {
         return EC_NONE;
     }
@@ -503,7 +520,7 @@ void Graph::notifyTimeout() {
     } else {
         NAVI_LOG(ERROR, "session timeout");
     }
-    notifyFinish(EC_TIMEOUT);
+    notifyFinishEc(EC_TIMEOUT);
 }
 
 void Graph::timeoutCallback(void *data, bool isTimeout) {
@@ -517,21 +534,25 @@ void Graph::timeoutCallback(void *data, bool isTimeout) {
     }
 }
 
-bool Graph::initTimer() {
-    autil::ScopedLock lock(_timerLock);
-    auto worker = _param->worker;
+void Graph::initTimeoutChecker() {
     auto timeoutMs = _param->runParams.getTimeoutMs();
     if (timeoutMs >= DEFAULT_TIMEOUT_MS) {
         NAVI_KERNEL_LOG(SCHEDULE1, "timeoutMs[%ld] not set or too large, skip add timer", timeoutMs);
-        return true;
+        return;
     }
     _timeoutChecker.setTimeoutMs(timeoutMs);
     NAVI_KERNEL_LOG(SCHEDULE1, "set timeout checker with timeout [%ld]ms", timeoutMs);
+}
+
+bool Graph::initTimer() {
+    auto worker = _param->worker;
     auto evTimer = worker->getEvTimer();
     if (!evTimer) {
         NAVI_KERNEL_LOG(ERROR, "get evTimer from worker failed");
         return false;
     }
+    auto timeoutMs = getRemainTimeMs();
+    autil::ScopedLock lock(_timerLock);
     worker->incItemCount();
     NAVI_KERNEL_LOG(SCHEDULE1, "add timer with timeout [%ld]ms", timeoutMs);
     _timer = evTimer->addTimer(timeoutMs / 1000.0f, timeoutCallback, this);
@@ -543,8 +564,14 @@ bool Graph::isTimeout() const { return _timeoutChecker.timeout(); }
 int64_t Graph::getRemainTimeMs() const { return _timeoutChecker.remainTime(); }
 
 bool Graph::updateTimeoutMs(int64_t timeoutMs) {
-    autil::ScopedLock lock(_timerLock);
+    auto worker = _param->worker;
+    auto evTimer = worker->getEvTimer();
+    if (!evTimer) {
+        NAVI_KERNEL_LOG(ERROR, "get evTimer from worker failed");
+        return false;
+    }
     auto remainTimeMs = getRemainTimeMs();
+    autil::ScopedLock lock(_timerLock);
     if (timeoutMs > remainTimeMs) {
         NAVI_KERNEL_LOG(
             DEBUG, "not allow update a larger timeout value[%ld ms], remain time[%ld ms]", timeoutMs, remainTimeMs);
@@ -552,12 +579,6 @@ bool Graph::updateTimeoutMs(int64_t timeoutMs) {
     }
     _param->runParams.setTimeoutMs(timeoutMs);
     _timeoutChecker.setTimeoutMs(timeoutMs);
-    auto worker = _param->worker;
-    auto evTimer = worker->getEvTimer();
-    if (!evTimer) {
-        NAVI_KERNEL_LOG(ERROR, "get evTimer from worker failed");
-        return false;
-    }
     if (_timer) {
         evTimer->updateTimer(_timer, timeoutMs / 1000.0f);
     } else {
@@ -575,6 +596,7 @@ void Graph::stopTimer() {
         auto evTimer = _param->worker->getEvTimer();
         evTimer->stopTimer(_timer);
         _timer = nullptr;
+        NAVI_LOG(SCHEDULE1, "timer stopped");
     }
 }
 
@@ -582,16 +604,31 @@ void Graph::setGraphDomain(GraphId graphId, const GraphDomainPtr &domain) {
     _graphDomainMap->emplace(graphId, domain);
 }
 
-void Graph::notifyFinish(ErrorCode ec) {
-    notifyFinish(ec, GFT_THIS_FINISH);
+void Graph::setForkInfo(GraphId graphId, const GraphDomainPtr &domain,
+                        Node *forkNode, bool errorAsEof)
+{
+    setGraphDomain(graphId, domain);
+    _forkNode = forkNode;
+    _errorAsEof = errorAsEof;
 }
 
-void Graph::notifyFinish(ErrorCode ec, GraphFinishType type) {
+void Graph::notifyFinishEc(ErrorCode ec) {
+    NaviErrorPtr naviError;
+    if (EC_NONE != ec) {
+        naviError = _param->graphResult->makeError(_logger.logger, ec);
+    }
+    notifyFinish(naviError);
+}
+
+void Graph::notifyFinish(const NaviErrorPtr &naviError) {
+    notifyFinish(naviError, GFT_THIS_FINISH);
+}
+
+void Graph::notifyFinish(const NaviErrorPtr &error, GraphFinishType type) {
     NAVI_LOG(SCHEDULE1, "finish, parent [%p], ec [%s], type [%d]", _parent,
-             CommonUtil::getErrorString(ec), type);
-    bool terminateThis =
-        (EC_NONE != ec || GFT_THIS_FINISH == type || GFT_PARENT_FINISH == type);
-    if (terminateThis) {
+             CommonUtil::getErrorString(error ? error->ec : EC_NONE),
+             type);
+    {
         bool expect = false;
         if (!_terminated.compare_exchange_weak(expect, true)) {
             return;
@@ -600,28 +637,63 @@ void Graph::notifyFinish(ErrorCode ec, GraphFinishType type) {
         worker->incItemCount();
         stopTimer();
         {
+            const auto &graphResult = _param->graphResult;
+            graphResult->updateError(error);
+            auto naviError = graphResult->getError();
+            bool hasError = (nullptr != naviError);
             autil::ScopedLock lock(_terminateLock);
-            if (!_parent) {
-                worker->setFinish(ec);
+            if (!_parent && hasError) {
+                worker->setFinish();
             }
-            terminateAll(ec);
+            auto thisEc = EC_NONE;
+            if (GFT_THIS_FINISH == type && naviError) {
+                thisEc = naviError->ec;
+            }
+            collectMetric();
+            _param->graphResult->setFinish();
+            terminateAll(thisEc);
             if (_parent) {
-                auto terminateParent = (EC_NONE != ec);
-                auto notifyParent =
-                    terminateParent && GFT_PARENT_FINISH != type;
+                auto notifyParent = hasError && (GFT_PARENT_FINISH != type) && !_errorAsEof;
                 if (notifyParent) {
-                    if (!_errorAsEof) {
-                        NAVI_LOG(DEBUG, "notify parent, errorAsEof [%d]", _errorAsEof);
-                        _parent->notifyFinish(ec, GFT_THIS_FINISH);
+                    NAVI_LOG(DEBUG, "notify parent, errorAsEof [%d]",
+                             _errorAsEof);
+                    if (_forkNode) {
+                        _forkNode->notifyFinish(naviError);
+                    } else {
+                        _parent->notifyFinish(naviError, GFT_SUB_FINISH);
                     }
                 }
             }
             if (!_parent) {
-                worker->fillResult();
+                worker->notifyFinish();
             }
         }
         worker->decItemCount();
     }
+}
+
+void Graph::collectMetric() {
+    doCollectMetric();
+    for (auto subGraph : _subGraphs) {
+        subGraph->collectForkGraphMetric();
+    }
+}
+
+void Graph::doCollectMetric() {
+    autil::ScopedLock lock(_metricCollectLock);
+    if (_metricCollected) {
+        return;
+    }
+    _metricCollected = true;
+    auto graphMetric = getGraphMetric();
+    if (!_param->runParams.needCollect()) {
+        graphMetric->end();
+        return;
+    }
+    for (auto subGraph : _subGraphs) {
+        subGraph->collectMetric(graphMetric);
+    }
+    graphMetric->end();
 }
 
 void Graph::terminateAll(ErrorCode ec) {
@@ -679,9 +751,9 @@ bool Graph::fillInputResource(GraphId graphId, const ResourceMapPtr &resourceMap
         }
     }
     resourceMap->addResource(std::make_shared<TimeoutCheckerR>(&_timeoutChecker));
-    resourceMap->addResource(std::make_shared<QuerySessionR>(_param->querySession));
-    resourceMap->addResource(std::make_shared<NaviResultR>(_param->worker->getUserResult()->getNaviResult()));
-
+    if (_param->worker) {
+        resourceMap->addResource(std::make_shared<QuerySessionR>(_param->querySession));
+    }
     NAVI_LOG(SCHEDULE1, "input resource map [%s]",
              autil::StringUtil::toString(*resourceMap).c_str());
     return true;
@@ -726,10 +798,6 @@ GraphDomainFork *Graph::getForkDomain() const {
 BizPtr Graph::doGetBiz(const SubGraphDef &subGraphDef) {
     auto bizManager = _param->bizManager;
     return bizManager->getBiz(_param->logger.get(), getBizName(subGraphDef));
-}
-
-void Graph::setErrorAsEof(bool errorAsEof) {
-    _errorAsEof = errorAsEof;
 }
 
 void Graph::setSubResourceMap(const std::map<GraphId, ResourceMapPtr> &subResourceMaps) {

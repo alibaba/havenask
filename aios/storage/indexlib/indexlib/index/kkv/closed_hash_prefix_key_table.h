@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CLOSED_HASH_PREFIX_KEY_TABLE_H
-#define __INDEXLIB_CLOSED_HASH_PREFIX_KEY_TABLE_H
+#pragma once
 
 #include <memory>
 
@@ -442,5 +441,3 @@ bool ClosedHashPrefixKeyTable<ValueType, Type>::IsFull() const
     return 0;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_CLOSED_HASH_PREFIX_KEY_TABLE_H

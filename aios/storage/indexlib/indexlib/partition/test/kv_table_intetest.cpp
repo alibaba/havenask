@@ -5,8 +5,11 @@
 #include "autil/HashAlgorithm.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "indexlib/codegen/code_factory.h"
 #include "indexlib/common/field_format/attribute/var_num_attribute_formatter.h"
 #include "indexlib/config/impl/merge_config_impl.h"
+#include "indexlib/config/test/schema_maker.h"
+#include "indexlib/file_system/DeployIndexMeta.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/file_system/fslib/MultiPathDataFlushController.h"
@@ -28,7 +31,6 @@
 #include "indexlib/partition/partition_resource_calculator.h"
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/slow_dump_segment_container.h"
 #include "indexlib/util/PathUtil.h"
 #include "indexlib/util/TaskScheduler.h"
@@ -42,7 +44,6 @@ using namespace autil;
 using namespace indexlib::test;
 using namespace indexlib::index;
 using namespace indexlib::config;
-using namespace indexlib::file_system;
 using namespace indexlib::file_system;
 using namespace indexlib::util;
 using namespace indexlib::common;
@@ -729,7 +730,7 @@ void KVTableInteTest::TestMergeWithSeparateMode()
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     // merge
     Version version;
-    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_PARTITION_DIRECTORY(), version, INVALID_VERSIONID);
     merger::SegmentDirectoryPtr segDir(new merger::SegmentDirectory(GET_PARTITION_DIRECTORY(), version));
     segDir->Init(false, false);
     string mergeMetaDir = rootDir + "/merge_meta_dir";
@@ -986,7 +987,7 @@ void KVTableInteTest::testMergeMultiPartWithTTL()
 
     mOptions.SetIsOnline(false);
     MultiPartitionMerger multiPartMerger(mOptions, NULL, "", CommonBranchHinterOption::Test());
-    vector<DirectoryPtr> mergeSrcDirs = multiPartMerger.CreateMergeSrcDirs(mergeSrcs, INVALID_VERSION, nullptr);
+    vector<DirectoryPtr> mergeSrcDirs = multiPartMerger.CreateMergeSrcDirs(mergeSrcs, INVALID_VERSIONID, nullptr);
     auto partMerger = multiPartMerger.CreatePartitionMerger(mergeSrcDirs, mergePartPath);
     partMerger->Merge(true, 103);
 
@@ -2715,7 +2716,7 @@ void KVTableInteTest::TestMergeNoBottomWithNoDelete()
 void KVTableInteTest::CheckLevelInfo(const vector<LevelMetaInfo>& levelInfos)
 {
     Version version;
-    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSION);
+    VersionLoader::GetVersion(GET_CHECK_DIRECTORY(), version, INVALID_VERSIONID);
     indexlibv2::framework::LevelInfo info = version.GetLevelInfo();
 
     ASSERT_EQ(levelInfos.size(), info.GetLevelCount());
@@ -3342,7 +3343,8 @@ void KVTableInteTest::InnerTestLegacyFormat(const string& keyType, const string&
     rootDir->Store("segment_0_level_0/deploy_index", DeployIndexMeta().ToString());
 
     partition::OnlinePartitionPtr onlinePartition(new partition::OnlinePartition());
-    IndexPartition::OpenStatus rs = onlinePartition->Open(GET_TEMP_DATA_PATH(), "", schema, mOptions, INVALID_VERSION);
+    IndexPartition::OpenStatus rs =
+        onlinePartition->Open(GET_TEMP_DATA_PATH(), "", schema, mOptions, INVALID_VERSIONID);
     ASSERT_EQ(IndexPartition::OS_INDEXLIB_EXCEPTION, rs);
 }
 

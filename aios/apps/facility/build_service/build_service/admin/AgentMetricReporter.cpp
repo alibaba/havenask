@@ -15,8 +15,16 @@
  */
 #include "build_service/admin/AgentMetricReporter.h"
 
+#include <iosfwd>
+#include <map>
+#include <string>
+#include <type_traits>
+
 #include "autil/StringUtil.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Monitor.h"
+#include "kmonitor/client/MetricLevel.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 

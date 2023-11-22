@@ -61,10 +61,11 @@ TEST_F(QueueRawDocumentReaderTest, testReadDocStrSuccess) {
     kvMap[QueueRawDocumentReader::QUEUE_NAME] = "test1";
     QueueRawDocumentReader reader;
     EXPECT_TRUE(reader.initQueue(kvMap));
-    reader._docQueuePtr->Push("abc");
+    reader._docQueuePtr->Push({0, string("abc")});
     string docStr;
     DocInfo docInfo;
-    auto ec = reader.readDocStr(docStr, nullptr, docInfo);
+    Checkpoint checkpoint;
+    auto ec = reader.readDocStr(docStr, &checkpoint, docInfo);
     EXPECT_EQ(RawDocumentReader::ERROR_NONE, ec);
     EXPECT_EQ(string("abc"), docStr);
 }

@@ -21,6 +21,7 @@ strict_cc_fast_test(
     deps=[
         ':primary_key_reader_test_helper',
         '//aios/storage/indexlib/framework/mock:FakeDiskSegment',
+        '//aios/storage/indexlib/framework/mock:FakeMemSegment',
         '//aios/storage/indexlib/index:IndexFactoryCreator',
         '//aios/storage/indexlib/index/primary_key:PrimaryKeyIndexFactory',
         '//aios/storage/indexlib/index/primary_key:primary_key_indexer',
@@ -31,6 +32,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='PrimaryKeyIndexFactoryTest',
     srcs=['PrimaryKeyIndexFactoryTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         ':primary_key_reader_test_helper',
         '//aios/storage/indexlib/index:IndexFactoryCreator',
@@ -41,5 +43,6 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='PrimaryKeyIndexFileTest',
     srcs=['PrimaryKeyIndexFileTest.cpp'],
+    copts=['-fno-access-control'],
     deps=['//aios/storage/indexlib/file_system', '//aios/unittest_framework']
 )

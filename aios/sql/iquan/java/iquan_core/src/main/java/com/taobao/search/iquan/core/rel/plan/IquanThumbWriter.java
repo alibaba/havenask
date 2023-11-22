@@ -1,14 +1,14 @@
 package com.taobao.search.iquan.core.rel.plan;
 
-import com.taobao.search.iquan.core.common.ConstantDefine;
-import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
-import org.apache.calcite.plan.hep.HepRelVertex;
-import org.apache.calcite.rel.RelNode;
-
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.taobao.search.iquan.core.common.ConstantDefine;
+import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import org.apache.calcite.plan.hep.HepRelVertex;
+import org.apache.calcite.rel.RelNode;
 
 public class IquanThumbWriter {
     private final Map<RelNode, Integer> relIdMap = new IdentityHashMap<>();

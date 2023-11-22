@@ -15,6 +15,8 @@
  */
 #include "build_service/util/LogSetupGuard.h"
 
+#include <iosfwd>
+
 #include "build_service/util/Log.h"
 
 using namespace std;

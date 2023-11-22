@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGEEXCEPTIONUNITTESTTEST_H
-#define __INDEXLIB_MERGEEXCEPTIONUNITTESTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -78,5 +77,3 @@ INDEXLIB_UNIT_TEST_CASE(MergeExceptionUnittestTest, TestNormalTable);
 INDEXLIB_UNIT_TEST_CASE(MergeExceptionUnittestTest, TestKVTable);
 INDEXLIB_UNIT_TEST_CASE(MergeExceptionUnittestTest, TestNormalTableWithTruncate);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGEEXCEPTIONUNITTESTTEST_H

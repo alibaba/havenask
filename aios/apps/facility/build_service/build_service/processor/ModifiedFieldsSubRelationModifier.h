@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MODIFIEDFIELDSSUBRELATIONMODIFIER_H
-#define ISEARCH_BS_MODIFIEDFIELDSSUBRELATIONMODIFIER_H
+#pragma once
 
 #include "build_service/common_define.h"
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/processor/ModifiedFieldsModifier.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace processor {
 
@@ -44,5 +46,3 @@ private:
 BS_TYPEDEF_PTR(ModifiedFieldsSubRelationModifier);
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_MODIFIEDFIELDSSUBRELATIONMODIFIER_H

@@ -31,7 +31,7 @@ void BufferedByteSliceReader::Open(const BufferedByteSlice* bufferedByteSlice)
     _locationCursor = 0;
     _shortBufferCursor = 0;
 
-    _byteSliceReader.Open(const_cast<util::ByteSliceList*>(bufferedByteSlice->GetByteSliceList()));
+    _byteSliceReader.Open(const_cast<util::ByteSliceList*>(bufferedByteSlice->GetByteSliceList())).GetOrThrow();
     _bufferedByteSlice = bufferedByteSlice;
     _multiValue = bufferedByteSlice->GetMultiValue();
 }

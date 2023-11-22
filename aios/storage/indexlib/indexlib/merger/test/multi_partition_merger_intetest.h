@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIPARTITIONMERGERINTETEST_H
-#define __INDEXLIB_MULTIPARTITIONMERGERINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/multi_partition_merger.h"
@@ -102,5 +101,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(MultiPartitionMergerInteTest, TestMergeCounte
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(MultiPartitionMergerInteTest, TestMergeLocatorAndTimestamp);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(MultiPartitionMergerInteTest, TestMergeWithStopTimestamp);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MULTIPARTITIONMERGERINTETEST_H

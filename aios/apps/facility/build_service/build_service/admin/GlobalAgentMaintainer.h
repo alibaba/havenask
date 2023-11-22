@@ -15,16 +15,35 @@
  */
 #pragma once
 
+#include <limits>
+#include <map>
+#include <memory>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/AgentMetricReporter.h"
 #include "build_service/admin/AgentRoleInfo.h"
+#include "build_service/admin/AgentRolePlanMaker.h"
 #include "build_service/admin/SingleGlobalAgentGroup.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
+#include "build_service/util/SharedPtrGuard.h"
+#include "kmonitor_adapter/Metric.h"
+#include "kmonitor_adapter/Monitor.h"
+#include "master_framework/AppPlan.h"
+#include "master_framework/RolePlan.h"
 #include "worker_framework/ZkState.h"
 
 namespace build_service { namespace admin {
-
-class AgentSimpleMasterScheduler;
 
 class GlobalAgentMaintainer
 {

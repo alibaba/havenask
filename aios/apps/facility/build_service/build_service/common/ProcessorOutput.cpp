@@ -15,6 +15,11 @@
  */
 #include "build_service/common/ProcessorOutput.h"
 
+#include <iosfwd>
+#include <utility>
+
+#include "build_service/config/TaskInputConfig.h"
+
 using namespace std;
 
 namespace build_service { namespace common {

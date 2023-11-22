@@ -16,13 +16,15 @@
 #ifndef NAVI_NAVI_H
 #define NAVI_NAVI_H
 
+#include <unordered_set>
+
+#include "autil/LoopThread.h"
+#include "autil/ObjectTracer.h"
 #include "navi/config/NaviConfig.h"
 #include "navi/engine/NaviUserResult.h"
 #include "navi/engine/ResourceMap.h"
 #include "navi/engine/RunGraphParams.h"
 #include "navi/log/NaviLogger.h"
-#include "autil/LoopThread.h"
-#include <unordered_set>
 
 namespace multi_call {
 class GigRpcServer;
@@ -43,8 +45,9 @@ class NaviMessage;
 class NaviClosure;
 class NaviSnapshot;
 class NaviServerStreamCreator;
+class NaviHostInfo;
 
-class Navi
+class Navi : public autil::ObjectTracer<Navi, true>
 {
 public:
     Navi(const std::string &name = "");
@@ -80,6 +83,7 @@ public:
     NaviUserResultPtr runGraph(GraphDef *graphDef,
                                const RunGraphParams &params);
 private:
+    bool initHostInfo(const std::string &installRoot, multi_call::GigRpcServer *gigRpcServer);
     bool initMetricsReportThread();
     bool initMemoryPoolR();
     void initInstanceId();
@@ -99,6 +103,7 @@ private:
     std::string getNaviPythonPath();
     void reportMetricsLoop();
     void logSnapshotSummary() const;
+    void waitUntilNoQuery();
 public:
     // public for test
     bool update(const std::string &configLoader,
@@ -112,6 +117,7 @@ public:
     std::shared_ptr<ModuleManager> getModuleManager() const;
     InstanceId getInstanceId() const;
     void setTestMode(TestMode testMode);
+    void setWaitNoQuery(bool needWait);
     bool createResource(const std::string &bizName,
                         NaviPartId partCount,
                         NaviPartId partId,
@@ -124,6 +130,7 @@ private:
     DECLARE_LOGGER();
     std::string _name;
     std::string _initConfigPath;
+    std::shared_ptr<NaviHostInfo> _hostInfo;
     std::shared_ptr<kmonitor::MetricsReporter> _metricsReporter;
     multi_call::GigRpcServer *_gigRpcServer;
     std::shared_ptr<NaviServerStreamCreator> _streamCreator;
@@ -133,6 +140,7 @@ private:
     mutable autil::ReadWriteLock _snapshotLock;
     std::shared_ptr<NaviSnapshot> _snapshot;
     TestMode _testMode;
+    bool _waitNoQuery = true;
 };
 
 NAVI_TYPEDEF_PTR(Navi);

@@ -15,10 +15,21 @@
  */
 #include "build_service/admin/taskcontroller/MergeCrontabTask.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/ConfigReaderAccessor.h"
-#include "build_service/proto/DataDescriptions.h"
 #include "build_service/proto/ProtoUtil.h"
 
 using namespace std;

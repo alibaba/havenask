@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_FB_KV_RAW_DOCUMENT_PARSER_H
-#define __INDEXLIB_FB_KV_RAW_DOCUMENT_PARSER_H
+#pragma once
 
 #include <memory>
 
@@ -108,5 +107,3 @@ private:
 DEFINE_SHARED_PTR(FbKvRawDocumentParser);
 
 }} // namespace indexlib::document
-
-#endif

@@ -65,6 +65,7 @@ TEST_F(MessageCommitterTest, testWriteProtoMessages) {
     config.setDataRoot(GET_TEMPLATE_DATA_PATH());
     FileManager fileManager;
     ASSERT_EQ(ERROR_NONE, fileManager.init(config.getDataRoot(), ObsoleteFileCriterion()));
+    ASSERT_EQ(0, fileManager.getUsedDfsSize());
     MessageCommitter committer(pid, config, &fileManager, nullptr);
 
     Messages msgs;
@@ -74,6 +75,7 @@ TEST_F(MessageCommitterTest, testWriteProtoMessages) {
     ASSERT_EQ(ERROR_NONE, committer.closeFile());
     ASSERT_EQ(9, committer.getWritedId());
     ASSERT_EQ(9, committer.getCommittedId());
+    ASSERT_EQ(10 + 10 * FILE_MESSAGE_META_SIZE, fileManager.getUsedDfsSize());
 
     auto filePair = fileManager.getFilePairById(0);
     ASSERT_TRUE(filePair);

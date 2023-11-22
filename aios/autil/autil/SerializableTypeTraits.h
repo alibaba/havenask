@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "autil/LongHashValue.h"
-#include "autil/MultiValueType.h"
 #include "autil/Span.h"
 
 namespace autil {
@@ -80,7 +79,7 @@ struct HasDeserialize<T,
 template <typename T>
 static constexpr bool IsBuiltinSupportType =
     std::is_enum<T>::value || std::is_arithmetic<T>::value || std::is_same<std::string, T>::value ||
-    std::is_same<StringView, T>::value || std::is_same<uint128_t, T>::value || IsMultiType<T>::value;
+    std::is_same<StringView, T>::value || std::is_same<uint128_t, T>::value;
 
 template <typename T, typename = T>
 struct SupportSerialize : std::false_type {};

@@ -73,7 +73,7 @@ bool TokenizeHelper::processField(const std::shared_ptr<NormalExtendDocument>& d
         return true;
     }
 
-    const std::shared_ptr<RawDocument>& rawDocument = document->getRawDocument();
+    const std::shared_ptr<RawDocument>& rawDocument = document->GetRawDocument();
     const autil::StringView& fieldValue = rawDocument->getField(autil::StringView(fieldName));
     AUTIL_LOG(DEBUG, "fieldtype:[%d], fieldname:[%s], fieldvalue:[%s]", fieldType, fieldName.c_str(),
               string(fieldValue.data(), fieldValue.size()).c_str());
@@ -133,7 +133,7 @@ bool TokenizeHelper::process(const std::shared_ptr<NormalExtendDocument>& docume
             return false;
         }
         std::string lastFieldName = LAST_VALUE_PREFIX + fieldName;
-        const std::shared_ptr<RawDocument>& rawDocument = document->getRawDocument();
+        const std::shared_ptr<RawDocument>& rawDocument = document->GetRawDocument();
         if (!rawDocument->exist(lastFieldName)) {
             continue;
         }

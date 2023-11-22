@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMORYSEGMENTCREATORTEST_H
-#define __INDEXLIB_INMEMORYSEGMENTCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/segment/in_memory_segment_creator.h"
@@ -51,5 +50,3 @@ INDEXLIB_UNIT_TEST_CASE(InMemorySegmentCreatorTest, TestCreateWithOperationWrite
 INDEXLIB_UNIT_TEST_CASE(InMemorySegmentCreatorTest, TestCreateSegmentWriterOutOfMem);
 INDEXLIB_UNIT_TEST_CASE(InMemorySegmentCreatorTest, TestCreateSubWriterOOM);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INMEMORYSEGMENTCREATORTEST_H

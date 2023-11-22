@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KKV_SEGMENT_WRITER_H
-#define __INDEXLIB_KKV_SEGMENT_WRITER_H
+#pragma once
 
 #include <memory>
 
@@ -834,5 +833,3 @@ inline bool KKVSegmentWriter<SKeyType>::NeedForceDump()
     return false;
 }
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_KKV_SEGMENT_WRITER_H

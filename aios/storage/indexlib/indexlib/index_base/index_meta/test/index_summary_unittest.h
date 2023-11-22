@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXSUMMARYTEST_H
-#define __INDEXLIB_INDEXSUMMARYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/Directory.h"
@@ -39,5 +38,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(IndexSummaryTest, TestSimpleProcess);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_INDEXSUMMARYTEST_H

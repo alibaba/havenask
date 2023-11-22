@@ -5,17 +5,10 @@ import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 public enum PlanFormatVersion {
     VERSION_0_0_1("plan_version_0.0.1");
 
+    private String version;
+
     PlanFormatVersion(String version) {
         this.version = version;
-    }
-
-    @Override
-    public String toString() {
-        return version;
-    }
-
-    public String getVersion() {
-        return version;
     }
 
     public static PlanFormatVersion from(String version) {
@@ -28,5 +21,12 @@ public enum PlanFormatVersion {
         }
     }
 
-    private String version;
+    @Override
+    public String toString() {
+        return version;
+    }
+
+    public String getVersion() {
+        return version;
+    }
 }

@@ -1,5 +1,7 @@
 package com.taobao.search.iquan.core.rel.rules.physical;
 
+import java.util.ArrayList;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.rel.ops.physical.IquanExchangeOp;
@@ -9,8 +11,6 @@ import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.core.RelFactories;
 import org.apache.calcite.tools.RelBuilderFactory;
-
-import java.util.ArrayList;
 
 public class UnionExchangeRemoveRule extends RelOptRule {
     public static final UnionExchangeRemoveRule INSTANCE =

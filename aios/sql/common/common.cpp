@@ -44,12 +44,18 @@ const std::string COLLECT_NAVI_PERF = "navi_perf";
 // parallel
 const std::string PARALLEL_NUM_ATTR = "parallel_num";
 const std::string PARALLEL_INDEX_ATTR = "parallel_index";
+const std::string PARALLEL_BLOCK_COUNT_ATTR = "parallel_block_count";
 
 const std::string DEFAULT_INPUT_PORT = "input0";
 const std::string DEFAULT_OUTPUT_PORT = "output0";
 
+// kvpair
+const std::string SQL_RESULT_ALLOW_SOFT_FAILURE = "resultAllowSoftFailure";
+const std::string SQL_GET_SQL_PLAN = "sqlPlan";
+
 // common
 const std::string IQUAN_OP_ID = "op_id";
+const std::string SQL_QUERY_CONFIG_NAME = "sql.query_config";
 
 // scan kernel
 const std::string SCAN_TABLE_NAME_ATTR = "table_name";

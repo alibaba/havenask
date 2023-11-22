@@ -33,7 +33,7 @@ void AsyncOptionalKernelTest::tearDown() {
 
 TEST_F(AsyncOptionalKernelTest, testPipeInInitKernel) {
     KernelTesterBuilder testerBuilder;
-    testerBuilder.module(GET_PRIVATE_TEST_DATA_PATH() + "config/modules/libtest_plugin.so");
+    testerBuilder.module(NAVI_TEST_DATA_PATH + "config/modules/libtest_plugin.so");
     testerBuilder.kernel("AsyncOptionalMixKernel");
     testerBuilder.input("input1");
     testerBuilder.output("output1");

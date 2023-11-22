@@ -1,29 +1,26 @@
 package com.taobao.search.iquan.client.common.json.common;
 
-import java.util.AbstractList;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.calcite.sql.SqlKind;
 
 public class JsonAggregationIndex extends JsonIndex {
     @JsonProperty("value_fields")
     private List<String> valueFileds = new ArrayList<>();
 
-    public List<String> getValueFileds() {return this.valueFileds;  }
+    public List<String> getValueFileds() {
+        return this.valueFileds;
+    }
 
     public Boolean match(List<Map.Entry<String, String>> equalList, List<Map.Entry<String, String>> fromList, List<Map.Entry<String, String>> toList, List<String> needFields) {
         if (!match(equalList, needFields)) {
             return Boolean.FALSE;
         }
         return fromList.stream().map(Map.Entry::getKey).allMatch(getValueFileds()::contains)
-            && toList.stream().map(Map.Entry::getKey).allMatch(getValueFileds()::contains);
+                && toList.stream().map(Map.Entry::getKey).allMatch(getValueFileds()::contains);
 
     }
 
@@ -31,7 +28,7 @@ public class JsonAggregationIndex extends JsonIndex {
         if (!match(conditions)) {
             return Boolean.FALSE;
         }
-       return needFields.stream().allMatch(field -> getValueFileds().contains(field) || getIndexFields().contains(field));
+        return needFields.stream().allMatch(field -> getValueFileds().contains(field) || getIndexFields().contains(field));
     }
 
     public Boolean match(List<Map.Entry<String, String>> conditions) {

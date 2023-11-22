@@ -16,8 +16,9 @@
 #pragma once
 
 #include <map>
-#include <mutex>
 #include <string>
+#include <unordered_map>
+#include <utility>
 
 #include "autil/Lock.h"
 #include "autil/Log.h"

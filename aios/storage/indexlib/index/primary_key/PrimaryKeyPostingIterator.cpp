@@ -22,7 +22,7 @@
 namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, PrimaryKeyPostingIterator);
 
-PrimaryKeyPostingIterator::PrimaryKeyPostingIterator(docid_t docId, autil::mem_pool::Pool* sessionPool)
+PrimaryKeyPostingIterator::PrimaryKeyPostingIterator(docid64_t docId, autil::mem_pool::Pool* sessionPool)
     : _docId(docId)
     , _isSearched(false)
     , _sessionPool(sessionPool)
@@ -34,7 +34,7 @@ PrimaryKeyPostingIterator::~PrimaryKeyPostingIterator() { DELETE_AND_SET_NULL(_t
 
 TermMeta* PrimaryKeyPostingIterator::GetTermMeta() const { return _termMeta; }
 
-docid_t PrimaryKeyPostingIterator::SeekDoc(docid_t docId)
+docid64_t PrimaryKeyPostingIterator::SeekDoc(docid64_t docId)
 {
     if (_isSearched) {
         return INVALID_DOCID;

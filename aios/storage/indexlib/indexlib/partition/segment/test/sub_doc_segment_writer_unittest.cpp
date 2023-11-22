@@ -1,5 +1,6 @@
 #include "indexlib/partition/segment/test/sub_doc_segment_writer_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_segment_reader.h"
 #include "indexlib/index_base/index_meta/index_format_version.h"
@@ -12,7 +13,6 @@
 #include "indexlib/partition/test/main_sub_test_util.h"
 #include "indexlib/test/document_creator.h"
 #include "indexlib/test/partition_data_maker.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

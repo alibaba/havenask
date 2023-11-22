@@ -42,6 +42,12 @@ TEST_F(AdminConfigTest, testParseConfig) {
     ASSERT_EQ((uint32_t)10, groupBroker["default"]);
     ASSERT_EQ((uint32_t)2, groupBroker["abc"]);
     ASSERT_EQ((uint32_t)2, groupBroker["ab"]);
+    map<string, uint32_t> netPriority = config->getGroupNetPriorityMap();
+    ASSERT_EQ((size_t)3, netPriority.size());
+    ASSERT_EQ((uint32_t)123, netPriority["default"]);
+    ASSERT_EQ((uint32_t)1, netPriority["a"]);
+    ASSERT_EQ((uint32_t)2, netPriority["b"]);
+
     ASSERT_EQ((uint16_t)10010, config->amonitorPort);
     ASSERT_EQ((int32_t)5, config->leaderLeaseTime);
     ASSERT_EQ((int32_t)3, config->leaderLoopInterval);
@@ -189,7 +195,7 @@ TEST_F(AdminConfigTest, testGetConfigStr) {
                 "decsionThreshold:0.5 leaderLeaseTime:60 leaderLoopInterval:2 "
                 "syncAdminInfoPathVec:[] syncAdminInfoInterval:2000000 "
                 "syncTopicInfoInterval:5000000 syncHeartbeatInterval:300000000 "
-                "groupBrokerCountMap:[] veticalGroupBrokerCountMap:[] "
+                "groupBrokerCountMap:[] veticalGroupBrokerCountMap:[] groupNetPriorityMap:[] "
                 "adjustResourceDuration:20000 exclusiveLevel:0 "
                 "forceScheduleTimeSecond:-1 releaseDeadWorkerTimeSecond:600 "
                 "workerPartitionLimit:-1 topicResourceLimit:-1 minMaxPartitionBuffer:256 "
@@ -235,6 +241,7 @@ TEST_F(AdminConfigTest, testGetConfigStr) {
                 "syncHeartbeatInterval:250000000 "
                 "groupBrokerCountMap:[ab:2 abc:2 default:10 ] "
                 "veticalGroupBrokerCountMap:[ab:2 abc:2 default:10 other:5 ] "
+                "groupNetPriorityMap:[a:1 b:2 default:123 ] "
                 "adjustResourceDuration:1200 exclusiveLevel:0 "
                 "forceScheduleTimeSecond:60 releaseDeadWorkerTimeSecond:900 "
                 "workerPartitionLimit:2 topicResourceLimit:10 minMaxPartitionBuffer:533 "

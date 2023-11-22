@@ -15,10 +15,20 @@
  */
 #include "build_service/config/ConfigParser.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <map>
+#include <stdint.h>
+#include <typeinfo>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/config/ConfigDefine.h"
-#include "fslib/fslib.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;

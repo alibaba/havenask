@@ -1,6 +1,12 @@
 #include "build_service/config/ProcessorRuleConfig.h"
 
+#include <iosfwd>
+#include <string>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/config/ProcessorAdaptiveScalingConfig.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

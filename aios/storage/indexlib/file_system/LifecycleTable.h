@@ -16,6 +16,8 @@
 #pragma once
 
 #include <map>
+#include <memory>
+#include <stddef.h>
 #include <string>
 
 #include "autil/Log.h"

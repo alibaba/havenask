@@ -15,45 +15,96 @@
  */
 #include "build_service/admin/GenerationTask.h"
 
-#include <bits/stdint-intn.h>
+#include <algorithm>
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <limits>
+#include <map>
 #include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <utility>
 
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
 #include "autil/ZlibCompressor.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
 #include "build_service/admin/AlterFieldCKPAccessor.h"
-#include "build_service/admin/BatchBrokerTopicAccessor.h"
 #include "build_service/admin/BuildTaskValidator.h"
 #include "build_service/admin/CheckpointCreator.h"
 #include "build_service/admin/CheckpointSynchronizer.h"
 #include "build_service/admin/CheckpointTools.h"
+#include "build_service/admin/ClusterCheckpointSynchronizer.h"
+#include "build_service/admin/ConfigCleaner.h"
+#include "build_service/admin/FatalErrorChecker.h"
+#include "build_service/admin/FatalErrorMetricReporter.h"
+#include "build_service/admin/FlowIdMaintainer.h"
 #include "build_service/admin/LegacyCheckpointAdaptor.h"
 #include "build_service/admin/ZKCheckpointSynchronizer.h"
 #include "build_service/admin/controlflow/ControlDefine.h"
 #include "build_service/admin/controlflow/TaskBase.h"
 #include "build_service/admin/controlflow/TaskFlow.h"
+#include "build_service/admin/controlflow/TaskFlowManager.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/BuildServiceTask.h"
+#include "build_service/admin/taskcontroller/BuilderTaskWrapper.h"
 #include "build_service/admin/taskcontroller/MergeCrontabTask.h"
+#include "build_service/admin/taskcontroller/ProcessorInput.h"
+#include "build_service/admin/taskcontroller/ProcessorTaskWrapper.h"
 #include "build_service/admin/taskcontroller/RollbackTaskController.h"
 #include "build_service/admin/taskcontroller/SingleBuilderTaskV2.h"
+#include "build_service/admin/taskcontroller/SingleMergerTask.h"
+#include "build_service/admin/taskcontroller/TaskMaintainer.h"
+#include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/BrokerTopicAccessor.h"
+#include "build_service/common/BuilderCheckpointAccessor.h"
+#include "build_service/common/Checkpoint.h"
+#include "build_service/common/CheckpointAccessor.h"
+#include "build_service/common/IndexCheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
-#include "build_service/common/PathDefine.h"
+#include "build_service/config/BuildRuleConfig.h"
+#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ConfigReaderAccessor.h"
 #include "build_service/config/ControlConfig.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/config/DataLinkModeUtil.h"
 #include "build_service/config/GraphConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/ResourceReaderManager.h"
+#include "build_service/proto/EffectiveIndexInfo.h"
+#include "build_service/proto/ErrorCollector.h"
 #include "build_service/proto/ProtoComparator.h"
+#include "build_service/proto/ProtoUtil.h"
 #include "build_service/proto/SwiftRootUpgrader.h"
 #include "build_service/util/DataSourceHelper.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
+#include "build_service/util/RangeUtil.h"
 #include "fslib/util/FileUtil.h"
 #include "hippo/DriverCommon.h"
-#include "indexlib/config/BuildConfig.h"
-#include "indexlib/config/OfflineConfig.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/schema_modify_operation.h"
+#include "indexlib/config/updateable_schema_standards.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/framework/Version.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/framework/index_task/Constant.h"
+#include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/index_base/version_committer.h"
+#include "indexlib/misc/common.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 using namespace std;
 using namespace autil;
@@ -100,7 +151,7 @@ void GenerationTask::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("realtime_data_description", _realTimeDataDesc, _realTimeDataDesc);
     json.Jsonize("batch_mode", _batchMode, _batchMode);
     json.Jsonize("is_imported_task", _isImportedTask, _isImportedTask);
-    json.Jsonize("imported_version_id", _importedVersionId, _importedVersionId);
+    json.Jsonize("imported_version_id_map", _importedVersionIdMap, _importedVersionIdMap);
     json.Jsonize("commit_version_called", _commitVersionCalled, _commitVersionCalled);
 }
 
@@ -123,10 +174,17 @@ bool GenerationTask::publishAndSaveCheckpoint(const config::ResourceReaderPtr& r
         }
     }
 
+    std::string errorMsg;
+    // clean already exist savepoint, as savepoint is not consistent with zk checkpoint in import process
+    if (!_checkpointSynchronizer->removeSavepoint(cluster, INVALID_CHECKPOINT_ID, errorMsg)) {
+        BS_LOG(ERROR, "removeSavepoint failed errorMsg [%s], for cluster [%s], importTask[%d], buildId[%s]",
+               errorMsg.c_str(), cluster.c_str(), (int)_isImportedTask, _buildId.ShortDebugString().c_str());
+        return false;
+    }
+
     BS_LOG(INFO, "start publishing checkpoint, alignedVersionId[%d], cluster[%s], importTask[%d], buildId[%s]",
            versionId, cluster.c_str(), (int)_isImportedTask, _buildId.ShortDebugString().c_str());
 
-    std::string errorMsg;
     config::BuildRuleConfig buildRuleConfig;
     if (!resourceReader->getClusterConfigWithJsonPath(cluster, "cluster_config.builder_rule_config", buildRuleConfig)) {
         errorMsg = string("parse cluster_config.builder_rule_config for [") + cluster + string("] failed");
@@ -168,26 +226,34 @@ bool GenerationTask::publishAndSaveCheckpoint(const config::ResourceReaderPtr& r
 }
 
 bool GenerationTask::importBuild(const string& configPath, const string& generationDir,
-                                 const string& dataDescriptionKvs, indexlib::versionid_t importedVersionId,
+                                 const string& dataDescriptionKvs,
+                                 const GenerationTaskBase::ImportedVersionIdMap& importedVersionIdMap,
                                  StartBuildResponse* response)
 {
     _isImportedTask = true;
-    _importedVersionId = importedVersionId;
-    assert(_importedVersionId != indexlibv2::INVALID_VERSIONID);
+    _importedVersionIdMap = importedVersionIdMap;
+    assert(!_importedVersionIdMap.empty());
     ResourceReaderPtr resourceReader = ResourceReaderManager::getResourceReader(configPath);
     std::vector<std::string> clusterNames;
     if (!GenerationTaskBase::getAllClusterNames(*resourceReader, clusterNames)) {
         BS_LOG(ERROR, "getAllClusterNames failed");
         return false;
     }
-
-    if (clusterNames.size() != 1) {
-        BS_LOG(ERROR, "import build do not support multiple cluster");
-    }
-
-    if (!publishAndSaveCheckpoint(resourceReader, clusterNames[0], _importedVersionId)) {
-        BS_LOG(ERROR, "publish or save Checkpoint failed");
+    if (clusterNames.size() != importedVersionIdMap.size()) {
+        BS_LOG(ERROR, "cluster count not consist, cluter in config count [%zu], cluster in request count [%zu]",
+               clusterNames.size(), importedVersionIdMap.size());
         return false;
+    }
+    for (const auto& clusterName : clusterNames) {
+        auto iter = importedVersionIdMap.find(clusterName);
+        if (iter == importedVersionIdMap.end()) {
+            BS_LOG(ERROR, "importedVersionIdMap does not have cluster [%s]", clusterName.c_str());
+            return false;
+        }
+        if (!publishAndSaveCheckpoint(resourceReader, clusterName, iter->second)) {
+            BS_LOG(ERROR, "publish or save Checkpoint for cluster [%s] failed", clusterName.c_str());
+            return false;
+        }
     }
 
     string errorMsg;
@@ -211,9 +277,7 @@ bool GenerationTask::importBuild(const string& configPath, const string& generat
     }
 
     auto dataLinkMode = controlConfig.getDataLinkMode();
-    // todo: support NPC_MODE
-    if (dataLinkMode != ControlConfig::DataLinkMode::NPC_MODE &&
-        dataLinkMode != ControlConfig::DataLinkMode::FP_INP_MODE) {
+    if (dataLinkMode != ControlConfig::DataLinkMode::NPC_MODE) {
         errorMsg =
             string("import failed, can't import from data_link_mode:") + controlConfig.dataLinkModeToStr(dataLinkMode);
         response->add_errormessage(errorMsg.c_str());
@@ -317,14 +381,23 @@ bool GenerationTask::doLoadFromConfig(const string& configPath, const string& ge
 
     kvMap["dataDescriptions"] = ToJsonString(dsVec, true);
     kvMap["realtimeDataDescription"] = ToJsonString(_realTimeDataDesc, true);
+    if (_realTimeDataDesc.empty()) {
+        kvMap["hasRealtimeDataDesc"] = "false";
+    } else {
+        kvMap["hasRealtimeDataDesc"] = "true";
+    }
     kvMap["buildId"] = ProtoUtil::buildIdToStr(_buildId);
-    kvMap["buildStep"] = buildStep == BUILD_STEP_FULL ? "full" : "incremental";
+    kvMap["buildStep"] = buildStep == proto::BUILD_STEP_FULL ? config::BUILD_STEP_FULL_STR : config::BUILD_STEP_INC_STR;
     kvMap["clusterNames"] = ToJsonString(clusters, true);
     kvMap["schemaIdMap"] = ToJsonString(schemaIdMap, true);
     kvMap["configPath"] = configPath;
     if (_isImportedTask) {
         kvMap["useRandomInitialPathVersion"] = "true";
-        kvMap["importedVersionId"] = autil::StringUtil::toString(_importedVersionId);
+        KeyValueMap tmpIdStrMap;
+        for (const auto& [clusterName, versionId] : _importedVersionIdMap) {
+            tmpIdStrMap[clusterName] = autil::StringUtil::toString(versionId);
+        }
+        kvMap["importedVersionIdMap"] = ToJsonString(tmpIdStrMap, true);
     }
     config::ControlConfig controlConfig;
     if (!resourceReader->getDataTableConfigWithJsonPath(_buildId.datatable(), "control_config", controlConfig)) {
@@ -353,7 +426,7 @@ bool GenerationTask::doLoadFromConfig(const string& configPath, const string& ge
         if (controlConfig.getDataLinkMode() == ControlConfig::DataLinkMode::NPC_MODE) {
             targetGraph = "BuildIndexV2.npc_mode.graph";
         } else {
-            if (controlConfig.useIndexV2()) {
+            if (controlConfig.useIndexV2() || _forceUseTabletV2Build) {
                 targetGraph = _batchMode ? "BatchBuildV2/FullBatchBuild.graph" : "BuildIndexV2.graph";
             } else {
                 targetGraph = _batchMode ? "BatchBuild/FullBatchBuild.graph" : "BuildIndex.graph";
@@ -383,6 +456,13 @@ bool GenerationTask::doLoadFromConfig(const string& configPath, const string& ge
     _counterConfig = buildServiceConfig.counterConfig;
     _currentProcessorStep = buildStep;
     _dataDescriptionsStr = ToJsonString(dsVec, true);
+    bool hasError = false;
+    bool v2Build = isV2Build(resourceReader, hasError);
+    if (hasError) {
+        REPORT(SERVICE_ERROR_CONFIG, "read config failed, reject update config");
+        return false;
+    }
+    _isV2Build = v2Build;
     return true;
 }
 
@@ -403,6 +483,14 @@ bool GenerationTask::loadFromString(const string& statusString, const string& ge
             }
         }
 
+        CheckpointAccessorPtr checkpointAccessor;
+        _resourceManager->getResource(checkpointAccessor);
+        ResourceReaderPtr latestReader = GetLatestResourceReader();
+        bool failed = false;
+        _isV2Build = isV2Build(latestReader, failed);
+        if (failed) {
+            return false;
+        }
     } catch (const autil::legacy::ExceptionBase& e) {
         // log length maybe overflow and only limited content is showed
         // so we use two log record to show exception and status string both
@@ -613,7 +701,7 @@ bool GenerationTask::doRollBack(const string& clusterName, const string& generat
     }
 
     KeyValueMap kvMap;
-    kvMap["buildStep"] = "incremental";
+    kvMap["buildStep"] = config::BUILD_STEP_INC_STR;
     kvMap["clusterName"] = clusterName;
     kvMap["buildId"] = ProtoUtil::buildIdToStr(_buildId);
     if (startTimestamp >= 0) {
@@ -676,12 +764,22 @@ bool GenerationTask::doRollBackCheckpoint(const string& clusterName, const strin
         errorMsg = "checkpoint synchronizer is nullptr";
         return false;
     }
+
     checkpointid_t newCheckpointId;
+    std::vector<proto::Range> rangeVec;
+    if (ranges.empty()) {
+        rangeVec = _checkpointSynchronizer->getRanges(clusterName);
+    } else {
+        for (const auto& range : ranges) {
+            rangeVec.emplace_back(range);
+        }
+    }
     if (isLeaderFollowerMode()) {
         BS_LOG(INFO, "rollback by checkpoint synchronizer for cluster [%s], checkpoint id[%ld], buildId[%s]",
                clusterName.c_str(), checkpointId, _buildId.ShortDebugString().c_str());
         return _checkpointSynchronizer->rollback(clusterName, checkpointId, ranges, /*needAddIndexInfo=*/true,
-                                                 &newCheckpointId, errorMsg);
+                                                 &newCheckpointId, errorMsg) &&
+               removeIndexTaskMeta(clusterName, rangeVec);
     } else if (!ranges.empty()) {
         BS_LOG(WARN,
                "Bad Param: ranges is not empty, "
@@ -695,6 +793,23 @@ bool GenerationTask::doRollBackCheckpoint(const string& clusterName, const strin
                    _buildId.ShortDebugString().c_str(), clusterName.c_str());
             return false;
         }
+        if (!removeIndexTaskMeta(clusterName, rangeVec)) {
+            return false;
+        }
+    }
+
+    std::string savepointStr;
+    ClusterCheckpointSynchronizer::GenerationLevelCheckpointGetResult result;
+    if (!_checkpointSynchronizer->createSavepoint(clusterName, newCheckpointId, "", &result, errorMsg)) {
+        BS_LOG(ERROR, "cluster[%s] rollback to newCheckpoint[%ld] create savepoint failed.", clusterName.c_str(),
+               newCheckpointId);
+        return false;
+    }
+    if (schema->GetSchemaId() != result.generationLevelCheckpoint.readSchemaId) {
+        errorMsg = "cluster[" + clusterName + "] rollback to checkpoint [" + checkpointId +
+                   "] failed, not support rollback to diff schema index.";
+        BS_LOG(ERROR, "%s", errorMsg.c_str());
+        return false;
     }
     std::vector<std::string> flowIds;
     _taskFlowManager->getFlowIdByTag("BSBuildV2", flowIds);
@@ -703,16 +818,9 @@ bool GenerationTask::doRollBackCheckpoint(const string& clusterName, const strin
         BS_LOG(ERROR, "%s", errorMsg.c_str());
         return false;
     }
-    std::string savepointStr;
-    ClusterCheckpointSynchronizer::GenerationLevelCheckpointGetResult result;
-    if (!_checkpointSynchronizer->createSavepoint(clusterName, newCheckpointId, "", &result, errorMsg)) {
-        BS_LOG(ERROR, "cluster[%s] rollback to newCheckpoint[%ld] create savepoint failed.", clusterName.c_str(),
-               newCheckpointId);
-        return false;
-    }
 
     KeyValueMap kvMap;
-    kvMap["buildStep"] = "incremental";
+    kvMap["buildStep"] = config::BUILD_STEP_INC_STR;
     kvMap["clusterName"] = clusterName;
     kvMap["buildId"] = ProtoUtil::buildIdToStr(_buildId);
     kvMap[BS_ROLLBACK_SOURCE_CHECKPOINT] = StringUtil::toString(newCheckpointId);
@@ -767,6 +875,87 @@ bool GenerationTask::cleanReservedCheckpoints(const string& clusterName, version
     return true;
 }
 
+bool GenerationTask::checkReAddIndex(const std::string& clusterName,
+                                     const std::shared_ptr<indexlibv2::config::TabletSchema>& newTabletSchema,
+                                     const ::google::protobuf::RepeatedPtrField<proto::IndexInfo>& indexInfos)
+{
+    for (size_t i = 0; i < indexInfos.size(); i++) {
+        const IndexInfo& indexInfo = indexInfos.Get(i);
+        auto schemaId = indexInfo.schemaversion();
+        auto schemaListKeeper = getSchemaListKeeper();
+        if (!schemaListKeeper) {
+            BS_LOG(ERROR, "get schema list keeper failed");
+            return false;
+        }
+        auto singleClusterSchemaListKeeper = schemaListKeeper->getSingleClusterSchemaListKeeper(clusterName);
+        if (!singleClusterSchemaListKeeper) {
+            BS_LOG(ERROR, "get single cluster [%s] schema list keeper failed", clusterName.c_str());
+            return false;
+        }
+        std::vector<std::shared_ptr<indexlibv2::config::TabletSchema>> schemaList;
+        if (!singleClusterSchemaListKeeper->getSchemaList(schemaId, newTabletSchema->GetSchemaId(), schemaList)) {
+            BS_LOG(ERROR, "get schema list failed");
+            return false;
+        }
+        auto lastSchema = schemaList[schemaList.size() - 1];
+        auto lastLegacySchema = lastSchema->GetLegacySchema();
+        auto legacyNewSchema = newTabletSchema->GetLegacySchema();
+        if (legacyNewSchema && legacyNewSchema->HasModifyOperations()) {
+            size_t oldOpsIdCount = lastLegacySchema->GetModifyOperationCount();
+            size_t newOpsIdCount = legacyNewSchema->GetModifyOperationCount();
+            std::vector<std::string> deletedFields;
+            std::vector<std::string> deletedAttributes;
+            std::vector<std::string> deletedIndexes;
+            for (size_t i = oldOpsIdCount + 1; i <= newOpsIdCount; i++) {
+                auto operation = legacyNewSchema->GetSchemaModifyOperation(i);
+                const auto& fields = operation->GetDeleteFields();
+                deletedFields.insert(deletedFields.end(), fields.begin(), fields.end());
+                const auto& indexes = operation->GetDeleteIndexs();
+                deletedIndexes.insert(deletedIndexes.end(), indexes.begin(), indexes.end());
+                const auto& attributes = operation->GetDeleteAttrs();
+                deletedAttributes.insert(deletedAttributes.end(), attributes.begin(), attributes.end());
+                for (const auto& fieldConfig : operation->GetAddFields()) {
+                    if (find(deletedFields.begin(), deletedFields.end(), fieldConfig->GetFieldName()) !=
+                        deletedFields.end()) {
+                        BS_LOG(ERROR, "readd field [%s]", fieldConfig->GetFieldName().c_str());
+                        return false;
+                    }
+                }
+                for (const auto& indexConfig : operation->GetAddIndexs()) {
+                    if (find(deletedIndexes.begin(), deletedIndexes.end(), indexConfig->GetIndexName()) !=
+                        deletedIndexes.end()) {
+                        BS_LOG(ERROR, "readd index [%s]", indexConfig->GetIndexName().c_str());
+                        return false;
+                    }
+                }
+                for (const auto& attributeConfig : operation->GetAddAttributes()) {
+                    if (find(deletedAttributes.begin(), deletedAttributes.end(),
+                             attributeConfig->GetFieldConfig()->GetFieldName()) != deletedAttributes.end()) {
+                        BS_LOG(ERROR, "readd attribute [%s]",
+                               attributeConfig->GetFieldConfig()->GetFieldName().c_str());
+                        return false;
+                    }
+                }
+            }
+        }
+
+        for (auto indexConfig : newTabletSchema->GetIndexConfigs()) {
+            if (lastSchema->GetIndexConfig(indexConfig->GetIndexType(), indexConfig->GetIndexName())) {
+                continue;
+            }
+            //新增字段在索引中不存在，在要修改的schema列表中不存在
+            for (size_t j = 0; j < schemaList.size() - 1; j++) {
+                if (schemaList[j]->GetIndexConfig(indexConfig->GetIndexType(), indexConfig->GetIndexName())) {
+                    BS_LOG(ERROR, "not support readd index [%s] when it not deleted in index",
+                           indexConfig->GetIndexName().c_str());
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 bool GenerationTask::doUpdateConfig(const string& configPath)
 {
     if (isSuspending()) {
@@ -800,12 +989,8 @@ bool GenerationTask::doUpdateConfig(const string& configPath)
         BS_LOG(ERROR, "upc init checkpoint synchronizer [%s] failed", _buildId.ShortDebugString().c_str());
         return false;
     }
-    bool hasError;
-    bool isOldV2BuildMode = isV2Build(oldResourceReader, hasError);
-    if (hasError) {
-        REPORT(SERVICE_ERROR_CONFIG, "read old config failed, reject update config");
-        return false;
-    }
+    bool isOldV2BuildMode = _isV2Build;
+    bool hasError = false;
     bool isNewV2BuildMode = isV2Build(newResourceReader, hasError);
     if (hasError) {
         REPORT(SERVICE_ERROR_CONFIG, "read new config failed, reject update config");
@@ -825,14 +1010,28 @@ bool GenerationTask::doUpdateConfig(const string& configPath)
             return false;
         }
         if (status == ConfigValidator::SchemaUpdateStatus::UPDATE_SCHEMA) {
-            if (isNewV2BuildMode) {
-                REPORT(SERVICE_ERROR_CONFIG, "v2 build mode not support update schema");
-                return false;
-            }
             chgSchemaClusters.push_back(clusterName);
-            auto schema = newResourceReader->getSchema(clusterName);
-            if (schema->HasModifyOperations()) {
+            auto tabletSchema = newResourceReader->getTabletSchema(clusterName);
+            auto schema = tabletSchema->GetLegacySchema();
+            if (isNewV2BuildMode) {
+                IndexCheckpointAccessorPtr indexCheckpointAccessor =
+                    CheckpointCreator::createIndexCheckpointAccessor(_resourceManager);
+                ::google::protobuf::RepeatedPtrField<proto::IndexInfo> indexInfos;
+                if (!indexCheckpointAccessor->getIndexInfo(false, clusterName, indexInfos)) {
+                    REPORT(SERVICE_ERROR_CONFIG, "get index info failed");
+                    return false;
+                }
+                if (!checkReAddIndex(clusterName, tabletSchema, indexInfos)) {
+                    REPORT(SERVICE_ERROR_CONFIG, "check update schema failed, "
+                                                 "new schema add same index while old index still exist, "
+                                                 "please wait old index deleted then readd it");
+                    return false;
+                }
+            }
+
+            if (schema && schema->HasModifyOperations()) {
                 hasOperations = true;
+                opsIdMap[clusterName] = getOpsInfos(schema, clusterName);
             } else {
                 if (hasOperations) {
                     REPORT(SERVICE_ERROR_CONFIG, "multi cluster change schema not support"
@@ -840,9 +1039,9 @@ bool GenerationTask::doUpdateConfig(const string& configPath)
                     return false;
                 }
             }
-            schemaIdMap[clusterName] = StringUtil::toString(schema->GetSchemaVersionId());
-            opsIdMap[clusterName] = getOpsInfos(schema, clusterName);
+            schemaIdMap[clusterName] = StringUtil::toString(tabletSchema->GetSchemaId());
         }
+        // add test new add index not exist in current index
     }
     configReaderAccessor->addConfig(newResourceReader, true);
 
@@ -858,7 +1057,7 @@ bool GenerationTask::doUpdateConfig(const string& configPath)
         string updateGraph = "BuildV1ToBuildV2.graph";
         KeyValueMap kvMap;
         kvMap["clusterNames"] = ToJsonString(allClusters, true);
-        kvMap["buildStep"] = "incremental";
+        kvMap["buildStep"] = config::BUILD_STEP_INC_STR;
         kvMap["buildId"] = ProtoUtil::buildIdToStr(_buildId);
         vector<string> flowIds;
         string incProcessorTag = "BSIncProcessor";
@@ -872,15 +1071,33 @@ bool GenerationTask::doUpdateConfig(const string& configPath)
         }
     }
 
-    if (!chgSchemaClusters.empty() && !doUpdateSchema(hasOperations, chgSchemaClusters, schemaIdMap, opsIdMap)) {
+    GraphConfig graphConfig;
+    auto status = newResourceReader->getGraphConfigReturnStatus(graphConfig);
+    bool hasIncBuilder = true;
+    if (status == ResourceReader::ERROR) {
+        BS_LOG(ERROR, "load graph failed");
+        return false;
+    }
+    auto graphParam = graphConfig.getGraphParam();
+    auto iter = graphParam.find("disableIncBuilder");
+    if (iter != graphParam.end() && iter->second == "true") {
+        hasIncBuilder = false;
+    }
+    if (hasIncBuilder) {
+        if (!chgSchemaClusters.empty() && !doUpdateSchema(hasOperations, chgSchemaClusters, schemaIdMap, opsIdMap)) {
+            return false;
+        }
+    }
+
+    if (!innerUpdateConfig(configPath)) {
         return false;
     }
 
-    if (!doUpdateConfig(chgSchemaClusters, configPath)) {
+    if (!updatePackageInfo(oldResourceReader, newResourceReader)) {
         return false;
     }
-
-    return updatePackageInfo(oldResourceReader, newResourceReader);
+    _isV2Build = isNewV2BuildMode;
+    return true;
 }
 
 bool GenerationTask::updatePackageInfo(const ResourceReaderPtr& oldResourceReader,
@@ -963,13 +1180,7 @@ ConfigValidator::SchemaUpdateStatus GenerationTask::checkUpdateSchema(const Reso
         return ConfigValidator::SchemaUpdateStatus::UPDATE_ILLEGAL;
     }
 
-    auto newSchema = tabletSchema->GetLegacySchema();
-    if (!newSchema) {
-        return ConfigValidator::SchemaUpdateStatus::NO_UPDATE_SCHEMA;
-    }
-
-    // ResourceReaderPtr oldReader =  configAccessor->getLatestConfig();
-    int64_t newSchemaId = newSchema->GetSchemaVersionId();
+    int64_t newSchemaId = tabletSchema->GetSchemaId();
     auto maxSchemaId = configAccessor->getMaxSchemaId(clusterName);
     ResourceReaderPtr oldReader = configAccessor->getConfig(clusterName, newSchemaId);
     if (!oldReader) {
@@ -997,7 +1208,10 @@ ConfigValidator::SchemaUpdateStatus GenerationTask::checkUpdateSchema(const Reso
             return ConfigValidator::SchemaUpdateStatus::UPDATE_ILLEGAL;
         }
         vector<schema_opid_t> disableOpIds;
-        newSchema->GetDisableOperations(disableOpIds);
+        auto legacySchema = tabletSchema->GetLegacySchema();
+        if (legacySchema) {
+            legacySchema->GetDisableOperations(disableOpIds);
+        }
         CheckpointAccessorPtr ckpAccessor;
         _resourceManager->getResource(ckpAccessor);
         CheckpointTools::addDisableOpIds(ckpAccessor, clusterName, disableOpIds);
@@ -1035,13 +1249,14 @@ bool GenerationTask::doCreateVersion(const string& clusterName, const string& me
     if (flowIds.size() > 0) {
         KeyValueMap kvMap;
         kvMap["clusterName"] = clusterName;
-        kvMap["buildStep"] = "incremental";
+        kvMap["buildStep"] = config::BUILD_STEP_INC_STR;
         kvMap["buildId"] = ProtoUtil::buildIdToStr(_buildId);
         auto mergeConfig = mergeConfigName;
         if (mergeConfig.empty()) {
             mergeConfig = "default_merge";
         }
         kvMap["mergeConfig"] = mergeConfig;
+        kvMap["realtimeDataDescription"] = ToJsonString(_realTimeDataDesc, true);
         flowIds.clear();
         string incProcessorTag = clusterName + ":BSIncProcessor";
         _taskFlowManager->getFlowIdByTag(incProcessorTag, flowIds);
@@ -1348,6 +1563,10 @@ void GenerationTask::fillIndexInfosForCluster(const string& clusterName, bool is
         return;
     }
 
+    if (_isV2Build) {
+        return;
+    }
+
     if (!isFull && indexInfos) {
         CheckpointAccessorPtr checkpointAccessor;
         _resourceManager->getResource(checkpointAccessor);
@@ -1367,6 +1586,7 @@ void GenerationTask::fillIndexInfosForCluster(const string& clusterName, bool is
             proto::IndexInfo* indexInfo = indexInfos->Mutable(0);
             indexInfo->set_ongoingmodifyopids(opIds);
         }
+        return;
     }
 }
 
@@ -1481,8 +1701,8 @@ bool GenerationTask::writeRealtimeInfoToIndex()
             BS_LOG(WARN, "%s", errorMsg.c_str());
             return false;
         }
-        string realtimeInfoContent = DataLinkModeUtil::generateRealtimeInfoContent(controlConfig, buildServiceConfig,
-                                                                                   clusterName, _realTimeDataDesc);
+        auto realtimeInfoContent = DataLinkModeUtil::generateRealtimeInfoContent(
+            controlConfig, buildServiceConfig, clusterName, _realTimeDataDesc, _buildId);
         if (realtimeInfoContent.empty()) {
             BS_LOG(ERROR, "Generate realtime_info failed for buildId[%s], cluster[%s]",
                    _buildId.ShortDebugString().c_str(), clusterName.c_str());
@@ -1603,11 +1823,11 @@ bool GenerationTask::doGetBulkloadInfo(const std::string& clusterName, const std
             }
             auto indexTaskQueue = partitionCkpt.indexTaskQueue;
             for (const auto& indexTask : indexTaskQueue) {
-                if (indexTask.taskType == indexlibv2::framework::BULKLOAD_TASK_TYPE &&
-                    indexTask.taskName == bulkloadId) {
-                    bulkloadState.committedVersionId = indexTask.committedVersionId;
-                    bulkloadState.state = indexTask.state;
-                    bulkloadState.comment = indexTask.comment;
+                if (indexTask.GetTaskType() == indexlibv2::framework::BULKLOAD_TASK_TYPE &&
+                    indexTask.GetTaskTraceId() == bulkloadId) {
+                    bulkloadState.committedVersionId = indexTask.GetCommittedVersionId();
+                    bulkloadState.state = indexTask.GetState();
+                    bulkloadState.comment = indexTask.GetComment();
                     result[rangeKey] = bulkloadState;
                     break;
                 }
@@ -1615,6 +1835,63 @@ bool GenerationTask::doGetBulkloadInfo(const std::string& clusterName, const std
         }
     }
     *resultStr = autil::legacy::ToJsonString(result);
+    return true;
+}
+
+bool GenerationTask::doBulkload(
+    const std::string& clusterName, const std::string& bulkloadId,
+    const ::google::protobuf::RepeatedPtrField<proto::ExternalFiles>& partitionLevelExternalFiles,
+    const std::string& options, const std::string& action, std::string* errorMsg)
+{
+    std::shared_ptr<common::IndexTaskRequestQueue> requestQueue;
+    _resourceManager->getResource(requestQueue);
+
+    for (const auto& partitionLevelExternalFile : partitionLevelExternalFiles) {
+        auto range = partitionLevelExternalFile.range();
+        std::vector<std::string> fileList;
+        for (const auto& filePath : partitionLevelExternalFile.filelist()) {
+            fileList.emplace_back(filePath);
+        }
+        std::map<std::string, std::string> params;
+        params[indexlibv2::framework::PARAM_BULKLOAD_ID] = bulkloadId;
+        params[indexlibv2::framework::PARAM_EXTERNAL_FILES] = autil::legacy::ToJsonString(fileList);
+        params[indexlibv2::framework::PARAM_IMPORT_EXTERNAL_FILE_OPTIONS] = options;
+        params[indexlibv2::framework::ACTION_KEY] = action;
+        indexlibv2::framework::IndexTaskMetaCreator creator;
+        auto meta = creator.TaskType(indexlibv2::framework::BULKLOAD_TASK_TYPE)
+                        .TaskTraceId(bulkloadId)
+                        .TaskName("bulkload")
+                        .Params(params)
+                        .EventTimeInSecs(partitionLevelExternalFile.eventtimeinsecs())
+                        .Create();
+        auto status = requestQueue->add(clusterName, range, meta);
+        if (!status.IsOK()) {
+            *errorMsg = status.ToString();
+            return false;
+        }
+    }
+
+    if (_realTimeDataDesc.empty()) {
+        string incBuildFlowTag = clusterName + ":IncBuild";
+        vector<string> flowIds;
+        _taskFlowManager->getFlowIdByTag(incBuildFlowTag, flowIds);
+        vector<TaskFlowPtr> flows;
+        fillFlows(flowIds, true, flows);
+        if (flows.size() == 0) {
+            // when no realtime data, we need start builder to do bulkload op
+            KeyValueMap kvMap;
+            kvMap["clusterName"] = clusterName;
+            kvMap["buildStep"] = config::BUILD_STEP_INC_STR;
+            kvMap["buildId"] = ProtoUtil::buildIdToStr(_buildId);
+            kvMap["hasRealtimeDataDesc"] = "false";
+            string graphName = "AddBulkloadBuilder.graph";
+            if (!_taskFlowManager->loadSubGraph("", graphName, kvMap)) {
+                REPORT(SERVICE_ERROR_CONFIG, "load sub graph create version failed [%s]",
+                       _buildId.ShortDebugString().c_str());
+                return false;
+            }
+        }
+    }
     return true;
 }
 
@@ -1816,6 +2093,8 @@ void GenerationTask::doMakeDecision(WorkerTable& workerTable)
     brokerTopicAccessor->prepareBrokerTopics();
     brokerTopicAccessor->clearUselessBrokerTopics(false);
     _configCleaner->cleanObsoleteConfig();
+    std::shared_ptr<common::IndexTaskRequestQueue> requestQueue;
+    _resourceManager->getResource(requestQueue);
 
     int32_t workerProtocolVersion = getWorkerProtocolVersion();
     if (workerProtocolVersion == UNKNOWN_WORKER_PROTOCOL_VERSION) {
@@ -1858,6 +2137,15 @@ void GenerationTask::doMakeDecision(WorkerTable& workerTable)
             // _isLeaderFollowerMode will be set true when CommitVersion called.
             _checkpointSynchronizer->sync();
         }
+        if (requestQueue) {
+            std::vector<std::string> clusters;
+            if (getAllClusterNames(clusters)) {
+                for (const auto& cluster : clusters) {
+                    auto ranges = _checkpointSynchronizer->getRanges(cluster);
+                    removeIndexTaskMeta(cluster, ranges);
+                }
+            }
+        }
     } else {
         auto resourceReader = std::make_shared<ResourceReader>(getConfigPath());
         resourceReader->init();
@@ -1865,6 +2153,27 @@ void GenerationTask::doMakeDecision(WorkerTable& workerTable)
     }
 
     checkFatalError(workerTable);
+}
+
+bool GenerationTask::removeIndexTaskMeta(const std::string& cluster, const std::vector<proto::Range>& ranges)
+{
+    std::shared_ptr<common::IndexTaskRequestQueue> requestQueue;
+    _resourceManager->getResource(requestQueue);
+    if (requestQueue == nullptr) {
+        return true;
+    }
+    for (const auto& range : ranges) {
+        auto [ret, ckpt] = _checkpointSynchronizer->getPartitionCheckpoint(cluster, range);
+        if (!ret) {
+            BS_LOG(ERROR, "remove index task meta failed. get partition ckpt failed, cluster[%s], range[%d_%d]",
+                   cluster.c_str(), range.from(), range.to());
+            return false;
+        }
+        for (const auto& indexTask : ckpt.indexTaskQueue) {
+            requestQueue->remove(cluster, range, indexTask.GetTaskType(), indexTask.GetTaskTraceId());
+        }
+    }
+    return true;
 }
 
 bool GenerationTask::prepareCheckpointSynchronizer(const config::ResourceReaderPtr& resourceReader,
@@ -1938,7 +2247,7 @@ bool GenerationTask::getCheckpointSynchronizerType(const config::ResourceReaderP
         return false;
     }
     if (buildServiceConfig.suezVersionZkRoots.empty()) {
-        bool hasError;
+        bool hasError = false;
         bool isV2BuildMode = isV2Build(resourceReader, hasError);
         if (hasError) {
             BS_LOG(ERROR, "check is v2 build failed");
@@ -2162,34 +2471,83 @@ void GenerationTask::fillTaskInfosForSingleClusters(BuildInfo* buildInfo, const 
             const IndexInfo& indexInfo = indexInfos.Get(0);
             singleClusterInfo->set_lastversiontimestamp(indexInfo.finishtimestamp());
             singleClusterInfo->set_currentschemaversion(indexInfo.schemaversion());
-            auto legacySchema = latestSchema->GetLegacySchema();
-            if (fillEffectiveIndexInfo && legacySchema) {
-                IndexPartitionSchemaPtr targetSchema;
-                if (legacySchema->HasModifyOperations() && indexInfo.schemaversion() > 0) {
-                    targetSchema.reset(legacySchema->CreateSchemaForTargetModifyOperation(indexInfo.schemaversion()));
-                    if (!targetSchema) {
-                        ResourceReaderPtr reader = configAccessor->getConfig(cluster, indexInfo.schemaversion());
-                        if (reader) {
-                            targetSchema = reader->getSchema(cluster);
+            if (!_isV2Build) {
+                auto legacySchema = latestSchema->GetLegacySchema();
+                if (fillEffectiveIndexInfo && legacySchema) {
+                    IndexPartitionSchemaPtr targetSchema;
+                    if (legacySchema->HasModifyOperations() && indexInfo.schemaversion() > 0) {
+                        targetSchema.reset(
+                            legacySchema->CreateSchemaForTargetModifyOperation(indexInfo.schemaversion()));
+                        if (!targetSchema) {
+                            ResourceReaderPtr reader = configAccessor->getConfig(cluster, indexInfo.schemaversion());
+                            if (reader) {
+                                targetSchema = reader->getSchema(cluster);
+                            }
                         }
-                    }
-                    if (targetSchema) {
-                        vector<schema_opid_t> opIds;
-                        StringUtil::fromString(indexInfo.ongoingmodifyopids(), opIds, ",");
-                        for (auto id : opIds) {
-                            targetSchema->MarkOngoingModifyOperation(id);
+                        if (targetSchema) {
+                            vector<schema_opid_t> opIds;
+                            StringUtil::fromString(indexInfo.ongoingmodifyopids(), opIds, ",");
+                            for (auto id : opIds) {
+                                targetSchema->MarkOngoingModifyOperation(id);
+                            }
                         }
+                    } else {
+                        targetSchema.reset(legacySchema->CreateSchemaWithoutModifyOperations());
                     }
-                } else {
-                    targetSchema.reset(legacySchema->CreateSchemaWithoutModifyOperations());
-                }
 
-                if (targetSchema) {
-                    singleClusterInfo->set_lastversioneffectiveindexinfo(targetSchema->GetEffectiveIndexInfo());
+                    if (targetSchema) {
+                        singleClusterInfo->set_lastversioneffectiveindexinfo(targetSchema->GetEffectiveIndexInfo());
+                    }
+                }
+            } else {
+                if (fillEffectiveIndexInfo) {
+                    singleClusterInfo->set_lastversioneffectiveindexinfo(
+                        getEffectiveIndexInfo(cluster, latestSchema, indexInfos));
                 }
             }
         }
     }
+}
+
+std::string
+GenerationTask::getEffectiveIndexInfo(const std::string& clusterName,
+                                      const std::shared_ptr<indexlibv2::config::TabletSchema>& latestSchema,
+                                      const ::google::protobuf::RepeatedPtrField<proto::IndexInfo>& indexInfos) const
+{
+    std::map<schemaid_t, std::shared_ptr<indexlibv2::config::TabletSchema>> indexInfoSchemas;
+    auto schemaListKeeper = getSchemaListKeeper();
+    if (!schemaListKeeper) {
+        BS_LOG(ERROR, "get schema list keeper failed");
+        return "";
+    }
+
+    auto singleClusterSchemaListKeeper = schemaListKeeper->getSingleClusterSchemaListKeeper(clusterName);
+    assert(singleClusterSchemaListKeeper);
+    for (size_t i = 0; i < indexInfos.size(); i++) {
+        auto schemaId = indexInfos.Get(i).schemaversion();
+        if (indexInfoSchemas.find(schemaId) != indexInfoSchemas.end()) {
+            continue;
+        }
+        auto schema = singleClusterSchemaListKeeper->getTabletSchema(schemaId);
+        assert(schema);
+        indexInfoSchemas[schemaId] = schema;
+    }
+    auto indexConfigs = latestSchema->GetIndexConfigs();
+    proto::EffectiveIndexInfo effectiveIndexInfo;
+    for (const auto& indexConfig : indexConfigs) {
+        bool isIndexConfigExist = true;
+        for (const auto& [tmpSchemaId, tmpSchema] : indexInfoSchemas) {
+            auto tmpConfig = tmpSchema->GetIndexConfig(indexConfig->GetIndexType(), indexConfig->GetIndexName());
+            if (!tmpConfig) {
+                isIndexConfigExist = false;
+                break;
+            }
+        }
+        if (isIndexConfigExist) {
+            effectiveIndexInfo.addIndex(indexConfig);
+        }
+    }
+    return autil::legacy::ToJsonString(effectiveIndexInfo);
 }
 
 void GenerationTask::fillCheckpointInfos(const std::string& clusterName,
@@ -2615,24 +2973,36 @@ bool GenerationTask::doWriteRealtimeInfoForRealtimeJobMode(const string& cluster
     for (KeyValueMap::const_iterator it = ds.begin(); it != ds.end(); it++) {
         jsonMap[it->first] = it->second;
     }
-    const string& realtimeInfoContent = ToJsonString(jsonMap);
-    return doWriteRealtimeInfoToIndex(clusterName, realtimeInfoContent);
+    return doWriteRealtimeInfoToIndex(clusterName, jsonMap);
 }
 
 bool GenerationTask::doUpdateSchema(bool hasOperations, const vector<string>& chgSchemaClusters,
                                     const KeyValueMap& schemaIdMap, const KeyValueMap& opsIdMap)
 {
+    bool isV2Build = _isV2Build;
     KeyValueMap kvMap;
     kvMap["clusterNames"] = ToJsonString(chgSchemaClusters, true);
     kvMap["schemaIdMap"] = ToJsonString(schemaIdMap, true);
     kvMap["operationIdMap"] = ToJsonString(opsIdMap, true);
-    kvMap["buildStep"] = "incremental";
+    kvMap["buildStep"] = config::BUILD_STEP_INC_STR;
     kvMap["buildId"] = ProtoUtil::buildIdToStr(_buildId);
     kvMap["dataDescriptions"] = _dataDescriptionsStr;
+    kvMap["realtimeDataDescription"] = ToJsonString(_realTimeDataDesc, true);
+    if (_realTimeDataDesc.empty()) {
+        kvMap["hasRealtimeDataDesc"] = "false";
+    } else {
+        kvMap["hasRealtimeDataDesc"] = "true";
+    }
     string graphName = "AlterField.graph";
-    if (hasOperations) {
+    if (!isV2Build) {
+        if (!hasOperations) {
+            REPORT(SERVICE_ERROR_CONFIG, "v1 update schema only support modify schema operations [%s]",
+                   _buildId.ShortDebugString().c_str());
+            return false;
+        }
         graphName = "ModifySchema.graph";
     }
+
     if (!_taskFlowManager->loadSubGraph("", graphName, kvMap)) {
         REPORT(SERVICE_ERROR_CONFIG, "load sub graph alterFiled failed [%s]", _buildId.ShortDebugString().c_str());
         return false;
@@ -2654,7 +3024,7 @@ bool GenerationTask::doUpdateSchema(bool hasOperations, const vector<string>& ch
     return true;
 }
 
-bool GenerationTask::doUpdateConfig(const vector<string>& chgSchemaClusters, const std::string& configPath)
+bool GenerationTask::innerUpdateConfig(const std::string& configPath)
 {
     auto allTasks = _taskFlowManager->getAllTask();
     for (auto task : allTasks) {
@@ -2674,6 +3044,10 @@ bool GenerationTask::doUpdateConfig(const vector<string>& chgSchemaClusters, con
 
 bool GenerationTask::isV2Build(const ResourceReaderPtr& resourceReader, bool& hasError)
 {
+    if (_forceUseTabletV2Build) {
+        hasError = false;
+        return true;
+    }
     GraphConfig graphConfig;
     hasError = false;
     auto status = resourceReader->getGraphConfigReturnStatus(graphConfig);
@@ -2718,7 +3092,8 @@ bool GenerationTask::TEST_prepareFakeIndex() const
 string GenerationTask::stepToString(GenerationStep step) const
 {
     if (step == GENERATION_STARTED) {
-        return _currentProcessorStep == BUILD_STEP_FULL ? "full" : "incremental";
+        return _currentProcessorStep == proto::BUILD_STEP_FULL ? config::BUILD_STEP_FULL_STR
+                                                               : config::BUILD_STEP_INC_STR;
     }
     return GenerationTaskBase::stepToString(step);
 }

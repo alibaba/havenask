@@ -28,9 +28,11 @@ template <typename DiskIndexerType, typename MemIndexerType>
 class SingleAttributeBuilder;
 class SingleInvertedIndexBuilder;
 class SingleSummaryBuilder;
+class SingleSourceBuilder;
 class ISinglePrimaryKeyBuilder;
 class SingleDeletionMapBuilder;
 class SingleOperationLogBuilder;
+class SingleFieldMetaBuilder;
 } // namespace indexlib::index
 namespace indexlibv2::index {
 class AttributeDiskIndexer;
@@ -120,6 +122,7 @@ private:
     std::shared_ptr<autil::ThreadPool> _inconsistentModeBuildThreadPool;
 
     bool _isPreparedForWrite = false;
+    bool _parallelable = true;
 
     std::vector<std::unique_ptr<indexlib::index::SingleAttributeBuilder<indexlibv2::index::AttributeDiskIndexer,
                                                                         indexlibv2::index::AttributeMemIndexer>>>
@@ -127,7 +130,9 @@ private:
     std::vector<std::unique_ptr<SingleVirtualAttributeBuilder>> _singleVirtualAttributeBuilders;
     std::vector<std::unique_ptr<indexlib::index::SingleInvertedIndexBuilder>> _singleInvertedIndexBuilders;
     std::vector<std::unique_ptr<indexlib::index::SingleSummaryBuilder>> _singleSummaryBuilders;
+    std::vector<std::unique_ptr<indexlib::index::SingleSourceBuilder>> _singleSourceBuilders;
     std::vector<std::unique_ptr<indexlib::index::ann::SingleAithetaBuilder>> _singleAnnBuilders;
+    std::vector<std::unique_ptr<indexlib::index::SingleFieldMetaBuilder>> _singleFieldMetaBuilders;
     std::vector<std::unique_ptr<indexlib::index::SingleOperationLogBuilder>> _singleOpLogBuilders;
     std::vector<std::unique_ptr<indexlib::index::ISinglePrimaryKeyBuilder>> _singlePrimaryKeyBuilders;
     std::vector<std::unique_ptr<indexlib::index::SingleDeletionMapBuilder>> _singleDeletionMapBuilders;

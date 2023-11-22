@@ -15,12 +15,15 @@
  */
 #include "build_service/workflow/RealtimeBuilderDefine.h"
 
-#include "autil/StringUtil.h"
+#include <iosfwd>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/DataLinkModeUtil.h"
 #include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "fslib/util/FileUtil.h"
-#include "indexlib/util/metrics/MetricProvider.h"
 
 using namespace std;
 using namespace autil;
@@ -56,7 +59,7 @@ bool RealtimeInfoWrapper::load(const std::string& indexRoot)
         }
         _kvMap = std::move(kvMap);
         _valid = true;
-        BS_LOG(INFO, "parse realtime_info_file [%s], content [%s] success.", realtimeInfoFile.c_str(),
+        BS_LOG(DEBUG, "parse realtime_info_file [%s], content [%s] success.", realtimeInfoFile.c_str(),
                fileContent.c_str());
     }
     return true;
@@ -76,6 +79,24 @@ bool RealtimeInfoWrapper::adaptsToDataLinkMode(const std::string& specifiedDataL
 std::string RealtimeInfoWrapper::getBsServerAddress() const
 {
     auto iter = _kvMap.find(config::BS_SERVER_ADDRESS);
+    if (iter != _kvMap.end()) {
+        return iter->second;
+    }
+    return "";
+}
+
+std::string RealtimeInfoWrapper::getAppName() const
+{
+    auto iter = _kvMap.find(config::APP_NAME);
+    if (iter != _kvMap.end()) {
+        return iter->second;
+    }
+    return "";
+}
+
+std::string RealtimeInfoWrapper::getDataTable() const
+{
+    auto iter = _kvMap.find(config::DATA_TABLE_NAME);
     if (iter != _kvMap.end()) {
         return iter->second;
     }

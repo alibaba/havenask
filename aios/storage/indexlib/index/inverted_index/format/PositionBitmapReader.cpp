@@ -49,22 +49,22 @@ PositionBitmapReader::~PositionBitmapReader()
 
 uint32_t PositionBitmapReader::Init(util::ByteSlice* sliceList, uint32_t offset)
 {
-    _sliceReader.Open(sliceList);
-    _sliceReader.Seek(offset);
+    _sliceReader.Open(sliceList).GetOrThrow();
+    _sliceReader.Seek(offset).GetOrThrow();
     return DoInit();
 }
 
 uint32_t PositionBitmapReader::Init(const util::ByteSliceList* sliceList, uint32_t offset)
 {
-    _sliceReader.Open(const_cast<util::ByteSliceList*>(sliceList));
-    _sliceReader.Seek(offset);
+    _sliceReader.Open(const_cast<util::ByteSliceList*>(sliceList)).GetOrThrow();
+    _sliceReader.Seek(offset).GetOrThrow();
     return DoInit();
 }
 
 uint32_t PositionBitmapReader::DoInit()
 {
-    _blockCount = _sliceReader.ReadVUInt32();
-    _totalBitCount = _sliceReader.ReadVUInt32();
+    _blockCount = _sliceReader.ReadVUInt32().GetOrThrow();
+    _totalBitCount = _sliceReader.ReadVUInt32().GetOrThrow();
     uint32_t bitmapSizeInByte = util::Bitmap::GetDumpSize(_totalBitCount);
     assert(bitmapSizeInByte % sizeof(uint32_t) == 0);
 
@@ -75,23 +75,23 @@ uint32_t PositionBitmapReader::DoInit()
     if (_sliceReader.CurrentSliceEnough(blockOffsetsSizeInByte)) {
         _ownBlockOffsets = false;
         _blockOffsets = (uint32_t*)_sliceReader.GetCurrentSliceData();
-        _sliceReader.Seek(_sliceReader.Tell() + blockOffsetsSizeInByte);
+        _sliceReader.Seek(_sliceReader.Tell() + blockOffsetsSizeInByte).GetOrThrow();
     } else {
         _ownBlockOffsets = true;
         _blockOffsets = new uint32_t[_blockCount];
         for (uint32_t i = 0; i < _blockCount; ++i) {
-            _blockOffsets[i] = _sliceReader.ReadUInt32();
+            _blockOffsets[i] = _sliceReader.ReadUInt32().GetOrThrow();
         }
     }
 
     if (_sliceReader.CurrentSliceEnough(bitmapSizeInByte)) {
         _ownBitmapSlots = false;
         _bitmapSlots = (uint32_t*)_sliceReader.GetCurrentSliceData();
-        _sliceReader.Seek(_sliceReader.Tell() + bitmapSizeInByte);
+        _sliceReader.Seek(_sliceReader.Tell() + bitmapSizeInByte).GetOrThrow();
     } else {
         _ownBitmapSlots = true;
         _bitmapSlots = (uint32_t*)(new uint8_t[bitmapSizeInByte]);
-        _sliceReader.Read((void*)_bitmapSlots, bitmapSizeInByte);
+        _sliceReader.Read((void*)_bitmapSlots, bitmapSizeInByte).GetOrThrow();
     }
     _bitmap.MountWithoutRefreshSetCount(_totalBitCount, _bitmapSlots);
 

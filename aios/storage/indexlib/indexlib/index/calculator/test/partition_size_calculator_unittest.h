@@ -1,3 +1,4 @@
+#pragma once
 #include "indexlib/common_define.h"
 #include "indexlib/config/schema_configurator.h"
 #include "indexlib/index/calculator/partition_size_calculator.h"

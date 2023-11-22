@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DATADESCRIPTIONS_H
-#define ISEARCH_BS_DATADESCRIPTIONS_H
+#pragma once
 
-#include "autil/legacy/jsonizable.h"
-#include "build_service/common_define.h"
+#include <assert.h>
+#include <stddef.h>
+#include <vector>
+
 #include "build_service/proto/DataDescription.h"
 #include "build_service/util/Log.h"
 
@@ -63,5 +64,3 @@ private:
 };
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_DATADESCRIPTIONS_H

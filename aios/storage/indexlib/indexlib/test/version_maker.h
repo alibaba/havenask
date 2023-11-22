@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_VERSION_MAKER_H
-#define __INDEXLIB_VERSION_MAKER_H
+#pragma once
 
 #include <memory>
 
@@ -38,5 +37,3 @@ private:
 
 DEFINE_SHARED_PTR(VersionMaker);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_VERSION_MAKER_H

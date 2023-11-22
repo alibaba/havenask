@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DATADESCRIPTION_H
-#define ISEARCH_BS_DATADESCRIPTION_H
+#pragma once
+
+#include <stddef.h>
+#include <string>
+#include <vector>
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
@@ -63,6 +66,7 @@ public:
     size_t getParserConfigCount() const { return parserConfigs.size(); }
 
     const ParserConfig& getParserConfig(size_t idx) const { return parserConfigs[idx]; }
+    bool empty() const { return kvMap.empty(); }
 
 public:
     std::vector<ParserConfig> parserConfigs;
@@ -75,5 +79,3 @@ private:
 BS_TYPEDEF_PTR(DataDescription);
 
 }} // namespace build_service::proto
-
-#endif // ISEARCH_BS_DATADESCRIPTION_H

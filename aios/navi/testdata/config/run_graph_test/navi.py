@@ -44,6 +44,11 @@ def config(config_path, meta_info):
                     "processing_size" : 1,
                     "queue_size" : 1,
                 },
+                "slow_slow_slow_queue" : {
+                    "thread_num" : 4,
+                    "processing_size" : 1,
+                    "queue_size" : 0,
+                },
                 "fast_queue" : {
                     "thread_num" : 4,
                     "processing_size" : 10,

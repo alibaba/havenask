@@ -19,6 +19,7 @@
 
 #include "autil/mem_pool/pool_allocator.h"
 #include "indexlib/document/normal/ModifiedTokens.h"
+#include "indexlib/index/inverted_index/InvertedIndexFields.h"
 #include "indexlib/index/inverted_index/InvertedIndexUtil.h"
 #include "indexlib/index/inverted_index/builtin_index/bitmap/BitmapPostingWriter.h"
 #include "indexlib/index/inverted_index/builtin_index/bitmap/InMemBitmapIndexSegmentReader.h"
@@ -45,6 +46,7 @@ public:
 
     void AddToken(const index::DictKeyInfo& hashKey, pospayload_t posPayload);
     void EndDocument(const document::IndexDocument& indexDocument);
+    void EndDocument(const indexlibv2::index::InvertedIndexFields* indexFields, docid64_t docId);
     void UpdateTerm(docid_t docId, index::DictKeyInfo termKey, document::ModifiedTokens::Operation op);
     void Dump(const file_system::DirectoryPtr& dir, autil::mem_pool::PoolBase* dumpPool,
               const std::vector<docid_t>* old2NewDocId);

@@ -45,8 +45,8 @@ public:
     TermPostingInfo GetTermPostingInfo() const override;
     autil::mem_pool::Pool* GetSessionPool() const override;
 
-    docid_t SeekDoc(docid_t docId) override;
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    docid64_t SeekDoc(docid64_t docId) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
 
     bool HasPosition() const override { return _postingIterators[_cursor].second->HasPosition(); }
     void Unpack(TermMatchData& termMatchData) override { _postingIterators[_cursor].second->Unpack(termMatchData); }

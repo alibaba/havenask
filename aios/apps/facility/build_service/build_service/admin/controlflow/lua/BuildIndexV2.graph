@@ -69,6 +69,7 @@ function graphDef()
       clusterParam["buildStep"] = Graph.parameter["buildStep"]
       clusterParam["fullBuildProcessLastSwiftSrc"] = Graph.parameter["fullBuildProcessLastSwiftSrc"]
       clusterParam["disableIncBuilder"] = Graph.parameter["disableIncBuilder"]
+      clusterParam["hasRealtimeDataDesc"] = Graph.parameter["hasRealtimeDataDesc"]
       clusterParam["disableIncProcessor"] = Graph.parameter["disableIncProcessor"]
       clusterParam["hasIncProcessor"] = hasIncProcessorMap[v]
       clusterParam["isTablet"] = "true"

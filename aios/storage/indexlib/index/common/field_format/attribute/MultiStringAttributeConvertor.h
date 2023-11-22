@@ -203,7 +203,7 @@ inline bool MultiStringAttributeConvertor::DecodeLiteralField(const autil::Strin
     for (uint32_t i = 0; i < count; i++) {
         tmp.push_back(std::string(multiStr[i].data(), multiStr[i].size()));
     }
-    value = autil::StringUtil::toString(tmp, "");
+    value = autil::StringUtil::toString(tmp, _separator);
     return true;
 }
 

@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "swift/client/helper/SwiftWriterAsyncHelper.h"
+#include "swift/client/helper/FixedTimeoutSwiftWriterAsyncHelper.h"
 #include "unittest/unittest.h"
 
 namespace swift {
@@ -22,6 +23,14 @@ public:
                       size_t count,
                       swift::client::SwiftWriteCallbackItem::WriteCallbackFunc callback,
                       int64_t timeout));
+};
+
+class MockFixedTimeoutSwiftWriterAsyncHelper : public swift::client::FixedTimeoutSwiftWriterAsyncHelper {
+public:
+    MOCK_METHOD3(write,
+                 void(common::MessageInfo *msgInfos,
+                      size_t count,
+                      swift::client::SwiftWriteCallbackItem::WriteCallbackFunc callback));
 };
 
 } // namespace testlib

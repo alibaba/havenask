@@ -1,5 +1,20 @@
 package com.taobao.search.iquan.core.rel.programs;
 
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
 import com.taobao.search.iquan.core.rel.ops.logical.CTEConsumer;
@@ -11,29 +26,21 @@ import org.apache.calcite.rel.RelVisitor;
 import org.apache.calcite.rel.core.RelFactories;
 import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rel.logical.LogicalCalc;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexBuilder;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexProgram;
+import org.apache.calcite.rex.RexShuttle;
+import org.apache.calcite.rex.RexUtil;
+import org.apache.calcite.rex.RexVisitor;
+import org.apache.calcite.rex.RexVisitorImpl;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.util.Pair;
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 public class CTEOptimizer {
-
-    private static class CTEDepend {
-
-        public final CTEConsumer cte;
-        public final List<LogicalCalc> deps = new ArrayList<>();
-
-        public CTEDepend(CTEConsumer cte) {
-            this.cte = cte;
-        }
-    }
 
     private static final Logger logger = LoggerFactory.getLogger(CTEOptimizer.class);
     private final Function<RelNode, RelNode> optimizer;
@@ -43,12 +50,10 @@ public class CTEOptimizer {
     private final TreeMap<Integer, RelNode> optRoots = new TreeMap<>();
     private final TreeMap<Integer, CTEDepend> relDeps = new TreeMap<>();
     private final IdentityHashMap<LogicalCalc, RelNode> relRewrites = new IdentityHashMap<>();
-
     public CTEOptimizer(
             RelOptCluster cluster,
             Function<RelNode, RelNode> optimizer,
-            IquanConfigManager config)
-    {
+            IquanConfigManager config) {
         this.optimizer = optimizer;
         this.cteOptVer = config.getInteger(SqlConfigOptions.IQUAN_CTE_OPT_VER);
         this.relBuilder = RelFactories.LOGICAL_BUILDER.create(cluster, null);
@@ -58,46 +63,6 @@ public class CTEOptimizer {
     public RelNode optmize(RelNode rootNode) {
         subOptimize(rootNode);
         return applyOptimize();
-    }
-
-    class DependCollector extends RelVisitor {
-
-        @Override
-        public void visit(RelNode node, int ordinal, RelNode parent) {
-            if (! collect(node, ordinal)) {
-                super.visit(node, ordinal, parent);
-            }
-        }
-
-        private boolean collect(RelNode node, int ordinal) {
-            if (node instanceof CTEConsumer) {
-                addDepend((CTEConsumer) node, null);
-                return true;
-            }
-            if (! (node instanceof LogicalCalc)) {
-                return false;
-            }
-            LogicalCalc calc = (LogicalCalc) node;
-            RelNode child = calc.getInput();
-            if (! (child instanceof CTEConsumer)) {
-                return false;
-            }
-            CTEConsumer cte = (CTEConsumer) child;
-            addDepend(cte, calc);
-            return true;
-        }
-
-        private void addDepend(CTEConsumer cte, LogicalCalc calc) {
-            relDeps.compute(
-                    cte.getProducer().getIndex(),
-                    (k, v) -> {
-                        if (v == null) {
-                            v = new CTEDepend(cte);
-                        }
-                        v.deps.add(calc);
-                        return v;
-                    });
-        }
     }
 
     private void subOptimize(RelNode rootNode) {
@@ -112,8 +77,7 @@ public class CTEOptimizer {
             Map.Entry<Integer, CTEDepend> entry = relDeps.lowerEntry(rootIndex);
             if (entry == null) {
                 curNode = null;
-            }
-            else {
+            } else {
                 curNode = pushDownDepend(entry.getValue());
                 rootIndex = entry.getKey();
             }
@@ -125,11 +89,10 @@ public class CTEOptimizer {
     }
 
     private RelNode pushDownDepend(CTEDepend dep) {
-        assert ! dep.deps.isEmpty() : "empty dep list";
+        assert !dep.deps.isEmpty() : "empty dep list";
         if (dep.deps.size() == 1) {
             return pushCalcPastCTE(dep.deps.get(0), dep.cte);
-        }
-        else {
+        } else {
             MergeCalcPastCTE pusher = new MergeCalcPastCTE();
             return pusher.process(dep.deps, dep.cte);
         }
@@ -157,6 +120,70 @@ public class CTEOptimizer {
         return newProducer;
     }
 
+    private RelNode applyOptimize() {
+        assert !optRoots.isEmpty() : "empty sub roots";
+        ApplyRewriteShuttle shuttle = new ApplyRewriteShuttle();
+        Iterator<Map.Entry<Integer, RelNode>> iterator =
+                optRoots.entrySet().iterator();
+        Map.Entry<Integer, RelNode> curEntry = iterator.next();
+        while (iterator.hasNext()) {
+            curEntry = iterator.next();
+            RelNode newRoot = curEntry.getValue().accept(shuttle);
+            curEntry.setValue(newRoot);
+        }
+        return curEntry.getValue();
+    }
+
+    private static class CTEDepend {
+
+        public final CTEConsumer cte;
+        public final List<LogicalCalc> deps = new ArrayList<>();
+
+        public CTEDepend(CTEConsumer cte) {
+            this.cte = cte;
+        }
+    }
+
+    class DependCollector extends RelVisitor {
+
+        @Override
+        public void visit(RelNode node, int ordinal, RelNode parent) {
+            if (!collect(node, ordinal)) {
+                super.visit(node, ordinal, parent);
+            }
+        }
+
+        private boolean collect(RelNode node, int ordinal) {
+            if (node instanceof CTEConsumer) {
+                addDepend((CTEConsumer) node, null);
+                return true;
+            }
+            if (!(node instanceof LogicalCalc)) {
+                return false;
+            }
+            LogicalCalc calc = (LogicalCalc) node;
+            RelNode child = calc.getInput();
+            if (!(child instanceof CTEConsumer)) {
+                return false;
+            }
+            CTEConsumer cte = (CTEConsumer) child;
+            addDepend(cte, calc);
+            return true;
+        }
+
+        private void addDepend(CTEConsumer cte, LogicalCalc calc) {
+            relDeps.compute(
+                    cte.getProducer().getIndex(),
+                    (k, v) -> {
+                        if (v == null) {
+                            v = new CTEDepend(cte);
+                        }
+                        v.deps.add(calc);
+                        return v;
+                    });
+        }
+    }
+
     private class MergeCalcPastCTE {
 
         List<List<RexNode>> filtersList;
@@ -174,7 +201,7 @@ public class CTEOptimizer {
             }
             expandCalc(calcList);
             initFilterPush();
-            if (! pushProjectFilter(consumer)) {
+            if (!pushProjectFilter(consumer)) {
                 return producer;
             }
             updateRemainCalc(calcList);
@@ -210,7 +237,7 @@ public class CTEOptimizer {
                 List<RexNode> newFilters = new ArrayList<>(curFilters.size());
                 newFiltersList.add(newFilters);
                 for (int j = 0; j < curFilters.size(); ++j) {
-                    if (! hashSet.contains(curKeys.get(j))) {
+                    if (!hashSet.contains(curKeys.get(j))) {
                         newFilters.add(curFilters.get(j));
                     }
                 }
@@ -254,14 +281,12 @@ public class CTEOptimizer {
 
         private List<Pair<RexNode, String>> makeRexKeys(
                 List<RexNode> rexNodes,
-                List<List<Pair<RexNode, String>>> keyCache)
-        {
+                List<List<Pair<RexNode, String>>> keyCache) {
             List<Pair<RexNode, String>> keys = rexNodes.stream()
                     .map(o -> {
                         if (RexUtil.isDeterministic(o)) {
                             return RexUtil.makeKey(o);
-                        }
-                        else {
+                        } else {
                             return null;
                         }
                     })
@@ -318,8 +343,7 @@ public class CTEOptimizer {
             refMapping = new LinkedHashMap<>(fieldCount);
             for (int i = inputRefs.nextSetBit(0), j = 0;
                  i >= 0;
-                 i = inputRefs.nextSetBit(i + 1), ++j)
-            {
+                 i = inputRefs.nextSetBit(i + 1), ++j) {
                 refMapping.put(i, j);
             }
         }
@@ -377,8 +401,7 @@ public class CTEOptimizer {
             assert depend != null : "invalid cte depend";
             if (enableCTEInline(depend.deps.size(), optProducer.getHints())) {
                 return optProducer.getInput();
-            }
-            else {
+            } else {
                 return optProducer;
             }
         }
@@ -403,24 +426,10 @@ public class CTEOptimizer {
             if (other instanceof LogicalCalc) {
                 return visit((LogicalCalc) other);
             }
-            if (! (other instanceof CTEConsumer)) {
+            if (!(other instanceof CTEConsumer)) {
                 return super.visit(other);
             }
             return visit((CTEConsumer) other);
         }
-    }
-
-    private RelNode applyOptimize() {
-        assert ! optRoots.isEmpty() : "empty sub roots";
-        ApplyRewriteShuttle shuttle = new ApplyRewriteShuttle();
-        Iterator<Map.Entry<Integer, RelNode>> iterator =
-                optRoots.entrySet().iterator();
-        Map.Entry<Integer, RelNode> curEntry = iterator.next();
-        while (iterator.hasNext()) {
-            curEntry = iterator.next();
-            RelNode newRoot = curEntry.getValue().accept(shuttle);
-            curEntry.setValue(newRoot);
-        }
-        return curEntry.getValue();
     }
 }

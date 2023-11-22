@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RAWDOCBUILDERCONSUMER_H
-#define ISEARCH_BS_RAWDOCBUILDERCONSUMER_H
+#pragma once
 
+#include <stdint.h>
+
+#include "alog/Logger.h"
 #include "build_service/builder/Builder.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common_define.h"
+#include "build_service/document/RawDocument.h"
 #include "build_service/util/Log.h"
 #include "build_service/workflow/Consumer.h"
+#include "build_service/workflow/FlowError.h"
+#include "build_service/workflow/StopOption.h"
+
 namespace build_service { namespace workflow {
 
 class RawDocBuilderConsumer : public RawDocConsumer
@@ -55,5 +62,3 @@ private:
 BS_TYPEDEF_PTR(RawDocBuilderConsumer);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_RAWDOCBUILDERCONSUMER_H

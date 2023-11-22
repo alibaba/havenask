@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONDISKPARTITIONDATATEST_H
-#define __INDEXLIB_ONDISKPARTITIONDATATEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/on_disk_partition_data.h"
@@ -31,5 +30,3 @@ INDEXLIB_UNIT_TEST_CASE(OnDiskPartitionDataTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(OnDiskPartitionDataTest, TestGetPartitionMeta);
 INDEXLIB_UNIT_TEST_CASE(OnDiskPartitionDataTest, TestClone);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONDISKPARTITIONDATATEST_H

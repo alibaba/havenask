@@ -15,11 +15,17 @@
  */
 #pragma once
 
+namespace swift::client {
+class SwiftClient;
+class SwiftReader;
+} // namespace swift::client
+
 namespace build_service { namespace common {
 
 struct SwiftParam {
     SwiftParam()
-        : reader(nullptr)
+        : swiftClient(nullptr)
+        , reader(nullptr)
         , topicName("")
         , isMultiTopic(false)
         , disableSwiftMaskFilter(false)
@@ -28,10 +34,11 @@ struct SwiftParam {
         , to(655535)
     {
     }
-    SwiftParam(swift::client::SwiftReader* reader, const std::string& topicName, bool isMultiTopic,
-               const std::vector<std::pair<uint8_t, uint8_t>>& maskFilterPairs, uint32_t from, uint32_t to,
-               bool disableSwiftInnerMaskFilter = false)
-        : reader(reader)
+    SwiftParam(swift::client::SwiftClient* client, swift::client::SwiftReader* reader, const std::string& topicName,
+               bool isMultiTopic, const std::vector<std::pair<uint8_t, uint8_t>>& maskFilterPairs, uint32_t from,
+               uint32_t to, bool disableSwiftInnerMaskFilter = false)
+        : swiftClient(client)
+        , reader(reader)
         , topicName(topicName)
         , isMultiTopic(isMultiTopic)
         , disableSwiftMaskFilter(disableSwiftInnerMaskFilter)
@@ -40,6 +47,7 @@ struct SwiftParam {
         , to(to)
     {
     }
+    swift::client::SwiftClient* swiftClient = nullptr;
     swift::client::SwiftReader* reader = nullptr;
     std::string topicName;
     bool isMultiTopic;

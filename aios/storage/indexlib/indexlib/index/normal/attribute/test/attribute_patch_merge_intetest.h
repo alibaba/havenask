@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEPATCHMERGETEST_H
-#define __INDEXLIB_ATTRIBUTEPATCHMERGETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/partition_state_machine.h"
@@ -54,5 +53,3 @@ INDEXLIB_UNIT_TEST_CASE(AttributePatchMergeTest, TestMergeTwoSegsForLatterHasNoP
 INDEXLIB_UNIT_TEST_CASE(AttributePatchMergeTest, TestMergeSingleSegment);
 INDEXLIB_UNIT_TEST_CASE(AttributePatchMergeTest, TestMergeWithTwoMergePlan);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTEPATCHMERGETEST_H

@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel.visitor.rexshuttle;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.taobao.search.iquan.client.common.json.function.JsonTvfFunction;
 import com.taobao.search.iquan.client.common.json.function.JsonUdxfFunction;
 import com.taobao.search.iquan.core.api.schema.FieldType;
@@ -17,13 +21,10 @@ import org.apache.calcite.sql.SqlOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-
 public class RexOptimizeInfoRewriteShuttle extends RexShuttle {
     private static final Logger logger = LoggerFactory.getLogger(RexOptimizeInfoRewriteShuttle.class);
-    private long rewriteNum = 0;
-
     private final RexBuilder rexBuilder;
+    private long rewriteNum = 0;
 
     public RexOptimizeInfoRewriteShuttle(RexBuilder rexBuilder) {
         this.rexBuilder = rexBuilder;

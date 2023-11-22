@@ -44,7 +44,8 @@ cc_library(
         '//aios/autil:option_parser', '//aios/autil:string_helper',
         '//aios/autil:thread', '//aios/autil:time',
         '//aios/filesystem/fslib:fslib-framework', '//aios/network/arpc',
-        '//aios/network/http_arpc'
+        '//aios/network/http_arpc',
+        '//aios/network/arpc/arpc/metric:kmonitor_anet_metric'
     ] + ['simple_data_client'])
 )
 cc_library(

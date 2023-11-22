@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _NAVI_LOGGINGEVENT_H_
-#define _NAVI_LOGGINGEVENT_H_
+#pragma once
 
 #include "navi/common.h"
 #include "autil/DataBuffer.h"
@@ -25,10 +24,13 @@
 #include <string>
 #include <sys/syscall.h>
 #include <sys/time.h>
+#include <google/protobuf/map.h>
 
 namespace navi {
 
 class LoggingEventDef;
+class StringHashTable;
+class SymbolTableDef;
 
 class LoggingEvent
 {
@@ -44,9 +46,15 @@ public:
 public:
     static const char *levelStrByLevel(LogLevel level_);
 public:
-    void fillProto(LoggingEventDef *eventDef) const;
-    void serialize(autil::DataBuffer &dataBuffer) const;
-    void deserialize(autil::DataBuffer &dataBuffer);
+    void toProto(LoggingEventDef *eventDef,
+                 StringHashTable *stringHashTable) const;
+    void fromProto(const LoggingEventDef &eventDef,
+                   const SymbolTableDef *symbolTableDef = nullptr);
+private:
+    static std::string getStrFromHash(
+        ::google::protobuf::uint64 hash,
+        const ::google::protobuf::Map<::google::protobuf::uint64, std::string>
+            &strTableMap);
 public:
     std::string name;
     void *object;
@@ -61,6 +69,7 @@ public:
     int64_t tid;
     struct timeval time;
 };
-}
 
-#endif //_NAVI_LOGGINGEVENT_H_
+NAVI_TYPEDEF_PTR(LoggingEvent);
+
+}

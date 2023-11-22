@@ -41,8 +41,8 @@ FSResult<size_t> CompressFileStream::Read(void* buffer, size_t length, size_t of
     return fileReader->Read(buffer, length, offset, option);
 }
 
-future_lite::Future<size_t> CompressFileStream::ReadAsync(void* buffer, size_t length, size_t offset,
-                                                          file_system::ReadOption option)
+future_lite::Future<FSResult<size_t>> CompressFileStream::ReadAsync(void* buffer, size_t length, size_t offset,
+                                                                    file_system::ReadOption option)
 {
     std::shared_ptr<file_system::CompressFileReader> fileReader = _fileReader;
     if (IsSupportConcurrency()) {

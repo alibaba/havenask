@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <sys/stat.h>
 
+#include "aios/network/arpc/arpc/metric/KMonitorANetServerMetricReporter.h"
 #include "aios/network/http_arpc/HTTPRPCServer.h"
 #include "autil/EnvUtil.h"
 #include "autil/Lock.h"
@@ -97,7 +98,9 @@ public:
         , reInit(false)
         , isStopped(false)
         , recommendPort(false)
-        , idleSleepTimeUs(IDLE_SLEEP_TIME_US) {}
+        , idleSleepTimeUs(IDLE_SLEEP_TIME_US)
+        , enableANetMetric(false)
+        , enableARPCMetric(false) {}
     ~WorkerBaseImpl() {}
 
     std::string logConfFile;
@@ -121,6 +124,8 @@ public:
     bool isStopped;
     bool recommendPort;
     uint32_t idleSleepTimeUs;
+    bool enableANetMetric;
+    bool enableARPCMetric;
 };
 
 WorkerBase::WorkerBase() : _impl(new WorkerBaseImpl) {}
@@ -203,6 +208,8 @@ void WorkerBase::initOptions() {
     getOptionParser().addOption("", "--exclusiveListenThread", "exclusiveListenThread", OptionParser::STORE_TRUE);
     getOptionParser().addOption("", "--ldLibraryPath", "ldLibraryPath", OptionParser::OPT_STRING, false);
     getOptionParser().addOption("", "--idleSleepTimeUs", "idleSleepTimeUs", IDLE_SLEEP_TIME_US);
+    getOptionParser().addOption("", "--enableANetMetric", "enableANetMetric", false);
+    getOptionParser().addOption("", "--enableARPCMetric", "enableARPCMetric", false);
     doInitOptions();
 }
 
@@ -220,6 +227,8 @@ void WorkerBase::extractOptions() {
     getOptionParser().getOptionValue("exclusiveListenThread", _impl->exclusiveListenThread);
     getOptionParser().getOptionValue("ldLibraryPath", _impl->ldLibraryPath);
     getOptionParser().getOptionValue("idleSleepTimeUs", _impl->idleSleepTimeUs);
+    getOptionParser().getOptionValue("enableANetMetric", _impl->enableANetMetric);
+    getOptionParser().getOptionValue("enableARPCMetric", _impl->enableARPCMetric);
     doExtractOptions();
 }
 
@@ -348,6 +357,18 @@ bool WorkerBase::initRPCServer() {
     if (!_impl->rpcServer) {
         AUTIL_LOG(ERROR, "alloc ANetRPCServer failed.");
         return false;
+    }
+    if (_impl->enableANetMetric || _impl->enableARPCMetric) {
+        arpc::KMonitorANetMetricReporterConfig metricConfig;
+        metricConfig.metricLevel = kmonitor::NORMAL;
+        metricConfig.anetConfig.enableANetMetric = _impl->enableANetMetric;
+        metricConfig.arpcConfig.enableArpcMetric = _impl->enableARPCMetric;
+        auto metricReporter = std::make_shared<arpc::KMonitorANetServerMetricReporter>(metricConfig);
+        if (!metricReporter->init(_impl->transport)) {
+            AUTIL_LOG(WARN, "init anet metric reporter failed");
+            return false;
+        }
+        _impl->rpcServer->SetMetricReporter(metricReporter);
     }
     return true;
 }

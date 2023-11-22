@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#include <memory>
+#include <string>
+
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "build_service/web_toolkit/base/TemplateDataAccessor.h"

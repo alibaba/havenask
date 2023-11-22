@@ -15,15 +15,27 @@
  */
 #include "indexlib/framework/TabletPortalBase.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <iostream>
+
 #include "autil/StringUtil.h"
+#include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/IDocumentParser.h"
+#include "indexlib/framework/ITablet.h"
+#include "indexlib/framework/ITabletReader.h"
+#include "indexlib/framework/IndexRoot.h"
+#include "indexlib/framework/Locator.h"
 #include "indexlib/framework/Tablet.h"
 #include "indexlib/framework/TabletCenter.h"
 #include "indexlib/framework/TabletInfos.h"
+#include "indexlib/framework/TabletMetrics.h"
+#include "indexlib/framework/Version.h"
 #include "indexlib/util/counter/CounterMap.h"
 
 namespace indexlibv2::framework {

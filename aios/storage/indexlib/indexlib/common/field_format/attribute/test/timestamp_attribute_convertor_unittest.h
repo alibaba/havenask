@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TIMESTAMPATTRIBUTECONVERTORTEST_H
-#define __INDEXLIB_TIMESTAMPATTRIBUTECONVERTORTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/attribute/timestamp_attribute_convertor.h"
 #include "indexlib/common_define.h"
@@ -28,5 +27,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(TimestampAttributeConvertorTest, TestCaseForSimple);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_TIMESTAMPATTRIBUTECONVERTORTEST_H

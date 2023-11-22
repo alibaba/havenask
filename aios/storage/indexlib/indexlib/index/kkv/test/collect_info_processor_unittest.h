@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_COLLECT_INFO_PROCESSOR_TEST_H
-#define __INDEXLIB_COLLECT_INFO_PROCESSOR_TEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common_define.h"
@@ -57,5 +56,3 @@ INDEXLIB_UNIT_TEST_CASE(CollectInfoProcessorTest, TestSortByTs);
 INDEXLIB_UNIT_TEST_CASE(CollectInfoProcessorTest, TestMultiLayerResortBySkey);
 INDEXLIB_UNIT_TEST_CASE(CollectInfoProcessorTest, TestMultiLayerResortBySortValue);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_COLLECT_INFO_PROCESSOR_TEST_H

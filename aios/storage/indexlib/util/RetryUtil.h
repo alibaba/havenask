@@ -15,8 +15,6 @@
  */
 #pragma once
 
-#include <cassert>
-#include <cmath>
 #include <functional>
 
 #include "autil/Log.h"

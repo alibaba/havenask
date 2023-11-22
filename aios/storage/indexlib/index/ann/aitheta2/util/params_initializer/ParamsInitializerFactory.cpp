@@ -30,9 +30,9 @@ ParamsInitializerPtr ParamsInitializerFactory::Create(const std::string& name, s
     } else if (name == GPU_QC_SEARCHER) {
         initializer.reset(new GpuQcParamsInitializer(docCount));
     } else if (name == HNSW_SEARCHER || name == HNSW_BUILDER || name == HNSW_STREAMER || name == OSWG_STREAMER) {
-        initializer.reset(new HnswParamsInitializer());
+        initializer.reset(new HnswParamsInitializer(docCount));
     } else if (name == QGRAPH_SEARCHER || name == QGRAPH_BUILDER || name == QGRAPH_STREAMER) {
-        initializer.reset(new QGraphParamsInitializer());
+        initializer.reset(new QGraphParamsInitializer(docCount));
     } else {
         AUTIL_LOG(ERROR, "unknown searcher/builder/streamer name[%s]", name.c_str());
     }

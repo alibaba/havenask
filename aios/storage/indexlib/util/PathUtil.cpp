@@ -15,8 +15,16 @@
  */
 #include "indexlib/util/PathUtil.h"
 
+#include <algorithm>
+#include <cstring>
+#include <iosfwd>
+#include <stdint.h>
+#include <unistd.h>
+
 #include "autil/EnvUtil.h"
-#include "fslib/fslib.h"
+#include "fslib/common/common_define.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/FileSystem.h"
 
 using namespace std;
 
@@ -78,12 +86,6 @@ string PathUtil::JoinPath(const string& path, const string& name) noexcept
     }
 
     return path + name;
-}
-
-string PathUtil::JoinPath(const std::string& basePath, const std::string& path, const std::string& name) noexcept
-{
-    string p = JoinPath(basePath, path);
-    return JoinPath(p, name);
 }
 
 string PathUtil::NormalizePath(const string& path) noexcept

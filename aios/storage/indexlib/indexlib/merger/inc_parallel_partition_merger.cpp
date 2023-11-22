@@ -15,17 +15,29 @@
  */
 #include "indexlib/merger/inc_parallel_partition_merger.h"
 
-#include "indexlib/file_system/IFileSystem.h"
-#include "indexlib/index_base/branch_fs.h"
+#include <algorithm>
+#include <cstddef>
+
+#include "alog/Logger.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
+#include "indexlib/index_base/common_branch_hinter_option.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/index_base/version_committer.h"
 #include "indexlib/merger/custom_partition_merger.h"
+#include "indexlib/merger/dump_strategy.h"
 #include "indexlib/merger/parallel_partition_data_merger.h"
+#include "indexlib/merger/segment_directory.h"
 #include "indexlib/merger/sorted_index_partition_merger.h"
-#include "indexlib/plugin/index_plugin_loader.h"
-#include "indexlib/plugin/plugin_manager.h"
+#include "indexlib/table/merge_task_description.h"
 #include "indexlib/table/table_factory_wrapper.h"
 #include "indexlib/table/table_plugin_loader.h"
-#include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace indexlib::common;

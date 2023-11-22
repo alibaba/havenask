@@ -15,18 +15,29 @@
  */
 #include "indexlib/framework/TabletCommitter.h"
 
+#include <algorithm>
+#include <future>
+#include <iterator>
+#include <set>
+#include <type_traits>
+#include <unordered_map>
 #include <utility>
 
 #include "ITabletImporter.h"
 #include "autil/TimeUtility.h"
-#include "indexlib/base/PathUtil.h"
-#include "indexlib/config/TabletSchema.h"
-#include "indexlib/file_system/Directory.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/IFileSystem.h"
-#include "indexlib/file_system/JsonUtil.h"
 #include "indexlib/file_system/MountOption.h"
 #include "indexlib/framework/CommitOptions.h"
 #include "indexlib/framework/IdGenerator.h"
+#include "indexlib/framework/LevelInfo.h"
+#include "indexlib/framework/Locator.h"
+#include "indexlib/framework/Segment.h"
+#include "indexlib/framework/SegmentDescriptions.h"
+#include "indexlib/framework/SegmentInfo.h"
+#include "indexlib/framework/SegmentStatistics.h"
 #include "indexlib/framework/VersionCommitter.h"
 #include "indexlib/framework/cleaner/DropIndexCleaner.h"
 #include "indexlib/framework/index_task/Constant.h"
@@ -52,7 +63,6 @@ void TabletCommitter::Init(const std::shared_ptr<VersionMerger>& versionMerger,
     _lastCommitSegmentId = onDiskVersion.GetLastSegmentId();
     _lastPublicVersion = onDiskVersion;
 }
-
 bool TabletCommitter::NeedCommit() const
 {
     std::lock_guard<std::mutex> guard(_mutex);
@@ -99,41 +109,22 @@ void TabletCommitter::Import(const std::vector<Version>& versions, const std::sh
     _commitQueue.emplace_back(Operation::ImportOp(versions, importer, options));
 }
 
-void TabletCommitter::HandleIndexTask(const std::string& taskType, const std::string& taskName,
-                                      const std::map<std::string, std::string>& params, Action action,
-                                      const std::string& comment)
+void TabletCommitter::HandleIndexTask(const IndexTaskMeta& meta, Action action)
 {
     std::lock_guard<std::mutex> guard(_mutex);
-    _commitQueue.emplace_back(Operation::IndexTaskOp(taskType, taskName, params, action, comment));
+    _commitQueue.emplace_back(Operation::IndexTaskOp(meta, action));
 }
 
-std::vector<std::shared_ptr<IndexTaskMeta>>
-TabletCommitter::CalculateIndexTasks(const std::vector<std::shared_ptr<IndexTaskMeta>>& onDiskIndexTasks,
-                                     const std::vector<std::shared_ptr<IndexTaskMeta>>& mergeVersionIndexTasks,
-                                     int64_t currentTimeInSec) const
+bool TabletCommitter::HasIndexTask(const std::string& taskType, const std::string& taskTraceId) const
 {
-    std::map<std::pair<std::string, std::string>, std::shared_ptr<IndexTaskMeta>> stoppedTasks;
-    for (const auto& task : mergeVersionIndexTasks) {
-        if (task->state == IndexTaskMeta::DONE || task->state == IndexTaskMeta::ABORTED) {
-            stoppedTasks[std::make_pair(task->taskType, task->taskName)] = task;
+    std::lock_guard<std::mutex> guard(_mutex);
+    for (const auto& op : _commitQueue) {
+        if (op.IsIndexTask() && op.GetIndexTaskMeta().GetTaskType() == taskType &&
+            op.GetIndexTaskMeta().GetTaskTraceId() == taskTraceId) {
+            return true;
         }
     }
-    std::vector<std::shared_ptr<IndexTaskMeta>> result;
-    for (const auto& task : onDiskIndexTasks) {
-        auto iter = stoppedTasks.find(std::make_pair(task->taskType, task->taskName));
-        if (iter != stoppedTasks.end()) {
-            const auto& stoppedTask = iter->second;
-            if (currentTimeInSec - stoppedTask->endTimeInSecs < indexlib::DEFAULT_DONE_TASK_TTL_IN_SECONDS) {
-                result.emplace_back(iter->second);
-            } else {
-                AUTIL_LOG(INFO, "task[%s][%s] exceeds stopped task ttl [%ld]", task->taskType.c_str(),
-                          task->taskName.c_str(), indexlib::DEFAULT_DONE_TASK_TTL_IN_SECONDS);
-            }
-        } else {
-            result.emplace_back(task);
-        }
-    }
-    return result;
+    return false;
 }
 
 std::pair<Status, Version>
@@ -177,7 +168,8 @@ TabletCommitter::GenerateVersionWithoutId(const std::shared_ptr<TabletData>& tab
     Version version;
     version.SetIndexTaskHistory(tabletData->GetOnDiskVersion().GetIndexTaskHistory());
 
-    std::vector<std::shared_ptr<IndexTaskMeta>> mergedVersionIndexTasks;
+    const auto& lastOnDiskVersion = tabletData->GetOnDiskVersion();
+
     if (mergedVersionInfo) {
         auto onDiskVersion = tabletData->GetOnDiskVersion();
         // when full build, with tmp build root, base version empty
@@ -202,13 +194,9 @@ TabletCommitter::GenerateVersionWithoutId(const std::shared_ptr<TabletData>& tab
             RETURN2_IF_STATUS_ERROR(status, framework::Version(), "mount version [%d] failed",
                                     mergedVersionInfo->targetVersion.GetVersionId());
             version = mergedVersionInfo->targetVersion.Clone();
-            mergedVersionIndexTasks = version.GetIndexTasks();
         }
     }
-    const auto& lastOnDiskVersion = tabletData->GetOnDiskVersion();
 
-    std::vector<std::shared_ptr<IndexTaskMeta>> onDiskVersionIndexTasks = lastOnDiskVersion.GetIndexTasks();
-    auto indexTasks = CalculateIndexTasks(onDiskVersionIndexTasks, mergedVersionIndexTasks);
     segmentid_t lastSegmentId = lastOnDiskVersion.GetLastSegmentId();
     if (version.GetLastSegmentId() < lastSegmentId) {
         version.SetLastSegmentId(lastSegmentId);
@@ -218,65 +206,31 @@ TabletCommitter::GenerateVersionWithoutId(const std::shared_ptr<TabletData>& tab
         version.SetReadSchemaId(lastOnDiskVersion.GetReadSchemaId());
     }
     assert(_schemaRoadMap.size() > 0);
+    version.GetIndexTaskQueue()->Join(*(lastOnDiskVersion.GetIndexTaskQueue()));
+    version.GetIndexTaskQueue()->Join(*(_lastPublicVersion.GetIndexTaskQueue()));
     version.SetSchemaId(_schemaRoadMap[_schemaRoadMap.size() - 1]);
     version.SetSchemaVersionRoadMap(_schemaRoadMap);
     version.SetFenceName(fence.GetFenceName());
     version.SetTabletName(_tabletName);
-    // set base index tasks
-    version.SetIndexTasks(indexTasks);
     // generate new index tasks
     for (const auto& op : indexTaskOps) {
         assert(op.IsIndexTask());
         if (!op.IsIndexTask()) {
             continue;
         }
-        if (op.GetAction() == Action::ABORT) {
-            version.UpdateIndexTaskState(op.GetTaskType(), op.GetTaskName(), IndexTaskMeta::ABORTED);
-        } else if (op.GetAction() == Action::OVERWRITE) {
-            auto indexTask = version.GetIndexTask(op.GetTaskType(), op.GetTaskName());
-            if (indexTask == nullptr) {
-                TABLET_LOG(WARN, "overwrite index task failed, task type %s, task name %s not found",
-                           op.GetTaskType().c_str(), op.GetTaskName().c_str());
-                continue;
-            }
-            auto params = op.GetParams();
-            if (params.find(PARAM_LAST_SEQUENCE_NUMBER) == params.end()) {
-                // reuse previous last sequence number to ensure data sequence is right
-                auto iter = indexTask->params.find(PARAM_LAST_SEQUENCE_NUMBER);
-                if (iter == indexTask->params.end()) {
-                    TABLET_LOG(WARN,
-                               "overwrite index task failed, last sequence number not found, task type %s, task "
-                               "name %s",
-                               op.GetTaskType().c_str(), op.GetTaskName().c_str());
-                    continue;
-                }
-                params[PARAM_LAST_SEQUENCE_NUMBER] = iter->second;
-            }
-            version.OverwriteIndexTask(op.GetTaskType(), op.GetTaskName(), params);
-        } else if (op.GetAction() == Action::SUSPEND) {
-            auto indexTask = version.GetIndexTask(op.GetTaskType(), op.GetTaskName());
-            if (indexTask != nullptr) {
-                version.UpdateIndexTaskState(op.GetTaskType(), op.GetTaskName(), IndexTaskMeta::SUSPENDED);
-            } else {
-                version.AddIndexTask(op.GetTaskType(), op.GetTaskName(), op.GetParams(), IndexTaskMeta::SUSPENDED,
-                                     op.GetComment());
-            }
-        } else if (op.GetAction() == Action::ADD) {
-            version.AddIndexTask(op.GetTaskType(), op.GetTaskName(), op.GetParams(), IndexTaskMeta::READY,
-                                 op.GetComment());
-        } else {
-            TABLET_LOG(WARN, "invalid action, usage action=%s|%s|%s|%s",
-                       ActionConvertUtil::ActionToStr(Action::ADD).c_str(),
-                       ActionConvertUtil::ActionToStr(Action::ABORT).c_str(),
-                       ActionConvertUtil::ActionToStr(Action::OVERWRITE).c_str(),
-                       ActionConvertUtil::ActionToStr(Action::SUSPEND).c_str());
-            continue;
-        }
+        version.GetIndexTaskQueue()->Handle(op.GetIndexTaskMeta(), op.GetAction());
     }
     std::shared_ptr<SegmentDescriptions> segDescrptions = version.GetSegmentDescriptions();
     assert(segDescrptions);
 
     auto newSegmentStats = segDescrptions->GetSegmentStatisticsVector();
+    const auto& lastVersionSegmentStats = lastOnDiskVersion.GetSegmentDescriptions()->GetSegmentStatisticsVector();
+    std::unordered_map<segmentid_t, SegmentStatistics> lastVersionSegmentStatsMap;
+    std::transform(lastVersionSegmentStats.begin(), lastVersionSegmentStats.end(),
+                   std::inserter(lastVersionSegmentStatsMap, lastVersionSegmentStatsMap.end()),
+                   [](const SegmentStatistics& segmentStats) {
+                       return std::make_pair(segmentStats.GetSegmentId(), segmentStats);
+                   });
 
     segmentid_t maxDumpingSegmentId = INVALID_SEGMENTID;
     for (auto seg : slice) {
@@ -301,6 +255,12 @@ TabletCommitter::GenerateVersionWithoutId(const std::shared_ptr<TabletData>& tab
         RETURN2_IF_STATUS_ERROR(status, Version(), "get segment statistics failed");
         if (!segStat.empty()) {
             newSegmentStats.push_back(segStat);
+        } else {
+            // get segment stats from last version if stats in segment info is null
+            auto it = lastVersionSegmentStatsMap.find(segmentId);
+            if (it != lastVersionSegmentStatsMap.end()) {
+                newSegmentStats.push_back(it->second);
+            }
         }
         version.AddSegment(segmentId);
         version.UpdateSegmentSchemaId(segmentId, seg->GetSegmentSchema()->GetSchemaId());
@@ -313,7 +273,7 @@ TabletCommitter::GenerateVersionWithoutId(const std::shared_ptr<TabletData>& tab
                                 lastLevelInfo->GetShardCount());
                 segDescrptions->SetLevelInfo(levelInfo);
             } else {
-                AUTIL_LOG(INFO, "init new level info failed as on disk level info not exist");
+                AUTIL_LOG(DEBUG, "init new level info failed as on disk level info not exist");
             }
         }
         seg->CollectSegmentDescription(segDescrptions);
@@ -399,9 +359,9 @@ std::pair<Status, Version> TabletCommitter::Commit(const std::shared_ptr<TabletD
     }
 
     std::set<std::pair<std::string, std::string>> newDoneTasks;
-    for (const auto& indexTask : version.GetIndexTasks()) {
-        if (indexTask->state == IndexTaskMeta::DONE && indexTask->committedVersionId == INVALID_VERSIONID) {
-            newDoneTasks.emplace(indexTask->taskType, indexTask->taskName);
+    for (const auto& indexTask : version.GetIndexTaskQueue()->GetAllTasks()) {
+        if (indexTask->GetState() == IndexTaskMeta::DONE && indexTask->GetCommittedVersionId() == INVALID_VERSIONID) {
+            newDoneTasks.emplace(indexTask->GetTaskType(), indexTask->GetTaskTraceId());
         }
     }
     // 2. commit version
@@ -412,9 +372,9 @@ std::pair<Status, Version> TabletCommitter::Commit(const std::shared_ptr<TabletD
         } else {
             version.SetVersionId(targetVersionId);
         }
-        for (const auto& indexTask : version.GetIndexTasks()) {
-            if (newDoneTasks.find(std::make_pair(indexTask->taskType, indexTask->taskName)) != newDoneTasks.end()) {
-                indexTask->committedVersionId = version.GetVersionId();
+        for (const auto& task : version.GetIndexTaskQueue()->GetAllTasks()) {
+            if (newDoneTasks.find(std::make_pair(task->GetTaskType(), task->GetTaskTraceId())) != newDoneTasks.end()) {
+                task->SetCommittedVersionId(version.GetVersionId());
             }
         }
         version.SetCommitTime(autil::TimeUtility::currentTime());
@@ -466,6 +426,7 @@ std::pair<Status, Version> TabletCommitter::Commit(const std::shared_ptr<TabletD
     if (mergedVersionInfo) {
         if (mergedVersionInfo->committedVersionId == INVALID_VERSIONID) {
             mergedVersionInfo->committedVersionId = version.GetVersionId();
+            _versionMerger->UpdateCommittedVersionLocator(mergedVersionInfo->targetVersion.GetLocator());
             TABLET_LOG(INFO, "merge version [base: %d, target: %d] committed as version[%d]",
                        mergedVersionInfo->baseVersion.GetVersionId(), mergedVersionInfo->targetVersion.GetVersionId(),
                        version.GetVersionId());

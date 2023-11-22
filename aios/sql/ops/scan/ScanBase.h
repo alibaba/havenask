@@ -23,6 +23,8 @@
 #include "autil/ObjectTracer.h"
 #include "navi/engine/Resource.h"
 #include "navi/resource/GraphMemoryPoolR.h"
+#include "sql/common/common.h"
+#include "sql/data/SqlQueryConfigData.h"
 #include "sql/ops/scan/ScanInitParamR.h"
 #include "sql/ops/scan/ScanPushDownR.h"
 #include "sql/proto/SqlSearchInfo.pb.h"
@@ -69,6 +71,13 @@ public:
     const std::shared_ptr<navi::AsyncPipe> &getAsyncPipe() const {
         return _asyncPipe;
     }
+    bool isWatermarkEnabled() const {
+        return _enableWatermark;
+    }
+    void disableWatermark() {
+        _enableWatermark = false;
+    }
+    virtual void startAsyncLookup() {}
 
 protected:
     std::shared_ptr<table::Table>
@@ -112,18 +121,21 @@ private:
     RESOURCE_DEPEND_DECLARE();
 
 protected:
+    RESOURCE_NAMED_DATA(SqlQueryConfigData, _queryConfigData, SQL_QUERY_CONFIG_NAME);
     RESOURCE_DEPEND_ON(navi::GraphMemoryPoolR, _graphMemoryPoolR);
     RESOURCE_DEPEND_ON(ScanInitParamR, _scanInitParamR);
     RESOURCE_DEPEND_ON(SqlSearchInfoCollectorR, _sqlSearchInfoCollectorR);
     RESOURCE_DEPEND_ON(QueryMetricReporterR, _queryMetricReporterR);
     RESOURCE_DEPEND_ON(suez::turing::QueryMemPoolR, _queryMemPoolR);
     RESOURCE_DEPEND_ON(TimeoutTerminatorR, _timeoutTerminatorR);
+    const SqlQueryConfig *_queryConfig = nullptr;
     // optional
     bool _scanOnce;
     bool _pushDownMode;
+    bool _enableWatermark;
     uint32_t _batchSize;
     uint32_t _limit;
-    uint32_t _seekCount; // statistics
+    uint32_t _scanCount; // statistics
     // for lifetime
     InnerScanInfo _innerScanInfo;
     std::string _tableMeta;

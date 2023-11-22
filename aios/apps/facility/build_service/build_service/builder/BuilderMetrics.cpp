@@ -15,8 +15,15 @@
  */
 #include "build_service/builder/BuilderMetrics.h"
 
+#include <cstddef>
+#include <string>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 namespace build_service { namespace builder {
@@ -62,7 +69,7 @@ bool BuilderMetrics::declareMetrics(indexlib::util::MetricProviderPtr metricProv
     return true;
 }
 
-void BuilderMetrics::reportMetrics(bool ret, DocOperateType op)
+void BuilderMetrics::reportMetrics(bool ret, indexlib::DocOperateType op)
 {
     _totalDocCount++;
     if (ret) {
@@ -92,10 +99,10 @@ void BuilderMetrics::reportMetrics(bool ret, DocOperateType op)
     }
 
     switch (op) {
-        REPORT_DOC_METRIC(ADD_DOC, add);
-        REPORT_DOC_METRIC(UPDATE_FIELD, update);
-        REPORT_DOC_METRIC(DELETE_DOC, delete);
-        REPORT_DOC_METRIC(DELETE_SUB_DOC, deleteSub);
+        REPORT_DOC_METRIC(indexlib::ADD_DOC, add);
+        REPORT_DOC_METRIC(indexlib::UPDATE_FIELD, update);
+        REPORT_DOC_METRIC(indexlib::DELETE_DOC, delete);
+        REPORT_DOC_METRIC(indexlib::DELETE_SUB_DOC, deleteSub);
     default: {
         string errorMsg = "unknown doc operator";
         BS_LOG(ERROR, "%s", errorMsg.c_str());
@@ -104,7 +111,7 @@ void BuilderMetrics::reportMetrics(bool ret, DocOperateType op)
 #undef REPORT_DOC_METRIC
 } // namespace builder
 
-void BuilderMetrics::reportMetrics(size_t totalMsgCount, size_t consumedMsgCount, DocOperateType op)
+void BuilderMetrics::reportMetrics(size_t totalMsgCount, size_t consumedMsgCount, indexlib::DocOperateType op)
 {
     _totalDocCount += totalMsgCount;
     TEST_successDocCount += consumedMsgCount;
@@ -127,10 +134,10 @@ void BuilderMetrics::reportMetrics(size_t totalMsgCount, size_t consumedMsgCount
     }
 
     switch (op) {
-        REPORT_DOC_METRIC(ADD_DOC, add);
-        REPORT_DOC_METRIC(UPDATE_FIELD, update);
-        REPORT_DOC_METRIC(DELETE_DOC, delete);
-        REPORT_DOC_METRIC(DELETE_SUB_DOC, deleteSub);
+        REPORT_DOC_METRIC(indexlib::ADD_DOC, add);
+        REPORT_DOC_METRIC(indexlib::UPDATE_FIELD, update);
+        REPORT_DOC_METRIC(indexlib::DELETE_DOC, delete);
+        REPORT_DOC_METRIC(indexlib::DELETE_SUB_DOC, deleteSub);
     default: {
         string errorMsg = "unknown doc operator";
         BS_LOG(ERROR, "%s", errorMsg.c_str());

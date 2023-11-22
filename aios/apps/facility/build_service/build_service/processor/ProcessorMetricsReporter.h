@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORMETRICSREPORTER_H
-#define ISEARCH_BS_PROCESSORMETRICSREPORTER_H
+#pragma once
 
 namespace indexlib { namespace util {
 class MetricProvider;
@@ -31,5 +30,3 @@ struct ProcessorMetricsReporter {
     indexlib::util::MetricPtr errorQpsMetric;
     indexlib::util::MetricPtr waitProcessDocCount;
 };
-
-#endif // ISEARCH_BS_PROCESSORMETRICSREPORTER_H

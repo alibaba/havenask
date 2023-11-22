@@ -90,4 +90,12 @@ RealtimeSegmentBuildResource::GetRealtimeIndexBuildResource(index_id_t indexId)
     return resource;
 }
 
+void RealtimeSegmentBuildResource::Release()
+{
+    for (auto segment : _normalSegments) {
+        segment->Close();
+    }
+    AUTIL_LOG(INFO, "release realtime segment build resource");
+}
+
 } // namespace indexlibv2::index::ann

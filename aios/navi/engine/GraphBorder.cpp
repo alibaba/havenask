@@ -73,7 +73,8 @@ SubGraphBorderPtr GraphBorder::addSubBorder(NaviPartId partId,
     if (_borderMap.end() != it) {
         return it->second;
     } else {
-        SubGraphBorderPtr border(new SubGraphBorder(_param, partId, borderId));
+        SubGraphBorderPtr border(new SubGraphBorder(domain->getLogger().logger,
+                                                    _param, partId, borderId));
         _borderMap.emplace(borderId, border);
         return border;
     }

@@ -64,7 +64,7 @@ void TargetSegmentsRedoStrategyTest::TestSimpleProcess()
         TargetSegmentsRedoStrategy strategy(true);
         ASSERT_TRUE(strategy.Init(&tabletData, 0, targetSegments).IsOK());
         std::vector<std::pair<docid_t, docid_t>> targetDocRange;
-        RemoveOperation<uint64_t> op({0, 0, 0});
+        RemoveOperation<uint64_t> op({0, 0, 0, 0});
         ASSERT_FALSE(strategy.NeedRedo(0, &op, targetDocRange));
     }
     {
@@ -72,7 +72,7 @@ void TargetSegmentsRedoStrategyTest::TestSimpleProcess()
         TargetSegmentsRedoStrategy strategy(true);
         ASSERT_TRUE(strategy.Init(&tabletData, 0, targetSegments).IsOK());
         std::vector<std::pair<docid_t, docid_t>> targetDocRange, expected({{2, 8}});
-        RemoveOperation<uint64_t> op({0, 0, 0});
+        RemoveOperation<uint64_t> op({0, 0, 0, 0});
         ASSERT_TRUE(strategy.NeedRedo(0, &op, targetDocRange));
         ASSERT_EQ(expected, targetDocRange);
     }
@@ -81,7 +81,7 @@ void TargetSegmentsRedoStrategyTest::TestSimpleProcess()
         TargetSegmentsRedoStrategy strategy(true);
         ASSERT_TRUE(strategy.Init(&tabletData, 0, targetSegments).IsOK());
         std::vector<std::pair<docid_t, docid_t>> targetDocRange, expected({{2, 4}, {6, 8}});
-        RemoveOperation<uint64_t> op({0, 0, 0});
+        RemoveOperation<uint64_t> op({0, 0, 0, 0});
         ASSERT_TRUE(strategy.NeedRedo(0, &op, targetDocRange));
         ASSERT_EQ(expected, targetDocRange);
     }
@@ -112,11 +112,11 @@ void TargetSegmentsRedoStrategyTest::TestRedoDataConsistent()
         TargetSegmentsRedoStrategy strategy(isConsistent);
         ASSERT_TRUE(strategy.Init(&tabletData, redoSegmentId, targetSegments).IsOK());
         std::vector<std::pair<docid_t, docid_t>> targetDocRange;
-        RemoveOperation<uint64_t> deleteOp({0, 0, 0});
+        RemoveOperation<uint64_t> deleteOp({0, 0, 0, 0});
         ASSERT_TRUE(strategy.NeedRedo(1, &deleteOp, targetDocRange));
         ASSERT_EQ(expectedDelete, targetDocRange);
 
-        UpdateFieldOperation<uint64_t> updateOp({0, 0, 0});
+        UpdateFieldOperation<uint64_t> updateOp({0, 0, 0, 0});
         ASSERT_TRUE(strategy.NeedRedo(1, &updateOp, targetDocRange));
         ASSERT_EQ(expectedUpdate, targetDocRange);
     };

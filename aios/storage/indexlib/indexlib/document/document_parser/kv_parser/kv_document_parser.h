@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_DOCUMENT_PARSER_H
-#define __INDEXLIB_KV_DOCUMENT_PARSER_H
+#pragma once
 
 #include <memory>
 
@@ -22,8 +21,8 @@
 #include "indexlib/common/field_format/attribute/attribute_convertor.h"
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_parser.h"
-#include "indexlib/document/source_timestamp_parser.h"
 #include "indexlib/document/kv_document/kv_document.h"
+#include "indexlib/document/source_timestamp_parser.h"
 #include "indexlib/indexlib.h"
 
 DECLARE_REFERENCE_CLASS(document, MultiRegionExtendDocFieldsConvertor);
@@ -78,5 +77,3 @@ private:
 
 DEFINE_SHARED_PTR(KvDocumentParser);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_KV_DOCUMENT_PARSER_H

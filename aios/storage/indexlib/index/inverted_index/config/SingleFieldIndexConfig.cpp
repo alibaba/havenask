@@ -65,8 +65,10 @@ void SingleFieldIndexConfig::CheckWhetherIsVirtualField() const
 {
     bool valid = (IsVirtual() && _impl->fieldConfig->IsVirtual()) || (!IsVirtual() && !_impl->fieldConfig->IsVirtual());
     if (!valid) {
-        INDEXLIB_FATAL_ERROR(Schema, "Index is virtual but field is not virtual or"
-                                     "Index is not virtual but field is virtual");
+        INDEXLIB_FATAL_ERROR(Schema,
+                             "Index is virtual but field is not virtual or"
+                             "Index is not virtual but field is virtual, index name [%s]",
+                             GetIndexName().c_str());
     }
 }
 
@@ -179,17 +181,18 @@ void SingleFieldIndexConfig::DoDeserialize(const autil::legacy::Any& any,
     json.Jsonize(INDEX_FIELDS, fieldName);
     auto fieldConfig = resource.GetFieldConfig(fieldName);
     if (!fieldConfig) {
-        INDEXLIB_FATAL_ERROR(Schema, "get field config [%s] failed", fieldName.c_str());
+        INDEXLIB_FATAL_ERROR(Schema, "get field config [%s] failed, index name [%s]", fieldName.c_str(),
+                             GetIndexName().c_str());
     }
     FieldType fieldType = fieldConfig->GetFieldType();
     if (fieldType != ft_text && !GetAnalyzer().empty()) {
         std::stringstream ss;
-        ss << "index field :" << fieldName << " can not set index analyzer";
+        ss << "index field :" << fieldName << " can not set index analyzer, index name [" << GetIndexName() << "]";
         INDEXLIB_FATAL_ERROR(Schema, "%s", ss.str().c_str());
     }
     if (fieldConfig->IsBinary()) {
         stringstream ss;
-        ss << "index field :" << fieldName << " can not set isBinary = true";
+        ss << "index field :" << fieldName << " can not set isBinary = true, index name [" << GetIndexName() << "]";
         INDEXLIB_FATAL_ERROR(Schema, "%s", ss.str().c_str());
     }
     auto status = SetFieldConfig(fieldConfig);

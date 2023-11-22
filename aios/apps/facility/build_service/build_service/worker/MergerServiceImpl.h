@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MERGERSERVICEIMPL_H
-#define ISEARCH_BS_MERGERSERVICEIMPL_H
+#pragma once
 
-#include "autil/Lock.h"
-#include "autil/Thread.h"
+#include <atomic>
+#include <stdint.h>
+#include <string>
+
+#include "aios/autil/autil/Lock.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
-#include "build_service/config/BuildRuleConfig.h"
 #include "build_service/config/BuildServiceConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/task_base/JobConfig.h"
 #include "build_service/task_base/MergeTask.h"
-#include "build_service/util/Log.h"
+#include "build_service/task_base/TaskBase.h"
 #include "build_service/worker/WorkerStateHandler.h"
 
 namespace build_service { namespace worker {
-
-class ServiceWorker;
 
 // todo: start merge in another thread to avoid blocking the heartbeat thread
 class MergerServiceImpl : public WorkerStateHandler
@@ -100,5 +103,3 @@ private:
 };
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_MERGERSERVICEIMPL_H

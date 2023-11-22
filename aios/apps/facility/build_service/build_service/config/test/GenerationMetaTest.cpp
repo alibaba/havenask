@@ -1,6 +1,10 @@
 #include "build_service/config/GenerationMeta.h"
 
+#include <iosfwd>
+#include <string>
+
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

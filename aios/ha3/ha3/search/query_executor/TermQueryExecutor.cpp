@@ -53,7 +53,7 @@ void TermQueryExecutor::accept(ExecutorVisitor *visitor) const {
 }
 
 indexlib::index::ErrorCode TermQueryExecutor::doSeek(docid_t id, docid_t &result) {
-    docid_t tempDocId = INVALID_DOCID;
+    indexlib::docid64_t tempDocId = INVALID_DOCID;
     auto ec = _iter->SeekDocWithErrorCode(id, tempDocId);
     IE_RETURN_CODE_IF_ERROR(ec);
     ++_seekDocCount;

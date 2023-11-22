@@ -13,10 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RESOURCEREADER_H
-#define ISEARCH_BS_RESOURCEREADER_H
+#pragma once
 
+#include <map>
+#include <memory>
+#include <ostream>
+#include <set>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/Lock.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
@@ -32,8 +42,6 @@
 #include "indexlib/config/updateable_schema_standards.h"
 
 namespace build_service { namespace config {
-
-class ResourceReaderManager;
 
 class ResourceReader
 {
@@ -151,7 +159,7 @@ public:
      * @return relative schema path, etc: schemas/cluster1_schema.json
      */
     std::vector<std::string> getAllSchemaFileNames() const;
-    std::vector<std::string> getAllSchemaPatchFileNames() const;
+    std::vector<std::string> getSchemaPatchFileNames(const std::vector<std::string>& tableNames) const;
 
 public:
     static std::string getClusterConfRelativePath(const std::string& clusterName);
@@ -331,5 +339,3 @@ ResourceReader::Status ResourceReader::getDataTableConfigWithJsonPathReturnStatu
 }
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_RESOURCEREADER_H

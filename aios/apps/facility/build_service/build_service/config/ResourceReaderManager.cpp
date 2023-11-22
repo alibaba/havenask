@@ -15,8 +15,16 @@
  */
 #include "build_service/config/ResourceReaderManager.h"
 
+#include <assert.h>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <vector>
+
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 
 using namespace std;
 using namespace autil;

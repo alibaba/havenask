@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_JOININFO_H
-#define __INDEXLIB_JOININFO_H
+#pragma once
 
 #include <memory>
 
@@ -76,5 +75,3 @@ private:
     uint64_t mAuxPartitionIdentifier;
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_JOININFO_H

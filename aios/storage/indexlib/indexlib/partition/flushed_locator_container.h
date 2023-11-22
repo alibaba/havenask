@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_FLUSHED_LOCATOR_CONTAINER_H
-#define __INDEXLIB_FLUSHED_LOCATOR_CONTAINER_H
+#pragma once
 
 #include <deque>
 #include <future>
@@ -58,5 +57,3 @@ private:
 
 DEFINE_SHARED_PTR(FlushedLocatorContainer);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_FLUSHED_LOCATOR_CONTAINER_H

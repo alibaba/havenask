@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DUMP_THREAD_POOL_H
-#define __INDEXLIB_DUMP_THREAD_POOL_H
+#pragma once
 
 #include <memory>
 
@@ -84,9 +83,9 @@ private:
     autil::CircularQueue<DumpItem*> _queue;
     std::vector<autil::ThreadPtr> _threads;
     mutable autil::ProducerConsumerCond _cond;
-    volatile bool _push;
-    volatile bool _run;
-    volatile bool _hasException;
+    std::atomic_bool _push;
+    std::atomic_bool _run;
+    std::atomic_bool _hasException;
     util::ExceptionBase _exception;
     size_t _peakMemoryUse;
 
@@ -96,5 +95,3 @@ private:
 
 DEFINE_SHARED_PTR(DumpThreadPool);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_DUMP_THREAD_POOL_H

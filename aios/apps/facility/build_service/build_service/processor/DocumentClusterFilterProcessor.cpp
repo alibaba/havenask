@@ -15,8 +15,17 @@
  */
 #include "build_service/processor/DocumentClusterFilterProcessor.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
 
 using namespace std;
 using namespace autil;

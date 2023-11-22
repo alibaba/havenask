@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CUSTOM_OFFLINE_PARTITION_H
-#define __INDEXLIB_CUSTOM_OFFLINE_PARTITION_H
+#pragma once
 
 #include <memory>
 
@@ -41,9 +40,9 @@ public:
 public:
     OpenStatus Open(const std::string& primaryDir, const std::string& secondaryDir,
                     const config::IndexPartitionSchemaPtr& schema, const config::IndexPartitionOptions& options,
-                    versionid_t versionId = INVALID_VERSION) override;
+                    versionid_t versionId = INVALID_VERSIONID) override;
 
-    OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSION) override;
+    OpenStatus ReOpen(bool forceReopen, versionid_t reopenVersionId = INVALID_VERSIONID) override;
 
     void ReOpenNewSegment() override;
     void Close() override;
@@ -118,5 +117,3 @@ private:
 
 DEFINE_SHARED_PTR(CustomOfflinePartition);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_CUSTOM_OFFLINE_PARTITION_H

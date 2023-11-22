@@ -3,10 +3,13 @@ cc_library(
     name='config',
     srcs=glob(['*.cpp']),
     hdrs=glob(['*.h']),
+    visibility=[
+        '//aios/apps/facility/cm2:__subpackages__',
+        '//aios/network/gig:__subpackages__'
+    ],
     deps=[
-        '//aios/apps/facility/cm2/cm_basic/common:common',
-        '//aios/apps/facility/cm2/cm_basic/util:util',
         '//aios/apps/facility/cm2/cm_basic/basic_struct',
-        '//third_party/mxml:mxml'
+        '//aios/apps/facility/cm2/cm_basic/common',
+        '//aios/apps/facility/cm2/cm_basic/util', '//third_party/mxml'
     ]
 )

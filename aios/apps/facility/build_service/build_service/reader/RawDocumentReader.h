@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RAWDOCUMENTREADER_H
-#define ISEARCH_BS_RAWDOCUMENTREADER_H
+#pragma once
 
 #include "build_service/common/End2EndLatencyReporter.h"
 #include "build_service/common/ExceedTsAction.h"
@@ -24,6 +23,7 @@
 #include "build_service/document/RawDocumentHashMapManager.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/ErrorCollector.h"
+#include "build_service/util/LocatorUtil.h"
 #include "build_service/util/Log.h"
 #include "indexlib/document/document_factory_wrapper.h"
 #include "indexlib/document/query/query_evaluator_creator.h"
@@ -67,12 +67,12 @@ struct ReaderInitParam {
     std::shared_ptr<HologresInterface> hologresInterface;
 };
 
-using DocInfo = indexlibv2::document::IDocument::DocInfo;
+using DocInfo = indexlibv2::framework::Locator::DocInfo;
 
 struct Checkpoint {
     Checkpoint() {}
     Checkpoint(int64_t offset, const std::string& userData) : offset(offset), userData(userData) {}
-    Checkpoint(int64_t offset, const std::vector<indexlibv2::base::Progress>& progress, const std::string& userData)
+    Checkpoint(int64_t offset, const indexlibv2::base::MultiProgress& progress, const std::string& userData)
         : offset(offset)
         , progress(progress)
         , userData(userData)
@@ -80,7 +80,7 @@ struct Checkpoint {
     }
     // offset should be a monotonic growing number and is used to compare which checkpoint is newer.
     int64_t offset = 0;
-    std::vector<indexlibv2::base::Progress> progress;
+    indexlibv2::base::MultiProgress progress;
     // userData is optional and can be filled if the actual checkpoint needs to be a custom type other than integer.
     std::string userData;
 
@@ -93,11 +93,7 @@ struct Checkpoint {
     std::string debugString() const
     {
         std::stringstream ss;
-        ss << offset << ':' << userData << ':';
-        for (const auto& oneProgress : progress) {
-            ss << '[' << oneProgress.from << ':' << oneProgress.to << ':' << oneProgress.offset.first << ":"
-               << oneProgress.offset.second << ']';
-        }
+        ss << offset << ':' << userData << ':' << util::LocatorUtil::progress2DebugString(progress);
         return ss.str();
     }
 };
@@ -137,7 +133,6 @@ public:
     virtual bool isExceedSuspendTimestamp() const { return false; }
     virtual ErrorCode getNextRawDoc(document::RawDocument& rawDoc, Checkpoint* checkpoint, DocInfo& docInfo);
 
-protected:
     virtual ErrorCode readDocStr(std::string& docStr, Checkpoint* checkpoint, DocInfo& docInfo) = 0;
     virtual ErrorCode readDocStr(std::vector<Message>& msgs, Checkpoint* checkpoint, size_t maxMessageCount)
     {
@@ -157,6 +152,8 @@ protected:
     }
     virtual indexlib::document::RawDocumentParser* createRawDocumentParser(const ReaderInitParam& params);
     virtual bool initDocumentFactoryWrapper(const ReaderInitParam& params);
+
+protected:
     bool initDocumentFactoryV2(const ReaderInitParam& params);
 
     // TODO: remove this when support getting user timestamp from swift msg
@@ -211,5 +208,3 @@ private:
 };
 BS_TYPEDEF_PTR(RawDocumentReader);
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_RAWDOCUMENTREADER_H

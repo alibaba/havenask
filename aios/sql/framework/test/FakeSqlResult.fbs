@@ -1,0 +1,14 @@
+include "SqlResult.fbs";
+
+namespace isearch.fbs;
+
+table FakeSqlResult {
+      processTime: double (id:0);
+      rowCount: uint32 (id:1);
+      errorResult: SqlErrorResult (id:2);
+      sqlTable: TwoDimTable (id:3);
+      searchInfo: string (id:4);
+      coveredPercent: double (id:5);
+      leaderInfos: [TableLeaderInfo] (id:6);
+      buildWatermarks: [TableBuildWatermark] (id:7);
+}

@@ -16,20 +16,15 @@
 #pragma once
 
 #include <memory>
+#include <stdint.h>
+#include <string>
 
 #include "build_service/builder/BuilderV2.h"
-#include "build_service/config/BuildRuleConfig.h"
+#include "build_service/common_define.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/util/Log.h"
 #include "indexlib/framework/ITablet.h"
-
-namespace indexlib::util {
-class MetricProvider;
-}
-
-namespace indexlibv2::framework {
-class ITablet;
-}
 
 namespace build_service::builder {
 

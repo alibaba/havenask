@@ -1,5 +1,9 @@
 package com.taobao.search.iquan.core.rel.rules.logical.calcite;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
@@ -8,15 +12,12 @@ import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.rex.*;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.mapping.Mappings;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class JoinPushProjector extends PushProjector {
     private final Join join;
@@ -24,13 +25,13 @@ public class JoinPushProjector extends PushProjector {
     private final RelNode rightNode;
 
     private final ImmutableBitSet allNeededFields;
-    private ImmutableBitSet completedAllNeedFields;
-    private ImmutableBitSet leftNeededFields;
-    private ImmutableBitSet rightNeededFields;
     private final int systemFieldsCnt;
     private final int leftFieldCount;
     private final int leftRightFieldCount;
     private final boolean noNeed;
+    private ImmutableBitSet completedAllNeedFields;
+    private ImmutableBitSet leftNeededFields;
+    private ImmutableBitSet rightNeededFields;
 
     public JoinPushProjector(Project origProj, RelNode pushedNode, RelBuilder relBuilder) {
         super(origProj, pushedNode, relBuilder);
@@ -69,7 +70,7 @@ public class JoinPushProjector extends PushProjector {
 
         Mappings.TargetMapping mapping = Mappings.target(
                 completedAllNeedFields::indexOf,
-                    systemFieldsCnt + leftRightFieldCount,
+                systemFieldsCnt + leftRightFieldCount,
                 completedAllNeedFields.cardinality());
 
         Join newJoin = createNewJoin(mapping, newLeftInput, newRightInput);
@@ -83,8 +84,7 @@ public class JoinPushProjector extends PushProjector {
     private RelNode createNewJoinInput(
             RelNode originInput,
             ImmutableBitSet inputNeededFields,
-            int offset)
-    {
+            int offset) {
         RelDataTypeFactory.FieldInfoBuilder typeBuilder = new RelDataTypeFactory.FieldInfoBuilder(relBuilder.getTypeFactory());
         List<RexNode> newProjects = new ArrayList<>();
         List<String> newFieldNames = new ArrayList<>();

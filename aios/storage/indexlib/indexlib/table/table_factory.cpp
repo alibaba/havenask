@@ -15,6 +15,8 @@
  */
 #include "indexlib/table/table_factory.h"
 
+#include <iosfwd>
+
 #include "indexlib/table/executor_provider.h"
 #include "indexlib/table/merge_policy.h"
 

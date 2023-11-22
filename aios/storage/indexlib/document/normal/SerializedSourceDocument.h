@@ -42,10 +42,10 @@ public:
     bool operator!=(const SerializedSourceDocument& doc) const { return !operator==(doc); }
 
 public:
-    const autil::StringView GetMeta() const;
-    const autil::StringView GetGroupValue(index::groupid_t groupId) const;
-    void AddGroupValue(autil::StringView& value);
-    void SetMeta(autil::StringView& meta);
+    autil::StringView GetMeta() const;
+    autil::StringView GetGroupValue(index::sourcegroupid_t groupId) const;
+    void SetGroupValue(index::sourcegroupid_t groupId, autil::StringView value);
+    void SetMeta(const autil::StringView& meta);
     void AddAccessaryGroupValue(const autil::StringView& groupMeta, const autil::StringView& groupValue);
 
     const autil::StringView& GetAccessaryMeta() const { return _accessaryMeta; }

@@ -277,7 +277,7 @@ void PartitionResourceCalculator::UpdateSwitchRtSegments(const config::IndexPart
     }
 
     mSwitchRtSegmentLockSize = EstimateDiffVersionLockSizeWithoutPatch(
-        schema, rtPartitionDir, version, index_base::Version(INVALID_VERSION), MultiCounterPtr(), false);
+        schema, rtPartitionDir, version, index_base::Version(INVALID_VERSIONID), MultiCounterPtr(), false);
     IE_LOG(INFO, "switched rt segment lock size [%lu] for segments[%s]", mSwitchRtSegmentLockSize, segStr.c_str());
     mSwitchRtSegIds.assign(segIds.begin(), segIds.end());
 }
@@ -292,11 +292,11 @@ size_t PartitionResourceCalculator::EstimateLoadPatchMemoryUse(const IndexPartit
 
     PatchLoaderPtr patchLoader(new PatchLoader(schema, mOnlineConfig));
     segmentid_t startLoadSegment =
-        (lastLoadedVersion == index_base::Version(INVALID_VERSION)) ? 0 : lastLoadedVersion.GetLastSegment() + 1;
+        (lastLoadedVersion == index_base::Version(INVALID_VERSIONID)) ? 0 : lastLoadedVersion.GetLastSegment() + 1;
 
     string locatorStr = partitionData->GetLastLocator();
     bool isIncConsistentWithRt =
-        (lastLoadedVersion != index_base::Version(INVALID_VERSION)) && mOnlineConfig.isIncConsistentWithRealtime;
+        (lastLoadedVersion != index_base::Version(INVALID_VERSIONID)) && mOnlineConfig.isIncConsistentWithRealtime;
     IndexLocator indexLocator;
     if (!indexLocator.fromString(locatorStr)) {
         isIncConsistentWithRt = false;

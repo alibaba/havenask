@@ -1,8 +1,8 @@
 #include "indexlib/document/document_rewriter/test/section_attribute_rewriter_unittest.h"
 
 #include "autil/DataBuffer.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

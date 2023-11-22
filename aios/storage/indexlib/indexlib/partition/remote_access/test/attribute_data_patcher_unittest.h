@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEDATAPATCHERTEST_H
-#define __INDEXLIB_ATTRIBUTEDATAPATCHERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/remote_access/attribute_data_patcher.h"
@@ -29,5 +28,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(AttributeDataPatcherTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ATTRIBUTEDATAPATCHERTEST_H

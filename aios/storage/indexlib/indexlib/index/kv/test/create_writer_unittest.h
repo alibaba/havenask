@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KV_CREATEWRITERTEST_H
-#define __INDEXLIB_KV_CREATEWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/kv_index_config.h"
@@ -43,5 +42,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(CreateKVWriterTest, TestCreate);
 INDEXLIB_UNIT_TEST_CASE(CreateKVWriterTest, TestOccupancy);
 }} // namespace indexlib::index
-
-#endif

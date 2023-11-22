@@ -1,13 +1,25 @@
 #include "build_service/common/CounterSynchronizerCreator.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+
 #include "build_service/common/CounterFileSynchronizer.h"
 #include "build_service/common/CounterRedisSynchronizer.h"
+#include "build_service/common/CounterSynchronizer.h"
+#include "build_service/common_define.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RedisClient.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 #include "indexlib/util/counter/CounterMap.h"
-#include "indexlib/util/counter/StateCounter.h"
+#include "unittest/unittest.h"
+
 using namespace std;
 using namespace testing;
 BS_NAMESPACE_USE(config);

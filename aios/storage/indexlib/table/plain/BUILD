@@ -13,7 +13,7 @@ strict_cc_library(
         '//aios/storage/indexlib/framework:SegmentDumpItem',
         '//aios/storage/indexlib/index:BuildingIndexMemoryUseUpdater',
         '//aios/storage/indexlib/index:IndexFactoryCreator',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:MemIndexerParameter',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/table/plain:PlainDumpItem',
         '//aios/storage/indexlib/util:simple_pool'
@@ -28,8 +28,8 @@ strict_cc_library(
         '//aios/storage/indexlib/config:TabletSchema',
         '//aios/storage/indexlib/framework:DiskSegment',
         '//aios/storage/indexlib/framework/cleaner:DropIndexCleaner',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:IndexFactoryCreator',
-        '//aios/storage/indexlib/index:IndexerParameter',
         '//aios/storage/indexlib/index:interface'
     ]
 )

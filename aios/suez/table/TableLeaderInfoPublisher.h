@@ -19,20 +19,18 @@
 #include <cstdint>
 
 #include "aios/network/gig/multi_call/common/common.h"
+#include "suez/common/InnerDef.h"
 #include "suez/sdk/PartitionId.h"
 
-namespace multi_call {
-class GigRpcServer;
-};
-
 namespace suez {
+class TableInfoPublishWrapper;
 class LeaderElectionManager;
 
 class TableLeaderInfoPublisher {
 public:
     TableLeaderInfoPublisher(const PartitionId &pid,
                              const std::string &zoneName,
-                             multi_call::GigRpcServer *gigRpcServer,
+                             TableInfoPublishWrapper *publishWrapper,
                              LeaderElectionManager *leaderElectionMgr);
     virtual ~TableLeaderInfoPublisher();
 
@@ -58,11 +56,12 @@ private:
     bool _leaderInfoPublished;
     bool _signaturePublished;
     bool _signaturePublishedForRawTable;
+    RoleType _lastPublishedRoleType;
     int32_t _targetWeight;
     int32_t _publishedWeight;
     PartitionId _pid;
     std::string _zoneName;
-    multi_call::GigRpcServer *_gigRpcServer;
+    TableInfoPublishWrapper *_publishWrapper;
     LeaderElectionManager *_leaderElectionMgr;
     multi_call::SignatureTy _signature;
     multi_call::SignatureTy _signatureForRawTable;

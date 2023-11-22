@@ -17,6 +17,7 @@
 
 #include "autil/LockFreeQueue.h"
 #include "build_service/reader/RawDocumentReader.h"
+#include "suez/table/wal/GlobalQueueManager.h"
 
 namespace suez {
 
@@ -44,7 +45,8 @@ private:
     const static std::string QUEUE_NAME;
 
 private:
-    std::shared_ptr<autil::LockFreeQueue<std::string>> _docQueuePtr;
+    std::shared_ptr<autil::LockFreeQueue<RawDoc>> _docQueuePtr;
+    std::shared_ptr<autil::LockFreeQueue<RawDoc>> _docBackupQueuePtr;
     std::string _queueName;
     AUTIL_LOG_DECLARE();
 };

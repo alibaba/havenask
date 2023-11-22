@@ -209,7 +209,8 @@ void InvertedIndexConfig::Check() const
         }
     }
     if ((_impl->optionFlag & of_position_payload) && !(_impl->optionFlag & of_position_list)) {
-        INDEXLIB_FATAL_ERROR(Schema, "position payload flag is 1 but no position list.");
+        INDEXLIB_FATAL_ERROR(Schema, "position payload flag is 1 but no position list. index name [%s]",
+                             GetIndexName().c_str());
     }
 
     if (!_impl->dictConfig && !_impl->adaptiveDictConfig &&
@@ -222,12 +223,13 @@ void InvertedIndexConfig::Check() const
 
     if (_impl->isReferenceCompress &&
         ((_impl->optionFlag & of_term_frequency) && !(_impl->optionFlag & of_tf_bitmap))) {
-        INDEXLIB_FATAL_ERROR(Schema, "reference_compress does not support tf(not tf_bitmap)");
+        INDEXLIB_FATAL_ERROR(Schema, "reference_compress does not support tf(not tf_bitmap), index name [%s]",
+                             GetIndexName().c_str());
     }
 
     if (_impl->formatVersionId > _impl->maxSupportedFormatVersionId) {
-        INDEXLIB_FATAL_ERROR(Schema, "format_verison_id [%d] over max supported value [%d]", _impl->formatVersionId,
-                             _impl->maxSupportedFormatVersionId);
+        INDEXLIB_FATAL_ERROR(Schema, "format_verison_id [%d] over max supported value [%d], index name [%s]",
+                             _impl->formatVersionId, _impl->maxSupportedFormatVersionId, GetIndexName().c_str());
     }
 
     bool supportFileCompress =
@@ -566,6 +568,10 @@ indexlib::IndexStatus InvertedIndexConfig::GetStatus() const { return _impl->sta
 
 format_versionid_t InvertedIndexConfig::GetIndexFormatVersionId() const { return _impl->formatVersionId; }
 
+format_versionid_t InvertedIndexConfig::GetMaxSupportedIndexFormatVersionId() const
+{
+    return _impl->maxSupportedFormatVersionId;
+}
 Status InvertedIndexConfig::SetIndexFormatVersionId(format_versionid_t id)
 {
     if (id > InvertedIndexConfig::BINARY_FORMAT_VERSION) {

@@ -47,6 +47,7 @@ public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("total_time", processTime, processTime);
         json.Jsonize("has_soft_failure", hasSoftFailure, hasSoftFailure);
+        json.Jsonize("soft_failure_codes", softFailureCodes, softFailureCodes);
         json.Jsonize("covered_percent", coveredPercent, coveredPercent);
         json.Jsonize("row_count", rowCount, rowCount);
         json.Jsonize("format_type", formatType, formatType);
@@ -63,12 +64,13 @@ public:
     }
     void fillTrace(const navi::NaviResultPtr naviResult) {
         assert(naviResult);
-        naviResult->traceCollector.format(trace);
+        naviResult->collectTrace(trace);
     }
 
 public:
     double processTime;
     bool hasSoftFailure;
+    std::vector<int64_t> softFailureCodes;
     double coveredPercent;
     uint32_t rowCount;
     autil::legacy::json::JsonMap searchInfo;

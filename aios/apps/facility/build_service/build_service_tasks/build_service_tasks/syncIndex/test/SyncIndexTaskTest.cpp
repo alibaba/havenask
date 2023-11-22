@@ -1,12 +1,37 @@
+#include <arpc/proto/rpc_extensions.pb.h>
+#include <google/protobuf/stubs/status.h>
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <unistd.h>
+#include <vector>
+
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service_tasks/channel/test/MockRpcChannel.h"
 #include "fslib/util/FileUtil.h"
 // Workaround for test private/protected member
+#include "alog/Logger.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/io/Input.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/task_base/Task.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "build_service/util/Log.h"
+#include "build_service_tasks/channel/Master.pb.h"
 #include "build_service_tasks/syncIndex/SyncIndexTask.h"
 #include "build_service_tasks/test/unittest.h"
 #include "google/protobuf/util/json_util.h"
-#include "worker_framework/LeaderInfo.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;
@@ -119,7 +144,7 @@ TEST_F(SyncIndexTaskTest, testCheckTaget)
     ASSERT_FALSE(_syncIndexTask->checkTarget(taskTarget.getTargetDescription(), targetVersions));
 
     // false, invalid version
-    versions.push_back(INVALID_VERSION);
+    versions.push_back(indexlib::INVALID_VERSIONID);
     taskTarget.updateTargetDescription("versions", ToJsonString(versions));
     ASSERT_FALSE(_syncIndexTask->checkTarget(taskTarget.getTargetDescription(), targetVersions));
 

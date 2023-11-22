@@ -19,6 +19,7 @@ strict_cc_library(
 strict_cc_fast_test(
     name='PackAttributeConfigTest',
     srcs=['PackAttributeConfigTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         ':PackAttributeTestHelper', '//aios/storage/indexlib/config:schema',
         '//aios/storage/indexlib/framework:tablet_schema_loader',
@@ -31,6 +32,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='PackAttributeMemIndexerTest',
     srcs=['PackAttributeMemIndexerTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         ':PackAttributeTestHelper',
         '//aios/storage/indexlib/index/pack_attribute:config',
@@ -40,6 +42,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='PackAttributeDiskIndexerTest',
     srcs=['PackAttributeDiskIndexerTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         ':PackAttributeTestHelper',
         '//aios/storage/indexlib/index/pack_attribute:config',
@@ -49,6 +52,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='PackAttributeIndexReaderTest',
     srcs=['PackAttributeIndexReaderTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         ':PackAttributeTestHelper',
         '//aios/storage/indexlib/framework:MetricsManager',
@@ -59,6 +63,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='PackAttributeIndexMergerTest',
     srcs=['PackAttributeIndexMergerTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         ':PackAttributeTestHelper',
         '//aios/storage/indexlib/index/pack_attribute:config',

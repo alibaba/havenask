@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_FIXED_SIZE_BYTE_SLICE_LIST_READER_H
-#define __INDEXLIB_FIXED_SIZE_BYTE_SLICE_LIST_READER_H
+#pragma once
 
 #include <memory>
 
@@ -27,5 +26,3 @@ namespace indexlib { namespace common {
 typedef file_system::ByteSliceReader FixedSizeByteSliceListReader;
 DEFINE_SHARED_PTR(FixedSizeByteSliceListReader);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_FIXED_SIZE_BYTE_SLICE_LIST_READER_H

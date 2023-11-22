@@ -6,6 +6,7 @@ strict_cc_fast_test(
         'BytesAlignedSliceArrayTest.cpp', 'DefragSliceArrayTest.cpp',
         'SliceArrayTest.cpp'
     ],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/util/slice_array',
         '//aios/storage/indexlib/util/testutil:unittest'

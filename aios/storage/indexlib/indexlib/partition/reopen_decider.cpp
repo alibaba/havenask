@@ -38,7 +38,7 @@ IE_LOG_SETUP(partition, ReopenDecider);
 
 ReopenDecider::ReopenDecider(const OnlineConfig& onlineConfig, bool forceReopen)
     : mOnlineConfig(onlineConfig)
-    , mReopenIncVersion(INVALID_VERSION)
+    , mReopenIncVersion(INVALID_VERSIONID)
     , mForceReopen(forceReopen)
     , mReopenType(INVALID_REOPEN)
 {

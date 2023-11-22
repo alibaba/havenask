@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGE_HELPER_H
-#define __INDEXLIB_MERGE_HELPER_H
+#pragma once
 
 #include <memory>
 
@@ -31,5 +30,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeHelper);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_HELPER_H

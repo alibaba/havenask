@@ -2,6 +2,7 @@
 
 #include "autil/StringUtil.h"
 #include "indexlib/common_define.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_reader.h"
 #include "indexlib/index/normal/primarykey/composite_primary_key_reader.h"
@@ -15,7 +16,6 @@
 #include "indexlib/partition/test/doc_id_manager_test_util.h"
 #include "indexlib/partition/test/main_sub_test_util.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/single_field_partition_data_provider.h"
 #include "indexlib/test/unittest.h"
 #include "indexlib/util/PathUtil.h"

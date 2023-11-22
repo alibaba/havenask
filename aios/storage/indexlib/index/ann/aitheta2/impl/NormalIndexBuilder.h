@@ -17,11 +17,11 @@
 
 #include "indexlib/index/ann/aitheta2/CommonDefine.h"
 #include "indexlib/index/ann/aitheta2/impl/SegmentMeta.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingDataHolder.h"
+#include "indexlib/index/ann/aitheta2/util/CustomizedCkptManager.h"
+#include "indexlib/index/ann/aitheta2/util/EmbeddingHolder.h"
 #include "indexlib/index/ann/aitheta2/util/MetricReporter.h"
 #include "indexlib/index/ann/aitheta2/util/segment_data/SegmentDataReader.h"
 #include "indexlib/index/ann/aitheta2/util/segment_data/SegmentDataWriter.h"
-
 namespace indexlibv2::index::ann {
 
 class NormalIndexBuilder
@@ -36,7 +36,12 @@ public:
     ~NormalIndexBuilder() = default;
 
 public:
-    bool BuildAndDump(const EmbeddingDataPtr& embData, IndexDataWriterPtr& indexDataWriter);
+    bool Init(size_t docCount);
+    bool Train(std::shared_ptr<EmbeddingBufferBase>& buffer,
+               std::shared_ptr<aitheta2::CustomizedCkptManager>& indexCkptManager);
+    bool BuildAndDump(std::shared_ptr<EmbeddingBufferBase>& buffer,
+                      std::shared_ptr<aitheta2::CustomizedCkptManager>& indexCkptManager,
+                      IndexDataWriterPtr& indexDataWriter);
     const IndexMeta GetIndexMeta() const { return _indexMeta; }
 
 private:

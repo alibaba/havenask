@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SINGLEFIELDPARTITIONDATAPROVIDERTEST_H
-#define __INDEXLIB_SINGLEFIELDPARTITIONDATAPROVIDERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/single_field_partition_data_provider.h"
@@ -31,5 +30,3 @@ INSTANTIATE_TEST_CASE_P(BuildMode, SingleFieldPartitionDataProviderTest, testing
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(SingleFieldPartitionDataProviderTest, TestCreatePkIndex);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(SingleFieldPartitionDataProviderTest, TestCreateIndex);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_SINGLEFIELDPARTITIONDATAPROVIDERTEST_H

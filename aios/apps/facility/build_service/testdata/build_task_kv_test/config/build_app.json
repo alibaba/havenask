@@ -1,0 +1,28 @@
+{
+"amonitor_port":
+  10086,
+"counter_config":
+  {
+  "parameters":
+    {
+    },
+  "position":
+    "zookeeper"
+  },
+"full_builder_tmp_root":
+  "",
+"heartbeat_type":
+  "",
+"hippo_root":
+  "path\/to\/hippo\/leader\/elector\/root",
+"index_root":
+  "\/home\/chris.ljy\/.cache\/bazel\/_bazel_chris.ljy\/8439e33313547a93cc5cf4d240070613\/sandbox\/processwrapper-sandbox\/814\/execroot\/com_taobao_aios\/bazel-out\/k8-fastbuild\/bin\/aios\/build_service_tasks\/bs_tasks_endbuild_test.runfiles\/com_taobao_aios\/aios\/build_service_tasks\/testdata\/",
+"service_name":
+  "service_name",
+"swift_root":
+  "zfs:\/\/root\/",
+"user_name":
+  "user_name",
+"zookeeper_root":
+  "path\/to\/zk\/root"
+}

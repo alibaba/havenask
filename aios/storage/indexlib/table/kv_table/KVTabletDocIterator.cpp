@@ -59,8 +59,8 @@ Status KVTabletDocIterator::InitFromTabletData(const shared_ptr<TabletData>& tab
 
 unique_ptr<IShardRecordIterator> KVTabletDocIterator::CreateShardDocIterator() const
 {
-    // @_fieldNames为空则迭代过程不访问value
-    return make_unique<KVShardRecordIterator>(_fieldNames.empty());
+    bool ignoredValue = !_readAllField && _fieldNames.empty();
+    return make_unique<KVShardRecordIterator>(ignoredValue);
 }
 
 autil::StringView KVTabletDocIterator::PreprocessPackValue(const StringView& value)

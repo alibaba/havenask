@@ -19,6 +19,8 @@
 
 #include "indexlib/table/index_task/merger/CommonTaskOperationCreator.h"
 #include "indexlib/table/kv_table/index_task/KVIndexMergeOperation.h"
+#include "indexlib/table/kv_table/index_task/KVTableBulkloadOperation.h"
+#include "indexlib/table/kv_table/index_task/KVTableBulkloadSegmentCreateOperation.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, KVTableTaskOperationCreator);
@@ -53,10 +55,22 @@ KVTableTaskOperationCreator::CreateOperationForMerge(const framework::IndexOpera
 }
 
 std::unique_ptr<framework::IndexOperation>
+KVTableTaskOperationCreator::CreateOperationForBulkload(const framework::IndexOperationDescription& opDesc)
+{
+    if (opDesc.GetType() == KVTableBulkloadOperation::OPERATION_TYPE) {
+        return std::make_unique<KVTableBulkloadOperation>(opDesc);
+    } else if (opDesc.GetType() == KVTableBulkloadSegmentCreateOperation::OPERATION_TYPE) {
+        return std::make_unique<KVTableBulkloadSegmentCreateOperation>(opDesc);
+    }
+    return nullptr;
+}
+
+std::unique_ptr<framework::IndexOperation>
 KVTableTaskOperationCreator::CreateOperation(const framework::IndexOperationDescription& opDesc)
 {
-    for (auto f : {&KVTableTaskOperationCreator::CreateOperationForCommon,
-                   &KVTableTaskOperationCreator::CreateOperationForMerge}) {
+    for (auto f :
+         {&KVTableTaskOperationCreator::CreateOperationForCommon, &KVTableTaskOperationCreator::CreateOperationForMerge,
+          &KVTableTaskOperationCreator::CreateOperationForBulkload}) {
         auto operation = (this->*f)(opDesc);
         if (operation) {
             return operation;

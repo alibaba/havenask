@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_POSTINGMERGERIMPLTEST_H
-#define __INDEXLIB_POSTINGMERGERIMPLTEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "autil/mem_pool/RecyclePool.h"
@@ -45,5 +44,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(PostingMergerImplTest, TestDump);
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_POSTINGMERGERIMPLTEST_H

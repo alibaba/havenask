@@ -27,7 +27,7 @@ class PackAttributeConfig;
 class PackAttributeMemIndexer : public MultiValueAttributeMemIndexer<char>
 {
 public:
-    PackAttributeMemIndexer(const IndexerParameter& indexerParam);
+    PackAttributeMemIndexer(const MemIndexerParameter& indexerParam);
     ~PackAttributeMemIndexer();
 
 public:

@@ -15,22 +15,26 @@
  */
 #pragma once
 
-#include <assert.h>
+#include <condition_variable>
 #include <memory>
-#include <vector>
+#include <mutex>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <tuple>
 
+#include "autil/Log.h"
 #include "future_lite/Executor.h"
-#include "future_lite/coro/Lazy.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/base/Types.h"
 #include "indexlib/framework/MemSegment.h"
 #include "indexlib/framework/MetricsWrapper.h"
 #include "indexlib/framework/Segment.h"
-#include "indexlib/framework/SegmentDumpItem.h"
+#include "kmonitor/client/MetricType.h"
 #include "kmonitor/client/MetricsReporter.h"
 
 namespace indexlibv2::framework {
-
-class Version;
 
 class SegmentDumpable
 {
@@ -42,6 +46,38 @@ struct AlterTableLog : public SegmentDumpable {
     schemaid_t schemaId = DEFAULT_SCHEMAID;
     AlterTableLog(schemaid_t id) : schemaId(id) {}
     ~AlterTableLog() = default;
+};
+
+class DumpControl
+{
+public:
+    DumpControl(segmentid_t segmentId, uint32_t total, uint32_t ref, Status* st)
+        : _segId {segmentId}
+        , _totalCount {total}
+        , _refCount {ref}
+        , _status {st}
+    {
+    }
+
+    segmentid_t GetSegmentId() const { return _segId; }
+    uint32_t GetTotalCount() const { return _totalCount; }
+    uint32_t GetFinishCount() const { return _finishCount; }
+
+    std::tuple<uint32_t, uint32_t> StartTask();
+    std::tuple<uint32_t, uint32_t> Iterate(Status& taskStatus);
+    uint32_t ExitTask(const bool isCoordinator);
+
+private:
+    const segmentid_t _segId;
+
+    std::atomic<uint32_t> _finishCount = 0;
+    uint32_t _nextSeq = 0;
+    uint32_t _totalCount;
+    uint32_t _refCount;
+    Status* _status;
+
+    std::mutex _dumpMutex;
+    std::condition_variable _dumpCv;
 };
 
 class SegmentDumper : public SegmentDumpable
@@ -62,7 +98,7 @@ public:
     }
     virtual ~SegmentDumper() = default;
 
-    Status Dump(future_lite::Executor* executor);
+    Status Dump(future_lite::Executor* executor, const uint32_t dumpThreadCount);
     segmentid_t GetSegmentId() const { return _dumpingSegment->GetSegmentId(); }
     size_t EstimateDumpExpandMemsize() const { return _dumpExpandMemSize; }
     size_t GetCurrentMemoryUse() const { return _dumpingSegment->EvaluateCurrentMemUsed(); }
@@ -72,7 +108,15 @@ public:
 private:
     virtual Status StoreSegmentInfo();
 
+    Status SequentialDump(const std::vector<std::shared_ptr<SegmentDumpItem>>& dumpItems, const segmentid_t segId);
+    Status ParallelDump(future_lite::Executor* executor, const std::vector<std::shared_ptr<SegmentDumpItem>>& dumpItems,
+                        const segmentid_t segId, const uint32_t parallelism);
+    void DumpTask(const std::vector<std::shared_ptr<SegmentDumpItem>>& dumpItems, DumpControl* control,
+                  const bool isCoordinator);
+
 private:
+    static constexpr size_t PARALLEL_DUMP_THRESHOLD {4};
+
     std::string _tabletName;
     std::shared_ptr<MemSegment> _dumpingSegment;
     int64_t _dumpExpandMemSize;
@@ -81,5 +125,4 @@ private:
 
     AUTIL_LOG_DECLARE();
 };
-
 } // namespace indexlibv2::framework

@@ -15,8 +15,9 @@
  */
 #pragma once
 
-#include <bits/stdint-uintn.h>
+#include <stdint.h>
 #include <string>
+#include <utility>
 
 namespace indexlib::framework {
 

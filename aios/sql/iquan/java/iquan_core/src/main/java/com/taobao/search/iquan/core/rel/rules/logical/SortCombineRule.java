@@ -33,7 +33,8 @@ public class SortCombineRule extends RelOptRule {
                 && botCollation.getFieldCollations().isEmpty() && botCollation.getKeys().isEmpty();
     }
 
-    @Override public void onMatch(RelOptRuleCall call) {
+    @Override
+    public void onMatch(RelOptRuleCall call) {
         Sort top = call.rel(0);
         Sort bot = call.rel(1);
         RexNode topFetch = top.fetch;

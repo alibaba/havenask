@@ -15,13 +15,25 @@
  */
 #include "indexlib/framework/MemSegmentCreator.h"
 
+#include <assert.h>
+#include <type_traits>
+#include <vector>
+
 #include "indexlib/base/PathUtil.h"
 #include "indexlib/config/BuildConfig.h"
 #include "indexlib/config/TabletOptions.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/RemoveOption.h"
 #include "indexlib/framework/ITabletFactory.h"
 #include "indexlib/framework/IdGenerator.h"
+#include "indexlib/framework/LevelInfo.h"
+#include "indexlib/framework/Segment.h"
+#include "indexlib/framework/SegmentDescriptions.h"
+#include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/framework/SegmentMetrics.h"
+#include "indexlib/framework/Version.h"
 
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, MemSegmentCreator);
@@ -81,9 +93,8 @@ Status MemSegmentCreator::CreateSegmentMeta(segmentid_t newSegId, const std::sha
     if (slice.begin() != slice.end()) {
         lastSegment = *slice.rbegin();
     }
-    if (lastSegment == nullptr || !Segment::IsRtSegmentId(lastSegment->GetSegmentId())) {
+    if (lastSegment == nullptr || Segment::IsMergedSegmentId(lastSegment->GetSegmentId())) {
         // make first segMeta from Version
-        // TODO(xiuchen) need check compatible with old locator
         const auto& version = tabletData->GetOnDiskVersion();
         segMeta->segmentInfo->SetLocator(version.GetLocator());
         segMeta->segmentInfo->SetTimestamp(version.GetTimestamp());
@@ -125,9 +136,6 @@ MemSegmentCreator::CreateMemSegment(const BuildResource& buildResource, const st
     if (slice.begin() != slice.end()) {
         auto& lastSeg = *slice.rbegin();
         lastSegMetrics = lastSeg->GetSegmentMetrics().get();
-        const auto& lastSegInfo = lastSeg->GetSegmentInfo();
-        segmentMeta.segmentInfo->SetLocator(lastSegInfo->GetLocator());
-        segmentMeta.segmentInfo->timestamp = lastSegInfo->timestamp;
     }
     auto memSegment = _tabletFactory->CreateMemSegment(segmentMeta);
     if (memSegment == nullptr) {

@@ -23,6 +23,7 @@ cc_test(
         ':mock_wal_strategy', ':suez_mock_partition',
         '//aios/apps/facility/build_service:mock_builder_v2',
         '//aios/apps/facility/build_service:mock_processor',
+        '//aios/apps/facility/build_service:mock_raw_document_rewriter',
         '//aios/apps/facility/build_service/build_service/reader/test:bs_reader_test_helper',
         '//aios/storage/indexlib/framework:tablet',
         '//aios/storage/indexlib/framework/mock:tablet',

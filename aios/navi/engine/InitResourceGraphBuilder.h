@@ -58,7 +58,8 @@ private:
     bool addReplaceResource(GraphId graphId, const std::string &name);
     GraphId addBuildinSubGraph();
     GraphId addBizSubGraph();
-    void addBizPartSubGraph();
+    void addBizPartPublish();
+    void addBizPartSave();
     GraphId addRunGraphSubGraph(GraphId requireGraph);
     bool addSaveToPublish(GraphId from);
     void addFlushInput(N n);

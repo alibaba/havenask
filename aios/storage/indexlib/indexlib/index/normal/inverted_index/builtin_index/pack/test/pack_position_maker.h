@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PACK_POSITION_MAKER_H
-#define __INDEXLIB_PACK_POSITION_MAKER_H
+#pragma once
 
 #include <memory>
 
@@ -22,5 +21,3 @@ private:
 
 typedef std::shared_ptr<PackPositionMaker> PackPositionMakerPtr;
 }}} // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_PACK_POSITION_MAKER_H

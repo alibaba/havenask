@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_GENERATIONKEEPER_H
-#define ISEARCH_BS_GENERATIONKEEPER_H
+#pragma once
 
+#include <algorithm>
+#include <map>
+#include <memory>
+#include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
-#include "autil/RangeUtil.h"
 #include "build_service/admin/AgentMetricReporter.h"
+#include "build_service/admin/AgentRoleInfo.h"
+#include "build_service/admin/AgentRolePlanMaker.h"
+#include "build_service/admin/AppPlanMaker.h"
 #include "build_service/admin/CheckpointMetricReporter.h"
 #include "build_service/admin/CounterCollector.h"
 #include "build_service/admin/FatalErrorMetricReporter.h"
@@ -29,14 +41,21 @@
 #include "build_service/admin/ScheduleMetricReporter.h"
 #include "build_service/admin/SlowNodeMetricReporter.h"
 #include "build_service/admin/TaskStatusMetricReporter.h"
+#include "build_service/admin/WorkerTable.h"
+#include "build_service/admin/catalog/CatalogPartitionIdentifier.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common_define.h"
 #include "build_service/config/CounterConfig.h"
 #include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/ErrorCollector.h"
 #include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/util/Log.h"
 #include "build_service/util/SharedPtrGuard.h"
+#include "hippo/DriverCommon.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/VersionCoord.h"
+#include "indexlib/indexlib.h"
+#include "kmonitor_adapter/Monitor.h"
 #include "master_framework/ScheduleUnit.h"
 #include "worker_framework/ZkState.h"
 
@@ -46,7 +65,6 @@ class RpcChannelManager;
 
 namespace build_service { namespace admin {
 class CatalogVersionPublisher;
-class AgentSimpleMasterScheduler;
 
 class GenerationKeeper : public proto::ErrorCollector
 {
@@ -81,6 +99,10 @@ public:
         bool isFinish;
         std::string agentRoleName;
         std::string agentIdentifier;
+        std::string taskIdentifier;
+        std::string workerStatus;
+        int64_t cpuAmount;
+        int64_t memAmount;
     };
     typedef std::map<std::string, WorkerRoleInfo> WorkerRoleInfoMap;
     typedef std::shared_ptr<WorkerRoleInfoMap> WorkerRoleInfoMapPtr;
@@ -120,6 +142,9 @@ public:
     bool getBulkloadInfo(const std::string& clusterName, const std::string& bulkloadId,
                          const ::google::protobuf::RepeatedPtrField<proto::Range>& ranges, std::string* resultStr,
                          std::string& errorMsg);
+    bool bulkload(const std::string& clusterName, const std::string& bulkloadId,
+                  const ::google::protobuf::RepeatedPtrField<proto::ExternalFiles>& externalFiles,
+                  const std::string& options, const std::string& action, std::string* errorMsg);
     bool rollBack(const std::string& clusterName, versionid_t versionId, int64_t startTimestamp, std::string& errorMsg);
     bool rollBackCheckpoint(const std::string& clusterName, checkpointid_t checkpointId,
                             const ::google::protobuf::RepeatedPtrField<proto::Range>& ranges, std::string& errorMsg);
@@ -229,6 +254,7 @@ public:
 
     void fillGenerationGraphData(std::string& flowGraph, std::map<std::string, std::string>& flowSubGraphMap,
                                  std::map<std::string, std::map<std::string, std::string>>& taskDetailInfoMap);
+    bool cleanGenerationDir() const;
 
 protected:
     // only for mock test
@@ -239,9 +265,11 @@ protected:
     void workThread();
 
 private:
-    static indexlib::versionid_t getImportedVersionFromRequest(const proto::StartBuildRequest* request);
+    static bool getImportedVersionFromRequest(const proto::StartBuildRequest* request,
+                                              GenerationTaskBase::ImportedVersionIdMap* importedVersionIdMap);
     bool importBuild(const std::string& configPath, const std::string& dataDescriptionKvs,
-                     const proto::BuildId& buildId, indexlib::versionid_t importedVersionId,
+                     const proto::BuildId& buildId,
+                     const GenerationTaskBase::ImportedVersionIdMap& importedVersionIdMap,
                      proto::StartBuildResponse* response);
 
     void updateActiveNodeStatistics(const RoleSlotInfosPtr& assignRoleSlots, RoleSlotInfosPtr& slowRoleSlots,
@@ -264,7 +292,6 @@ private:
 
 private:
     void releaseInnerResource();
-    bool cleanGenerationDir(const std::string& generationDir);
     bool moveGenerationStatus(const std::string& src, const std::string& dst);
     AppPlanMaker* createAppPlanMaker(const std::string& configPath, const std::string& heartbeatType);
     bool prepareCounterCollector(const config::CounterConfig& counter);
@@ -351,5 +378,3 @@ private:
 BS_TYPEDEF_PTR(GenerationKeeper);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_GENERATIONKEEPER_H

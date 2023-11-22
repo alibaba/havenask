@@ -24,9 +24,10 @@
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, SimpleIndexTaskPlanCreator);
 
-SimpleIndexTaskPlanCreator::SimpleIndexTaskPlanCreator(const std::string& taskName,
+SimpleIndexTaskPlanCreator::SimpleIndexTaskPlanCreator(const std::string& taskName, const std::string& taskTraceId,
                                                        const std::map<std::string, std::string>& params)
     : _taskName(taskName)
+    , _taskTraceId(taskTraceId)
     , _params(params)
 {
 }

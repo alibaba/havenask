@@ -1,7 +1,7 @@
 #include "indexlib/index/kv/test/create_hash_table_unittest.h"
 
 #include "indexlib/common/hash_table/dense_hash_table_file_reader.h"
-#include "indexlib/test/schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

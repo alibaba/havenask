@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TASKINPUTCONFIG_H
-#define ISEARCH_BS_TASKINPUTCONFIG_H
+#pragma once
+
+#include <map>
+#include <string>
 
 #include "autil/legacy/jsonizable.h"
 #include "build_service/common_define.h"
-#include "build_service/plugin/ModuleInfo.h"
 #include "build_service/util/Log.h"
 
 namespace build_service { namespace config {
@@ -58,5 +59,3 @@ private:
 BS_TYPEDEF_PTR(TaskInputConfig);
 
 }} // namespace build_service::config
-
-#endif // ISEARCH_BS_TASKINPUTCONFIG_H

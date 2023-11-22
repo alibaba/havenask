@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_LOG_H
-#define __INDEXLIB_LOG_H
+#pragma once
 
 #include <iostream>
 
@@ -129,5 +128,3 @@ private:
 
 #define SCOPED_LOG_LEVEL(logLevel, loggerName...)                                                                      \
     ScopedLogLevel INDEXLIB_CONCATE(__scopedLogLevel_, __LINE__)(alog::LOG_LEVEL_##logLevel, ##loggerName)
-
-#endif

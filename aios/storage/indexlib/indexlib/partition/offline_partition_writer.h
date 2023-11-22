@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __OFFLINE_PARTITION_WRITER_H
-#define __OFFLINE_PARTITION_WRITER_H
+#pragma once
 
 #include <memory>
 
@@ -214,5 +213,3 @@ private:
 
 DEFINE_SHARED_PTR(OfflinePartitionWriter);
 }} // namespace indexlib::partition
-
-#endif //__OFFLINE_PARTITION_WRITER_H

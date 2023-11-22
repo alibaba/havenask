@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KKVDEFINETEST_H
-#define __INDEXLIB_KKVDEFINETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kkv/kkv_define.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(KkvDefineTest, TestOnDiskPKeyOffsetCompitable);
 INDEXLIB_UNIT_TEST_CASE(KkvDefineTest, TestBlockHint);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KKVDEFINETEST_H

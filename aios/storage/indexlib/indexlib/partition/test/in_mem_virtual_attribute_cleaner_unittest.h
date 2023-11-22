@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMVIRTUALATTRIBUTECLEANERTEST_H
-#define __INDEXLIB_INMEMVIRTUALATTRIBUTECLEANERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/in_mem_virtual_attribute_cleaner.h"
@@ -31,5 +30,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(InMemVirtualAttributeCleanerTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INMEMVIRTUALATTRIBUTECLEANERTEST_H

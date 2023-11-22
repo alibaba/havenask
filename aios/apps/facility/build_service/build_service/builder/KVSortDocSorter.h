@@ -15,12 +15,19 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <stddef.h>
 #include <tr1/functional>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "autil/mem_pool/Pool.h"
+#include "autil/Span.h"
 #include "autil/mem_pool/PoolVector.h"
 #include "autil/mem_pool/pool_allocator.h"
+#include "build_service/builder/SortDocumentConverter.h"
 #include "build_service/builder/SortDocumentSorter.h"
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"

@@ -53,7 +53,7 @@ template <typename T>
 class MockPrimaryKeyIndexReader : public index::LegacyPrimaryKeyReader<T>
 {
 public:
-    MOCK_METHOD(docid_t, LookupWithPKHash, (const autil::uint128_t&, future_lite::Executor* executor),
+    MOCK_METHOD(docid64_t, LookupWithPKHash, (const autil::uint128_t&, future_lite::Executor* executor),
                 (const, override));
 };
 

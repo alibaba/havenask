@@ -18,7 +18,7 @@
 
 #include <grpc++/generic/generic_stub.h>
 
-#include "aios/network/gig/multi_call/grpc/CompletionQueueStatus.h"
+#include "aios/network/gig/multi_call/grpc/client/CompletionQueueStatus.h"
 #include "aios/network/gig/multi_call/service/GrpcConnection.h"
 
 namespace multi_call {

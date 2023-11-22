@@ -43,7 +43,7 @@ TEST_F(ParamsInitializerFactoryTest, testGeneral)
 
     initializer = ParamsInitializerFactory::Create(GPU_QC_SEARCHER, 0);
     ASSERT_NE(nullptr, initializer);
-    ASSERT_NE(nullptr, dynamic_pointer_cast<CustomizedQcParamsInitializer>(initializer));
+    ASSERT_NE(nullptr, dynamic_pointer_cast<GpuQcParamsInitializer>(initializer));
 
     initializer = ParamsInitializerFactory::Create(HNSW_SEARCHER, 0);
     ASSERT_NE(nullptr, initializer);

@@ -52,13 +52,23 @@ cc_binary(
     deps=([
         ':sql_lib', '//aios/suez:suez_worker',
         '//aios/suez_navi:suez_navi_search_manager_creator'
-    ] + ['//aios/havenask_app_interface:havenask_app_lib'])
+    ] + [
+        '//aios/havenask_app_interface:havenask_app_lib',
+        '//aios/plugins/havenask_plugins/udf_plugins'
+    ])
 )
 filegroup(name='testdata', srcs=glob(['testdata/**']))
 filegroup(
     name='sql_python',
     srcs=glob(['python/*.py'],
               exclude=['local_search_starter.py', 'local_search_stop.py'])
+)
+filegroup(name='sql_online_script_files', srcs=glob(['tools/py3/utils/*']))
+bundle_files(
+    name='sql_online_script_package',
+    srcs=[':sql_online_script_files'],
+    prefix='usr/local/bin',
+    strip_prefix='/aios/sql/tools/py3'
 )
 bundle_files(
     name='sql_etc_package',
@@ -74,7 +84,7 @@ bundle_files(
     prefix='usr/local/lib/python/site-packages/sql',
     strip_prefix='/aios/sql/python',
     visibility=['//visibility:public'],
-    deps=['//aios/navi:navi_tools_package']
+    deps=[':sql_online_script_package', '//aios/navi:navi_tools_package']
 )
 cc_test(
     name='sql_python_test',

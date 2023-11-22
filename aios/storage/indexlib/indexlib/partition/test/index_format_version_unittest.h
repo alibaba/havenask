@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXFORMATVERSIONTEST_H
-#define __INDEXLIB_INDEXFORMATVERSIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/index_format_version.h"
@@ -36,5 +35,3 @@ INDEXLIB_UNIT_TEST_CASE(IndexFormatVersionTest, TestLoadAndStore);
 INDEXLIB_UNIT_TEST_CASE(IndexFormatVersionTest, TestCheckCompatible);
 INDEXLIB_UNIT_TEST_CASE(IndexFormatVersionTest, TestCompareOperator);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INDEXFORMATVERSIONTEST_H

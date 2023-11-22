@@ -15,14 +15,31 @@
  */
 #include "build_service/admin/taskcontroller/RepartitionTaskController.h"
 
+#include <memory>
+#include <ostream>
+#include <vector>
+
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/CheckpointAccessor.h"
 #include "build_service/common/IndexCheckpointFormatter.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/Admin.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/index/common/Types.h"
+#include "indexlib/index/inverted_index/Types.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace autil;

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_REPORTFRESHNESSMETRICTASKITEM_H
-#define ISEARCH_BS_REPORTFRESHNESSMETRICTASKITEM_H
+#pragma once
 
 #include <indexlib/util/TaskItem.h>
 
@@ -47,5 +46,3 @@ private:
 BS_TYPEDEF_PTR(ReportFreshnessMetricTaskItem);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_REALTIMEBUILDERTASKITEM_H

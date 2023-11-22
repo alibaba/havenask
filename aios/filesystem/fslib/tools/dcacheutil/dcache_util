@@ -1,0 +1,25 @@
+#!/bin/sh
+### link: https://yuque.antfin.com/tgxflt/gs5sir/vsedw7#TrImO
+params=$*
+localPath=${LOCAL_PATH-$(dirname $(dirname $(readlink -f $0)))}
+userPath=$(dirname $localPath)
+dcache_util_libpath=${localPath}/lib64
+
+export DCACHE_CLIENT_CONFIG=${localPath}/etc/dcache/client/client_config.json
+export LD_LIBRARY_PATH=$dcache_util_libpath:$LD_LIBRARY_PATH
+
+dcache_util_bin_cmd=${localPath}/bin/dcache_util_bin
+if [ -f ${dcache_util_bin_cmd} ]; then
+    if [ -f ${dcache_util_libpath}/ld-linux-x86-64.so.2 ]; then
+        export HIPPO_APP_INST_ROOT=${localPath}/../..
+
+        ${dcache_util_libpath}/ld-linux-x86-64.so.2 --library-path ${dcache_util_libpath} ${dcache_util_bin_cmd} $params
+    else
+        ${dcache_util_bin_cmd} $params
+    fi
+else
+    echo "cannot find dcache_util_bin in $localPath/bin" >&2
+    exit 10
+fi
+
+exit $?

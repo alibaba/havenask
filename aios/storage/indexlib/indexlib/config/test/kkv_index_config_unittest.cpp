@@ -12,7 +12,7 @@ using namespace autil;
 using namespace autil::legacy::json;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, KKVIndexConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, KKVIndexConfigTest);
 
 KKVIndexConfigTest::KKVIndexConfigTest() {}
 
@@ -60,7 +60,7 @@ void KKVIndexConfigTest::TestSimpleProcess()
     IndexSchemaPtr indexSchema = schema->GetIndexSchema();
     ASSERT_EQ(it_kkv, indexSchema->GetPrimaryKeyIndexType());
     SingleFieldIndexConfigPtr indexConfig = indexSchema->GetPrimaryKeyIndexConfig();
-    KKVIndexConfigPtr kkvIndexConfig = DYNAMIC_POINTER_CAST(KKVIndexConfig, indexConfig);
+    KKVIndexConfigPtr kkvIndexConfig = std::dynamic_pointer_cast<KKVIndexConfig>(indexConfig);
     ASSERT_TRUE(kkvIndexConfig);
     ASSERT_EQ(0, kkvIndexConfig->GetIndexFormatVersionId());
     ASSERT_TRUE(kkvIndexConfig->SetIndexFormatVersionId(1).IsOK());
@@ -114,7 +114,7 @@ void KKVIndexConfigTest::TestGetHashFunctionType()
 
     // inc build or online: for compatible
     KKVIndexConfigPtr kkvIndexConfig =
-        DYNAMIC_POINTER_CAST(KKVIndexConfig, schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
+        std::dynamic_pointer_cast<KKVIndexConfig>(schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
     ASSERT_TRUE(kkvIndexConfig);
     ASSERT_EQ(hft_uint64, kkvIndexConfig->GetPrefixHashFunctionType());
     ASSERT_EQ(hft_int64, kkvIndexConfig->GetSuffixHashFunctionType());
@@ -126,7 +126,7 @@ void KKVIndexConfigTest::TestGetHashFunctionType()
     IndexPartitionSchemaPtr newSchema(new IndexPartitionSchema(""));
     FromJson(*newSchema, ParseJson(newJsonString));
     KVIndexConfigPtr newKvIndexConfig =
-        DYNAMIC_POINTER_CAST(KVIndexConfig, newSchema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
+        std::dynamic_pointer_cast<KVIndexConfig>(newSchema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
     ASSERT_TRUE(newKvIndexConfig);
     ASSERT_EQ(hft_uint64, kkvIndexConfig->GetPrefixHashFunctionType());
     ASSERT_EQ(hft_int64, kkvIndexConfig->GetSuffixHashFunctionType());
@@ -166,7 +166,7 @@ void KKVIndexConfigTest::TestGetHashFunctionType()
     )";
     schema.reset(new IndexPartitionSchema(""));
     FromJson(*schema, ParseJson(jsonString));
-    kkvIndexConfig = DYNAMIC_POINTER_CAST(KKVIndexConfig, schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
+    kkvIndexConfig = std::dynamic_pointer_cast<KKVIndexConfig>(schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
     ASSERT_TRUE(kkvIndexConfig);
     ASSERT_EQ(hft_uint64, kkvIndexConfig->GetPrefixHashFunctionType());
     ASSERT_EQ(hft_int64, kkvIndexConfig->GetSuffixHashFunctionType());
@@ -203,7 +203,7 @@ void KKVIndexConfigTest::TestGetHashFunctionType()
     )";
     schema.reset(new IndexPartitionSchema(""));
     FromJson(*schema, ParseJson(jsonString));
-    kkvIndexConfig = DYNAMIC_POINTER_CAST(KKVIndexConfig, schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
+    kkvIndexConfig = std::dynamic_pointer_cast<KKVIndexConfig>(schema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
     ASSERT_TRUE(kkvIndexConfig);
     ASSERT_EQ(hft_murmur, kkvIndexConfig->GetPrefixHashFunctionType());
     ASSERT_EQ(hft_int64, kkvIndexConfig->GetSuffixHashFunctionType());
@@ -252,7 +252,7 @@ void KKVIndexConfigTest::TestPlainFormat()
     FromJson(*newSchema, ParseJson(newJsonString));
 
     KVIndexConfigPtr kkvIndexConfig =
-        DYNAMIC_POINTER_CAST(KVIndexConfig, newSchema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
+        std::dynamic_pointer_cast<KVIndexConfig>(newSchema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
     ASSERT_TRUE(kkvIndexConfig);
 
     auto valueConfig = kkvIndexConfig->GetValueConfig();
@@ -342,7 +342,7 @@ void KKVIndexConfigTest::TestValueImpact()
     FromJson(*newSchema, ParseJson(newJsonString));
 
     KVIndexConfigPtr kkvIndexConfig =
-        DYNAMIC_POINTER_CAST(KVIndexConfig, newSchema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
+        std::dynamic_pointer_cast<KVIndexConfig>(newSchema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
     ASSERT_TRUE(kkvIndexConfig);
 
     auto valueConfig = kkvIndexConfig->GetValueConfig();
@@ -396,7 +396,7 @@ void KKVIndexConfigTest::TestAutoValueImpact()
     autil::EnvUtil::unsetEnv("INDEXLIB_OPT_KV_STORE");
 
     KKVIndexConfigPtr kkvIndexConfig =
-        DYNAMIC_POINTER_CAST(KKVIndexConfig, newSchema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
+        std::dynamic_pointer_cast<KKVIndexConfig>(newSchema->GetIndexSchema()->GetPrimaryKeyIndexConfig());
     ASSERT_TRUE(kkvIndexConfig);
 
     auto valueConfig = kkvIndexConfig->GetValueConfig();

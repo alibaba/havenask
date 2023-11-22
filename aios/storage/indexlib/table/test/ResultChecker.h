@@ -11,7 +11,8 @@ namespace indexlibv2 { namespace table {
 class ResultChecker
 {
 public:
-    static bool Check(const std::shared_ptr<Result>& result, bool expectedError, const std::shared_ptr<Result>& expectResult);
+    static bool Check(const std::shared_ptr<Result>& result, bool expectedError,
+                      const std::shared_ptr<Result>& expectResult);
     static bool UnorderCheck(const std::shared_ptr<Result>& result, const std::shared_ptr<Result>& expectResult);
 
 private:

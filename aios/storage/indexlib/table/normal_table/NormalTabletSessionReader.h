@@ -56,6 +56,16 @@ public:
         return _impl->GetPrimaryKeyReader();
     }
     std::shared_ptr<index::SummaryReader> GetSummaryReader() const { return _impl->GetSummaryReader(); }
+    std::shared_ptr<index::SourceReader> GetSourceReader() const { return _impl->GetSourceReader(); }
+    std::shared_ptr<indexlib::index::FieldMetaReader> GetFieldMetaReader(const std::string& fieldName) const
+    {
+        return _impl->GetFieldMetaReader(fieldName);
+    }
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<indexlib::index::FieldMetaReader>>>
+    GetFieldMetaReadersMap() const
+    {
+        return _impl->GetFieldMetaReadersMap();
+    }
     std::shared_ptr<index::AttributeReader> GetAttributeReader(const std::string& attrName) const
     {
         return _impl->GetAttributeReader(attrName);

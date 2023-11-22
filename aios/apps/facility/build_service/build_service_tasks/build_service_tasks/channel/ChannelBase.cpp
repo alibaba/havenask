@@ -15,11 +15,16 @@
  */
 #include "build_service_tasks/channel/ChannelBase.h"
 
+#include <iosfwd>
+#include <vector>
+
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
-#include "aios/network/arpc/arpc/ANetRPCChannel.h"
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/Log.h"
-#include "fslib/util/FileUtil.h"
 #include "worker_framework/PathUtil.h"
 
 using namespace build_service::util;

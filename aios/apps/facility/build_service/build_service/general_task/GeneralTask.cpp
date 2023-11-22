@@ -16,28 +16,56 @@
 #include "build_service/general_task/GeneralTask.h"
 
 #include <algorithm>
+#include <assert.h>
+#include <chrono>
+#include <cstdint>
+#include <google/protobuf/stubs/port.h>
+#include <iterator>
+#include <optional>
+#include <thread>
+#include <type_traits>
+#include <typeinfo>
 
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "autil/legacy/base64.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/analyzer/AnalyzerFactory.h"
 #include "build_service/common/IndexReclaimParamPreparer.h"
-#include "build_service/config/BuildServiceConfig.h"
+#include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/ProtoUtil.h"
 #include "build_service/reader/SourceFieldExtractorDocIterator.h"
-#include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/MemUtil.h"
+#include "build_service/util/Monitor.h"
 #include "future_lite/ExecutorCreator.h"
-#include "future_lite/executors/SimpleExecutor.h"
+#include "future_lite/Try.h"
+#include "future_lite/coro/Lazy.h"
+#include "indexlib/analyzer/IAnalyzerFactory.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/MemoryQuotaController.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/config/TabletOptions.h"
+#include "indexlib/file_system/FileBlockCache.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
+#include "indexlib/framework/EnvironmentVariablesProvider.h"
+#include "indexlib/framework/ITabletDocIterator.h"
 #include "indexlib/framework/MetricsManager.h"
+#include "indexlib/framework/MetricsWrapper.h"
+#include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/TabletFactoryCreator.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
+#include "indexlib/framework/index_task/CustomIndexTaskFactory.h"
 #include "indexlib/framework/index_task/IndexTaskContextCreator.h"
 #include "indexlib/framework/index_task/IndexTaskResourceManager.h"
 #include "indexlib/table/index_task/IndexTaskConstant.h"
-#include "indexlib/util/PathUtil.h"
 #include "indexlib/util/TaskItem.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 CHECK_FUTURE_LITE_EXECUTOR(async_io);
 
@@ -47,7 +75,32 @@ BS_LOG_SETUP(task_base, GeneralTask);
 
 const std::string GeneralTask::TASK_NAME = "general_task";
 const std::string GeneralTask::CHECKPOINT_NAME = "__GENERAL_CKP__";
+const std::string GeneralTask::DEFAULT_GLOBAL_BLOCK_CACHE_PARAM_TEMPLATE =
+    "memory_size_in_mb=$MEMORY_SIZE_IN_MB$;block_size=2097152;io_batch_size=1;num_shard_bits=0";
+
 using namespace std::chrono_literals;
+
+GeneralTask::GeneralTaskMetrics::GeneralTaskMetrics(const std::shared_ptr<kmonitor::MetricsTags>& metricsTags,
+                                                    const std::shared_ptr<kmonitor::MetricsReporter>& metricsReporter)
+    : _metricsTags(metricsTags)
+    , _metricsReporter(metricsReporter)
+    , _operationCount(0)
+{
+    REGISTER_METRIC_WITH_INDEXLIB_PREFIX(_metricsReporter, report, "general_task/pendingAndRunningOpCount",
+                                         kmonitor::GAUGE);
+}
+
+GeneralTask::GeneralTaskMetrics::~GeneralTaskMetrics() {}
+
+void GeneralTask::GeneralTaskMetrics::ReportMetrics()
+{
+    if (_reportMetric) {
+        _reportMetric->Report(_metricsTags.get(), _operationCount);
+    }
+}
+
+void GeneralTask::GeneralTaskMetrics::RegisterMetrics() {}
+
 GeneralTask::~GeneralTask()
 {
     if (_workLoopThread) {
@@ -60,9 +113,12 @@ GeneralTask::~GeneralTask()
         BS_INTERVAL_LOG(100, WARN, "wait running op finish");
         std::this_thread::sleep_for(100ms);
         // TODO: cancel running ops
-    }
-    if (_metricsManager) {
-        _metricsManager->ReportMetrics();
+        if (_generalTaskMetrics) {
+            _generalTaskMetrics->UpdateOperationCount(TEST_getPendingAndRunningOpSize());
+        }
+        if (_metricsManager) {
+            _metricsManager->ReportMetrics();
+        }
     }
     BS_LOG(INFO, "general task exited");
 }
@@ -140,7 +196,6 @@ bool GeneralTask::prepare(const std::string taskName, const std::string taskType
                _tabletSchema->GetTableType().c_str(), _tabletSchema->GetTableName().c_str());
         return false;
     }
-
     if (!initEngine()) {
         BS_LOG(ERROR, "create engine failed");
         return false;
@@ -185,12 +240,13 @@ bool GeneralTask::initIndexTaskContextCreator(const std::string taskName, const 
         std::make_shared<indexlibv2::MemoryQuotaController>(_tabletSchema->GetTableName(), memoryQuota);
     _metricsManager.reset(new indexlibv2::framework::MetricsManager(
         _tabletSchema->GetTableName(), _initParam.metricProvider ? _initParam.metricProvider->GetReporter() : nullptr));
-
     _contextCreator = std::make_unique<indexlibv2::framework::IndexTaskContextCreator>(_metricsManager);
     if (_contextCreator == nullptr) {
         BS_LOG(ERROR, "create index context creator fail.");
         return false;
     }
+
+    initGeneralTaskMetrics();
     _contextCreator->SetTabletName(_tabletSchema->GetTableName())
         .SetTabletSchema(_tabletSchema)
         .SetTabletOptions(_tabletOptions)
@@ -206,19 +262,27 @@ bool GeneralTask::initIndexTaskContextCreator(const std::string taskName, const 
             _contextCreator->AddParameter(indexlibv2::table::RESERVED_VERSION_COORD_SET, reservedVersionsStr);
         }
     }
-    auto blockCacheParam = autil::EnvUtil::getEnv<std::string>(
-        /*key*/ "BS_BLOCK_CACHE",
-        /*defaultValue*/ "memory_size_in_mb=512;block_size=2097152;io_batch_size=1;num_shard_bits=0");
-    if (!blockCacheParam.empty()) {
-        auto fileBlockCacheContainer = std::make_shared<indexlib::file_system::FileBlockCacheContainer>();
-        if (!fileBlockCacheContainer->Init(blockCacheParam, memoryQuotaController,
-                                           std::shared_ptr<indexlib::util::TaskScheduler>(),
-                                           _initParam.metricProvider)) {
-            BS_LOG(ERROR, "create file block cache failed, param: [%s]", blockCacheParam.c_str());
-            return false;
-        }
-        _contextCreator->SetFileBlockCacheContainer(fileBlockCacheContainer);
+
+    std::string blockCacheParam;
+    auto envProvider = _tabletFactory->CreateEnvironmentVariablesProvider();
+    std::string defaultBlockCacheParam = DEFAULT_GLOBAL_BLOCK_CACHE_PARAM_TEMPLATE;
+    autil::StringUtil::replaceAll(defaultBlockCacheParam, "$MEMORY_SIZE_IN_MB$",
+                                  std::to_string(std::min(4096u, _threadNum * 512)));
+    if (envProvider != nullptr) {
+        blockCacheParam = envProvider->Get("BS_BLOCK_CACHE", defaultBlockCacheParam);
+    } else {
+        blockCacheParam = autil::EnvUtil::getEnv<std::string>(
+            /*key*/ "BS_BLOCK_CACHE", /*defaultValue*/ defaultBlockCacheParam);
     }
+    auto fileBlockCacheContainer = std::make_shared<indexlib::file_system::FileBlockCacheContainer>();
+    if (!fileBlockCacheContainer->Init(blockCacheParam, memoryQuotaController,
+                                       std::shared_ptr<indexlib::util::TaskScheduler>(), _initParam.metricProvider)) {
+        BS_LOG(ERROR, "create file block cache failed, param: [%s]", blockCacheParam.c_str());
+        return false;
+    } else {
+        BS_LOG(INFO, "create file block cache success, param: [%s]", blockCacheParam.c_str());
+    }
+    _contextCreator->SetFileBlockCacheContainer(fileBlockCacheContainer);
 
     std::string indexRoot;
     if (!target.getTargetDescription(config::BS_GENERAL_TASK_PARTITION_INDEX_ROOT, indexRoot)) {
@@ -254,6 +318,21 @@ bool GeneralTask::initIndexTaskContextCreator(const std::string taskName, const 
     return true;
 }
 
+std::unique_ptr<indexlibv2::framework::IIndexOperationCreator>
+GeneralTask::getCustomOperationCreator(const indexlibv2::config::CustomIndexTaskClassInfo& customClassInfo,
+                                       const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
+{
+    auto customIndexTaskFactoryCreator = indexlibv2::framework::CustomIndexTaskFactoryCreator::GetInstance();
+    auto className = customClassInfo.GetClassName();
+    auto factory = customIndexTaskFactoryCreator->Create(className);
+    if (!factory) {
+        BS_LOG(ERROR, "no task factory for [%s], registed typeds [%s]", className.c_str(),
+               autil::legacy::ToJsonString(customIndexTaskFactoryCreator->GetRegisteredType(), true).c_str());
+        return nullptr;
+    }
+    return factory->CreateIndexOperationCreator(schema);
+}
+
 bool GeneralTask::initEngine()
 {
     auto executorType = autil::EnvUtil::getEnv("bs_general_task_executor_type", std::string("async_io"));
@@ -269,14 +348,54 @@ bool GeneralTask::initEngine()
         BS_LOG(ERROR, "create context failed");
         return false;
     }
-    auto opCreator = _tabletFactory->CreateIndexOperationCreator(context->GetTabletData()->GetWriteSchema());
-    if (!opCreator) {
+    const auto& schema = context->GetTabletData()->GetWriteSchema();
+    auto opCreator = _tabletFactory->CreateIndexOperationCreator(schema);
+    auto designateTaskConfig = context->GetDesignateTaskConfig();
+    if (designateTaskConfig) {
+        auto [status, customOpCreator] =
+            indexlibv2::framework::CustomIndexTaskFactory::GetCustomOperationCreator(designateTaskConfig, schema);
+        if (!status.IsOK()) {
+            return false;
+        }
+        if (customOpCreator) {
+            opCreator = std::move(customOpCreator);
+        }
+    }
+    if (opCreator == nullptr) {
         BS_LOG(ERROR, "create op creator failed");
         return false;
     }
     BS_LOG(INFO, "LocalExecuteEngine created, executor[%s], threadNum[%d]", executorType.c_str(), _threadNum);
     _engine = std::make_unique<indexlibv2::framework::LocalExecuteEngine>(_executor.get(), std::move(opCreator));
     return true;
+}
+
+void GeneralTask::unsafeUpdateOpDetail(const std::vector<std::shared_ptr<GeneralTask::OperationDetail>>& toRuns,
+                                       const std::vector<std::shared_ptr<GeneralTask::OperationDetail>>& toRemoves,
+                                       OpDetailMap* opDetails)
+{
+    for (auto& toRemove : toRemoves) {
+        auto opId = toRemove->desc.GetId();
+        auto iter = (*opDetails).find(opId);
+        if (iter != (*opDetails).end()) {
+            iter->second->isRemoved = true;
+        }
+    }
+    for (auto& toRun : toRuns) {
+        auto opId = toRun->desc.GetId();
+        auto iter = (*opDetails).find(opId);
+        if (iter != (*opDetails).end()) {
+            iter->second->isRemoved = false;
+            BS_LOG(ERROR, "attempted to run a removed op[%s][%ld], reset isRemoved to false",
+                   toRun->desc.GetType().c_str(), opId);
+            continue;
+        }
+        BS_LOG(INFO, "add op[%s][%ld]", toRun->desc.GetType().c_str(), opId);
+        toRun->result.set_id(opId);
+        toRun->result.set_status(proto::OP_PENDING);
+        toRun->result.set_resultinfo("");
+        (*opDetails)[opId] = toRun;
+    }
 }
 
 bool GeneralTask::handleTarget(const config::TaskTarget& target)
@@ -287,8 +406,8 @@ bool GeneralTask::handleTarget(const config::TaskTarget& target)
         return true;
     }
     proto::OperationTarget opTarget;
-    if (!opTarget.ParseFromString(content)) {
-        BS_LOG(ERROR, "parse target failed");
+    if (!proto::ProtoUtil::parseBase64EncodedPbStr(content, &opTarget)) {
+        BS_LOG(ERROR, "parse general task operation target failed. content[%s]", content.c_str());
         return false;
     }
     if (!_engine) {
@@ -297,29 +416,30 @@ bool GeneralTask::handleTarget(const config::TaskTarget& target)
         }
     }
     assert(_engine);
-    auto [toRuns, toRemoves] = generateTodoOps(opTarget);
+    std::vector<std::shared_ptr<OperationDetail>> newOps = getOperationDetails(opTarget);
+    std::vector<std::shared_ptr<OperationDetail>> oldOps;
     {
         std::lock_guard<std::mutex> lock(_opDetailsMutex);
-        for (auto& opDetail : toRuns) {
-            auto opId = opDetail.desc.GetId();
-            BS_LOG(INFO, "add op[%s][%ld]", opDetail.desc.GetType().c_str(), opId);
-            opDetail.result.set_id(opId);
-            opDetail.result.set_status(proto::OP_PENDING);
-            opDetail.result.set_resultinfo("");
-            _opDetails[opId] = std::make_shared<OperationDetail>(std::move(opDetail));
+        for (const auto& [opId, opDetail] : _opDetails) {
+            if (opDetail->isRemoved) {
+                continue;
+            }
+            oldOps.push_back(opDetail);
         }
-        for (auto& [opId, opDetail] : toRemoves) {
-            _opDetails.erase(opId);
-        }
+    }
+    auto [toRuns, toRemoves] = generateTodoOps(newOps, oldOps);
+    {
+        std::lock_guard<std::mutex> lock(_opDetailsMutex);
+        unsafeUpdateOpDetail(toRuns, toRemoves, &_opDetails);
     }
     updateCurrent();
     return true;
 }
 
-std::pair<std::vector<GeneralTask::OperationDetail>, std::vector<GeneralTask::OpPair>>
-GeneralTask::generateTodoOps(const proto::OperationTarget& opTarget)
+std::vector<std::shared_ptr<GeneralTask::OperationDetail>>
+GeneralTask::getOperationDetails(const proto::OperationTarget& opTarget) const
 {
-    std::vector<OperationDetail> ops;
+    std::vector<std::shared_ptr<OperationDetail>> ops;
     for (const auto& op : opTarget.ops()) {
         indexlibv2::framework::IndexOperationDescription desc(op.id(), op.type());
         desc.SetEstimateMemory(op.memory());
@@ -332,41 +452,42 @@ GeneralTask::generateTodoOps(const proto::OperationTarget& opTarget)
             const auto& paramVal = op.paramvalues(i);
             desc.AddParameter(paramKey, paramVal);
         }
-        OperationDetail opDetail;
-        opDetail.desc = std::move(desc);
+        auto opDetail = std::make_shared<OperationDetail>();
+        opDetail->desc = std::move(desc);
         if (!op.dependworkerepochids().empty()) {
             assert(op.dependworkerepochids_size() == op.depends_size());
             for (const auto& epochId : op.dependworkerepochids()) {
-                opDetail.dependOpExecuteEpochIds.push_back(epochId);
+                opDetail->dependOpExecuteEpochIds.push_back(epochId);
             }
         }
-        ops.push_back(std::move(opDetail));
+        ops.push_back(opDetail);
     }
-    struct Cmp {
-        bool operator()(const OperationDetail& lhs, const OpDetailMap::value_type& rhs)
-        {
-            return lhs.desc.GetId() < rhs.first;
-        }
-        bool operator()(const OpDetailMap::value_type& lhs, const OperationDetail& rhs)
-        {
-            return lhs.first < rhs.desc.GetId();
-        }
-    };
-    std::sort(ops.begin(), ops.end(),
-              [](const auto& lhs, const auto& rhs) { return lhs.desc.GetId() < rhs.desc.GetId(); });
-    decltype(ops) toRuns;
-    std::lock_guard<std::mutex> lock(_opDetailsMutex);
-    std::set_difference(ops.begin(), ops.end(), _opDetails.begin(), _opDetails.end(),
-                        std::inserter(toRuns, toRuns.end()), Cmp());
+    return ops;
+}
 
-    std::vector<OpPair> toRemoves;
-    std::set_difference(_opDetails.begin(), _opDetails.end(), ops.begin(), ops.end(),
-                        std::inserter(toRemoves, toRemoves.end()), Cmp());
+std::pair</*toRun=*/std::vector<std::shared_ptr<GeneralTask::OperationDetail>>,
+          /*toRemove=*/std::vector<std::shared_ptr<GeneralTask::OperationDetail>>>
+GeneralTask::generateTodoOps(std::vector<std::shared_ptr<GeneralTask::OperationDetail>> newDetails,
+                             std::vector<std::shared_ptr<GeneralTask::OperationDetail>> oldDetails)
+{
+    auto cmp = [](const std::shared_ptr<OperationDetail>& lhs, const std::shared_ptr<OperationDetail>& rhs) {
+        return lhs->desc.GetId() < rhs->desc.GetId();
+    };
+
+    std::sort(newDetails.begin(), newDetails.end(), cmp);
+    std::sort(oldDetails.begin(), oldDetails.end(), cmp);
+    std::vector<std::shared_ptr<OperationDetail>> toRuns;
+
+    std::set_difference(newDetails.begin(), newDetails.end(), oldDetails.begin(), oldDetails.end(),
+                        std::inserter(toRuns, toRuns.end()), cmp);
+    std::vector<std::shared_ptr<OperationDetail>> toRemoves;
+    std::set_difference(oldDetails.begin(), oldDetails.end(), newDetails.begin(), newDetails.end(),
+                        std::inserter(toRemoves, toRemoves.end()), cmp);
     return {std::move(toRuns), std::move(toRemoves)};
 }
 
 std::unique_ptr<indexlibv2::framework::IndexTaskContext>
-GeneralTask::createIndexTaskContext(const OperationDetail& detail)
+GeneralTask::createIndexTaskContext(const GeneralTask::OperationDetail& detail)
 {
     if (!detail.dependOpExecuteEpochIds.empty()) {
         std::map<int64_t, std::string> epochIds;
@@ -386,68 +507,62 @@ std::unique_ptr<indexlibv2::framework::IndexTaskContext> GeneralTask::createInde
     return _contextCreator ? _contextCreator->CreateContext() : nullptr;
 }
 
-indexlib::Status GeneralTask::addIndexReclaimParamPreparer(const indexlibv2::framework::IndexTaskContext* context) const
+std::vector<std::shared_ptr<indexlibv2::framework::IndexTaskResource>>
+GeneralTask::prepareExtendResource(const std::shared_ptr<config::ResourceReader>& resourceReader,
+                                   const std::string& clusterName)
 {
-    auto preparer = std::make_shared<common::IndexReclaimParamPreparer>(_initParam.clusterName);
-    auto resourceManager = context->GetResourceManager();
-    if (resourceManager) {
-        return resourceManager->AddExtendResource<indexlib::util::TaskItemWithStatus<
-            const indexlibv2::framework::IndexTaskContext*, const std::map<std::string, std::string>&>>(
-            indexlibv2::framework::INDEX_RECLAIM_PARAM_PREPARER, preparer);
-    }
-    BS_LOG(WARN, "resource manager is nullptr");
-    return indexlib::Status::InvalidArgs();
-}
-
-indexlib::Status GeneralTask::addAnalyzerFactory(const indexlibv2::framework::IndexTaskContext* context) const
-{
+    std::vector<std::shared_ptr<indexlibv2::framework::IndexTaskResource>> indexTaskResources;
+    auto CreateSourceFieldExtractorDocIter = [](const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
+        -> std::shared_ptr<indexlibv2::framework::ITabletDocIterator> {
+        return std::make_shared<reader::SourceFieldExtractorDocIterator>(schema);
+    };
+    auto docReaderIteratorCreatorRes = std::make_shared<
+        indexlibv2::framework::ExtendResource<indexlibv2::framework::ITabletDocIterator::CreateDocIteratorFunc>>(
+        indexlibv2::framework::DOC_READER_ITERATOR_CREATOR,
+        std::make_shared<indexlibv2::framework::ITabletDocIterator::CreateDocIteratorFunc>(
+            CreateSourceFieldExtractorDocIter));
+    indexTaskResources.push_back(docReaderIteratorCreatorRes);
     std::shared_ptr<indexlibv2::analyzer::IAnalyzerFactory> analyzerFactory =
-        analyzer::AnalyzerFactory::create(_initParam.resourceReader);
-    std::shared_ptr<indexlibv2::framework::IndexTaskResourceManager> resourceManager = context->GetResourceManager();
-    if (resourceManager) {
-        return resourceManager->AddExtendResource(indexlibv2::framework::ANALYZER_FACTORY, analyzerFactory);
-    }
-    BS_LOG(WARN, "resource manager is nullptr");
-    return indexlib::Status::InvalidArgs();
+        analyzer::AnalyzerFactory::create(resourceReader);
+    auto analyzerResource =
+        std::make_shared<indexlibv2::framework::ExtendResource<indexlibv2::analyzer::IAnalyzerFactory>>(
+            indexlibv2::framework::ANALYZER_FACTORY, analyzerFactory);
+    indexTaskResources.push_back(analyzerResource);
+
+    auto indexReclaimPreparer = std::make_shared<common::IndexReclaimParamPreparer>(clusterName);
+    auto reclaimPrepareRes = std::make_shared<indexlibv2::framework::ExtendResource<indexlib::util::TaskItemWithStatus<
+        const indexlibv2::framework::IndexTaskContext*, const std::map<std::string, std::string>&>>>(
+        indexlibv2::framework::INDEX_RECLAIM_PARAM_PREPARER, indexReclaimPreparer);
+
+    indexTaskResources.push_back(reclaimPrepareRes);
+    auto resourceReaderResource = std::make_shared<indexlibv2::framework::ExtendResource<config::ResourceReader>>(
+        config::BS_RESOURCE_READER, resourceReader);
+    indexTaskResources.push_back(resourceReaderResource);
+    return indexTaskResources;
 }
 
-indexlib::Status
-GeneralTask::addDocReaderIteratorCreateFunc(const indexlibv2::framework::IndexTaskContext* context) const
+indexlib::Status GeneralTask::addExtendResource(const indexlibv2::framework::IndexTaskContext* context) const
 {
     std::shared_ptr<indexlibv2::framework::IndexTaskResourceManager> resourceManager = context->GetResourceManager();
     if (resourceManager == nullptr) {
         BS_LOG(ERROR, "resource manager is nullptr");
         return indexlib::Status::InternalError("resource manager is nullptr");
     }
-    auto CreateSourceFieldExtractorDocIter = [](const std::shared_ptr<indexlibv2::config::ITabletSchema>& schema)
-        -> std::shared_ptr<indexlibv2::framework::ITabletDocIterator> {
-        return std::make_shared<reader::SourceFieldExtractorDocIterator>(schema);
-    };
-    return resourceManager->AddExtendResource(
-        indexlibv2::framework::DOC_READER_ITERATOR_CREATOR,
-        std::make_shared<indexlibv2::framework::ITabletDocIterator::CreateDocIteratorFunc>(
-            CreateSourceFieldExtractorDocIter));
-}
-
-indexlib::Status GeneralTask::addExtendResource(const indexlibv2::framework::IndexTaskContext* context) const
-{
-    auto st = addAnalyzerFactory(context);
-    if (!st.IsOK() && !st.IsExist()) {
-        RETURN_IF_STATUS_ERROR(st, "add analyzer factory failed");
-    }
-    st = addDocReaderIteratorCreateFunc(context);
-    if (!st.IsOK() && !st.IsExist()) {
-        RETURN_IF_STATUS_ERROR(st, "add segment doc reader failed");
-    }
-    st = addIndexReclaimParamPreparer(context);
-    if (!st.IsOK() && !st.IsExist()) {
-        RETURN_IF_STATUS_ERROR(st, "add index reclaim param preparer failed");
+    auto extendResources = prepareExtendResource(_initParam.resourceReader, _initParam.clusterName);
+    for (auto& extendResource : extendResources) {
+        auto status = resourceManager->AddExtendResource(extendResource);
+        if (!status.IsOK() && !status.IsExist()) {
+            RETURN_IF_STATUS_ERROR(status, "add extend resource [%s] fail", extendResource->GetName().c_str());
+        }
     }
     return indexlib::Status::OK();
 }
 
 void GeneralTask::workLoop()
 {
+    if (_generalTaskMetrics) {
+        _generalTaskMetrics->UpdateOperationCount(TEST_getPendingAndRunningOpSize());
+    }
     std::vector<std::shared_ptr<OperationDetail>> pendingOps;
     {
         std::lock_guard<std::mutex> lock(_opDetailsMutex);
@@ -508,6 +623,10 @@ void GeneralTask::updateCurrent()
     _current.clear_opresults();
     std::lock_guard<std::mutex> opLock(_opDetailsMutex);
     for (const auto& [id, detail] : _opDetails) {
+        if (detail->isRemoved) {
+            // skip detail that is marked as  isRemoved.
+            continue;
+        }
         *_current.add_opresults() = detail->result;
     }
 }
@@ -520,7 +639,12 @@ std::string GeneralTask::getTaskStatus()
         BS_LOG(ERROR, "serialize current failed");
         return "";
     }
-    return content;
+    // for compatibility update package.
+    // step 1: set bs admin env "ENABLE_OPTARGET_BASE64_ENCODE" to false (admin send TARGET with raw pb str)
+    // step 2: update bs admin package (admin can recognize base64 encoded CURRENT)
+    // step 3: update bs worker package (worker can recognize base64 encoded TARGET, and send base64 encoded CURRENT)
+    // step 4: set bs admin env "ENABLE_OPTARGET_BASE64_ENCODE" to true (admin send base64 encoded TARGET)
+    return autil::legacy::Base64EncodeFast(content);
 }
 
 size_t GeneralTask::TEST_getPendingAndRunningOpSize() const
@@ -545,6 +669,20 @@ bool GeneralTask::hasRunningOps() const
         }
     }
     return false;
+}
+
+void GeneralTask::initGeneralTaskMetrics()
+{
+    if (!_metricsManager) {
+        return;
+    }
+    auto tags = std::make_shared<kmonitor::MetricsTags>("clusterName", _initParam.clusterName);
+    const std::string identifier = std::string("GENERAL_TASK_METRICS_") + typeid(*this).name() + "_" + _executeEpochId;
+    const auto creatorFunc = [&]() -> std::shared_ptr<indexlibv2::framework::IMetrics> {
+        return std::make_shared<GeneralTaskMetrics>(tags, _metricsManager->GetMetricsReporter());
+    };
+    _generalTaskMetrics =
+        std::dynamic_pointer_cast<GeneralTaskMetrics>(_metricsManager->CreateMetrics(identifier, creatorFunc));
 }
 
 } // namespace build_service::task_base

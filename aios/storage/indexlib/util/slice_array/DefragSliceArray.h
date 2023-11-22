@@ -68,14 +68,14 @@ private:
     virtual void Defrag(int64_t sliceIdx) {}
     virtual void DoFree(size_t size) {}
     virtual bool NeedDefrag(int64_t sliceIdx) { return false; }
+    virtual void AllocateNewSlice();
 
 private:
-    void AllocateNewSlice();
     void FreeLastSliceSpace(int64_t sliceIdx);
     void* GetSlice(int64_t sliceIdx) const;
     void FreeBySliceIdx(int64_t sliceIdx, size_t size);
 
-private:
+protected:
     SliceArrayPtr _sliceArray;
 
 private:

@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_ALTERDEFAULTFIELDMERGER_H
-#define ISEARCH_BS_ALTERDEFAULTFIELDMERGER_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "build_service/common_define.h"
+#include "build_service/custom_merger/CustomMergePlan.h"
 #include "build_service/custom_merger/CustomMergerImpl.h"
 #include "build_service/custom_merger/CustomMergerTaskItem.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/partition/remote_access/attribute_data_patcher.h"
+#include "indexlib/partition/remote_access/partition_iterator.h"
 #include "indexlib/partition/remote_access/partition_resource_provider.h"
 
 namespace build_service { namespace custom_merger {
@@ -55,5 +63,3 @@ private:
 BS_TYPEDEF_PTR(AlterDefaultFieldMerger);
 
 }} // namespace build_service::custom_merger
-
-#endif // ISEARCH_BS_ALTERDEFAULTFIELDMERGER_H

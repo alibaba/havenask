@@ -38,11 +38,11 @@ fi
 
 # build
 echo "build mode [$MODE], build option [$OPTIONS]"
-bazel build //package/havenask/hape:hape_tar $OPTIONS 2>&1 | tee build.log
+bazel build //aios/tools/hape:hape_tar $OPTIONS 2>&1 | tee build.log
 
 # install
 INSTALL_DIR=ha3_install
 rm -rf ${INSTALL_DIR}
 mkdir ${INSTALL_DIR}
-tar xvf bazel-bin/package/havenask/hape/hape_tar.tar -C ${INSTALL_DIR}
+tar xvf bazel-bin/aios/tools/hape/hape_tar.tar -C ${INSTALL_DIR}
 echo "build & install finished: [${DIR}/${INSTALL_DIR}]"

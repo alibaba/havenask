@@ -96,21 +96,21 @@ void PartitionPatchMeta::Jsonize(Jsonizable::JsonWrapper& json)
     }
 }
 
-void PartitionPatchMeta::AddPatchIndexs(schemavid_t schemaId, segmentid_t segId, const vector<string>& indexNames)
+void PartitionPatchMeta::AddPatchIndexs(schemaid_t schemaId, segmentid_t segId, const vector<string>& indexNames)
 {
     for (size_t i = 0; i < indexNames.size(); i++) {
         AddPatchIndex(schemaId, segId, indexNames[i]);
     }
 }
 
-void PartitionPatchMeta::AddPatchAttributes(schemavid_t schemaId, segmentid_t segId, const vector<string>& attrNames)
+void PartitionPatchMeta::AddPatchAttributes(schemaid_t schemaId, segmentid_t segId, const vector<string>& attrNames)
 {
     for (size_t i = 0; i < attrNames.size(); i++) {
         AddPatchAttribute(schemaId, segId, attrNames[i]);
     }
 }
 
-void PartitionPatchMeta::AddPatchIndex(schemavid_t schemaId, segmentid_t segId, const string& indexName)
+void PartitionPatchMeta::AddPatchIndex(schemaid_t schemaId, segmentid_t segId, const string& indexName)
 {
     if (schemaId == DEFAULT_SCHEMAID) {
         INDEXLIB_FATAL_ERROR(BadParameter, "invalid schemaId [%u] for partition patch meta", schemaId);
@@ -126,7 +126,7 @@ void PartitionPatchMeta::AddPatchIndex(schemavid_t schemaId, segmentid_t segId, 
     mIndexSchemaIdMap[key] = schemaId;
 }
 
-void PartitionPatchMeta::AddPatchAttribute(schemavid_t schemaId, segmentid_t segId, const string& attrName)
+void PartitionPatchMeta::AddPatchAttribute(schemaid_t schemaId, segmentid_t segId, const string& attrName)
 {
     if (schemaId == DEFAULT_SCHEMAID) {
         INDEXLIB_FATAL_ERROR(BadParameter, "invalid schemaId [%u] for partition patch meta", schemaId);
@@ -144,7 +144,7 @@ void PartitionPatchMeta::AddPatchAttribute(schemavid_t schemaId, segmentid_t seg
     mAttrSchemaIdMap[key] = schemaId;
 }
 
-schemavid_t PartitionPatchMeta::GetSchemaIdByIndexName(segmentid_t segId, const string& indexName) const
+schemaid_t PartitionPatchMeta::GetSchemaIdByIndexName(segmentid_t segId, const string& indexName) const
 {
     _Key key = make_pair(segId, indexName);
     SchemaIdMap::const_iterator iter = mIndexSchemaIdMap.find(key);
@@ -154,7 +154,7 @@ schemavid_t PartitionPatchMeta::GetSchemaIdByIndexName(segmentid_t segId, const 
     return DEFAULT_SCHEMAID;
 }
 
-schemavid_t PartitionPatchMeta::GetSchemaIdByAttributeName(segmentid_t segId, const string& attrName) const
+schemaid_t PartitionPatchMeta::GetSchemaIdByAttributeName(segmentid_t segId, const string& attrName) const
 {
     _Key key = make_pair(segId, attrName);
     SchemaIdMap::const_iterator iter = mAttrSchemaIdMap.find(key);
@@ -164,7 +164,7 @@ schemavid_t PartitionPatchMeta::GetSchemaIdByAttributeName(segmentid_t segId, co
     return DEFAULT_SCHEMAID;
 }
 
-SchemaPatchInfoPtr PartitionPatchMeta::FindSchemaPatchInfo(schemavid_t schemaId) const
+SchemaPatchInfoPtr PartitionPatchMeta::FindSchemaPatchInfo(schemaid_t schemaId) const
 {
     for (size_t i = 0; i < mSchemaPatchInfos.size(); i++) {
         if (mSchemaPatchInfos[i]->GetSchemaId() == schemaId) {
@@ -174,7 +174,7 @@ SchemaPatchInfoPtr PartitionPatchMeta::FindSchemaPatchInfo(schemavid_t schemaId)
     return SchemaPatchInfoPtr();
 }
 
-SchemaPatchInfoPtr PartitionPatchMeta::GetSchemaPatchInfo(schemavid_t schemaId)
+SchemaPatchInfoPtr PartitionPatchMeta::GetSchemaPatchInfo(schemaid_t schemaId)
 {
     SchemaPatchInfoPtr info = FindSchemaPatchInfo(schemaId);
     if (info) {
@@ -247,7 +247,7 @@ string PartitionPatchMeta::GetPatchMetaFileName(versionid_t versionId)
     return string(PARTITION_PATCH_META_FILE_PREFIX) + "." + StringUtil::toString(versionId);
 }
 
-void PartitionPatchMeta::GetSchemaIdsBySegmentId(segmentid_t segId, vector<schemavid_t>& schemaIds) const
+void PartitionPatchMeta::GetSchemaIdsBySegmentId(segmentid_t segId, vector<schemaid_t>& schemaIds) const
 {
     assert(schemaIds.empty());
     Iterator iter = CreateIterator();

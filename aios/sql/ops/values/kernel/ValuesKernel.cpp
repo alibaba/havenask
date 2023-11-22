@@ -87,22 +87,19 @@ navi::ErrorCode ValuesKernel::compute(navi::KernelComputeContext &runContext) {
     TablePtr table(new Table(_graphMemoryPoolR->getPool()));
     for (size_t i = 0; i < _outputFields.size(); ++i) {
         if (_outputTypes[i] == "BOOLEAN") {
-            auto columnData
-                = TableUtil::declareAndGetColumnData<bool>(table, _outputFields[i], false);
+            auto columnData = TableUtil::declareAndGetColumnData<bool>(table, _outputFields[i]);
             CHECK_DECLARE_COLUMN(columnData);
         } else if (_outputTypes[i] == "TINYINT" || _outputTypes[i] == "SMALLINT"
                    || _outputTypes[i] == "INTEGER" || _outputTypes[i] == "BIGINT") {
-            auto columnData
-                = TableUtil::declareAndGetColumnData<int64_t>(table, _outputFields[i], false);
+            auto columnData = TableUtil::declareAndGetColumnData<int64_t>(table, _outputFields[i]);
             CHECK_DECLARE_COLUMN(columnData);
         } else if (_outputTypes[i] == "DECIMAL" || _outputTypes[i] == "FLOAT"
                    || _outputTypes[i] == "REAL" || _outputTypes[i] == "DOUBLE") {
-            auto columnData
-                = TableUtil::declareAndGetColumnData<double>(table, _outputFields[i], false);
+            auto columnData = TableUtil::declareAndGetColumnData<double>(table, _outputFields[i]);
             CHECK_DECLARE_COLUMN(columnData);
         } else if (_outputTypes[i] == "VARCHAR") {
-            auto columnData = TableUtil::declareAndGetColumnData<autil::MultiChar>(
-                table, _outputFields[i], false);
+            auto columnData
+                = TableUtil::declareAndGetColumnData<autil::MultiChar>(table, _outputFields[i]);
             CHECK_DECLARE_COLUMN(columnData);
         } else {
             SQL_LOG(ERROR,
@@ -112,7 +109,6 @@ navi::ErrorCode ValuesKernel::compute(navi::KernelComputeContext &runContext) {
             return navi::EC_ABORT;
         }
     }
-    table->endGroup();
     navi::PortIndex index(0, navi::INVALID_INDEX);
     TableDataPtr tableData(new TableData(table));
     runContext.setOutput(index, tableData, true);

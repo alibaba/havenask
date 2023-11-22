@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCUMENT_CHECKER_FOR_GTEST_H
-#define __INDEXLIB_DOCUMENT_CHECKER_FOR_GTEST_H
+#pragma once
 
 #include <memory>
 
@@ -79,5 +78,3 @@ private:
 
 DEFINE_SHARED_PTR(DocumentCheckerForGtest);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DOCUMENT_CHECKER_FOR_GTEST_H

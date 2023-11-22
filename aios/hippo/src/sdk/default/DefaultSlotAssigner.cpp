@@ -89,7 +89,6 @@ bool DefaultSlotAssigner::updateMachineResource() {
         string assignedResource;
         if (_assignedResSerializer->read(assignedResource)) {
             deserializeAssignedResource(assignedResource);
-            //recoverAssignedResource(role2Ips);
         }
         _isReboot = false;
     }
@@ -127,8 +126,43 @@ void DefaultSlotAssigner::releaseSlots(const proto::AllocateRequest &request) {
             }
             _assignedSlot2Role.erase(it);
         }
+        clearExclusiveTag(slotId);
         clearIpIdx(slotId.slaveAddress, slotId.id);
     }
+    for (int i = 0; i < request.reserveslot_size(); ++i) {
+        auto &reserveSlot = request.reserveslot(i);
+        auto &slotIdIn = reserveSlot.slotid();
+        hippo::SlotId slotId;
+        ProtoWrapper::convert(slotIdIn, &slotId);
+        HIPPO_LOG(INFO, "reserve slot, slot address:%s, slot id:%d",
+                  slotId.slaveAddress.c_str(), slotId.id);
+        auto it = _assignedSlot2Role.find(slotId);
+        if (it != _assignedSlot2Role.end()) {
+            auto& role = it->second;
+            HIPPO_LOG(INFO, "reserve slot of role:%s, slot address:%s, slot id:%d",
+                      role.c_str(), slotId.slaveAddress.c_str(), slotId.id);
+            auto rIt = _assignedSlots.find(role);
+            if (rIt != _assignedSlots.end()) {
+                rIt->second.erase(slotId);
+            }
+            if (rIt->second.empty()) {
+                _assignedSlots.erase(rIt);
+            }
+            _assignedSlot2Role.erase(it);
+        }
+        clearExclusiveTag(slotId);
+        clearIpIdx(slotId.slaveAddress, slotId.id);
+    }
+}
+
+void DefaultSlotAssigner::clearExclusiveTag(const hippo::SlotId &slotId) {
+    string exclusiveTag;
+    getExclusiveTag(slotId, exclusiveTag);
+    if (!exclusiveTag.empty()) {
+        _assignedSlot2ExclusiveTags.erase(slotId);
+        clearIpExclusiveTag(slotId.slaveAddress, exclusiveTag);
+    }
+
 }
 
 void DefaultSlotAssigner::clearIpIdx(const string& ip, int32_t id) {
@@ -137,6 +171,16 @@ void DefaultSlotAssigner::clearIpIdx(const string& ip, int32_t id) {
         idxIt->second.erase(id);
         if (idxIt->second.empty()) {
             _ip2SlotIdxs.erase(idxIt);
+        }
+    }
+}
+
+void DefaultSlotAssigner::clearIpExclusiveTag(const string& ip, const string &exclusiveTag) {
+    auto idxIt = _ip2ExclusiveTags.find(ip);
+    if (idxIt != _ip2ExclusiveTags.end()) {
+        idxIt->second.erase(exclusiveTag);
+        if (idxIt->second.empty()) {
+            _ip2ExclusiveTags.erase(idxIt);
         }
     }
 }
@@ -163,9 +207,19 @@ void DefaultSlotAssigner::assignRoleSlots(
         resourceResponse->set_resourcetag(role);
     }
     string resourceName;
-    if (!getFirstTextResource(resourceRequest, resourceName)) {
+    if (!getFirstSpecifiedResource(resourceRequest,
+                                   hippo::proto::Resource::TEXT, resourceName))
+    {
         resourceName = DEFAULT_RESOURCE;
     }
+    string exclusiveTag;
+    if (!getFirstSpecifiedResource(resourceRequest,
+                                   hippo::proto::Resource::EXCLUSIVE,
+                                   exclusiveTag))
+    {
+        exclusiveTag.clear();
+    }
+
     auto it = _assignedSlots.find(role);
     if (it != _assignedSlots.end()) {
         set<SlotId> &roleAssignedSlots = it->second;
@@ -178,6 +232,8 @@ void DefaultSlotAssigner::assignRoleSlots(
                 || ipsIt->second.count(ip) == 0) //machine has been deleted
             {
                 clearIpIdx(ip, slotIt->id);
+                clearIpExclusiveTag(ip, exclusiveTag);
+                _assignedSlot2ExclusiveTags.erase(*slotIt);
                 roleAssignedSlots.erase(slotIt++);
                 continue;
             }
@@ -199,16 +255,30 @@ bool DefaultSlotAssigner::assignNewSlot(const proto::ResourceRequest &resourceRe
                                         proto::ResourceResponse *resourceResponse)
 {
     string resourceName;
-    if (!getFirstTextResource(resourceRequest, resourceName)) {
+    if (!getFirstSpecifiedResource(resourceRequest,
+                                   hippo::proto::Resource::TEXT,
+                                   resourceName))
+    {
         resourceName = DEFAULT_RESOURCE;
     }
+
+    string exclusiveTag;
+    if (!getFirstSpecifiedResource(resourceRequest,
+                                   hippo::proto::Resource::EXCLUSIVE,
+                                   exclusiveTag))
+    {
+        exclusiveTag.clear();
+    }
+    HIPPO_LOG(DEBUG, "alloc request with exclusive resource[%s], text resource[%s]",
+              exclusiveTag.c_str(), resourceName.c_str());
+
     auto it = _ipInfos.find(resourceName);
     if (it == _ipInfos.end()) {
         HIPPO_LOG(ERROR, "invalid resource tag[%s]", resourceName.c_str());
         return false;
     }
     string ip;
-    if (!getFreeNode(it->second, ip)) {
+    if (!getFreeNode(it->second, exclusiveTag, ip)) {
         HIPPO_LOG(ERROR, "candidate node of tag[%s] not enough", resourceName.c_str());
         return false;
     }
@@ -222,18 +292,23 @@ bool DefaultSlotAssigner::assignNewSlot(const proto::ResourceRequest &resourceRe
     const string& role = resourceRequest.tag();
     _assignedSlots[role].insert(slotId);
     _assignedSlot2Role[slotId] = role;
+    if (!exclusiveTag.empty()) {
+        _ip2ExclusiveTags[ip].insert(exclusiveTag);
+        _assignedSlot2ExclusiveTags[slotId] = exclusiveTag;
+    }
     return true;
 }
 
-bool DefaultSlotAssigner::getFirstTextResource(
+bool DefaultSlotAssigner::getFirstSpecifiedResource(
         const proto::ResourceRequest &resourceRequest,
+        hippo::proto::Resource::Type resourceType,
         string &resourceName)
 {
     for (int i = 0; i < resourceRequest.options_size(); ++i) {
         auto &slotResource = resourceRequest.options(i);
         for (int j = 0; j < slotResource.resources_size(); ++j) {
             auto& resource = slotResource.resources(j);
-            if (resource.type() == hippo::proto::Resource::TEXT) {
+            if (resource.type() == resourceType) {
                 resourceName = resource.name();
                 return true;
             }
@@ -242,20 +317,36 @@ bool DefaultSlotAssigner::getFirstTextResource(
     return false;
 }
 
-bool DefaultSlotAssigner::getFreeNode(const vector<string> &ipVec, string &ip) {
+bool DefaultSlotAssigner::getFreeNode(const vector<string> &ipVec,
+                                      const string &exclusiveTag, string &ip)
+{
     int32_t idx = -1;
     int32_t slotCount = MAX_SLOT_IDX;
     for (int32_t i = 0; i < ipVec.size(); ++i) {
         HIPPO_LOG(INFO, "begin check slot count for ip:%s", ipVec[i].c_str());
-        auto it = _ip2SlotIdxs.find(ipVec[i]);
-        if (it == _ip2SlotIdxs.end()) {
-            idx = i;
-            break;
-        } else if (!_multiSlotsOneNode) {
-            continue;
-        } else if (it->second.size() < slotCount) {
-            slotCount = it->second.size();
-            idx = i;
+        if (!exclusiveTag.empty()) {
+            auto tagIt = _ip2ExclusiveTags.find(ipVec[i]);
+            if (tagIt == _ip2ExclusiveTags.end() || tagIt->second.count(exclusiveTag) == 0) {
+                auto it = _ip2SlotIdxs.find(ipVec[i]);
+                if (it == _ip2SlotIdxs.end()) {
+                    idx = i;
+                    break;
+                } else if (it->second.size() < slotCount) {
+                    slotCount = it->second.size();
+                    idx = i;
+                }
+            }
+        } else {
+            auto it = _ip2SlotIdxs.find(ipVec[i]);
+            if (it == _ip2SlotIdxs.end()) {
+                idx = i;
+                break;
+            } else if (!_multiSlotsOneNode) {
+                continue;
+            } else if (it->second.size() < slotCount) {
+                slotCount = it->second.size();
+                idx = i;
+            }
         }
     }
     if (idx >= 0) {
@@ -271,10 +362,6 @@ int32_t DefaultSlotAssigner::getSlotIdx(const string& ip) {
 
     int32_t idx = MIN_SLOT_IDX;
     set<int32_t> &slotIdxSet = _ip2SlotIdxs[ip];
-    if (!_multiSlotsOneNode) {
-        slotIdxSet.insert(idx);
-        return idx;
-    }
     for (; idx < MAX_SLOT_IDX; ++idx) {
         if (slotIdxSet.count(idx) == 0) {
             break;
@@ -331,8 +418,7 @@ proto::ProcessStatus::Status DefaultSlotAssigner::getProcessStatus(
         int64_t launchSignature)
 {
     auto it = _launchedMetas.find(slotId);
-    if (it != _launchedMetas.end() &&
-        launchSignature == it->second.launchSignature)
+    if (it != _launchedMetas.end())
     {
         return proto::ProcessStatus::PS_RUNNING;
     }
@@ -389,8 +475,11 @@ void DefaultSlotAssigner::serializeAssignedResource(string& content) const
         rapidjson::Value ipsValue;
         ipsValue.SetArray();
         for (auto &slotId : slotIdSet) {
+            string exclusiveTag;
+            getExclusiveTag(slotId, exclusiveTag);
             string slotIdStr;
-            slotIdToString(slotId, slotIdStr);
+            slotIdToString(slotId, exclusiveTag, slotIdStr);
+
             rapidjson::Value slotIdValue(slotIdStr.c_str(), slotIdStr.size(), allocator);
             ipsValue.PushBack(slotIdValue, allocator);
         }
@@ -426,25 +515,45 @@ void DefaultSlotAssigner::deserializeAssignedResource(
         for (auto iter = ipsValue.Begin(); iter != ipsValue.End(); ++iter) {
             string slotIdStr = iter->GetString();
             hippo::SlotId slotId;
-            slotIdFromString(slotIdStr, slotId);
-            HIPPO_LOG(INFO, "set slot idx to buffer, address:%s id:%d", slotId.slaveAddress.c_str(), slotId.id);
+            string exclusiveTag;
+            slotIdFromString(slotIdStr, slotId, exclusiveTag);
+            HIPPO_LOG(INFO, "set slot idx to buffer, address:%s id:%d tag:%s",
+                      slotId.slaveAddress.c_str(), slotId.id, exclusiveTag.c_str());
             _ip2SlotIdxs[slotId.slaveAddress].insert(slotId.id);
             _assignedSlots[role].insert(slotId);
             _assignedSlot2Role[slotId] = role;
+            if (!exclusiveTag.empty()) {
+                _ip2ExclusiveTags[slotId.slaveAddress].insert(exclusiveTag);
+                _assignedSlot2ExclusiveTags[slotId] = exclusiveTag;
+            }
         }
     }
 }
 
+void DefaultSlotAssigner::getExclusiveTag(const hippo::SlotId &slotId,
+        string &exclusiveTag) const
+{
+    auto it = _assignedSlot2ExclusiveTags.find(slotId);
+    if (it != _assignedSlot2ExclusiveTags.end()) {
+        exclusiveTag = it->second;
+    }
+}
+
 void DefaultSlotAssigner::slotIdToString(const hippo::SlotId &slotId,
+        const string &exclusiveTag,
         string &slotIdStr) const
 {
     slotIdStr.clear();
     slotIdStr += slotId.slaveAddress + "&" + StringUtil::toString(slotId.id)
                  + "&" + StringUtil::toString(slotId.declareTime);
+    if (!exclusiveTag.empty()) {
+        slotIdStr += "&" + exclusiveTag;
+    }
 }
 
 void DefaultSlotAssigner::slotIdFromString(string &slotIdStr,
-        hippo::SlotId &slotId)
+        hippo::SlotId &slotId,
+        string &exclusiveTag)
 
 {
     vector<string> items = StringUtil::split(slotIdStr, "&");
@@ -458,6 +567,9 @@ void DefaultSlotAssigner::slotIdFromString(string &slotIdStr,
 
     if (items.size() > 2) {
         slotId.declareTime = StringUtil::fromString<int64_t>(items[2]);
+    }
+    if (items.size() > 3) {
+        exclusiveTag = items[3];
     }
 }
 
@@ -477,6 +589,7 @@ void DefaultSlotAssigner::setIpInfo(const map<string, vector<string> > &ipInfos)
     }
 }
 
+//no use
 void DefaultSlotAssigner::recoverAssignedResource(
         const map<string, vector<string> > &role2Ips)
 {

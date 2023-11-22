@@ -508,20 +508,4 @@ TEST_F(TabletOptionsTest, TestGetFromRawJson)
     ASSERT_EQ(8, value);
 }
 
-TEST_F(TabletOptionsTest, TestCheck)
-{
-    // normal
-    string jsonStr = R"( {
-        "online_index_config" : {
-            "need_deploy_index" : false,
-            "disable_fields" : {
-                "attributes" : ["index_1"]
-            }
-        }
-    } )";
-    TabletOptions tabletOptions;
-    FromJsonString(tabletOptions, jsonStr);
-    ASSERT_FALSE(tabletOptions.Check("remote", "local").IsOK());
-}
-
 }} // namespace indexlibv2::config

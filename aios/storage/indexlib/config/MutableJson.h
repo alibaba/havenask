@@ -15,12 +15,16 @@
  */
 #pragma once
 
+#include <iterator>
 #include <optional>
-#include <type_traits>
-#include <typeinfo>
+#include <stddef.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/Log.h"
 #include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/base/Status.h"
 

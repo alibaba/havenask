@@ -1,12 +1,14 @@
 package com.taobao.search.iquan.client.common.json.function;
 
-import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
-import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.taobao.search.iquan.core.api.exception.ExceptionUtils;
+import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Getter
 public class JsonTvfSignature {
     private static final Logger logger = LoggerFactory.getLogger(JsonTvfSignature.class);
 
@@ -18,18 +20,6 @@ public class JsonTvfSignature {
 
     @JsonProperty(value = "returns", required = true)
     private JsonTvfReturns returns;
-
-    public JsonTvfParams getParams() {
-        return params;
-    }
-
-    public JsonTvfNamedParams getNamedParams() {
-        return namedParams;
-    }
-
-    public JsonTvfReturns getReturns() {
-        return returns;
-    }
 
     @JsonIgnore
     public boolean isValid() {

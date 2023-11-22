@@ -15,8 +15,18 @@
  */
 #include "build_service/web_toolkit/worker/HttpServiceWorker.h"
 
+#include <assert.h>
+#include <exception>
+#include <initializer_list>
+#include <stddef.h>
+#include <stdexcept>
+#include <sys/time.h>
+
+#include "build_service/web_toolkit/third_party/inja/inja.hpp"
+#include "fslib/common/common_type.h"
 #include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/util/httplib.h"
 
 namespace build_service::web_toolkit {
 AUTIL_LOG_SETUP(build_service.web_toolkit, HttpServiceWorker);

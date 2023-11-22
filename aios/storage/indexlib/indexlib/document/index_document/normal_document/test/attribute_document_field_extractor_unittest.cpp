@@ -2,11 +2,11 @@
 
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common/field_format/attribute/attribute_convertor_factory.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/document_rewriter/pack_attribute_rewriter.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

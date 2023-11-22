@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_EQUALVALUECOMPRESSDUMPERTEST_H
-#define __INDEXLIB_EQUALVALUECOMPRESSDUMPERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/data_structure/equal_value_compress_dumper.h"
@@ -90,5 +89,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(EqualValueCompressDumperTest, TestDumpMagicTail);
 INDEXLIB_UNIT_TEST_CASE(EqualValueCompressDumperTest, TestDumpFile);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_EQUALVALUECOMPRESSDUMPERTEST_H

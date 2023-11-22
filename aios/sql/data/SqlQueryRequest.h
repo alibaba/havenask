@@ -74,8 +74,8 @@ public:
     const std::string &getDatabaseName();
     bool isOutputSqlPlan() const;
     autil::CompressType getResultCompressType() const;
-    bool isResultReadable() const;
-    bool getBoolKey(const std::string &key) const;
+    bool isResultAllowSoftFailure(bool defaultValue) const;
+    bool getBoolKey(const std::string &key, bool defaultValue = false) const;
     bool validate();
     bool operator==(const SqlQueryRequest &rhs) const {
         return _version == rhs._version && _sqlStr == rhs._sqlStr && _kvPair == rhs._kvPair;

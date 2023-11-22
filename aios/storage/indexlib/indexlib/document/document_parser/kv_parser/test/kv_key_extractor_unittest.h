@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVKEYEXTRACTORTEST_H
-#define __INDEXLIB_KVKEYEXTRACTORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/document_parser/kv_parser/multi_region_kv_key_extractor.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(KvKeyExtractorTest, TestHashKey);
 INDEXLIB_UNIT_TEST_CASE(KvKeyExtractorTest, TestHashKeyWithMurmurHash);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_KVKEYEXTRACTORTEST_H

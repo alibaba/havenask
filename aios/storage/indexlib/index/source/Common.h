@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 #pragma once
-
+#include "indexlib/index/source/Constant.h"
 #include "indexlib/index/source/Types.h"
 
 namespace indexlib::index {
-static constexpr const char SOURCE_INDEX_PATH[] = "source";
+inline const std::string SOURCE_INDEX_TYPE_STR = "source";
+inline const std::string SOURCE_INDEX_NAME = "source";
+inline const std::string SOURCE_INDEX_PATH = "source";
+
 } // namespace indexlib::index
 
 //////////////////////////////////////////////////////////////////////
 namespace indexlibv2::index {
+using indexlib::index::SOURCE_INDEX_NAME;
 using indexlib::index::SOURCE_INDEX_PATH;
+using indexlib::index::SOURCE_INDEX_TYPE_STR;
+static inline std::string GetDataDir(sourcegroupid_t groupId)
+{
+    return std::string(SOURCE_DATA_DIR_PREFIX) + "_" + std::to_string(groupId);
+}
 } // namespace indexlibv2::index

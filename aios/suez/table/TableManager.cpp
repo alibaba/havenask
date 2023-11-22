@@ -230,8 +230,9 @@ void TableManager::generateRemoveList(const TableMetas &target, const TableMetas
         }
         auto finalTargetIt = finalTarget.find(it.first);
         const auto &table = it.second;
-        if (finalTargetIt == finalTarget.end() || table->getPartitionMeta().isTableInMemory()) {
-            auto op = _decisionMaker->remove(table->getPartitionMeta());
+        const auto &partitionMeta = table->getPartitionMeta();
+        if (finalTargetIt == finalTarget.end() || partitionMeta.isTableInMemory()) {
+            auto op = _decisionMaker->remove(partitionMeta);
             result.addOperation(table, op);
         }
     }

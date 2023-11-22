@@ -15,10 +15,28 @@
  */
 #include "build_service/workflow/RawDocRtJobBuilderImpl.h"
 
+#include <assert.h>
+#include <functional>
+#include <ostream>
+#include <stddef.h>
+
+#include "alog/Logger.h"
+#include "autil/Lock.h"
+#include "build_service/builder/Builder.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/workflow/AsyncStarter.h"
 #include "build_service/workflow/BuildFlow.h"
+#include "build_service/workflow/BuildFlowMode.h"
 #include "build_service/workflow/DocReaderProducer.h"
+#include "build_service/workflow/Producer.h"
+#include "build_service/workflow/RealtimeErrorDefine.h"
+#include "build_service/workflow/Workflow.h"
+#include "build_service/workflow/WorkflowItem.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/partition/builder_branch_hinter.h"
 #include "indexlib/partition/index_partition.h"
 
 using namespace std;

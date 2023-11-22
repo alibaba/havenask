@@ -35,6 +35,7 @@
 #include "sql/ops/util/KernelUtil.h"
 #include "table/Row.h"
 #include "table/Table.h"
+#include "table/TableUtil.h"
 
 using namespace std;
 using namespace table;
@@ -77,6 +78,7 @@ navi::ErrorCode UnionKernel::compute(navi::KernelComputeContext &runContext) {
 
     navi::PortIndex outputIndex(0, navi::INVALID_INDEX);
     if (table) {
+        SQL_LOG(TRACE2, "output table: %s", TableUtil::toString(table, 10).c_str());
         TableDataPtr tableData(new TableData(std::move(table)));
         runContext.setOutput(outputIndex, tableData, datas.eof());
     } else {
@@ -100,7 +102,6 @@ bool UnionKernel::doCompute(const navi::DataPtr &data) {
             SQL_LOG(ERROR, "merge input table failed");
             return false;
         }
-        _table->mergeDependentPools(inputTable);
     }
     return true;
 }

@@ -1,5 +1,8 @@
 package com.taobao.search.iquan.core.rel.hint;
 
+import java.util.List;
+import java.util.Objects;
+
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
 import com.taobao.search.iquan.core.common.ConstantDefine;
@@ -9,16 +12,11 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.hint.HintPredicate;
 import org.apache.calcite.rel.hint.RelHint;
 
-import java.util.List;
-import java.util.Objects;
-
 
 public class IquanJoinHint implements IquanHint {
-    private static List<HintPredicate> precedingPredicates = IquanScanAttrHint.precedingPredicates;
-
     static final IquanJoinHint HASH_JOIN = new IquanJoinHint(ConstantDefine.HASH_JOIN_HINT);
     static final IquanJoinHint LOOKUP_JOIN = new IquanJoinHint(ConstantDefine.LOOKUP_JOIN_HINT);
-
+    private static List<HintPredicate> precedingPredicates = IquanScanAttrHint.precedingPredicates;
     private final String name;
 
     public IquanJoinHint(String name) {

@@ -3,6 +3,9 @@
 
 namespace navi {
 
+const std::string NAVI_TEST_DATA_PATH = "aios/navi/testdata/";
+const std::string NAVI_TEST_PYTHON_HOME = "aios/navi/config_loader/python";
+
 HelloData::HelloData()
     : Data(CHAR_ARRAY_TYPE_ID)
 {

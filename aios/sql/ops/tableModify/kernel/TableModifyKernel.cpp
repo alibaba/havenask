@@ -287,7 +287,7 @@ bool TableModifyKernel::doCompute(TablePtr &table, bool &eof) {
     _tableModifyInfo.set_maxbuildgap(cbParam.maxBuildGap);
     _tableModifyInfo.set_firstresponseinfo(cbParam.firstResponseInfo);
     eof = true;
-    SQL_LOG(TRACE3, "after do compute, table:\n%s", TableUtil::toString(table).c_str());
+    SQL_LOG(TRACE2, "after do compute, table:\n%s", TableUtil::toString(table).c_str());
     return true;
 }
 

@@ -49,8 +49,12 @@ public:
 public:
     void SetBeginTime(int64_t beginTime);
     void SetAddr(const std::string &addr);
-
+    void SetAiosDebugType(const char *aiosDebugType);
+    void SetRPCServicePtr(const std::shared_ptr<RPCService> &servicePtr) {
+        _servicePtr = servicePtr;
+    }
 private:
+    std::shared_ptr<RPCService> _servicePtr;
     RPCService *_service;
     RPCMethodDescriptor *_method;
     anet::Connection *_connection;
@@ -61,6 +65,7 @@ private:
     std::string _requestStr;
     int64_t _beginTime;
     std::string _addr;
+    std::string _aiosDebugType;
 };
 
 } // namespace http_arpc

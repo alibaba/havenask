@@ -15,11 +15,25 @@
  */
 #pragma once
 
+#include "autil/CommonMacros.h"
+
+#ifdef AUTIL_HAVE_THREAD_SANITIZER
+#include <atomic>
+#include <sanitizer/tsan_interface.h>
+#include <sanitizer/tsan_interface_atomic.h>
+#endif
+
 #ifdef INDEXLIB_COMMON_PERFTEST
 #define MEMORY_BARRIER()                                                                                               \
     {                                                                                                                  \
         __asm__ __volatile__("" ::: "memory");                                                                         \
         usleep(1);                                                                                                     \
+    }
+#elif defined(AUTIL_HAVE_THREAD_SANITIZER)
+#define MEMORY_BARRIER()                                                                                               \
+    {                                                                                                                  \
+        __tsan_atomic_thread_fence(__tsan_memory_order_seq_cst);                                                       \
+        std::atomic_thread_fence(std::memory_order_seq_cst);                                                           \
     }
 #else
 #define MEMORY_BARRIER() __asm__ __volatile__("" ::: "memory")

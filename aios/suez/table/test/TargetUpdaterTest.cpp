@@ -26,7 +26,7 @@ protected:
 
 TEST_F(TargetUpdaterTest, testNoUpdate) {
     EXPECT_CALL(*_leaderMgr, getRoleType(_)).Times(0);
-    EXPECT_CALL(*_versionSync, syncFromPersist(_, _, _)).Times(0);
+    EXPECT_CALL(*_versionSync, syncFromPersist(_, _, _, _, _)).Times(0);
     TargetUpdater updater(_leaderMgr.get(), _versionMgr.get(), _versionSync.get());
     HeartbeatTarget target;
     auto targetBefore = target;
@@ -42,11 +42,17 @@ TEST_F(TargetUpdaterTest, testNoUpdate) {
 }
 
 TEST_F(TargetUpdaterTest, testUpdate) {
+    auto rootDir = GET_TEMP_DATA_PATH();
+    ASSERT_EQ(fslib::EC_OK, fslib::fs::FileSystem::mkDir(rootDir + "clusters", true));
+    ASSERT_EQ(fslib::EC_OK, fslib::fs::FileSystem::writeFile(rootDir + "clusters/t1_cluster.json", "{}"));
+    ASSERT_EQ(fslib::EC_OK, fslib::fs::FileSystem::writeFile(rootDir + "clusters/t2_cluster.json", "{}"));
     HeartbeatTarget target;
     auto pid1 = TableMetaUtil::makePidFromStr("t1");
     auto pid2 = TableMetaUtil::makePidFromStr("t2");
     auto meta1 = TableMetaUtil::makeTargetFromStr("1_/t1/config_/t1/index_indexlib_1");
+    meta1.setConfigPath(rootDir);
     auto meta2 = TableMetaUtil::makeTargetFromStr("1_/t2/config_/t2/index_indexlib_1_rw");
+    meta2.setConfigPath(rootDir);
     TableMetas tableMetas;
     tableMetas[pid1] = meta1;
     tableMetas[pid2] = meta2;
@@ -58,7 +64,8 @@ TEST_F(TargetUpdaterTest, testUpdate) {
 
     EXPECT_CALL(*_leaderMgr, getRoleType(pid2)).WillOnce(Return(RT_LEADER));
     TableVersion version(2);
-    EXPECT_CALL(*_versionSync, syncFromPersist(pid2, _, _)).WillOnce(DoAll(SetArgReferee<2>(version), Return(true)));
+    EXPECT_CALL(*_versionSync, syncFromPersist(pid2, _, _, _, _))
+        .WillOnce(DoAll(SetArgReferee<4>(version), Return(true)));
 
     TargetUpdater updater(_leaderMgr.get(), _versionMgr.get(), _versionSync.get());
     ASSERT_EQ(UR_REACH_TARGET, updater.maybeUpdate(target));
@@ -74,8 +81,12 @@ TEST_F(TargetUpdaterTest, testUpdate) {
 }
 
 TEST_F(TargetUpdaterTest, testNeedRollback) {
-    HeartbeatTarget target;
+    auto rootDir = GET_TEMP_DATA_PATH();
+    ASSERT_EQ(fslib::EC_OK, fslib::fs::FileSystem::mkDir(rootDir + "clusters", true));
+    ASSERT_EQ(fslib::EC_OK, fslib::fs::FileSystem::writeFile(rootDir + "clusters/t1_cluster.json", "{}"));
+    ASSERT_EQ(fslib::EC_OK, fslib::fs::FileSystem::writeFile(rootDir + "clusters/t2_cluster.json", "{}"));
 
+    HeartbeatTarget target;
     auto pid1 = TableMetaUtil::makePidFromStr("t1");
     auto pid2 = TableMetaUtil::makePidFromStr("t2");
     auto indexRoot = GET_TEMP_DATA_PATH();
@@ -88,7 +99,9 @@ TEST_F(TargetUpdaterTest, testNeedRollback) {
     }
 
     auto meta1 = TableMetaUtil::makeTargetFromStr("1_/t1/config_/t1/index_indexlib_1");
+    meta1.setConfigPath(rootDir);
     auto meta2 = TableMetaUtil::makeTargetFromStr("1_/t2/config_/t2/index_indexlib_1_rw");
+    meta2.setConfigPath(rootDir);
     meta2.setRawIndexRoot(indexRoot);
     meta2.setBranchId(10);
     meta2.setRollbackTimestamp(220);
@@ -113,10 +126,11 @@ TEST_F(TargetUpdaterTest, testNeedRollback) {
     TableVersion version3 = createTableVersion(3, 300);
 
     std::vector<TableVersion> versionChain({version1, version2, version3});
-    EXPECT_CALL(*_versionSync, syncFromPersist(pid2, _, _)).WillOnce(DoAll(SetArgReferee<2>(version3), Return(true)));
-    EXPECT_CALL(*_versionSync, getVersionList(pid2, _))
-        .WillOnce(DoAll(SetArgReferee<1>(versionChain), Return(true)))
-        .WillOnce(DoAll(SetArgReferee<1>(versionChain), Return(true)));
+    EXPECT_CALL(*_versionSync, syncFromPersist(pid2, _, _, _, _))
+        .WillOnce(DoAll(SetArgReferee<4>(version3), Return(true)));
+    EXPECT_CALL(*_versionSync, getVersionList(pid2, _, _, _))
+        .WillOnce(DoAll(SetArgReferee<3>(versionChain), Return(true)))
+        .WillOnce(DoAll(SetArgReferee<3>(versionChain), Return(true)));
 
     TargetUpdater updater(_leaderMgr.get(), _versionMgr.get(), _versionSync.get());
     ASSERT_EQ(UR_REACH_TARGET, updater.maybeUpdate(target));

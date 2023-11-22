@@ -16,11 +16,20 @@
 #include "build_service/common/NetworkTrafficEstimater.h"
 
 #include <autil/LoopThread.h>
-#include <autil/StringUtil.h>
+#include <functional>
 #include <iostream>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <unistd.h>
 
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/Monitor.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 using namespace std;
 using namespace autil;

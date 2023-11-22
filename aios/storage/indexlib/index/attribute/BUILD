@@ -245,7 +245,7 @@ strict_cc_library(
         ':SingleValueAttributeUnCompressReader', ':SliceInfo',
         '//aios/kmonitor:kmonitor_client_cpp',
         '//aios/storage/indexlib/framework:MetricsWrapper',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/index/attribute/format:MultiValueAttributeOffsetUpdatableFormatter',
         '//aios/storage/indexlib/index/attribute/patch:DefaultValueAttributePatch',
@@ -326,7 +326,7 @@ strict_cc_library(
         '//aios/storage/indexlib/framework:MetricsWrapper',
         '//aios/storage/indexlib/index:BuildingIndexMemoryUseUpdater',
         '//aios/storage/indexlib/index:DocMapDumpParams',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:MemIndexerParameter',
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/index/common:FileCompressParamHelper',
         '//aios/storage/indexlib/index/common:data_structure',
@@ -356,6 +356,7 @@ strict_cc_library(
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/framework:TabletData',
         '//aios/storage/indexlib/index:IIndexReader',
+        '//aios/storage/indexlib/index:IndexReaderParameter',
         '//aios/storage/indexlib/index/common/field_format/attribute:AttributeFieldPrinter'
     ]
 )

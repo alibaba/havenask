@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_FILE_SYSTEM_H
-#define __INDEXLIB_MERGE_FILE_SYSTEM_H
+#pragma once
 
+#include <map>
 #include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
+#include "autil/Lock.h"
 #include "autil/ThreadLocal.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/merge_config.h"
 #include "indexlib/file_system/Directory.h"
-#include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/archive/ArchiveFolder.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/metrics/MetricProvider.h"
 
 DECLARE_REFERENCE_CLASS(merger, MergeFileSystem);
 DECLARE_REFERENCE_CLASS(index_base, BranchFS);
-DECLARE_REFERENCE_CLASS(file_system, IFileSystem);
 
 namespace indexlib { namespace merger {
 
@@ -37,11 +39,11 @@ class MergeFileSystem
 {
 public:
     static MergeFileSystemPtr Create(const std::string& rootPath, const config::MergeConfig& mergeConfig,
-                                     uint32_t instanceId, const file_system::IFileSystemPtr& fileSystem);
+                                     uint32_t instanceId, const std::shared_ptr<file_system::IFileSystem>& fileSystem);
 
 public:
     MergeFileSystem(const std::string& rootPath, const config::MergeConfig& mergeConfig, uint32_t instanceId,
-                    const file_system::IFileSystemPtr& fileSystem);
+                    const std::shared_ptr<file_system::IFileSystem>& fileSystem);
     virtual ~MergeFileSystem();
 
 public:
@@ -64,7 +66,7 @@ public:
 
 protected:
     struct ThreadFileSystem {
-        file_system::IFileSystemPtr fileSystem;
+        std::shared_ptr<file_system::IFileSystem> fileSystem;
         std::string description;
     };
 
@@ -72,7 +74,7 @@ protected:
     virtual ThreadFileSystem* CreateFileSystem();
 
 protected:
-    const file_system::IFileSystemPtr& GetFileSystem();
+    const std::shared_ptr<file_system::IFileSystem>& GetFileSystem();
     const std::string& GetDescription();
     ThreadFileSystem* GetThreadFileSystem();
 
@@ -83,7 +85,7 @@ protected:
     std::map<std::string, file_system::ArchiveFolderPtr> mArchiveFolders;
     autil::RecursiveThreadMutex mLock;
     uint32_t mInstanceId;
-    file_system::IFileSystemPtr mFileSystem;
+    std::shared_ptr<file_system::IFileSystem> mFileSystem;
     std::unique_ptr<autil::ThreadLocalPtr> mThreadFileSystem;
 
 private:
@@ -92,5 +94,3 @@ private:
 
 DEFINE_SHARED_PTR(MergeFileSystem);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_FILE_SYSTEM_H

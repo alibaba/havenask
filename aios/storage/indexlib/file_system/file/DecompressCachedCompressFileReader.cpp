@@ -284,7 +284,7 @@ void DecompressCachedCompressFileReader::LoadBufferFromMemory(size_t offset, uin
     size_t blockIdx = _compressAddrMapper->OffsetToBlockIdx(offset);
     blockid_t blockId(_fileId, blockIdx);
     BlockCache* blockCache = _blockFileNode->GetBlockCache();
-    size_t blockSize = blockCache->GetBlockSize();
+    size_t decompressBlockSize = _compressInfo->blockSize;
 
     CacheBase::Handle* handle = NULL;
     Block* block = blockCache->Get(blockId, &handle);
@@ -295,9 +295,9 @@ void DecompressCachedCompressFileReader::LoadBufferFromMemory(size_t offset, uin
     } else {
         // block cache hit
         size_t bufferLen = ((blockIdx + 1) == _compressAddrMapper->GetBlockCount())
-                               ? (GetUncompressedFileLength() - blockIdx * blockSize)
-                               : blockSize;
-        assert(bufferLen <= blockSize);
+                               ? (GetUncompressedFileLength() - blockIdx * decompressBlockSize)
+                               : decompressBlockSize;
+        assert(bufferLen <= decompressBlockSize);
         assert(block->id == blockId);
         DynamicBuf& outBuffer = _compressors[0]->GetOutBuffer();
         memcpy(outBuffer.getBuffer(), block->data, bufferLen);

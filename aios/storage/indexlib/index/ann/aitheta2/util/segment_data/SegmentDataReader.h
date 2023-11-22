@@ -27,8 +27,6 @@ typedef std::shared_ptr<IndexDataReader> IndexDataReaderPtr;
 
 class SegmentDataReader
 {
-    friend IndexDataReader;
-
 public:
     SegmentDataReader() : _isClosed(false) {}
     virtual ~SegmentDataReader() = default;
@@ -43,11 +41,6 @@ public:
 
 public:
     static size_t EstimateOpenMemoryUse(const indexlib::file_system::DirectoryPtr& directory);
-
-private:
-    size_t ReadIndexFile(void** buf, const IndexDataAddr& meta, size_t len, size_t offset) const;
-    size_t GetIndexFileLength() const { return _indexFileReader->GetLength(); }
-    void* GetIndexFileAddress() const { return _indexFileReader->GetBaseAddress(); }
 
 public:
     IndexDataAddrHolder TEST_GetIndexDataAddrHolder() { return _indexDataAddrHolder; }
@@ -67,32 +60,56 @@ typedef std::shared_ptr<SegmentDataReader> SegmentDataReaderPtr;
 class IndexDataReader
 {
 public:
-    IndexDataReader(const SegmentDataReader* reader, const IndexDataAddr& meta)
-        : _segmentDataReader(reader)
-        , _indexDataAddress(meta)
+    IndexDataReader(const indexlib::file_system::FileReaderPtr& fileReader, const IndexDataAddr& addr)
+        : _fileReader(fileReader)
+        , _indexDataAddress(addr)
     {
+        const char* fileAddress = reinterpret_cast<const char*>(_fileReader->GetBaseAddress());
+        if (fileAddress != nullptr) {
+            _baseAddress = fileAddress + _indexDataAddress.offset;
+        }
+    }
+
+    IndexDataReader(const indexlib::file_system::FileReaderPtr& fileReader) : _fileReader(fileReader)
+    {
+        const char* fileAddress = reinterpret_cast<const char*>(_fileReader->GetBaseAddress());
+        if (fileAddress != nullptr) {
+            _baseAddress = fileAddress + _indexDataAddress.offset;
+        }
+        _indexDataAddress.offset = 0ul;
+        _indexDataAddress.length = _fileReader->GetLength();
     }
     ~IndexDataReader() = default;
 
 public:
-    size_t Read(void** buf, size_t len, size_t offset)
+    size_t Read(void* buf, size_t len, size_t offset)
     {
-        return _segmentDataReader->ReadIndexFile(buf, _indexDataAddress, len, offset);
-    }
-    size_t GetLength() const { return _indexDataAddress.length; }
-    void* GetIndexFileAddress() const
-    {
-        return (int8_t*)_segmentDataReader->GetIndexFileAddress() + _indexDataAddress.offset;
-    }
-    bool Close()
-    {
-        _segmentDataReader = nullptr;
-        return true;
+        size_t regionSize = _indexDataAddress.length;
+        if (offset + len > regionSize) {
+            if (offset > regionSize) {
+                offset = regionSize;
+            }
+            len = regionSize - offset;
+        }
+
+        size_t fileOffset = _indexDataAddress.offset + offset;
+        auto status = _fileReader->Read(buf, len, fileOffset);
+        if (status.OK()) {
+            return status.Value();
+        }
+        AUTIL_LOG(ERROR, "failed to read, len[%lu] offset[%lu] file[%s]", len, fileOffset,
+                  _fileReader->DebugString().c_str());
+        return 0;
     }
 
+    size_t GetLength() const { return _indexDataAddress.length; }
+
+    const char* GetBaseAddress() const { return _baseAddress; }
+
 private:
-    const SegmentDataReader* _segmentDataReader {nullptr};
-    const IndexDataAddr _indexDataAddress {};
+    indexlib::file_system::FileReaderPtr _fileReader {nullptr};
+    const char* _baseAddress {nullptr};
+    IndexDataAddr _indexDataAddress {};
 
 private:
     AUTIL_LOG_DECLARE();

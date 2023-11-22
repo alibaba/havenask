@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SECTION_DATA_MAKER_H
-#define __INDEXLIB_SECTION_DATA_MAKER_H
+#pragma once
 
 #include <memory>
 
@@ -37,5 +36,3 @@ private:
 
 DEFINE_SHARED_PTR(SectionDataMaker);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SECTION_DATA_MAKER_H

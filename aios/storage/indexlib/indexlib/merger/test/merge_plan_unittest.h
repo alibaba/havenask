@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGEPLANTEST_H
-#define __INDEXLIB_MERGEPLANTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/merger/merge_plan.h"
@@ -34,5 +33,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(MergePlanTest, TestAddSegment);
 INDEXLIB_UNIT_TEST_CASE(MergePlanTest, TestStoreAndLoad);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGEPLANTEST_H

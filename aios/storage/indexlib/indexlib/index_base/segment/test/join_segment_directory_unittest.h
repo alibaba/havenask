@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_JOINSEGMENTDIRECTORYTEST_H
-#define __INDEXLIB_JOINSEGMENTDIRECTORYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/segment/join_segment_directory.h"
@@ -29,5 +28,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(JoinSegmentDirectoryTest, TestAddSegment);
 INDEXLIB_UNIT_TEST_CASE(JoinSegmentDirectoryTest, TestClone);
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_JOINSEGMENTDIRECTORYTEST_H

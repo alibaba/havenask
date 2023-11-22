@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDINDOCPROCESSORFACTORY_H
-#define ISEARCH_BS_BUILDINDOCPROCESSORFACTORY_H
+#pragma once
+
+#include <string>
 
 #include "build_service/common_define.h"
+#include "build_service/processor/DocumentProcessor.h"
 #include "build_service/processor/DocumentProcessorFactory.h"
 #include "build_service/util/Log.h"
+
 namespace build_service { namespace processor {
 
 class BuildInDocProcessorFactory : public DocumentProcessorFactory
@@ -43,5 +46,3 @@ private:
 BS_TYPEDEF_PTR(BuildInDocProcessorFactory);
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_BUILDINDOCPROCESSORFACTORY_H

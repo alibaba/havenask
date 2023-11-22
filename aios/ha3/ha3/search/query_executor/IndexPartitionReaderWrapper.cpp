@@ -32,6 +32,7 @@
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/index/common/NumberTerm.h"
 #include "indexlib/index/common/Term.h"
+#include "indexlib/index/field_meta/FieldMetaReader.h"
 #include "indexlib/index/inverted_index/InvertedIndexReader.h"
 #include "indexlib/index/inverted_index/MultiFieldIndexReader.h"
 #include "indexlib/index/inverted_index/PostingIterator.h"
@@ -200,7 +201,7 @@ void IndexPartitionReaderWrapper::truncateRewrite(const std::string &truncateNam
                                                   indexlib::index::Term &indexTerm,
                                                   PostingType &pt1,
                                                   PostingType &pt2) {
-    if (BITMAP_TRUNCATE_INDEX_NAME == truncateName) {
+    if (indexlib::BITMAP_TRUNCATE_INDEX_NAME == truncateName) {
         pt1 = pt_bitmap;
         pt2 = pt_normal;
     } else {
@@ -740,6 +741,21 @@ void IndexPartitionReaderWrapper::clearObject() {
     _sub2MainIt = nullptr;
 }
 
+const FieldMetaReadersMapPtr IndexPartitionReaderWrapper::getFieldMetaReadersMap() {
+    if (!_tabletReader) {
+        AUTIL_LOG(ERROR, "get tablet reader failed");
+        return nullptr;
+    }
+    auto normalTabletReader
+        = dynamic_pointer_cast<indexlibv2::table::NormalTabletSessionReader>(_tabletReader);
+    if (normalTabletReader) {
+        return normalTabletReader->GetFieldMetaReadersMap();
+    } else {
+        AUTIL_LOG(ERROR, "get normal tablet reader failed");
+    }
+    return nullptr;
+}
+
 bool IndexPartitionReaderWrapper::pk2DocId(const primarykey_t &key,
                                            bool ignoreDelete,
                                            docid_t &docid) const {
@@ -766,7 +782,7 @@ bool IndexPartitionReaderWrapper::pk2DocIdImpl(
         const auto &pkReader
             = std::dynamic_pointer_cast<indexlibv2::index::PrimaryKeyReader<Key>>(pkIndexReader);
         assert(pkReader);
-        docid_t lastDocId = INVALID_DOCID;
+        indexlib::docid64_t lastDocId = INVALID_DOCID;
         try {
             docid = pkReader->Lookup(key, lastDocId);
         } catch (...) { return false; }
@@ -778,7 +794,7 @@ bool IndexPartitionReaderWrapper::pk2DocIdImpl(
     const auto &legacyPkReader
         = std::dynamic_pointer_cast<indexlib::index::LegacyPrimaryKeyReader<Key>>(pkIndexReader);
     assert(legacyPkReader);
-    docid_t lastDocId = INVALID_DOCID;
+    indexlib::docid64_t lastDocId = INVALID_DOCID;
     try {
         docid = legacyPkReader->Lookup(key, lastDocId);
     } catch (...) { return false; }

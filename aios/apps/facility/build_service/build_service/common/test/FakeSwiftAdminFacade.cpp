@@ -1,5 +1,13 @@
 #include "build_service/common/test/FakeSwiftAdminFacade.h"
 
+#include <iosfwd>
+#include <map>
+
+#include "alog/Logger.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/config/CounterConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "fslib/util/FileUtil.h"
 
 using namespace std;

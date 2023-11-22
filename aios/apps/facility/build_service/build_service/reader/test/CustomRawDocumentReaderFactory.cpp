@@ -1,5 +1,9 @@
 #include "build_service/reader/test/CustomRawDocumentReaderFactory.h"
 
+#include <cstddef>
+
+#include "alog/Logger.h"
+#include "build_service/plugin/ModuleFactory.h"
 #include "build_service/reader/test/CustomRawDocumentReader.h"
 
 using namespace std;

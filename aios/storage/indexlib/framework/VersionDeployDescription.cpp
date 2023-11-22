@@ -15,8 +15,20 @@
  */
 #include "indexlib/framework/VersionDeployDescription.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <stddef.h>
+
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/file_system/DeployIndexMeta.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileInfo.h"
+#include "indexlib/file_system/IndexFileList.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 
 namespace indexlibv2::framework {

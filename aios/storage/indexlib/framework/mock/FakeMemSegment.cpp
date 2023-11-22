@@ -99,12 +99,17 @@ void FakeMemSegment::DeleteIndexer(const std::string& type, const std::string& i
     _indexers.erase({type, indexName});
 }
 
-size_t FakeMemSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) { return 0; }
+std::pair<Status, size_t> FakeMemSegment::EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema)
+{
+    return {Status::OK(), 0};
+}
 size_t FakeMemSegment::EvaluateCurrentMemUsed() { return 0; }
 void FakeMemSegment::SetSegmentId(segmentid_t segId) { _segmentMeta.segmentId = segId; }
 void FakeMemSegment::SetSegmentSchema(const std::shared_ptr<config::ITabletSchema>& schema)
 {
     _segmentMeta.schema = schema;
 }
+
+void FakeMemSegment::ValidateDocumentBatch(document::IDocumentBatch* batch) const {}
 
 } // namespace indexlibv2::framework

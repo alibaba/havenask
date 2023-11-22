@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "navi/engine/NaviUserResult.h"
+#include "navi/engine/GraphResult.h"
 #include "navi/engine/DomainHolder.h"
 #include "navi/engine/GraphDomainUser.h"
 #include "navi/engine/NaviWorkerBase.h"
@@ -28,7 +29,6 @@ namespace navi {
 
 NaviUserResult::NaviUserResult()
     : _finished(false)
-    , _naviResult(new NaviResult())
     , _domainHolder(new DomainHolder<GraphDomainUser>())
     , _finishMap(nullptr)
     , _loopIndex(0)
@@ -82,7 +82,6 @@ bool NaviUserResult::nextPort(NaviUserData &userData, bool &eof, ErrorCode &retE
         loopCount++;
     }
     eof = eof || _finishMap->isFinish();
-    const auto &_logger = domain->getLogger();
     NAVI_LOG(SCHEDULE2,
              "[%p], ret: %d, loopCount: %lu, portMap size: %lu, finish map %d, "
              "finished: %d, eof: %d, name: "
@@ -92,6 +91,14 @@ bool NaviUserResult::nextPort(NaviUserData &userData, bool &eof, ErrorCode &retE
              _finished, eof, userData.name.c_str(), userData.data.get(),
              userData.eof, userData.partId, userData.streamId);
     return ret;
+}
+
+void NaviUserResult::setGraphResult(const GraphResultPtr &result) {
+    _graphResult = result;
+}
+
+const std::shared_ptr<GraphResult> &NaviUserResult::getGraphResult() const {
+    return _graphResult;
 }
 
 bool NaviUserResult::bindDomain(const GraphDomainUserPtr &domain) {
@@ -104,6 +111,7 @@ bool NaviUserResult::bindDomain(const GraphDomainUserPtr &domain) {
     if (!_domainHolder->init(domain)) {
         return false;
     }
+    _logger = NaviObjectLogger(this, "user result", domain->getLogger().logger);
     notify(false);
     return true;
 }
@@ -116,7 +124,6 @@ bool NaviUserResult::collectPort(const GraphDomainUserPtr &domain) {
         const auto &partInfo = port->getPartInfo();
         const auto &outputName = port->getNode();
         if (outputSet.end() != outputSet.find(outputName)) {
-            const auto &_logger = domain->getLogger();
             NAVI_LOG(ERROR, "graph has more than one output named [%s]",
                      outputName.c_str());
             return false;
@@ -143,31 +150,27 @@ void NaviUserResult::terminate(ErrorCode ec) {
         DomainHolderScope<GraphDomainUser> scope(*_domainHolder);
         auto domain = scope.getDomain();
         if (domain) {
-            const auto &_logger = domain->getLogger();
             NAVI_LOG(SCHEDULE2, "user result finish, ec: %s", CommonUtil::getErrorString(ec));
-            ec = updateErrorCode(ec);
+            updateError(ec);
             domain->notifyFinish(ec, true);
         }
     }
     _domainHolder->terminate();
 }
 
+void NaviUserResult::updateError(ErrorCode ec) {
+    if (_graphResult && EC_NONE != ec) {
+        _graphResult->updateError(_graphResult->makeError(_logger.logger, ec));
+    }
+}
+
 void NaviUserResult::setWorker(NaviWorkerBase *worker) {
     _gdbPtr = worker;
 }
 
-ErrorCode NaviUserResult::updateErrorCode(ErrorCode ec) {
-    if (EC_NONE == _naviResult->ec) {
-        _naviResult->ec = ec;
-        return ec;
-    } else {
-        return _naviResult->ec;
-    }
-}
-
 void NaviUserResult::abort(ErrorCode ec) {
-    notify(true);
     terminate(ec);
+    notify(true);
 }
 
 void NaviUserResult::notifyData() {
@@ -175,29 +178,34 @@ void NaviUserResult::notifyData() {
     notify(false);
 }
 
-const NaviResultPtr &NaviUserResult::getNaviResult() const {
+bool NaviUserResult::checkFinish() const {
+    if (!_terminated.load(std::memory_order_relaxed)) {
+        return false;
+    }
+    if (!_graphResult) {
+        return false;
+    }
+    if (!_graphResult->isFinished()) {
+        return false;
+    }
+    return true;
+}
+
+NaviResultPtr NaviUserResult::getNaviResult() {
+    if (!checkFinish()) {
+        return nullptr;
+    }
+    return getNaviResultWithoutCheck();
+}
+
+NaviResultPtr NaviUserResult::getNaviResultWithoutCheck() {
+    autil::ScopedLock lock(_resultMutex);
+    if (_naviResult) {
+        return _naviResult;
+    }
+    _naviResult = _graphResult->createNaviResult();
+    _naviResult->_graphResult = _graphResult;
     return _naviResult;
-}
-
-void NaviUserResult::appendTrace(TraceCollector &collector) {
-    autil::ScopedLock lock(_cond);
-    if (!_finished) {
-        _naviResult->merge(collector);
-    }
-}
-
-void NaviUserResult::appendNaviResult(NaviResult &naviResult) {
-    autil::ScopedLock lock(_cond);
-    if (!_finished) {
-        _naviResult->merge(naviResult);
-    }
-}
-
-void NaviUserResult::appendRpcInfo(const GigStreamRpcInfoKey &key, GigStreamRpcInfo info) {
-    autil::ScopedLock lock(_cond);
-    if (!_finished) {
-        _naviResult->appendRpcInfo(key, std::move(info));
-    }
 }
 
 bool NaviUserResult::hasOutput() const {
@@ -314,6 +322,7 @@ void NaviAsyncUserResult::notify(bool finish) {
     if (resultClosure) {
         terminate(ec);
         NAVI_KERNEL_LOG(SCHEDULE1, "start call result closure [%p]", resultClosure);
+        NaviLoggerScope scope(_logger);
         resultClosure->run(shared_from_this());
         NAVI_KERNEL_LOG(SCHEDULE1, "finish call result closure [%p]", resultClosure);
     }

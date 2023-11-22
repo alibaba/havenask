@@ -29,6 +29,7 @@ class LeaderElectionManager;
 class VersionManager;
 class VersionPublisher;
 class VersionSynchronizer;
+class TableInfoPublishManager;
 
 class ReadWriteTableManager : public TableManager {
 public:
@@ -63,11 +64,11 @@ private:
 
 private:
     std::string _zoneName;
-    VersionManager *_versionManager;                   // owned by TaskExecutor
-    LeaderElectionManager *_leaderElectionMgr;         // owned by TaskExecutor
-    VersionSynchronizer *_versionSync;                 // owned by TaskExecutor
-    multi_call::GigRpcServer *_gigRpcServer = nullptr; // owned by TaskExecutor
+    VersionManager *_versionManager;           // owned by TaskExecutor
+    LeaderElectionManager *_leaderElectionMgr; // owned by TaskExecutor
+    VersionSynchronizer *_versionSync;         // owned by TaskExecutor
     std::unique_ptr<VersionPublisher> _versionPublisher;
+    std::unique_ptr<TableInfoPublishWrapper> _tableInfoPublishWrapper;
 };
 
 } // namespace suez

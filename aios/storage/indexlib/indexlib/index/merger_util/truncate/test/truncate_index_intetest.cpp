@@ -1334,8 +1334,8 @@ void TruncateIndexTest::TestCaseForCheckTruncateMeta()
     GetMetaFromMetafile(mapMeta, "title_ends");
     CheckTruncateMeta("token1;token2;token3", "5;4;5", mapMeta);
 
-    DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 0, INVALID_VERSION);
-    DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 1, INVALID_VERSION);
+    DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 0, INVALID_VERSIONID);
+    DeployIndexChecker::CheckDeployIndexMeta(GET_TEMP_DATA_PATH(), 1, INVALID_VERSIONID);
     DeployIndexChecker::CheckDeployIndexMeta(
         GET_TEMP_DATA_PATH(), 1, 0,
         {"adaptive_bitmap_meta/", "adaptive_bitmap_meta/deploy_index", "adaptive_bitmap_meta/segment_file_list",

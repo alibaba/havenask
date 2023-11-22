@@ -37,6 +37,8 @@ public:
 
 public:
     const auto &loadStrategyConfig() const { return _loadStrategyConfig; }
+    const auto &tableName() const { return _id.tableName; }
+    std::string getSignature() const;
 
     void copyDetail(LoadStrategy *other) const;
     Status fromProto(const proto::LoadStrategy &proto);

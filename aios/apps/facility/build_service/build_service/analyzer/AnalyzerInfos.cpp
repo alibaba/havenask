@@ -15,10 +15,10 @@
  */
 #include "build_service/analyzer/AnalyzerInfos.h"
 
-#include <set>
+#include <cstddef>
+#include <utility>
 
-#include "autil/legacy/any.h"
-#include "autil/legacy/json.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/jsonizable.h"
 #include "indexlib/analyzer/AnalyzerDefine.h"
 

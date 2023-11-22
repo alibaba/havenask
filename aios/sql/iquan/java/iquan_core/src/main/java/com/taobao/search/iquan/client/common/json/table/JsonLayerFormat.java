@@ -1,7 +1,11 @@
 package com.taobao.search.iquan.client.common.json.table;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.ToString;
 
+@Getter
+@ToString
 public class JsonLayerFormat {
     @JsonProperty(value = "field_name", required = true)
     private String fieldName;
@@ -11,28 +15,4 @@ public class JsonLayerFormat {
 
     @JsonProperty(value = "value_type", required = true)
     private String valueType;
-
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    public void setFieldName(String fieldName) {
-        this.fieldName = fieldName;
-    }
-
-    public String getLayerMethod() {
-        return layerMethod;
-    }
-
-    public void setLayerMethod(String layerMethod) {
-        this.layerMethod = layerMethod;
-    }
-
-    public String getValueType() {
-        return valueType;
-    }
-
-    public void setValueType(String valueType) {
-        this.valueType = valueType;
-    }
 }

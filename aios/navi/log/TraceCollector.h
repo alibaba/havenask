@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NAVI_TRACECOLLECTOR_H
-#define NAVI_TRACECOLLECTOR_H
+#pragma once
 
 #include "navi/common.h"
 #include "navi/log/LoggingEvent.h"
@@ -24,6 +23,7 @@
 namespace navi {
 
 class GraphTraceDef;
+class StringHashTable;
 
 class TraceCollector
 {
@@ -39,17 +39,14 @@ public:
     void append(LoggingEvent &&event);
     void merge(TraceCollector &other);
     void format(std::vector<std::string> &traceVec) const;
-    void fillProto(GraphTraceDef *trace) const;
+    void toProto(GraphTraceDef *traceDef, StringHashTable *stringHashTable);
+    void fromProto(const GraphTraceDef &traceDef,
+                   const SymbolTableDef &symbolTableDef);
     bool empty() const;
-    size_t eventSize() const;
-public:
-    void serialize(autil::DataBuffer &dataBuffer) const;
-    void deserialize(autil::DataBuffer &dataBuffer);
+    size_t eventCount() const;
 private:
     std::string _formatPattern;
     std::list<LoggingEvent> _eventList;
 };
 
 }
-
-#endif //NAVI_TRACECOLLECTOR_H

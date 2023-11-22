@@ -50,11 +50,11 @@ public:
     enum { MAX_LEN = 1024 }; ///<
     /* ====== cm_server ======= */
     ServerType _serverType;
-    char _zkServer[MAX_LEN];
-    char _zkPath[MAX_LEN];
-    bool _subMaster;         // 仅从master订阅，默认false
-    uint32_t _timeout;       ///< zookeeper超时时间，单位(s)
-    char _cmServer[MAX_LEN]; ///< 只有当_serverType=FromCfg时才会用
+    std::string _zkServer;
+    std::string _zkPath;
+    bool _subMaster;       // 仅从master订阅，默认false
+    uint32_t _timeout;     ///< zookeeper超时时间，单位(s)
+    std::string _cmServer; ///< 只有当_serverType=FromCfg时才会用
 
     /* ====== cm_subscriber ======= */
     cm_basic::SubReqMsg::SubType _subType;
@@ -62,8 +62,8 @@ public:
     std::set<std::string> _subClusterSet; ///< 只有当_subType=ST_PART时才会用到
     std::set<std::string> _subBelongSet;  ///< ST_BELONG 时使用
     bool _isLocalMode;                    ///< 使用本地模式
-    char _clusterCfg[PATH_MAX];           ///< 订阅集群的本地配置文件
-    char _cacheFile[PATH_MAX];            ///< cache file name to save clusters
+    std::string _clusterCfg;              ///< 订阅集群的本地配置文件
+    std::string _cacheFile;               ///< cache file name to save clusters
     bool _readCache;                      ///< default: false
     bool _writeCache;                     ///< default: false
     int32_t _writeInterval;               ///< in seconds, default 5 minutes

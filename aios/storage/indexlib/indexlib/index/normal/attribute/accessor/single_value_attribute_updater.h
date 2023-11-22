@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_UPDATER_H
-#define __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_UPDATER_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -179,5 +178,3 @@ typedef SingleValueAttributeUpdater<uint64_t> UInt64AttributeUpdater;
 typedef SingleValueAttributeUpdater<float> FloatAttributeUpdater;
 typedef SingleValueAttributeUpdater<double> DoubleAttributeUpdater;
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_ATTRIBUTE_UPDATER_H

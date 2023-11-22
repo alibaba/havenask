@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_UPDATE_BITMAP_H
-#define __INDEXLIB_SEGMENT_UPDATE_BITMAP_H
+#pragma once
 
 #include <memory>
 
@@ -58,5 +57,3 @@ private:
 
 DEFINE_SHARED_PTR(SegmentUpdateBitmap);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SEGMENT_UPDATE_BITMAP_H

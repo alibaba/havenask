@@ -19,9 +19,6 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#define private public
-#define protected public
-
 #if defined(__clang__)
 #define DISABLE_NON_CLANG(casename) casename
 #else

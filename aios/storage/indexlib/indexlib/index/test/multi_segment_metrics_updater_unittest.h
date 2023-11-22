@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTISEGMENTMETRICSUPDATERTEST_H
-#define __INDEXLIB_MULTISEGMENTMETRICSUPDATERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/segment_metrics_updater/multi_segment_metrics_updater.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(MultiSegmentMetricsUpdaterTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_MULTISEGMENTMETRICSUPDATERTEST_H

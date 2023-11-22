@@ -15,7 +15,9 @@
  */
 #include "build_service/admin/taskcontroller/TaskController.h"
 
-#include "beeper/beeper.h"
+#include <iosfwd>
+
+#include "build_service/config/AgentGroupConfig.h"
 
 using namespace std;
 using namespace build_service::config;

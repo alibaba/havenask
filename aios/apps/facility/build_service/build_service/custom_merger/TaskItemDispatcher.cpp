@@ -15,6 +15,9 @@
  */
 #include "build_service/custom_merger/TaskItemDispatcher.h"
 
+#include <algorithm>
+#include <cstddef>
+
 using namespace std;
 
 namespace build_service { namespace custom_merger {

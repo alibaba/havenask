@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SEGMENTLOCKSIZECALCULATORTEST_H
-#define __INDEXLIB_SEGMENTLOCKSIZECALCULATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/file_system/Directory.h"
@@ -78,5 +77,3 @@ INDEXLIB_UNIT_TEST_CASE(SegmentLockSizeCalculatorTest, TestCalculateSizeForKKVTa
 INDEXLIB_UNIT_TEST_CASE(SegmentLockSizeCalculatorTest, TestDisable);
 INDEXLIB_UNIT_TEST_CASE(SegmentLockSizeCalculatorTest, TestCalculateChangeSize);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SEGMENTLOCKSIZECALCULATORTEST_H

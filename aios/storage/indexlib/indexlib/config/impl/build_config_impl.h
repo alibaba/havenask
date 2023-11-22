@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILD_CONFIG_IMPL_H
-#define __INDEXLIB_BUILD_CONFIG_IMPL_H
+#pragma once
 
 #include <memory>
 
+#include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
-#include "indexlib/common_define.h"
 #include "indexlib/config/module_class_config.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
 namespace indexlib { namespace config {
 
@@ -77,10 +76,8 @@ private:
     static constexpr int64_t DEFAULT_BATCH_BUILD_MAX_COLLECT_DOC_MEMORY_MB = 128; // megabytes
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(BuildConfigImpl);
+typedef std::shared_ptr<BuildConfigImpl> BuildConfigImplPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_BUILD_CONFIG_IMPL_H

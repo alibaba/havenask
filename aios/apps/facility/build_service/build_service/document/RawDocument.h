@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_RAW_DOCUMENT_H
-#define ISEARCH_BS_RAW_DOCUMENT_H
+#pragma once
 
 #include "build_service/common/Locator.h"
 #include "build_service/common_define.h"
@@ -33,5 +32,3 @@ typedef std::vector<RawDocumentPtr> RawDocumentVec;
 BS_TYPEDEF_PTR(RawDocumentVec);
 
 }} // namespace build_service::document
-
-#endif // BUILD_RAW_DOCUMENT_H

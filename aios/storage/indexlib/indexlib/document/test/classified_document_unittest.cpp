@@ -64,7 +64,8 @@ void ClassifiedDocumentTest::TestCreateSourceDocument()
     grps[1] = {"f2", "f9999", "f4"};
 
     ClassifiedDocument doc;
-    doc.createSourceDocument(grps, rawDoc);
+    std::shared_ptr<RawDocument::Snapshot> snapshot(rawDoc->GetSnapshot());
+    doc.createSourceDocument(grps, snapshot.get());
 
     SourceDocumentPtr srcDoc = doc._srcDocument;
     ASSERT_TRUE(srcDoc);
@@ -87,7 +88,8 @@ void ClassifiedDocumentTest::TestCreateEmptySourceDocument()
 
     SourceSchema::FieldGroups grps {{"f9"}};
     ClassifiedDocument doc;
-    doc.createSourceDocument(grps, rawDoc);
+    std::shared_ptr<RawDocument::Snapshot> snapshot(rawDoc->GetSnapshot());
+    doc.createSourceDocument(grps, snapshot.get());
 
     SourceDocumentPtr srcDoc = doc._srcDocument;
     ASSERT_TRUE(srcDoc);
@@ -133,7 +135,8 @@ void ClassifiedDocumentTest::TestGetSerialziedSourceDocument()
     mem_pool::Pool* pool = new mem_pool::Pool(1024);
     ClassifiedDocument doc;
     ASSERT_FALSE(createSerializedSourceDocument(doc.getSourceDocument(), sourceSchema, pool));
-    doc.createSourceDocument(grps, rawDoc);
+    std::shared_ptr<RawDocument::Snapshot> snapshot(rawDoc->GetSnapshot());
+    doc.createSourceDocument(grps, snapshot.get());
     ASSERT_FALSE(createSerializedSourceDocument(doc.getSourceDocument(), sourceSchema, NULL));
 
     SerializedSourceDocumentPtr serDoc = createSerializedSourceDocument(doc.getSourceDocument(), sourceSchema, pool);

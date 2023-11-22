@@ -13,27 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKERSTATEHANDLER_H
-#define ISEARCH_BS_WORKERSTATEHANDLER_H
+#pragma once
 
-#include <functional>
+#include <deque>
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
 
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/Lock.h"
 #include "autil/StackTracer.h"
+#include "autil/TimeUtility.h"
+#include "autil/metric/ProcessCpu.h"
+#include "autil/metric/ProcessMemory.h"
+#include "beeper/beeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/CpuSpeedEstimater.h"
+#include "build_service/common/Locator.h"
 #include "build_service/common/NetworkTrafficEstimater.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeper.h"
 #include "build_service/common_define.h"
 #include "build_service/config/CounterConfig.h"
 #include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/proto/ProtoUtil.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/task_base/RestartIntervalController.h"
-#include "build_service/util/Log.h"
 #include "build_service/util/Monitor.h"
 #include "build_service/workflow/BuildFlow.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/util/metrics/Metric.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 namespace indexlib { namespace util {
-class MetricProvider;
-class Metric;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 typedef std::shared_ptr<Metric> MetricPtr;
 }} // namespace indexlib::util
@@ -220,6 +236,7 @@ void WorkerStateHandler::fillLocator(workflow::BuildFlow* buildFlow, Current& cu
     if (buildFlow->getLocator(locator)) {
         current.mutable_currentlocator()->set_sourcesignature(locator.GetSrc());
         current.mutable_currentlocator()->set_checkpoint(locator.GetOffset().first);
+        current.mutable_currentlocator()->set_userdata(locator.GetUserData());
     } else {
         current.clear_currentlocator();
     }
@@ -297,5 +314,3 @@ void WorkerStateHandler::saveCurrent(const Current& current, std::string& conten
 }
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_WORKERSTATEHANDLER_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXLIB_PARTITION_CREATOR_H
-#define __INDEXLIB_INDEXLIB_PARTITION_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -90,5 +89,3 @@ private:
 
 DEFINE_SHARED_PTR(IndexlibPartitionCreator);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_INDEXLIB_PARTITION_CREATOR_H

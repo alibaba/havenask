@@ -5,9 +5,9 @@
 #include "indexlib/config/kkv_index_config.h"
 #include "indexlib/config/kv_index_config.h"
 #include "indexlib/config/primary_key_index_config.h"
+#include "indexlib/config/test/modify_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/schema_rewriter.h"
-#include "indexlib/test/modify_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/Exception.h"
 
 using namespace std;

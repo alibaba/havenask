@@ -60,7 +60,7 @@ private:
 
 public:
     KKVMemIndexer(const std::string& tabletName, size_t maxPKeyMemUse, size_t maxSKeyMemUse, size_t maxValueMemUse,
-                  double skeyCompressRatio, double valueCompressRatio, bool isOnline);
+                  double skeyCompressRatio, double valueCompressRatio, bool isOnline, bool tolerateDocError);
     ~KKVMemIndexer() = default;
 
 public:
@@ -108,6 +108,7 @@ private:
     void UpdateBuildResourceMetrics(size_t& valueLen);
     size_t EstimateDumpFileSize() const;
     size_t EstimateDumpTmpMemUse() const;
+    Status ConvertBuildDocStatus(const Status& status) const;
 
 private:
     std::shared_ptr<PKeyTable> _pkeyTable;
@@ -130,6 +131,7 @@ private:
     double _skeyCompressRatio = 1.0;
     double _valueCompressRatio = 1.0;
     bool _isOnline = false;
+    bool _tolerateDocError = true;
 
 public:
     // pkeyMem / totalMem

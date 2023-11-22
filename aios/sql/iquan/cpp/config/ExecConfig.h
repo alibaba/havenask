@@ -129,12 +129,13 @@ public:
 class ExecConfig {
 public:
     ExecConfig()
-        : lackResultEnable(true) {}
+        : resultAllowSoftFailure(true) {}
 
     ExecConfig(const ExecConfig &right) {
         parallelConfig = right.parallelConfig;
         naviConfig = right.naviConfig;
-        lackResultEnable = right.lackResultEnable;
+        resultAllowSoftFailure = right.resultAllowSoftFailure;
+        thisBizName = right.thisBizName;
     }
 
     ExecConfig &operator=(const ExecConfig &right) {
@@ -143,7 +144,8 @@ public:
         }
         parallelConfig = right.parallelConfig;
         naviConfig = right.naviConfig;
-        lackResultEnable = right.lackResultEnable;
+        resultAllowSoftFailure = right.resultAllowSoftFailure;
+        thisBizName = right.thisBizName;
         return *this;
     }
 
@@ -154,7 +156,8 @@ public:
 public:
     ParallelConfig parallelConfig;
     NaviRunGraphConfig naviConfig;
-    bool lackResultEnable;
+    bool resultAllowSoftFailure;
+    std::string thisBizName;
 };
 
 } // namespace iquan

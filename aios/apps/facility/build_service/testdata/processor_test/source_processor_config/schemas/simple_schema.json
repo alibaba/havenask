@@ -1,0 +1,47 @@
+{
+    "fields": [
+        {
+            "field_name": "id",
+            "field_type": "INTEGER"
+        },
+        {
+            "field_name": "attributes",
+            "field_type": "STRING"
+        }
+    ],
+    "indexes": {
+        "attribute": [
+            {
+                "field_name": "id",
+                "slice_count": 4
+            },
+            {
+                "field_name": "attributes",
+                "slice_count": 2,
+                "updatable": true
+            }
+        ],
+        "primarykey": [
+            {
+                "has_primary_key_attribute": true,
+                "index_fields": "id",
+                "index_name": "id",
+                "index_type": "PRIMARYKEY64"
+            }
+        ],
+        "source": [
+            {
+                "group_configs": [
+                    {
+                        "field_mode": "user_define",
+                        "parameter": {
+                            "doc_compressor": "zlib"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "table_name": "simple",
+    "table_type": "normal"
+}

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_RAW_DOCUMENT_PARSER_H
-#define __INDEXLIB_RAW_DOCUMENT_PARSER_H
+#pragma once
 
 #include <memory>
 
@@ -48,5 +47,3 @@ public:
 
 DEFINE_SHARED_PTR(RawDocumentParser);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_RAW_DOCUMENT_PARSER_H

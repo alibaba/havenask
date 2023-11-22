@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <future>
 #include <map>
 #include <memory>
@@ -26,27 +27,24 @@
 #include "autil/Log.h"
 #include "indexlib/file_system/EntryTable.h"
 #include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/LifecycleTable.h"
 #include "indexlib/file_system/ReaderOption.h"
 #include "indexlib/file_system/Storage.h"
+#include "indexlib/file_system/WriterOption.h"
 #include "indexlib/file_system/file/DirectoryMapIterator.h"
 #include "indexlib/file_system/file/FileNode.h"
 #include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/FileWriter.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/package/PackageOpenMeta.h"
-
-namespace indexlib::util {
-class BlockMemoryQuotaController;
-}
+#include "indexlib/util/memory_control/BlockMemoryQuotaController.h"
 
 namespace indexlib { namespace file_system {
 
-class BlockFileNodeCreator;
 class FileNodeCreator;
 class LoadConfig;
-struct FileSystemOptions;
-struct WriterOption;
 
 class DiskStorage : public Storage
 {

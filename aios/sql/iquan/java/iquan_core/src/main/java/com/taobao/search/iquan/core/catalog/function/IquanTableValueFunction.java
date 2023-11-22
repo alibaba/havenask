@@ -1,11 +1,21 @@
 package com.taobao.search.iquan.core.catalog.function;
 
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.IquanFunctionValidationException;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.api.impl.IquanExecutorFactory;
-import com.taobao.search.iquan.core.api.schema.*;
+import com.taobao.search.iquan.core.api.schema.AbstractField;
+import com.taobao.search.iquan.core.api.schema.TvfFunction;
+import com.taobao.search.iquan.core.api.schema.TvfInputTable;
+import com.taobao.search.iquan.core.api.schema.TvfOutputTable;
+import com.taobao.search.iquan.core.api.schema.TvfSignature;
 import com.taobao.search.iquan.core.catalog.function.internal.TableValueFunction;
 import com.taobao.search.iquan.core.utils.FunctionUtils;
 import com.taobao.search.iquan.core.utils.IquanTypeFactory;
@@ -14,17 +24,22 @@ import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelDataTypeField;
 import org.apache.calcite.rel.type.RelRecordType;
 import org.apache.calcite.rex.RexCallBinding;
-import org.apache.calcite.sql.*;
-import org.apache.calcite.sql.type.*;
+import org.apache.calcite.sql.SqlCallBinding;
+import org.apache.calcite.sql.SqlFunction;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlOperandCountRange;
+import org.apache.calcite.sql.SqlOperator;
+import org.apache.calcite.sql.SqlOperatorBinding;
+import org.apache.calcite.sql.type.BasicSqlType;
+import org.apache.calcite.sql.type.SqlOperandCountRanges;
+import org.apache.calcite.sql.type.SqlOperandMetadata;
+import org.apache.calcite.sql.type.SqlOperandTypeChecker;
+import org.apache.calcite.sql.type.SqlOperandTypeInference;
+import org.apache.calcite.sql.type.SqlReturnTypeInference;
+import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.sql.validate.SqlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class IquanTableValueFunction extends IquanFunction {
 
@@ -45,6 +60,65 @@ public class IquanTableValueFunction extends IquanFunction {
                 addScalarParamMeta();
                 break;
         }
+    }
+
+    /**
+     * 按tvf配置中参数的顺序，返回tvf调用入参的类型。
+     * <p>
+     * checkOperandTypes和inferReturnType都通过这个函数返回入参类型。
+     * checkOperandTypes只在validate阶段调用，且接口显式传入了SqlCallBinding的实例。
+     * inferReturnType在validate阶段调用时，接口传入的是SqlCallBinding的实例，
+     * 当使用func(arg1 => argv1, arg0 => argv0)这种参数名赋值参数值的方式调用tvf时，inferReturnType在sql2rel阶段也会被调用，
+     * 接口传入的SqlOperatorBinding是RexCallBinding的实例。
+     * <p>
+     * sql2rel阶段调用inferReturnType是calcite的bug，validate阶段tvf的返回类型已经成功推导，
+     * 但sql2rel阶段calcite从validator读取cache好的返回类型时，跟validate阶段使用了不同的cache key，
+     * 导致cache miss，又做了一次类型推导。
+     * （validate阶段cache key是func(arg1 => argv1, arg0 => argv0)，
+     * sql2rel阶段是 func(argv0, argv1)，即rel2sql阶段，将入参按配置中的顺序排序后削减掉了=>操作符）
+     * <p>
+     * SqlCallBinding和RexCallBinding对入参存储的顺序不同。例如func(arg1 => argv1, arg0 => argv0)，
+     * SqlCallBinding存储的是[argv1, argv0]，operands()方法能返回按配置顺序重新排序后的参数列表，即[argv0, argv1]。
+     * RexCallBinding存储的是[argv0, argv1]。
+     * 所以实现时需要根据SqlOperatorBinding具体派生类的类型分别处理。
+     */
+    private static List<RelDataType> getOperandTypes(SqlOperatorBinding opBinding) {
+        if (opBinding instanceof SqlCallBinding) {
+            return getOperandTypes((SqlCallBinding) opBinding);
+        } else if (opBinding instanceof RexCallBinding) {
+            return getOperandTypes((RexCallBinding) opBinding);
+        } else {
+            return null;
+        }
+    }
+
+    private static List<RelDataType> getOperandTypes(SqlCallBinding callBinding) {
+        final SqlValidator validator = callBinding.getValidator();
+        final List<SqlNode> operands = callBinding.operands();
+        return operands.stream()
+                .map(node -> validator.getValidatedNodeType(node))
+                .collect(Collectors.toList());
+    }
+
+    private static List<RelDataType> getOperandTypes(RexCallBinding callBinding) {
+        return IntStream.range(0, callBinding.getOperandCount())
+                .mapToObj(i -> callBinding.getOperandType(i))
+                .collect(Collectors.toList());
+    }
+
+    private static RelDataType toArray(RelDataType dataType, RelDataTypeFactory typeFactory) {
+        if (dataType instanceof BasicSqlType) {
+            return typeFactory.createArrayType(dataType, -1);
+        }
+        throw new SqlQueryException(IquanErrorCode.IQUAN_EC_INTERNAL_ERROR, "array field can't upgrade to array in tvf : to_array");
+    }
+
+    public static RelDataType toArray(RelRecordType relRecordType) {
+        List<RelDataType> outputTypes = relRecordType.getFieldList().stream()
+                .map(v -> toArray(v.getType(), IquanExecutorFactory.typeFactory))
+                .collect(Collectors.toList());
+        List<String> outputFieldNames = relRecordType.getFieldNames();
+        return IquanExecutorFactory.typeFactory.createStructType(outputTypes, outputFieldNames);
     }
 
     private void addTableParamMeta() {
@@ -92,55 +166,10 @@ public class IquanTableValueFunction extends IquanFunction {
         return new TvfReturnTypeInference();
     }
 
-    /**
-     * 按tvf配置中参数的顺序，返回tvf调用入参的类型。
-     *
-     * checkOperandTypes和inferReturnType都通过这个函数返回入参类型。
-     * checkOperandTypes只在validate阶段调用，且接口显式传入了SqlCallBinding的实例。
-     * inferReturnType在validate阶段调用时，接口传入的是SqlCallBinding的实例，
-     * 当使用func(arg1 => argv1, arg0 => argv0)这种参数名赋值参数值的方式调用tvf时，inferReturnType在sql2rel阶段也会被调用，
-     * 接口传入的SqlOperatorBinding是RexCallBinding的实例。
-     *
-     * sql2rel阶段调用inferReturnType是calcite的bug，validate阶段tvf的返回类型已经成功推导，
-     * 但sql2rel阶段calcite从validator读取cache好的返回类型时，跟validate阶段使用了不同的cache key，
-     * 导致cache miss，又做了一次类型推导。
-     * （validate阶段cache key是func(arg1 => argv1, arg0 => argv0)，
-     * sql2rel阶段是 func(argv0, argv1)，即rel2sql阶段，将入参按配置中的顺序排序后削减掉了=>操作符）
-     *
-     * SqlCallBinding和RexCallBinding对入参存储的顺序不同。例如func(arg1 => argv1, arg0 => argv0)，
-     * SqlCallBinding存储的是[argv1, argv0]，operands()方法能返回按配置顺序重新排序后的参数列表，即[argv0, argv1]。
-     * RexCallBinding存储的是[argv0, argv1]。
-     * 所以实现时需要根据SqlOperatorBinding具体派生类的类型分别处理。
-     * */
-    private static List<RelDataType> getOperandTypes(SqlOperatorBinding opBinding) {
-        if (opBinding instanceof SqlCallBinding) {
-            return getOperandTypes((SqlCallBinding) opBinding);
-        } else if (opBinding instanceof RexCallBinding) {
-            return getOperandTypes((RexCallBinding) opBinding);
-        } else {
-            return null;
-        }
-    }
-
-    private static List<RelDataType> getOperandTypes(SqlCallBinding callBinding) {
-        final SqlValidator validator = callBinding.getValidator();
-        final List<SqlNode> operands = callBinding.operands();
-        return operands.stream()
-                .map(node -> validator.getValidatedNodeType(node))
-                .collect(Collectors.toList());
-    }
-
-    private static List<RelDataType> getOperandTypes(RexCallBinding callBinding) {
-        return IntStream.range(0, callBinding.getOperandCount())
-                .mapToObj(i -> callBinding.getOperandType(i))
-                .collect(Collectors.toList());
-    }
-
     private boolean fail(
             String msg,
             List<RelDataType> operandTypes,
-            boolean throwOnFailure)
-    {
+            boolean throwOnFailure) {
         final StringBuilder sb = new StringBuilder(256);
         sb.append(msg).append("\n");
 
@@ -314,8 +343,7 @@ public class IquanTableValueFunction extends IquanFunction {
                 } else {
                     for (int j = fromInputSet.nextClearBit(0);
                          j < fromInputFieldNames.size();
-                         j = fromInputSet.nextClearBit(j + 1))
-                    {
+                         j = fromInputSet.nextClearBit(j + 1)) {
                         final String fieldName = fromInputFieldNames.get(j);
                         RelDataTypeField field = FunctionUtils.findField(fieldName, inputFields);
                         if (field != null) {
@@ -339,20 +367,5 @@ public class IquanTableValueFunction extends IquanFunction {
             });
             return opBinding.getTypeFactory().createStructType(outputTypes, outputFieldNames);
         }
-    }
-
-    private static RelDataType toArray(RelDataType dataType, RelDataTypeFactory typeFactory) {
-        if (dataType instanceof BasicSqlType) {
-            return typeFactory.createArrayType(dataType, -1);
-        }
-        throw new SqlQueryException(IquanErrorCode.IQUAN_EC_INTERNAL_ERROR, "array field can't upgrade to array in tvf : to_array");
-    }
-
-    public static RelDataType toArray(RelRecordType relRecordType) {
-        List<RelDataType> outputTypes = relRecordType.getFieldList().stream()
-                .map(v -> toArray(v.getType(), IquanExecutorFactory.typeFactory))
-                .collect(Collectors.toList());
-        List<String> outputFieldNames = relRecordType.getFieldNames();
-        return IquanExecutorFactory.typeFactory.createStructType(outputTypes, outputFieldNames);
     }
 }

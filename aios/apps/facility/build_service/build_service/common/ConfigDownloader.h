@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_CONFIGDOWNLOADER_H
-#define ISEARCH_BS_CONFIGDOWNLOADER_H
+#pragma once
+
+#include <string>
 
 #include "build_service/common_define.h"
 #include "build_service/util/Log.h"
-#include "fslib/fslib.h"
+#include "fslib/common/common_type.h"
 
 namespace build_service { namespace common {
 
@@ -54,5 +55,3 @@ private:
 BS_TYPEDEF_PTR(ConfigDownloader);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_CONFIGDOWNLOADER_H

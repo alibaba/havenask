@@ -5,10 +5,10 @@ public enum FunctionPhysicalType {
     FPT_MODEL_SCORE(Constant.MODEL_SCORE),
     FPT_INVALID(Constant.INVALID);
 
-    public interface Constant {
-        String MODEL_RECALL = "model_recall";
-        String MODEL_SCORE = "model_score";
-        String INVALID = "invalid";
+    private final String name;
+
+    FunctionPhysicalType(String name) {
+        this.name = name;
     }
 
     public static FunctionPhysicalType from(String name) {
@@ -21,10 +21,6 @@ public enum FunctionPhysicalType {
             default:
                 return FPT_INVALID;
         }
-    }
-
-    FunctionPhysicalType(String name) {
-        this.name = name;
     }
 
     @Override
@@ -40,5 +36,9 @@ public enum FunctionPhysicalType {
         return name;
     }
 
-    private final String name;
+    public interface Constant {
+        String MODEL_RECALL = "model_recall";
+        String MODEL_SCORE = "model_score";
+        String INVALID = "invalid";
+    }
 }

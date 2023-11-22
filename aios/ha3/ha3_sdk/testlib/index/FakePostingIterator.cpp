@@ -14,9 +14,9 @@ namespace index {
 
 AUTIL_LOG_SETUP(ha3, FakePostingIterator);
 
-docid_t FakePostingIterator::SeekDoc(docid_t id) {
+docid64_t FakePostingIterator::SeekDoc(docid64_t id) {
     while (++_pos < (int32_t)_richPostings.second.size()) {
-        AUTIL_LOG(TRACE3, "id: %d, _pos: %d]", id, _pos);
+        AUTIL_LOG(TRACE3, "id: %ld, _pos: %d]", id, _pos);
         if (_richPostings.second[_pos].docid >= id) {
             _occPos = -1;
             return _richPostings.second[_pos].docid;
@@ -55,8 +55,8 @@ void FakePostingIterator::Unpack(TermMatchData &tmd) {
     tmd.SetDocPayload((docpayload_t)_richPostings.second[_pos].docPayload);
 }
 
-matchvalue_t FakePostingIterator::GetMatchValue() const {
-    matchvalue_t mRes;
+indexlib::matchvalue_t FakePostingIterator::GetMatchValue() const {
+    indexlib::matchvalue_t mRes;
     mRes.SetUint16(_richPostings.second[_pos].docPayload);
     return mRes;
 }

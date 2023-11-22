@@ -37,12 +37,13 @@ public:
     void stop();
 public:
     bool startProcess(ProcessStartWorkItem *workItem);
-    void stopProcess(const hippo::SlotId &slotId);
+    void stopProcess(const hippo::SlotId &slotId, std::vector<std::string> &processNames);
     bool resetSlot(const hippo::SlotId &slotId);
     CmdExecutor *getCmdExecutor() { return &_cmdExecutor; }
     void setApplicationId(const std::string &appId) {
         _applicationId = appId;
     }
+    bool checkProcessExist(const ProcessStartWorkItem *workItem);
 
 private:
     std::string getContainerName(const hippo::SlotId& slotId) const;

@@ -15,10 +15,13 @@
  */
 #include "indexlib/file_system/FileBlockCacheTaskItem.h"
 
+#include <assert.h>
 #include <iosfwd>
 #include <memory>
+#include <string>
 
 #include "indexlib/util/cache/BlockCache.h"
+#include "indexlib/util/cache/CacheResourceInfo.h"
 #include "indexlib/util/metrics/Metric.h"
 #include "kmonitor/client/MetricType.h"
 

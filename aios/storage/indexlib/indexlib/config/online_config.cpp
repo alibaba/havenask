@@ -18,7 +18,7 @@
 #include "indexlib/config/impl/online_config_impl.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/load_config/CacheLoadStrategy.h"
-#include "indexlib/index_define.h"
+//#include "indexlib/index_define.h"
 
 using namespace std;
 using namespace autil::legacy;
@@ -26,7 +26,7 @@ using namespace autil::legacy;
 using namespace indexlib::file_system;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, OnlineConfig);
+AUTIL_LOG_SETUP(indexlib.config, OnlineConfig);
 
 OnlineConfig::OnlineConfig() { mImpl.reset(new OnlineConfigImpl); }
 
@@ -113,7 +113,8 @@ void OnlineConfig::RewriteLoadConfig()
 
     // for (const auto& loadConfig : loadConfigList.GetLoadConfigs()) {
     //     if (loadConfig.GetName() == DISABLE_FIELDS_LOAD_CONFIG_NAME) {
-    //         IE_LOG(ERROR, "duplicate load config [%s]: [%s] exist in loadConfigList", loadConfig.GetName().c_str(),
+    //         AUTIL_LOG(ERROR, "duplicate load config [%s]: [%s] exist in loadConfigList",
+    //         loadConfig.GetName().c_str(),
     //                ToJsonString(loadConfig).c_str());
     //     }
     // }
@@ -136,7 +137,7 @@ void OnlineConfig::RewriteLoadConfig()
 LoadConfig OnlineConfig::CreateDisableLoadConfig(const string& name, const set<string>& indexes,
                                                  const set<string>& attributes, const set<string>& packAttrs,
                                                  const bool disableSummaryField, const bool disableSourceField,
-                                                 const vector<index::groupid_t>& disableSourceGroupIds)
+                                                 const vector<index::sourcegroupid_t>& disableSourceGroupIds)
 {
     vector<string> indexVec(indexes.begin(), indexes.end());
     vector<string> attrVec(attributes.begin(), attributes.end());
@@ -148,7 +149,7 @@ LoadConfig OnlineConfig::CreateDisableLoadConfig(const string& name, const set<s
 LoadConfig OnlineConfig::CreateDisableLoadConfig(const string& name, const vector<string>& indexes,
                                                  const vector<string>& attributes, const vector<string>& packAttrs,
                                                  const bool disableSummaryField, const bool disableSourceField,
-                                                 const vector<index::groupid_t>& disableSourceGroupIds)
+                                                 const vector<index::sourcegroupid_t>& disableSourceGroupIds)
 {
 #define SEGMENT_P "segment_[0-9]+(_level_[0-9]+)?(/sub_segment)?"
     LoadConfig loadConfig;
@@ -167,14 +168,14 @@ LoadConfig OnlineConfig::CreateDisableLoadConfig(const string& name, const vecto
         filePatterns.push_back(string(SEGMENT_P "/index/") + index + "($|/)");
     }
     if (disableSummaryField) {
-        filePatterns.push_back(string(SEGMENT_P "/" SUMMARY_DIR_NAME "/"));
+        filePatterns.push_back(string(SEGMENT_P "/summary/"));
     }
     if (disableSourceField) {
-        filePatterns.push_back(string(SEGMENT_P "/" SOURCE_DIR_NAME "/"));
+        filePatterns.push_back(string(SEGMENT_P "/source/"));
     }
     for (auto groupId : disableSourceGroupIds) {
         string groupDirName = std::string(index::SOURCE_DATA_DIR_PREFIX) + "_" + autil::StringUtil::toString(groupId);
-        filePatterns.push_back(string(SEGMENT_P "/" SOURCE_DIR_NAME "/") + groupDirName + "($|/)");
+        filePatterns.push_back(string(SEGMENT_P "/source/") + groupDirName + "($|/)");
     }
 
     loadConfig.SetFilePatternString(filePatterns);

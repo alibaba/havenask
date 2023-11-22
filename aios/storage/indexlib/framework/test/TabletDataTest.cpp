@@ -21,7 +21,10 @@ public:
         // TODO(xiuhcen) impl
         return 0;
     }
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override { return 0; }
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override
+    {
+        return {Status::OK(), 0};
+    }
 
 private:
     Status Open(const std::shared_ptr<MemoryQuotaController>& memoryQuotaController,
@@ -41,6 +44,7 @@ public:
         return Status::OK();
     }
     Status Build(document::IDocumentBatch* batch) override { return Status::OK(); }
+    void ValidateDocumentBatch(document::IDocumentBatch* batch) const override {}
     std::shared_ptr<indexlib::util::BuildResourceMetrics> GetBuildResourceMetrics() const override { return nullptr; }
     bool NeedDump() const override { return false; }
     std::pair<Status, std::vector<std::shared_ptr<SegmentDumpItem>>> CreateSegmentDumpItems() override

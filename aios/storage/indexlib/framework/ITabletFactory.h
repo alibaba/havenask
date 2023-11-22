@@ -20,6 +20,9 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/framework/TabletFactoryCreator.h"
 
+namespace indexlibv2 {
+class MemoryQuotaSynchronizer;
+}
 namespace indexlibv2::config {
 class TabletOptions;
 class ITabletSchema;
@@ -48,6 +51,8 @@ class IIndexOperationCreator;
 class IIndexTaskPlanCreator;
 class MetricsManager;
 class ITabletImporter;
+class IMemoryControlStrategy;
+class EnvironmentVariablesProvider;
 
 class ITabletFactory
 {
@@ -79,6 +84,9 @@ public:
     virtual std::unique_ptr<indexlib::framework::ITabletExporter> CreateTabletExporter() = 0;
     virtual std::unique_ptr<indexlib::framework::ITabletValidator> CreateTabletValidator() = 0;
     virtual std::unique_ptr<ITabletImporter> CreateTabletImporter(const std::string& type) = 0;
+    virtual std::unique_ptr<IMemoryControlStrategy>
+    CreateMemoryControlStrategy(const std::shared_ptr<MemoryQuotaSynchronizer>& buildMemoryQuotaSynchronizer) = 0;
+    virtual std::unique_ptr<EnvironmentVariablesProvider> CreateEnvironmentVariablesProvider() = 0;
 };
 
 /*

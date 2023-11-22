@@ -19,6 +19,7 @@
 #include <mutex>
 
 #include "autil/HashAlgorithm.h"
+#include "fslib/util/FileUtil.h"
 #include "iquan/common/Common.h"
 #include "iquan/common/Utils.h"
 #include "iquan/common/catalog/InspectDef.h"
@@ -85,14 +86,17 @@ Status IquanImpl::init(const JniConfig &jniConfig, const ClientConfig &sqlConfig
     return Status::OK();
 }
 
-Status IquanImpl::updateTables(const TableModels &tables) {
+Status IquanImpl::registerCatalogs(const CatalogDefs &catalogs) {
     try {
-        if (unlikely(!tables.isValid())) {
-            return Status(IQUAN_INVALID_PARAMS, "tableModels is not valid");
+        if (unlikely(!catalogs.isValid())) {
+            return Status(IQUAN_INVALID_PARAMS, "catalogs are not valid");
         }
         std::string contentStr;
-        IQUAN_ENSURE_FUNC(Utils::toJson(tables, contentStr));
-        IQUAN_ENSURE_FUNC(updateTables(contentStr));
+        IQUAN_ENSURE_FUNC(Utils::toJson(catalogs.catalogs, contentStr));
+        IQUAN_ENSURE_FUNC(registerCatalogs(contentStr));
+        if (!addLayerTableMeta(catalogs)) {
+            return Status(IQUAN_INVALID_PARAMS, "catalogs are not valid for layerTableMeta");
+        }
     } catch (const JnippException &e) {
         return Status(IQUAN_JNI_EXCEPTION, e.what());
     } catch (const IquanException &e) {
@@ -101,16 +105,17 @@ Status IquanImpl::updateTables(const TableModels &tables) {
     return Status::OK();
 }
 
-Status IquanImpl::updateTables(const std::string &tableContent) {
+Status IquanImpl::registerCatalogs(const std::string &catalogsContent) {
     try {
-        LocalRef<JByteArray> requestByteArray = JByteArrayFromStdString(tableContent);
+        LocalRef<JByteArray> requestByteArray = JByteArrayFromStdString(catalogsContent);
         IQUAN_RETURN_ERROR_IF_NULL(
             requestByteArray,
             IQUAN_NEW_INSTANCE_FAILED,
-            "fail to create request byte array in IquanImpl::updateTables()");
-        AUTIL_LOG(INFO, "iquan updateTables content[%s]", tableContent.c_str());
+            "fail to create request byte array in IquanImpl::updateCatalogs()");
+        AUTIL_LOG(INFO, "iquan updateCatalogs content[%s]", catalogsContent.c_str());
         LocalRef<JByteArray> responseByteArray
-            = _iquanClient->updateTables(INPUT_JSON_FORMAT, requestByteArray);
+            = _iquanClient->registerCatalogs(INPUT_JSON_FORMAT, requestByteArray);
+
         std::string responseStr = JByteArrayToStdString(responseByteArray);
         IQUAN_ENSURE_FUNC(ResponseHeader::check(responseStr));
     } catch (const JnippException &e) {
@@ -121,144 +126,35 @@ Status IquanImpl::updateTables(const std::string &tableContent) {
     return Status::OK();
 }
 
-Status IquanImpl::updateLayerTables(const LayerTableModels &tables) {
-    try {
-        if (unlikely(!tables.isValid())) {
-            return Status(IQUAN_INVALID_PARAMS, "tableModels is not valid");
+bool IquanImpl::addLayerTableMeta(const CatalogDefs &catalogs) {
+    for (const auto &catalog : catalogs.catalogs) {
+        for (const auto &database : catalog.databases) {
+            for (const auto &layerTable : database.layerTables) {
+                if (!addLayerTableMeta(catalog.catalogName, database.dbName, layerTable)) {
+                    return false;
+                }
+            }
         }
-        std::string contentStr;
-        IQUAN_ENSURE_FUNC(Utils::toJson(tables, contentStr));
-        IQUAN_ENSURE_FUNC(updateLayerTables(contentStr));
-    } catch (const JnippException &e) {
-        return Status(IQUAN_JNI_EXCEPTION, e.what());
-    } catch (const IquanException &e) {
-        return Status(e.code(), e.what());
-    } catch (const std::exception &e) { return Status(IQUAN_FAIL, e.what()); }
-    return Status::OK();
-}
-
-bool IquanImpl::addLayerTableMeta(const LayerTableModels &models) {
-    for (const auto &table : models.tables) {
-        LayerTableMetaPtr ptr(new LayerTableMeta(table.tableContent));
-        if (!_dynamicParamsManager.addLayerTableMeta(table.tableName, ptr)) {
-            AUTIL_LOG(DEBUG, "add LayerTableMeta: [%s] failed", table.tableName.c_str());
-            return false;
-        }
-        AUTIL_LOG(DEBUG, "add LayerTableMeta: [%s] succeed", table.tableName.c_str());
     }
     return true;
 }
 
-Status IquanImpl::updateLayerTables(const std::string &tableContent) {
-    try {
-        LocalRef<JByteArray> requestByteArray = JByteArrayFromStdString(tableContent);
-        IQUAN_RETURN_ERROR_IF_NULL(
-            requestByteArray,
-            IQUAN_NEW_INSTANCE_FAILED,
-            "fail to create request byte array in IquanImpl::updateLayerTables()");
-        AUTIL_LOG(INFO, "iquan updateLayerTables content[%s]", tableContent.c_str());
-        LocalRef<JByteArray> responseByteArray
-            = _iquanClient->updateLayerTables(INPUT_JSON_FORMAT, requestByteArray);
-        std::string responseStr = JByteArrayToStdString(responseByteArray);
-        IQUAN_ENSURE_FUNC(ResponseHeader::check(responseStr));
-
-        LayerTableModels models;
-        std::shared_ptr<autil::legacy::RapidDocument> documentPtr(new autil::legacy::RapidDocument);
-        documentPtr->Parse(tableContent.c_str());
-        if (documentPtr->HasParseError()) {
-            AUTIL_LOG(ERROR, "parse tablecontent failed");
-            throw IquanException("failed to parse response json string using rapid json",
-                                 IQUAN_FAIL);
-        }
-        IQUAN_ENSURE_FUNC(Utils::fromRapidValue(models, documentPtr));
-        if (!addLayerTableMeta(models)) {
-            return Status(IQUAN_LAYER_TABLE_ERROR, "add LayerTableMeta failed");
-        }
-    } catch (const JnippException &e) {
-        return Status(IQUAN_JNI_EXCEPTION, e.what());
-    } catch (const IquanException &e) {
-        return Status(e.code(), e.what());
-    } catch (const std::exception &e) { return Status(IQUAN_FAIL, e.what()); }
-    return Status::OK();
-}
-
-Status IquanImpl::updateFunctions(FunctionModels &functions) {
-    try {
-        if (unlikely(!functions.isValid())) {
-            return Status(IQUAN_INVALID_PARAMS,
-                          std::string("functionModels is not valid, raw[")
-                              + FastToJsonString(functions) + "]");
-        }
-        std::string contentStr;
-        IQUAN_ENSURE_FUNC(Utils::toJson(functions, contentStr));
-        IQUAN_ENSURE_FUNC(updateFunctions(contentStr));
-    } catch (const JnippException &e) {
-        return Status(IQUAN_JNI_EXCEPTION, e.what());
-    } catch (const IquanException &e) {
-        return Status(e.code(), e.what());
-    } catch (const std::exception &e) { return Status(IQUAN_FAIL, e.what()); }
-    return Status::OK();
-}
-
-Status IquanImpl::updateFunctions(const TvfModels &functions) {
-    std::string functionContent;
-    IQUAN_ENSURE_FUNC(Utils::toJson(functions, functionContent));
-    IQUAN_ENSURE_FUNC(updateFunctions(functionContent));
-    return Status::OK();
-}
-
-Status IquanImpl::updateFunctions(const std::string &functionContent) {
-    try {
-        LocalRef<JByteArray> requestByteArray = JByteArrayFromStdString(functionContent);
-        IQUAN_RETURN_ERROR_IF_NULL(
-            requestByteArray,
-            IQUAN_NEW_INSTANCE_FAILED,
-            "fail to create request byte array in IquanImpl::updateFunctions()");
-        AUTIL_LOG(INFO, "iquan updateFunctions content[%s]", functionContent.c_str());
-        LocalRef<JByteArray> responseByteArray
-            = _iquanClient->updateFunctions(INPUT_JSON_FORMAT, requestByteArray);
-        std::string responseStr = JByteArrayToStdString(responseByteArray);
-        IQUAN_ENSURE_FUNC(ResponseHeader::check(responseStr));
-    } catch (const JnippException &e) {
-        return Status(IQUAN_JNI_EXCEPTION, e.what());
-    } catch (const IquanException &e) {
-        return Status(e.code(), e.what());
-    } catch (const std::exception &e) { return Status(IQUAN_FAIL, e.what()); }
-    return Status::OK();
-}
-
-Status IquanImpl::updateCatalog(const CatalogInfo &catalog) {
-    try {
-        if (unlikely(!catalog.isValid())) {
-            AUTIL_LOG(WARN,
-                      "catalog info is not valid [%s], tableModels[%d] layerTableModels[%d] "
-                      "functionsModels[%d] tvfModels[%d]",
-                      autil::legacy::FastToJsonString(catalog, true).c_str(),
-                      catalog.tableModels.isValid(),
-                      catalog.layerTableModels.isValid(),
-                      catalog.functionModels.isValid(),
-                      catalog.tvfFunctionModels.isValid());
-            return Status(IQUAN_INVALID_PARAMS, "catalog info is not valid.");
-        }
-        std::string contentStr;
-        IQUAN_ENSURE_FUNC(Utils::toJson(catalog, contentStr));
-        AUTIL_LOG(DEBUG, "iquan updateCatalog content[%s]", contentStr.c_str());
-        LocalRef<JByteArray> requestByteArray = JByteArrayFromStdString(contentStr);
-        IQUAN_RETURN_ERROR_IF_NULL(
-            requestByteArray,
-            IQUAN_NEW_INSTANCE_FAILED,
-            "fail to create request byte array in IquanImpl::updateCatalog()");
-
-        LocalRef<JByteArray> responseByteArray
-            = _iquanClient->updateCatalog(INPUT_JSON_FORMAT, requestByteArray);
-        std::string responseStr = JByteArrayToStdString(responseByteArray);
-        IQUAN_ENSURE_FUNC(ResponseHeader::check(responseStr));
-    } catch (const JnippException &e) {
-        return Status(IQUAN_JNI_EXCEPTION, e.what());
-    } catch (const IquanException &e) {
-        return Status(e.code(), e.what());
-    } catch (const std::exception &e) { return Status(IQUAN_FAIL, e.what()); }
-    return Status::OK();
+bool IquanImpl::addLayerTableMeta(const std::string &catalogName,
+                                  const std::string &dbName,
+                                  const LayerTableModel &table) {
+    LayerTableMetaPtr ptr(new LayerTableMeta());
+    if (!ptr->init(table)) {
+        AUTIL_LOG(ERROR, "LayerTableMeta: [%s] init failed", table.tableName().c_str());
+        return false;
+    }
+    const std::string &fullPath = concatFullPath(catalogName, dbName, table.tableName());
+    if (!_dynamicParamsManager.addLayerTableMeta(fullPath, ptr)) {
+        AUTIL_LOG(ERROR, "add LayerTableMeta: [%s] failed", fullPath.c_str());
+        return false;
+    } else {
+        AUTIL_LOG(INFO, "add LayerTableMeta: [%s] succeed", fullPath.c_str());
+        return true;
+    }
 }
 
 std::string genFinalKeyStr(const std::string &firstHaskKey, const std::string &secHashKey) {
@@ -588,6 +484,12 @@ Status IquanImpl::getFunctionDetails(const std::string &catalogName,
     return status;
 }
 
+std::string IquanImpl::concatFullPath(const std::string &catalogName,
+                                      const std::string &dbName,
+                                      const std::string objectName) {
+    return catalogName + "*" + dbName + "*" + objectName;
+}
+
 Status IquanImpl::dumpCatalog(std::string &result) {
     Status status = Status::OK();
     try {
@@ -606,10 +508,18 @@ Status IquanImpl::warmup(const WarmupConfig &warmupConfig) {
     if (unlikely(!warmupConfig.isValid())) {
         return Status(IQUAN_INVALID_PARAMS, "warmupConfig is not valid");
     }
+    warmupConfig.warmupFilePathList.clear();
+    if (!warmupConfig.warmupFilePath.empty()) {
+        warmupConfig.warmupFilePathList.push_back(warmupConfig.warmupFilePath);
+    }
+    if (!warmupConfig.warmupLogName.empty()) {
+        fslib::FileList fileList;
+        warmupConfig.warmupFilePathList.insert(
+            warmupConfig.warmupFilePathList.end(), fileList.begin(), fileList.end());
+    }
     if (unlikely(warmupConfig.warmupFilePathList.empty())) {
         return Status(IQUAN_FILE_DOES_NOT_EXISTED, "warmup file path list is empty");
     }
-
     try {
         Status status = WarmupService::warmup(this, warmupConfig);
         if (unlikely(!status.ok())) {

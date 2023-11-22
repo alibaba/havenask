@@ -49,7 +49,7 @@ public:
     MockPrimaryKeyIndexReader() : indexlibv2::index::PrimaryKeyReader<T>(nullptr) {}
 
 public:
-    MOCK_METHOD(docid_t, LookupWithDocRange,
+    MOCK_METHOD(docid64_t, LookupWithDocRange,
                 (const autil::uint128_t&, (std::pair<docid_t, docid_t>), future_lite::Executor*), (const, override));
 };
 
@@ -81,7 +81,7 @@ void RemoveOperationTest::CaseSetUp()
     mPool.allocate(8); // first allocate will create header(use more memory)
 
     uint64_t hashValue(12345);
-    mOperation.reset(new RemoveOperation<uint64_t>({100, 10}));
+    mOperation.reset(new RemoveOperation<uint64_t>({100, 10, 0, 0}));
     mOperation->Init(hashValue, segmentid_t(20));
 }
 
@@ -90,7 +90,7 @@ void RemoveOperationTest::CaseTearDown() {}
 template <typename T>
 void RemoveOperationTest::DoTestProcess()
 {
-    std::shared_ptr<RemoveOperation<T>> operationPtr(new RemoveOperation<T>({100, 10}));
+    std::shared_ptr<RemoveOperation<T>> operationPtr(new RemoveOperation<T>({100, 10, 0, 0}));
     T hashValue(12345);
     operationPtr->Init(hashValue, 1);
     std::shared_ptr<MockPrimaryKeyIndexReader<T>> pkIndexReader(new MockPrimaryKeyIndexReader<T>());
@@ -137,7 +137,7 @@ TEST_F(RemoveOperationTest, TestSerialize)
     mOperation->Serialize(buffer, 1024);
 
     autil::mem_pool::Pool pool;
-    RemoveOperation<uint64_t> operation({100, 10});
+    RemoveOperation<uint64_t> operation({100, 10, 0, 0});
     char* cursor = buffer;
     operation.Load(&pool, cursor);
 
@@ -150,12 +150,13 @@ TEST_F(RemoveOperationTest, TestSerialize)
 TEST_F(RemoveOperationTest, TestSerializeByDumper)
 {
     char buffer[1024];
-    [[maybe_unused]] size_t bufferLen = OperationBlock::DumpSingleOperation(mOperation.get(), buffer, 1024, false);
+    [[maybe_unused]] size_t bufferLen =
+        OperationBlock::DumpSingleOperation(mOperation.get(), buffer, 1024, false, false);
     OperationFactory opFactory;
     opFactory._mainPkType = it_primarykey64;
     autil::mem_pool::Pool pool;
     size_t opSize = 0;
-    auto [status, op] = opFactory.DeserializeOperation(buffer, &pool, opSize, false);
+    auto [status, op] = opFactory.DeserializeOperation(buffer, &pool, opSize, false, false);
     ASSERT_TRUE(status.IsOK());
     auto castOp = dynamic_cast<RemoveOperation<uint64_t>*>(op);
     ASSERT_TRUE(castOp);

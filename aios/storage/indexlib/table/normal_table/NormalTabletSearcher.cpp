@@ -18,6 +18,7 @@
 #include "autil/memory.h"
 #include "indexlib/config/TabletSchema.h"
 #include "indexlib/document/normal/SearchSummaryDocument.h"
+#include "indexlib/document/normal/SourceDocument.h"
 #include "indexlib/index/attribute/AttrHelper.h"
 #include "indexlib/index/attribute/AttributeIteratorBase.h"
 #include "indexlib/index/attribute/AttributeIteratorTyped.h"
@@ -25,6 +26,8 @@
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/common/NumberTerm.h"
 #include "indexlib/index/deletionmap/DeletionMapIndexReader.h"
+#include "indexlib/index/field_meta/Common.h"
+#include "indexlib/index/field_meta/FieldMetaReader.h"
 #include "indexlib/index/inverted_index/Common.h"
 #include "indexlib/index/inverted_index/InDocSectionMeta.h"
 #include "indexlib/index/inverted_index/MultiFieldIndexReader.h"
@@ -34,6 +37,7 @@
 #include "indexlib/index/inverted_index/config/PackageIndexConfig.h"
 #include "indexlib/index/inverted_index/format/TermMeta.h"
 #include "indexlib/index/primary_key/PrimaryKeyIndexReader.h"
+#include "indexlib/index/source/SourceReader.h"
 #include "indexlib/index/summary/SummaryReader.h"
 #include "indexlib/index/summary/config/SummaryConfig.h"
 #include "indexlib/index/summary/config/SummaryIndexConfig.h"
@@ -105,25 +109,81 @@ Status NormalTabletSearcher::QueryIndex(const base::PartitionQuery& query,
     if (_normalTabletReader->GetSchema()->GetTableType() != indexlib::table::TABLE_TYPE_NORMAL) {
         return Status::Unimplement("not support queryIndex for orc tablet");
     }
+
+    IndexTableQueryType queryType = IndexTableQueryType::Unknown;
+    RETURN_STATUS_DIRECTLY_IF_ERROR(ValidateQuery(query, queryType));
+
+    if (queryType == IndexTableQueryType::ByFieldMeta) {
+        return QueryFieldMeta(query, partitionResponse);
+    }
+
     std::vector<docid_t> docids;
     auto ret = QueryDocIds(query, partitionResponse, docids);
     if (!ret.IsOK()) {
         return ret;
     }
 
-    IndexTableQueryType queryType = IndexTableQueryType::Unknown;
-    RETURN_STATUS_DIRECTLY_IF_ERROR(ValidateQuery(query, queryType));
     const int64_t limit = query.has_limit() ? query.limit() : 10;
 
     auto attrs = ValidateAttrs(_normalTabletReader->GetSchema(),
                                std::vector<std::string> {query.attrs().begin(), query.attrs().end()});
     auto summarys = ValidateSummarys(_normalTabletReader->GetSchema(),
                                      std::vector<std::string> {query.summarys().begin(), query.summarys().end()});
-    RETURN_STATUS_DIRECTLY_IF_ERROR(QueryIndexByDocId(attrs, summarys, docids, limit, partitionResponse));
+    auto sources = std::vector<std::string> {query.sources().begin(), query.sources().end()};
+    RETURN_STATUS_DIRECTLY_IF_ERROR(QueryIndexByDocId(attrs, summarys, sources, docids, limit, partitionResponse));
     if (IndexTableQueryType::ByRawPk == queryType) {
         for (int i = 0; i < query.pk().size(); ++i) {
             partitionResponse.mutable_rows(i)->set_pk(query.pk(i));
         }
+    }
+
+    return Status::OK();
+}
+
+Status NormalTabletSearcher::QueryFieldMeta(const base::PartitionQuery& query,
+                                            base::PartitionResponse& partitionResponse) const
+{
+    if (!query.has_fieldmetaquery() && !query.has_fieldtokencountquery()) {
+        return Status::OK();
+    }
+    if (query.has_fieldmetaquery()) {
+        auto queryMeta = query.fieldmetaquery();
+        auto indexName = queryMeta.indexname();
+        auto type = queryMeta.fieldmetatype();
+        auto metaReader = _normalTabletReader->GetIndexReader<indexlib::index::FieldMetaReader>(
+            indexlib::index::FIELD_META_INDEX_TYPE_STR, indexName);
+        if (!metaReader) {
+            return Status::InvalidArgs("cannot get field meta for index [%s], type [%s]", indexName.c_str(),
+                                       type.c_str());
+        }
+        auto fieldMeta = metaReader->GetTableFieldMeta(type);
+        if (!fieldMeta) {
+            return Status::InvalidArgs("cannot get field meta for index [%s], type [%s]", indexName.c_str(),
+                                       type.c_str());
+        }
+        partitionResponse.mutable_metaresult()->set_indexname(indexName);
+        partitionResponse.mutable_metaresult()->set_fieldmetatype(type);
+        partitionResponse.mutable_metaresult()->set_metainfo(autil::legacy::ToJsonString(fieldMeta));
+    }
+    if (query.has_fieldtokencountquery()) {
+        auto queryMeta = query.fieldtokencountquery();
+        auto indexName = queryMeta.indexname();
+        auto docId = queryMeta.docid();
+        auto metaReader = _normalTabletReader->GetIndexReader<indexlib::index::FieldMetaReader>(
+            indexlib::index::FIELD_META_INDEX_TYPE_STR, indexName);
+        if (!metaReader) {
+            return Status::InvalidArgs("cannot get field meta for index [%s]", indexName.c_str());
+        }
+        uint64_t tokenCount = 0;
+        autil::mem_pool::Pool pool;
+        if (!metaReader->GetFieldTokenCount(docId, &pool, tokenCount)) {
+            return Status::InvalidArgs("cannot get field meta len for index [%s]", indexName.c_str());
+        }
+        auto row = partitionResponse.add_rows();
+        row->set_docid(docId);
+        auto fieldTokenCountRes = row->mutable_fieldtokencountres();
+        fieldTokenCountRes->set_indexname(indexName);
+        fieldTokenCountRes->set_fieldtokencount(tokenCount);
     }
     return Status::OK();
 }
@@ -177,11 +237,13 @@ Status NormalTabletSearcher::ValidateQuery(const base::PartitionQuery& query, In
     const bool queryByRawPk = query.pk_size() > 0;
     const bool queryByCondition = query.has_condition();
     const bool queryByPkHash = query.pknumber_size() > 0;
+    const bool queryForFieldMeta = query.has_fieldmetaquery() || query.has_fieldtokencountquery();
 
-    size_t queryCounts =
-        (queryByDocid ? 1 : 0) + (queryByRawPk ? 1 : 0) + (queryByCondition ? 1 : 0) + (queryByPkHash ? 1 : 0);
+    size_t queryCounts = (queryByDocid ? 1 : 0) + (queryByRawPk ? 1 : 0) + (queryByCondition ? 1 : 0) +
+                         (queryByPkHash ? 1 : 0) + (queryForFieldMeta ? 1 : 0);
     if (queryCounts != 1) {
-        return Status::InvalidArgs("PartitionQuery must contain exactly one of docids, pks, pknumbers and condition");
+        return Status::InvalidArgs(
+            "PartitionQuery must contain exactly one of docids, pks, pknumbers , condition and field meta");
     }
 
     if (queryByDocid) {
@@ -192,6 +254,8 @@ Status NormalTabletSearcher::ValidateQuery(const base::PartitionQuery& query, In
         queryType = IndexTableQueryType::ByCondition;
     } else if (queryByPkHash) {
         queryType = IndexTableQueryType::ByPkHash;
+    } else if (queryForFieldMeta) {
+        queryType = IndexTableQueryType::ByFieldMeta;
     }
 
     return Status::OK();
@@ -443,8 +507,38 @@ Status NormalTabletSearcher::QueryRowSummaryByDocId(const docid_t docid, const s
     return Status::OK();
 }
 
+Status NormalTabletSearcher::QueryRowSourceByDocId(const docid_t docid, const std::vector<std::string>& sources,
+                                                   base::Row& row) const
+{
+    // 如果@sources为空，则以实际取出来的为准
+    auto sourceReader = _normalTabletReader->GetSourceReader();
+    if (!sourceReader) {
+        if (sources.empty()) {
+            return Status::OK();
+        }
+        return Status::InternalError("get source reader failed!");
+    }
+
+    indexlib::document::SourceDocument sourceDoc(nullptr);
+    auto status = sourceReader->GetDocument(docid, &sourceDoc);
+    RETURN_IF_STATUS_ERROR(status, "get document for docid [%d] failed", docid);
+    std::vector<std::string> fieldNames;
+    std::vector<std::string> fieldValues;
+    sourceDoc.ExtractFields(fieldNames, fieldValues);
+
+    for (size_t i = 0; i < fieldNames.size(); ++i) {
+        if (sources.empty() || std::find(sources.begin(), sources.end(), fieldNames[i]) != sources.end()) {
+            auto sourceValue = row.add_sourcevalues();
+            sourceValue->set_fieldname(fieldNames[i]);
+            sourceValue->set_value(fieldValues[i]);
+        }
+    }
+    return Status::OK();
+}
+
 Status NormalTabletSearcher::QueryIndexByDocId(const std::vector<std::string>& attrs,
                                                const std::vector<std::string>& summarys,
+                                               const std::vector<std::string>& sources,
                                                const std::vector<docid_t>& docids, const int64_t limit,
                                                base::PartitionResponse& partitionResponse) const
 {
@@ -454,6 +548,7 @@ Status NormalTabletSearcher::QueryIndexByDocId(const std::vector<std::string>& a
         row->set_docid(docid);
         RETURN_STATUS_DIRECTLY_IF_ERROR(QueryRowAttrByDocId(docid, attrs, *row));
         RETURN_STATUS_DIRECTLY_IF_ERROR(QueryRowSummaryByDocId(docid, summarys, *row));
+        RETURN_STATUS_DIRECTLY_IF_ERROR(QueryRowSourceByDocId(docid, sources, *row));
     }
     if (partitionResponse.rows_size() > 0) {
         const auto& attrValues = partitionResponse.rows(0).attrvalues();

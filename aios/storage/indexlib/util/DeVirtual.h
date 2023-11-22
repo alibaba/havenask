@@ -15,8 +15,6 @@
  */
 #pragma once
 
-#include <memory>
-
 namespace indexlib { namespace util {
 
 #define IE_SUB_CLASS_TYPE_NAME(classBase, subClass) classBase##_##subClass

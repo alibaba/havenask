@@ -36,7 +36,7 @@ void TerminatorKernel::def(KernelDefBuilder &builder) const {
 
 ErrorCode TerminatorKernel::compute(KernelComputeContext &ctx) {
     ctx.setIgnoreDeadlock();
-    ctx._subGraph->notifyFinish(ctx._node, EC_NONE);
+    ctx._subGraph->notifyFinish(ctx._node, nullptr);
     ctx.stopSchedule();
     return EC_NONE;
 }

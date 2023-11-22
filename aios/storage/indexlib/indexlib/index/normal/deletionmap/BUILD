@@ -4,7 +4,7 @@ cc_library(
     hdrs=glob(['*.h']),
     copts=['-Werror'],
     include_prefix='indexlib/index/normal/deletionmap/',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/index/deletionmap:reader',
         '//aios/storage/indexlib/indexlib/index:util',

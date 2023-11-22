@@ -15,8 +15,16 @@
  */
 #include "build_service/proto/DataDescriptions.h"
 
+#include <cstddef>
+#include <set>
+#include <stdint.h>
+#include <string>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
-#include "autil/legacy/jsonizable.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
 #include "build_service/config/CLIOptionNames.h"
 
 using namespace std;

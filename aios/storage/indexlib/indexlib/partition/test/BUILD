@@ -57,39 +57,41 @@ TEST_COMMON_DEPS = [
 cc_fast_test(
     name='partition-test',
     srcs=[
-        'raw_document_field_extractor_unittest.cpp',
-        'partition_group_resource_unittest.cpp',
-        'offline_partition_unittest.cpp', 'online_partition_unittest.cpp',
-        'offline_partition_writer_unittest.cpp',
-        'index_format_version_unittest.cpp', 'offline_partition_intetest.cpp',
-        'online_partition_writer_unittest.cpp',
-        'on_disk_partition_data_unittest.cpp', 'reader_container_unittest.cpp',
-        'partition_reader_snapshot_unittest.cpp',
-        'on_disk_index_cleaner_unittest.cpp',
-        'realtime_partition_data_reclaimer_unittest.cpp',
-        'open_reader_by_loadconfig_unittest.cpp',
+        'aux_table_reader_unittest.cpp', 'doc_range_partitioner_unittest.cpp',
+        'flushed_locator_container_unittest.cpp',
+        'in_mem_virtual_attribute_cleaner_unittest.cpp',
         'in_memory_index_cleaner_unittest.cpp',
         'in_memory_partition_data_unittest.cpp',
-        'memory_stat_collector_unittest.cpp', 'reader_snapshot_unittest.cpp',
-        'in_mem_virtual_attribute_cleaner_unittest.cpp',
-        'join_segment_writer_unittest.cpp', 'reopen_decider_unittest.cpp',
-        'partition_resource_calculator_unittest.cpp',
-        'sort_build_checker_unittest.cpp',
+        'index_application_unittest.cpp', 'index_format_version_unittest.cpp',
+        'join_segment_writer_unittest.cpp', 'lifecycle_load_intetest.cpp',
+        'local_index_cleaner_unittest.cpp',
+        'memory_stat_collector_unittest.cpp', 'offline_partition_intetest.cpp',
         'offline_partition_reader_unittest.cpp',
-        'partition_writer_resource_calculator_unittest.cpp',
-        'segment_metrics_updater_intetest.cpp', 'aux_table_reader_unittest.cpp',
-        'flushed_locator_container_unittest.cpp',
-        'time_range_index_intetest.cpp', 'lifecycle_load_intetest.cpp',
-        'local_index_cleaner_unittest.cpp', 'time_attribute_unittest.cpp',
-        'index_application_unittest.cpp',
+        'offline_partition_unittest.cpp',
+        'offline_partition_writer_unittest.cpp',
+        'on_disk_index_cleaner_unittest.cpp',
+        'on_disk_partition_data_unittest.cpp', 'online_partition_unittest.cpp',
+        'online_partition_writer_unittest.cpp',
+        'open_reader_by_loadconfig_unittest.cpp',
+        'partition_counter_intetest.cpp',
+        'partition_group_resource_unittest.cpp',
         'partition_reader_cleaner_unittest.cpp',
+        'partition_reader_snapshot_unittest.cpp',
+        'partition_resource_calculator_unittest.cpp',
+        'partition_validater_unittest.cpp',
+        'partition_writer_resource_calculator_unittest.cpp',
+        'raw_document_field_extractor_unittest.cpp',
+        'reader_container_unittest.cpp', 'reader_snapshot_unittest.cpp',
+        'realtime_partition_data_reclaimer_unittest.cpp',
+        'reopen_decider_unittest.cpp', 'segment_metrics_updater_intetest.cpp',
+        'sort_build_checker_unittest.cpp',
         'table_reader_container_updater_unittest.cpp',
-        'doc_range_partitioner_unittest.cpp',
-        'partition_validater_unittest.cpp', 'partition_counter_intetest.cpp'
+        'time_attribute_unittest.cpp', 'time_range_index_intetest.cpp'
     ],
     copts=['-fno-access-control', '-Werror'],
     data=(['//aios/storage/indexlib:testdata'] + glob(['testdata/**'])),
-    shard_count=50,
+    flaky=True,
+    shard_count=10,
     deps=TEST_COMMON_DEPS
 )
 cc_fast_test(
@@ -102,7 +104,7 @@ cc_fast_test(
     ],
     copts=['-Werror', '-fno-access-control'],
     data=(['//aios/storage/indexlib:testdata'] + glob(['testdata/**'])),
-    shard_count=50,
+    shard_count=5,
     deps=(
         TEST_COMMON_DEPS + [
             '//aios/storage/indexlib/indexlib/index/normal/primarykey/test:primarykey_test_helper',
@@ -119,9 +121,8 @@ cc_fast_test(
 cc_slow_test(
     name='todo',
     srcs=[],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
-    shard_count=20,
     deps=TEST_COMMON_DEPS
 )
 genrule(
@@ -142,7 +143,7 @@ cc_fast_test(
     copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
     flaky=True,
-    shard_count=50,
+    shard_count=10,
     deps=TEST_COMMON_DEPS
 )
 cc_fast_test(
@@ -150,7 +151,6 @@ cc_fast_test(
     srcs=['kv_table_intetest.cpp', 'multi_region_kv_intetest.cpp'],
     copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
-    shard_count=50,
     deps=TEST_COMMON_DEPS
 )
 cc_fast_test(
@@ -160,28 +160,28 @@ cc_fast_test(
         'online_offline_join_intetest.cpp', 'recover_rt_index_unittest.cpp',
         'search_cache_intetest.cpp'
     ],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=(['//aios/storage/indexlib:testdata'] + glob(['testdata/**'])),
     flaky=True,
-    shard_count=50,
+    shard_count=2,
     deps=TEST_COMMON_DEPS
 )
 cc_fast_test(
     name='online-partition-test-2',
     srcs=[
-        'online_partition_intetest.cpp', 'force_reopen_intetest.cpp',
+        'force_reopen_intetest.cpp', 'online_partition_intetest.cpp',
         'online_partition_reader_intetest.cpp'
     ],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=(['//aios/storage/indexlib:testdata'] + glob(['testdata/**'])),
     flaky=True,
-    shard_count=50,
+    shard_count=2,
     deps=TEST_COMMON_DEPS
 )
 cc_fast_test(
     name='inplace-modifier-test',
     srcs=['inplace_modifier_unittest.cpp'],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     deps=(
         TEST_COMMON_DEPS + [
             '//aios/storage/indexlib/indexlib/index/normal/primarykey/test:primarykey_test_helper',
@@ -196,7 +196,7 @@ cc_fast_test(
         'sub_doc_modifier_unittest.cpp'
     ],
     copts=['-fno-access-control', '-Werror'],
-    shard_count=3,
+    shard_count=2,
     deps=(
         TEST_COMMON_DEPS + [
             '//aios/storage/indexlib/indexlib/index/normal/primarykey/test:primarykey_test_helper',
@@ -207,9 +207,8 @@ cc_fast_test(
 cc_fast_test(
     name='build-work-item-generator-test',
     srcs=['doc_build_work_item_generator_unittest.cpp'],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
-    shard_count=1,
     deps=(
         TEST_COMMON_DEPS + [
             '//aios/storage/indexlib/indexlib/index/normal/primarykey/test:primarykey_test_helper',

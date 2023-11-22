@@ -320,7 +320,7 @@ AttributeIteratorTyped<T, ReaderTraits>::BatchSeek(const std::vector<docid_t>& d
         co_return std::vector<indexlib::index::ErrorCode>(docIds.size(), indexlib::index::ErrorCode::Timeout);
     }
     if (!std::is_sorted(docIds.begin(), docIds.end())) {
-        co_return indexlib::index::ErrorCodeVec(docIds.size(), indexlib::index::ErrorCode::Runtime);
+        co_return indexlib::index::ErrorCodeVec(docIds.size(), indexlib::index::ErrorCode::BadParameter);
     }
     assert(values);
     indexlib::index::ErrorCodeVec result(docIds.size(), indexlib::index::ErrorCode::OK);
@@ -370,7 +370,7 @@ AttributeIteratorTyped<T, ReaderTraits>::BatchSeek(const std::vector<docid_t>& d
         T value = T();
         bool isNull = false;
         if (!ReadFromMemSegment(docId, value, _buildingSegIdx, isNull, _pool)) {
-            result[docIdx] = indexlib::index::ErrorCode::Runtime;
+            result[docIdx] = indexlib::index::ErrorCode::BadParameter;
         }
         (*values)[docIdx] = value;
         (*isNullVec)[docIdx] = isNull;

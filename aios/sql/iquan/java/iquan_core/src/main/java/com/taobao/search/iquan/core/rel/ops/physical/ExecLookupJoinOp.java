@@ -1,5 +1,10 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.config.SqlConfigOptions;
@@ -21,11 +26,6 @@ import org.apache.calcite.rel.hint.RelHint;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class ExecLookupJoinOp extends SingleRel implements IquanRelNode {
     private final IquanTableScanBase buildOp;
@@ -161,10 +161,10 @@ public class ExecLookupJoinOp extends SingleRel implements IquanRelNode {
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         IquanRelNode probeNode = (IquanRelNode) inputs.get(0);
         if (isPendingUnion(probeNode)) {
-            return derivePendingUnion((IquanUnionOp) probeNode, catalog, dbName, config);
+            return derivePendingUnion((IquanUnionOp) probeNode, catalog, config);
         }
         IquanRelNode buildNode = buildOp;
 
@@ -259,7 +259,7 @@ public class ExecLookupJoinOp extends SingleRel implements IquanRelNode {
             }
         } else {
             shuffleToDataNode(judgePrunable(buildHashFieldsPos, buildDistribution), probeNode, probeJoinKeys,
-                    0,buildDistribution, buildNode.getLocation(), buildHashFieldsPos);
+                    0, buildDistribution, buildNode.getLocation(), buildHashFieldsPos);
         }
         setOutputDistribution(getOutputDistribution().copy());
         IquanJoinUtils.updateDistribution(false, hashFieldInRight, joinOp, getOutputDistribution(),

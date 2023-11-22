@@ -15,7 +15,19 @@
  */
 #include "build_service/admin/controlflow/KeyValueParamParser.h"
 
-#include "autil/legacy/jsonizable.h"
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/admin/controlflow/Eluna.h"
 
 using namespace std;
 using namespace autil;

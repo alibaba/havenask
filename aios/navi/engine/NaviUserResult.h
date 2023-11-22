@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef NAVI_NAVIUSERRESULT_H
-#define NAVI_NAVIUSERRESULT_H
+#pragma once
 
 #include "navi/engine/Data.h"
 #include "navi/engine/NaviResult.h"
@@ -48,6 +47,7 @@ class NaviWorkerBase;
 class Graph;
 class NaviSession;
 class NaviSnapshot;
+class GraphResult;
 
 template <typename T>
 class DomainHolder;
@@ -79,30 +79,37 @@ public:
     // eof always indicates the end of data
     virtual bool nextData(NaviUserData &data, bool &eof) = 0;
     // call this if eof return true
-    const NaviResultPtr &getNaviResult() const;
+    NaviResultPtr getNaviResult();
     void abort(ErrorCode ec = EC_ABORT);
     size_t outputCount() const;
 private:
+    void setGraphResult(const std::shared_ptr<GraphResult> &result);
+    const std::shared_ptr<GraphResult> &getGraphResult() const;
+    NaviResultPtr getNaviResultWithoutCheck();
     bool bindDomain(const std::shared_ptr<GraphDomainUser> &domain);
     virtual void notify(bool finish) = 0;
     void notifyData();
-    void appendTrace(TraceCollector &collector);
-    void appendNaviResult(NaviResult &naviResult);
-    void appendRpcInfo(const multi_call::GigStreamRpcInfoKey &key, multi_call::GigStreamRpcInfo info);
     bool hasOutput() const;
     void setWorker(NaviWorkerBase *worker);
+    bool checkFinish() const;
 private:
-    ErrorCode updateErrorCode(ErrorCode ec);
     bool collectPort(const std::shared_ptr<GraphDomainUser> &domain);
     void initFinishMap(uint32_t portCount);
+    void updateError(ErrorCode ec);
+private:
+    friend class KernelTester;
+    friend class ArpcGraphClosure;
 protected:
     bool nextPort(NaviUserData &userData, bool &eof, ErrorCode &ec);
     void terminate(ErrorCode ec);
 protected:
+    DECLARE_LOGGER();
     autil::ThreadCond _cond;
     bool _finished;
-    NaviResultPtr _naviResult;
+    std::shared_ptr<GraphResult> _graphResult;
     volatile atomic64_t _dataCount;
+    mutable autil::ThreadMutex _resultMutex;
+    NaviResultPtr _naviResult;
 private:
     DomainHolder<GraphDomainUser> *_domainHolder;
     std::vector<PortDataInfo> _portVec;
@@ -156,5 +163,3 @@ private:
 
 
 }
-
-#endif //NAVI_NAVIUSERRESULT_H

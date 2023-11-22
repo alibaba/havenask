@@ -20,7 +20,7 @@
 #include "indexlib/document/normal/IndexDocument.h"
 #include "indexlib/index/ann/ANNIndexConfig.h"
 #include "indexlib/index/ann/aitheta2/AithetaIndexConfig.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingFieldData.h"
+#include "indexlib/index/ann/aitheta2/util/IndexFields.h"
 
 namespace indexlibv2::index::ann {
 
@@ -34,16 +34,20 @@ public:
     ~IndexFieldParser() {}
 
     bool Init(const std::shared_ptr<indexlibv2::config::ANNIndexConfig>& annIndexConfig);
-    ParseStatus Parse(const indexlib::document::IndexDocument* doc, EmbeddingFieldData& fieldData);
+    ParseStatus Parse(const indexlib::document::IndexDocument* doc, IndexFields& fieldData);
+
+public:
+    static bool ConvertToBinaryEmbedding(const std::vector<float>& floatEmb, uint32_t dimension,
+                                         embedding_t& binaryEmb);
+    template <typename T>
+    static bool ParseFromString(const std::string& input, std::vector<T>& output, const std::string& delimiter);
 
 private:
-    bool DoParse(const std::vector<const indexlib::document::Field*>& fields, docid_t docId,
-                 EmbeddingFieldData& fieldData);
+    bool DoParse(const std::vector<const indexlib::document::Field*>& fields, docid_t docId, IndexFields& fieldData);
     bool ParseKey(const indexlib::document::Field* field, int64_t& key);
     bool ParseIndexId(const indexlib::document::Field* field, std::vector<index_id_t>& indexIds);
     bool ParseEmbedding(const indexlib::document::Field* field, embedding_t& embedding);
-    template <typename T>
-    bool ParseFromString(const std::string& input, std::vector<T>& output, const std::string& delimiter);
+    bool ParseFromTokenField(const indexlib::document::Field* field, std::vector<float>& vals);
     FieldType GetFieldType(fieldid_t fieldId);
 
 private:

@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MERGETASK_H
-#define ISEARCH_BS_MERGETASK_H
+#pragma once
+
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/task_base/TaskBase.h"
 #include "build_service/util/Log.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/index_partition_merger.h"
+#include "indexlib/merger/index_partition_merger_metrics.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/util/metrics/MetricProvider.h"
 
-DECLARE_REFERENCE_CLASS(util, CounterMap);
 BS_DECLARE_REFERENCE_CLASS(config, CounterConfig);
 
 namespace build_service { namespace task_base {
@@ -37,7 +47,7 @@ public:
     struct MergeStatus {
         versionid_t targetVersionId;
         bool isMergeFinished;
-        MergeStatus() : targetVersionId(INVALID_VERSION), isMergeFinished(false) {}
+        MergeStatus() : targetVersionId(indexlib::INVALID_VERSIONID), isMergeFinished(false) {}
     };
 
 public:
@@ -107,5 +117,3 @@ private:
 BS_TYPEDEF_PTR(MergeTask);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_MERGETASK_H

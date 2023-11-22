@@ -50,15 +50,15 @@ void DynamicPostingIterator::Reset()
 
 TermMeta* DynamicPostingIterator::GetTermMeta() const { return const_cast<TermMeta*>(&_termMeta); }
 
-docid_t DynamicPostingIterator::SeekDoc(docid_t docId)
+docid64_t DynamicPostingIterator::SeekDoc(docid64_t docId)
 {
-    docid_t docRet = INVALID_DOCID;
+    docid64_t docRet = INVALID_DOCID;
     auto ec = SeekDocWithErrorCode(docId, docRet);
     index::ThrowIfError(ec);
     return docRet;
 }
 
-index::ErrorCode DynamicPostingIterator::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+index::ErrorCode DynamicPostingIterator::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
     KeyType keyResult;
     for (;;) {
@@ -76,7 +76,7 @@ index::ErrorCode DynamicPostingIterator::SeekDocWithErrorCode(docid_t docId, doc
     return index::ErrorCode::InconsistentState;
 }
 
-bool DynamicPostingIterator::SeekDocWithDelete(docid_t docId, KeyType* result)
+bool DynamicPostingIterator::SeekDocWithDelete(docid64_t docId, KeyType* result)
 {
     docId = std::max(docId, _currentDocId + 1);
     for (;;) {

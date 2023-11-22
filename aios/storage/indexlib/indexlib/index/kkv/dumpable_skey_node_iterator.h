@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DUMPABLE_SKEY_NODE_ITERATOR_H
-#define __INDEXLIB_DUMPABLE_SKEY_NODE_ITERATOR_H
+#pragma once
 
 #include <deque>
 #include <memory>
@@ -97,5 +96,3 @@ private:
     SKeyNodeDequePtr mSKeyNodeDeque;
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_DUMPABLE_SKEY_NODE_ITERATOR_H

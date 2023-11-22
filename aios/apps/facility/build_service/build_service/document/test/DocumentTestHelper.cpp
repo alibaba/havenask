@@ -1,13 +1,31 @@
 #include "build_service/document/test/DocumentTestHelper.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+
+#include "autil/Span.h"
 #include "autil/StringTokenizer.h"
 #include "autil/StringUtil.h"
-#include "build_service/test/unittest.h"
+#include "autil/TimeUtility.h"
+#include "autil/mem_pool/MemoryChunk.h"
+#include "build_service/document/DocumentDefine.h"
 #include "indexlib/config/attribute_config.h"
+#include "indexlib/config/customized_config.h"
 #include "indexlib/config/field_config.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/index_document/normal_document/attribute_document.h"
+#include "indexlib/document/index_document/normal_document/index_document.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
+#include "indexlib/document/index_document/normal_document/serialized_summary_document.h"
+#include "indexlib/document/locator.h"
+#include "indexlib/document/normal/AttributeDocument.h"
+#include "indexlib/document/normal/IndexDocument.h"
+#include "indexlib/document/normal/SerializedSummaryDocument.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertor.h"
 #include "indexlib/index/common/field_format/attribute/AttributeConvertorFactory.h"
+#include "indexlib/misc/common.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace autil;
@@ -71,8 +89,7 @@ DocumentPtr DocumentTestHelper::createDocument(const FakeDocument& fakeDoc)
     }
 
     common::Locator locator(0, fakeDoc._locator);
-    indexlib::document::Locator indexLocator(locator.Serialize());
-    docPtr->SetLocator(indexLocator);
+    docPtr->SetLocator(locator);
 
     AttributeDocumentPtr attrDoc(new AttributeDocument());
     for (size_t i = 0; i < fakeDoc._attributes.size(); i++) {
@@ -142,17 +159,9 @@ ProcessedDocumentPtr DocumentTestHelper::createProcessedDocument(const FakeProce
 
 void DocumentTestHelper::checkDocument(uint32_t seed, const ProcessedDocumentVecPtr& docs)
 {
-    checkDocument(seed, docs, false);
-}
-
-void DocumentTestHelper::checkDocument(uint32_t seed, const ProcessedDocumentVecPtr& docs, bool checkSource)
-{
     common::Locator locator(0, seed);
     // TODO: add cluster meta check.
     EXPECT_EQ(size_t(2), docs->size());
-    if (checkSource) {
-        checkDocumentSource(docs);
-    }
 
     EXPECT_EQ(locator, (*docs)[0]->getLocator());
     auto doc1 = (*docs)[0]->getDocument();
@@ -174,19 +183,6 @@ void DocumentTestHelper::checkDocument(const FakeDocument& fakeDoc,
     EXPECT_EQ(fakeDoc._opType, document->GetDocOperateType());
     EXPECT_EQ(fakeDoc._hasSummary, document->GetSummaryDocument() != NULL);
     EXPECT_EQ(fakeDoc._attributes.size() > 0, document->GetAttributeDocument() != NULL);
-}
-
-void DocumentTestHelper::checkDocumentSource(const ProcessedDocumentVecPtr& docs)
-{
-    EXPECT_EQ(size_t(2), docs->size());
-    {
-        NormalDocumentPtr document = DYNAMIC_POINTER_CAST(NormalDocument, (*docs)[0]->getDocument());
-        EXPECT_TRUE(document->GetSourceDocument());
-    }
-    {
-        NormalDocumentPtr document = DYNAMIC_POINTER_CAST(NormalDocument, (*docs)[1]->getDocument());
-        EXPECT_TRUE(document->GetSourceDocument());
-    }
 }
 
 }} // namespace build_service::document

@@ -30,6 +30,7 @@ table FloatColumn  { value: [float];  }
 table DoubleColumn { value: [double]; }
 table StringColumn { value: [string]; }
 table ByteStringColumn { value: [ByteString]; }
+table BoolColumn { value: [bool]; }
 
 table MultiInt8Column   { value: [MultiInt8];   }
 table MultiUInt8Column  { value: [MultiUInt8];  }
@@ -72,6 +73,7 @@ union ColumnType {
       TsdbStringDpsColumn,
       ByteStringColumn,
       MultiByteStringColumn,
+      BoolColumn,
 }
 
 table Column {

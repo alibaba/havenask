@@ -154,14 +154,17 @@ Status PkState::InnerMove(std::shared_ptr<index::PrimaryKeyHashTable<T>> pkHashT
                           std::shared_ptr<index::PrimaryKeyIterator<T>> iter, docid_t endDocId)
 {
     while (iter->HasNext()) {
-        auto currentPkPair = iter->GetCurrentPkPair();
-        if (currentPkPair.docid >= endDocId) {
+        auto currentPkPair64 = iter->GetCurrentPkPair();
+        if (currentPkPair64.docid >= endDocId) {
             break;
         }
-        bool success = iter->Next(currentPkPair);
+        bool success = iter->Next(currentPkPair64);
         if (!success) {
             return Status::Corruption();
         }
+        typename index::PrimaryKeyIterator<T>::SegmentPKPairTyped currentPkPair;
+        currentPkPair.key = currentPkPair64.key;
+        currentPkPair.docid = currentPkPair64.docid;
         pkHashTable->Insert(currentPkPair);
     }
     return Status::OK();

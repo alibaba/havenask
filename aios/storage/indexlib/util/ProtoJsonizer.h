@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <string>
+
 #include "autil/Log.h"
 #include "google/protobuf/message.h"
 #include "indexlib/base/Status.h"

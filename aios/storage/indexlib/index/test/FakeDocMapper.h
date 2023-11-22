@@ -48,18 +48,17 @@ public:
               const std::string& docMapStr);
 
     // oldGlobalDocId -> [newSegId, newLocalDocId]
-    std::pair<segmentid_t, docid_t> Map(docid_t oldDocId) const override;
+    std::pair<segmentid_t, docid32_t> Map(docid64_t oldDocId) const override;
     // newGlobalDocId -> [oldSegId, oldLocalDocId]
-    std::pair<segmentid_t, docid_t> ReverseMap(docid_t newDocId) const override;
-    segmentid_t GetTargetSegmentId(int32_t targetSegmentIdx) const override { return -1; }
-    int64_t GetTargetSegmentDocCount(int32_t idx) const override
+    std::pair<segmentid_t, docid32_t> ReverseMap(docid64_t newDocId) const override;
+    int64_t GetTargetSegmentDocCount(segmentid_t segmentId) const override
     {
-        assert(idx < _targetDocCounts.size());
-        return _targetDocCounts[idx];
+        assert(segmentId - _firstTargetSegId < _targetDocCounts.size());
+        return _targetDocCounts[segmentId - _firstTargetSegId];
     }
 
     // oldGlobalDocId -> newGlobalDocId
-    docid_t GetNewId(docid_t oldId) const override;
+    docid64_t GetNewId(docid64_t oldId) const override;
 
     // new total doc count
     uint32_t GetNewDocCount() const override { return _newDocCount; }
@@ -67,8 +66,7 @@ public:
     Status Store(const std::shared_ptr<indexlib::file_system::Directory>& resourceDirectory) override;
     Status Load(const std::shared_ptr<indexlib::file_system::Directory>& resourceDirectory) override;
 
-    segmentid_t GetLocalId(docid_t newId) const override { return -1; }
-    segmentid_t GetTargetSegmentIndex(docid_t newId) const override { return -1; }
+    segmentid_t GetLocalId(docid64_t newId) const override { return -1; }
 
 private:
     void CalcNewDocCount(const std::vector<SrcSegmentInfo>& srcSegInfos);

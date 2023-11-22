@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TRUNCATE_POSTING_ITERATOR_H
-#define __INDEXLIB_TRUNCATE_POSTING_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -34,9 +33,9 @@ public:
 public:
     TermMeta* GetTermMeta() const override;
 
-    docid_t SeekDoc(docid_t docId) override;
+    docid64_t SeekDoc(docid64_t docId) override;
 
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
 
     bool HasPosition() const override;
 
@@ -66,5 +65,3 @@ private:
 
 DEFINE_SHARED_PTR(TruncatePostingIterator);
 } // namespace indexlib::index::legacy
-
-#endif //__INDEXLIB_TRUNCATE_POSTING_ITERATOR_H

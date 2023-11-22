@@ -16,9 +16,17 @@
 #include "indexlib/merger/multi_threaded_merge_scheduler.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <memory>
 
+#include "alog/Logger.h"
+#include "autil/WorkItem.h"
 #include "indexlib/merger/merge_file_system.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/resource_control_thread_pool.h"
+
 using namespace std;
 using namespace autil;
 

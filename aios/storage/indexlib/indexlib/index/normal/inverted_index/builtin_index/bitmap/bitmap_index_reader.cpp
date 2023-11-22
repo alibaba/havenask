@@ -104,11 +104,11 @@ BitmapPostingExpandData* CreateExpandData(ExpandDataTable* dataTable, Dictionary
         singleSlice.data = baseAddr + postingOffset;
         singleSlice.size = postingLen;
         ByteSliceReader reader;
-        reader.Open(&singleSlice);
+        reader.Open(&singleSlice).GetOrThrow();
         uint32_t pos = reader.Tell();
         TermMetaLoader tmLoader;
         tmLoader.Load(&reader, expandData->termMeta);
-        uint32_t bitmapSize = reader.ReadUInt32();
+        uint32_t bitmapSize = reader.ReadUInt32().GetOrThrow();
         expandData->originalBitmapOffset = postingOffset + (reader.Tell() - pos);
         expandData->originalBitmapItemCount = bitmapSize * util::Bitmap::BYTE_SLOT_NUM;
     }

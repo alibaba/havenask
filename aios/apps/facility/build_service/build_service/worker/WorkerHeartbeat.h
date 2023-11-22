@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_WORKERHEARTBEAT_H
-#define ISEARCH_BS_WORKERHEARTBEAT_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/proto/WorkerNode.h"
@@ -46,5 +45,3 @@ private:
 BS_TYPEDEF_PTR(WorkerHeartbeat);
 
 }} // namespace build_service::worker
-
-#endif // ISEARCH_BS_WORKERHEARTBEAT_H

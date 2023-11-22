@@ -1,0 +1,41 @@
+{
+    "table_name" : "kv2",
+    "table_type" : "kv",
+    "attributes" : [
+        "cat_id",
+	"company_id",
+        "category_name",
+        "category_description",
+        "auction_count"
+    ],
+    "fields" : [
+        {
+            "field_name" : "cat_id",
+            "field_type" : "INT32"
+        },
+	{
+	    "field_name" : "company_id",
+	    "field_type" : "INT32"
+	},
+        {
+            "field_name" : "category_name",
+            "field_type" : "STRING"
+        },
+        {
+            "field_name" : "category_description",
+            "field_type" : "STRING"
+        },
+        {
+            "field_name" : "auction_count",
+            "field_type" : "INT32"
+        }
+    ],
+    "indexs" : [
+        {
+            "index_fields" : "cat_id",
+            "index_name" : "cat_id",
+            "index_type" : "PRIMARY_KEY"
+        }
+    ],
+    "enable_ttl" : true
+}

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEGMENT_MERGE_INFO_H
-#define __INDEXLIB_SEGMENT_MERGE_INFO_H
+#pragma once
 
 #include <memory>
 
@@ -24,6 +23,7 @@
 #include "indexlib/indexlib.h"
 
 DECLARE_REFERENCE_CLASS(index_base, InMemorySegmentReader);
+DECLARE_REFERENCE_CLASS(index, SegmentDirectoryBase);
 
 namespace indexlib { namespace index_base {
 
@@ -96,11 +96,12 @@ struct SegmentMergeInfo : public autil::legacy::Jsonizable {
     uint32_t levelIdx;
     uint32_t inLevelIdx;
     indexlib::framework::SegmentMetrics segmentMetrics;
+    // do not need to serialize
+    file_system::DirectoryPtr directory;
+    index::SegmentDirectoryBasePtr segmentDirectory;
     // TODO: legacy for reclaim map unittest
     index_base::InMemorySegmentReaderPtr TEST_inMemorySegmentReader;
 };
 
 typedef std::vector<SegmentMergeInfo> SegmentMergeInfos;
 }} // namespace indexlib::index_base
-
-#endif //__INDEXLIB_SEGMENT_MERGE_INFO_H

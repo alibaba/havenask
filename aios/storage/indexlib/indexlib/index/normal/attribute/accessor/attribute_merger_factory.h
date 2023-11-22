@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_MERGER_FACTORY_H
-#define __INDEXLIB_ATTRIBUTE_MERGER_FACTORY_H
+#pragma once
 
 #include <map>
 #include <memory>
@@ -76,5 +75,3 @@ private:
 
 DEFINE_SHARED_PTR(AttributeMergerFactory);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTE_MERGER_FACTORY_H

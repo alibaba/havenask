@@ -89,20 +89,6 @@
       true
     }
   ],
-"join_info":
-  [
-  ],
-"location":
-  {
-  "db_name":
-    "",
-  "partition_cnt":
-    0,
-  "service_desc":
-    "",
-  "table_group_name":
-    ""
-  },
 "properties":
   {
   },

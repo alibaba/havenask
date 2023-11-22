@@ -14,37 +14,15 @@
  * limitations under the License.
  */
 #pragma once
-#include <map>
-#include <memory>
-#include <set>
-#include <stddef.h>
-#include <stdint.h>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
-#include "ha3/common/Query.h"
-#include "indexlib/base/Types.h"
-#include "indexlib/indexlib.h"
 #include "navi/common.h"
 #include "navi/engine/Kernel.h"
 #include "navi/engine/KernelConfigContext.h"
-#include "sql/common/IndexInfo.h"
-#include "sql/common/TableMeta.h"
 #include "sql/ops/join/JoinKernelBase.h"
-#include "sql/ops/scan/ScanInitParamR.h"
-#include "sql/ops/scan/UseSubR.h"
+#include "sql/ops/join/LookupJoinBatch.h"
 #include "table/Row.h"
 #include "table/Table.h"
 
-namespace isearch {
-namespace common {
-class ColumnTerm;
-} // namespace common
-namespace search {
-class MatchDataCollectMatchedInfo;
-} // namespace search
-} // namespace isearch
 namespace navi {
 class KernelComputeContext;
 class KernelDefBuilder;
@@ -56,15 +34,8 @@ class Column;
 
 namespace sql {
 class ScanBase;
-
-struct LookupJoinBatch {
-    std::shared_ptr<table::Table> table;
-    size_t offset = 0;
-    size_t count = 0;
-    void reset(const std::shared_ptr<table::Table> &table_);
-    bool hasNext() const;
-    void next(size_t batchNum);
-};
+class LookupR;
+struct StreamQuery;
 
 class LookupJoinKernel : public JoinKernelBase {
 public:
@@ -73,96 +44,33 @@ public:
 
 public:
     void def(navi::KernelDefBuilder &builder) const override;
-    bool config(navi::KernelConfigContext &ctx) override;
-    navi::ErrorCode init(navi::KernelInitContext &initContext) override;
     navi::ErrorCode compute(navi::KernelComputeContext &runContext) override;
 
 private:
+    bool doInit() override;
+    bool doConfig(navi::KernelConfigContext &ctx) override;
     navi::ErrorCode finishLastJoin(navi::KernelComputeContext &runContext);
     navi::ErrorCode startNewLookup(navi::KernelComputeContext &runContext);
-    void createMatchedRowIndexs(const table::TablePtr &streamOutput);
     bool joinTable(const LookupJoinBatch &batch,
                    const table::TablePtr &streamOutput,
                    table::TablePtr &outputTable);
-    bool docIdsJoin(const LookupJoinBatch &batch, const table::TablePtr &streamOutput);
-    bool doHashJoin(const LookupJoinBatch &batch, const table::TablePtr &streamTable);
-    StreamQueryPtr genFinalStreamQuery(const LookupJoinBatch &batch);
-    bool genStreamKeys(const LookupJoinBatch &batch, std::vector<std::string> &pks);
     void patchLookupHintInfo(const std::map<std::string, std::string> &hintsMap);
-    isearch::common::QueryPtr genTableQuery(const LookupJoinBatch &batch);
-    isearch::common::ColumnTerm *makeColumnTerm(const LookupJoinBatch &batch,
-                                                const std::string &inputField,
-                                                const std::string &joinField,
-                                                bool &returnEmptyQuery);
-    bool genRowGroupKey(const LookupJoinBatch &batch,
-                        const std::vector<table::Column *> &singleTermCols,
-                        std::vector<std::string> &rowGroupKey);
-    bool genSingleTermColumns(const table::TablePtr &input,
-                              const std::vector<table::Column *> &singleTermCols,
-                              const std::vector<uint16_t> &singleTermID,
-                              const std::unordered_map<std::string, std::vector<size_t>> &rowGroups,
-                              size_t rowCount,
-                              std::vector<isearch::common::ColumnTerm *> &terms);
-    bool genMultiTermColumns(const table::TablePtr &input,
-                             const std::vector<table::Column *> &MultiTermCols,
-                             const std::vector<uint16_t> &multiTermID,
-                             const std::unordered_map<std::string, std::vector<size_t>> &rowGroups,
-                             size_t rowCount,
-                             std::vector<isearch::common::ColumnTerm *> &terms);
-    void fillTerms(const LookupJoinBatch &batch, std::vector<isearch::common::ColumnTerm *> &terms);
-    void fillTermsWithRowOptimized(const LookupJoinBatch &batch,
-                                   std::vector<isearch::common::ColumnTerm *> &terms);
-    bool scanAndJoin(StreamQueryPtr streamQuery,
+    bool scanAndJoin(const std::shared_ptr<StreamQuery> &streamQuery,
                      const LookupJoinBatch &batch,
                      table::TablePtr &outputTable,
                      bool &finished);
-
-    static bool getDocIdField(const std::vector<std::string> &inputFields,
-                              const std::vector<std::string> &joinFields,
-                              std::string &field);
-    static bool
-    genDocIds(const LookupJoinBatch &batch, const std::string &field, std::vector<docid_t> &docids);
-    static bool selectValidField(const table::TablePtr &input,
-                                 std::vector<std::string> &inputFields,
-                                 std::vector<std::string> &joinFields,
-                                 bool enableRowDeduplicate);
-    static bool genStreamQueryTerm(const table::TablePtr &input,
-                                   table::Row row,
-                                   const std::string &inputField,
-                                   std::vector<std::string> &termVec);
-    static bool getPkTriggerField(const std::vector<std::string> &inputFields,
-                                  const std::vector<std::string> &joinFields,
-                                  const std::map<std::string, sql::IndexInfo> &indexInfoMap,
-                                  std::string &triggerField);
-    bool isDocIdsOptimize();
 
 private:
     KERNEL_DEPEND_DECLARE_BASE(JoinKernelBase);
 
 protected:
-    KERNEL_DEPEND_ON(ScanInitParamR, _scanInitParamR);
-    KERNEL_DEPEND_ON(UseSubR, _useSubR);
     ScanBase *_scanBase = nullptr;
+    LookupR *_lookupR = nullptr;
     bool _inputEof;
     LookupJoinBatch _batch;
     std::shared_ptr<table::Table> _outputTable;
-    bool _enableRowDeduplicate;
-    bool _useMatchedRow;
-    bool _leftTableIndexed;
-    bool _disableMatchRowIndexOptimize;
     size_t _lookupBatchSize;
     size_t _lookupTurncateThreshold;
-    size_t _hasJoinedCount;
-    std::map<std::string, sql::IndexInfo> _leftIndexInfos;
-    std::map<std::string, sql::IndexInfo> _rightIndexInfos;
-    TableMeta _leftTableMeta;
-    TableMeta _rightTableMeta;
-    std::set<std::string> _disableCacheFields;
-    std::vector<std::vector<size_t>> _rowMatchedInfo;
-    isearch::search::MatchDataCollectMatchedInfo *_matchedInfo;
-    std::vector<std::string> *_lookupColumns;
-    std::vector<std::string> *_joinColumns;
-    std::map<std::string, sql::IndexInfo> *_lookupIndexInfos;
     std::shared_ptr<StreamQuery> _streamQuery;
 };
 

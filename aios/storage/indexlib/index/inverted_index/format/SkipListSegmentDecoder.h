@@ -38,10 +38,10 @@ protected:
     void InitSkipList(uint32_t start, uint32_t end, util::ByteSlice* postingList, df_t df,
                       CompressMode compressMode) override;
 
-    bool DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
+    bool DecodeDocBuffer(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId, docid32_t& lastDocId,
                          ttf_t& currentTTF) override;
-    bool DecodeDocBufferMayCopy(docid_t startDocId, docid_t*& docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                ttf_t& currentTTF) override;
+    bool DecodeDocBufferMayCopy(docid32_t startDocId, docid32_t*& docBuffer, docid32_t& firstDocId,
+                                docid32_t& lastDocId, ttf_t& currentTTF) override;
 
     bool DecodeCurrentTFBuffer(tf_t* tfBuffer) override;
     void DecodeCurrentDocPayloadBuffer(docpayload_t* docPayloadBuffer) override;
@@ -103,8 +103,9 @@ void SkipListSegmentDecoder<SkipListType>::InitSkipList(uint32_t start, uint32_t
 }
 
 template <class SkipListType>
-bool SkipListSegmentDecoder<SkipListType>::DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId,
-                                                           docid_t& lastDocId, ttf_t& currentTTF)
+bool SkipListSegmentDecoder<SkipListType>::DecodeDocBuffer(docid32_t startDocId, docid32_t* docBuffer,
+                                                           docid32_t& firstDocId, docid32_t& lastDocId,
+                                                           ttf_t& currentTTF)
 {
     uint32_t offset;
     uint32_t recordLen;
@@ -120,7 +121,7 @@ bool SkipListSegmentDecoder<SkipListType>::DecodeDocBuffer(docid_t startDocId, d
     currentTTF = _skipListReader->GetPrevTTF();
     _skipedItemCount = _skipListReader->GetSkippedItemCount();
 
-    _docListReader->Seek(offset + this->_docListBeginPos);
+    _docListReader->Seek(offset + this->_docListBeginPos).GetOrThrow();
     _docEncoder->Decode((uint32_t*)docBuffer, MAX_DOC_PER_RECORD, *_docListReader);
 
     firstDocId = docBuffer[0] + lastDocIdInPrevRecord;
@@ -128,8 +129,8 @@ bool SkipListSegmentDecoder<SkipListType>::DecodeDocBuffer(docid_t startDocId, d
 }
 
 template <class SkipListType>
-bool SkipListSegmentDecoder<SkipListType>::DecodeDocBufferMayCopy(docid_t startDocId, docid_t*& docBuffer,
-                                                                  docid_t& firstDocId, docid_t& lastDocId,
+bool SkipListSegmentDecoder<SkipListType>::DecodeDocBufferMayCopy(docid32_t startDocId, docid32_t*& docBuffer,
+                                                                  docid32_t& firstDocId, docid32_t& lastDocId,
                                                                   ttf_t& currentTTF)
 {
     uint32_t offset;
@@ -146,7 +147,7 @@ bool SkipListSegmentDecoder<SkipListType>::DecodeDocBufferMayCopy(docid_t startD
     currentTTF = _skipListReader->GetPrevTTF();
     _skipedItemCount = _skipListReader->GetSkippedItemCount();
 
-    _docListReader->Seek(offset + this->_docListBeginPos);
+    _docListReader->Seek(offset + this->_docListBeginPos).GetOrThrow();
     _docEncoder->DecodeMayCopy((uint32_t*&)docBuffer, MAX_DOC_PER_RECORD, *_docListReader);
 
     // TODO: merge with DecodeDocBuffer

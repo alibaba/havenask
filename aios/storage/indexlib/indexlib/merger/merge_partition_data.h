@@ -13,23 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGE_PARTITION_DATA_H
-#define __INDEXLIB_MERGE_PARTITION_DATA_H
+#pragma once
 
 #include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
-#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/index_base/index_meta/index_format_version.h"
 #include "indexlib/index_base/index_meta/partition_meta.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/index_base/partition_data.h"
 #include "indexlib/index_base/segment/segment_directory.h"
 #include "indexlib/indexlib.h"
-
-DECLARE_REFERENCE_CLASS(plugin, PluginManager);
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
 class MergePartitionData;
+
 DEFINE_SHARED_PTR(MergePartitionData);
 
 // used by reader
@@ -89,5 +93,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGE_PARTITION_DATA_H

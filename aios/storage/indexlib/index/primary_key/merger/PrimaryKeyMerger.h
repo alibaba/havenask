@@ -25,6 +25,7 @@
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IIndexMerger.h"
 #include "indexlib/index/IndexFactoryCreator.h"
+#include "indexlib/index/common/PlainDocMapper.h"
 #include "indexlib/index/primary_key/PrimaryKeyFileWriterCreator.h"
 #include "indexlib/index/primary_key/PrimaryKeyIterator.h"
 #include "indexlib/index/primary_key/config/PrimaryKeyIndexConfig.h"
@@ -111,12 +112,25 @@ Status PrimaryKeyMerger<Key>::DoMerge(const IIndexMerger::SegmentMergeInfos& seg
                                       const std::shared_ptr<framework::IndexTaskResourceManager>& taskResourceManager)
 {
     std::shared_ptr<DocMapper> docMapper;
-    auto status =
-        taskResourceManager->LoadResource<DocMapper>(_docMapperName, DocMapper::GetDocMapperType(), docMapper);
-    if (!status.IsOK()) {
-        return status;
+    if (_docMapperName == PlainDocMapper::GetDocMapperName()) {
+        docMapper.reset(new PlainDocMapper(segMergeInfos));
+        uint64_t docCountLimit = indexlib::MAX_SEGMENT_DOC_COUNT;
+        for (const auto& targetSegment : segMergeInfos.targetSegments) {
+            if (docMapper->GetTargetSegmentDocCount(targetSegment->segmentId) > docCountLimit) {
+                AUTIL_LOG(ERROR, "inverted index does not support merged segment doc count [%lu], which > [%lu]",
+                          docMapper->GetTargetSegmentDocCount(targetSegment->segmentId), docCountLimit);
+                return Status::InvalidArgs();
+            }
+        }
+    } else {
+        auto status =
+            taskResourceManager->LoadResource<DocMapper>(_docMapperName, DocMapper::GetDocMapperType(), docMapper);
+        if (!status.IsOK()) {
+            return status;
+        }
     }
-    status = MergePkData(docMapper, segMergeInfos);
+
+    auto status = MergePkData(docMapper, segMergeInfos);
     if (!status.IsOK()) {
         return status;
     }
@@ -153,7 +167,6 @@ Status PrimaryKeyMerger<Key>::MergePkData(const std::shared_ptr<DocMapper>& docM
     }
     std::string indexDirPath = indexFactory->GetIndexPath();
 
-    size_t idx = 0;
     for (const auto& segMeta : segMergeInfos.targetSegments) {
         std::shared_ptr<indexlib::file_system::IDirectory> indexDirectory;
         std::tie(status, indexDirectory) = segMeta->segmentDir->GetIDirectory()
@@ -193,12 +206,7 @@ Status PrimaryKeyMerger<Key>::MergePkData(const std::shared_ptr<DocMapper>& docM
         }
 
         auto primaryKeyFileWriter = PrimaryKeyFileWriterCreator<Key>::CreatePKFileWriter(pkConfig);
-        if (docMapper->GetTargetSegmentId(idx) != segMeta->segmentId) {
-            AUTIL_LOG(ERROR, "docMapper target segment id [%d] not match segMeta segment id [%d]",
-                      docMapper->GetTargetSegmentId(idx), segMeta->segmentId);
-            return Status::Corruption("docMaper segId not match");
-        }
-        auto docCount = docMapper->GetTargetSegmentDocCount(idx++);
+        auto docCount = docMapper->GetTargetSegmentDocCount(segMeta->segmentId);
         segMeta->segmentMetrics->SetKeyCount(docCount);
         primaryKeyFileWriter->Init(docCount, docCount, fileWriter, &_pool);
         segIdToWriter[segMeta->segmentId] = primaryKeyFileWriter;
@@ -207,11 +215,12 @@ Status PrimaryKeyMerger<Key>::MergePkData(const std::shared_ptr<DocMapper>& docM
     typename PrimaryKeyIterator<Key>::PKPairTyped pkPair;
     while (pkIter->HasNext()) {
         pkIter->Next(pkPair);
-        auto localInfo = docMapper->Map(pkPair.docid);
-        if (localInfo.second == INVALID_DOCID) {
+        auto [segmentId, localDocId] = docMapper->Map(pkPair.docid);
+        if (localDocId == INVALID_DOCID) {
+            assert(segmentId == INVALID_SEGMENTID);
             continue;
         }
-        auto iter = segIdToWriter.find(localInfo.first);
+        auto iter = segIdToWriter.find(segmentId);
         if (iter == segIdToWriter.end()) {
             AUTIL_LOG(ERROR, "not found output file writer");
             continue;
@@ -219,9 +228,9 @@ Status PrimaryKeyMerger<Key>::MergePkData(const std::shared_ptr<DocMapper>& docM
         auto fileWriter = iter->second;
         Status status;
         if (pkConfig->GetPrimaryKeyIndexType() == pk_hash_table) {
-            status = fileWriter->AddPKPair(pkPair.key, localInfo.second);
+            status = fileWriter->AddPKPair(pkPair.key, localDocId);
         } else {
-            status = fileWriter->AddSortedPKPair(pkPair.key, localInfo.second);
+            status = fileWriter->AddSortedPKPair(pkPair.key, localDocId);
         }
         if (!status.IsOK()) {
             return status;

@@ -44,6 +44,7 @@ public:
 public:
     bool tick();
     ClientTopoInfoMapPtr getClientMap() const;
+    void disableProvider();
 
 private:
     void fillRequest(NewHeartbeatRequest &request);

@@ -6,6 +6,7 @@
 #include "indexlib/index/normal/deletionmap/deletion_map_merger.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/index/normal/deletionmap/deletion_map_segment_writer.h"
+#include "indexlib/index_define.h"
 #include "indexlib/merger/segment_directory.h"
 #include "indexlib/test/directory_creator.h"
 #include "indexlib/test/partition_data_maker.h"

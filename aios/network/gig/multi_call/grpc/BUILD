@@ -1,7 +1,7 @@
 package(default_visibility=['//aios/network/gig:__subpackages__'])
 cc_library(
     name='grpc_headers',
-    hdrs=glob(['*.h', 'server/*.h', 'client/*.h']),
+    hdrs=glob(['server/*.h', 'client/*.h']),
     deps=[
         '//aios/network/gig/multi_call/config:config_headers',
         '//aios/network/gig/multi_call/rpc:rpc_headers',

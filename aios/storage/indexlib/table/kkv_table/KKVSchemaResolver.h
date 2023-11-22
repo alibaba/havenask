@@ -40,6 +40,8 @@ private:
                             config::UnresolvedSchema* schema);
     void FillTTLToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,
                            config::UnresolvedSchema* schema);
+    void FillNeedStorePKValueToSettings(const indexlib::config::IndexPartitionSchema& legacySchema,
+                                        config::UnresolvedSchema* schema);
 
 private:
     AUTIL_LOG_DECLARE();

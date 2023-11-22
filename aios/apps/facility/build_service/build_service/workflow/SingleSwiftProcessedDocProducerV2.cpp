@@ -15,27 +15,58 @@
  */
 #include "build_service/workflow/SingleSwiftProcessedDocProducerV2.h"
 
-#include "autil/DataBuffer.h"
+#include <algorithm>
+#include <assert.h>
+#include <ext/alloc_traits.h>
+#include <ostream>
+
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/Locator.h"
 #include "build_service/common/PkTracer.h"
+#include "build_service/common/SwiftLinkFreshnessReporter.h"
+#include "build_service/document/DocumentDefine.h"
+#include "build_service/document/ProcessedDocument.h"
 #include "build_service/util/LocatorUtil.h"
 #include "build_service/util/Monitor.h"
 #include "build_service/workflow/ReportFreshnessMetricTaskItem.h"
+#include "build_service/workflow/SwiftProcessedDocLocatorKeeper.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletOptions.h"
-#include "indexlib/config/TabletSchema.h"
+#include "indexlib/config/customized_config.h"
+#include "indexlib/config/index_config.h"
+#include "indexlib/document/BuiltinParserInitParam.h"
+#include "indexlib/document/DocumentInitParam.h"
+#include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/document/IDocumentFactory.h"
 #include "indexlib/document/IDocumentParser.h"
 #include "indexlib/document/kv/KVDocument.h"
+#include "indexlib/document/normal/ClassifiedDocument.h"
 #include "indexlib/document/normal/NormalDocument.h"
+#include "indexlib/document/raw_document/raw_document_define.h"
 #include "indexlib/framework/ITabletFactory.h"
 #include "indexlib/framework/Locator.h"
 #include "indexlib/framework/TabletFactoryCreator.h"
 #include "indexlib/util/DocTracer.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/TaskItem.h"
 #include "indexlib/util/counter/StateCounter.h"
+#include "kmonitor/client/MetricType.h"
+#include "swift/client/SwiftPartitionStatus.h"
+#include "swift/client/SwiftReader.h"
+#include "swift/protocol/Common.pb.h"
+#include "swift/protocol/ErrCode.pb.h"
 #include "swift/protocol/SwiftMessage.pb.h"
 
 using namespace std;
@@ -198,6 +229,8 @@ bool SingleSwiftProcessedDocProducerV2::init(indexlib::util::MetricProviderPtr m
             return false;
         }
     }
+    _locatorKeeper.reset(new SwiftProcessedDocLocatorKeeper);
+    _locatorKeeper->init(_sourceSignature, _swiftParam, _startTimestamp);
     return initDocumentParser(metricProvider, counterMap);
 }
 
@@ -280,15 +313,18 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
                       "swift read exceed the limited timestamp, "
                       "last message msgId[%ld] uint16Payload[%u] uint8Payload[%u]",
                       _lastMessageId, _lastMessageUint16Payload, _lastMessageUint8Payload);
-        reportFreshnessMetrics(0, /* no more msg */ true, emptyDocSource, /* not report fast queue delay */ false);
+        reportFreshnessMetrics(0, /* no more msg */ true, emptyDocSource, _swiftParam.isMultiTopic);
         BEEPER_REPORT(WORKER_STATUS_COLLECTOR_NAME, "swift read exceed limit timestamp, reach eof.");
+        if (_alterTableSchemaId != indexlib::INVALID_SCHEMAID) {
+            _needAlterTable = true;
+        }
         return FE_EOF;
     } else if (ec == ERROR_SEALED_TOPIC_READ_FINISH) {
         BS_PREFIX_LOG(INFO,
                       "swift topic sealed, "
                       "last message msgId[%ld] uint16Payload[%u] uint8Payload[%u]",
                       _lastMessageId, _lastMessageUint16Payload, _lastMessageUint8Payload);
-        reportFreshnessMetrics(0, /* no more msg */ true, emptyDocSource, /* not report fast queue delay */ false);
+        reportFreshnessMetrics(0, /* no more msg */ true, emptyDocSource, _swiftParam.isMultiTopic);
         BEEPER_REPORT(WORKER_STATUS_COLLECTOR_NAME, "swift topic sealed.");
         return FE_SEALED;
     } else if (ec != ERROR_NONE) {
@@ -320,25 +356,33 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
                 }
             }
         }
-        reportFreshnessMetrics(0, /* no more msg */ true, emptyDocSource, /* not report fast queue delay */ false);
+        reportFreshnessMetrics(0, /* no more msg */ true, emptyDocSource, _swiftParam.isMultiTopic);
         int64_t currentTime = autil::TimeUtility::currentTimeInSeconds();
         if (_ckpDocReportInterval >= 0 && currentTime - _ckpDocReportTime >= _ckpDocReportInterval) {
             BS_PREFIX_LOG(DEBUG, "Create CHECKPOINT_DOC, locator: src[%lu], offset[%ld].", _sourceSignature, timestamp);
             _ckpDocReportTime = currentTime;
-            auto [success, progress] =
-                util::LocatorUtil::convertSwiftProgress(readerProgress, _swiftParam.isMultiTopic);
-            if (!success) {
-                AUTIL_LOG(ERROR, "convert swift progress failed [%s]", readerProgress.ShortDebugString().c_str());
-                return FE_FATAL;
+            uint8_t sourceIdx = 0;
+            if (_swiftParam.isMultiTopic) {
+                for (auto [mask, result] : _swiftParam.maskFilterPairs) {
+                    if (((uint8_t)message.uint8maskpayload() & mask) == result) {
+                        break;
+                    }
+                    sourceIdx++;
+                }
             }
-            if (_swiftMessageFilter.filterOrRewriteProgress(
-                    message.uint16payload(), {message.timestamp(), message.offsetinrawmsg()}, &progress)) {
+            indexlibv2::framework::Locator::DocInfo docInfo(
+                /* hashId */ message.uint16payload(), /* timestamp */ message.timestamp(),
+                /* concurrentIdx*/ message.offsetinrawmsg(), /*sourceIdx*/ sourceIdx);
+            if (_locatorKeeper->needSkip(docInfo) || _alterTableSchemaId != indexlib::INVALID_SCHEMAID) {
                 BS_INTERVAL_LOG2(10, WARN, "filter message payload [%u] timestamp [%ld] progress [%s]",
                                  message.uint16payload(), message.timestamp(),
                                  readerProgress.ShortDebugString().c_str());
                 return FE_SKIP;
             }
-            docVec.reset(createSkipProcessedDocument(progress));
+            if (!_locatorKeeper->update(readerProgress, docInfo)) {
+                return FE_FATAL;
+            }
+            docVec.reset(createSkipProcessedDocument(_locatorKeeper->getLocator().GetMultiProgress()));
             return FE_OK;
             // no message more than 60s, report processor checkpoint use current time
         }
@@ -360,13 +404,19 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
     _lastMessageId = message.msgid();
     bool handleProcessedDocSuccess = false;
     try {
-        auto [success, progress] = util::LocatorUtil::convertSwiftProgress(readerProgress, _swiftParam.isMultiTopic);
-        if (!success) {
-            AUTIL_LOG(ERROR, "convert swift progress failed [%s]", readerProgress.ShortDebugString().c_str());
-            return FE_FATAL;
+        uint8_t sourceIdx = 0;
+        if (_swiftParam.isMultiTopic) {
+            for (auto [mask, result] : _swiftParam.maskFilterPairs) {
+                if (((uint8_t)message.uint8maskpayload() & mask) == result) {
+                    break;
+                }
+                sourceIdx++;
+            }
         }
-        if (_swiftMessageFilter.filterOrRewriteProgress(message.uint16payload(),
-                                                        {message.timestamp(), message.offsetinrawmsg()}, &progress)) {
+        indexlibv2::framework::Locator::DocInfo docInfo(
+            /* hashId */ message.uint16payload(), /* timestamp */ message.timestamp(),
+            /* concurrentIdx*/ message.offsetinrawmsg(), /*sourceIdx*/ sourceIdx);
+        if (_locatorKeeper->needSkip(docInfo)) {
             BS_INTERVAL_LOG2(10, WARN, "filter message payload [%u] timestamp [%ld] progress [%s]",
                              message.uint16payload(), message.timestamp(), readerProgress.ShortDebugString().c_str());
             return FE_SKIP;
@@ -380,18 +430,43 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
                     DEBUG,
                     "msg filtered by mask [%u], will Create CHECKPOINT_DOC, locator: src[%lu], msg timestamp[%ld].",
                     _lastMessageUint8Payload, _sourceSignature, message.timestamp());
-                docVec.reset(createSkipProcessedDocument(progress));
+                if (!_locatorKeeper->update(readerProgress, docInfo)) {
+                    return FE_FATAL;
+                }
+                docVec.reset(createSkipProcessedDocument(_locatorKeeper->getLocator().GetMultiProgress()));
                 return FE_OK;
             }
         }
-        indexlibv2::document::IDocument::DocInfo docInfo = {_lastMessageUint16Payload, message.timestamp(),
-                                                            message.offsetinrawmsg()};
-        docVec.reset(createProcessedDocument(message.data(), docInfo, timestamp, progress));
+        docVec.reset(createProcessedDocument(message.data(), docInfo, timestamp,
+                                             _locatorKeeper->getLocator().GetMultiProgress()));
         if (!docVec) {
             BS_PREFIX_LOG(ERROR, "create processed document failed");
             return _exceptionHandler.transferProcessResult(handleProcessedDocSuccess);
         }
+
         const std::shared_ptr<indexlibv2::document::IDocument>& document = (*docVec)[0]->getDocument();
+        auto schemaId = document->GetSchemaId();
+        if (schemaId > _schema->GetSchemaId()) {
+            auto tmpSchemaId = _alterTableSchemaId.load(std::memory_order_relaxed);
+            if (_alterTableSchemaId == indexlib::INVALID_SCHEMAID) {
+                _alterTableSchemaId = schemaId;
+            } else {
+                _alterTableSchemaId = std::min(_alterTableSchemaId.load(std::memory_order_relaxed), schemaId);
+            }
+            if (tmpSchemaId != _alterTableSchemaId.load(std::memory_order_relaxed)) {
+                BS_LOG(INFO, "next alter table schema change [%d]",
+                       _alterTableSchemaId.load(std::memory_order_relaxed));
+            }
+            if (_stopTimestamp == std::numeric_limits<int64_t>::max()) {
+                suspendReadAtTimestamp(message.timestamp(), common::ETA_STOP);
+            }
+            _locatorKeeper->updateSchemaChangeDocInfo(docInfo);
+            return FE_SKIP;
+        }
+        if (!_locatorKeeper->update(readerProgress, docInfo)) {
+            return FE_FATAL;
+        }
+        (*docVec)[0]->setLocator(_locatorKeeper->getLocator());
         std::string pk;
         const auto& normalDoc = std::dynamic_pointer_cast<indexlibv2::document::NormalDocument>(document);
         if (normalDoc) {
@@ -400,7 +475,8 @@ FlowError SingleSwiftProcessedDocProducerV2::produce(document::ProcessedDocument
         if (_lastMessageUint8Payload == ProcessedDocument::SWIFT_FILTER_BIT_FASTQUEUE ||
             _lastMessageUint8Payload ==
                 (ProcessedDocument::SWIFT_FILTER_BIT_FASTQUEUE | ProcessedDocument::SWIFT_FILTER_BIT_REALTIME)) {
-            BS_PREFIX_LOG(DEBUG, "pk[%s] payload[%d] read from fast queue", pk.c_str(), _lastMessageUint8Payload);
+            BS_PREFIX_LOG(INFO, "pk[%s] payload[%d] read from fast queue, locator[%s]", pk.c_str(),
+                          _lastMessageUint8Payload, document->GetLocatorV2().DebugString().c_str());
         }
         PkTracer::fromSwiftTrace(pk, document->GetLocatorV2().DebugString(), message.msgid());
         IE_DOC_TRACE(document, "read processed doc from swift");
@@ -440,24 +516,21 @@ bool SingleSwiftProcessedDocProducerV2::seek(const common::Locator& locator)
 // return [success, curLocator]
 std::pair<bool, common::Locator> SingleSwiftProcessedDocProducerV2::seekAndGetLocator(const common::Locator& locator)
 {
-    auto progress = locator.GetProgress();
-    assert(!progress.empty());
     BS_INTERVAL_LOG2(120, INFO, "[%s] seek locator [%s], start timestamp[%ld]", _buildIdStr.c_str(),
                      locator.DebugString().c_str(), _startTimestamp);
+    if (!_locatorKeeper->setSeekLocator(locator)) {
+        return {false, locator};
+    }
     bool forceSeek = false;
     if (_allowSeekCrossSrc) {
         forceSeek = true;
     } else {
         common::Locator sourceLocator(_sourceSignature, 0);
         // 中转 topic 兼容场景(tablet在线加载离线partition增量)下忽略 src 比较
-        if (!locator.IsSameSrc(common::Locator(_sourceSignature, 0), true)) {
-            // do not seek when src not equal
+        if (!locator.IsSameSrc(sourceLocator, true)) {
             BS_LOG(WARN, "[%s] will ignore seek locator [%s], src not match sourceSignature [%ld]", _buildIdStr.c_str(),
                    locator.DebugString().c_str(), _sourceSignature);
-            common::Locator resultLocator = locator;
-            std::vector<indexlibv2::base::Progress> progress;
-            progress.push_back(indexlibv2::base::Progress(_swiftParam.from, _swiftParam.to, {_startTimestamp, 0}));
-            resultLocator.SetProgress(progress);
+            auto resultLocator = _locatorKeeper->getSeekLocator();
             return {true, resultLocator};
         }
     }
@@ -468,19 +541,11 @@ std::pair<bool, common::Locator> SingleSwiftProcessedDocProducerV2::seekAndGetLo
     string msg = "SingleSwiftProcessedDocProducerV2 seek to [" + StringUtil::toString(timestamp) + "," +
                  StringUtil::toString(concurrentIdx) + "]";
     BEEPER_REPORT(WORKER_STATUS_COLLECTOR_NAME, msg);
-    swift::protocol::ReaderProgress swiftProgress = util::LocatorUtil::convertLocatorProgress(
-        locator.GetProgress(), _swiftParam.topicName, _swiftParam.maskFilterPairs, _swiftParam.disableSwiftMaskFilter);
-    if (_swiftParam.reader->seekByProgress(swiftProgress, forceSeek) != swift::protocol::ERROR_NONE) {
+    auto seekProgress = _locatorKeeper->getSeekProgress();
+    if (_swiftParam.reader->seekByProgress(seekProgress, forceSeek) != swift::protocol::ERROR_NONE) {
         return {false, locator};
     }
-    indexlibv2::framework::Locator tmpLocator = locator;
-    if (!tmpLocator.ShrinkToRange(_swiftParam.from, _swiftParam.to)) {
-        BS_LOG(ERROR, "seek failed, shrink failed, locator [%s], from [%d], to [%d]", tmpLocator.DebugString().c_str(),
-               _swiftParam.from, _swiftParam.to);
-        return {false, locator};
-    }
-    _swiftMessageFilter.setSeekProgress(tmpLocator.GetProgress());
-    return {true, locator};
+    return {true, _locatorKeeper->getSeekLocator()};
 }
 
 bool SingleSwiftProcessedDocProducerV2::stop(StopOption stopOption)
@@ -510,8 +575,7 @@ void SingleSwiftProcessedDocProducerV2::ReportMetrics(const string& docSource, i
     }
     _lastReportTime = currentTime;
     REPORT_METRIC(_processedDocSizeMetric, docSize);
-    reportFreshnessMetrics(locatorTimestamp, /* no more msg */ false, docSource,
-                           /* not report fast queue delay */ false);
+    reportFreshnessMetrics(locatorTimestamp, /* no more msg */ false, docSource, _swiftParam.isMultiTopic);
 }
 
 void SingleSwiftProcessedDocProducerV2::reportEnd2EndLatencyMetrics(const string& docSource)
@@ -588,8 +652,8 @@ void SingleSwiftProcessedDocProducerV2::reportFastQueueSwiftReadDelayMetrics()
 }
 
 ProcessedDocumentVec* SingleSwiftProcessedDocProducerV2::createProcessedDocument(
-    const string& docStr, indexlibv2::document::IDocument::DocInfo docInfo, int64_t locatorTimestamp,
-    const std::vector<indexlibv2::base::Progress>& progress)
+    const string& docStr, indexlibv2::framework::Locator::DocInfo docInfo, int64_t locatorTimestamp,
+    const indexlibv2::base::MultiProgress& readProgress)
 {
     std::shared_ptr<indexlibv2::document::IDocumentBatch> docBatch = transDocStrToDocumentBatch(docStr);
     if (!docBatch) {
@@ -635,9 +699,6 @@ ProcessedDocumentVec* SingleSwiftProcessedDocProducerV2::createProcessedDocument
 
     unique_ptr<ProcessedDocumentVec> processedDocumentVec(new ProcessedDocumentVec);
     ProcessedDocumentPtr processedDoc(new ProcessedDocument);
-    auto locator = common::Locator(_sourceSignature, locatorTimestamp);
-    locator.SetProgress(progress);
-    processedDoc->setLocator(locator);
     processedDoc->setDocumentBatch(docBatch);
 
     ProcessedDocument::DocClusterMetaVec metas;
@@ -656,13 +717,13 @@ ProcessedDocumentVec* SingleSwiftProcessedDocProducerV2::createProcessedDocument
 }
 
 ProcessedDocumentVec*
-SingleSwiftProcessedDocProducerV2::createSkipProcessedDocument(const std::vector<indexlibv2::base::Progress>& progress)
+SingleSwiftProcessedDocProducerV2::createSkipProcessedDocument(const indexlibv2::base::MultiProgress& progress)
 {
     unique_ptr<ProcessedDocumentVec> processedDocumentVec(new ProcessedDocumentVec);
     ProcessedDocumentPtr processedDoc(new ProcessedDocument);
     common::Locator locator;
     locator.SetSrc(_sourceSignature);
-    locator.SetProgress(progress);
+    locator.SetMultiProgress(progress);
     processedDoc->setLocator(locator);
     processedDoc->setNeedSkip(true);
     processedDocumentVec->push_back(processedDoc);
@@ -862,5 +923,4 @@ bool SingleSwiftProcessedDocProducerV2::needUpdateCommittedCheckpoint() const
 }
 
 #undef LOG_PREFIX
-
 }} // namespace build_service::workflow

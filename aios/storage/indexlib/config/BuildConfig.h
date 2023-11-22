@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#include <memory>
+#include <stdint.h>
+
 #include "autil/Log.h"
 #include "autil/legacy/jsonizable.h"
 
@@ -40,6 +43,7 @@ public:
     int64_t GetFenceTsTolerantDeviation() const;
     int32_t GetMaxCommitRetryCount() const;
     bool GetIsEnablePackageFile() const;
+    bool GetIsTolerateDocError() const;
     uint32_t GetDumpThreadCount() const;
 
 public:
@@ -53,6 +57,7 @@ public:
 
 private:
     struct Impl;
+
     std::unique_ptr<Impl> _impl;
 
 private:

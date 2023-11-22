@@ -45,8 +45,9 @@ const std::string NormalTableReclaimPlanCreator::DEFAULT_TASK_NAME = "__default_
 const std::string NormalTableReclaimPlanCreator::DEFAULT_TASK_PERIOD = "period=18000"; // 5h
 
 NormalTableReclaimPlanCreator::NormalTableReclaimPlanCreator(const std::string& taskName,
+                                                             const std::string& taskTraceId,
                                                              const std::map<std::string, std::string>& params)
-    : SimpleIndexTaskPlanCreator(taskName, params)
+    : SimpleIndexTaskPlanCreator(taskName, taskTraceId, params)
 {
 }
 

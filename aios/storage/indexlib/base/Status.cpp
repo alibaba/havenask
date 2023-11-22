@@ -15,10 +15,6 @@
  */
 #include "indexlib/base/Status.h"
 
-#include <cassert>
-#include <cstdio>
-#include <cstring>
-
 namespace indexlib { namespace detail {
 
 static std::string CodeToStatusStr(StatusCode code)

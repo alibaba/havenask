@@ -1,12 +1,12 @@
 #include "indexlib/partition/test/offline_partition_reader_unittest.h"
 
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/Directory.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_reader.h"
 #include "indexlib/index/primary_key/PrimaryKeyIndexReader.h"
 #include "indexlib/partition/offline_partition.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil;

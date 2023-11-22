@@ -1,10 +1,16 @@
 #include "build_service/proto/ProtoUtil.h"
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/TaskIdentifier.h"
 #include "build_service/proto/WorkerNodeCreator.h"
 #include "build_service/proto/test/ProtoCreator.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;
@@ -78,6 +84,12 @@ TEST_F(ProtoUtilTest, testPartitionIdToRoleId)
         EXPECT_TRUE(ProtoUtil::partitionIdToRoleId(pid, roleId));
         EXPECT_EQ("app_name.data_table.1.processor.inc.0.65535.1", roleId);
     }
+}
+
+TEST_F(ProtoUtilTest, testGetGeneralTaskAppName)
+{
+    uint16_t to = 65535;
+    ASSERT_EQ("app#simple_0_65535", ProtoUtil::getGeneralTaskAppName("app", "simple", 0, to));
 }
 
 TEST_F(ProtoUtilTest, testTaskParitionIdRoleId)
@@ -335,6 +347,23 @@ TEST_F(ProtoUtilTest, testPartitionIdToCounterFileName)
     // ProtoUtil::partitionIdToRoleId(pid, roleName, false);
     ASSERT_TRUE(ProtoUtil::partitionIdToCounterFileName(pid, counterFileName, true));
     ASSERT_EQ("app.simple.1.builder.full.0.65535.mainse_searcher", counterFileName);
+}
+
+TEST_F(ProtoUtilTest, testParseBase64EncodedPbStr)
+{
+    std::string content =
+        "CpcBCAESC3JlY2xhaW1fbWFwGAEgAColMTEuMjMxLjIyMC4yMTFfNTc2MzJfMTY5NTY4ODA2MjgyNDE5OTIPY29tcGFjdGlvbl90eXBlMh"
+        "ZkZXBlbmRlbnRfb3BlcmF0aW9uX2lkMhBtZXJnZV9wbGFuX2luZGV4MhB1c2Vfb3BfZmVuY2VfZGlyOgVtZXJnZToBMDoBMDoBMRIKZnVs"
+        "bF9tZXJnZRoFbWVyZ2U=";
+    proto::OperationTarget target;
+
+    ASSERT_TRUE(ProtoUtil::parseBase64EncodedPbStr(content, &target));
+    ASSERT_EQ(target.ops_size(), 1);
+    std::string targetStr;
+    target.SerializeToString(&targetStr);
+    proto::OperationTarget target2;
+    ASSERT_TRUE(ProtoUtil::parseBase64EncodedPbStr(content, &target2));
+    ASSERT_EQ(target2.ops_size(), 1);
 }
 
 }} // namespace build_service::proto

@@ -1,6 +1,14 @@
 #include "build_service/config/BuildServiceConfig.h"
 
+#include <iosfwd>
+#include <map>
+#include <string>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/common_define.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

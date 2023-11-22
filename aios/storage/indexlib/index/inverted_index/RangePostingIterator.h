@@ -31,8 +31,8 @@ public:
 
     PostingIteratorType GetType() const override { return pi_range; }
     bool Init(const SegmentPostingsVec& segPostings);
-    docid_t SeekDoc(docid_t docid) override { return InnerSeekDoc(docid); }
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    docid64_t SeekDoc(docid64_t docid) override { return InnerSeekDoc(docid); }
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
 
     docpayload_t GetDocPayload() override { return 0; }
     pospayload_t GetPosPayload() { return 0; }
@@ -55,17 +55,17 @@ public:
         return totalSize;
     }
 
-    docid_t InnerSeekDoc(docid_t docid);
-    index::ErrorCode InnerSeekDoc(docid_t docid, docid_t& result);
+    docid64_t InnerSeekDoc(docid64_t docid);
+    index::ErrorCode InnerSeekDoc(docid64_t docid, docid64_t& result);
 
 private:
-    uint32_t LocateSegment(uint32_t startSegCursor, docid_t startDocId);
-    bool MoveToSegment(docid_t docid);
-    docid_t GetSegmentBaseDocId(uint32_t segmentCursor);
+    uint32_t LocateSegment(uint32_t startSegCursor, docid64_t startDocId);
+    bool MoveToSegment(docid64_t docid);
+    docid64_t GetSegmentBaseDocId(uint32_t segmentCursor);
 
 private:
     int32_t _segmentCursor;
-    docid_t _currentDocId;
+    docid64_t _currentDocId;
     uint32_t _seekDocCounter;
     PostingFormatOption _postingFormatOption;
     SegmentPostingsVec _segmentPostings;
@@ -76,22 +76,22 @@ private:
 
 ////////////////////////////////////////////////////////////////
 
-inline index::ErrorCode RangePostingIterator::SeekDocWithErrorCode(docid_t docId, docid_t& result)
+inline index::ErrorCode RangePostingIterator::SeekDocWithErrorCode(docid64_t docId, docid64_t& result)
 {
     return InnerSeekDoc(docId, result);
 }
 
-inline docid_t RangePostingIterator::InnerSeekDoc(docid_t docid)
+inline docid64_t RangePostingIterator::InnerSeekDoc(docid64_t docid)
 {
-    docid_t ret = INVALID_DOCID;
+    docid64_t ret = INVALID_DOCID;
     auto ec = InnerSeekDoc(docid, ret);
     index::ThrowIfError(ec);
     return ret;
 }
 
-__ALWAYS_INLINE inline index::ErrorCode RangePostingIterator::InnerSeekDoc(docid_t docid, docid_t& result)
+__ALWAYS_INLINE inline index::ErrorCode RangePostingIterator::InnerSeekDoc(docid64_t docid, docid64_t& result)
 {
-    docid_t curDocId = _currentDocId;
+    docid64_t curDocId = _currentDocId;
     docid = std::max(curDocId + 1, docid);
     while (true) {
         auto seekRet = _segmentPostingsIterator.Seek(docid);
@@ -114,7 +114,7 @@ __ALWAYS_INLINE inline index::ErrorCode RangePostingIterator::InnerSeekDoc(docid
     }
 }
 
-inline bool RangePostingIterator::MoveToSegment(docid_t docid)
+inline bool RangePostingIterator::MoveToSegment(docid64_t docid)
 {
     if (_segmentCursor >= (int32_t)_segmentPostings.size()) {
         return false;
@@ -130,10 +130,10 @@ inline bool RangePostingIterator::MoveToSegment(docid_t docid)
     return true;
 }
 
-inline uint32_t RangePostingIterator::LocateSegment(uint32_t startSegCursor, docid_t startDocId)
+inline uint32_t RangePostingIterator::LocateSegment(uint32_t startSegCursor, docid64_t startDocId)
 {
     uint32_t curSegCursor = startSegCursor;
-    docid_t nextSegBaseDocId = GetSegmentBaseDocId(curSegCursor + 1);
+    docid64_t nextSegBaseDocId = GetSegmentBaseDocId(curSegCursor + 1);
     while (nextSegBaseDocId != INVALID_DOCID && startDocId >= nextSegBaseDocId) {
         ++curSegCursor;
         nextSegBaseDocId = GetSegmentBaseDocId(curSegCursor + 1);
@@ -142,7 +142,7 @@ inline uint32_t RangePostingIterator::LocateSegment(uint32_t startSegCursor, doc
     return curSegCursor;
 }
 
-inline docid_t RangePostingIterator::GetSegmentBaseDocId(uint32_t segmentCursor)
+inline docid64_t RangePostingIterator::GetSegmentBaseDocId(uint32_t segmentCursor)
 {
     if (segmentCursor >= _segmentPostings.size()) {
         return INVALID_DOCID;

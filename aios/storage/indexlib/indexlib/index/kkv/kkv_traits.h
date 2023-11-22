@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KKV_TRAITS_H
-#define __INDEXLIB_KKV_TRAITS_H
+#pragma once
 
 #include <memory>
 
@@ -38,5 +37,3 @@ struct SuffixKeyTraits<SKeyType, false> {
     using SKeyNode = NormalOnDiskSKeyNode<SKeyType>;
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KKV_TRAITS_H

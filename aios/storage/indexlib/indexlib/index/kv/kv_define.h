@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_DEFINE_H
-#define __INDEXLIB_KV_DEFINE_H
+#pragma once
 
 #include <string>
 
@@ -161,5 +160,3 @@ inline bool IsVarLenHashTable(const config::KVIndexConfigPtr& kvConfig)
     return attrConfig->IsMultiValue() || fieldType == ft_string;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KV_DEFINE_H

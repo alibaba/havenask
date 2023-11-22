@@ -15,10 +15,21 @@
  */
 #include "build_service/common/CounterSynchronizerCreator.h"
 
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "build_service/common/CounterFileSynchronizer.h"
 #include "build_service/common/CounterRedisSynchronizer.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/RedisClient.h"
+#include "indexlib/util/ErrorLogCollector.h"
 
 using namespace std;
 using namespace autil;

@@ -15,6 +15,8 @@
  */
 #include "indexlib/plugin/plugin_factory_loader.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace plugin {

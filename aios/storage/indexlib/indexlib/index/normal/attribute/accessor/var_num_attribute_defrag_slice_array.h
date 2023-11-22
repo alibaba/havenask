@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_VAR_NUM_ATTRIBUTE_DEFRAG_SLICE_ARRAY_H
-#define __INDEXLIB_VAR_NUM_ATTRIBUTE_DEFRAG_SLICE_ARRAY_H
+#pragma once
 
 #include <memory>
 
@@ -75,5 +74,3 @@ inline void VarNumAttributeDefragSliceArray::MoveData(docid_t docId, uint64_t of
     mOffsetReader->SetOffset(docId, newOffset);
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_VAR_NUM_ATTRIBUTE_DEFRAG_SLICE_ARRAY_H

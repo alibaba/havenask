@@ -27,12 +27,11 @@ cc_library(
     include_prefix='build_service_tasks',
     strip_include_prefix='build_service_tasks',
     deps=[
-        '//aios/aios/common/beeper',
         '//aios/apps/facility/build_service:bs_basic',
         '//aios/apps/facility/build_service:bs_build_in_task_factory',
         '//aios/apps/facility/build_service:bs_config',
         '//aios/apps/facility/build_service:bs_task_base',
-        '//aios/apps/facility/build_service:bs_util',
+        '//aios/apps/facility/build_service:bs_util', '//aios/common/beeper',
         '//aios/filesystem/fslib:fslib-framework',
         '//aios/storage/indexlib/indexlib',
         '//aios/storage/indexlib/indexlib/partition:index_roll_back_util',
@@ -84,6 +83,14 @@ cc_library(
     include_prefix='build_service_tasks',
     strip_include_prefix='build_service_tasks',
     deps=[':bs_tasks_basic', ':bs_tasks_channel']
+)
+cc_library(
+    name='bs_tasks_reset_version',
+    srcs=glob(['build_service_tasks/reset_version_task/*.cpp']),
+    hdrs=glob(['build_service_tasks/reset_version_task/*.h']),
+    include_prefix='build_service_tasks',
+    strip_include_prefix='build_service_tasks',
+    deps=[':bs_tasks_basic']
 )
 cc_library(
     name='bs_tasks_sync_index',
@@ -159,6 +166,16 @@ cc_library(
     strip_include_prefix='build_service_tasks',
     deps=[':bs_tasks_basic']
 )
+filegroup(
+    name='run_task_script',
+    srcs=['build_service_tasks/script_task/run_task_script'],
+    visibility=['//visibility:public']
+)
+filegroup(
+    name='task_script_daemon',
+    srcs=['build_service_tasks/script_task/task_script_daemon'],
+    visibility=['//visibility:public']
+)
 genrule(
     name='cp_run_task_script',
     srcs=[':run_task_script'],
@@ -172,6 +189,25 @@ genrule(
     outs=['testdata/config_task_scripts/task_scripts/bin/task_script_daemon'],
     cmd='cp $(locations :task_script_daemon) $@',
     visibility=['//visibility:public']
+)
+cc_library(
+    name='bs_tasks_script_test_helper',
+    hdrs=['build_service_tasks/script_task/test/FakeScriptExecutor.h'],
+    include_prefix='build_service_tasks',
+    strip_include_prefix='build_service_tasks'
+)
+cc_test(
+    name='bs_tasks_script_test',
+    srcs=glob([
+        'build_service_tasks/script_task/test/FakeScriptExecutor.h',
+        'build_service_tasks/script_task/test/RunScriptTaskTest.cpp'
+    ]),
+    copts=['-fno-access-control'],
+    data=(TEST_COMMON_DATA + [':cp_run_task_script', ':cp_task_script_daemon']),
+    deps=[
+        ':bs_tasks_script_task', ':bs_tasks_script_test_helper',
+        ':bs_tasks_testbase', '//aios/filesystem/fslib:fslib-framework'
+    ]
 )
 cc_library(
     name='bs_tasks_testbase',
@@ -331,11 +367,11 @@ cc_library(
     include_prefix='build_service_tasks',
     strip_include_prefix='build_service_tasks',
     deps=[
-        ':bs_tasks_endbuild', ':bs_tasks_docreclaim', ':bs_tasks_io',
-        ':bs_tasks_prepare_data_source', ':bs_tasks_repartition',
-        ':bs_tasks_rollback', ':bs_tasks_batch_control',
-        ':bs_tasks_script_task', ':bs_tasks_extract_doc',
-        ':bs_tasks_clone_index', ':bs_tasks_sync_index'
+        ':bs_tasks_batch_control', ':bs_tasks_clone_index',
+        ':bs_tasks_docreclaim', ':bs_tasks_endbuild', ':bs_tasks_extract_doc',
+        ':bs_tasks_io', ':bs_tasks_prepare_data_source',
+        ':bs_tasks_repartition', ':bs_tasks_rollback', ':bs_tasks_script_task',
+        ':bs_tasks_reset_version', ':bs_tasks_sync_index'
     ]
 )
 cc_shared_library(
@@ -372,8 +408,8 @@ cc_shared_library(
         ':bs_tasks_prepare_data_source', ':bs_tasks_repartition',
         ':bs_tasks_rollback', ':bs_tasks_batch_control',
         ':bs_tasks_script_task', ':bs_tasks_extract_doc',
-        ':bs_tasks_clone_index', ':bs_tasks_sync_index',
-        ':bs_tasks_channel_cc_impl', 'bs_tasks_channel'
+        ':bs_tasks_clone_index', ':bs_tasks_reset_version',
+        ':bs_tasks_sync_index', ':bs_tasks_channel_cc_impl', 'bs_tasks_channel'
     ],
     visibility=['//visibility:public']
 )

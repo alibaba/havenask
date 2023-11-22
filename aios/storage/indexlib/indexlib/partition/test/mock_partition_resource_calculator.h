@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCK_PARTITION_RESOURCE_CALCULATOR_H
-#define __INDEXLIB_MOCK_PARTITION_RESOURCE_CALCULATOR_H
+#pragma once
 
 #include <memory>
 
@@ -31,5 +30,3 @@ public:
                 (const));
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MOCK_PARTITION_RESOURCE_CALCULATOR_H

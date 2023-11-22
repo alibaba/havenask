@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_ITERATOR_BASE_H
-#define __INDEXLIB_ATTRIBUTE_ITERATOR_BASE_H
+#pragma once
 
 #include <memory>
 
@@ -49,5 +48,3 @@ protected:
 
 typedef std::shared_ptr<AttributeIteratorBase> AttributeIteratorBasePtr;
 }} // namespace indexlib::index
-
-#endif //__INDEXENGINEATTRIBUTE_ITERATOR_BASE_H

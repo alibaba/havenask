@@ -19,8 +19,8 @@
 #include <memory>
 
 #include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/IFileSystem.h"
-#include "indexlib/file_system/LinkDirectory.h"
 #include "indexlib/file_system/RemoveOption.h"
 #include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/util/PathUtil.h"

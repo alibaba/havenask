@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BUILDSERVICETASK_H
-#define ISEARCH_BS_BUILDSERVICETASK_H
+#pragma once
+
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/legacy/jsonizable.h"
+#include "beeper/common/common_type.h"
 #include "build_service/admin/AdminTaskBase.h"
 #include "build_service/admin/controlflow/TaskBase.h"
 #include "build_service/admin/controlflow/TaskResourceManager.h"
@@ -25,12 +30,14 @@
 #include "build_service/admin/taskcontroller/SingleJobBuilderTask.h"
 #include "build_service/admin/taskcontroller/SingleMergerTask.h"
 #include "build_service/admin/taskcontroller/TaskMaintainer.h"
+#include "build_service/admin/taskcontroller/TaskOptimizer.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeperGuard.h"
 #include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/WorkerNode.h"
-#include "build_service/util/Log.h"
 
 namespace beeper {
-class EventTags;
 typedef std::shared_ptr<EventTags> EventTagsPtr;
 } // namespace beeper
 
@@ -47,6 +54,7 @@ public:
 public:
     BuildServiceTask(const std::string& id, const std::string& type, const TaskResourceManagerPtr& resMgr)
         : TaskBase(id, type, resMgr)
+        , _buildStep(proto::NO_BUILD_STEP)
         , _beeperTags(new beeper::EventTags)
         , _beeperReportTs(0)
         , _beeperReportInterval(300)
@@ -122,5 +130,3 @@ private:
 BS_TYPEDEF_PTR(BuildServiceTask);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_BUILDSERVICETASK_H

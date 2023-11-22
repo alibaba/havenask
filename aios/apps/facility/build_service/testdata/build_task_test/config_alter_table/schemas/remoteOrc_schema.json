@@ -1,0 +1,26 @@
+{
+    "attributes": [
+        "id",
+        "new_field"
+    ],
+    "fields": [
+        {
+            "field_type": "STRING",
+            "field_name": "id"
+        },
+        {
+            "field_type": "STRING",
+            "field_name": "new_field"
+        }
+    ],
+    "indexs": [
+        {
+            "index_fields": "id",
+            "index_type": "PRIMARYKEY64",
+            "index_name": "pk"
+        }
+    ],
+    "table_type": "orc",
+    "table_name": "remoteOrc",
+    "versionid": 1
+}

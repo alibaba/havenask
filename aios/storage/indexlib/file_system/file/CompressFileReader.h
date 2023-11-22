@@ -73,10 +73,10 @@ public:
     FSResult<size_t> Read(void* buffer, size_t length, size_t offset, ReadOption option) noexcept override;
     FSResult<size_t> Read(void* buffer, size_t length, ReadOption option) noexcept override;
     util::ByteSliceList* ReadToByteSliceList(size_t length, size_t offset, ReadOption option) noexcept override;
-    future_lite::Future<size_t> ReadAsync(void* buffer, size_t length, size_t offset,
-                                          ReadOption option) noexcept(false) override;
-    future_lite::Future<uint32_t> ReadUInt32Async(size_t offset, ReadOption option) noexcept(false) override;
-    future_lite::Future<uint32_t> ReadVUInt32Async(size_t offset, ReadOption option) noexcept(false) override;
+    future_lite::Future<FSResult<size_t>> ReadAsync(void* buffer, size_t length, size_t offset,
+                                                    ReadOption option) noexcept override;
+    future_lite::Future<FSResult<uint32_t>> ReadUInt32Async(size_t offset, ReadOption option) noexcept override;
+    future_lite::Future<FSResult<uint32_t>> ReadVUInt32Async(size_t offset, ReadOption option) noexcept override;
     future_lite::coro::Lazy<std::vector<FSResult<size_t>>> BatchReadOrdered(const BatchIO& batchIO,
                                                                             ReadOption option) noexcept override;
     void* GetBaseAddress() const noexcept override { return NULL; }

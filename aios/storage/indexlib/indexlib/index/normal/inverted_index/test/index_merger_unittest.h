@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INDEXMERGERTEST_H
-#define __INDEXLIB_INDEXMERGERTEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "autil/mem_pool/RecyclePool.h"
@@ -96,5 +95,3 @@ INDEXLIB_UNIT_TEST_CASE(IndexMergerTest, TestGetMaxLengthOfPostingWithDictInline
 INDEXLIB_UNIT_TEST_CASE(IndexMergerTest, TestMergeTermPoolReset);
 INDEXLIB_UNIT_TEST_CASE(IndexMergerTest, TestGetMergedDir);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_INDEXMERGERTEST_H

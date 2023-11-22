@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCK_REOPEN_DECIDER_H
-#define __INDEXLIB_MOCK_REOPEN_DECIDER_H
+#pragma once
 
 #include <memory>
 
@@ -23,5 +22,3 @@ public:
 
 DEFINE_SHARED_PTR(MockReopenDecider);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MOCK_REOPEN_DECIDER_H

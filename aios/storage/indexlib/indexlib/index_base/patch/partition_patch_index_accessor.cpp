@@ -43,7 +43,7 @@ void PartitionPatchIndexAccessor::Init(const DirectoryPtr& rootDir, const Versio
 {
     mRootDir = rootDir;
     mVersion = version;
-    if (version.GetSchemaVersionId() == DEFAULT_SCHEMAID || version.GetVersionId() == INVALID_VERSION) {
+    if (version.GetSchemaVersionId() == DEFAULT_SCHEMAID || version.GetVersionId() == INVALID_VERSIONID) {
         return;
     }
 
@@ -58,7 +58,7 @@ void PartitionPatchIndexAccessor::Init(const DirectoryPtr& rootDir, const Versio
 DirectoryPtr PartitionPatchIndexAccessor::GetAttributeDirectory(segmentid_t segmentId, const string& attrName,
                                                                 bool throwExceptionIfNotExist)
 {
-    schemavid_t schemaId = mPatchMeta.GetSchemaIdByAttributeName(segmentId, attrName);
+    schemaid_t schemaId = mPatchMeta.GetSchemaIdByAttributeName(segmentId, attrName);
     if (schemaId == DEFAULT_SCHEMAID) {
         return DirectoryPtr();
     }
@@ -78,7 +78,7 @@ DirectoryPtr PartitionPatchIndexAccessor::GetAttributeDirectory(segmentid_t segm
 DirectoryPtr PartitionPatchIndexAccessor::GetIndexDirectory(segmentid_t segmentId, const string& indexName,
                                                             bool throwExceptionIfNotExist)
 {
-    schemavid_t schemaId = mPatchMeta.GetSchemaIdByIndexName(segmentId, indexName);
+    schemaid_t schemaId = mPatchMeta.GetSchemaIdByIndexName(segmentId, indexName);
     if (schemaId == DEFAULT_SCHEMAID) {
         return DirectoryPtr();
     }
@@ -98,7 +98,7 @@ DirectoryPtr PartitionPatchIndexAccessor::GetIndexDirectory(segmentid_t segmentI
 DirectoryPtr PartitionPatchIndexAccessor::GetSectionAttributeDirectory(segmentid_t segmentId, const string& indexName,
                                                                        bool throwExceptionIfNotExist)
 {
-    schemavid_t schemaId = mPatchMeta.GetSchemaIdByIndexName(segmentId, indexName);
+    schemaid_t schemaId = mPatchMeta.GetSchemaIdByIndexName(segmentId, indexName);
     if (schemaId == DEFAULT_SCHEMAID) {
         return DirectoryPtr();
     }
@@ -116,7 +116,7 @@ DirectoryPtr PartitionPatchIndexAccessor::GetSectionAttributeDirectory(segmentid
     return mRootDir->GetDirectory(indexPath, throwExceptionIfNotExist);
 }
 
-string PartitionPatchIndexAccessor::GetPatchRootDirName(schemavid_t schemaId)
+string PartitionPatchIndexAccessor::GetPatchRootDirName(schemaid_t schemaId)
 {
     if (schemaId == DEFAULT_SCHEMAID) {
         INDEXLIB_FATAL_ERROR(BadParameter, "schema id [%u] not valid for patch index", schemaId);
@@ -124,7 +124,7 @@ string PartitionPatchIndexAccessor::GetPatchRootDirName(schemavid_t schemaId)
     return PATCH_INDEX_DIR_PREFIX + StringUtil::toString(schemaId);
 }
 
-bool PartitionPatchIndexAccessor::ExtractSchemaIdFromPatchRootDir(const string& rootDir, schemavid_t& schemaId)
+bool PartitionPatchIndexAccessor::ExtractSchemaIdFromPatchRootDir(const string& rootDir, schemaid_t& schemaId)
 {
     if (rootDir.find(PATCH_INDEX_DIR_PREFIX) != 0) {
         return false;
@@ -140,7 +140,7 @@ void PartitionPatchIndexAccessor::ListPatchRootDirs(const DirectoryPtr& rootDir,
     rootDir->ListDir("", fileList, false);
 
     for (size_t i = 0; i < fileList.size(); i++) {
-        schemavid_t schemaId;
+        schemaid_t schemaId;
         if (PartitionPatchIndexAccessor::ExtractSchemaIdFromPatchRootDir(fileList[i], schemaId)) {
             if (schemaId != DEFAULT_SCHEMAID) {
                 patchRootList.push_back(fileList[i]);

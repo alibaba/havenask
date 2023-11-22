@@ -39,11 +39,11 @@ public:
         return _invertedLeafMemReader->GetBitmapSegmentReader();
     }
 
-    bool Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId,
+    bool Lookup(uint64_t leftTerm, uint64_t rightTerm, docid64_t baseDocId,
                 const std::shared_ptr<SegmentPostings>& segPostings, autil::mem_pool::Pool* sessionPool,
                 InvertedIndexSearchTracer* tracer) const;
 
-    bool GetSegmentPosting(const index::DictKeyInfo& key, docid_t baseDocId, SegmentPosting& segPosting,
+    bool GetSegmentPosting(const index::DictKeyInfo& key, docid64_t baseDocId, SegmentPosting& segPosting,
                            autil::mem_pool::Pool* sessionPool, indexlib::file_system::ReadOption option,
                            InvertedIndexSearchTracer* tracer) const override;
 

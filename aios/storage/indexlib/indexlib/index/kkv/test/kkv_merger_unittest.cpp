@@ -1,9 +1,9 @@
 #include "indexlib/index/kkv/test/kkv_merger_unittest.h"
 
 #include "indexlib/common/file_system_factory.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/ColumnUtil.h"
 
 using namespace std;

@@ -4,11 +4,11 @@
 #include "indexlib/config/index_partition_options.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/kv_index_config.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/index/kv/hash_table_var_creator.h"
 #include "indexlib/index/kv/hash_table_var_writer.h"
 #include "indexlib/index/kv/kv_factory.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::common;

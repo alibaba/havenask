@@ -134,13 +134,13 @@ IndexPartition::OpenStatus CustomOfflinePartition::DoOpen(const string& root, co
     Version version;
     version.SyncSchemaVersionId(schema);
 
-    if (versionId != INVALID_VERSION) {
+    if (versionId != INVALID_VERSIONID) {
         IE_LOG(ERROR, "CustomOfflinePartition does not support open with specified version");
         return OS_FAIL;
     }
     // inc build
     VersionLoader::GetVersionS(root, version, versionId);
-    if (version.GetVersionId() != INVALID_VERSION) {
+    if (version.GetVersionId() != INVALID_VERSIONID) {
         THROW_IF_FS_ERROR(mFileSystem->MountVersion(root, version.GetVersionId(), "", FSMT_READ_ONLY, nullptr),
                           "mount version failed");
     } else {
@@ -358,7 +358,7 @@ bool CustomOfflinePartition::ValidateSchema(const IndexPartitionSchemaPtr& schem
 bool CustomOfflinePartition::InitPartitionData(const file_system::IFileSystemPtr& fileSystem, Version& version,
                                                const CounterMapPtr& counterMap, const PluginManagerPtr& pluginManager)
 {
-    if (version.GetVersionId() == INVALID_VERSION) {
+    if (version.GetVersionId() == INVALID_VERSIONID) {
         indexlibv2::framework::LevelInfo& levelInfo = version.GetLevelInfo();
         const BuildConfig& buildConfig = mOptions.GetBuildConfig();
         levelInfo.Init(buildConfig.levelTopology, buildConfig.levelNum, buildConfig.shardingColumnNum);

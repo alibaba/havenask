@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_BUILDING_KKV_SEGMENT_ITERATOR_H
-#define __INDEXLIB_BUILDING_KKV_SEGMENT_ITERATOR_H
+#pragma once
 
 #include <memory>
 
@@ -402,5 +401,3 @@ BuildingKKVSegmentIterator<SKeyType>::TEST_collectCodegenResult(codegen::Codegen
 
 IE_LOG_SETUP_TEMPLATE(index, BuildingKKVSegmentIterator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_BUILDING_KKV_SEGMENT_ITERATOR_H

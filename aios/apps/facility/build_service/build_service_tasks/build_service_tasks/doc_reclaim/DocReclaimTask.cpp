@@ -15,19 +15,48 @@
  */
 #include "build_service_tasks/doc_reclaim/DocReclaimTask.h"
 
+#include <algorithm>
+#include <assert.h>
 #include <beeper/beeper.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <unistd.h>
+#include <utility>
+#include <vector>
 
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/HashFuncFactory.h"
+#include "autil/HashFunctionBase.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
 #include "build_service/util/Monitor.h"
 #include "build_service/util/SwiftClientCreator.h"
 #include "build_service_tasks/doc_reclaim/IndexReclaimConfigMaker.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/util/Exception.h"
+#include "kmonitor/client/MetricType.h"
+#include "swift/client/SwiftClient.h"
+#include "swift/client/SwiftClientConfig.h"
+#include "swift/protocol/Common.pb.h"
+#include "swift/protocol/ErrCode.pb.h"
+#include "swift/protocol/SwiftMessage.pb.h"
 
 using namespace autil;
 using namespace build_service::util;
@@ -227,7 +256,10 @@ bool DocReclaimTask::generateReclaimConfigFromSwift(const string& reclaimSrcStr,
     return true;
 }
 
-SwiftClientCreator* DocReclaimTask::createSwiftClientCreator() { return new SwiftClientCreator(); }
+SwiftClientCreator* DocReclaimTask::createSwiftClientCreator()
+{
+    return new SwiftClientCreator(_metricProvider ? _metricProvider->GetReporter() : nullptr);
+}
 
 SwiftReader* DocReclaimTask::createSwiftReader(const DocReclaimSource& reclaimSource, int64_t stopTsInSecond)
 {

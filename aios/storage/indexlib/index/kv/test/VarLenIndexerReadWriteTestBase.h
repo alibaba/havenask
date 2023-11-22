@@ -1,3 +1,4 @@
+#pragma once
 #include "autil/TimeoutTerminator.h"
 #include "autil/mem_pool/Pool.h"
 #include "future_lite/CoroInterface.h"
@@ -210,7 +211,8 @@ protected:
         MakeSchema(fields, "key", "f1;f2");
 
         // 16 byte is for hash table header, 32 byte is for two hash bucket, 0.01 is keyValueSizeRatio.
-        std::unique_ptr<VarLenKVMemIndexer> indexerPtr = std::make_unique<VarLenKVMemIndexer>((16 + 32) * 100, 0.01);
+        std::unique_ptr<VarLenKVMemIndexer> indexerPtr =
+            std::make_unique<VarLenKVMemIndexer>(true, (16 + 32) * 100, 0.01);
         VarLenKVMemIndexer& indexer = *indexerPtr;
         ASSERT_TRUE(indexer.Init(_indexConfig, nullptr).IsOK());
 
@@ -259,11 +261,11 @@ protected:
             config::SortDescription sortDescription("f1", config::sp_desc);
             sortDescriptions.push_back(sortDescription);
             indexerPtr = std::make_unique<VarLenKVMemIndexer>(
-                DEFAULT_MEMORY_USE_IN_BYTES, VarLenKVMemIndexer::DEFAULT_KEY_VALUE_MEM_RATIO,
+                true, DEFAULT_MEMORY_USE_IN_BYTES, VarLenKVMemIndexer::DEFAULT_KEY_VALUE_MEM_RATIO,
                 VarLenKVMemIndexer::DEFAULT_VALUE_COMPRESSION_RATIO, sortDescriptions, memReclaimer.get());
         } else {
             indexerPtr = std::make_unique<VarLenKVMemIndexer>(
-                DEFAULT_MEMORY_USE_IN_BYTES, VarLenKVMemIndexer::DEFAULT_KEY_VALUE_MEM_RATIO,
+                true, DEFAULT_MEMORY_USE_IN_BYTES, VarLenKVMemIndexer::DEFAULT_KEY_VALUE_MEM_RATIO,
                 VarLenKVMemIndexer::DEFAULT_VALUE_COMPRESSION_RATIO, memReclaimer.get());
         }
         VarLenKVMemIndexer& indexer = *indexerPtr;

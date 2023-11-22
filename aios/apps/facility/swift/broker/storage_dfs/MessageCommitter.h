@@ -136,6 +136,7 @@ protected:
     int64_t _lastCommitTime;
     int64_t _fileMessageCount;
     int64_t _writedSizeForReport;
+    int64_t _committedSizeForReport;
     int64_t _maxMessageCountInOneFile;
 
     int32_t _writeFailDataCount;

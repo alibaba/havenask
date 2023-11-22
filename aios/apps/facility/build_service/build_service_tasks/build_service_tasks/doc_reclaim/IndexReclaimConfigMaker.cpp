@@ -15,7 +15,21 @@
  */
 #include "build_service_tasks/doc_reclaim/IndexReclaimConfigMaker.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <set>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
 #include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "beeper/beeper.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 
 using namespace std;

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_FACTORY_WRAPPER_H
-#define __INDEXLIB_TABLE_FACTORY_WRAPPER_H
+#pragma once
 
-#include <memory>
+#include <functional>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/util/KeyValueMap.h"
 
 DECLARE_REFERENCE_CLASS(table, TableWriter);
@@ -31,7 +30,6 @@ DECLARE_REFERENCE_CLASS(table, TableMerger);
 DECLARE_REFERENCE_CLASS(table, TableReader);
 DECLARE_REFERENCE_CLASS(table, ExecutorProvider);
 DECLARE_REFERENCE_CLASS(plugin, PluginManager);
-DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
 
 namespace indexlib { namespace table {
 
@@ -66,5 +64,3 @@ private:
 
 DEFINE_SHARED_PTR(TableFactoryWrapper);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_FACTORY_WRAPPER_H

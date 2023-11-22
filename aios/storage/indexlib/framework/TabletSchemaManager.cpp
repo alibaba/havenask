@@ -15,9 +15,17 @@
  */
 #include "indexlib/framework/TabletSchemaManager.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <utility>
+
+#include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/TabletSchema.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/WriterOption.h"
 #include "indexlib/framework/ITabletFactory.h"
 #include "indexlib/framework/TabletSchemaLoader.h"
 #include "indexlib/framework/Version.h"

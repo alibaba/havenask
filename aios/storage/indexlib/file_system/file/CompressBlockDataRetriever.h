@@ -44,7 +44,7 @@ public:
     CompressBlockDataRetriever& operator=(CompressBlockDataRetriever&&) = delete;
 
 protected:
-    void DecompressBlockData(size_t blockIdx) noexcept(false);
+    FSResult<void> DecompressBlockData(size_t blockIdx) noexcept;
 
 protected:
     CompressFileAddressMapper* _compressAddrMapper;

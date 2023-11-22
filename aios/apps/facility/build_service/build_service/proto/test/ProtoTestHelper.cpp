@@ -1,5 +1,7 @@
 #include "build_service/proto/test/ProtoTestHelper.h"
 
+#include <iosfwd>
+
 using namespace std;
 namespace build_service { namespace proto {
 BS_LOG_SETUP(proto, ProtoTestHelper);

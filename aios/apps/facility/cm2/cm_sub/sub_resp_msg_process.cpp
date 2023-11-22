@@ -36,18 +36,7 @@ int32_t SubRespMsgProcess::updateAllClusterInfo(SubRespMsg* resp_msg)
     int32_t size = resp_msg->update_info_vec_size();
     for (int32_t i = 0; i < size; ++i) {
         ClusterUpdateInfo update_info;
-#if 0
-        if (resp_msg->has_compress_type() && resp_msg->compress_type() == CT_ZLIB)
-        {
-            autil::ZlibCompressor zlib(autil::ZlibCompressor::BEST_COMPRESSION);
-            zlib.addDataToBufferIn(resp_msg->update_info_vec(i));
-            zlib.decompress();
-            update_info.ParseFromArray(zlib.getBufferOut(), zlib.getBufferOutLen());
-            AUTIL_LOG(DEBUG, "name:%s, zlib.in_len:%d, zlib.out_len:%d",
-                    update_info.cluster_name().c_str(), zlib.getBufferInLen(), zlib.getBufferOutLen());
-        }
-        else
-#endif
+
         if (resp_msg->has_compress_type() && resp_msg->compress_type() == CT_SNAPPY) {
             std::string compressed = resp_msg->update_info_vec(i);
             std::string output;
@@ -78,8 +67,9 @@ void SubRespMsgProcess::setTopoClusterManager(TopoClusterManager* topo_cluster_m
 
 void SubRespMsgProcess::setCMCentral(CMCentralSub* cm_central) { _cmCentral = cm_central; }
 
-int64_t SubRespMsgProcess::getClusterVersion(const char* cluster_name)
+int64_t SubRespMsgProcess::getClusterVersion(const std::string& cluster_name)
 {
+    autil::ScopedReadLock lock(_rwlock);
     MapClusterName2Version::iterator it = _mapClusterName2Version.find(cluster_name);
     if (it == _mapClusterName2Version.end()) {
         return -1;
@@ -87,12 +77,18 @@ int64_t SubRespMsgProcess::getClusterVersion(const char* cluster_name)
     return it->second;
 }
 
+void SubRespMsgProcess::setClusterVersion(const std::string& cluster_name, int64_t version)
+{
+    autil::ScopedWriteLock lock(_rwlock);
+    _mapClusterName2Version[cluster_name] = version;
+}
+
 int32_t SubRespMsgProcess::delCluster(ClusterUpdateInfo* msg)
 {
     // issue #22
     _topoClusterManager->markTopoDeleted(msg->cluster_name().c_str());
     // 删除集群，只是把集群的版本号设置为-1
-    _mapClusterName2Version[msg->cluster_name()] = -1;
+    setClusterVersion(msg->cluster_name(), -1);
     return 0;
 }
 
@@ -134,7 +130,7 @@ int32_t SubRespMsgProcess::reinitCluster(ClusterUpdateInfo* msg)
     if (old_ref != NULL && msg->mutable_cm_cluster()->topo_type() == CMCluster::TT_ONE_MAP_ONE &&
         isClusterEmpty(msg->mutable_cm_cluster())) {
         AUTIL_LOG(ERROR, "receive empty cluster message for %s", msg->cluster_name().c_str());
-        _mapClusterName2Version[msg->cluster_name()] = msg->cluster_version();
+        setClusterVersion(msg->cluster_name(), msg->cluster_version());
         return 0;
     }
 
@@ -157,10 +153,10 @@ int32_t SubRespMsgProcess::reinitCluster(ClusterUpdateInfo* msg)
         } else {
             // 更新集群版本号
             AUTIL_LOG(INFO, "_topoClusterManager->buildTopo(%s) success ..", msg->cluster_name().c_str());
-            _mapClusterName2Version[msg->cluster_name()] = msg->cluster_version();
+            setClusterVersion(msg->cluster_name(), msg->cluster_version());
         }
     } else {
-        _mapClusterName2Version[msg->cluster_name()] = msg->cluster_version();
+        setClusterVersion(msg->cluster_name(), msg->cluster_version());
     }
     return ret;
 }
@@ -203,21 +199,9 @@ int32_t SubRespMsgProcess::updateClusterStatus(ClusterUpdateInfo* msg)
         _topoClusterManager->setUpdateTime();
         break;
 
-    case ClusterUpdateInfo::MT_LB_INFO: // DEPRECATED
-        AUTIL_LOG(DEBUG, "msg->msg_type(%s), cluster_name = %s", enum_msg_type[msg->msg_type()],
-                  msg->cluster_name().c_str());
-        break;
-
-    case ClusterUpdateInfo::MT_NODE_STATUS_LB_INFO:
-        AUTIL_LOG(DEBUG, "msg->msg_type(%s), cluster_name = %s", enum_msg_type[msg->msg_type()],
-                  msg->cluster_name().c_str());
-        _topoClusterManager->updateTopoClusterStatus(msg, _cmCentral->getClusterStatus(msg->cluster_name()));
-        _cmCentral->updateClusterNodeStatus(msg->cluster_name().c_str(), msg->mutable_node_status_vec());
-        _topoClusterManager->setUpdateTime();
-        break;
     case ClusterUpdateInfo::MT_CLUSTER_FAILOVER:
         AUTIL_LOG(INFO, "cluster %s failover, reset local version", msg->cluster_name().c_str());
-        _mapClusterName2Version[msg->cluster_name()] = 0;
+        setClusterVersion(msg->cluster_name(), 0);
         break;
     case ClusterUpdateInfo::MT_CLUSTER_NOT_EXSIT:
     case ClusterUpdateInfo::MT_CLUSTER_BUILDING:

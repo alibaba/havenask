@@ -15,14 +15,35 @@
  */
 #include "indexlib/merger/merge_meta_creator.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/FileCompressSchema.h"
 #include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/merge_config.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "indexlib/framework/LevelInfo.h"
+#include "indexlib/framework/SegmentInfo.h"
+#include "indexlib/framework/SegmentMetrics.h"
+#include "indexlib/index/attribute/Constant.h"
 #include "indexlib/index/calculator/on_disk_segment_size_calculator.h"
+#include "indexlib/index/normal/attribute/accessor/offline_attribute_segment_reader_container.h"
+#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
+#include "indexlib/index/util/segment_directory_base.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
 #include "indexlib/index_base/index_meta/version.h"
+#include "indexlib/index_base/partition_data.h"
 #include "indexlib/index_base/segment/segment_data.h"
+#include "indexlib/index_define.h"
+#include "indexlib/indexlib.h"
 #include "indexlib/merger/segment_directory.h"
 #include "indexlib/merger/split_strategy/temperature_split_strategy.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace indexlib::index;

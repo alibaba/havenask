@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ATTRIBUTE_DATA_SEEKER_H
-#define __INDEXLIB_ATTRIBUTE_DATA_SEEKER_H
+#pragma once
 
 #include <memory>
 
@@ -165,5 +164,3 @@ private:
     AuxTableReaderTyped<T>* mAuxTableReader;
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ATTRIBUTE_DATA_SEEKER_H

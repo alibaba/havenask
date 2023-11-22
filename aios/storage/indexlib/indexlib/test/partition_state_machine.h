@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_PARTITION_STATE_MACHINE_H
-#define __INDEXLIB_PARTITION_STATE_MACHINE_H
+#pragma once
 
 #include <memory>
 #include <unordered_map>
@@ -208,5 +207,3 @@ private:
 
 DEFINE_SHARED_PTR(PartitionStateMachine);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_PARTITION_STATE_MACHINE_H

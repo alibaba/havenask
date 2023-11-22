@@ -1,3 +1,4 @@
+#pragma once
 #include "indexlib/index/inverted_index/PostingIterator.h"
 
 namespace indexlib::index {
@@ -5,7 +6,7 @@ namespace indexlib::index {
 class FakePostingIterator : public PostingIterator
 {
 public:
-    FakePostingIterator(const std::vector<docid_t>& docIdVect) : _docIdVec(docIdVect), _cursor(-1), _termMeta(NULL)
+    FakePostingIterator(const std::vector<docid32_t>& docIdVect) : _docIdVec(docIdVect), _cursor(-1), _termMeta(NULL)
     {
         _termMeta = new TermMeta;
         _termMeta->SetDocFreq(_docIdVec.size());
@@ -19,7 +20,7 @@ public:
 
     PostingIterator* Clone() const override { return new FakePostingIterator(_docIdVec); }
 
-    docid_t SeekDoc(docid_t docId) override
+    docid64_t SeekDoc(docid64_t docId) override
     {
         if (_cursor >= (int32_t)_docIdVec.size() - 1) {
             return INVALID_DOCID;
@@ -27,7 +28,7 @@ public:
         _cursor++;
         return _docIdVec[_cursor];
     }
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override
     {
         result = SeekDoc(docId);
         return index::ErrorCode::OK;
@@ -38,7 +39,7 @@ public:
     docpayload_t GetDocPayload() override { return _docPayload[_cursor]; }
 
 private:
-    std::vector<docid_t> _docIdVec;
+    std::vector<docid32_t> _docIdVec;
     int32_t _cursor;
     TermMeta* _termMeta;
     std::vector<docpayload_t> _docPayload;

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CREATEHASHTABLETEST_H
-#define __INDEXLIB_CREATEHASHTABLETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/kv/hash_table_fix_creator.h"
@@ -45,5 +44,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(CreateHashTableTest, TestHashTableFixSegmentReader);
 INDEXLIB_UNIT_TEST_CASE(CreateHashTableTest, TestKVSegmentOffsetReader);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_CREATEHASHTABLETEST_H

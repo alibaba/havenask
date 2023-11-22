@@ -15,7 +15,20 @@
  */
 #include "build_service/config/HashModeConfig.h"
 
+#include <assert.h>
+#include <cstddef>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/legacy_schema_adapter.h"
+#include "indexlib/config/region_schema.h"
+#include "indexlib/index/kv/Constant.h"
+#include "indexlib/index/kv/Types.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 using namespace autil;
@@ -112,7 +125,7 @@ bool HashModeConfig::init(const string& clusterName, ResourceReader* resourceRea
         }
 
     } else {
-        if (!insertHashNode(regionNameToHashMode, DEFAULT_REGIONNAME, hasDefaultHashMode, defaultHashMode)) {
+        if (!insertHashNode(regionNameToHashMode, indexlib::DEFAULT_REGIONNAME, hasDefaultHashMode, defaultHashMode)) {
             return false;
         }
     }

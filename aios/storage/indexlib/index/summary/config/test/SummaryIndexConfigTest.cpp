@@ -125,4 +125,59 @@ TEST_F(SummaryIndexConfigTest, testSimpleLoad)
     checkConfig(config2);
 }
 
+TEST_F(SummaryIndexConfigTest, testNeedStore)
+{
+    std::string jsonStr = R"(
+    {
+         "summary_fields": [ "nid", "title"],
+         "summary_groups" : [
+             {
+                "group_name" : "mainse",
+                "summary_fields" : ["quantity" ]
+             },
+             {
+                "group_name" : "inshop",
+                "summary_fields" : [ "user", "nick"]
+             }
+         ]
+    }
+    )";
+
+    auto any = ParseJson(jsonStr);
+    std::vector<std::pair<std::string, FieldType>> fields {
+        {"nid", ft_int32}, {"title", ft_string}, {"quantity", ft_int32}, {"user", ft_int8}, {"nick", ft_string}};
+    std::vector<std::shared_ptr<FieldConfig>> fieldConfigs;
+    fieldid_t fieldId = 0;
+    for (const auto& [name, type] : fields) {
+        auto config = std::make_shared<FieldConfig>(name, type, /*multiValue*/ false);
+        config->SetFieldId(fieldId++);
+        fieldConfigs.push_back(config);
+    }
+
+    SummaryIndexConfig config;
+    MutableJson runtimeSettings;
+    IndexConfigDeserializeResource resource(fieldConfigs, runtimeSettings);
+    config.Deserialize(any, 0, resource);
+    config.Check();
+    config.SetNeedStoreSummary(false);
+
+    for (fieldid_t fieldId = 0; fieldId < 5; ++fieldId) {
+        ASSERT_FALSE(config.NeedStoreSummary(fieldId));
+    }
+    ASSERT_FALSE(config.NeedStoreSummary());
+
+    config.SetNeedStoreSummary(0);
+    for (fieldid_t fieldId = 1; fieldId < 5; ++fieldId) {
+        ASSERT_FALSE(config.NeedStoreSummary(fieldId));
+    }
+    ASSERT_TRUE(config.NeedStoreSummary(0));
+    ASSERT_TRUE(config.NeedStoreSummary());
+
+    config.SetNeedStoreSummary(false);
+    for (fieldid_t fieldId = 0; fieldId < 5; ++fieldId) {
+        ASSERT_FALSE(config.NeedStoreSummary(fieldId));
+    }
+    ASSERT_FALSE(config.NeedStoreSummary());
+}
+
 } // namespace indexlibv2::config

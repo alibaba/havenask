@@ -28,16 +28,16 @@ class InMemDocListDecoder : public BufferedSegmentIndexDecoder
 {
 public:
     struct DocBufferInfo {
-        DocBufferInfo(docid_t*& _docBuffer, docid_t& _firstDocId, docid_t& _lastDocId, ttf_t& _currentTTF)
+        DocBufferInfo(docid32_t*& _docBuffer, docid32_t& _firstDocId, docid32_t& _lastDocId, ttf_t& _currentTTF)
             : docBuffer(_docBuffer)
             , firstDocId(_firstDocId)
             , lastDocId(_lastDocId)
             , currentTTF(_currentTTF)
         {
         }
-        docid_t*& docBuffer;
-        docid_t& firstDocId;
-        docid_t& lastDocId;
+        docid32_t*& docBuffer;
+        docid32_t& firstDocId;
+        docid32_t& lastDocId;
         ttf_t& currentTTF;
     };
 
@@ -47,10 +47,10 @@ public:
     // skipListReader and docListBuffer must be allocated by the same pool
     void Init(df_t df, SkipListReader* skipListReader, BufferedByteSlice* docListBuffer);
 
-    bool DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
+    bool DecodeDocBuffer(docid32_t startDocId, docid32_t* docBuffer, docid32_t& firstDocId, docid32_t& lastDocId,
                          ttf_t& currentTTF) override;
-    bool DecodeDocBufferMayCopy(docid_t startDocId, docid_t*& docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                ttf_t& currentTTF) override
+    bool DecodeDocBufferMayCopy(docid32_t startDocId, docid32_t*& docBuffer, docid32_t& firstDocId,
+                                docid32_t& lastDocId, ttf_t& currentTTF) override
     {
         return DecodeDocBuffer(startDocId, docBuffer, firstDocId, lastDocId, currentTTF);
     }
@@ -59,7 +59,7 @@ public:
     void DecodeCurrentFieldMapBuffer(fieldmap_t* fieldBitmapBuffer) override;
 
 private:
-    bool DecodeDocBufferWithoutSkipList(docid_t lastDocIdInPrevRecord, uint32_t offset, docid_t startDocId,
+    bool DecodeDocBufferWithoutSkipList(docid32_t lastDocIdInPrevRecord, uint32_t offset, docid32_t startDocId,
                                         DocBufferInfo& docBufferInfo);
 
     autil::mem_pool::Pool* _sessionPool;

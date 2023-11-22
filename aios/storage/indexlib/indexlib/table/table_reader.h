@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_READER_H
-#define __INDEXLIB_TABLE_READER_H
+#pragma once
 
-#include <memory>
+#include <cstdint>
+#include <stddef.h>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "indexlib/common_define.h"
+#include "future_lite/Executor.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/table/building_segment_reader.h"
 #include "indexlib/table/segment_meta.h"
-#include "indexlib/table/table_resource.h"
 #include "indexlib/util/metrics/MetricProvider.h"
-
-namespace future_lite {
-class Executor;
-}
 
 namespace indexlib { namespace table {
 
@@ -101,7 +102,7 @@ public:
                                      const BuildingSegmentReaderPtr& buildingSegmentReader,
                                      int64_t incVersionTimestamp) const = 0;
 
-    interfaceid_t GetInterfaceId() const { return mInterfaceId; }
+    // interfaceid_t GetInterfaceId() const { return mInterfaceId; }
     void SetSegmentDependency(const std::vector<BuildingSegmentReaderPtr>& inMemSegments);
     virtual void SetForceSeekInfo(const std::pair<int64_t, int64_t>& forceSeekInfo) { mForceSeekInfo = forceSeekInfo; }
 
@@ -130,12 +131,12 @@ public:
     }
 
 protected:
-    virtual void InitInterfaceId() { mInterfaceId = DEFAULT_INTERFACE_ID; }
+    // virtual void InitInterfaceId() { mInterfaceId = DEFAULT_INTERFACE_ID; }
 
 protected:
     config::IndexPartitionSchemaPtr mSchema;
     config::IndexPartitionOptions mOptions;
-    interfaceid_t mInterfaceId;
+    // interfaceid_t mInterfaceId;
     std::pair<int64_t, int64_t> mForceSeekInfo;
     future_lite::Executor* mExecutor;
     util::MetricProviderPtr mMetricProvider;
@@ -149,5 +150,3 @@ private:
 
 DEFINE_SHARED_PTR(TableReader);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_READER_H

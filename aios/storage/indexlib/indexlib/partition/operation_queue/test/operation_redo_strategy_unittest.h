@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OPERATIONREDOSTRATEGYTEST_H
-#define __INDEXLIB_OPERATIONREDOSTRATEGYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/operation_queue/reopen_operation_redo_strategy.h"
@@ -34,5 +33,3 @@ INDEXLIB_UNIT_TEST_CASE(OperationRedoStrategyTest, TestNeedRedo);
 INDEXLIB_UNIT_TEST_CASE(OperationRedoStrategyTest, TestNeedRedoSpecialCondition);
 INDEXLIB_UNIT_TEST_CASE(OperationRedoStrategyTest, TestInit);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPERATIONREDOSTRATEGYTEST_H

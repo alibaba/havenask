@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ONLINEPARTITIONTEST_H
-#define __INDEXLIB_ONLINEPARTITIONTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/online_partition.h"
@@ -134,5 +133,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OnlinePartitionTest, TestOnlinePartitionDirec
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(OnlinePartitionTest, TestCounterInfo);
 
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_ONLINEPARTITIONTEST_H

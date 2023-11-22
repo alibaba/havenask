@@ -15,50 +15,91 @@
  */
 #include "indexlib/merger/index_partition_merger.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <type_traits>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "beeper/beeper.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/File.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/common/chunk/chunk_decoder_creator.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/build_config.h"
+#include "indexlib/config/configurator_define.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/config/merge_io_config.h"
+#include "indexlib/config/module_class_config.h"
 #include "indexlib/config/truncate_index_name_mapper.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/FileBlockCacheContainer.h"
-#include "indexlib/file_system/FileSystemCreator.h"
+#include "indexlib/file_system/FileSystemDefine.h"
+#include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/MergeDirsOption.h"
+#include "indexlib/file_system/MountOption.h"
+#include "indexlib/file_system/RemoveOption.h"
+#include "indexlib/file_system/WriterOption.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/file_system/load_config/CacheLoadStrategy.h"
-#include "indexlib/file_system/package/DirectoryMerger.h"
+#include "indexlib/file_system/load_config/LoadStrategy.h"
 #include "indexlib/file_system/package/PackageFileTagConfigList.h"
-#include "indexlib/index/calculator/on_disk_segment_size_calculator.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/common/Constant.h"
 #include "indexlib/index/kkv/kkv_define.h"
 #include "indexlib/index/merger_util/reclaim_map/reclaim_map_creator.h"
-#include "indexlib/index/merger_util/truncate/truncate_index_writer_creator.h"
 #include "indexlib/index/normal/attribute/accessor/offline_attribute_segment_reader_container.h"
-#include "indexlib/index/normal/inverted_index/accessor/index_merger_factory.h"
-#include "indexlib/index/normal/summary/local_disk_summary_merger.h"
+#include "indexlib/index/normal/deletionmap/deletion_map_reader.h"
 #include "indexlib/index/segment_metrics_updater/multi_segment_metrics_updater.h"
+#include "indexlib/index/util/segment_directory_base.h"
 #include "indexlib/index_base/branch_fs.h"
+#include "indexlib/index_base/deploy_index_wrapper.h"
+#include "indexlib/index_base/index_meta/merge_task_resource.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_temperature_meta.h"
+#include "indexlib/index_base/index_meta/segment_topology_info.h"
+#include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/index_base/offline_recover_strategy.h"
 #include "indexlib/index_base/segment/segment_writer.h"
 #include "indexlib/index_base/version_committer.h"
 #include "indexlib/index_define.h"
 #include "indexlib/merger/document_reclaimer/document_reclaimer.h"
+#include "indexlib/merger/merge_file_system.h"
+#include "indexlib/merger/merge_meta_creator.h"
 #include "indexlib/merger/merge_meta_creator_factory.h"
 #include "indexlib/merger/merge_meta_work_item.h"
+#include "indexlib/merger/merge_strategy/merge_strategy.h"
 #include "indexlib/merger/merge_strategy/merge_strategy_factory.h"
-#include "indexlib/merger/merge_strategy/optimize_merge_strategy.h"
-#include "indexlib/merger/merge_task_item_dispatcher.h"
+#include "indexlib/merger/merge_task_item.h"
+#include "indexlib/merger/merge_work_item.h"
 #include "indexlib/merger/merge_work_item_creator.h"
-#include "indexlib/merger/merge_work_item_typed.h"
 #include "indexlib/merger/merger_branch_hinter.h"
+#include "indexlib/merger/multi_part_segment_directory.h"
 #include "indexlib/merger/multi_threaded_merge_scheduler.h"
 #include "indexlib/merger/parallel_end_merge_executor.h"
 #include "indexlib/merger/segment_metric_update_work_item.h"
 #include "indexlib/merger/split_strategy/split_segment_strategy_factory.h"
 #include "indexlib/plugin/plugin_factory_loader.h"
 #include "indexlib/plugin/plugin_manager.h"
+#include "indexlib/util/ErrorLogCollector.h"
 #include "indexlib/util/Exception.h"
-#include "indexlib/util/NumericUtil.h"
 #include "indexlib/util/PathUtil.h"
+#include "indexlib/util/cache/CacheResourceInfo.h"
 #include "indexlib/util/counter/CounterMap.h"
+#include "indexlib/util/counter/StateCounter.h"
 #include "indexlib/util/memory_control/MemoryQuotaControllerCreator.h"
 #include "indexlib/util/resource_control_thread_pool.h"
+#include "indexlib/util/resource_control_work_item.h"
 
 using namespace std;
 using namespace autil;
@@ -480,13 +521,13 @@ void IndexPartitionMerger::EndMerge(const MergeMetaPtr& mergeMeta, versionid_t a
     const vector<MergePlan>& mergePlans = indexMergeMeta->GetMergePlans();
     const Version& targetVersion = indexMergeMeta->GetTargetVersion();
 
-    if (targetVersion == index_base::Version(INVALID_VERSION)) {
+    if (targetVersion == index_base::Version(INVALID_VERSIONID)) {
         const auto rootDir = mDumpStrategy->GetRootDirectory();
         AlignVersion(rootDir, alignVersionId);
         rootDir->Close();
         return;
     }
-    assert(targetVersion.GetVersionId() != INVALID_VERSION);
+    assert(targetVersion.GetVersionId() != INVALID_VERSIONID);
     Version alignVersion = targetVersion;
     alignVersion.SetVersionId(GetTargetVersionId(targetVersion, alignVersionId));
     alignVersion.SyncSchemaVersionId(mSchema);
@@ -641,12 +682,36 @@ void IndexPartitionMerger::MergeSegmentDir(const file_system::DirectoryPtr& root
                     // skip dir within package
                     continue;
                 }
-                FileList subFileList;
-                segmentDirectory->ListDir(fileName, subFileList, false);
                 if (!rootDirectory->IsExist(PathUtil::JoinPath(segmentPath, fileName))) {
                     rootDirectory->MakeDirectory(PathUtil::JoinPath(segmentPath, fileName))->Close();
                 }
+                FileList subFileList;
+                segmentDirectory->ListDir(fileName, subFileList, false);
+                // subDir: segment_x_level_x/index/
+                auto subDir = segmentDirectory->GetDirectory(fileName, true);
                 for (const auto& subFileName : subFileList) {
+                    if (subDir->IsDir(subFileName)) {
+                        // subDir/subFileName: segment_x_level_x/index/index1
+                        FileList subChildFileList;
+                        subDir->ListDir(subFileName, subChildFileList, false);
+                        if (!rootDirectory->IsExist(PathUtil::JoinPath(segmentPath, fileName, subFileName))) {
+                            rootDirectory->MakeDirectory(PathUtil::JoinPath(segmentPath, fileName, subFileName))
+                                ->Close();
+                        }
+                        for (const auto& subChildFileName : subChildFileList) {
+                            // subDir/subFileName/subChildFileName : segment_x_level_x/index/index1/inst_x_x
+                            // 这一目录级别保证是原子的，即当前目录级别下的文件一定保证物理路径=逻辑路径,所以可以直接移动。
+                            string physicalPath =
+                                subDir->GetPhysicalPath(PathUtil::JoinPath(subFileName, subChildFileName));
+                            THROW_IF_FS_ERROR(
+                                rootDirectory->GetFileSystem()->MergeDirs(
+                                    {physicalPath},
+                                    PathUtil::JoinPath(segmentPath, fileName, subFileName, subChildFileName),
+                                    MergeDirsOption::NoMergePackageWithFence(fenceContext.get())),
+                                "merge dirs failed");
+                        }
+                        continue;
+                    }
                     string physicalPath = segmentDirectory->GetPhysicalPath(PathUtil::JoinPath(fileName, subFileName));
                     THROW_IF_FS_ERROR(rootDirectory->GetFileSystem()->MergeDirs(
                                           {physicalPath}, PathUtil::JoinPath(segmentPath, fileName, subFileName),
@@ -864,9 +929,9 @@ std::string IndexPartitionMerger::GetMergeCheckpointDir() const
 versionid_t IndexPartitionMerger::GetTargetVersionId(const Version& version, versionid_t alignVersionId)
 {
     versionid_t lastVersionId = version.GetVersionId();
-    if (alignVersionId == INVALID_VERSION) {
+    if (alignVersionId == INVALID_VERSIONID) {
         // when full index no data, create empty version
-        return lastVersionId == INVALID_VERSION ? 0 : lastVersionId;
+        return lastVersionId == INVALID_VERSIONID ? 0 : lastVersionId;
     }
 
     if (lastVersionId > alignVersionId) {
@@ -886,13 +951,13 @@ versionid_t IndexPartitionMerger::GetTargetVersionId(const Version& version, ver
 void IndexPartitionMerger::AlignVersion(const file_system::DirectoryPtr& rootDirectory, versionid_t alignVersionId)
 {
     Version latestVersion;
-    VersionLoader::GetVersion(rootDirectory, latestVersion, INVALID_VERSION);
+    VersionLoader::GetVersion(rootDirectory, latestVersion, INVALID_VERSIONID);
     versionid_t targetVersionId = GetTargetVersionId(latestVersion, alignVersionId);
     auto res = rootDirectory->GetFileSystem()->GetPhysicalPath(latestVersion.GetVersionFileName());
     string lastVersionPath = res.OK() ? res.result : "";
 
     if (latestVersion.GetVersionId() != targetVersionId || BranchFS::IsBranchPath(lastVersionPath)) {
-        if (latestVersion.GetVersionId() == INVALID_VERSION) {
+        if (latestVersion.GetVersionId() == INVALID_VERSIONID) {
             // init empty version level info
             indexlibv2::framework::LevelInfo& levelInfo = latestVersion.GetLevelInfo();
             const BuildConfig& buildConfig = mOptions.GetBuildConfig();
@@ -954,7 +1019,7 @@ bool IndexPartitionMerger::IsTargetVersionValid(versionid_t versionId)
     } catch (...) {
         return false;
     }
-    if (version.GetVersionId() == INVALID_VERSION) {
+    if (version.GetVersionId() == INVALID_VERSIONID) {
         return false;
     }
     return true;

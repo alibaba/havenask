@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_COMMON_H
-#define __INDEXLIB_TABLE_COMMON_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <string>
 
 #include "autil/legacy/jsonizable.h"
-#include "fslib/fslib.h"
-#include "indexlib/common_define.h"
+#include "fslib/common/common_type.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/file_system/Directory.h"
 #include "indexlib/framework/SegmentStatistics.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/misc/common.h"
 #include "indexlib/util/memory_control/SimpleMemoryQuotaController.h"
 
 DECLARE_REFERENCE_CLASS(index_base, SegmentDataBase);
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 DECLARE_REFERENCE_CLASS(table, TableResource);
 
 namespace indexlib { namespace table {
@@ -84,5 +82,3 @@ public:
 };
 DEFINE_SHARED_PTR(MergeSegmentDescription);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_TABLE_COMMON_H

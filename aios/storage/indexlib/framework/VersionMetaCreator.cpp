@@ -15,8 +15,19 @@
  */
 #include "indexlib/framework/VersionMetaCreator.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <optional>
+#include <vector>
+
+#include "indexlib/base/Types.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/file_system/IFileSystem.h"
+#include "indexlib/file_system/ReaderOption.h"
 #include "indexlib/framework/DeployIndexUtil.h"
+#include "indexlib/framework/Segment.h"
+#include "indexlib/framework/SegmentInfo.h"
 #include "indexlib/framework/TabletData.h"
 
 namespace indexlibv2::framework {

@@ -15,8 +15,15 @@
  */
 #include "build_service/admin/controlflow/LuaLoggerWrapper.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <stdio.h>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
 #include "build_service/admin/controlflow/ControlDefine.h"
+#include "build_service/admin/controlflow/Eluna.h"
 
 using namespace std;
 using namespace autil;

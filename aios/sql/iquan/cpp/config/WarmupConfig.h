@@ -52,7 +52,7 @@ public:
     int64_t warmupQueryNum;
     std::string warmupFilePath;
     std::string warmupLogName;
-    std::vector<std::string> warmupFilePathList;
+    mutable std::vector<std::string> warmupFilePathList;
 };
 
 } // namespace iquan

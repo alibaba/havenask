@@ -187,16 +187,12 @@ void FslibFileWrapper::FlushE() noexcept(false)
     THROW_IF_FS_ERROR(ec, "Flush file[%s] FAILED", _file->getFileName());
 }
 
-future_lite::Future<size_t> FslibFileWrapper::PReadAsync(void* buffer, size_t length, off_t offset, int advice,
-                                                         future_lite::Executor* executor) noexcept
+future_lite::Future<FSResult<size_t>> FslibFileWrapper::PReadAsync(void* buffer, size_t length, off_t offset,
+                                                                   int advice, future_lite::Executor* executor) noexcept
 {
     size_t realLength = 0;
     auto ec = PRead(buffer, length, offset, realLength);
-    if (ec != FSEC_OK) {
-        return future_lite::makeReadyFuture<size_t>(
-            std::make_exception_ptr(util::FileIOException("PRead failed, ec[" + std::to_string(ec) + "]")));
-    }
-    return future_lite::makeReadyFuture<size_t>(realLength);
+    return future_lite::makeReadyFuture<FSResult<size_t>>({ec, realLength});
 }
 
 future_lite::coro::Lazy<FSResult<size_t>> FslibFileWrapper::PReadVAsync(const iovec* iov, int iovcnt, off_t offset,
@@ -216,15 +212,12 @@ future_lite::coro::Lazy<FSResult<size_t>> FslibFileWrapper::PReadAsync(void* buf
     co_return co_await PReadVAsync(&iov, 1, offset, advice, timeout);
 }
 
-future_lite::Future<size_t> FslibFileWrapper::PReadVAsync(const iovec* iov, int iovcnt, off_t offset, int advice,
-                                                          future_lite::Executor* executor, int64_t timeout) noexcept
+future_lite::Future<FSResult<size_t>> FslibFileWrapper::PReadVAsync(const iovec* iov, int iovcnt, off_t offset,
+                                                                    int advice, future_lite::Executor* executor,
+                                                                    int64_t timeout) noexcept
 {
     size_t realLength = 0;
     auto ec = PReadV(iov, iovcnt, offset, realLength);
-    if (ec != FSEC_OK) {
-        return future_lite::makeReadyFuture<size_t>(
-            std::make_exception_ptr(util::FileIOException("PReadV failed, ec[" + std::to_string(ec) + "]")));
-    }
-    return future_lite::makeReadyFuture<size_t>(realLength);
+    return future_lite::makeReadyFuture<FSResult<size_t>>({ec, realLength});
 }
 }} // namespace indexlib::file_system

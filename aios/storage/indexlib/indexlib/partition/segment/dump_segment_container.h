@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_DUMP_SEGMENT_CONTAINER_H
-#define __INDEXLIB_DUMP_SEGMENT_CONTAINER_H
+#pragma once
 
 #include <memory>
 
@@ -69,5 +68,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_DUMP_SEGMENT_CONTAINER_H

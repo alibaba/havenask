@@ -15,6 +15,20 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorTaskWrapper.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/admin/taskcontroller/ProcessorParamParser.h"
+#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "indexlib/misc/common.h"
+
 using namespace std;
 using namespace autil;
 using namespace build_service::proto;

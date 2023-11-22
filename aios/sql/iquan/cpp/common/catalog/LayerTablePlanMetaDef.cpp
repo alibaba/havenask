@@ -27,7 +27,9 @@ const static std::unordered_map<std::string, CompareOp> STRING2OP {
     {"EQUALS", CompareOp::EQUALS}};
 
 LayerTablePlanMeta::LayerTablePlanMeta(const LayerTablePlanMetaDef &metaDef)
-    : layerTableName(metaDef.layerTableName)
+    : catalogName(metaDef.catalogName)
+    , dbName(metaDef.dbName)
+    , layerTableName(metaDef.layerTableName)
     , fieldName(metaDef.fieldName)
     , dynamicParamsIndex(metaDef.dynamicParamsIndex)
     , isRev(metaDef.isRev)

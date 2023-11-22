@@ -220,8 +220,8 @@ public:
         metaInfo->pushBack(termMetaInfo);
     }
 
-    virtual matchvalue_t getMatchValue() {
-        return matchvalue_t();
+    virtual indexlib::matchvalue_t getMatchValue() {
+        return indexlib::matchvalue_t();
     }
 
 protected:

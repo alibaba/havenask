@@ -73,9 +73,9 @@ TermPostingInfo RangePostingIterator::GetTermPostingInfo() const
             file_system::ByteSliceReader reader;
             util::ByteSlice* singleSlice = postings[i].GetSingleSlice();
             if (singleSlice) {
-                reader.Open(singleSlice);
+                reader.Open(singleSlice).GetOrThrow();
             } else {
-                reader.Open(postings[i].GetSliceListPtr().get());
+                reader.Open(postings[i].GetSliceListPtr().get()).GetOrThrow();
             }
 
             TermMetaLoader tmLoader(formatOption);

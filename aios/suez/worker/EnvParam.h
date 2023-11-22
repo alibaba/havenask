@@ -71,6 +71,7 @@ public:
     std::string kmonitorServiceName;
     std::string kmonitorSinkAddress;
     bool kmonitorEnableLogFileSink;
+    bool kmonitorManuallyMode;
     std::string kmonitorTenant;
     std::string kmonitorMetricsPrefix;
     std::string kmonitorGlobalTableMetricsPrefix;

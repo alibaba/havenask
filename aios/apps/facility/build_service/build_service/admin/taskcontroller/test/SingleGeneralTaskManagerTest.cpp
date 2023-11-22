@@ -1,11 +1,26 @@
 #include "build_service/admin/taskcontroller/SingleGeneralTaskManager.h"
 
-#include "autil/StringUtil.h"
-#include "build_service/config/CLIOptionNames.h"
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <stddef.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "build_service/admin/controlflow/TaskResourceManager.h"
+#include "build_service/admin/taskcontroller/TaskController.h"
+#include "build_service/common_define.h"
+#include "build_service/config/AgentGroupConfig.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ConfigReaderAccessor.h"
-#include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/ProtoUtil.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace build_service::config;
 
@@ -52,7 +67,8 @@ proto::OperationTarget SingleGeneralTaskManagerTest::getOpTarget(const config::T
     if (!target.getTargetDescription(BS_GENERAL_TASK_OPERATION_TARGET, content)) {
         return opTarget;
     }
-    EXPECT_TRUE(opTarget.ParseFromString(content));
+
+    EXPECT_TRUE(proto::ProtoUtil::parseBase64EncodedPbStr(content, &opTarget));
     return opTarget;
 }
 
@@ -476,6 +492,119 @@ TEST_F(SingleGeneralTaskManagerTest, testSetTaskNameAndTaskType)
     ASSERT_EQ("test", recoveredManager.getId());
     ASSERT_EQ("task_name_111", recoveredManager._taskName);
     ASSERT_EQ("task_type_222", recoveredManager._taskType);
+}
+
+TEST_F(SingleGeneralTaskManagerTest, testActivateAndDeactivateNode)
+{
+    auto resourceManager = std::make_shared<TaskResourceManager>();
+    SingleGeneralTaskManager manager(/*name*/ "test", resourceManager);
+    KeyValueMap param;
+    param["task_work_root"] = GET_TEMP_DATA_PATH() + "task";
+    param["base_version_id"] = "0";
+    param["cluster_name"] = "simple";
+
+    proto::OperationPlan plan;
+    auto op0 = plan.add_ops();
+    op0->set_id(0);
+    op0->set_type("testtype");
+    op0->set_memory(1);
+
+    auto op1 = plan.add_ops();
+    op1->set_id(1);
+    op1->set_type("testtype");
+    op1->set_memory(1);
+
+    auto op2 = plan.add_ops();
+    op2->set_id(2);
+    op2->set_type("testtype");
+    op2->add_depends(0);
+    op2->set_memory(1);
+
+    auto op3 = plan.add_ops();
+    op3->set_id(3);
+    op3->set_type("testtype");
+    op3->add_depends(1);
+    op3->set_memory(1);
+
+    auto op4 = plan.add_ops();
+    op4->set_id(4);
+    op4->set_type("testtype");
+    op4->add_depends(0);
+    op4->set_memory(1);
+
+    auto op5 = plan.add_ops();
+    op5->set_id(5);
+    op5->set_type("testtype");
+    op5->add_depends(1);
+    op5->set_memory(1);
+
+    ASSERT_TRUE(manager.init(param, &plan));
+    ASSERT_EQ("test", manager.getId());
+
+    TaskController::Nodes nodes;
+    ASSERT_FALSE(manager.operate(&nodes, /*parallelNum*/ 4, 1));
+    ASSERT_EQ(SingleGeneralTaskManager::State::RUNNING, manager._currentState);
+    ASSERT_EQ(4u, nodes.size());
+    ASSERT_EQ(0, nodes[0].nodeId);
+    ASSERT_EQ(1, nodes[1].nodeId);
+    ASSERT_EQ(2, nodes[2].nodeId);
+    ASSERT_EQ(3, nodes[3].nodeId);
+
+    // is not supposed to be suspended
+    ASSERT_FALSE(nodes[0].isSuspended);
+    ASSERT_FALSE(nodes[1].isSuspended);
+    ASSERT_FALSE(nodes[2].isSuspended);
+    ASSERT_FALSE(nodes[3].isSuspended);
+
+    auto opTarget = getOpTarget(nodes[0].taskTarget);
+    ASSERT_EQ(0u, opTarget.ops_size());
+    opTarget = getOpTarget(nodes[1].taskTarget);
+    ASSERT_EQ(0u, opTarget.ops_size());
+    opTarget = getOpTarget(nodes[2].taskTarget);
+    ASSERT_EQ(0u, opTarget.ops_size());
+    opTarget = getOpTarget(nodes[3].taskTarget);
+    ASSERT_EQ(0u, opTarget.ops_size());
+
+    finishNodeOps(/*workerEpoch*/ "12", {}, &nodes[0]);
+    finishNodeOps(/*workerEpoch*/ "34", {}, &nodes[1]);
+    finishNodeOps(/*workerEpoch*/ "56", {}, &nodes[2]);
+    finishNodeOps(/*workerEpoch*/ "78", {}, &nodes[3]);
+
+    // deactivate 2 nodes, total 2 nodes
+    ASSERT_FALSE(manager.operate(&nodes, /*parallelNum*/ 4, 1));
+    ASSERT_EQ(4u, nodes.size());
+    ASSERT_FALSE(nodes[0].isSuspended);
+    ASSERT_TRUE(nodes[1].isSuspended);
+    ASSERT_FALSE(nodes[2].isSuspended);
+    ASSERT_TRUE(nodes[3].isSuspended);
+
+    auto node0TargetOps = getNodeTargetOps(nodes[0]);
+    auto node2TargetOps = getNodeTargetOps(nodes[2]);
+    EXPECT_THAT(node0TargetOps, testing::UnorderedElementsAre(0));
+    EXPECT_THAT(node2TargetOps, testing::UnorderedElementsAre(1));
+
+    finishNodeOps(/*workerEpoch*/ "12", {0}, &nodes[0]);
+    finishNodeOps(/*workerEpoch*/ "34", {}, &nodes[1]);
+    finishNodeOps(/*workerEpoch*/ "56", {1}, &nodes[2]);
+    finishNodeOps(/*workerEpoch*/ "78", {}, &nodes[3]);
+
+    // activate 2 nodes, total 4 nodes
+    ASSERT_FALSE(manager.operate(&nodes, /*parallelNum*/ 4, 1));
+    ASSERT_EQ(4u, nodes.size());
+    ASSERT_FALSE(nodes[0].isSuspended);
+    ASSERT_FALSE(nodes[1].isSuspended);
+    ASSERT_FALSE(nodes[2].isSuspended);
+    ASSERT_FALSE(nodes[3].isSuspended);
+    node0TargetOps = getNodeTargetOps(nodes[0]);
+    auto node1TargetOps = getNodeTargetOps(nodes[1]);
+    node2TargetOps = getNodeTargetOps(nodes[2]);
+    auto node3TargetOps = getNodeTargetOps(nodes[3]);
+
+    // 1 op for each node
+    EXPECT_THAT(node0TargetOps, testing::UnorderedElementsAre(2));
+    EXPECT_THAT(node1TargetOps, testing::UnorderedElementsAre(5));
+    EXPECT_THAT(node2TargetOps, testing::UnorderedElementsAre(3));
+    EXPECT_THAT(node3TargetOps, testing::UnorderedElementsAre(4));
 }
 
 TEST_F(SingleGeneralTaskManagerTest, testHandlePlan)

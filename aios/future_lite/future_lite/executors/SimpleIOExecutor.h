@@ -147,7 +147,7 @@ public:
     }
 
 private:
-    volatile bool _shutdown = false;
+    std::atomic<bool> _shutdown = false;
     std::thread _loopThread;
 };
 

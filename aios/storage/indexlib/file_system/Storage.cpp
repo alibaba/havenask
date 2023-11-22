@@ -17,23 +17,21 @@
 
 #include <assert.h>
 #include <cstddef>
-#include <utility>
 
-#include "alog/Logger.h"
 #include "autil/Lock.h"
 #include "indexlib/file_system/DiskStorage.h"
 #include "indexlib/file_system/FileSystemOptions.h"
 #include "indexlib/file_system/MemStorage.h"
+#include "indexlib/file_system/file/FileWriterImpl.h"
 #include "indexlib/file_system/file/MemFileWriter.h"
+#include "indexlib/file_system/file/ResourceFileNode.h"
 #include "indexlib/file_system/file/SliceFileNode.h"
 #include "indexlib/file_system/file/SliceFileReader.h"
 #include "indexlib/file_system/file/SliceFileWriter.h"
 #include "indexlib/file_system/file/SwapMmapFileNode.h"
 #include "indexlib/file_system/file/SwapMmapFileReader.h"
 #include "indexlib/file_system/package/PackageDiskStorage.h"
-#include "indexlib/file_system/package/PackageFileMeta.h"
 #include "indexlib/file_system/package/PackageMemStorage.h"
-#include "indexlib/util/Exception.h"
 #include "indexlib/util/PathUtil.h"
 
 using namespace std;

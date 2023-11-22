@@ -15,8 +15,16 @@
  */
 #include "build_service/workflow/RawDocChecksumer.h"
 
+#include <memory>
+#include <ostream>
+
 #include "autil/HashAlgorithm.h"
+#include "autil/Log.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/document/DocumentDefine.h"
 #include "fslib/util/FileUtil.h"
+#include "indexlib/document/RawDocument.h"
 
 using namespace std;
 

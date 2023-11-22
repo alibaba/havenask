@@ -74,7 +74,6 @@ protected:
     indexlib::util::BuildResourceMetricsNode* _buildResourceMetricsNode;
     std::shared_ptr<index::BuildingIndexMemoryUseUpdater> _memoryUseUpdater;
     std::shared_ptr<document::extractor::IDocumentInfoExtractorFactory> _docInfoExtractorFactory;
-    IndexerParameter _indexerParam;
 };
 
 MultiValueAttributeMemIndexerTest::MultiValueAttributeMemIndexerTest() {}
@@ -196,7 +195,8 @@ template <typename T>
 std::unique_ptr<MultiValueAttributeMemIndexer<T>>
 MultiValueAttributeMemIndexerTest::PrepareMemIndexer(const std::shared_ptr<AttributeConfig>& attrConfig)
 {
-    auto memIndexer = std::make_unique<MultiValueAttributeMemIndexer<T>>(_indexerParam);
+    MemIndexerParameter indexerParam;
+    auto memIndexer = std::make_unique<MultiValueAttributeMemIndexer<T>>(indexerParam);
     if (memIndexer->Init(attrConfig, _docInfoExtractorFactory.get()).IsOK()) {
         return memIndexer;
     }
@@ -263,7 +263,7 @@ void MultiValueAttributeMemIndexerTest::InnerTestDumpCompressedOffset(bool isUpd
     size_t offsetLen = dir->GetFileLength(offsetFilePath);
     EXPECT_EQ(expectLen, offsetLen);
 
-    IndexerParameter param;
+    DiskIndexerParameter param;
     param.docCount = fields.size();
     auto diskIndexer = std::make_unique<MultiValueAttributeDiskIndexer<T>>(nullptr, param);
     ASSERT_TRUE(diskIndexer->Open(attrConfig, dir->GetIDirectory()).IsOK());
@@ -359,7 +359,7 @@ void MultiValueAttributeMemIndexerTest::InnerTestAddEncodeFloatField(uint32_t fi
     EXPECT_EQ(offsetUnitSize * (fields.size() + 1), fileMeta.fileLength);
 
     // check dump value
-    IndexerParameter param;
+    DiskIndexerParameter param;
     param.docCount = fields.size();
     auto diskIndexer = std::make_unique<MultiValueAttributeDiskIndexer<float>>(nullptr, param);
     ASSERT_TRUE(diskIndexer->Open(attrConfig, outputDir->GetIDirectory()).IsOK());
@@ -380,8 +380,8 @@ void MultiValueAttributeMemIndexerTest::InnerTestSortDump(std::optional<std::str
     std::shared_ptr<AttributeConvertor> convertor(
         AttributeConvertorFactory::GetInstance()->CreateAttrConvertor(attrConfig));
     autil::mem_pool::Pool pool;
-    IndexerParameter indexerParameter;
-    MultiValueAttributeMemIndexer<T> writer(indexerParameter);
+    MemIndexerParameter memIndexerParameter;
+    MultiValueAttributeMemIndexer<T> writer(memIndexerParameter);
     ASSERT_TRUE(writer.Init(attrConfig, _docInfoExtractorFactory.get()).IsOK());
 
     docid_t docCount = 500000;
@@ -408,6 +408,7 @@ void MultiValueAttributeMemIndexerTest::InnerTestSortDump(std::optional<std::str
     SimplePool dumpPool;
     ASSERT_TRUE(writer.Dump(&dumpPool, dir, params).IsOK());
 
+    DiskIndexerParameter indexerParameter;
     indexerParameter.docCount = docCount;
     auto indexer = std::make_shared<MultiValueAttributeDiskIndexer<T>>(nullptr, indexerParameter);
     ASSERT_TRUE(indexer->Open(attrConfig, dir->GetIDirectory()).IsOK());

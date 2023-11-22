@@ -1,9 +1,9 @@
 #include "indexlib/document/document_rewriter/test/timestamp_document_rewriter_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/index_tokenize_field.h"
 #include "indexlib/index_define.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::config;

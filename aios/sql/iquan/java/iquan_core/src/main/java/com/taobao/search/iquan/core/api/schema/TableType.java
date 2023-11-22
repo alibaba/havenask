@@ -15,25 +15,21 @@ public enum TableType {
     TT_EXTERNAL(Constant.EXTERNAL, false, true, true, false),
     TT_INVALID(Constant.INVALID, false, false, false, false),
 
-    TT_LAYER_TABLE(Constant.LAYER_TABLE, true,true,true,false),
+    TT_LAYER_TABLE(Constant.LAYER_TABLE, true, true, true, false),
     TT_AGGREGATION_TABLE(Constant.AGGREGATION, false, true, true, false);
 
-    public interface Constant {
-        String NORMAL = "normal";
-        String LOGICAL = "logical";
-        String SUMMARY = "summary";
-        String KKV = "kkv";
-        String KV = "kv";
-        String VALUES = "values";
-        String KHRONOS_DATA = "khronos_data";
-        String KHRONOS_SERIES_DATA = "khronos_series_data";
-        String KHRONOS_SERIES_DATA_V3 = "khronos_series_data_v3";
-        String KHRONOS_META = "khronos_meta";
-        String ORC = "orc";
-        String EXTERNAL = "external";
-        String INVALID = "invalid";
-        String LAYER_TABLE = "layer_table";
-        String AGGREGATION = "aggregation";
+    private final String name;
+    private final boolean isScannable;
+    private final boolean isFilterable;
+    private final boolean isIndexable;
+    private final boolean isModifiable;
+
+    TableType(String name, boolean isScannable, boolean isFilterable, boolean isIndexable, boolean isModifiable) {
+        this.name = name;
+        this.isScannable = isScannable;
+        this.isFilterable = isFilterable;
+        this.isIndexable = isIndexable;
+        this.isModifiable = isModifiable;
     }
 
     public static TableType from(String type) {
@@ -72,14 +68,6 @@ public enum TableType {
         }
     }
 
-    TableType(String name, boolean isScannable, boolean isFilterable, boolean isIndexable, boolean isModifiable) {
-        this.name = name;
-        this.isScannable = isScannable;
-        this.isFilterable = isFilterable;
-        this.isIndexable = isIndexable;
-        this.isModifiable = isModifiable;
-    }
-
     @Override
     public String toString() {
         return name;
@@ -108,10 +96,21 @@ public enum TableType {
     public boolean isValid() {
         return this != TT_INVALID;
     }
-
-    private final String name;
-    private final boolean isScannable;
-    private final boolean isFilterable;
-    private final boolean isIndexable;
-    private final boolean isModifiable;
+    public interface Constant {
+        String NORMAL = "normal";
+        String LOGICAL = "logical";
+        String SUMMARY = "summary";
+        String KKV = "kkv";
+        String KV = "kv";
+        String VALUES = "values";
+        String KHRONOS_DATA = "khronos_data";
+        String KHRONOS_SERIES_DATA = "khronos_series_data";
+        String KHRONOS_SERIES_DATA_V3 = "khronos_series_data_v3";
+        String KHRONOS_META = "khronos_meta";
+        String ORC = "orc";
+        String EXTERNAL = "external";
+        String INVALID = "invalid";
+        String LAYER_TABLE = "layer_table";
+        String AGGREGATION = "aggregation";
+    }
 }

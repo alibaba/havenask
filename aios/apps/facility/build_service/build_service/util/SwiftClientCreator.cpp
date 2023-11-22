@@ -15,10 +15,21 @@
  */
 #include "build_service/util/SwiftClientCreator.h"
 
+#include <assert.h>
+#include <ostream>
+#include <stddef.h>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "build_service/common/BeeperCollectorDefine.h"
-#include "fslib/util/FileUtil.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "swift/client/SwiftClientConfig.h"
+#include "swift/protocol/ErrCode.pb.h"
 
 using namespace std;
 using namespace autil;

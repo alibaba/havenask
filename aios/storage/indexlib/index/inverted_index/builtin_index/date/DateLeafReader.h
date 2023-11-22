@@ -35,18 +35,18 @@ public:
                    const std::shared_ptr<DictionaryReader>& dictReader,
                    const std::shared_ptr<file_system::FileReader>& postingReader, const TimeRangeInfo& rangeInfo);
     ~DateLeafReader();
-    future_lite::coro::Lazy<Result<SegmentPostingsVec>> Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId,
-                                                               autil::mem_pool::Pool* sessionPool,
+    future_lite::coro::Lazy<Result<SegmentPostingsVec>> Lookup(uint64_t leftTerm, uint64_t rightTerm,
+                                                               docid64_t baseDocId, autil::mem_pool::Pool* sessionPool,
                                                                file_system::ReadOption option,
                                                                InvertedIndexSearchTracer* tracer) noexcept;
 
 private:
-    future_lite::coro::Lazy<ErrorCode> FillSegmentPostings(const DateTerm::Ranges& ranges, docid_t baseDocId,
+    future_lite::coro::Lazy<ErrorCode> FillSegmentPostings(const DateTerm::Ranges& ranges, docid64_t baseDocId,
                                                            const std::shared_ptr<SegmentPostings>& dateSegmentPostings,
                                                            autil::mem_pool::Pool* sessionPool,
                                                            file_system::ReadOption option,
                                                            InvertedIndexSearchTracer* tracer) noexcept;
-    future_lite::coro::Lazy<Result<SegmentPosting>> FillOneSegment(dictvalue_t value, docid_t baseDocId,
+    future_lite::coro::Lazy<Result<SegmentPosting>> FillOneSegment(dictvalue_t value, docid64_t baseDocId,
                                                                    autil::mem_pool::Pool* sessionPool,
                                                                    file_system::ReadOption option,
                                                                    InvertedIndexSearchTracer* tracer) noexcept;

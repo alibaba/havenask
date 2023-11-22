@@ -17,11 +17,12 @@ import errno
 from datetime import datetime
 from itertools import product
 
+
 class TimeoutTerminator:
     def __init__(self, timeout):
-        self.timeout = timeout;
+        self.timeout = timeout
         self.start = time.time()
-        self.due = self.start + timeout;
+        self.due = self.start + timeout
 
     def left_time(self):
         return self.due - time.time()
@@ -35,10 +36,12 @@ class TimeoutTerminator:
     def start_str(self):
         return datetime.utcfromtimestamp(self.start).strftime('%Y-%m-%d %H:%M:%S.%f')
 
+
 class PortListItem:
     def __init__(self):
         self.ports = None
         self.role = None
+
 
 class LocalSearchStartCmd(object):
     '''
@@ -106,7 +109,7 @@ examples:
         self.parser = OptionParser(usage=self.__doc__)
 
     def usage(self):
-        print self.__doc__ % {'prog' : sys.argv[0]}
+        print self.__doc__ % {'prog': sys.argv[0]}
 
     def addOptions(self):
         self.parser.add_option('-i', '--index', action='store', dest='indexPath')
@@ -118,9 +121,14 @@ examples:
         self.parser.add_option('-z', '--zone', action='store', dest='zoneName')
         self.parser.add_option('-j', '--tables', action='store', dest='atables')
         self.parser.add_option('-b', '--binary', action='store', dest='binaryPath')
-        self.parser.add_option('-t', '--timeout', action='store', dest='timeout',type='int', default=300)
-        self.parser.add_option('-l', '--preload', action='store', dest='preload', default = 'asan')
-        self.parser.add_option('-s', '--serviceName', action='store', dest='serviceName', default="sql_suez_local_search")
+        self.parser.add_option('-t', '--timeout', action='store', dest='timeout', type='int', default=300)
+        self.parser.add_option('-l', '--preload', action='store', dest='preload', default='asan')
+        self.parser.add_option(
+            '-s',
+            '--serviceName',
+            action='store',
+            dest='serviceName',
+            default="sql_suez_local_search")
         self.parser.add_option('-a', '--amonPath', action='store', dest='amonPath', default="sql_suez_local_search")
         self.parser.add_option('-g', '--aggName', action='store', dest='aggName')
         self.parser.add_option('', '--basicTuringBizNames', action='store', dest='basicTuringBizNames')
@@ -138,11 +146,26 @@ examples:
         self.parser.add_option('', '--qrsThreadNum', action='store', dest='qrsThreadNum', type='int')
         self.parser.add_option('', '--qrsQueueSize', action='store', dest='qrsQueueSize', type='int')
         self.parser.add_option('-d', '--dailyrunMode', action='store_true', dest='dailyrunMode', default=False)
-        self.parser.add_option('', '--enableMultiPartition', action='store_true', dest='enableMultiPartition', default=False)
+        self.parser.add_option(
+            '',
+            '--enableMultiPartition',
+            action='store_true',
+            dest='enableMultiPartition',
+            default=False)
         self.parser.add_option('', '--enableLocalAccess', action='store_true', dest='enableLocalAccess', default=False)
         self.parser.add_option('', '--onlySql', action='store_true', dest='onlySql', default=False)
-        self.parser.add_option('', '--enableLocalCatalog', action='store_true', dest='enableLocalCatalog', default=False)
-        self.parser.add_option('', '--enableUpdateCatalog', action='store_true', dest='enableUpdateCatalog', default=False)
+        self.parser.add_option(
+            '',
+            '--enableLocalCatalog',
+            action='store_true',
+            dest='enableLocalCatalog',
+            default=False)
+        self.parser.add_option(
+            '',
+            '--enableUpdateCatalog',
+            action='store_true',
+            dest='enableUpdateCatalog',
+            default=False)
         self.parser.add_option('-m', '--multiBiz', action='store_true', dest='multiBiz')
         self.parser.add_option('-M', '--modelBiz', action='store', dest='modelBiz', default='')
         self.parser.add_option('-L', '--localBizService', action='store_true', dest='localBizService')
@@ -159,9 +182,20 @@ examples:
         self.parser.add_option('', '--disableCodeGen', action='store_true', dest='disableCodeGen', default=False)
         self.parser.add_option('', '--disableTurbojet', action='store_true', dest='disableTurbojet', default=False)
         self.parser.add_option('', '--searcherSubscribeConfig', action='store', dest='searcherSubscribeConfig', )
-        self.parser.add_option('', '--searcherLocalSubscribe', action='store_true', dest='searcherLocalSubscribe', default=False)
-        self.parser.add_option('', '--enablePublishTableTopoInfo', action='store_true', dest='enablePublishTableTopoInfo', default=False)
+        self.parser.add_option(
+            '',
+            '--searcherLocalSubscribe',
+            action='store_true',
+            dest='searcherLocalSubscribe',
+            default=False)
+        self.parser.add_option(
+            '',
+            '--enablePublishTableTopoInfo',
+            action='store_true',
+            dest='enablePublishTableTopoInfo',
+            default=False)
         self.parser.add_option('', '--force_tablet_load', action='store_true', dest='forceTabletLoad', default=False)
+        self.parser.add_option('', '--allow_follow_write', action='store_true', dest='allowFollowWrite', default=False)
 
     def parseParams(self, optionList):
         self.optionList = optionList
@@ -176,13 +210,13 @@ examples:
         return True
 
     def checkOptionsValidity(self, options):
-        if options.indexPath == None or options.indexPath == '':
+        if options.indexPath is None or options.indexPath == '':
             print "ERROR: index path must be specified"
             return False
-        if options.configPath == None or options.configPath == '':
+        if options.configPath is None or options.configPath == '':
             print "ERROR: config path must be specified"
             return False
-        if options.multiBiz == None or options.multiBiz == '':
+        if options.multiBiz is None or options.multiBiz == '':
             self.enableMultiBiz = False
         else:
             self.enableMultiBiz = True
@@ -227,6 +261,7 @@ examples:
         self.searcherLocalSubscribe = options.searcherLocalSubscribe
         self.enablePublishTableTopoInfo = options.enablePublishTableTopoInfo
         self.forceTabletLoad = options.forceTabletLoad
+        self.allowFollowWrite = options.allowFollowWrite
         if not self.indexPath.startswith('/'):
             self.indexPath = os.path.join(os.getcwd(), self.indexPath)
         self.configPath = options.configPath
@@ -234,16 +269,16 @@ examples:
             self.configPath = os.path.join(os.getcwd(), self.configPath)
         self.onlineConfigPath = os.path.join(self.configPath, "bizs")
         self.offlineConfigPath = os.path.join(self.configPath, "table")
-        tableVersions = sorted(map(lambda x:int(x), os.listdir(self.offlineConfigPath)))
+        tableVersions = sorted(map(lambda x: int(x), os.listdir(self.offlineConfigPath)))
         if len(tableVersions) == 0:
-            print "table version count is 0, path [%s]"% self.offlineConfigPath
+            print "table version count is 0, path [%s]" % self.offlineConfigPath
         else:
             self.offlineConfigPath = os.path.join(self.offlineConfigPath, str(tableVersions[-1]))
 
         self.qrsHttpArpcBindPort = options.qrsHttpArpcBindPort
         self.qrsArpcBindPort = options.qrsArpcBindPort
         self.portList = []
-        self.origin_port_list = map(lambda x:int(x), options.portList.split(","))
+        self.origin_port_list = map(lambda x: int(x), options.portList.split(","))
         self.searcher_port_list = []
         self.qrs_port_list = None
         self.portStart = 12000
@@ -271,16 +306,20 @@ examples:
         else:
             curdir = os.path.split(os.path.realpath(__file__))[0]
             self.binaryPath = os.path.join(curdir, "../../../../../../")
+        self.binaryPath = os.path.abspath(self.binaryPath)
         self.timeout = options.timeout
         self.preload = options.preload
         self.serviceName = options.serviceName
         self.amonPath = options.amonPath
-        self.libPath = "/usr/ali/java/jre/lib/amd64/server:/usr/local/java/jdk/jre/lib/amd64/server:" + self.binaryPath + "/home/admin/sap/lib64/:"  + self.binaryPath + "/home/admin/diamond-client4cpp/lib:" + self.binaryPath + "/home/admin/eagleeye-core/lib/:"  + self.binaryPath + "/usr/local/cuda-10.1/lib64/stubs:"  + self.binaryPath + "/usr/local/cuda-10.1/lib64/:"  + self.binaryPath + "/usr/local/lib64:" + self.binaryPath + "/usr/lib:" + self.binaryPath + "/usr/lib64:" + self.binaryPath + "/usr/local/lib:" + "/home/admin/isearch5_data/AliWS-1.4.0.0/usr/local/lib:" + "/usr/local/lib64:"
-        self.binPath = self.binaryPath + "/home/admin/sap/bin/:" + self.binaryPath + "/usr/local/bin/:" + self.binaryPath + "/usr/bin/:" + self.binaryPath + "/bin/:" + "/usr/local/bin:/usr/bin:/bin"
+        self.libPath = "/usr/ali/java/jre/lib/amd64/server:/usr/local/java/jdk/jre/lib/amd64/server:" + self.binaryPath + "/home/admin/sap/lib64/:" + self.binaryPath + "/home/admin/diamond-client4cpp/lib:" + self.binaryPath + "/home/admin/eagleeye-core/lib/:" + self.binaryPath + "/usr/local/cuda-10.1/lib64/stubs:" + \
+            self.binaryPath + "/usr/local/cuda-10.1/lib64/:" + self.binaryPath + "/usr/local/lib64:" + self.binaryPath + "/usr/lib:" + self.binaryPath + "/usr/lib64:" + self.binaryPath + "/usr/local/lib:" + "/home/admin/isearch5_data/AliWS-1.4.0.0/usr/local/lib:" + "/usr/local/lib64:"
+        self.binPath = self.binaryPath + "/home/admin/sap/bin/:" + self.binaryPath + "/usr/local/bin/:" + \
+            self.binaryPath + "/usr/bin/:" + self.binaryPath + "/bin/:" + "/usr/local/bin:/usr/bin:/bin"
         self.startCmdTemplate = "/bin/env HIPPO_DP2_SLAVE_PORT=19715"
         if self.preload:
             if self.preload == "asan":
-                self.startCmdTemplate += " LSAN_OPTIONS=\"suppressions=%s/usr/local/etc/sql/leak_suppression\" ASAN_OPTIONS=\"detect_odr_violation=0 abort_on_error=1 detect_leaks=1\"" %(self.binaryPath)
+                self.startCmdTemplate += " LSAN_OPTIONS=\"suppressions=%s/usr/local/etc/sql/leak_suppression\" ASAN_OPTIONS=\"detect_odr_violation=0 abort_on_error=1 detect_leaks=1\"" % (
+                    self.binaryPath)
             elif self.preload == "llalloc":
                 self.startCmdTemplate += " LD_PRELOAD=%s/usr/local/lib64/libllalloc.so" % self.binaryPath
             else:
@@ -297,14 +336,16 @@ examples:
         if self.enablePublishTableTopoInfo:
             self.startCmdTemplate += " ENABLE_PUBLISH_TABLE_TOPO_INFO=true"
 
-        self.startCmdTemplate += " HIPPO_APP_INST_ROOT=" + self.binaryPath + " HIPPO_APP_WORKDIR=" + os.getcwd() + " TJ_RUNTIME_TEMP_DIR=" + self.binaryPath
+        self.startCmdTemplate += " HIPPO_APP_INST_ROOT=" + self.binaryPath + \
+            " HIPPO_APP_WORKDIR=" + os.getcwd() + " TJ_RUNTIME_TEMP_DIR=" + self.binaryPath
         self.startCmdTemplate += " PATH=$JAVA_HOME/bin:%s LD_LIBRARY_PATH=%s  ha_sql --env roleType=%s -l %s -r %s -c %s --port arpc:%d --port http:%d --env httpPort=%d --env gigGrpcPort=0 --env serviceName=%s --env amonitorPath=%s/%s --env port=%d --env ip=%s --env userName=admin --env decodeUri=true --env haCompatible=true --env zoneName=%s --env roleName=%s_partition_%d --env partId=0 --env decisionLoopInterval=10000 --env dpThreadNum=1 --env loadThreadNum=4 --env load_biz_thread_num=4 --env kmonitorNormalSamplePeriod=1 --env naviPoolModeAsan=1 --env naviDisablePerf=1 --env WORKER_IDENTIFIER_FOR_CARBON= --env gigGrpcThreadNum=5 --env GRPC_CLIENT_CHANNEL_BACKUP_POLL_INTERVAL_MS=500 --env FAST_CLEAN_INC_VERSION=false --env navi_config_loader=%s"
         if self.localBizService:
             self.startCmdTemplate += " --env localBizService=true"
         self.alogConfigPath = os.path.join(self.binaryPath, "usr/local/etc/sql/sql_alog.conf")
         self.searchCfg = os.path.join(self.binaryPath, "usr/local/etc/sql/search_server.cfg")
         self.qrsCfg = os.path.join(self.binaryPath, "usr/local/etc/sql/qrs_server.cfg")
-        self.config_loader = os.path.join(self.binaryPath, "usr/local/lib/python/site-packages/sql/sql_config_loader.py")
+        self.config_loader = os.path.join(self.binaryPath,
+                                          "usr/local/lib/python/site-packages/sql/sql_config_loader.py")
         self.ip = socket.gethostbyname(socket.gethostname())
         self.gigInfos = {}
         cwd = os.getcwd()
@@ -315,7 +356,7 @@ examples:
         if not os.path.exists(binarySymbol):
             try:
                 os.symlink(self.binaryPath, binarySymbol)
-            except OSError, e:
+            except OSError as e:
                 if e.errno == errno.EEXIST:
                     os.remove(binarySymbol)
                     os.symlink(self.binaryPath, binarySymbol)
@@ -353,9 +394,9 @@ examples:
 
     def __format_port_list(self, port_list):
         return {
-            'http_arpc_port' : port_list[0],
-            'arpc_port' : port_list[1],
-            'grpc_port' : port_list[2]
+            'http_arpc_port': port_list[0],
+            'arpc_port': port_list[1],
+            'grpc_port': port_list[2]
         }
 
     def start_once(self):
@@ -390,7 +431,6 @@ examples:
         if ret != 0:
             return ret, ("", "load qrs target failed", -1)
 
-
         return 0, ("", "", 0)
 
     def getLocalSubscribeConfig(self, zoneName, grpcPort):
@@ -409,7 +449,7 @@ examples:
     def subscribeLocalSearchService(self):
         targetInfos = self._genTargetInfos(self._getNeedStartZoneName(), self.searcherReplica)
         subscribeConfig = {
-            "local" : []
+            "local": []
         }
         idx = 0
         for needSubscribeInfo in targetInfos:
@@ -426,7 +466,7 @@ examples:
         ret = self.loadSearcherTarget(targetInfos, terminator.left_time())
         return ret
 
-    def stopAll(self, timeout = 120):
+    def stopAll(self, timeout=120):
         terminator = TimeoutTerminator(timeout)
         needKillPids = []
         if os.path.exists(self.pidFile):
@@ -438,7 +478,7 @@ examples:
                     pids = self.getPids(parts[1])
                     if int(parts[0]) in pids:
                         needKillPids.append((int(parts[0]), parts[1]))
-        #print needKillPids
+        # print needKillPids
         if len(needKillPids) == 0:
             return True
         for (pid, port) in needKillPids:
@@ -457,7 +497,7 @@ examples:
                 if len(pids) != 0:
                     allKilled = False
             if allKilled:
-                cmd ="rm %s" % self.pidFile
+                cmd = "rm %s" % self.pidFile
                 print "remove pid file [%s]" % self.pidFile
                 os.system(cmd)
                 break
@@ -466,7 +506,7 @@ examples:
 
     def startSearcher(self):
         zoneNames = self._getNeedStartZoneName()
-        targetInfos = self._genTargetInfos(zoneNames, replica = self.searcherReplica)
+        targetInfos = self._genTargetInfos(zoneNames, replica=self.searcherReplica)
         if not self._startSearcher(targetInfos):
             print "start searcher with table info failed: ", json.dumps(targetInfos)
             return -1, None
@@ -493,7 +533,7 @@ examples:
                 if r.status != 200:
                     retCode = -1
                 return retCode, data, r.reason, r.status
-            except Exception, e:
+            except Exception as e:
                 if terminator.is_timeout():
                     return -1, '', str(e), 418
 
@@ -505,23 +545,23 @@ examples:
         if not os.path.exists(runtimeDir):
             try:
                 os.symlink(self.indexPath, runtimeDir)
-            except Exception, e:
+            except Exception as e:
                 print "create link failed, src %s, dst %s, e[%s]" % (self.indexPath, runtimeDir, str(e))
                 raise e
         return runtimeDir
 
     def genOnlineConfigPath(self, config, biz):
         onlineConfig = os.path.join(self.onlineConfigPath, biz)
-        configVersions = sorted(map(lambda x:int(x), os.listdir(onlineConfig)))
+        configVersions = sorted(map(lambda x: int(x), os.listdir(onlineConfig)))
         if len(configVersions) == 0:
-            print "config version count is 0, path [%s]"% onlineConfig
+            print "config version count is 0, path [%s]" % onlineConfig
         else:
             onlineConfig = os.path.join(onlineConfig, str(configVersions[-1]))
         return onlineConfig
 
     def createConfigLink(self, zoneName, prefix, bizName, config):
         pos = config.rfind('/')
-        version = config[pos+1:]
+        version = config[pos + 1:]
         rundir = os.path.join(self.localSearchDir, zoneName)
         bizConfigDir = os.path.join(rundir, "zone_config", prefix, bizName)
         if not os.path.exists(bizConfigDir):
@@ -531,7 +571,7 @@ examples:
             os.path.exists(fakeConfigPath) and shutil.rmtree(fakeConfigPath)
             cmd = 'cp -r "{}" "{}"'.format(config, fakeConfigPath)
             os.system(cmd)
-        except Exception, e:
+        except Exception as e:
             print "copy config dir failed, src %s, dst %s, e[%s]" % (config, fakeConfigPath, str(e))
             raise e
         doneFile = os.path.join(fakeConfigPath, "suez_deploy.done")
@@ -539,7 +579,7 @@ examples:
             open(doneFile, 'a').close()
         return config
 
-    def loadQrsTarget(self, timeout = 300):
+    def loadQrsTarget(self, timeout=300):
         terminator = TimeoutTerminator(timeout)
         bizs = os.listdir(self.onlineConfigPath)
         bizInfo = {}
@@ -547,16 +587,16 @@ examples:
             for biz in bizs:
                 onlineConfig = self.genOnlineConfigPath(self.onlineConfigPath, biz)
                 bizInfo[biz] = {
-                    "config_path" : self.createConfigLink('qrs', 'biz', biz, onlineConfig)
+                    "config_path": self.createConfigLink('qrs', 'biz', biz, onlineConfig)
                 }
                 if biz in self.modelBiz:
                     bizInfo[biz]["custom_biz_info"] = {
-                            "biz_type" : "model_biz"
+                        "biz_type": "model_biz"
                     }
         else:
             onlineConfig = self.genOnlineConfigPath(self.onlineConfigPath, bizs[0])
             bizInfo['default'] = {
-                "config_path" : self.createConfigLink('qrs', 'biz', 'default', onlineConfig)
+                "config_path": self.createConfigLink('qrs', 'biz', 'default', onlineConfig)
             }
         tableInfos = {}
         zoneName = "qrs"
@@ -564,8 +604,8 @@ examples:
         httpArpcPort = portList[0]
         arpcPort = portList[1]
         grpcPort = portList[2]
-        address = "%s:%d" %(self.ip, httpArpcPort)
-        arpcAddress = "%s:%d" %(self.ip, arpcPort)
+        address = "%s:%d" % (self.ip, httpArpcPort)
+        arpcAddress = "%s:%d" % (self.ip, arpcPort)
 
         if self.enableLocalAccess:
             zoneNames = self._getNeedStartZoneName()
@@ -591,28 +631,28 @@ examples:
         local_sub_config.append(externalTableConfig)
 
         target = {
-            "service_info" : {
-                "cm2_config" : {
-                    "local" : local_sub_config
+            "service_info": {
+                "cm2_config": {
+                    "local": local_sub_config
                 },
-                "part_count" : 1,
-                "part_id" : 0,
+                "part_count": 1,
+                "part_id": 0,
                 "zone_name": zoneName
             },
-            "biz_info" : bizInfo,
-            "table_info" : tableInfos,
-            "clean_disk" : False,
-            "catalog_address" : arpcAddress,
-            "target_version" : self.targetVersion
+            "biz_info": bizInfo,
+            "table_info": tableInfos,
+            "clean_disk": False,
+            "catalog_address": arpcAddress,
+            "target_version": self.targetVersion
         }
         targetStr = ''
         targetStr = json.dumps(target)
         requestSig = targetStr
-        globalInfo = {"customInfo":targetStr}
-        targetRequest = { "signature" : requestSig,
-                          "customInfo" : targetStr,
-                          "globalCustomInfo": json.dumps(globalInfo)
-        }
+        globalInfo = {"customInfo": targetStr}
+        targetRequest = {"signature": requestSig,
+                         "customInfo": targetStr,
+                         "globalCustomInfo": json.dumps(globalInfo)
+                         }
         lastRespSignature = ""
         while True:
             timeout = terminator.left_time()
@@ -623,8 +663,9 @@ examples:
             if log_state != 0:
                 return log_state
 
-            retCode, out, err, status = self.curl(address, "/HeartbeatService/heartbeat", targetRequest, timeout=timeout)
-            if retCode != 0: #qrs core
+            retCode, out, err, status = self.curl(
+                address, "/HeartbeatService/heartbeat", targetRequest, timeout=timeout)
+            if retCode != 0:  # qrs core
                 print "set qrs target [{}] failed, address[{}] ret[{}] out[{}] err[{}] status[{}] left[{}]s".format(targetStr, address, retCode, out, err, status, terminator.left_time())
                 return -1
             response = json.loads(out)
@@ -677,7 +718,7 @@ examples:
         log_time = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
         return (log_time - self.start_time).total_seconds() > 0
 
-    def loadSearcherTarget(self, targetInfos, timeout = 300):
+    def loadSearcherTarget(self, targetInfos, timeout=300):
         self.gigInfos = {}
         terminator = TimeoutTerminator(timeout)
         readyTarget = set()
@@ -703,21 +744,21 @@ examples:
                 arpcPort = portList[1]
                 grpcPort = portList[2]
                 qrsArpcPort = self.getQrsPortList()[1]
-                arpcAddress = "%s:%d" %(self.ip, qrsArpcPort)
+                arpcAddress = "%s:%d" % (self.ip, qrsArpcPort)
                 target["catalog_address"] = arpcAddress
                 target["target_version"] = self.targetVersion
                 targetStr = json.dumps(target)
                 requestSig = targetStr
-                globalInfo = {"customInfo":targetStr}
-                targetRequest = { "signature" : requestSig,
-                                  "customInfo" :targetStr,
-                                  "globalCustomInfo": json.dumps(globalInfo)
-                }
+                globalInfo = {"customInfo": targetStr}
+                targetRequest = {"signature": requestSig,
+                                 "customInfo": targetStr,
+                                 "globalCustomInfo": json.dumps(globalInfo)
+                                 }
                 log_file = os.path.join(self.localSearchDir, roleName, 'logs/sql.log')
                 log_state = self.check_log_file(log_file)
                 if log_state != 0:
                     return log_state
-                address = "%s:%d" %(self.ip, httpArpcPort)
+                address = "%s:%d" % (self.ip, httpArpcPort)
                 retCode, out, err, status = self.curl(address, "/HeartbeatService/heartbeat",
                                                       targetRequest, timeout=timeout)
 
@@ -775,16 +816,16 @@ examples:
                                             zoneName, self.qrsArpcBindPort, self.ip, zoneName, zoneName,
                                             partId, self.config_loader)
         startCmd += " --env LIBHDFS_OPTS=-Xrs "
-        startCmd += " --env JAVA_TOOL_OPTIONS=-Djdk.lang.processReaperUseDefaultStackSize=true " 
-        if self.qrsQueue :
+        startCmd += " --env JAVA_TOOL_OPTIONS=-Djdk.lang.processReaperUseDefaultStackSize=true "
+        if self.qrsQueue:
             startCmd += " --env extraTaskQueues=" + self.qrsQueue
-        if self.qrsQueueSize :
+        if self.qrsQueueSize:
             startCmd += " --env queueSize=" + str(self.qrsQueueSize)
-        if self.qrsThreadNum :
+        if self.qrsThreadNum:
             startCmd += " --env threadNum=" + str(self.qrsThreadNum)
-        if self.naviThreadNum :
+        if self.naviThreadNum:
             startCmd += " --env naviThreadNum=" + str(self.naviThreadNum)
-        if self.threadNumScaleFactor :
+        if self.threadNumScaleFactor:
             startCmd += " --env threadNumScaleFactor=" + str(self.threadNumScaleFactor)
         if self.aggName:
             startCmd += " --env defaultAgg=" + self.aggName
@@ -799,16 +840,16 @@ examples:
         if self.disableSqlWarmup:
             startCmd += " --env disableSqlWarmup=true"
         if self.kmonSinkAddress:
-            startCmd += " --env kmonitorSinkAddress=" + self.kmonSinkAddress;
+            startCmd += " --env kmonitorSinkAddress=" + self.kmonSinkAddress
         if self.specialCatalogList:
             startCmd += " --env specialCatalogList=" + str(self.specialCatalogList)
         if self.forceTabletLoad:
-            startCmd += " --env force_tablet_load=true";
+            startCmd += " --env force_tablet_load=true"
         if self.enableLocalAccess:
             startCmd += " --env enableLocalAccess=true"
             startCmd += " --env rewriteLocalBizNameType=sql"
             if self.enableMultiPartition:
-                startCmd += " --env enableMultiPartition=true";
+                startCmd += " --env enableMultiPartition=true"
             if self.enableUpdateCatalog and not self.disableSql:
                 startCmd += " --env enableUpdateCatalog=true"
         if self.enableLocalCatalog and not self.disableSql:
@@ -827,9 +868,10 @@ examples:
             if self.versionSyncConfig:
                 startCmd += " --env version_sync_config=" + "'" + self.versionSyncConfig + "'"
 
-        startCmd += ' -d -n 1>>%s 2>>%s ' % (os.path.join(self.localSearchDir, "qrs.stdout.out"), os.path.join(self.localSearchDir, "qrs.stderr.out"))
+        startCmd += ' -d -n 1>>%s 2>>%s ' % (os.path.join(self.localSearchDir, "qrs.stdout.out"),
+                                             os.path.join(self.localSearchDir, "qrs.stderr.out"))
         os.chdir(rundir)
-        print "start qrs cmd: %s"% startCmd
+        print "start qrs cmd: %s" % startCmd
         os.system(startCmd)
 
         time.sleep(0.1)
@@ -841,7 +883,7 @@ examples:
             time.sleep(0.1)
 
         if len(pids) != 1:
-            print "start qrs process failed, cmd [%s]"% startCmd
+            print "start qrs process failed, cmd [%s]" % startCmd
             return False
         else:
             print "start qrs process success, pid [%d]" % pids[0]
@@ -856,7 +898,7 @@ examples:
         http_port, arpc_port, grpc_port = self.get_listen_ports(rundir)
         self.qrs_port_list = (http_port, arpc_port, grpc_port)
         with open(self.portFile, 'w') as portFile:
-            portFile.write('%s %s\n' % (http_port, arpc_port));
+            portFile.write('%s %s\n' % (http_port, arpc_port))
         return True
 
     def _startSearcher(self, targetInfos):
@@ -882,15 +924,15 @@ examples:
             startCmd = self.startCmdTemplate % (self.binPath, self.libPath, "searcher", self.alogConfigPath,
                                                 self.binaryPath, targetCfg, 0, 0, 0, kmonServiceName, self.amonPath,
                                                 zoneName, 0, self.ip, zoneName, zoneName, partId, self.config_loader)
-            if self.searcherQueue :
+            if self.searcherQueue:
                 startCmd += " --env extraTaskQueues=" + self.searcherQueue
-            if self.searcherQueueSize :
+            if self.searcherQueueSize:
                 startCmd += " --env queueSize=" + str(self.searcherQueueSize)
-            if self.threadNumScaleFactor :
+            if self.threadNumScaleFactor:
                 startCmd += " --env threadNumScaleFactor=" + str(self.threadNumScaleFactor)
-            if self.searcherThreadNum :
+            if self.searcherThreadNum:
                 startCmd += " --env threadNum=" + str(self.searcherThreadNum)
-            if self.naviThreadNum :
+            if self.naviThreadNum:
                 startCmd += " --env naviThreadNum=" + str(self.naviThreadNum)
             if self.aggName:
                 startCmd += " --env defaultAgg=" + self.aggName
@@ -899,13 +941,15 @@ examples:
             if self.basicTuringBizNames:
                 startCmd += " --env basicTuringBizNames=" + self.basicTuringBizNames
             if self.kmonSinkAddress:
-                startCmd += " --env kmonitorSinkAddress=" + self.kmonSinkAddress;
+                startCmd += " --env kmonitorSinkAddress=" + self.kmonSinkAddress
             if self.enableMultiPartition:
-                startCmd += " --env enableMultiPartition=true";
+                startCmd += " --env enableMultiPartition=true"
             if self.forceTabletLoad:
-                startCmd += " --env force_tablet_load=true";
+                startCmd += " --env force_tablet_load=true"
+            if self.allowFollowWrite:
+                startCmd += " --env ALLOW_FOLLOWER_WRITE=true"
             if self.enableLocalAccess:
-                startCmd += " --env enableLocalAccess=true";
+                startCmd += " --env enableLocalAccess=true"
             else:
                 if self.enableUpdateCatalog and not self.disableSql:
                     startCmd += " --env enableUpdateCatalog=true"
@@ -925,9 +969,12 @@ examples:
                 if self.versionSyncConfig:
                     startCmd += " --env version_sync_config=" + "'" + self.versionSyncConfig + "'"
 
-            startCmd += ' -d -n 1>>%s 2>>%s ' % (os.path.join(self.localSearchDir, "{}.stdout.out".format(roleName)), os.path.join(self.localSearchDir, "{}.stderr.out".format(roleName)))
+            startCmd += ' -d -n 1>>%s 2>>%s ' % (os.path.join(self.localSearchDir,
+                                                              "{}.stdout.out".format(roleName)),
+                                                 os.path.join(self.localSearchDir,
+                                                              "{}.stderr.out".format(roleName)))
             os.chdir(rundir)
-            print "start searcher cmd: %s"% startCmd
+            print "start searcher cmd: %s" % startCmd
             os.system(startCmd)
             httpArpcPort_list.append((rundir, roleName, startCmd))
             count = count + 1
@@ -952,7 +999,7 @@ examples:
             pids = self.getPids(rundir)
             print pids
             if len(pids) != 1:
-                print "start searcher process [%s] failed, pids [%s] len(pid) != 1, cmd [%s], rundir[%s]" % (roleName, ','.join(pids),  startCmd, rundir)
+                print "start searcher process [%s] failed, pids [%s] len(pid) != 1, cmd [%s], rundir[%s]" % (roleName, ','.join(pids), startCmd, rundir)
                 f.close()
                 return False
             else:
@@ -971,7 +1018,7 @@ examples:
         f.close()
         return True
 
-    def wait_load(self, rundir, timeout = 60):
+    def wait_load(self, rundir, timeout=60):
         terminator = TimeoutTerminator(timeout)
         while True:
             timeout = terminator.left_time()
@@ -998,7 +1045,8 @@ examples:
         return False
 
     def get_listen_ports(self, rundir):
-        return self.get_listen_http_arpc_ports(rundir), self.get_listen_arpc_ports(rundir), self.get_listen_grpc_ports(rundir)
+        return self.get_listen_http_arpc_ports(rundir), self.get_listen_arpc_ports(
+            rundir), self.get_listen_grpc_ports(rundir)
 
     def get_listen_arpc_ports(self, rundir):
         grpcListenKeyword = 'gigRpcServer initArpcServer success, arpc listen port'
@@ -1053,43 +1101,44 @@ examples:
 
     def _genCatalogTable(self, dbName, tableGroupName, tableName, tableMode, tableVersion):
         return {
-            "id" : {
-                "dbName" : dbName,
-                "tgName" : tableGroupName,
-                "tableName" : tableName
+            "id": {
+                "dbName": dbName,
+                "tgName": tableGroupName,
+                "tableName": tableName
             },
-            "meta" : {
-                "mode" : tableMode
+            "meta": {
+                "mode": tableMode
             },
-            "partitions" : [{
-                "id" : {
-                    "dbName" : dbName,
-                    "tgName" : tableGroupName,
-                    "tableName" : tableName,
-                    "partitionName" : tableVersion
+            "partitions": [{
+                "id": {
+                    "dbName": dbName,
+                    "tgName": tableGroupName,
+                    "tableName": tableName,
+                    "partitionName": tableVersion
                 },
-                "meta" : {
-                    "fullVersion" : tableVersion
+                "meta": {
+                    "fullVersion": tableVersion
                 }
             }]
         }
-    #tabletInfos = {tableName:{generationId:gid, partitions:["0_65535"], tableMode:1}}
-    def _genTargetInfos(self, zoneNames, replica, inQrs = False):
+    # tabletInfos = {tableName:{generationId:gid, partitions:["0_65535"], tableMode:1}}
+
+    def _genTargetInfos(self, zoneNames, replica, inQrs=False):
         tabletInfos = {}
         if self.tabletInfos:
             tabletInfos = json.loads(self.tabletInfos)
         targetInfos = []
         for zoneName in zoneNames:
             tableGroup = {
-                "id" : {
-                    "tgName" : zoneName,
-                    "dbName" : zoneName
+                "id": {
+                    "tgName": zoneName,
+                    "dbName": zoneName
                 },
-                "meta" : {
-                    "shardCount" : 1,
-                    "replicaCount" : 0
+                "meta": {
+                    "shardCount": 1,
+                    "replicaCount": 0
                 },
-                "tables" : []
+                "tables": []
             }
             tableGroupTables = {}
             atables = []
@@ -1136,14 +1185,16 @@ examples:
                     else:
                         curTableGid = tabletInfos[tableName]["generationId"]
                         curTablePartitions = tabletInfos[tableName]["partitions"]
-                    if not self.enableMultiPartition :
+                    if not self.enableMultiPartition:
                         curTablePartitionCnt = len(curTablePartitions)
                         if curTablePartitionCnt == 1:
                             tablePartition.append(fullPartition)
                         elif curTablePartitionCnt == maxPartCnt:
                             tablePartition.append(partitions[partId])
                         else:
-                            raise Exception("table %s : len(curTablePartitions)(%d) != maxPartCnt(%d)" % (tableName, curTablePartitionCnt, maxPartCnt))
+                            raise Exception(
+                                "table %s : len(curTablePartitions)(%d) != maxPartCnt(%d)" %
+                                (tableName, curTablePartitionCnt, maxPartCnt))
                     else:
                         tablePartition = curTablePartitions
 
@@ -1151,63 +1202,65 @@ examples:
                     zoneDirName = self.genRoleName((zoneName, partId, replicaId))
                     if inQrs:
                         zoneDirName = "qrs"
-                    tableMode = 0 if not has_realtime else 1 # TM_READ_WRITE
-                    tableType = 3 if not has_realtime else 2 # SPT_TABLET
+                    tableMode = 0 if not has_realtime else 1  # TM_READ_WRITE
+                    tableType = 3 if not has_realtime else 2  # SPT_TABLET
                     tmp = {
-                      tableGid : {
-                          "table_mode" : tableMode,
-                          "table_type" : tableType,
-                          "index_root" : self.createRuntimedirLink(zoneDirName),
-                          "config_path": self.createConfigLink(zoneDirName, 'table', tableName, self.offlineConfigPath),
-                          "total_partition_count":len(curTablePartitions),
-                          "partitions": {
-                          }
-                      }
-                    }
+                        tableGid: {
+                            "table_mode": tableMode,
+                            "table_type": tableType,
+                            "index_root": self.createRuntimedirLink(zoneDirName),
+                            "config_path": self.createConfigLink(
+                                zoneDirName,
+                                'table',
+                                tableName,
+                                self.offlineConfigPath),
+                            "total_partition_count": len(curTablePartitions),
+                            "partitions": {}}}
                     for partition in tablePartition:
                         incVersion = -1
                         if has_offline_index:
                             incVersion = self._getMaxIndexVersion(self.indexPath, tableName, tableGid, partition)
                         tmp[tableGid]["partitions"][partition] = {
-                            "inc_version" : incVersion
+                            "inc_version": incVersion
                         }
                     tableInfos[tableName] = tmp
-                    tableGroupTables[tableName] = self._genCatalogTable(zoneName, zoneName, tableName, tableMode, tableGid)
+                    tableGroupTables[tableName] = self._genCatalogTable(
+                        zoneName, zoneName, tableName, tableMode, tableGid)
                 bizs = os.listdir(self.onlineConfigPath)
                 bizInfo = {}
                 if self.enableMultiBiz:
                     for biz in bizs:
                         onlineConfig = self.genOnlineConfigPath(self.onlineConfigPath, biz)
                         bizInfo[biz] = {
-                            "config_path" : self.createConfigLink(zoneDirName, 'biz', biz, onlineConfig)
+                            "config_path": self.createConfigLink(zoneDirName, 'biz', biz, onlineConfig)
                         }
                         if biz in self.modelBiz:
                             bizInfo[biz]["custom_biz_info"] = {
-                                "biz_type" : "model_biz"
+                                "biz_type": "model_biz"
                             }
                 else:
                     onlineConfig = self.genOnlineConfigPath(self.onlineConfigPath, bizs[0])
                     bizInfo['default'] = {
-                        "config_path" : self.createConfigLink(zoneDirName, 'biz', 'default', onlineConfig)
+                        "config_path": self.createConfigLink(zoneDirName, 'biz', 'default', onlineConfig)
                     }
                 targetInfo = {
-                    "table_info" : tableInfos,
-                    "service_info" : {
-                        "part_count" : partCnt,
-                        "part_id" : partId,
+                    "table_info": tableInfos,
+                    "service_info": {
+                        "part_count": partCnt,
+                        "part_id": partId,
                         "zone_name": zoneName,
-                        "version" : zoneGid
+                        "version": zoneGid
                     },
-                    "biz_info" : bizInfo,
-                    "clean_disk" : False
+                    "biz_info": bizInfo,
+                    "clean_disk": False
                 }
                 targetInfos.append((zoneName, partId, replicaId, targetInfo))
             database = {
-                "dbName" : zoneName,
-                "description" : "",
-                "tableGroups" : [],
-                "udxfs" : {},
-                "tvfs" : {}
+                "dbName": zoneName,
+                "description": "",
+                "tableGroups": [],
+                "udxfs": {},
+                "tvfs": {}
             }
             for tableName, catalogTable in tableGroupTables.items():
                 tableGroup["tables"].append(catalogTable)
@@ -1217,27 +1270,34 @@ examples:
 
     def _getMaxGenerationId(self, indexPath, tableName):
         generationList = os.listdir(os.path.join(indexPath, tableName))
-        versions = map(lambda x:int(x.split('_')[1]), generationList)
+        versions = map(lambda x: int(x.split('_')[1]), generationList)
         versions.sort()
         return versions[len(versions) - 1]
 
     def _getMaxIndexVersion(self, path, clusterName, generationId, partition):
         files = os.listdir(os.path.join(path, clusterName, 'generation_' + str(generationId), 'partition_' + partition))
-        versions = map(lambda x:int(x.split('.')[1]),
-                       filter(lambda x:x.startswith('version.'), files))
+        versions = map(lambda x: int(x.split('.')[1]),
+                       filter(lambda x: x.startswith('version.'), files))
         if len(versions) > 0:
             return sorted(versions)[-1]
         return -1
 
     def _getPartitions(self, path, clusterName, generationId):
         partitions = os.listdir(os.path.join(path, clusterName, 'generation_' + str(generationId)))
-        partitions = map(lambda x:x.split('n_')[1], filter(lambda x:len(x.split("_")) == 3, partitions))
+        partitions = map(lambda x: x.split('n_')[1], filter(lambda x: len(x.split("_")) == 3, partitions))
         # sort by from of partitions
-        partitions.sort(key=lambda x:int(x.split('_')[0]))
+        partitions.sort(key=lambda x: int(x.split('_')[0]))
         return partitions
 
     def _getSchema(self, path, clusterName, generationId, partition):
-        filePath = os.path.join(path, clusterName, 'generation_' + str(generationId), 'partition_' + partition, "schema.json")
+        filePath = os.path.join(
+            path,
+            clusterName,
+            'generation_' +
+            str(generationId),
+            'partition_' +
+            partition,
+            "schema.json")
         with open(filePath, "r") as f:
             schema = json.load(f)
         return schema
@@ -1265,7 +1325,7 @@ examples:
     def getDefunctPids(self):
         cmd = 'ps uxww | grep ha_sql | grep defunct| grep -v grep'
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-        out,err = p.communicate()
+        out, err = p.communicate()
         pids = []
         for line in out.splitlines():
             parts = line.split()
@@ -1276,13 +1336,13 @@ examples:
         pids = []
         cmd = 'ps uxww | grep ha_sql| grep "%s"| grep -v grep' % rundir
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-        out,err = p.communicate()
+        out, err = p.communicate()
         for line in out.splitlines():
             parts = line.split()
             pids.append(int(parts[1]))
         return pids
 
-    def getUnusedPort(self, lackPort = 1):
+    def getUnusedPort(self, lackPort=1):
         sockets = []
         ports = []
         for i in range(lackPort):
@@ -1300,7 +1360,8 @@ examples:
         zoneName = targetInfo[0]
         partId = targetInfo[1]
         replicaId = targetInfo[2]
-        return '{zoneName}_p{partId}_r{replicaId}'.format(zoneName = zoneName, partId = partId, replicaId = replicaId)
+        return '{zoneName}_p{partId}_r{replicaId}'.format(zoneName=zoneName, partId=partId, replicaId=replicaId)
+
 
 if __name__ == '__main__':
     cmd = LocalSearchStartCmd()

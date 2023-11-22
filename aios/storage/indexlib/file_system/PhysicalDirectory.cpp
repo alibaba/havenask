@@ -18,16 +18,18 @@
 #include <assert.h>
 #include <memory>
 
-#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "fslib/common/common_define.h"
 #include "fslib/common/common_type.h"
 #include "fslib/fs/FileSystem.h"
 #include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/file_system/IFileSystem.h"
 #include "indexlib/file_system/file/BufferedFileNode.h"
-#include "indexlib/file_system/file/BufferedFileOutputStream.h"
 #include "indexlib/file_system/file/BufferedFileWriter.h"
+#include "indexlib/file_system/file/FileReader.h"
 #include "indexlib/file_system/file/FileWriter.h"
 #include "indexlib/file_system/file/NormalFileReader.h"
+#include "indexlib/file_system/fslib/DeleteOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/util/PathUtil.h"
 

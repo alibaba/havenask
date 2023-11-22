@@ -15,6 +15,7 @@
 #include "iquan/jni/test/testlib/SqlSuiteInfo.h"
 
 namespace iquan {
+class CatalogDefs;
 
 class TestUtils {
 public:
@@ -23,32 +24,8 @@ public:
 
     static IquanPtr createIquan();
     static IquanPtr createIquan(const JniConfig &jniConfig, const ClientConfig &sqlConfig);
-
-    static Status registerTable(IquanPtr &pIquan,
-                                const std::string &catalogRootPath,
-                                const std::string &tableName);
-    static Status registerTable(IquanPtr &pIquan,
-                                const std::string &catalogRootPath,
-                                const std::vector<std::string> &tableNames);
-    static Status registerLayerTable(IquanPtr &pIquan,
-                                     const std::string &catalogRootPath,
-                                     const std::string &tableName);
-    static Status registerLayerTables(IquanPtr &pIquan,
-                                      const std::string &catalogRootPath,
-                                      const std::vector<std::string> &tableNames);
-
-    static Status registerFunction(IquanPtr &pIquan,
-                                   const std::string &catalogRootPath,
-                                   const std::string &functionName);
-    static Status registerFunction(IquanPtr &pIquan,
-                                   const std::string &catalogRootPath,
-                                   const std::vector<std::string> &functionNames);
-
-    static Status
-    getTableModels(const std::string &filePath, int64_t version, TableModels &tableModels);
-    static Status
-    getFunctionModels(const std::string &filePath, int64_t version, FunctionModels &functionModels);
-
+    static Status registerCatalogs(const CatalogDefs &catalogDefs, IquanPtr &iquan);
+    static Status registerCatalogs(const std::string &filaPath, IquanPtr &iquan);
     static Status simpleQuery(const IquanPtr &pIquan,
                               const std::string &defaultCatalogName,
                               const std::string &defaultDatabaseName,

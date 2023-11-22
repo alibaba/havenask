@@ -15,10 +15,19 @@
  */
 #include "build_service/build_task/UpdateLocatorTaskItemV2.h"
 
+#include <assert.h>
+#include <string>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "build_service/build_task/SingleBuilder.h"
 #include "build_service/workflow/SwiftProcessedDocProducer.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/base/Status.h"
 #include "indexlib/file_system/IDirectory.h"
+#include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionLoader.h"
+#include "indexlib/indexlib.h"
 
 namespace build_service { namespace build_task {
 

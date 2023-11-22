@@ -1,10 +1,8 @@
-#ifndef __INDEXLIB_ATTRIBUTECONFIGTEST_H
-#define __INDEXLIB_ATTRIBUTECONFIGTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/attribute_config.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -20,12 +18,10 @@ public:
     void TestUpdatable();
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(AttributeConfigTest, TestCreateAttributeConfig);
 INDEXLIB_UNIT_TEST_CASE(AttributeConfigTest, TestAssertEqual);
 INDEXLIB_UNIT_TEST_CASE(AttributeConfigTest, TestUpdatable);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_ATTRIBUTECONFIGTEST_H

@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 #pragma once
-#include <map>
+#include <functional>
+#include <memory>
+#include <stddef.h>
+#include <stdint.h>
+#include <unordered_map>
 
 #include "autil/Log.h"
-#include "autil/NoCopyable.h"
+#include "autil/Span.h"
+#include "autil/mem_pool/Pool.h"
 #include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/document/IDocument.h"
-#include "indexlib/index/IndexFactoryCreator.h"
+#include "indexlib/framework/Locator.h"
 #include "indexlib/util/PooledUniquePtr.h"
-
-namespace indexlib::util {
-template <typename T>
-class PooledUniquePtr;
-}
-
-namespace autil::mem_pool {
-class Pool;
-}
 
 namespace indexlibv2::document {
 
@@ -45,10 +42,11 @@ public:
     static constexpr uint32_t SERIALIZE_VERSION = 100000;
 
 public:
-    explicit PlainDocument(autil::mem_pool::Pool* pool);
+    PlainDocument();
+    ~PlainDocument();
 
     const framework::Locator& GetLocatorV2() const override;
-    DocInfo GetDocInfo() const override;
+    framework::Locator::DocInfo GetDocInfo() const override;
     uint32_t GetTTL() const override;
     docid_t GetDocId() const override;
     DocOperateType GetDocOperateType() const override;
@@ -56,10 +54,11 @@ public:
     autil::StringView GetTraceId() const override;
     int64_t GetIngestionTimestamp() const override;
     autil::StringView GetSource() const override;
+    schemaid_t GetSchemaId() const override { return _schemaId; }
 
 public:
     void SetLocator(const framework::Locator& locator) override;
-    void SetDocInfo(const DocInfo& docInfo) override;
+    void SetDocInfo(const framework::Locator::DocInfo& docInfo) override;
     void SetDocOperateType(DocOperateType type) override;
     void SetTrace(bool trace) override;
 
@@ -71,8 +70,7 @@ public:
                      const std::unordered_map<autil::StringView, std::unique_ptr<const IIndexFieldsParser>>& parsers);
 
 public:
-    autil::mem_pool::Pool* GetPool() const { return _pool.get(); }
-    schemaid_t GetSchemaId() const { return _schemaId; }
+    autil::mem_pool::Pool* GetPool() const { return _recyclePool; }
 
     [[nodiscard]] bool AddIndexFields(indexlib::util::PooledUniquePtr<IIndexFields> indexFields);
     IIndexFields* GetIndexFields(autil::StringView indexType);
@@ -82,6 +80,7 @@ public:
     void SetTraceId(autil::StringView traceId);
     void SetTTL(uint32_t ttl);
     void SetSchemaId(schemaid_t schemaId) { _schemaId = schemaId; }
+    void SetHasFormatError(bool hasFormatError) { _hasFormatError = hasFormatError; }
 
 private:
     using IndexFieldsPtr = indexlib::util::PooledUniquePtr<IIndexFields>;
@@ -89,15 +88,16 @@ private:
 
 private:
     // do not serialize/deserialize
-    PoolPtr _pool; // destroy at last
+    autil::mem_pool::Pool* _recyclePool = nullptr;
     autil::StringView _fbBuffer;
     indexlibv2::framework::Locator _locator;
+    bool _hasFormatError = false;
 
     // serialize/deserialize item
     std::unordered_map<autil::StringView, IndexFieldsPtr> _indexFieldsMap;
     DocOperateType _opType = ADD_DOC;
     uint32_t _ttl = UNINITIALIZED_TTL;
-    DocInfo _docInfo;
+    framework::Locator::DocInfo _docInfo;
     int64_t _ingestionTimestamp = INVALID_TIMESTAMP;
     autil::StringView _source;
     bool _trace = false;

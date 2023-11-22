@@ -1,8 +1,17 @@
 #include "build_service/util/RedisClient.h"
 
 #include <hiredis/hiredis.h>
+#include <iosfwd>
+#include <map>
+#include <stdio.h>
+#include <string>
+#include <sys/time.h>
+#include <unistd.h>
+#include <vector>
 
 #include "build_service/test/unittest.h"
+#include "hiredis/read.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

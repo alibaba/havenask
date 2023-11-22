@@ -24,6 +24,7 @@
 #include "navi/engine/ResourceConfigContext.h"
 #include "navi/resource/QuerySessionR.h"
 #include "sql/framework/PushDownOp.h"
+#include "sql/ops/calc/CalcTableR.h"
 #include "sql/ops/scan/ScanBase.h"
 #include "sql/ops/scan/ScanInitParamR.h"
 #include "sql/ops/scan/ScanR.h"
@@ -58,6 +59,7 @@ private:
 
 private:
     RESOURCE_DEPEND_ON(ScanR, _scanR);
+    RESOURCE_DEPEND_ON(CalcTableR, _calcTableR);
     RESOURCE_DEPEND_ON(navi::QuerySessionR, _querySessionR);
     std::unique_ptr<Connector> _connector;
     std::vector<std::string> _pks;

@@ -39,11 +39,12 @@ IntegratedCompressBlockDataRetriever::IntegratedCompressBlockDataRetriever(
 
 IntegratedCompressBlockDataRetriever::~IntegratedCompressBlockDataRetriever() { ReleaseBuffer(); }
 
-uint8_t* IntegratedCompressBlockDataRetriever::RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
-                                                                 size_t& blockDataLength) noexcept(false)
+FSResult<uint8_t*> IntegratedCompressBlockDataRetriever::RetrieveBlockData(size_t fileOffset,
+                                                                           size_t& blockDataBeginOffset,
+                                                                           size_t& blockDataLength) noexcept
 {
     if (!GetBlockMeta(fileOffset, blockDataBeginOffset, blockDataLength)) {
-        return nullptr;
+        return {FSEC_OK, nullptr};
     }
 
     size_t blockIdx = _compressAddrMapper->OffsetToBlockIdx(blockDataBeginOffset);
@@ -57,9 +58,9 @@ uint8_t* IntegratedCompressBlockDataRetriever::RetrieveBlockData(size_t fileOffs
         ScopedDecompressMetricReporter scopeReporter(_reporter, _readOption.trace);
         if (!_compressor->DecompressToOutBuffer(_baseAddress + compressBlockOffset, compressBlockSize, hintData,
                                                 _blockSize)) {
-            INDEXLIB_FATAL_ERROR(IndexCollapsed, "decompress file [%s] failed, offset [%lu], compress len [%lu]",
-                                 _dataFileReader->DebugString().c_str(), compressBlockOffset, compressBlockSize);
-            return nullptr;
+            AUTIL_LOG(ERROR, "decompress file [%s] failed, offset [%lu], compress len [%lu]",
+                      _dataFileReader->DebugString().c_str(), compressBlockOffset, compressBlockSize);
+            return {FSEC_ERROR, nullptr};
         }
     }
 
@@ -67,7 +68,7 @@ uint8_t* IntegratedCompressBlockDataRetriever::RetrieveBlockData(size_t fileOffs
     char* data = IE_POOL_COMPATIBLE_NEW_VECTOR(_pool, char, len);
     memcpy(data, _compressor->GetBufferOut(), len);
     _addrVec.push_back(StringView(data, len));
-    return (uint8_t*)data;
+    return {FSEC_OK, (uint8_t*)data};
 }
 
 void IntegratedCompressBlockDataRetriever::Reset() noexcept { ReleaseBuffer(); }

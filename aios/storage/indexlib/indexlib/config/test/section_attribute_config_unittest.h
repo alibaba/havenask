@@ -1,10 +1,8 @@
-#ifndef __INDEXLIB_SECTIONATTRIBUTECONFIGTEST_H
-#define __INDEXLIB_SECTIONATTRIBUTECONFIGTEST_H
+#pragma once
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/section_attribute_config.h"
-#include "indexlib/test/test.h"
-#include "indexlib/test/unittest.h"
+#include "indexlib/util/testutil/unittest.h"
 
 namespace indexlib { namespace config {
 
@@ -22,7 +20,7 @@ public:
     void TestSectionAttributeNameToIndexName();
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
 INDEXLIB_UNIT_TEST_CASE(SectionAttributeConfigTest, TestJsonize);
@@ -31,5 +29,3 @@ INDEXLIB_UNIT_TEST_CASE(SectionAttributeConfigTest, TestEqual);
 INDEXLIB_UNIT_TEST_CASE(SectionAttributeConfigTest, TestCreateAttributeConfig);
 INDEXLIB_UNIT_TEST_CASE(SectionAttributeConfigTest, TestSectionAttributeNameToIndexName);
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_SECTIONATTRIBUTECONFIGTEST_H

@@ -89,6 +89,10 @@ void SubGraphBuildInfo::inlineMode(bool inlineMode) {
     _subGraphDef->mutable_option()->set_inline_mode(inlineMode);
 }
 
+void SubGraphBuildInfo::errorHandleStrategy(ErrorHandleStrategy strategy) {
+    _subGraphDef->mutable_option()->set_error_handle_strategy(strategy);
+}
+
 void SubGraphBuildInfo::ignoreIsolate(bool ignoreIsolate) {
     _subGraphDef->mutable_option()->set_ignore_isolate(ignoreIsolate);
 }
@@ -102,17 +106,16 @@ void SubGraphBuildInfo::replaceR(const std::string &from, const std::string &to)
 void SubGraphBuildInfo::initScope() {
     auto count = _subGraphDef->scopes_size();
     if (0 == count) {
-        auto id = nextScopeId();
-        _currentScope = ScopeId(_graphId, id);
-        _scopeSet.insert(id);
-        _subGraphDef->add_scopes(id);
+        addScope();
+        _currentScope.graphId = _graphId;
     } else {
         for (int32_t i = 0; i < count; i++) {
-            auto id = _subGraphDef->scopes(i);
+            auto scopeDef = _subGraphDef->mutable_scopes(i);
+            auto id = scopeDef->id();
             if (i == 0) {
                 _currentScope = ScopeId(_graphId, id);
             }
-            _scopeSet.insert(id);
+            _scopeMap.emplace(id, scopeDef);
         }
     }
 }
@@ -161,12 +164,13 @@ N SubGraphBuildInfo::createScopeTerminator(int32_t scopeIndex) {
         scopeIndex = _currentScope.scopeIndex;
     }
     {
-        auto it = _scopeSet.find(scopeIndex);
-        if (it == _scopeSet.end()) {
+        auto it = _scopeMap.find(scopeIndex);
+        if (it == _scopeMap.end()) {
             auto msg = "can't get scope terminator, scope not exist in subGraph, subGraphId: " +
                        autil::StringUtil::toString(_graphId) + ", scopeId: " + autil::StringUtil::toString(scopeIndex);
             throw autil::legacy::ExceptionBase(msg);
         }
+        it->second->set_has_terminator(true);
     }
     auto scopeTerminatorName = getScopeTerminatorName(scopeIndex);
     auto existNode = getExistNode(scopeTerminatorName);
@@ -281,12 +285,28 @@ SubGraphDef *SubGraphBuildInfo::getSubGraphDef() const {
 ScopeId SubGraphBuildInfo::addScope() {
     auto id = nextScopeId();
     _currentScope.scopeIndex = id;
-    auto it = _scopeSet.find(id);
-    if (_scopeSet.end() == it) {
-        _scopeSet.insert(id);
-        _subGraphDef->add_scopes(id);
+    auto it = _scopeMap.find(id);
+    if (_scopeMap.end() == it) {
+        auto scopeDef = _subGraphDef->add_scopes();
+        scopeDef->set_id(id);
+        _scopeMap.emplace(id, scopeDef);
     }
     return _currentScope;
+}
+
+void SubGraphBuildInfo::scopeErrorHandleStrategy(int32_t scopeIndex,
+                                                 ErrorHandleStrategy strategy)
+{
+    auto it = _scopeMap.find(scopeIndex);
+    if (_scopeMap.end() == it) {
+        auto msg = "set error handle strategy failed, scope not exist in "
+                   "subGraph, subGraphId: " +
+                   autil::StringUtil::toString(_graphId) +
+                   ", scopeId: " + autil::StringUtil::toString(scopeIndex);
+        throw autil::legacy::ExceptionBase(msg);
+    }
+    auto scopeDef = it->second;
+    scopeDef->set_error_handle_strategy(strategy);
 }
 
 ScopeId SubGraphBuildInfo::getCurrentScope() const {
@@ -294,8 +314,8 @@ ScopeId SubGraphBuildInfo::getCurrentScope() const {
 }
 
 void SubGraphBuildInfo::setCurrentScope(int32_t index) {
-    auto it = _scopeSet.find(index);
-    if (it == _scopeSet.end()) {
+    auto it = _scopeMap.find(index);
+    if (it == _scopeMap.end()) {
         auto msg = "scope not exist in subGraph, subGraphId: " + autil::StringUtil::toString(_graphId) +
                    ", scopeId: " + autil::StringUtil::toString(index);
         throw autil::legacy::ExceptionBase(msg);
@@ -305,8 +325,8 @@ void SubGraphBuildInfo::setCurrentScope(int32_t index) {
 
 std::vector<ScopeId> SubGraphBuildInfo::getAllScope() const {
     std::vector<ScopeId> ret;
-    for (auto index : _scopeSet) {
-        ret.push_back(ScopeId(_graphId, index));
+    for (auto index : _scopeMap) {
+        ret.push_back(ScopeId(_graphId, index.first));
     }
     return ret;
 }

@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_BATCH_CONTROL_WROKER_H
-#define ISEARCH_BS_BATCH_CONTROL_WROKER_H
+#pragma once
 
-#include <deque>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 #include "autil/Lock.h"
 #include "autil/LoopThread.h"
-#include "autil/legacy/any.h"
-#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
+#include "build_service/common_define.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/proto/DataDescription.h"
+#include "build_service/proto/ErrorCollector.h"
 #include "build_service/task_base/Task.h"
+#include "build_service/util/Log.h"
 #include "swift/client/SwiftReader.h"
 
 namespace worker_framework {
 class ZkState;
+
 typedef std::shared_ptr<ZkState> ZkStatePtr;
 }; // namespace worker_framework
 
@@ -38,6 +44,7 @@ class ZkWrapper;
 namespace build_service { namespace task_base {
 
 class BatchReporter;
+
 BS_TYPEDEF_PTR(BatchReporter);
 
 class BatchControlWorker : public autil::legacy::Jsonizable
@@ -152,5 +159,3 @@ private:
 BS_TYPEDEF_PTR(BatchControlWorker);
 
 }} // namespace build_service::task_base
-
-#endif // ISEARCH_BS_BATCH_CONTROL_WROKER_H

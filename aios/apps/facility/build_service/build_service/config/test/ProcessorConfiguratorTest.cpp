@@ -1,12 +1,22 @@
 #include "build_service/config/ProcessorConfigurator.h"
 
-#include "build_service/config/BuilderConfig.h"
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ProcessorConfigReader.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/SchemaUpdatableClusterConfig.h"
 #include "build_service/config/SwiftTopicConfig.h"
-#include "build_service/proto/DataDescriptions.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/DataDescription.h"
 #include "build_service/proto/test/ProtoCreator.h"
 #include "build_service/test/unittest.h"
-#include "fslib/util/FileUtil.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

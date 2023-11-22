@@ -1,11 +1,11 @@
 #include "indexlib/merger/test/merge_partition_data_creator_unittest.h"
 
 #include "indexlib/config/impl/merge_config_impl.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index_base/index_meta/version_loader.h"
 #include "indexlib/index_base/segment/multi_part_segment_directory.h"
 #include "indexlib/merger/merge_partition_data.h"
 #include "indexlib/merger/merge_partition_data_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

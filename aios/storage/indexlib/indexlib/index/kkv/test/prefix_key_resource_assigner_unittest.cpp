@@ -1,9 +1,9 @@
 #include "indexlib/index/kkv/test/prefix_key_resource_assigner_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/framework/SegmentMetrics.h"
 #include "indexlib/index/kkv/kkv_define.h"
 #include "indexlib/index_base/segment/segment_writer.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

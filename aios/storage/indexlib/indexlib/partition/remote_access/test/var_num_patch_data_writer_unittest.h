@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_VARNUMPATCHDATAWRITERTEST_H
-#define __INDEXLIB_VARNUMPATCHDATAWRITERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/remote_access/var_num_patch_data_writer.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(VarNumPatchDataWriterTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_VARNUMPATCHDATAWRITERTEST_H

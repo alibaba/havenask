@@ -50,7 +50,7 @@ void MultiPartSegmentDirectory::Init(const file_system::DirectoryVector& directo
     vector<Version> versions;
     for (size_t i = 0; i < directoryVec.size(); ++i) {
         Version version;
-        VersionLoader::GetVersion(directoryVec[i], version, INVALID_VERSION);
+        VersionLoader::GetVersion(directoryVec[i], version, INVALID_VERSIONID);
         versions.push_back(version);
     }
     Init(directoryVec, versions, hasSub);

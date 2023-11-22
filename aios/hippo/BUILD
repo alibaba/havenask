@@ -35,6 +35,30 @@ cc_library(
     linkstatic=True
 )
 cc_library(
+    name='hippo_sdk',
+    srcs=glob([
+        'src/proto_helper/ResourceHelper.h',
+        'src/proto_helper/ResourceRequirement.h', 'src/util/PackageUtil.h',
+        'src/common/common.h', 'src/util/Log.h', 'src/util/PathUtil.h',
+        'src/util/PathUtil.cpp', 'src/proto_helper/ResourceHelper.cpp',
+        'src/proto_helper/ResourceRequirement.cpp', 'src/util/PackageUtil.cpp',
+        'src/sdk/HippoUtil.cpp', 'src/sdk/ProtoWrapper.cpp'
+    ]),
+    deps=[
+        '//aios/autil:json', '//aios/autil:system_util', ':hippo_sdk_header',
+        ':hippo_proto', '//aios/filesystem/fslib:fslib-framework'
+    ],
+    includes=['src']
+)
+cc_library(
+    name='hippo_proto',
+    hdrs=glob(['hippo/proto/*.h']),
+    srcs=glob(['hippo/proto/*.cpp']),
+    deps=[':proto_cc_proto'],
+    strip_include_prefix='hippo',
+    include_prefix='hippo'
+)
+cc_library(
     name='hippo_local_schedule',
     visibility=['//visibility:public'],
     srcs=glob([

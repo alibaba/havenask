@@ -36,10 +36,13 @@ public:
 
 private:
     struct PostingItem {
-        docid_t docid;
-        docid_t lastDocid;
+        docid32_t docid;
+        docid32_t lastDocid;
         uint32_t bufferCursor;
-        PostingItem(docid_t did, docid_t lastid, uint32_t cursor) : docid(did), lastDocid(lastid), bufferCursor(cursor)
+        PostingItem(docid32_t did, docid32_t lastid, uint32_t cursor)
+            : docid(did)
+            , lastDocid(lastid)
+            , bufferCursor(cursor)
         {
         }
     };
@@ -55,9 +58,9 @@ private:
     typedef util::SimpleHeap<PostingItem, PostingItemComparator> RangeHeap;
 
 public:
-    void Init(const std::shared_ptr<SegmentPostings>& segPostings, docid_t startDocid, docid_t nextSegmentDocId);
-    index::Result<bool> Seek(docid_t docid) noexcept;
-    docid_t GetCurrentDocid() const { return _currentDocId; }
+    void Init(const std::shared_ptr<SegmentPostings>& segPostings, docid64_t startDocid, docid64_t nextSegmentDocId);
+    index::Result<bool> Seek(docid64_t docid) noexcept;
+    docid64_t GetCurrentDocid() const { return _currentDocId; }
     void Reset();
 
 private:
@@ -70,10 +73,10 @@ private:
 private:
     autil::mem_pool::Pool* _sessionPool;
     uint32_t& _seekDocCounter;
-    docid_t* _docBuffer;
-    docid_t _currentDocId;
-    docid_t _baseDocId;
-    docid_t _nextSegmentDocId;
+    docid32_t* _docBuffer;
+    docid64_t _currentDocId;
+    docid64_t _baseDocId;
+    docid64_t _nextSegmentDocId;
     uint32_t _bufferLength;
     PostingFormatOption _postingFormatOption;
     std::shared_ptr<SegmentPostings> _segPostings;
@@ -86,12 +89,12 @@ private:
 };
 
 /////////////////////////////////////////////////////////
-__ALWAYS_INLINE inline index::Result<bool> RangeSegmentPostingsIterator::Seek(docid_t docid) noexcept
+__ALWAYS_INLINE inline index::Result<bool> RangeSegmentPostingsIterator::Seek(docid64_t docid) noexcept
 {
     if (_nextSegmentDocId != INVALID_DOCID && docid >= _nextSegmentDocId) {
         return false;
     }
-    docid_t innerDocId = docid - _baseDocId;
+    docid32_t innerDocId = docid - _baseDocId;
     while (!_heap.empty()) {
         _seekDocCounter++;
         const PostingItem& item = _heap.top();
@@ -115,8 +118,8 @@ __ALWAYS_INLINE inline index::Result<bool> RangeSegmentPostingsIterator::Seek(do
                 return false;
             }
         }
-        docid_t* cursor = _docBuffer + tmpItem.bufferCursor;
-        docid_t curDocId = tmpItem.docid;
+        docid32_t* cursor = _docBuffer + tmpItem.bufferCursor;
+        docid32_t curDocId = tmpItem.docid;
         while (curDocId < innerDocId) {
             curDocId += *(++cursor);
         }

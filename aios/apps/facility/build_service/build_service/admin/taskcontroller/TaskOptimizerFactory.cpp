@@ -15,6 +15,10 @@
  */
 #include "build_service/admin/taskcontroller/TaskOptimizerFactory.h"
 
+#include <iosfwd>
+#include <memory>
+#include <utility>
+
 #include "build_service/admin/taskcontroller/BuildServiceTask.h"
 #include "build_service/admin/taskcontroller/ProcessorTaskOptimizer.h"
 

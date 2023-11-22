@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <memory>
+#include <iosfwd>
 
 namespace indexlib { namespace util {
 

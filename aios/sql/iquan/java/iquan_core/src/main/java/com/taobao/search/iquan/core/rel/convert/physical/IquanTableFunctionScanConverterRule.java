@@ -1,5 +1,7 @@
 package com.taobao.search.iquan.core.rel.convert.physical;
 
+import java.util.Map;
+
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.exception.FunctionNotExistException;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
@@ -19,8 +21,6 @@ import org.apache.calcite.sql.SqlOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 public class IquanTableFunctionScanConverterRule extends ConverterRule {
     private static final Logger logger = LoggerFactory.getLogger(IquanTableFunctionScanConverterRule.class);
     public static IquanTableFunctionScanConverterRule INSTANCE = new IquanTableFunctionScanConverterRule();
@@ -29,12 +29,26 @@ public class IquanTableFunctionScanConverterRule extends ConverterRule {
         super(LogicalTableFunctionScan.class, Convention.NONE, IquanConvention.PHYSICAL, IquanTableFunctionScanConverterRule.class.getSimpleName());
     }
 
+    private static boolean existNestedTVF(RexCall rootCall) {
+        for (RexNode rexNode : rootCall.getOperands()) {
+            if (rexNode instanceof RexCall) {
+                RexCall call = (RexCall) rexNode;
+                if (call.getOperator() instanceof TableValueFunction) {
+                    return true;
+                }
+                if (existNestedTVF(call)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public RelNode convert(RelNode relNode) {
         final LogicalTableFunctionScan functionScan = (LogicalTableFunctionScan) relNode;
         final RelTraitSet traitSet = functionScan.getTraitSet().replace(IquanConvention.PHYSICAL);
 
-        boolean isNormalScope = true;
         boolean isBlock = false;
         boolean enableShuffle = false;
         SqlOperator operator = ((RexCall) functionScan.getCall()).getOperator();
@@ -46,16 +60,7 @@ public class IquanTableFunctionScanConverterRule extends ConverterRule {
             }
 
             Map<String, Object> properties = tableValueFunction.getProperties();
-            /*
-            Object normalScopeParam = properties.get(ConstantDefine.NORMAL_SCOPE);
-            if (normalScopeParam != null) {
-                if (normalScopeParam instanceof Boolean) {
-                    isNormalScope = (Boolean) normalScopeParam;
-                } else if (normalScopeParam instanceof String) {
-                    isNormalScope = Boolean.parseBoolean((String) normalScopeParam);
-                }
-            }
-            */
+
             Object blockParam = properties.get(ConstantDefine.BLOCK);
             if (blockParam != null) {
                 if (blockParam instanceof Boolean) {
@@ -73,69 +78,7 @@ public class IquanTableFunctionScanConverterRule extends ConverterRule {
                 }
             }
 
-            /*
-            do {
-                if (!isNormalScope && !tableValueFunction.isIdentityFields()) {
-                    logger.warn("table value function {} has not identity output fields, force set to normal_score",
-                            tableValueFunction.getTvfFunction().getName());
-                    isNormalScope = true;
-                    break;
-                }
-
-                JsonTvfDistribution distribution = tableValueFunction.getDistribution();
-                if (distribution.getPartitionCnt() == 1) {
-                    logger.warn("partition cnt of table value function {} is 1, force set to normal_score",
-                            tableValueFunction.getTvfFunction().getName());
-                    isNormalScope = true;
-                    break;
-                }
-            } while (false);
-            */
         }
-/*
-        if (!isNormalScope) {
-            IquanTableFunctionScanOp localFunctionScan = new IquanTableFunctionScanOp(
-                    functionScan.getCluster(),
-                    traitSet,
-                    functionScan.getInputs(),
-                    functionScan.getCall(),
-                    functionScan.getElementType(),
-                    functionScan.getRowType(),
-                    functionScan.getColumnMappings(),
-                    Scope.PARTIAL,
-                    isBlock
-            );
-
-            IquanExchangeOp exchangeOp = new IquanExchangeOp(
-                    functionScan.getCluster(),
-                    traitSet.replace(FlinkRelDistribution.SINGLETON()),
-                    localFunctionScan,
-                    Distribution.SINGLETON
-            );
-
-            return new IquanTableFunctionScanOp(
-                    functionScan.getCluster(),
-                    traitSet,
-                    ImmutableList.of(exchangeOp),
-                    functionScan.getCall(),
-                    functionScan.getElementType(),
-                    functionScan.getRowType(),
-                    functionScan.getColumnMappings(),
-                    Scope.FINAL,
-                    true);
-        } else {
-            return new IquanTableFunctionScanOp(
-                    functionScan.getCluster(),
-                    traitSet,
-                    functionScan.getInputs(),
-                    functionScan.getCall(),
-                    functionScan.getElementType(),
-                    functionScan.getRowType(),
-                    functionScan.getColumnMappings(),
-                    Scope.NORMAL,
-                    isBlock);
-        }
-*/
         IquanTableFunctionScanOp scanOp = new IquanTableFunctionScanOp(
                 functionScan.getCluster(),
                 traitSet,
@@ -153,20 +96,5 @@ public class IquanTableFunctionScanConverterRule extends ConverterRule {
         } catch (FunctionNotExistException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static boolean existNestedTVF(RexCall rootCall) {
-        for (RexNode rexNode : rootCall.getOperands()) {
-            if (rexNode instanceof RexCall) {
-                RexCall call = (RexCall) rexNode;
-                if (call.getOperator() instanceof TableValueFunction) {
-                    return true;
-                }
-                if (existNestedTVF(call)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }

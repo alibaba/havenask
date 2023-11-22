@@ -44,6 +44,9 @@ void TraceCollector::merge(TraceCollector &other) {
 }
 
 void TraceCollector::format(std::vector<std::string> &traceVec) const {
+    if (_eventList.empty()) {
+        return;
+    }
     PatternLayout layout;
     layout.setLogPattern(_formatPattern);
     traceVec.reserve(_eventList.size());
@@ -52,27 +55,35 @@ void TraceCollector::format(std::vector<std::string> &traceVec) const {
     }
 }
 
-void TraceCollector::fillProto(GraphTraceDef *trace) const {
-    for (const auto &event : _eventList) {
-        auto eventDef = trace->add_events();
-        event.fillProto(eventDef);
+void TraceCollector::toProto(GraphTraceDef *traceDef,
+                             StringHashTable *stringHashTable)
+{
+    if (_eventList.empty()) {
+        return;
     }
+    traceDef->set_format_pattern(_formatPattern);
+    traceDef->set_name(_eventList.front().name);
+    for (const auto &event : _eventList) {
+        auto eventDef = traceDef->add_events();
+        event.toProto(eventDef, stringHashTable);
+    }
+    _eventList.clear();
 }
 
-void TraceCollector::serialize(autil::DataBuffer &dataBuffer) const {
-    dataBuffer.write(_eventList.size());
-    for (const auto &event : _eventList) {
-        dataBuffer.write(event);
+void TraceCollector::fromProto(const GraphTraceDef &traceDef,
+                               const SymbolTableDef &symbolTableDef)
+{
+    if (_formatPattern.empty()) {
+        _formatPattern = traceDef.format_pattern();
     }
-}
-
-void TraceCollector::deserialize(autil::DataBuffer &dataBuffer) {
-    size_t traceSize;
-    dataBuffer.read(traceSize);
-    for (size_t i = 0; i < traceSize; ++i) {
+    const auto &name = traceDef.name();
+    auto count = traceDef.events_size();
+    for (int32_t i = 0; i < count; i++) {
+        const auto &eventDef = traceDef.events(i);
         LoggingEvent event;
-        dataBuffer.read(event);
-        _eventList.emplace_back(event);
+        event.fromProto(eventDef, &symbolTableDef);
+        event.name = name;
+        append(event);
     }
 }
 
@@ -80,7 +91,7 @@ bool TraceCollector::empty() const {
     return _eventList.empty();
 }
 
-size_t TraceCollector::eventSize() const {
+size_t TraceCollector::eventCount() const {
     return _eventList.size();
 }
 

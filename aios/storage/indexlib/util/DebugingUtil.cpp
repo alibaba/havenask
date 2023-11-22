@@ -16,8 +16,7 @@
 #include "indexlib/util/DebugingUtil.h"
 
 #include <fstream>
-#include <ios>
-#include <iostream>
+#include <string>
 #include <unistd.h>
 
 using namespace std;

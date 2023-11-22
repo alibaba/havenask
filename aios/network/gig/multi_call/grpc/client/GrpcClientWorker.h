@@ -19,7 +19,7 @@
 #include <grpc++/alarm.h>
 #include <grpc++/grpc++.h>
 
-#include "aios/network/gig/multi_call/grpc/CompletionQueueStatus.h"
+#include "aios/network/gig/multi_call/grpc/client/CompletionQueueStatus.h"
 #include "aios/network/gig/multi_call/util/RandomGenerator.h"
 #include "autil/Thread.h"
 

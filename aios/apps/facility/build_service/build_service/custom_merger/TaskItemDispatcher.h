@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TASKITEMDISPATCHER_H
-#define ISEARCH_BS_TASKITEMDISPATCHER_H
+#pragma once
 
+#include <memory>
 #include <queue>
+#include <stddef.h>
+#include <stdint.h>
+#include <vector>
 
 #include "build_service/common_define.h"
 #include "build_service/custom_merger/CustomMergeMeta.h"
-#include "build_service/custom_merger/CustomMerger.h"
+#include "build_service/custom_merger/CustomMergePlan.h"
+#include "build_service/custom_merger/CustomMergerTaskItem.h"
 #include "build_service/util/Log.h"
-#include "indexlib/config/index_partition_schema.h"
 
 namespace build_service { namespace custom_merger {
 
@@ -72,5 +75,3 @@ private:
 BS_TYPEDEF_PTR(TaskItemDispatcher);
 
 }} // namespace build_service::custom_merger
-
-#endif // ISEARCH_BS_TASKITEMDISPATCHER_H

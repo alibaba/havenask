@@ -1,9 +1,26 @@
 #include "build_service/admin/taskcontroller/TaskMaintainer.h"
 
-#include "autil/legacy/jsonizable.h"
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/GeneralTaskController.h"
+#include "build_service/common/CpuSpeedEstimater.h"
+#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/CounterConfig.h"
 #include "build_service/config/ResourceReaderManager.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/config/TaskTarget.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/proto/JsonizableProtobuf.h"
+#include "build_service/proto/WorkerNode.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace build_service::proto;
 using namespace build_service::config;

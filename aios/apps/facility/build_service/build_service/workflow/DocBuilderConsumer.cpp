@@ -15,7 +15,21 @@
  */
 #include "build_service/workflow/DocBuilderConsumer.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "build_service/document/DocumentDefine.h"
 #include "build_service/document/ProcessedDocument.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/document/document.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/indexlib.h"
+#include "indexlib/partition/index_builder.h"
+
 using namespace std;
 using namespace build_service::document;
 using namespace indexlib::document;
@@ -48,7 +62,7 @@ FlowError DocBuilderConsumer::consume(const ProcessedDocumentVecPtr& item)
     }
     common::Locator locator = processedDoc->getLocator();
     BS_LOG(DEBUG, "build locator is: %s", locator.DebugString().c_str());
-    indexDoc->SetLocator(locator.Serialize());
+    indexDoc->SetLocator(locator);
 
     if (_builder->hasFatalError()) {
         return FE_FATAL;

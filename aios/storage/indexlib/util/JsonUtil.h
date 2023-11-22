@@ -16,10 +16,12 @@
 #pragma once
 
 #include <optional>
+#include <string>
 
-#include "autil/Log.h"
 #include "autil/legacy/any.h"
 #include "autil/legacy/json.h"
+#include "autil/legacy/jsonizable.h"
+#include "indexlib/base/Status.h"
 
 namespace indexlib::util {
 
@@ -42,6 +44,24 @@ public:
 
     // value to any
     static autil::legacy::Any StringToAny(const std::string& value) noexcept;
+
+    template <typename T>
+    static indexlib::Status FromString(const std::string& jsonStr, T* object)
+    {
+        indexlib::Status status;
+        try {
+            autil::legacy::FromJsonString(*object, jsonStr);
+        } catch (const autil::legacy::ExceptionBase& e) {
+            status =
+                indexlib::Status::InvalidArgs("[%s] from json string failed. exception %s", jsonStr.c_str(), e.what());
+        } catch (const std::exception& e) {
+            status =
+                indexlib::Status::InvalidArgs("[%s] from json string failed. exception %s", jsonStr.c_str(), e.what());
+        } catch (...) {
+            status = indexlib::Status::InvalidArgs("[%s] from json string failed. unknown exception", jsonStr.c_str());
+        }
+        return status;
+    }
 };
 
 } // namespace indexlib::util

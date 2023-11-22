@@ -15,9 +15,21 @@
  */
 #include "indexlib/config/FileCompressSchema.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <iosfwd>
+#include <set>
+#include <utility>
+
+#include "autil/Span.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "indexlib/base/Constant.h"
 #include "indexlib/config/ConfigDefine.h"
 #include "indexlib/config/FileCompressConfig.h"
+#include "indexlib/index/common/Types.h"
 #include "indexlib/util/Exception.h"
 #include "indexlib/util/KeyHasherTyped.h"
 

@@ -15,7 +15,16 @@
  */
 #include "build_service/admin/controlflow/JsonParamParser.h"
 
-#include "autil/legacy/jsonizable.h"
+#include <assert.h>
+#include <iosfwd>
+#include <map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/admin/controlflow/Eluna.h"
 
 using namespace std;
 using namespace autil;

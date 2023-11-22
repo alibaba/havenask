@@ -1,5 +1,4 @@
-#include "build_service/admin/GenerationTask.h"
-#include "build_service/test/unittest.h"
+#pragma once
 
 namespace build_service { namespace admin {
 

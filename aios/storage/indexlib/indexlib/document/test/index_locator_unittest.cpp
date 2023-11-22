@@ -55,8 +55,8 @@ TEST_F(IndexLocatorTest, TestCompatable)
     ASSERT_TRUE(newLocator.Deserialize(oldLocator.toString()));
     ASSERT_EQ(123, newLocator.GetSrc());
     ASSERT_EQ(456, newLocator.GetOffset().first);
-    ASSERT_EQ(1, newLocator.GetProgress().size());
-    ASSERT_EQ(indexlibv2::base::Progress(0, 65535, {456, 0}), newLocator.GetProgress()[0]);
+    ASSERT_EQ(1, newLocator.GetMultiProgress()[0].size());
+    ASSERT_EQ(indexlibv2::base::Progress(0, 65535, {456, 0}), newLocator.GetMultiProgress()[0][0]);
 }
 
 }} // namespace indexlib::document

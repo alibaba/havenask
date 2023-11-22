@@ -41,17 +41,16 @@ class IServerResolver;
 
 class CMSubscriberImp : public CMSubscriberBase
 {
-private:
-    arpc::ANetRPCChannelManager* _arpc; //
-    IServerResolver* _serverResolver;
-    bool _stopFlag;
-    int32_t _retryMax;
-    int32_t _expireTime;
-    cm_basic::SubscriberService_Stub* _stub; //
-    cm_basic::SubReqMsg* _reqMsg;
-    autil::ThreadPtr _threadPtr; // 线程指针
-    autil::ThreadPtr _writeCacheThread;
-    mutable autil::ReadWriteLock _rwlock;
+public:
+    CMSubscriberImp(SubscriberConfig* cfg_info, arpc::ANetRPCChannelManager* arpc, IServerResolver* server_resolver);
+    virtual ~CMSubscriberImp();
+
+public:
+    virtual int32_t init(TopoClusterManager* topo_cluster, cm_basic::CMCentralSub* cm_central);
+    virtual int32_t subscriber();
+    virtual int32_t unsubscriber();
+    virtual int32_t addSubCluster(std::string name);
+    virtual int32_t removeSubCluster(std::string name);
 
 private:
     // 连接server
@@ -62,6 +61,7 @@ private:
     void writeCacheProc();
     void doWriteCache();
     int32_t readCache();
+    cm_basic::SubReqMsg getReqMsg();
 
 private:
     //
@@ -69,16 +69,17 @@ private:
     // 处理订阅的响应消息
     int32_t procSubRespMsg(cm_basic::SubRespMsg* resp_msg);
     static void* threadProc(void* argv);
-    void updateUsedClusters();
 
-public:
-    CMSubscriberImp(SubscriberConfig* cfg_info, arpc::ANetRPCChannelManager* arpc, IServerResolver* server_resolver);
-    virtual ~CMSubscriberImp();
-    virtual int32_t init(TopoClusterManager* topo_cluster, cm_basic::CMCentralSub* cm_central);
-    virtual int32_t subscriber();
-    virtual int32_t unsubscriber();
-    virtual int32_t addSubCluster(std::string name);
-    virtual int32_t removeSubCluster(std::string name);
+private:
+    arpc::ANetRPCChannelManager* _arpc; //
+    IServerResolver* _serverResolver;
+    bool _stopFlag;
+    int32_t _retryMax;
+    int32_t _expireTime;
+    cm_basic::SubscriberService_Stub* _stub; //
+    cm_basic::SubReqMsg* _reqMsg;
+    autil::ThreadPtr _threadPtr; // 线程指针
+    autil::ThreadPtr _writeCacheThread;
 
 private:
     AUTIL_LOG_DECLARE();

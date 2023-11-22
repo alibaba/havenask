@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SLOWNODEMETRICREPORTER_H
-#define ISEARCH_BS_SLOWNODEMETRICREPORTER_H
+#pragma once
+
+#include <stdint.h>
 
 #include "build_service/common_define.h"
-#include "build_service/proto/WorkerNode.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor_adapter/Metric.h"
 #include "kmonitor_adapter/Monitor.h"
 
 namespace build_service { namespace admin {
@@ -89,5 +92,3 @@ private:
 BS_TYPEDEF_PTR(SlowNodeMetricReporter);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_SLOWNODEMETRICREPORTER_H

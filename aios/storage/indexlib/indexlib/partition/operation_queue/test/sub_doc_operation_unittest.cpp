@@ -1,8 +1,8 @@
 #include "indexlib/partition/operation_queue/test/sub_doc_operation_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/partition/operation_queue/operation_factory.h"
 #include "indexlib/test/document_creator.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil::mem_pool;

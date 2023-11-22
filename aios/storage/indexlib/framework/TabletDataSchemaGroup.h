@@ -16,6 +16,8 @@
 #pragma once
 
 #include <map>
+#include <memory>
+#include <stddef.h>
 
 #include "indexlib/base/Types.h"
 #include "indexlib/framework/IResource.h"

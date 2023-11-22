@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_TIMESERIESSPLITSTRATEGYTEST_H
-#define __INDEXLIB_TIMESERIESSPLITSTRATEGYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -35,5 +34,3 @@ INDEXLIB_UNIT_TEST_CASE(TimeSeriesSplitStrategyTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(TimeSeriesSplitStrategyTest, TestSplitWithSelectionMergeStrategy);
 INDEXLIB_UNIT_TEST_CASE(TimeSeriesSplitStrategyTest, TestSplitWithSelectionMergeStrategyNoSplit);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TIMESERIESSPLITSTRATEGYTEST_H

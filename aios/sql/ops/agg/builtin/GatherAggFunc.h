@@ -84,7 +84,6 @@ private:
 
 public:
     DEF_CREATE_ACCUMULATOR_FUNC(GatherAccumulator<InputType>, _funcPool)
-    bool needDependInputTablePools() const override;
 
 private:
     // local
@@ -104,11 +103,6 @@ private:
     table::ColumnData<autil::MultiValueType<InputType>> *_outputColumn;
 };
 
-template <typename InputType>
-bool GatherAggFunc<InputType>::needDependInputTablePools() const {
-    return false;
-}
-
 // local
 template <typename InputType>
 bool GatherAggFunc<InputType>::initCollectInput(const table::TablePtr &inputTable) {
@@ -124,11 +118,10 @@ template <typename InputType>
 bool GatherAggFunc<InputType>::initAccumulatorOutput(const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
     _gatheredColumn = table::TableUtil::declareAndGetColumnData<autil::MultiValueType<InputType>>(
-        outputTable, _outputFields[0], false);
+        outputTable, _outputFields[0]);
     if (_gatheredColumn == nullptr) {
         return false;
     }
-    outputTable->endGroup();
     return true;
 }
 
@@ -142,10 +135,7 @@ bool GatherAggFunc<InputType>::collect(table::Row inputRow, Accumulator *acc) {
 template <typename InputType>
 bool GatherAggFunc<InputType>::outputAccumulator(Accumulator *acc, table::Row outputRow) const {
     GatherAccumulator<InputType> *gatherAcc = static_cast<GatherAccumulator<InputType> *>(acc);
-    autil::MultiValueType<InputType> outputRes;
-    outputRes.init(autil::MultiValueCreator::createMultiValueBuffer(
-        gatherAcc->poolVector.data(), gatherAcc->poolVector.size(), _pool));
-    _gatheredColumn->set(outputRow, outputRes);
+    _gatheredColumn->set(outputRow, gatherAcc->poolVector.data(), gatherAcc->poolVector.size());
     return true;
 }
 
@@ -171,7 +161,7 @@ template <typename InputType>
 bool GatherAggFunc<InputType>::initResultOutput(const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
     _outputColumn = table::TableUtil::declareAndGetColumnData<autil::MultiValueType<InputType>>(
-        outputTable, _outputFields[0], false);
+        outputTable, _outputFields[0]);
     if (_outputColumn == nullptr) {
         return false;
     }
@@ -191,9 +181,7 @@ bool GatherAggFunc<InputType>::merge(table::Row inputRow, Accumulator *acc) {
 template <typename InputType>
 bool GatherAggFunc<InputType>::outputResult(Accumulator *acc, table::Row outputRow) const {
     GatherAccumulator<InputType> *gatherAcc = static_cast<GatherAccumulator<InputType> *>(acc);
-    autil::MultiValueType<InputType> outputRes(autil::MultiValueCreator::createMultiValueBuffer(
-        gatherAcc->poolVector.data(), gatherAcc->poolVector.size(), _pool));
-    _outputColumn->set(outputRow, outputRes);
+    _outputColumn->set(outputRow, gatherAcc->poolVector.data(), gatherAcc->poolVector.size());
     return true;
 }
 

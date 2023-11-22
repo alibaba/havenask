@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVFACTORYTEST_H
-#define __INDEXLIB_KVFACTORYTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/indexlib.h"
@@ -24,5 +23,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KVFACTORYTEST_H

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_OFFLINEPARTITIONREADERTEST_H
-#define __INDEXLIB_OFFLINEPARTITIONREADERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/offline_partition_reader.h"
@@ -36,5 +35,3 @@ INDEXLIB_UNIT_TEST_CASE(OfflinePartitionReaderTest, TestCacheLoadConfig);
 INDEXLIB_UNIT_TEST_CASE(OfflinePartitionReaderTest, TestSkipLoadIndex);
 INDEXLIB_UNIT_TEST_CASE(OfflinePartitionReaderTest, TestUseLazyLoadAttributeReaders);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OFFLINEPARTITIONREADERTEST_H

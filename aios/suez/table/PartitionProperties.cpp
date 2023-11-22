@@ -17,6 +17,7 @@
 
 #include "autil/Log.h"
 #include "build_service/workflow/RealtimeBuilder.h"
+#include "fslib/fs/FileSystem.h"
 #include "resource_reader/ResourceReader.h"
 #include "suez/common/TablePathDefine.h"
 #include "suez/sdk/PathDefine.h"
@@ -107,34 +108,95 @@ bool PartitionProperties::init(const TargetPartitionMeta &target, const TableCon
     this->schemaRoot = tabletOptions.GetNeedReadRemoteIndex() ? this->secondaryIndexRoot : this->primaryIndexRoot;
 
     if (this->hasRt || this->directWrite) {
-        const auto &realtimeInfoFromConfig = tableConfig.getRealtimeInfo();
-        if (!realtimeInfoFromConfig.empty()) {
-            // TODO: validate
-            realtimeInfo = build_service::workflow::RealtimeInfoWrapper(realtimeInfoFromConfig);
-            AUTIL_LOG(INFO, "construct realtime info from table config");
-        } else {
-            if (!realtimeInfo.load(schemaRoot)) {
-                AUTIL_LOG(ERROR,
-                          "load realtime info from %s for %s failed",
-                          schemaRoot.c_str(),
-                          autil::legacy::FastToJsonString(_pid).c_str());
-                return false;
-            }
-            auto specifiedDataLinkMode = tableConfig.GetDataLinkMode();
-            if (!realtimeInfo.adaptsToDataLinkMode(specifiedDataLinkMode)) {
-                AUTIL_LOG(ERROR,
-                          "load realtime info from %s for %s failed: adapts to DataLinkMode[%s] failed",
-                          schemaRoot.c_str(),
-                          autil::legacy::FastToJsonString(_pid).c_str(),
-                          specifiedDataLinkMode.c_str());
-            }
-
+        if (!loadRealtimeInfo(_pid, tableConfig, schemaRoot, &realtimeInfo)) {
+            AUTIL_LOG(ERROR, "load realtime info for %s failed", autil::legacy::FastToJsonString(_pid).c_str());
+            return false;
+        }
+        if (tableConfig.getRealtimeInfo().empty()) {
             if (!tableConfig.hasMergeControllerConfig() && !realtimeInfo.getBsServerAddress().empty()) {
                 // when no merge controller config && has remote bs service, use remote mode
                 this->mergeControllerConfig.mode = "remote";
             }
-            AUTIL_LOG(INFO, "construct realtime info from index root: %s", schemaRoot.c_str());
         }
+    }
+    return true;
+}
+
+bool PartitionProperties::mergeConfig(const std::map<std::string, std::string> &srcMap,
+                                      const std::string &key,
+                                      std::map<std::string, std::string> &dstMap) {
+    auto srcIter = srcMap.find(key);
+    if (srcIter == srcMap.end()) {
+        return true;
+    }
+    auto dstIter = dstMap.find(key);
+    if (dstIter != dstMap.end()) {
+        if (srcIter->second != dstIter->second) {
+            return false;
+        }
+        return true;
+    } else {
+        dstMap[key] = srcIter->second;
+        return true;
+    }
+}
+
+bool PartitionProperties::loadRealtimeInfo(const PartitionId &pid,
+                                           const std::string &remoteConfigPath,
+                                           const std::string &indexRoot,
+                                           build_service::workflow::RealtimeInfoWrapper *realtimeInfo) {
+    std::string configPath = TablePathDefine::constructLocalConfigPath(pid.getTableName(), remoteConfigPath);
+    if (fslib::EC_TRUE != fslib::fs::FileSystem::isExist(configPath)) {
+        configPath = remoteConfigPath;
+    }
+    TableConfig tableConfig;
+    const auto &fileName = PathDefine::getTableConfigFileName(pid.getTableName());
+    if (!tableConfig.loadFromFile(configPath, fileName, false)) {
+        AUTIL_LOG(ERROR, "load table config from file failed, [%s]", fileName.c_str());
+        return false;
+    }
+    return loadRealtimeInfo(pid, tableConfig, indexRoot, realtimeInfo);
+}
+
+bool PartitionProperties::loadRealtimeInfo(const PartitionId &pid,
+                                           const TableConfig &tableConfig,
+                                           const std::string &indexRoot,
+                                           build_service::workflow::RealtimeInfoWrapper *realtimeInfo) {
+    build_service::workflow::RealtimeInfoWrapper realtimeInfoFromIndex;
+    if (!realtimeInfoFromIndex.load(indexRoot)) {
+        AUTIL_LOG(ERROR,
+                  "load realtime info from %s for %s failed",
+                  indexRoot.c_str(),
+                  autil::legacy::FastToJsonString(pid).c_str());
+        return false;
+    }
+    auto realtimeInfoFromConfig = tableConfig.getRealtimeInfo();
+    if (!realtimeInfoFromConfig.empty()) {
+        // merge 'app_name' and 'data_table' from realtimeInfoFromIndex
+        if (!mergeConfig(realtimeInfoFromIndex.getKvMap(), build_service::config::APP_NAME, realtimeInfoFromConfig)) {
+            AUTIL_LOG(ERROR, "%s in config and index is not same", build_service::config::APP_NAME.c_str());
+            return false;
+        }
+        if (!mergeConfig(
+                realtimeInfoFromIndex.getKvMap(), build_service::config::DATA_TABLE_NAME, realtimeInfoFromConfig)) {
+            AUTIL_LOG(ERROR, "%s in config and index is not same", build_service::config::DATA_TABLE_NAME.c_str());
+            return false;
+        }
+        // TODO: validate
+        *realtimeInfo = build_service::workflow::RealtimeInfoWrapper(realtimeInfoFromConfig);
+        AUTIL_LOG(DEBUG, "construct realtime info from table config");
+    } else {
+        *realtimeInfo = realtimeInfoFromIndex;
+        auto specifiedDataLinkMode = tableConfig.GetDataLinkMode();
+        if (!realtimeInfo->adaptsToDataLinkMode(specifiedDataLinkMode)) {
+            AUTIL_LOG(ERROR,
+                      "load realtime info from %s for %s failed: adapts to DataLinkMode[%s] failed",
+                      indexRoot.c_str(),
+                      autil::legacy::FastToJsonString(pid).c_str(),
+                      specifiedDataLinkMode.c_str());
+            return false;
+        }
+        AUTIL_LOG(DEBUG, "construct realtime info from index root: %s", indexRoot.c_str());
     }
     return true;
 }

@@ -18,6 +18,7 @@
 #include <memory>
 
 #include "autil/NoCopyable.h"
+#include "autil/Span.h"
 #include "indexlib/base/Status.h"
 
 namespace autil::mem_pool {
@@ -45,8 +46,8 @@ public:
 
     virtual Status Init(const std::vector<std::shared_ptr<config::IIndexConfig>>& indexConfigs,
                         const std::shared_ptr<document::DocumentInitParam>& initParam) = 0;
-    virtual indexlib::util::PooledUniquePtr<IIndexFields> Parse(const ExtendDocument& extendDoc,
-                                                                autil::mem_pool::Pool* pool) const = 0;
+    virtual indexlib::util::PooledUniquePtr<IIndexFields>
+    Parse(const ExtendDocument& extendDoc, autil::mem_pool::Pool* pool, bool& hasFormatError) const = 0;
     virtual indexlib::util::PooledUniquePtr<IIndexFields> Parse(autil::StringView serializedData,
                                                                 autil::mem_pool::Pool* pool) const = 0;
 };

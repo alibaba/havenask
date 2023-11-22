@@ -1,8 +1,8 @@
 #include "indexlib/document/document_parser/normal_parser/test/null_field_appender_unittest.h"
 
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/raw_document/default_raw_document.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

@@ -2,9 +2,9 @@
 
 #include "autil/ConstString.h"
 #include "autil/mem_pool/Pool.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/kkv/kkv_reader.h"
 #include "indexlib/index/kv/kv_reader.h"
-#include "indexlib/test/schema_maker.h"
 
 using namespace std;
 using namespace autil::mem_pool;

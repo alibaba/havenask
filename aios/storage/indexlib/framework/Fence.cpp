@@ -15,7 +15,8 @@
  */
 #include "indexlib/framework/Fence.h"
 
-#include "indexlib/util/RetryUtil.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/file_system/ErrorCode.h"
 
 namespace indexlibv2::framework {
 AUTIL_LOG_SETUP(indexlib.framework, Fence);

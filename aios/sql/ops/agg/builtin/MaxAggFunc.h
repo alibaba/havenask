@@ -66,8 +66,7 @@ private:
     MaxAggFunc &operator=(const MaxAggFunc &);
 
 public:
-    DEF_CREATE_ACCUMULATOR_FUNC(MaxAccumulator<InputType>)
-    bool needDependInputTablePools() const override;
+    DEF_CREATE_ACCUMULATOR_FUNC(MaxAccumulator<InputType>);
 
 private:
     // local
@@ -80,11 +79,6 @@ private:
     table::ColumnData<InputType> *_inputColumn;
     table::ColumnData<InputType> *_maxColumn;
 };
-
-template <typename InputType>
-bool MaxAggFunc<InputType>::needDependInputTablePools() const {
-    return autil::IsMultiType<InputType>::type::value;
-}
 
 // local
 template <typename InputType>
@@ -100,8 +94,8 @@ bool MaxAggFunc<InputType>::initCollectInput(const table::TablePtr &inputTable) 
 template <typename InputType>
 bool MaxAggFunc<InputType>::initAccumulatorOutput(const table::TablePtr &outputTable) {
     assert(_outputFields.size() == 1);
-    _maxColumn = table::TableUtil::declareAndGetColumnData<InputType>(
-        outputTable, _outputFields[0], false);
+    _maxColumn
+        = table::TableUtil::declareAndGetColumnData<InputType>(outputTable, _outputFields[0]);
     if (_maxColumn == nullptr) {
         SQL_LOG(ERROR, "declare column failed [%s]", _outputFields[0].c_str());
         return false;

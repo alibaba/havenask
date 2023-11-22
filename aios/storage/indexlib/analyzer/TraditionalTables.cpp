@@ -15,7 +15,14 @@
  */
 #include "indexlib/analyzer/TraditionalTables.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <limits>
+#include <utility>
+
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
 
 using namespace std;
 using namespace autil;

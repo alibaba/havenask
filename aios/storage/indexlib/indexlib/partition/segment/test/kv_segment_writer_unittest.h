@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVSEGMENTWRITERTEST_H
-#define __INDEXLIB_KVSEGMENTWRITERTEST_H
+#pragma once
 
 #include "indexlib/common/field_format/pack_attribute/pack_attribute_formatter.h"
 #include "indexlib/common_define.h"
@@ -50,5 +49,3 @@ INDEXLIB_UNIT_TEST_CASE(KVSegmentWriterTest, TestNeedDumpWhenNoSpace);
 INDEXLIB_UNIT_TEST_CASE(KVSegmentWriterTest, TestMmapFileDump);
 INDEXLIB_UNIT_TEST_CASE(KVSegmentWriterTest, TestGetTotalMemoryUse);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_KVSEGMENTWRITERTEST_H

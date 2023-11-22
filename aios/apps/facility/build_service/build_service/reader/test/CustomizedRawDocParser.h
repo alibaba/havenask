@@ -1,17 +1,31 @@
-#ifndef ISEARCH_READER_TEST_CUSTOMIZED_RAW_DOC_PARSER_H
-#define ISEARCH_READER_TEST_CUSTOMIZED_RAW_DOC_PARSER_H
+#pragma once
 
-#include "autil/StringUtil.h"
-#include "build_service/config/ResourceReader.h"
-#include "indexlib/config/index_partition_schema.h"
+#include <assert.h>
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/DataBuffer.h"
+#include "autil/Span.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/document/RawDocumentDefine.h"
 #include "indexlib/document/document.h"
 #include "indexlib/document/document_factory.h"
-#include "indexlib/document/extend_document/indexlib_extend_document.h"
-#include "indexlib/document/raw_document/default_raw_document.h"
+#include "indexlib/document/document_init_param.h"
+#include "indexlib/document/document_parser.h"
+#include "indexlib/document/raw_doc_field_iterator.h"
+#include "indexlib/document/raw_document.h"
+#include "indexlib/document/raw_document/key_map_manager.h"
 #include "indexlib/document/raw_document/raw_document_define.h"
+#include "indexlib/document/raw_document_parser.h"
+#include "indexlib/framework/Locator.h"
 #include "indexlib/indexlib.h"
-#include "indexlib/misc/common.h"
-#include "indexlib/misc/log.h"
 
 using namespace std;
 using namespace autil;
@@ -87,8 +101,8 @@ public:
         assert(0);
         return {};
     }
-    void SetDocInfo(const indexlibv2::document::IDocument::DocInfo& docInfo) override { _docInfo = docInfo; }
-    indexlibv2::document::IDocument::DocInfo GetDocInfo() const override { return _docInfo; }
+    void SetDocInfo(const indexlibv2::framework::Locator::DocInfo& docInfo) override { _docInfo = docInfo; }
+    indexlibv2::framework::Locator::DocInfo GetDocInfo() const override { return _docInfo; }
     void SetDocId(docid_t docId) override { assert(0); }
     void DoSerialize(autil::DataBuffer& dataBuffer, uint32_t serializedVersion) const override { assert(0); }
     void DoDeserialize(autil::DataBuffer& dataBuffer, uint32_t serializedVersion) override { assert(0); }
@@ -99,7 +113,7 @@ private:
     DocOperateType _opType = UNKNOWN_OP;
     int64_t _timestamp = INVALID_TIMESTAMP;
     indexlibv2::framework::Locator _locator;
-    indexlibv2::document::IDocument::DocInfo _docInfo;
+    indexlibv2::framework::Locator::DocInfo _docInfo;
 
 private:
     static StringView EMPTY_STRING;
@@ -148,5 +162,4 @@ private:
     indexlib::document::KeyMapManagerPtr mHashKeyMapManager;
 };
 
-}}     // namespace build_service::reader
-#endif // ISEARCH_READER_TEST_CUSTOMIZED_RAW_DOC_PARSER_H
+}} // namespace build_service::reader

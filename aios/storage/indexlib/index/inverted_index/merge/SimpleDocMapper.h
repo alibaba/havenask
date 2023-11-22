@@ -33,11 +33,13 @@ public:
     ~SimpleDocMapper() {};
 
 public:
-    std::pair<segmentid_t, docid_t> Map(docid_t oldDocId) const override { return {_targetSegmentId, oldDocId}; };
-    std::pair<segmentid_t, docid_t> ReverseMap(docid_t newDocId) const override { return {_targetSegmentId, newDocId}; }
-    segmentid_t GetTargetSegmentId(int32_t targetSegmentIdx) const override { return _targetSegmentId; }
-    int64_t GetTargetSegmentDocCount(int32_t idx) const override { return _totalDocCount; }
-    docid_t GetNewId(docid_t oldId) const override { return oldId; }
+    int64_t GetTargetSegmentDocCount(segmentid_t segmentId) const override { return _totalDocCount; }
+    std::pair<segmentid_t, docid32_t> Map(docid64_t oldDocId) const override { return {_targetSegmentId, oldDocId}; };
+    std::pair<segmentid_t, docid32_t> ReverseMap(docid64_t newDocId) const override
+    {
+        return {_targetSegmentId, newDocId};
+    }
+    docid64_t GetNewId(docid64_t oldId) const override { return oldId; }
     uint32_t GetNewDocCount() const override { return _totalDocCount; }
 
     Status Store(const std::shared_ptr<indexlib::file_system::Directory>& resourceDirectory) override
@@ -48,8 +50,7 @@ public:
     {
         return Status::Unimplement();
     }
-    segmentid_t GetLocalId(docid_t newId) const override { return -1; }
-    segmentid_t GetTargetSegmentIndex(docid_t newId) const override { return -1; }
+    segmentid_t GetLocalId(docid64_t newId) const override { return -1; }
 
 private:
     segmentid_t _targetSegmentId;

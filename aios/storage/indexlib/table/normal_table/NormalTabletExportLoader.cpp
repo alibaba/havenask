@@ -105,10 +105,10 @@ RedoParam NormalTabletExportLoader::CreateRedoParameters(const indexlibv2::frame
         TABLET_LOG(ERROR, "create PrimaryKeyIndexFactory failed, %s", createStatus.ToString().c_str());
         return {createStatus, nullptr, nullptr, nullptr};
     }
-    indexlibv2::index::IndexerParameter indexParam;
+    indexlibv2::index::IndexReaderParameter indexReaderParam;
     auto pkConfigs = _schema->GetIndexConfigs(indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR);
     assert(1 == pkConfigs.size());
-    auto pkReader = pkIndexFactory->CreateIndexReader(pkConfigs[0], indexParam);
+    auto pkReader = pkIndexFactory->CreateIndexReader(pkConfigs[0], indexReaderParam);
     assert(pkReader);
 
     std::unique_ptr<index::PrimaryKeyIndexReader> typedPkReader(

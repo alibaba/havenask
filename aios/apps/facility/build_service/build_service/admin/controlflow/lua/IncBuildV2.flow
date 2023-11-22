@@ -1,0 +1,48 @@
+#import(Log)
+   
+function stepRunFlow()
+    local incBuilder = Flow.createTask("incBuilder", "builderV2", Flow.parameter)
+    local flowState = Flow.getProperty("_flow_status_")
+    if (flowState == "")
+    then
+        if (Flow.startTask(incBuilder, Flow.parameter))
+        then
+                Log.log("", "start inc builder-------")
+                Flow.setProperty("_flow_status_", "running")
+        end
+        return false
+    end
+    if (flowState == "running")
+    then   
+       if (incBuilder:isTaskRunning())
+       then
+            local incProcessorFlowId = Flow.parameter['incProcessorFlowId']
+            if (incProcessorFlowId ~= nil)
+            then
+                local processorFlowStatus = Flow.getFlowStatus(incProcessorFlowId)
+                if (processorFlowStatus == "finish" or processorFlowStatus == "stopped")
+                then
+                    if (Flow.finishTask(incBuilder, nil))
+                    then
+                        Log.log("", "inc builder stopping")
+                        Flow.setProperty("_flow_status_", "finishing")
+                    end
+                end
+             end
+        end
+        return false
+    end
+    if (flowState == "finishing")
+    then
+        Log.log("", "inc builder finishing--------")
+        if (incBuilder:isTaskFinish())
+        then
+           Flow.setProperty("_flow_status_", "finished")  
+           Log.log("", "inc builder done")
+           return true
+        end
+        return false
+   end
+   return true
+end
+    

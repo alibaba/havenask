@@ -10,17 +10,10 @@ public enum PlanFormatType {
     OPTIMIZE_INFOS("optimize_infos"),
     PLAN_META("plan_meta");
 
+    private String type;
+
     PlanFormatType(String type) {
         this.type = type;
-    }
-
-    @Override
-    public String toString() {
-        return type;
-    }
-
-    public String getType() {
-        return type;
     }
 
     public static PlanFormatType from(String type) {
@@ -43,5 +36,12 @@ public enum PlanFormatType {
         }
     }
 
-    private String type;
+    @Override
+    public String toString() {
+        return type;
+    }
+
+    public String getType() {
+        return type;
+    }
 }

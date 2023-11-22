@@ -15,18 +15,25 @@
  */
 #include "build_service_tasks/batch_control/BatchControlTask.h"
 
-#include <beeper/beeper.h>
+#include <map>
+#include <memory>
+#include <ostream>
+#include <stddef.h>
+#include <utility>
 
-#include "autil/HashFuncFactory.h"
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "build_service/common/BeeperCollectorDefine.h"
-#include "build_service/config/BuildServiceConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
-#include "build_service/util/IndexPathConstructor.h"
-#include "build_service/util/SwiftClientCreator.h"
-#include "fslib/util/FileUtil.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "build_service/proto/ParserConfig.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "swift/client/SwiftClientConfig.h"
+#include "swift/client/SwiftPartitionStatus.h"
+#include "swift/protocol/Common.pb.h"
+#include "swift/protocol/ErrCode.pb.h"
 
 using namespace autil;
 using namespace build_service::util;

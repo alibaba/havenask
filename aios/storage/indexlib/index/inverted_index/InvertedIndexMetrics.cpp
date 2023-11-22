@@ -17,7 +17,6 @@
 
 #include "indexlib/config/IIndexConfig.h"
 #include "indexlib/framework/MetricsManager.h"
-#include "indexlib/index/IndexerParameter.h"
 
 namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, InvertedIndexMetrics);
@@ -123,18 +122,18 @@ InvertedIndexMetrics::TEST_GetSingleFieldSortDumpMetric(const std::string& index
 
 std::shared_ptr<InvertedIndexMetrics>
 InvertedIndexMetrics::Create(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
-                             const indexlibv2::index::IndexerParameter& indexerParam)
+                             indexlibv2::framework::MetricsManager* metricsManager)
 {
-    if (!indexerParam.metricsManager) {
+    if (!metricsManager) {
         return nullptr;
     }
 
-    assert(indexerParam.metricsManager);
+    assert(metricsManager);
     std::string identifier = "__inverted_index_" + indexConfig->GetIndexName();
     std::shared_ptr<InvertedIndexMetrics> invertedIndexMetrics =
-        std::dynamic_pointer_cast<InvertedIndexMetrics>(indexerParam.metricsManager->CreateMetrics(
-            identifier, [&indexerParam]() -> std::shared_ptr<indexlibv2::framework::IMetrics> {
-                return std::make_shared<InvertedIndexMetrics>(indexerParam.metricsManager->GetMetricsReporter());
+        std::dynamic_pointer_cast<InvertedIndexMetrics>(metricsManager->CreateMetrics(
+            identifier, [metricsManager]() -> std::shared_ptr<indexlibv2::framework::IMetrics> {
+                return std::make_shared<InvertedIndexMetrics>(metricsManager->GetMetricsReporter());
             }));
     assert(invertedIndexMetrics);
     return invertedIndexMetrics;

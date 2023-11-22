@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCK_OPERATION_H
-#define __INDEXLIB_MOCK_OPERATION_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
@@ -49,5 +48,3 @@ public:
     }
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MOCK_OPERATION_H

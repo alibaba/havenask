@@ -1,3 +1,4 @@
+version: 196608
 sub_graphs {
   nodes {
     name: "2"
@@ -28,11 +29,15 @@ sub_graphs {
       enable_probe: true
     }
   }
+  option {
+    error_handle_strategy: EHS_ERROR_AS_EOF
+  }
   binary_attrs {
     key: "table_distribution"
     value: "{\"hash_mode\":{\"hash_fields\":[\"$i1\"],\"hash_function\":\"HASH\"},\"partition_cnt\":64}"
   }
-  scopes: 0
+  scopes {
+  }
   next_scope_id: 1
 }
 counter_info {

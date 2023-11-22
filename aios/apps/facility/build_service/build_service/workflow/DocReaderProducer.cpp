@@ -15,11 +15,22 @@
  */
 #include "build_service/workflow/DocReaderProducer.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <string>
+#include <utility>
+
 #include "autil/EnvUtil.h"
+#include "autil/Log.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "build_service/common/End2EndLatencyReporter.h"
+#include "build_service/document/DocumentDefine.h"
 #include "build_service/reader/SwiftRawDocumentReader.h"
 #include "build_service/workflow/RawDocChecksumer.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/document/RawDocument.h"
 
 using namespace std;
 
@@ -82,7 +93,7 @@ FlowError DocReaderProducer::produce(document::RawDocumentPtr& rawDocPtr)
     if (RawDocumentReader::ERROR_NONE == ec) {
         common::Locator locator(_srcSignature, checkpoint.offset);
         if (checkpoint.progress.size() > 0) {
-            locator.SetProgress(checkpoint.progress);
+            locator.SetMultiProgress(checkpoint.progress);
         }
         if (_checksum->enabled()) {
             _checksum->evaluate(rawDocPtr);
@@ -113,7 +124,7 @@ FlowError DocReaderProducer::produce(document::RawDocumentPtr& rawDocPtr)
                 locator.SetUserData(checkpoint.userData);
             }
             if (checkpoint.progress.size() > 0) {
-                locator.SetProgress(checkpoint.progress);
+                locator.SetMultiProgress(checkpoint.progress);
             }
             rawDocPtr->SetLocator(locator);
             rawDocPtr->setDocOperateType(CHECKPOINT_DOC);
@@ -148,7 +159,7 @@ bool DocReaderProducer::seek(const common::Locator& locator)
         userData = tmpUserData;
     }
     BS_LOG(INFO, "seek locator [%s]", locator.DebugString().c_str());
-    return _reader->seek(Checkpoint(locator.GetOffset().first, locator.GetProgress(), userData));
+    return _reader->seek(Checkpoint(locator.GetOffset().first, locator.GetMultiProgress(), userData));
 }
 
 bool DocReaderProducer::stop(StopOption stopOption) { return true; }

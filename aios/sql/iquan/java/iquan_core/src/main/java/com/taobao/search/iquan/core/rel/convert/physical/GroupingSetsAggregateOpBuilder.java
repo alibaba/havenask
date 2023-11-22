@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.taobao.search.iquan.core.rel.ops.physical.*;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanAggregateOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanCalcOp;
+import com.taobao.search.iquan.core.rel.ops.physical.IquanUnionOp;
+import com.taobao.search.iquan.core.rel.ops.physical.Scope;
 import com.taobao.search.iquan.core.utils.IquanAggregateUtils;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
@@ -29,6 +32,73 @@ public class GroupingSetsAggregateOpBuilder {
     protected List<List<String>> callOutputParams;
     protected RelDataType outputRowType;
     protected boolean allowDupRow = true;
+
+    /**
+     * Fill non groupkey null value and calc grouping() value.
+     *
+     * @param aggregate
+     * @param input
+     * @param groupSet
+     * @param traitSet
+     * @return
+     */
+    protected static RelNode createCalcOp(LogicalAggregate aggregate, RelNode input, ImmutableBitSet groupSet, RelTraitSet traitSet) {
+        RelDataType outputRowType = aggregate.getRowType();
+        List<RelDataTypeField> outputFields = outputRowType.getFieldList();
+        RelDataType inputRowType = input.getRowType();
+        List<RelDataTypeField> inputFields = inputRowType.getFieldList();
+        List<AggregateCall> aggCalls = aggregate.getAggCallList();
+        ImmutableBitSet globalGroupSet = aggregate.getGroupSet();
+
+        RexBuilder rexBuilder = aggregate.getCluster().getRexBuilder();
+        List<RexNode> projects = new ArrayList<>(outputRowType.getFieldCount());
+        int outputIndex = 0;
+        int inputIndex = 0;
+
+        // process group keys
+        for (int i : globalGroupSet) {
+            if (groupSet.get(i)) {
+                RexNode rexNode = rexBuilder.makeInputRef(inputFields.get(inputIndex).getType(), inputIndex);
+                ++inputIndex;
+                projects.add(rexNode);
+            } else {
+                RexNode rexNode = rexBuilder.makeLiteral(null, outputFields.get(outputIndex).getType(), false);
+                projects.add(rexNode);
+            }
+            ++outputIndex;
+        }
+
+        // process aggregate calls
+        for (int i = outputIndex; i < outputRowType.getFieldCount(); ++i) {
+            int callIndex = i - outputIndex;
+            AggregateCall call = aggCalls.get(callIndex);
+            if (SqlKind.GROUPING == call.getAggregation().getKind()) {
+                int groupingValue = calcGroupingValue(call, groupSet);
+                RexNode rexNode = rexBuilder.makeLiteral(groupingValue, outputFields.get(i).getType(), false);
+                projects.add(rexNode);
+            } else {
+                RexNode rexNode = rexBuilder.makeInputRef(inputFields.get(inputIndex).getType(), inputIndex);
+                ++inputIndex;
+                projects.add(rexNode);
+            }
+        }
+
+        RexProgram rexProgram = RexProgram.create(inputRowType, projects, null, outputRowType, rexBuilder);
+        return new IquanCalcOp(aggregate.getCluster(), traitSet, new ArrayList<>(), input, rexProgram);
+    }
+
+    protected static int calcGroupingValue(AggregateCall call, ImmutableBitSet groupSet) {
+        assert call.getAggregation().getKind() == SqlKind.GROUPING;
+        int value = 0;
+        for (Integer arg : call.getArgList()) {
+            int bitV = 1;
+            if (groupSet.get(arg)) {
+                bitV = 0;
+            }
+            value = (value << 1) + bitV;
+        }
+        return value;
+    }
 
     public GroupingSetsAggregateOpBuilder aggregate(LogicalAggregate aggregate) {
         this.aggregate = aggregate;
@@ -102,72 +172,5 @@ public class GroupingSetsAggregateOpBuilder {
             rootOps.add(calc);
         }
         return new IquanUnionOp(aggregate.getCluster(), traitSet, rootOps, allowDupRow, new ArrayList<>());
-    }
-
-    /**
-     * Fill non groupkey null value and calc grouping() value.
-     *
-     * @param aggregate
-     * @param input
-     * @param groupSet
-     * @param traitSet
-     * @return
-     */
-    protected static RelNode createCalcOp(LogicalAggregate aggregate, RelNode input, ImmutableBitSet groupSet, RelTraitSet traitSet) {
-        RelDataType outputRowType = aggregate.getRowType();
-        List<RelDataTypeField> outputFields = outputRowType.getFieldList();
-        RelDataType inputRowType = input.getRowType();
-        List<RelDataTypeField> inputFields = inputRowType.getFieldList();
-        List<AggregateCall> aggCalls = aggregate.getAggCallList();
-        ImmutableBitSet globalGroupSet = aggregate.getGroupSet();
-
-        RexBuilder rexBuilder = aggregate.getCluster().getRexBuilder();
-        List<RexNode> projects = new ArrayList<>(outputRowType.getFieldCount());
-        int outputIndex = 0;
-        int inputIndex = 0;
-
-        // process group keys
-        for (int i : globalGroupSet) {
-            if (groupSet.get(i)) {
-                RexNode rexNode = rexBuilder.makeInputRef(inputFields.get(inputIndex).getType(), inputIndex);
-                ++inputIndex;
-                projects.add(rexNode);
-            } else {
-                RexNode rexNode = rexBuilder.makeLiteral(null, outputFields.get(outputIndex).getType(), false);
-                projects.add(rexNode);
-            }
-            ++outputIndex;
-        }
-
-        // process aggregate calls
-        for (int i = outputIndex; i < outputRowType.getFieldCount(); ++i) {
-            int callIndex = i - outputIndex;
-            AggregateCall call = aggCalls.get(callIndex);
-            if (SqlKind.GROUPING == call.getAggregation().getKind()) {
-                int groupingValue = calcGroupingValue(call, groupSet);
-                RexNode rexNode = rexBuilder.makeLiteral(groupingValue, outputFields.get(i).getType(), false);
-                projects.add(rexNode);
-            } else {
-                RexNode rexNode = rexBuilder.makeInputRef(inputFields.get(inputIndex).getType(), inputIndex);
-                ++inputIndex;
-                projects.add(rexNode);
-            }
-        }
-
-        RexProgram rexProgram = RexProgram.create(inputRowType, projects, null, outputRowType, rexBuilder);
-        return new IquanCalcOp(aggregate.getCluster(), traitSet, new ArrayList<>(), input, rexProgram);
-    }
-
-    protected static int calcGroupingValue(AggregateCall call, ImmutableBitSet groupSet) {
-        assert call.getAggregation().getKind() == SqlKind.GROUPING;
-        int value = 0;
-        for (Integer arg : call.getArgList()) {
-            int bitV = 1;
-            if (groupSet.get(arg)) {
-                bitV = 0;
-            }
-            value = (value << 1) + bitV;
-        }
-        return value;
     }
 }

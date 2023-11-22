@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARALLEL_END_MERGE_EXECUTOR_H
-#define __INDEXLIB_PARALLEL_END_MERGE_EXECUTOR_H
+#pragma once
 
-#include <memory>
+#include <vector>
 
-#include "indexlib/common_define.h"
 #include "indexlib/index_base/index_meta/merge_task_resource.h"
-#include "indexlib/indexlib.h"
 #include "indexlib/merger/merge_task_item.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
 DECLARE_REFERENCE_CLASS(plugin, PluginManager);
@@ -31,7 +30,6 @@ DECLARE_REFERENCE_CLASS(index, SummaryMerger);
 DECLARE_REFERENCE_CLASS(index, AttributeMerger);
 DECLARE_REFERENCE_CLASS(index, IndexMerger);
 DECLARE_REFERENCE_CLASS(index_base, MergeTaskResourceManager);
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 
 namespace indexlib { namespace merger {
 
@@ -77,5 +75,3 @@ private:
 
 DEFINE_SHARED_PTR(ParallelEndMergeExecutor);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_END_PARALLEL_MERGE_EXECUTOR_H

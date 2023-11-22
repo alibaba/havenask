@@ -1,5 +1,6 @@
 #include "autil/Thread.h"
 #include "indexlib/config/index_partition_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/index_base/schema_adapter.h"
 #include "indexlib/merger/inc_parallel_partition_merger.h"
@@ -8,7 +9,6 @@
 #include "indexlib/partition/online_partition.h"
 #include "indexlib/partition/test/fake_partition.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 #include "indexlib/testlib/indexlib_partition_creator.h"
 
@@ -141,7 +141,7 @@ void OfflineBranchBuildTest::TestSimpleProcess()
         // test upc, end merge do twice
         merger->EndMerge(meta, meta->GetTargetVersion().GetVersionId());
     }
-    psm.CreateOnlinePartition(INVALID_VERSION);
+    psm.CreateOnlinePartition(INVALID_VERSIONID);
     ASSERT_TRUE(psm.Transfer(QUERY, "", "pk:world", "score=2"));
 }
 
@@ -165,7 +165,7 @@ void OfflineBranchBuildTest::TestFullBuildAndMerge()
     }
     PartitionStateMachine psm;
     ASSERT_TRUE(psm.Init(mSchema, mOptions, mRootPath, "psm", ""));
-    psm.CreateOnlinePartition(INVALID_VERSION);
+    psm.CreateOnlinePartition(INVALID_VERSIONID);
     ASSERT_TRUE(psm.Transfer(QUERY, "", "pk:world", "score=2"));
 }
 
@@ -205,7 +205,7 @@ void OfflineBranchBuildTest::TestParalleFullBuildAndMerge()
     multiPartMerger->Merge(true);
     PartitionStateMachine psm;
     ASSERT_TRUE(psm.Init(mSchema, mOptions, mRootPath, "psm", ""));
-    psm.CreateOnlinePartition(INVALID_VERSION);
+    psm.CreateOnlinePartition(INVALID_VERSIONID);
     ASSERT_TRUE(psm.Transfer(QUERY, "", "pk:world", "score=2"));
     ASSERT_TRUE(psm.Transfer(QUERY, "", "pk:america", "score=1"));
 }
@@ -257,7 +257,7 @@ void OfflineBranchBuildTest::TestBranchCreatedFromBrokenSrc()
         // test upc, end merge do twice
         mergerBranch1->EndMerge(meta, meta->GetTargetVersion().GetVersionId());
     }
-    psm.CreateOnlinePartition(INVALID_VERSION);
+    psm.CreateOnlinePartition(INVALID_VERSIONID);
     ASSERT_TRUE(psm.Transfer(QUERY, "", "pk:world", "score=2"));
 }
 
@@ -357,7 +357,7 @@ void OfflineBranchBuildTest::TestBranchBrokenSrcForEntryTable()
     // Query
     PartitionStateMachine psm;
     ASSERT_TRUE(psm.Init(mSchema, mOptions, mRootPath, "psm", "", /*FsBranch Id*/ 0));
-    psm.CreateOnlinePartition(INVALID_VERSION);
+    psm.CreateOnlinePartition(INVALID_VERSIONID);
     ASSERT_TRUE(psm.Transfer(QUERY, "", "doc1", "value=1"));
     ASSERT_TRUE(psm.Transfer(QUERY, "", "doc2", "value=2"));
 }
@@ -465,7 +465,7 @@ void OfflineBranchBuildTest::TestMultiTheadBuild()
                                                                                              NULL, ""));
     auto incParallelPartitionMerger2 = dynamic_pointer_cast<IncParallelPartitionMerger>(merger2);
     incParallelPartitionMerger2->EndMerge(meta, meta->GetTargetVersion().GetVersionId());
-    psm.CreateOnlinePartition(INVALID_VERSION);
+    psm.CreateOnlinePartition(INVALID_VERSIONID);
     ASSERT_TRUE(psm.Transfer(QUERY, "", "pk:china", "score=0"));
     ASSERT_TRUE(psm.Transfer(QUERY, "", "pk:world", "score=2"));
     ASSERT_TRUE(psm.Transfer(QUERY, "", "pk:america", "score=3"));

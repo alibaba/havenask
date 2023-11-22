@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SINGLEVALUEATTRIBUTEWRITERGTESTTEST_H
-#define __INDEXLIB_SINGLEVALUEATTRIBUTEWRITERGTESTTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/single_value_attribute_writer.h"
@@ -33,5 +32,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLEVALUEATTRIBUTEWRITERGTESTTEST_H

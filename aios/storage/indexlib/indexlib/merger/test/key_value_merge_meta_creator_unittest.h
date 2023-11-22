@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KEYVALUEMERGEMETACREATORTEST_H
-#define __INDEXLIB_KEYVALUEMERGEMETACREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -36,5 +35,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(KeyValueMergeMetaCreatorTest, TestSimpleProcess);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_KEYVALUEMERGEMETACREATORTEST_H

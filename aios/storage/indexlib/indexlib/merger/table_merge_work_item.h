@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_TABLE_MERGE_WORK_ITEM_H
-#define __INDEXLIB_TABLE_MERGE_WORK_ITEM_H
+#pragma once
 
-#include <memory>
+#include <stdint.h>
+#include <vector>
 
-#include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/file_system/Directory.h"
+#include "indexlib/merger/index_partition_merger_metrics.h"
+#include "indexlib/merger/merge_file_system.h"
 #include "indexlib/merger/merge_work_item.h"
-#include "indexlib/table/merge_task_description.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 #include "indexlib/table/task_execute_meta.h"
 
 DECLARE_REFERENCE_CLASS(table, TableMerger);
@@ -30,10 +32,6 @@ DECLARE_REFERENCE_CLASS(table, TableMergePlan);
 DECLARE_REFERENCE_CLASS(table, TableMergePlanMeta);
 DECLARE_REFERENCE_CLASS(table, SegmentMeta);
 DECLARE_REFERENCE_CLASS(merger, TableMergeMeta);
-DECLARE_REFERENCE_CLASS(merger, IndexPartitionMergerMetrics);
-DECLARE_REFERENCE_CLASS(config, IndexPartitionSchema);
-DECLARE_REFERENCE_CLASS(util, CounterMap);
-DECLARE_REFERENCE_CLASS(file_system, Directory);
 
 namespace indexlib { namespace merger {
 
@@ -72,5 +70,3 @@ private:
 
 DEFINE_SHARED_PTR(TableMergeWorkItem);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_TABLE_MERGE_WORK_ITEM_H

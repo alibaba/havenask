@@ -17,6 +17,7 @@
 #include "autil/Log.h"
 #include "autil/NoCopyable.h"
 #include "autil/memory.h"
+#include "indexlib/index/IndexReaderParameter.h"
 #include "indexlib/index/attribute/AttributeIndexFactory.h"
 #include "indexlib/index/attribute/AttributeIteratorTyped.h"
 #include "indexlib/index/attribute/AttributeReader.h"
@@ -53,8 +54,8 @@ Status AttributePrefetcher<T>::Init(autil::mem_pool::Pool* pool, const std::shar
                                     std::vector<std::shared_ptr<framework::Segment>> segments)
 {
     index::AttributeIndexFactory indexFactory;
-    index::IndexerParameter indexParam;
-    auto indexReader = indexFactory.CreateIndexReader(attrConfig, indexParam).release();
+    index::IndexReaderParameter indexReaderParam;
+    auto indexReader = indexFactory.CreateIndexReader(attrConfig, indexReaderParam).release();
     _attrReader.reset(dynamic_cast<index::AttributeReader*>(indexReader));
     if (!_attrReader) {
         DELETE_AND_SET_NULL(indexReader);

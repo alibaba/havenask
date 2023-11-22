@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <iostream>
+#include <stdint.h>
+#include <string>
+
 #include "autil/OptionParser.h"
 #include "autil/Scope.h"
 #include "build_service/local_job/LocalJobWorker.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/LogSetupGuard.h"
+#include "fslib/common/common_type.h"
 #include "fslib/fs/FileSystem.h"
-#include "fslib/fslib.h"
 #include "fslib/util/FileUtil.h"
 #include "kmonitor/client/KMonitorFactory.h"
 #include "kmonitor/client/core/MetricsConfig.h"

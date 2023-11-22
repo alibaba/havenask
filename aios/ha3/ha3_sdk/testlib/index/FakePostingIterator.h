@@ -74,8 +74,9 @@ public:
         *_termMeta = *termMeta;
     }
 
-    docid_t SeekDoc(docid_t id) override;
-    indexlib::index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t &result) override {
+    indexlib::docid64_t SeekDoc(docid64_t id) override;
+    indexlib::index::ErrorCode SeekDocWithErrorCode(docid64_t docId,
+                                                    indexlib::docid64_t &result) override {
         if (_seekRet != indexlib::index::ErrorCode::OK) {
             return _seekRet;
         }
@@ -83,7 +84,7 @@ public:
         return indexlib::index::ErrorCode::OK;
     }
     virtual void Unpack(indexlib::index::TermMatchData &tmd) override;
-    virtual matchvalue_t GetMatchValue() const override;
+    virtual indexlib::matchvalue_t GetMatchValue() const override;
     pos_t SeekPosition(pos_t occ);
     indexlib::index::ErrorCode SeekPositionWithErrorCode(pos_t pos, pos_t &nextPos) override {
         nextPos = SeekPosition(pos);

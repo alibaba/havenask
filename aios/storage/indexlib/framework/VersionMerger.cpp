@@ -15,18 +15,26 @@
  */
 #include "indexlib/framework/VersionMerger.h"
 
+#include <assert.h>
+#include <type_traits>
+
 #include "autil/EnvUtil.h"
 #include "autil/Scope.h"
-#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "future_lite/coro/CoAwait.h"
+#include "future_lite/coro/LazyHelper.h"
+#include "future_lite/experimental/coroutine.h"
+#include "indexlib/config/CustomIndexTaskClassInfo.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/framework/IMetrics.h"
 #include "indexlib/framework/MetricsManager.h"
 #include "indexlib/framework/TabletData.h"
+#include "indexlib/framework/VersionCoord.h"
 #include "indexlib/framework/VersionLoader.h"
+#include "indexlib/framework/index_task/CustomIndexTaskFactory.h"
 #include "indexlib/framework/index_task/IndexTaskContext.h"
 #include "indexlib/framework/index_task/IndexTaskMetrics.h"
 #include "indexlib/framework/index_task/IndexTaskPlan.h"
-#include "indexlib/framework/index_task/IndexTaskResourceManager.h"
-#include "indexlib/util/EpochIdUtil.h"
 
 namespace indexlibv2::framework {
 
@@ -55,6 +63,12 @@ void VersionMerger::UpdateVersion(const Version& version)
     TABLET_LOG(INFO, "version [%d] updated", _currentBaseVersion.GetVersionId());
 }
 
+void VersionMerger::UpdateCommittedVersionLocator(const Locator& locator)
+{
+    std::lock_guard<std::mutex> lock(_dataMutex);
+    _committedVersionLocator = locator;
+    TABLET_LOG(INFO, "Committed Version Locator [%s] updated", _committedVersionLocator.DebugString().c_str());
+}
 versionid_t VersionMerger::GetBaseVersion() const
 {
     std::lock_guard<std::mutex> lock(_dataMutex);
@@ -72,7 +86,26 @@ versionid_t VersionMerger::GetBaseVersion() const
 
 future_lite::coro::Lazy<Status> VersionMerger::SubmitTask(IndexTaskContext* context)
 {
-    auto [status, plan] = _planCreator->CreateTaskPlan(context);
+    // TODO: delete when use taskMeta to specify designate task
+    auto tabletData = context->GetTabletData();
+    if (tabletData) {
+        const auto& onDiskVersion = tabletData->GetOnDiskVersion();
+        if (onDiskVersion.GetSchemaId() != onDiskVersion.GetReadSchemaId()) {
+            context->SetDesignateTask("alter_table", "alter_table");
+        }
+    }
+    ///////////////////////
+    std::unique_ptr<IIndexTaskPlanCreator> customPlanCreator;
+    auto designateTaskConfig = context->GetDesignateTaskConfig();
+    if (designateTaskConfig) {
+        auto [status, planCreator] = CustomIndexTaskFactory::GetCustomPlanCreator(designateTaskConfig);
+        if (!status.IsOK()) {
+            co_return status;
+        }
+        customPlanCreator = std::move(planCreator);
+    }
+    auto [status, plan] =
+        customPlanCreator ? customPlanCreator->CreateTaskPlan(context) : _planCreator->CreateTaskPlan(context);
     if (!status.IsOK()) {
         TABLET_LOG(ERROR, "create task plan failed: %s", status.ToString().c_str());
         co_return status;
@@ -159,6 +192,12 @@ const std::shared_ptr<VersionMerger::MergedVersionInfo>& VersionMerger::GetMerge
     return _mergedVersionInfo;
 }
 
+int64_t VersionMerger::GetCommittedVersionTimestamp() const
+{
+    std::lock_guard<std::mutex> lock(_dataMutex);
+    return _committedVersionLocator.GetOffset().first;
+}
+
 bool VersionMerger::NeedCommit() const
 {
     std::lock_guard<std::mutex> lock(_dataMutex);
@@ -238,6 +277,7 @@ VersionMerger::InnerExecuteTask(const Version& sourceVersion, const std::string&
         TABLET_LOG(ERROR, "recover failed");
         co_return std::make_pair(recoverStatus, INVALID_VERSIONID);
     }
+    std::string taskTraceId;
     if (!_controller->GetRunningTaskStat()) {
         versionid_t currentVersionId = GetBaseVersion();
         if (currentVersionId == INVALID_VERSIONID) {
@@ -246,7 +286,7 @@ VersionMerger::InnerExecuteTask(const Version& sourceVersion, const std::string&
         }
         if (currentVersionId != _lastProposedVersionId) {
             TABLET_LOG(INFO, "version merger run for version [%d]", currentVersionId);
-            auto context = _controller->CreateTaskContext(currentVersionId, taskType, taskName, params);
+            auto context = _controller->CreateTaskContext(currentVersionId, taskType, taskName, taskTraceId, params);
             if (!context) {
                 TABLET_LOG(ERROR, "create context failed");
                 co_return std::make_pair(Status::InternalError("create context failed"), INVALID_VERSIONID);
@@ -324,6 +364,11 @@ void VersionMerger::UpdateMetrics(TabletData* tabletData)
         _taskMetrics->SetmergeBaseVersionIdValue(lastMergeInfo->baseVersion.GetVersionId());
         _taskMetrics->SetmergeTargetVersionIdValue(lastMergeInfo->targetVersion.GetVersionId());
         _taskMetrics->SetmergeCommittedVersionIdValue(lastMergeInfo->committedVersionId);
+        auto versionTs = GetCommittedVersionTimestamp();
+        if (versionTs > 0) {
+            int64_t versionDelay = autil::TimeUtility::currentTimeInSeconds() - versionTs / 1000000;
+            _taskMetrics->SetmergeCommittedVersionDelayValue(versionDelay);
+        }
     }
     auto runningTaskStat = GetRunningTaskStat();
     if (runningTaskStat) {

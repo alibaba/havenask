@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_CUCKOOHASHTABLEPERFTEST_H
-#define __INDEXLIB_CUCKOOHASHTABLEPERFTEST_H
+#pragma once
 
 #include <vector>
 
@@ -60,5 +59,3 @@ private:
 // INDEXLIB_UNIT_TEST_CASE(CuckooHashTablePerfTest, TestOccupancy);
 // INDEXLIB_UNIT_TEST_CASE(CuckooHashTablePerfTest, TestInsertAndFind);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_CUCKOOHASHTABLEPERFTEST_H

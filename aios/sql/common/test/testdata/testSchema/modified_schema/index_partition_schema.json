@@ -96,6 +96,11 @@
 	    "field_name" : "multi_field_float",
 	    "field_type" : "FLOAT",
 	    "multi_value" : true
+	},
+        {
+	    "field_name" : "summary_only_field",
+	    "field_type" : "STRING",
+	    "multi_value" : true
 	}
     ],
     "indexs" : [
@@ -211,7 +216,8 @@
             "subject",
             "product_summary",
             "company_name",
-            "feature_value"
+            "feature_value",
+            "summary_only_field"
         ]
     },
     "table_name" : "simple4",

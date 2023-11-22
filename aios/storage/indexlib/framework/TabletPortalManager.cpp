@@ -15,8 +15,21 @@
  */
 #include "indexlib/framework/TabletPortalManager.h"
 
+#include <algorithm>
+#include <exception>
+#include <functional>
+#include <iostream>
+#include <limits.h>
+#include <unistd.h>
+#include <utility>
+#include <vector>
+
 #include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/HttpTabletPortal.h"
 #include "indexlib/framework/TabletCenter.h"
 

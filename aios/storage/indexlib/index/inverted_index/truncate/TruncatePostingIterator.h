@@ -30,9 +30,9 @@ public:
 public:
     TermMeta* GetTermMeta() const override;
 
-    docid_t SeekDoc(docid_t docId) override;
+    docid64_t SeekDoc(docid64_t docId) override;
 
-    index::ErrorCode SeekDocWithErrorCode(docid_t docId, docid_t& result) override;
+    index::ErrorCode SeekDocWithErrorCode(docid64_t docId, docid64_t& result) override;
 
     bool HasPosition() const override;
 

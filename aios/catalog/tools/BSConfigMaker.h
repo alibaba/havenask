@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 #pragma once
+#include "autil/legacy/json.h"
+#include "catalog/entity/LoadStrategy.h"
 #include "catalog/entity/Partition.h"
 #include "catalog/util/StatusBuilder.h"
 
@@ -25,6 +27,10 @@ public:
                        const std::string &bsTemplateConfigPath,
                        const std::string &storeRoot,
                        std::string *configPath);
+    static Status validateSchema(const proto::Table &table);
+    static Status mergeOnlineConfig(const std::string &baseConfigPath,
+                                    const catalog::LoadStrategy *loadStrategy,
+                                    std::string *mergedConfigPath);
 
 private:
     struct BSConfig {
@@ -52,6 +58,12 @@ private:
     static Status genDataDescriptions(const proto::DataSource::DataVersion &dataVersion, std::string *dataDescriptions);
     static std::string getPartitionRoot(const std::string &storeRoot, const Partition &partition);
     static Status uploadConfig(const BSConfig &bsConfig, const std::string &tableName, const std::string &targetPath);
+
+    static Status mergeClusterJson(const std::string &configPath, const catalog::LoadStrategy &loadStrategy);
+    static Status genOnlineIndexConfig(const catalog::LoadStrategy &loadStrategy, std::string *onlineIndexConfigStr);
+    static Status getMapField(autil::legacy::json::JsonMap *jsonMap,
+                              const std::string &fieldName,
+                              autil::legacy::json::JsonMap *&field);
 };
 
 } // namespace catalog

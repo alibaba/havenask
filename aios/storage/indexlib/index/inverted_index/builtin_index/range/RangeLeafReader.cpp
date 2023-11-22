@@ -34,7 +34,7 @@ RangeLeafReader::RangeLeafReader(const std::shared_ptr<RangeLevelLeafReader>& bo
 RangeLeafReader::~RangeLeafReader() {}
 
 future_lite::coro::Lazy<index::Result<SegmentPostingsVec>>
-RangeLeafReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId, autil::mem_pool::Pool* sessionPool,
+RangeLeafReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid64_t baseDocId, autil::mem_pool::Pool* sessionPool,
                         file_system::ReadOption option, InvertedIndexSearchTracer* tracer) noexcept
 {
     SegmentPostingsVec segmentPostingsVec;

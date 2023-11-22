@@ -15,7 +15,18 @@
  */
 #include "build_service/admin/TaskStatusMetricReporter.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
 #include "build_service/util/Monitor.h"
+#include "kmonitor/client/MetricLevel.h"
 
 using namespace std;
 using namespace autil;
@@ -52,6 +63,7 @@ void TaskStatusMetricReporter::init(const proto::BuildId& buildId, kmonitor_adap
     _runningTaskNodeCountMetric = monitor->registerGaugeMetric("task.runningNodeCount", kmonitor::FATAL);
     _taskStatusMetric = monitor->registerGaugeMetric("task.taskStatus", kmonitor::FATAL);
     _taskRunningTimeMetric = monitor->registerGaugeMetric("task.taskRunningTimeInMicroSec", kmonitor::FATAL);
+    _taskScheduleLatencyMetric = monitor->registerGaugeMetric("task.taskScheduleLatency", kmonitor::FATAL);
 }
 
 void TaskStatusMetricReporter::reportTaskNodeCount(int64_t totalCount, int64_t runningCount,
@@ -63,6 +75,13 @@ void TaskStatusMetricReporter::reportTaskNodeCount(int64_t totalCount, int64_t r
     REPORT_KMONITOR_METRIC2(_runningTaskNodeCountMetric, newTags, runningCount);
     updateLog("totalNodeCount", totalCount, tags);
     updateLog("runningNodeCount", runningCount, tags);
+}
+
+void TaskStatusMetricReporter::reportScheduleLatency(int64_t value, const kmonitor::MetricsTags& tags)
+{
+    kmonitor::MetricsTags newTags(_tags.GetTagsMap());
+    tags.MergeTags(&newTags);
+    REPORT_KMONITOR_METRIC2(_taskScheduleLatencyMetric, newTags, value);
 }
 
 void TaskStatusMetricReporter::reportTaskStatus(int64_t status, const kmonitor::MetricsTags& tags)

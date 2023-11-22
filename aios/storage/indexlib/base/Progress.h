@@ -17,17 +17,17 @@
 
 #include <cstdint>
 #include <utility>
+#include <vector>
 
 namespace indexlibv2::base {
 
+// TODO(tianxiao) multiprogress && progressvec
 struct Progress {
     using Offset = std::pair<int64_t, uint32_t>;
     static constexpr Offset INVALID_OFFSET = {-1, 0};
     static constexpr Offset MIN_OFFSET = {0, 0};
     Progress(const Offset& offset) : Progress(0, 65535, offset) {}
     Progress() : Progress(0, 65535, INVALID_OFFSET) {}
-    // TODO(tianxiao) remove structor
-    // Progress(uint32_t from, uint32_t to, int64_t offset) : offset({offset, 0}), from(from), to(to) {}
     Progress(uint32_t from, uint32_t to, const Offset& offset) : from(from), to(to), offset(offset) {}
     uint32_t from;
     uint32_t to;
@@ -37,5 +37,8 @@ struct Progress {
         return offset == other.offset && from == other.from && to == other.to;
     }
 };
+
+typedef std::vector<Progress> ProgressVector;
+typedef std::vector<ProgressVector> MultiProgress;
 
 } // namespace indexlibv2::base

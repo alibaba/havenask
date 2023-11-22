@@ -43,6 +43,7 @@ enum DocOperateType {
 
 namespace indexlib {
 typedef int32_t docid_t;
+typedef int32_t docid32_t;
 typedef int64_t exdocid_t;
 typedef int64_t globalid_t;
 typedef int32_t fieldid_t;
@@ -56,6 +57,7 @@ typedef uint32_t short_offset_t;
 typedef uint32_t schema_opid_t; // begin from 1
 typedef std::pair<docid_t, docid_t> DocIdRange;
 typedef std::vector<DocIdRange> DocIdRangeVector;
+typedef int64_t docid64_t;
 
 using namespace ::indexlib::enum_namespace;
 using namespace ::indexlib::global_enum_namespace;
@@ -65,6 +67,8 @@ using namespace ::indexlib::global_enum_namespace;
 // TODO: rm
 namespace indexlibv2 {
 using indexlib::dictkey_t;
+using indexlib::docid32_t;
+using indexlib::docid64_t;
 using indexlib::docid_t;
 using indexlib::DocIdRange;
 using indexlib::DocIdRangeVector;
@@ -72,6 +76,7 @@ using indexlib::exdocid_t;
 using indexlib::fieldid_t;
 using indexlib::globalid_t;
 using indexlib::offset_t;
+using indexlib::schema_opid_t;
 using indexlib::schemaid_t;
 using indexlib::segmentid_t;
 using indexlib::segmentindex_t;

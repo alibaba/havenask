@@ -67,7 +67,7 @@ public:
     util::ByteSliceList* ReadToByteSliceList(size_t length, size_t offset, ReadOption option) noexcept override;
     FSResult<size_t> Write(const void* buffer, size_t length) noexcept override;
     FSResult<void> Close() noexcept override;
-    future_lite::Future<uint32_t> ReadVUInt32Async(size_t offset, ReadOption option) noexcept override;
+    future_lite::Future<FSResult<uint32_t>> ReadVUInt32Async(size_t offset, ReadOption option) noexcept override;
     bool ReadOnly() const noexcept override { return _readOnly; };
     bool MatchType(FSOpenType type, FSFileType fileType, bool needWrite) const noexcept override;
 
@@ -90,7 +90,7 @@ protected:
     mutable autil::ThreadMutex _lock;
     std::shared_ptr<fslib::fs::MMapFile> _file;
     std::shared_ptr<util::SimpleMemoryQuotaController> _memController;
-    MmapLoadStrategyPtr _loadStrategy;
+    std::shared_ptr<MmapLoadStrategy> _loadStrategy;
     std::shared_ptr<FileNode> _dependFileNode; // dcache, for hold shared package file
     void* _data;
     size_t _length;

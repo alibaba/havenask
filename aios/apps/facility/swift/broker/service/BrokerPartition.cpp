@@ -189,6 +189,13 @@ void BrokerPartition::preparePartitionConfig(const config::BrokerConfig &brokerC
             partitionConfig.setPartitionMinBufferSize(int64_t((bufferSize + 1) / 2) << 20);
             partitionConfig.setPartitionMaxBufferSize(int64_t(bufferSize * 2) << 20);
         }
+        int64_t allowedPartitionBufferSize = brokerConfig.getTotalBufferSize() / 2;
+        if (partitionConfig.getPartitionMinBufferSize() > allowedPartitionBufferSize) {
+            partitionConfig.setPartitionMinBufferSize(allowedPartitionBufferSize);
+        }
+        if (partitionConfig.getPartitionMaxBufferSize() > allowedPartitionBufferSize) {
+            partitionConfig.setPartitionMaxBufferSize(allowedPartitionBufferSize);
+        }
         if (partitionConfig.getPartitionMinBufferSize() > partitionConfig.getPartitionMaxBufferSize()) {
             partitionConfig.setPartitionMaxBufferSize(partitionConfig.getPartitionMinBufferSize());
         }
@@ -281,7 +288,9 @@ BrokerPartition::getMessage(const ConsumptionRequest *request, MessageResponse *
     MetricsTagsPtr metricsTags = _metricsTags;
     if (request->has_authentication() && request->authentication().has_accessauthinfo()) {
         accessId = request->authentication().accessauthinfo().accessid();
-        metricsTags = nullptr;
+        if (!accessId.empty()) {
+            metricsTags = nullptr;
+        }
     }
     ReadMetricsCollectorPtr collector(new ReadMetricsCollector(_topicName, _partitionId, accessId));
     TimeoutCheckerPtr timeoutCheckerPtr(createTimeoutChecker());
@@ -348,7 +357,9 @@ ErrorCode BrokerPartition::sendMessage(ProductionLogClosure *closure) {
     string accessId;
     if (request->has_authentication() && request->authentication().has_accessauthinfo()) {
         accessId = request->authentication().accessauthinfo().accessid();
-        metricsTags = nullptr;
+        if (!accessId.empty()) {
+            metricsTags = nullptr;
+        }
     }
     WriteMetricsCollectorPtr collector(new WriteMetricsCollector(_topicName, _partitionId, accessId));
     if (_taskStatus->versionControl()) {
@@ -471,6 +482,12 @@ void BrokerPartition::delExpiredFile() {
         if (_taskStatus->enableTTlDel()) {
             _messageBrain->delExpiredFile();
         }
+    }
+}
+
+void BrokerPartition::syncDfsUsedSize() {
+    if (_taskStatus->getPartitionStatus() == PARTITION_STATUS_RUNNING) {
+        _messageBrain->syncDfsUsedSize();
     }
 }
 

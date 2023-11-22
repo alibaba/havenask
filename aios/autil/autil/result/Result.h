@@ -84,6 +84,8 @@ struct UnwrapFailedException : public std::runtime_error {
     const char *what() const noexcept override { return msg.data(); }
 };
 
+struct NoStackFrameFlag {};
+
 struct ResultBase {};
 
 template <typename Self, typename T>
@@ -275,6 +277,9 @@ public:
     template <typename... Args, typename = std::enable_if_t<std::is_constructible_v<T, Args...>>>
     Result(Args &&...args) : _stored{std::forward<Args>(args)...}, _what{detail::Discriminant::Ok} {}
     template <typename E, typename = std::enable_if_t<std::is_base_of_v<Error, E>>>
+    Result(std::unique_ptr<E> &&e, NoStackFrameFlag) noexcept
+        : _error{std::move(e)}, _what{detail::Discriminant::Err} {}
+    template <typename E, typename = std::enable_if_t<std::is_base_of_v<Error, E>>>
     Result(std::unique_ptr<E> &&e, const SourceLocation &loc = SourceLocation::current()) noexcept
         : _error{std::move(e)}, _what{detail::Discriminant::Err} {
         _error->append_stack_frame(loc);
@@ -436,6 +441,8 @@ public:
     Result() : _error{nullptr} {}
     Result(Result &&other) { move_from(std::move(other)); }
     template <typename E, typename = std::enable_if_t<std::is_base_of_v<Error, E>>>
+    Result(std::unique_ptr<E> &&e, NoStackFrameFlag) noexcept : _error{std::move(e)} {}
+    template <typename E, typename = std::enable_if_t<std::is_base_of_v<Error, E>>>
     Result(std::unique_ptr<E> &&e, const SourceLocation &loc = SourceLocation::current()) noexcept
         : _error{std::move(e)} {
         _error->append_stack_frame(loc);
@@ -546,7 +553,12 @@ protected:
 
 #define AR_RET_IF_ERR(...) AR_RET_IF_ERR_IMPL_((__VA_ARGS__), )
 
-#define AR_RET_IF_ERR_IMPL_(e, hook_before_err_ret)                                                                    \
+#define AR_RET_IF_ERR_FWD(...)                                                                                         \
+    AR_RET_IF_ERR_IMPL_1((__VA_ARGS__), , {std::move(__e), ::autil::result::NoStackFrameFlag()})
+
+#define AR_RET_IF_ERR_IMPL_(e, hook_before_err_ret) AR_RET_IF_ERR_IMPL_1(e, hook_before_err_ret, __e)
+
+#define AR_RET_IF_ERR_IMPL_1(e, hook_before_err_ret, ...)                                                              \
     ((typename ::autil::result::detail::ResultExprClassifier<decltype((e))>::ReturnType)({                             \
         auto __r = ::autil::result::detail::Resultify<decltype((e))>::Apply(e);                                        \
         if (unlikely(__r.is_err())) {                                                                                  \
@@ -554,7 +566,7 @@ protected:
             do {                                                                                                       \
                 hook_before_err_ret;                                                                                   \
             } while (0);                                                                                               \
-            return __e;                                                                                                \
+            return __VA_ARGS__;                                                                                        \
         }                                                                                                              \
         __r.steal_value();                                                                                             \
     }))

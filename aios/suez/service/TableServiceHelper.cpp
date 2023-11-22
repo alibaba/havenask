@@ -45,7 +45,8 @@ void TableServiceHelper::setErrorInfo(ErrorInfo *errInfo,
     AUTIL_LOG(WARN, "%s", string(msg).c_str());
     if (metricsReporter) {
         MetricsTags baseTags = {{{kQueryType, queryType}, {kTableName, tableName}}};
-        metricsReporter->report(1, kErrorQps, kmonitor::QPS, &baseTags);
+        auto reporter = metricsReporter->getSubReporter("", baseTags);
+        reporter->report(1, kErrorQps, kmonitor::QPS, nullptr);
     }
 }
 

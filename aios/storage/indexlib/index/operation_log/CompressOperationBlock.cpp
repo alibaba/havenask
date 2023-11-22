@@ -37,6 +37,7 @@ CompressOperationBlock::CompressOperationBlock(const CompressOperationBlock& oth
     , _operationCount(other._operationCount)
     , _compressDataBuffer(other._compressDataBuffer)
     , _compressDataLen(other._compressDataLen)
+    , _blockMeta(other._blockMeta)
 {
 }
 
@@ -99,7 +100,8 @@ CompressOperationBlock::CreateOperationBlockForRead(const OperationFactory& opFa
 
     for (size_t i = 0; i < _operationCount; ++i) {
         size_t opSize = 0;
-        auto [status, operation] = opFactory.DeserializeOperation(baseAddr, pool, opSize, _blockMeta.hasConcurrentIdx);
+        auto [status, operation] = opFactory.DeserializeOperation(baseAddr, pool, opSize, _blockMeta.hasConcurrentIdx,
+                                                                  _blockMeta.hasSourceIdx);
         if (!status.IsOK()) {
             AUTIL_LOG(ERROR, "deserialize operation log fail");
             return std::make_pair(status, nullptr);
@@ -112,7 +114,7 @@ CompressOperationBlock::CreateOperationBlockForRead(const OperationFactory& opFa
 }
 
 Status CompressOperationBlock::Dump(const std::shared_ptr<file_system::FileWriter>& fileWriter,
-                                    size_t maxOpSerializeSize, bool hasConcurrentIdx)
+                                    size_t maxOpSerializeSize, bool hasConcurrentIdx, bool hasSourceIdx)
 {
     assert(fileWriter);
     auto [status, writeSize] = fileWriter->Write(_compressDataBuffer, _compressDataLen).StatusWith();

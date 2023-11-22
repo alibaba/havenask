@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_ON_DISK_PKEY_HASH_ITERATOR_CREATOR_H
-#define __INDEXLIB_ON_DISK_PKEY_HASH_ITERATOR_CREATOR_H
+#pragma once
 
 #include <memory>
 
@@ -93,5 +92,3 @@ private:
 
 DEFINE_SHARED_PTR(OnDiskPKeyHashIteratorCreator);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ON_DISK_PKEY_HASH_ITERATOR_CREATOR_H

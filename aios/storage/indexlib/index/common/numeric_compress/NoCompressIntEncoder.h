@@ -42,6 +42,8 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
+AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, NoCompressIntEncoder, T);
+
 template <typename T>
 std::pair<Status, uint32_t> NoCompressIntEncoder<T>::Encode(indexlib::file_system::ByteSliceWriter& sliceWriter,
                                                             const T* src, uint32_t srcLen) const
@@ -62,11 +64,15 @@ std::pair<Status, uint32_t> NoCompressIntEncoder<T>::Decode(T* dest, uint32_t de
 {
     uint32_t readCount = 0;
     if (_hasLength) {
-        readCount = sliceReader.ReadByte();
+        auto ret = sliceReader.ReadByte();
+        RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0), "ReadByte failed");
+        readCount = ret.Value();
     } else {
         readCount = destLen;
     }
-    uint32_t actualLen = sliceReader.Read((void*)dest, readCount * sizeof(T));
+    auto ret = sliceReader.Read((void*)dest, readCount * sizeof(T));
+    RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0), "Read failed");
+    uint32_t actualLen = ret.Value();
     assert(_hasLength || actualLen / sizeof(T) == destLen);
     (void)actualLen;
     return std::make_pair(Status::OK(), readCount);
@@ -79,11 +85,15 @@ NoCompressIntEncoder<T>::DecodeMayCopy(T*& dest, uint32_t destLen,
 {
     uint32_t readCount = 0;
     if (_hasLength) {
-        readCount = sliceReader.ReadByte();
+        auto ret = sliceReader.ReadByte();
+        RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0), "ReadByte failed");
+        readCount = ret.Value();
     } else {
         readCount = destLen;
     }
-    uint32_t actualLen = sliceReader.ReadMayCopy((void*&)dest, readCount * sizeof(T));
+    auto ret = sliceReader.ReadMayCopy((void*&)dest, readCount * sizeof(T));
+    RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), 0), "ReadMayCopy failed");
+    uint32_t actualLen = ret.Value();
     assert(_hasLength || actualLen / sizeof(T) == destLen);
     (void)actualLen;
     return std::make_pair(Status::OK(), readCount);

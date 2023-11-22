@@ -63,8 +63,7 @@ cc_test(
     tags=['manual'],
     deps=[
         ':sql_ops_agg_base', ':sql_ops_agg_op',
-        '//aios/sql/ops/test:ops_testlib',
-        '//aios/table/table/test:table_testlib',
+        '//aios/sql/ops/test:ops_testlib', '//aios/table/test:table_testlib',
         '//aios/unittest_framework:unittest_benchmark'
     ]
 )

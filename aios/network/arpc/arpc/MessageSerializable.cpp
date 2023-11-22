@@ -39,6 +39,9 @@ ARPC_DECLARE_AND_SETUP_LOGGER(MessageSerializable);
 MessageSerializable::MessageSerializable(RPCMessage *message, const std::shared_ptr<google::protobuf::Arena> &arena) {
     _arena = arena;
     _message = message;
+    if (_message) {
+        _messageSerializedSize = _message->ByteSizeLong();
+    }
 }
 
 MessageSerializable::~MessageSerializable() {}
@@ -55,13 +58,14 @@ bool MessageSerializable::serialize(DataBuffer *outputBuffer) const {
         return false;
     }
 
-    int size = _message->ByteSize();
-    if (size < 0 || size > MAX_RPC_MSG_BYTE_SIZE) {
-        ARPC_LOG(
-            ERROR, "failed to serialize message. ByteSize %d should be between 0 and %d", size, MAX_RPC_MSG_BYTE_SIZE);
+    if (_messageSerializedSize > MAX_RPC_MSG_BYTE_SIZE) {
+        ARPC_LOG(ERROR,
+                 "failed to serialize message. ByteSize %lu should be between 0 and %d",
+                 _messageSerializedSize,
+                 MAX_RPC_MSG_BYTE_SIZE);
         return false;
     }
-    outputBuffer->ensureFree(size);
+    outputBuffer->ensureFree(_messageSerializedSize);
     DataBufferOutputStream outputStream(outputBuffer);
     bool ret = _message->SerializeToZeroCopyStream(&outputStream);
 

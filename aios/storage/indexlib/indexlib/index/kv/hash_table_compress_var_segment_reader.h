@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_HASH_TABLE_COMPRESS_VAR_SEGMENT_READER_H
-#define __INDEXLIB_HASH_TABLE_COMPRESS_VAR_SEGMENT_READER_H
+#pragma once
 
 #include <memory>
 
@@ -146,5 +145,3 @@ inline FL_LAZY(bool) HashTableCompressVarSegmentReader::GetCompressValue(const K
     FL_CORETURN true;
 }
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASH_TABLE_COMPRESS_VAR_SEGMENT_READER_H

@@ -1,3 +1,4 @@
+#pragma once
 #include "gmock/gmock.h"
 #include <memory>
 
@@ -15,13 +16,13 @@ class MockPostingIterator : public PostingIteratorImpl
 {
     MockPostingIterator() : PostingIteratorImpl(/*pool*/ nullptr, /*trace*/ nullptr) {};
     ~MockPostingIterator() = default;
-    MOCK_METHOD(docid_t, SeekDoc, (docid_t), (override));
+    MOCK_METHOD(docid64_t, SeekDoc, (docid64_t), (override));
     MOCK_METHOD(docpayload_t, GetDocPayload, (), (override));
     MOCK_METHOD(void, Reset, (), (override));
     MOCK_METHOD(PostingIterator*, Clone, (), (const, override));
     MOCK_METHOD(void, Unpack, (TermMatchData&), (override));
     MOCK_METHOD(bool, HasPosition, (), (const, override));
-    MOCK_METHOD(index::ErrorCode, SeekDocWithErrorCode, (docid_t, docid_t&), (override));
+    MOCK_METHOD(index::ErrorCode, SeekDocWithErrorCode, (docid64_t, docid64_t&), (override));
 };
 
 class MockTruncateMetaReader : public TruncateMetaReader

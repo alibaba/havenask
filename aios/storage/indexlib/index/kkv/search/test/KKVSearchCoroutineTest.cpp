@@ -129,17 +129,17 @@ void KKVSearchCoroutineTest::PrepareReaders()
     std::shared_ptr<KKVBuiltSegmentReader<int32_t>> builtReaderPtr2;
     CreateBuiltSegmentReader("segment_2", _docStr2, true, builtReaderPtr2);
     // building segment
-    KKVMemIndexer<SKeyType> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true);
+    KKVMemIndexer<SKeyType> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true, true);
     ASSERT_TRUE(memIndexer.Init(_indexConfig, nullptr).IsOK());
     BuildDocs(memIndexer, _docStr3);
     auto buildingReaderPtr1 = memIndexer.CreateInMemoryReader();
 
     auto locatorPtr1 = std::make_shared<framework::Locator>();
-    locatorPtr1->SetProgress({GetProgress(0, 32767, 97), GetProgress(32768, 65535, 99)});
+    locatorPtr1->SetMultiProgress({{GetProgress(0, 32767, 97), GetProgress(32768, 65535, 99)}});
     auto locatorPtr2 = std::make_shared<framework::Locator>();
-    locatorPtr2->SetProgress({GetProgress(0, 32767, 101), GetProgress(32768, 65535, 103)});
+    locatorPtr2->SetMultiProgress({{GetProgress(0, 32767, 101), GetProgress(32768, 65535, 103)}});
     auto locatorPtr3 = std::make_shared<framework::Locator>();
-    locatorPtr3->SetProgress({GetProgress(0, 32767, 105), GetProgress(32768, 65535, 107)});
+    locatorPtr3->SetMultiProgress({{GetProgress(0, 32767, 105), GetProgress(32768, 65535, 107)}});
 
     _builtSegReaders.emplace_back(std::make_pair(builtReaderPtr1, locatorPtr1));
     _builtSegReaders.emplace_back(std::make_pair(builtReaderPtr2, locatorPtr2));
@@ -164,7 +164,7 @@ void KKVSearchCoroutineTest::CreateBuiltSegmentReader(const std::string& indexDi
 {
     uint32_t segTimestamp = 100;
 
-    KKVMemIndexer<SKeyType> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true);
+    KKVMemIndexer<SKeyType> memIndexer("test", 1024, 1024, 1024, 1.0, 1.0, true, true);
     ASSERT_TRUE(memIndexer.Init(_indexConfig, nullptr).IsOK());
     BuildDocs(memIndexer, docStr);
 
@@ -353,7 +353,7 @@ TEST_F(KKVSearchCoroutineTest, TestMinLocator)
     PrepareReaders();
 
     Locator minLocator;
-    minLocator.SetProgress({GetProgress(0, 32767, 100), GetProgress(32768, 65535, 102)});
+    minLocator.SetMultiProgress({{GetProgress(0, 32767, 100), GetProgress(32768, 65535, 102)}});
 
     PKeyType pkey = 1;
     int currentTsInSecond = 0;
@@ -385,7 +385,7 @@ TEST_F(KKVSearchCoroutineTest, TestMinLocator)
 
     {
         // rt segment valid, LCR_PARTIAL_FASTER
-        minLocator.SetProgress({GetProgress(0, 32767, 100), GetProgress(32768, 65535, 104)});
+        minLocator.SetMultiProgress({{GetProgress(0, 32767, 100), GetProgress(32768, 65535, 104)}});
         SearchContext searchContext(_pool.get(), _indexConfig.get(), pkey, _buildingSegReaders, _builtSegReaders,
                                     currentTsInSecond, keepSortSeq, skeyCountLimits, metricsCollector);
         searchContext.minLocator = &minLocator;
@@ -408,7 +408,7 @@ TEST_F(KKVSearchCoroutineTest, TestMinLocator)
 
     {
         // all segment valid
-        minLocator.SetProgress({GetProgress(0, 32767, 96), GetProgress(32768, 65535, 98)});
+        minLocator.SetMultiProgress({{GetProgress(0, 32767, 96), GetProgress(32768, 65535, 98)}});
 
         SearchContext searchContext(_pool.get(), _indexConfig.get(), pkey, _buildingSegReaders, _builtSegReaders,
                                     currentTsInSecond, keepSortSeq, skeyCountLimits, metricsCollector);
@@ -434,7 +434,7 @@ TEST_F(KKVSearchCoroutineTest, TestMinLocator)
 
     {
         // no segment valid
-        minLocator.SetProgress({GetProgress(0, 32767, 106), GetProgress(32768, 65535, 108)});
+        minLocator.SetMultiProgress({{GetProgress(0, 32767, 106), GetProgress(32768, 65535, 108)}});
 
         SearchContext searchContext(_pool.get(), _indexConfig.get(), pkey, _buildingSegReaders, _builtSegReaders,
                                     currentTsInSecond, keepSortSeq, skeyCountLimits, metricsCollector);

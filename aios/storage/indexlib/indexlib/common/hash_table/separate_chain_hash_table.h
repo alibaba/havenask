@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SEPARATE_CHAIN_HASH_TABLE_H
-#define __INDEXLIB_SEPARATE_CHAIN_HASH_TABLE_H
+#pragma once
 
 #include <memory>
 
@@ -154,5 +153,3 @@ inline void SeparateChainHashTable<KeyType, ValueType>::Insert(const KeyType& ke
     mBucket[bucketIdx] = keyOffset;
 }
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_SEPARATE_CHAIN_HASH_TABLE_H

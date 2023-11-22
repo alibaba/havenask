@@ -48,8 +48,8 @@ public:
     virtual future_lite::coro::Lazy<std::vector<file_system::FSResult<size_t>>>
     BatchRead(file_system::BatchIO& batchIO, file_system::ReadOption option) noexcept = 0;
 
-    virtual future_lite::Future<size_t> ReadAsync(void* buffer, size_t length, size_t offset,
-                                                  file_system::ReadOption option) = 0;
+    virtual future_lite::Future<FSResult<size_t>> ReadAsync(void* buffer, size_t length, size_t offset,
+                                                            file_system::ReadOption option) = 0;
 
     // create a file stream from this, which maybe not support concurrency read
     // the result from read is same with this

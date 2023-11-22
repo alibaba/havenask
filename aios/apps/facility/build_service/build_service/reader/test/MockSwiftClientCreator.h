@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKSWIFTCLIENTCREATOR_H
-#define ISEARCH_BS_MOCKSWIFTCLIENTCREATOR_H
+#pragma once
 
 #include <functional>
 
@@ -42,5 +41,3 @@ typedef ::testing::NiceMock<MockSwiftClientCreator> NiceMockSwiftClientCreator;
 typedef ::testing::StrictMock<MockSwiftClientCreator> StrictMockSwiftClientCreator;
 
 }} // namespace build_service::reader
-
-#endif // ISEARCH_BS_MOCKSWIFTCLIENTCREATOR_H

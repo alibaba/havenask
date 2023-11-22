@@ -15,8 +15,14 @@
  */
 #include "build_service/config/DocProcessorChainConfig.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <memory>
+
+#include "alog/Logger.h"
 #include "build_service/config/ConfigDefine.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/base/Constant.h"
 
 using namespace std;
 

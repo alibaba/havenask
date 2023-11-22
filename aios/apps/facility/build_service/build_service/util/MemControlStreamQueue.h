@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_MEMCONTROLSTREAMQUEUE_H
-#define ISEARCH_BS_MEMCONTROLSTREAMQUEUE_H
+#pragma once
 
 #include <deque>
 
@@ -164,5 +163,3 @@ private:
 };
 
 }} // namespace build_service::util
-
-#endif // ISEARCH_BS_STREAMQUEUE_H

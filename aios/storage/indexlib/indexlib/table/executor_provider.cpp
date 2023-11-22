@@ -15,6 +15,8 @@
  */
 #include "indexlib/table/executor_provider.h"
 
+#include <iosfwd>
+
 using namespace std;
 
 namespace indexlib { namespace table {

@@ -1,18 +1,24 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
-import com.taobao.search.iquan.core.api.schema.ComputeNode;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.Location;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.catalog.function.internal.TableValueFunction;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
-import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import com.taobao.search.iquan.core.rel.visitor.rexshuttle.RexShuttleUtils;
 import com.taobao.search.iquan.core.utils.IquanMiscUtils;
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
+import com.taobao.search.iquan.core.utils.RelDistributionUtil;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelDistribution;
@@ -28,9 +34,6 @@ import org.apache.calcite.rex.RexShuttle;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.SqlOperator;
 import org.apache.commons.lang3.tuple.Triple;
-
-import java.lang.reflect.Type;
-import java.util.*;
 
 public class IquanTableFunctionScanOp extends TableFunctionScan implements IquanRelNode {
     private final Scope scope;
@@ -182,7 +185,7 @@ public class IquanTableFunctionScanOp extends TableFunctionScan implements Iquan
     }
 
     @Override
-    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog globalCatalog, String dbName, IquanConfigManager config) {
+    public IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog globalCatalog, IquanConfigManager config) {
         if (inputs.isEmpty()) {
             //scanTvf
             Distribution random = new Distribution.Builder(RelDistribution.Type.RANDOM_DISTRIBUTED, Distribution.EMPTY).build();
@@ -192,16 +195,16 @@ public class IquanTableFunctionScanOp extends TableFunctionScan implements Iquan
         }
         IquanRelNode input = RelDistributionUtil.checkIquanRelType(inputs.get(0));
         if (isPendingUnion(input)) {
-            return derivePendingUnion((IquanUnionOp) input, globalCatalog, dbName, config);
+            return derivePendingUnion((IquanUnionOp) input, globalCatalog, config);
         }
-        ComputeNode targetNode = RelDistributionUtil.getSingleComputeNode(globalCatalog, dbName, config);
+        Location targetNode = RelDistributionUtil.getSingleLocationNode(globalCatalog, config);
         if (input.isSingle() || input.isBroadcast()) {
             return simpleRelDerive(input);
         } else if (RelDistributionUtil.isTvfNormalScope(this)) {
             if (enableShuffle) {
                 replaceInput(0, input.singleExchange());
                 setOutputDistribution(Distribution.SINGLETON);
-                setLocation(targetNode.getLocation());
+                setLocation(targetNode);
                 return this;
             } else {
                 return simpleRelDerive(input);
@@ -234,14 +237,15 @@ public class IquanTableFunctionScanOp extends TableFunctionScan implements Iquan
                     enableShuffle
             );
             finalFunctionScan.setOutputDistribution(Distribution.SINGLETON);
-            finalFunctionScan.setLocation(targetNode.getLocation());
+            finalFunctionScan.setLocation(targetNode);
             return finalFunctionScan;
         }
     }
 
-    public IquanRelNode derivePendingUnion(IquanUnionOp pendingUnion, GlobalCatalog globalCatalog, String dbName, IquanConfigManager config) {
+    @Override
+    public IquanRelNode derivePendingUnion(IquanUnionOp pendingUnion, GlobalCatalog globalCatalog, IquanConfigManager config) {
         List<Triple<Location, Distribution, List<RelNode>>> locationList = pendingUnion.getLocationList();
-        ComputeNode targetNode = RelDistributionUtil.getSingleComputeNode(globalCatalog, dbName, config);
+        Location targetNode = RelDistributionUtil.getSingleLocationNode(globalCatalog, config);
         List<RelNode> newInputs = new ArrayList<>(locationList.size());
         if (!RelDistributionUtil.isTvfNormalScope(this)) {
             throw new RuntimeException(getCall().toString() + " not support pending union when normal scope false");
@@ -255,7 +259,7 @@ public class IquanTableFunctionScanOp extends TableFunctionScan implements Iquan
                 input.setOutputDistribution(triple.getMiddle());
                 input.setLocation(triple.getLeft());
             }
-            if (input.getLocation().equals(targetNode.getLocation())) {
+            if (input.getLocation().equals(targetNode)) {
                 newInputs.add(input);
             } else {
                 newInputs.add(input.singleExchange());
@@ -269,7 +273,7 @@ public class IquanTableFunctionScanOp extends TableFunctionScan implements Iquan
                 null
         );
         finalUnion.setOutputDistribution(Distribution.SINGLETON);
-        finalUnion.setLocation(targetNode.getLocation());
+        finalUnion.setLocation(targetNode);
         replaceInput(0, finalUnion);
         return simpleRelDerive(finalUnion);
     }

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_HASH_TABLE_FILE_READER_BASE_H
-#define __INDEXLIB_HASH_TABLE_FILE_READER_BASE_H
+#pragma once
 
 #include <memory>
 
@@ -47,5 +46,3 @@ private:
 
 DEFINE_SHARED_PTR(HashTableFileReaderBase);
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_HASH_TABLE_FILE_READER_BASE_H

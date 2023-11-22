@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MERGETASKITEMDISPATCHERTEST_H
-#define __INDEXLIB_MERGETASKITEMDISPATCHERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/merge_task_resource_manager.h"
@@ -79,5 +78,3 @@ INDEXLIB_UNIT_TEST_CASE(MergeTaskItemDispatcherTest, TestDispatchMergeTaskItem);
 INDEXLIB_UNIT_TEST_CASE(MergeTaskItemDispatcherTest, TestSimpleProcessWithTruncate);
 INDEXLIB_UNIT_TEST_CASE(MergeTaskItemDispatcherTest, TestSimpleProcessWithMultiShardingIndex);
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGETASKITEMDISPATCHERTEST_H

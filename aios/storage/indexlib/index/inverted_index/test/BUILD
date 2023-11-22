@@ -36,9 +36,7 @@ strict_cc_library(
 strict_cc_library(
     name='IndexIteratorMock',
     testonly=True,
-    visibility=[
-        '//aios/storage/indexlib/indexlib/index/normal/inverted_index/test:__pkg__'
-    ],
+    visibility=['//aios/storage/indexlib:__subpackages__'],
     deps=['//aios/storage/indexlib/index/inverted_index:IndexIterator']
 )
 strict_cc_library(
@@ -113,8 +111,21 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='InvertedIndexFactoryTest',
     srcs=['InvertedIndexFactoryTest.cpp'],
+    copts=['-fno-access-control'],
     deps=[
         '//aios/storage/indexlib/index/inverted_index:InvertedIndexFactory',
+        '//aios/storage/indexlib/index/inverted_index/config/test:InvertedIndexConfigCreator',
+        '//aios/unittest_framework'
+    ]
+)
+strict_cc_fast_test(
+    name='InvertedIndexInte',
+    srcs=['InvertedIndexInteTest.cpp'],
+    copts=['-fno-access-control'],
+    deps=[
+        '//aios/storage/indexlib/document/raw_document/test:RawDocumentMaker',
+        '//aios/storage/indexlib/file_system',
+        '//aios/storage/indexlib/index/inverted_index:factory',
         '//aios/storage/indexlib/index/inverted_index/config/test:InvertedIndexConfigCreator',
         '//aios/unittest_framework'
     ]

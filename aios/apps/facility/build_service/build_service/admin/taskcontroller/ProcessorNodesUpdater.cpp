@@ -15,11 +15,31 @@
  */
 #include "build_service/admin/taskcontroller/ProcessorNodesUpdater.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <limits>
+#include <map>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/EnvUtil.h"
+#include "autil/Span.h"
+#include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/admin/AdminTaskBase.h"
 #include "build_service/admin/HippoProtoHelper.h"
 #include "build_service/admin/taskcontroller/ProcessorTargetInfos.h"
 #include "build_service/admin/taskcontroller/ProcessorTask.h"
 #include "build_service/admin/taskcontroller/ProcessorWriterVersion.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/TaskInputConfig.h"
+#include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/DataDescription.h"
+#include "build_service/proto/DataDescriptions.h"
 
 using namespace std;
 using namespace autil;

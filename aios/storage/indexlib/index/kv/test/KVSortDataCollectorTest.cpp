@@ -23,7 +23,7 @@ protected:
     {
         std::string docStr;
         std::vector<std::shared_ptr<document::RawDocument>> rawDocs;
-        _indexer.reset(new VarLenKVMemIndexer(DEFAULT_MEMORY_USE_IN_BYTES));
+        _indexer.reset(new VarLenKVMemIndexer(true, DEFAULT_MEMORY_USE_IN_BYTES));
 
         if (!fixedLen) {
             std::tie(_schema, _indexConfig) = KVIndexConfigBuilder::MakeIndexConfig(

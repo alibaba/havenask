@@ -16,7 +16,10 @@
 #include "suez/table/TargetUpdater.h"
 
 #include "autil/Log.h"
+#include "build_service/workflow/RealtimeBuilderDefine.h"
+#include "suez/common/TablePathDefine.h"
 #include "suez/table/LeaderElectionManager.h"
+#include "suez/table/PartitionProperties.h"
 #include "suez/table/RollbackVersionSelector.h"
 #include "suez/table/VersionManager.h"
 #include "suez/table/VersionSynchronizer.h"
@@ -62,8 +65,18 @@ UPDATE_RESULT TargetUpdater::maybeUpdateIncVersion(const PartitionId &pid, Parti
     if (!_versionSync->supportSyncFromPersist(meta)) {
         return UR_REACH_TARGET;
     }
+    build_service::workflow::RealtimeInfoWrapper realtimeInfo;
     if (!_versionMgr->getLeaderVersion(pid, version)) {
-        bool ret = _versionSync->syncFromPersist(pid, meta.getConfigPath(), version);
+        if (!PartitionProperties::loadRealtimeInfo(pid,
+                                                   meta.getConfigPath(),
+                                                   TablePathDefine::constructIndexPath(meta.getRawIndexRoot(), pid),
+                                                   &realtimeInfo)) {
+            AUTIL_LOG(ERROR, "load realtime info for %s failed", autil::legacy::FastToJsonString(pid).c_str());
+            return UR_NEED_RETRY;
+        }
+
+        bool ret = _versionSync->syncFromPersist(
+            pid, realtimeInfo.getAppName(), realtimeInfo.getDataTable(), meta.getConfigPath(), version);
         if (ret) {
             _versionMgr->updateLeaderVersion(pid, version);
             if (version.getVersionId() >= 0) {
@@ -80,7 +93,15 @@ UPDATE_RESULT TargetUpdater::maybeUpdateIncVersion(const PartitionId &pid, Parti
     if (version.getBranchId() != meta.getBranchId()) {
         // on rollback, update head version
         std::vector<TableVersion> versionList;
-        if (!_versionSync->getVersionList(pid, versionList)) {
+        if (!realtimeInfo.isValid() &&
+            !PartitionProperties::loadRealtimeInfo(pid,
+                                                   meta.getConfigPath(),
+                                                   TablePathDefine::constructIndexPath(meta.getRawIndexRoot(), pid),
+                                                   &realtimeInfo)) {
+            AUTIL_LOG(ERROR, "load realtime info for %s failed", autil::legacy::FastToJsonString(pid).c_str());
+            return UR_NEED_RETRY;
+        }
+        if (!_versionSync->getVersionList(pid, realtimeInfo.getAppName(), realtimeInfo.getDataTable(), versionList)) {
             AUTIL_LOG(ERROR, "[%s]: recover version list  failed", FastToJsonString(pid, true).c_str());
             return UR_NEED_RETRY;
         } else {
@@ -88,7 +109,7 @@ UPDATE_RESULT TargetUpdater::maybeUpdateIncVersion(const PartitionId &pid, Parti
                 _versionMgr->updateHeadVersion(pid, versionList.back());
             }
         }
-        RollbackVersionSelector versionSelector(_versionSync, meta.getRawIndexRoot(), pid);
+        RollbackVersionSelector versionSelector(_versionSync, meta.getConfigPath(), meta.getRawIndexRoot(), pid);
         auto incVersion = versionSelector.select(meta.getRollbackTimestamp(), meta.getIncVersion());
         if (incVersion != indexlibv2::INVALID_VERSIONID) {
             meta.setIncVersion(incVersion);

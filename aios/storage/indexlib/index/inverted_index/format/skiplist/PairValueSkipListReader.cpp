@@ -82,8 +82,8 @@ void PairValueSkipListReader::InnerLoad(uint32_t start, uint32_t end, const uint
         return;
     }
     if (itemCount <= MAX_UNCOMPRESSED_SKIP_LIST_SIZE) {
-        _byteSliceReader.Read(_keyBuffer, itemCount * sizeof(_keyBuffer[0]));
-        _byteSliceReader.Read(_valueBuffer, itemCount * sizeof(_valueBuffer[0]));
+        _byteSliceReader.Read(_keyBuffer, itemCount * sizeof(_keyBuffer[0])).GetOrThrow();
+        _byteSliceReader.Read(_valueBuffer, itemCount * sizeof(_valueBuffer[0])).GetOrThrow();
 
         _numInBuffer = itemCount;
         assert(_end == _byteSliceReader.Tell());

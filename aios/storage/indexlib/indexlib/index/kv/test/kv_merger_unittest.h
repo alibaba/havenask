@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_KVMERGERTEST_H
-#define __INDEXLIB_KVMERGERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/kv_index_config.h"
@@ -32,5 +31,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(KvMergerTest, TestInit);
 INDEXLIB_UNIT_TEST_CASE(KvMergerTest, TestNeedCompactBucket);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_KVMERGERTEST_H

@@ -49,8 +49,6 @@
       "function_name":"MATCHINDEX",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300
     },
     {
@@ -252,8 +250,6 @@
       "function_name":"notcontain",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300
     },
     {
@@ -337,8 +333,6 @@
       "function_name":"range",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300
     },
     {
@@ -446,8 +440,6 @@
       "function_name":"MULTICAST",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300
     },
     {
@@ -649,8 +641,6 @@
       "function_name":"contain",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300
     },
     {
@@ -702,8 +692,6 @@
       "function_name":"QUERY",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300
     },
     {
@@ -711,8 +699,6 @@
       "function_name":"eleme_delivery_function",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -752,8 +738,6 @@
       "function_name":"eleme_delivery_filter",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -793,8 +777,6 @@
       "function_name":"delivery_fee_compute",
       "function_type":"UDF",
       "is_deterministic":0,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -888,8 +870,6 @@
       "function_name":"eleme_distance_compute",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -931,8 +911,6 @@
       "function_name":"eleme_simple_lr_score",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -972,8 +950,6 @@
       "function_name":"eleme_tag_match",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1005,8 +981,6 @@
       "function_name":"eleme_vector_score",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1038,8 +1012,6 @@
       "function_name":"eleme_index",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1071,8 +1043,6 @@
       "function_name":"eleme_rough_score",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1118,8 +1088,6 @@
       "function_name":"eleme_inner_product_score",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1151,8 +1119,6 @@
       "function_name":"eleme_check_reserve",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1188,8 +1154,6 @@
       "function_name":"eleme_summary_check_shop_status",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1261,8 +1225,6 @@
       "function_name":"eleme_check_shop_status",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1334,8 +1296,6 @@
       "function_name":"bit_value",
       "function_type":"UDF",
       "is_deterministic":0,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1369,8 +1329,6 @@
       "function_name":"eleme_discount",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1418,8 +1376,6 @@
       "function_name":"eleme_discount_filter",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1459,8 +1415,6 @@
       "function_name":"eleme_cmp",
       "function_type":"UDF",
       "is_deterministic":0,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1490,8 +1444,6 @@
       "function_name":"eleme_tmodel",
       "function_type":"UDF",
       "is_deterministic":0,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1531,8 +1483,6 @@
       "function_name":"eleme_shop_cate_score",
       "function_type":"UDF",
       "is_deterministic":0,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1590,8 +1540,6 @@
       "function_name":"eleme_shop_rank_default",
       "function_type":"UDF",
       "is_deterministic":0,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1643,8 +1591,6 @@
       "function_name":"eleme_shop_score",
       "function_type":"UDF",
       "is_deterministic":0,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1732,8 +1678,6 @@
       "function_name":"eleme_limit_filter",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1763,8 +1707,6 @@
       "function_name":"eleme_period_filter",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -1816,8 +1758,6 @@
       "function_name":"eleme_time_filter",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -2129,8 +2069,6 @@
       "function_name":"eleme_real_price",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -2346,8 +2284,6 @@
       "function_name":"eleme_activity",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -2453,8 +2389,6 @@
       "function_name":"eleme_act_offset",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -2530,8 +2464,6 @@
       "function_name":"mindex",
       "function_type":"UDF",
       "is_deterministic":0,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[
@@ -2653,8 +2585,6 @@
       "function_name":"CONCAT",
       "function_type":"UDF",
       "is_deterministic":1,
-      "catalog_name":"default",
-      "database_name":"mainsch",
       "function_version":300,
       "function_content":{
         "prototypes":[

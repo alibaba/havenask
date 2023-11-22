@@ -55,7 +55,7 @@ public:
     explicit InvertedIndexReaderImpl(const std::shared_ptr<InvertedIndexMetrics>& metrics);
     ~InvertedIndexReaderImpl();
 
-    using Indexer = std::tuple<docid_t, std::shared_ptr<indexlibv2::index::IIndexer>, segmentid_t,
+    using Indexer = std::tuple<docid64_t, std::shared_ptr<indexlibv2::index::IIndexer>, segmentid_t,
                                indexlibv2::framework::Segment::SegmentStatus>;
 
 public:
@@ -128,7 +128,7 @@ private:
     future_lite::coro::Lazy<Result<PostingIterator*>>
     CreatePostingIteratorAsync(const Term* term, const DocIdRangeVector& ranges, uint32_t statePoolSize,
                                autil::mem_pool::Pool* sessionPool, file_system::ReadOption option) noexcept;
-    void AddBuildingSegmentReader(docid_t baseDocId, const std::shared_ptr<IndexSegmentReader>& segReader);
+    void AddBuildingSegmentReader(docid64_t baseDocId, const std::shared_ptr<IndexSegmentReader>& segReader);
     bool NeedTruncatePosting(const index::Term& term) const;
 
     std::tuple<std::vector<future_lite::coro::Lazy<index::Result<bool>>>, SegmentPostingVector,
@@ -153,7 +153,7 @@ private:
 
 protected:
     std::vector<std::shared_ptr<InvertedLeafReader>> _segmentReaders;
-    std::vector<docid_t> _baseDocIds;
+    std::vector<docid64_t> _baseDocIds;
     std::shared_ptr<BuildingIndexReader> _buildingIndexReader;
 
 private:

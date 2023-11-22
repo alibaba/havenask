@@ -22,7 +22,7 @@ using namespace std;
 using namespace autil::legacy;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, IndexPartitionOptions);
+AUTIL_LOG_SETUP(indexlib.config, IndexPartitionOptions);
 
 IndexPartitionOptions::IndexPartitionOptions() : TEST_mReadOnly(false)
 {

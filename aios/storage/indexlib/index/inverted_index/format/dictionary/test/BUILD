@@ -6,6 +6,7 @@ strict_cc_fast_test(
         'DefaultTermDictionaryReaderTest.cpp', 'HashDictionaryWriterTest.cpp',
         'InMemDictionaryReaderTest.cpp', 'LegacyBlockArrayReaderTest.cpp'
     ],
+    copts=['-fno-access-control'],
     shard_count=5,
     deps=[
         '//aios/storage/indexlib/file_system/test:test-util',
@@ -20,6 +21,7 @@ strict_cc_fast_test(
 strict_cc_fast_test(
     name='TieredDictionaryTest',
     srcs=['TieredDictionaryReaderTest.cpp', 'TieredDictionaryWriterTest.cpp'],
+    copts=['-fno-access-control'],
     shard_count=5,
     deps=[
         '//aios/storage/indexlib/file_system/test:test-util',

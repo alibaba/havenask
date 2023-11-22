@@ -15,7 +15,17 @@
  */
 #include "build_service/workflow/WorkflowThreadPool.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <functional>
+#include <pthread.h>
+#include <unistd.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
+#include "build_service/workflow/FlowError.h"
 #include "build_service/workflow/WorkflowItem.h"
 
 using namespace std;

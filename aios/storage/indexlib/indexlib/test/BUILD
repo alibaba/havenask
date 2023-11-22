@@ -16,9 +16,8 @@ cc_library(
     include_prefix='indexlib/test',
     visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
-        ':test_h', '//aios/storage/indexlib/file_system',
-        '//aios/unittest_framework',
-        '//aios/future_lite/future_lite/executors:simple_executor'
+        ':test_h', '//aios/future_lite/future_lite/executors:simple_executor',
+        '//aios/storage/indexlib/file_system', '//aios/unittest_framework'
     ],
     alwayslink=True
 )
@@ -34,7 +33,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib:indexlib_misc',
         '//aios/storage/indexlib/indexlib/index/normal/framework:reader',
@@ -55,7 +54,7 @@ cc_library(
     ],
     copts=['-Werror'],
     include_prefix='indexlib/test',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         '//aios/storage/indexlib/index/common/field_format/attribute:attribute_convertor',
         '//aios/storage/indexlib/indexlib/document:document_parser',
@@ -69,7 +68,7 @@ cc_library(
     copts=['-Werror'],
     implementation_deps=['//aios/storage/indexlib/table/kv_table:reader'],
     include_prefix='indexlib/test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':document', ':query',
         '//aios/future_lite/future_lite/executors:simple_executor',
@@ -83,17 +82,10 @@ cc_library(
 )
 cc_library(
     name='schema_maker',
-    srcs=[
-        'modify_schema_maker.cpp', 'region_schema_maker.cpp', 'schema_maker.cpp'
-    ],
-    hdrs=['modify_schema_maker.h', 'region_schema_maker.h', 'schema_maker.h'],
     copts=['-Werror'],
     include_prefix='indexlib/test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
-    deps=[
-        '//aios/storage/indexlib/framework:tablet_schema_loader',
-        '//aios/storage/indexlib/indexlib/config'
-    ]
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
+    deps=['//aios/storage/indexlib/legacy/config/test:schema_maker']
 )
 cc_library(
     name='index_meta_maker',
@@ -101,7 +93,7 @@ cc_library(
     hdrs=['version_maker.h'],
     copts=['-Werror'],
     include_prefix='indexlib/test',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=['//aios/storage/indexlib/indexlib/index_base']
 )
 cc_library(
@@ -111,7 +103,7 @@ cc_library(
     hdrs=['single_field_partition_data_provider.h'],
     copts=['-Werror'],
     include_prefix='indexlib/test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':document', ':schema_maker',
         '//aios/storage/indexlib/indexlib/partition:indexlib_partition',
@@ -123,7 +115,7 @@ cc_library(
     hdrs=['simple_table_reader.h'],
     copts=['-Werror'],
     include_prefix='indexlib/test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[':document', '//aios/storage/indexlib/indexlib:indexlib_table']
 )
 cc_library(
@@ -140,7 +132,7 @@ cc_library(
     ],
     copts=['-fno-access-control', '-Werror'],
     include_prefix='indexlib/test',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         ':directory-creator', ':schema_maker', ':searcher',
         ':simple_table_reader',
@@ -154,7 +146,7 @@ cc_library(
     hdrs=['directory_creator.h'],
     copts=['-Werror'],
     include_prefix='indexlib/test',
-    visibility=['//visibility:public'],
+    visibility=['//aios/storage/indexlib/indexlib:indexlibV1'],
     deps=[
         '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/indexlib:indexlib_misc'
@@ -163,7 +155,7 @@ cc_library(
 )
 cc_library(
     name='test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         ':directory-creator', ':partition_state_machine', ':schema_maker',
         ':searcher', ':simple_table_reader',

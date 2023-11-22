@@ -20,9 +20,9 @@
 #include "autil/ThreadPool.h"
 #include "autil/WorkItem.h"
 #include "indexlib/index/ann/aitheta2/AithetaIndexConfig.h"
-#include "indexlib/index/ann/aitheta2/util/MetricReporter.h"
 #include "indexlib/index/ann/aitheta2/AithetaQueryWrapper.h"
 #include "indexlib/index/ann/aitheta2/AithetaTerm.h"
+#include "indexlib/index/ann/aitheta2/util/MetricReporter.h"
 
 namespace indexlibv2::index::ann {
 class AithetaIndexReader;
@@ -71,7 +71,8 @@ private:
     Status LRSearch(const AithetaQueries& lrQuery, bool onlySearchRt, std::unordered_set<docid_t>& lrDocSet);
     static size_t CalcTopK(const AithetaQueries& indexQuery);
     std::shared_ptr<kmonitor::MetricsTags> GetKmonTags(const AithetaQueries& aithetaQueries);
-    void MetricReport(const std::shared_ptr<Metric>& metric, const std::shared_ptr<kmonitor::MetricsTags>& tags, float value);
+    void MetricReport(const std::shared_ptr<Metric>& metric, const std::shared_ptr<kmonitor::MetricsTags>& tags,
+                      float value);
 
 private:
     uint32_t _timer;

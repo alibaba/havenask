@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEDATAINFOTEST_H
-#define __INDEXLIB_ATTRIBUTEDATAINFOTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/attribute/accessor/attribute_data_info.h"
@@ -27,5 +26,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(AttributeDataInfoTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_ATTRIBUTEDATAINFOTEST_H

@@ -1,7 +1,17 @@
 #include "build_service/analyzer/SingleWSScanner.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/StringUtil.h"
 #include "build_service/test/unittest.h"
+#include "build_service/util/Log.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 

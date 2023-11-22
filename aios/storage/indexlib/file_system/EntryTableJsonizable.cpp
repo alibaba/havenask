@@ -20,9 +20,10 @@
 #include <sstream>
 #include <utility>
 
-#include "alog/Logger.h"
 #include "autil/CommonMacros.h"
+#include "autil/TimeUtility.h"
 #include "indexlib/file_system/EntryTable.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/package/PackageFileMeta.h"
 #include "indexlib/util/PathUtil.h"
 

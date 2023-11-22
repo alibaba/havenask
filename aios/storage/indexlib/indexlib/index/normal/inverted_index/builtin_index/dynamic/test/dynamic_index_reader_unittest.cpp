@@ -1,11 +1,11 @@
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/modified_tokens.h"
 #include "indexlib/index/inverted_index/builtin_index/dynamic/DynamicPostingIterator.h"
 #include "indexlib/index/normal/inverted_index/builtin_index/dynamic/dynamic_index_reader.h"
 #include "indexlib/index/normal/inverted_index/builtin_index/dynamic/dynamic_index_writer.h"
 #include "indexlib/index/test/index_test_util.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/test/unittest.h"
 
 using namespace indexlib::test;

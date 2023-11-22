@@ -19,6 +19,7 @@
 #include "autil/DataBuffer.h"
 #include "indexlib/document/IDocument.h"
 #include "indexlib/document/normal/AttributeDocument.h"
+#include "indexlib/document/normal/FieldMetaDocument.h"
 #include "indexlib/document/normal/IndexDocument.h"
 #include "indexlib/document/normal/SerializedSourceDocument.h"
 #include "indexlib/document/normal/SerializedSummaryDocument.h"
@@ -45,7 +46,7 @@ public:
 
 public:
     const indexlibv2::framework::Locator& GetLocatorV2() const override { return _locatorV2; }
-    DocInfo GetDocInfo() const override { return _docInfo; }
+    framework::Locator::DocInfo GetDocInfo() const override { return _docInfo; }
     uint32_t GetTTL() const override { return _ttl; }
     docid_t GetDocId() const override
     {
@@ -72,6 +73,7 @@ public:
         _originalOpType = op;
     }
     bool HasFormatError() const override;
+    schemaid_t GetSchemaId() const override { return _schemaId; }
 
 public:
     Status SetSerializedVersion(uint32_t version);
@@ -88,7 +90,7 @@ public:
     const std::map<std::string, std::string>& GetTagInfoMap() const { return _tagInfo; }
 
     bool IsUserDoc() const;
-    void SetDocInfo(const DocInfo& docInfo) override { _docInfo = docInfo; }
+    void SetDocInfo(const framework::Locator::DocInfo& docInfo) override { _docInfo = docInfo; }
 
     void serialize(autil::DataBuffer& dataBuffer) const override;
     void deserialize(autil::DataBuffer& dataBuffer) override;
@@ -107,6 +109,7 @@ public:
         const auto& str = GetTag(DOCUMENT_SOURCE_TAG_KEY);
         return autil::StringView(str);
     }
+    void SetSchemaId(schemaid_t schemaId) { _schemaId = schemaId; }
 
 public:
     void SetIndexDocument(const std::shared_ptr<indexlib::document::IndexDocument>& indexDocument)
@@ -117,6 +120,11 @@ public:
     void SetAttributeDocument(const std::shared_ptr<indexlib::document::AttributeDocument>& attributeDocument)
     {
         _attributeDocument = attributeDocument;
+    }
+
+    void SetFieldMetaDocument(const std::shared_ptr<indexlib::document::FieldMetaDocument>& fieldMetaDocument)
+    {
+        _fieldMetaDocument = fieldMetaDocument;
     }
 
     void SetSummaryDocument(const std::shared_ptr<indexlib::document::SerializedSummaryDocument>& summaryDocument)
@@ -134,6 +142,11 @@ public:
     const std::shared_ptr<indexlib::document::AttributeDocument>& GetAttributeDocument() const
     {
         return _attributeDocument;
+    }
+
+    const std::shared_ptr<indexlib::document::FieldMetaDocument>& GetFieldMetaDocument() const
+    {
+        return _fieldMetaDocument;
     }
 
     const std::shared_ptr<indexlib::document::SerializedSummaryDocument>& GetSummaryDocument() const
@@ -259,6 +272,10 @@ private:
             _indexDocument->deserializeVersion11(dataBuffer);
         }
     }
+    inline void deserializeVersion12(autil::DataBuffer& dataBuffer)
+    {
+        _fieldMetaDocument.reset(deserializeObject<indexlib::document::FieldMetaDocument>(dataBuffer, _pool.get(), 12));
+    }
 
     void serializeVersion3(autil::DataBuffer& dataBuffer) const;
     void serializeVersion4(autil::DataBuffer& dataBuffer) const;
@@ -284,13 +301,15 @@ private:
         }
     }
 
+    inline void serializeVersion12(autil::DataBuffer& dataBuffer) const { dataBuffer.write(_fieldMetaDocument); }
+
 private:
     std::shared_ptr<autil::mem_pool::Pool> _pool;
     DocOperateType _opType = UNKNOWN_OP;
     DocOperateType _originalOpType = UNKNOWN_OP;
     mutable uint32_t _serializedVersion = INVALID_DOC_VERSION;
     uint32_t _ttl = 0;
-    DocInfo _docInfo;
+    framework::Locator::DocInfo _docInfo;
     TagInfoMap _tagInfo; // legacy mSource
     indexlibv2::framework::Locator _locatorV2;
     int64_t _userTimestamp = INVALID_TIMESTAMP;
@@ -299,11 +318,13 @@ private:
     FieldIdVector _modifyFailedFields;
     std::shared_ptr<indexlib::document::IndexDocument> _indexDocument;
     std::shared_ptr<indexlib::document::AttributeDocument> _attributeDocument;
+    std::shared_ptr<indexlib::document::FieldMetaDocument> _fieldMetaDocument;
     std::shared_ptr<indexlib::document::SerializedSummaryDocument> _summaryDocument;
     std::shared_ptr<indexlib::document::SerializedSourceDocument> _sourceDocument;
     FieldIdVector _modifiedFields;
     docid_t _deletedDocId;
     bool _trace = false; // used for doc trace
+    schemaid_t _schemaId = DEFAULT_SCHEMAID;
 
 private:
     friend class indexlib::document::NormalDocument;

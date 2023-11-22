@@ -16,7 +16,7 @@
 #include "aios/network/gig/multi_call/grpc/client/GrpcClientStreamHandler.h"
 
 #include "aios/network/gig/multi_call/controller/ControllerFeedBack.h"
-#include "aios/network/gig/multi_call/grpc/CompletionQueueStatus.h"
+#include "aios/network/gig/multi_call/grpc/client/CompletionQueueStatus.h"
 #include "aios/network/gig/multi_call/proto/GigAgent.pb.h"
 #include "aios/network/gig/multi_call/proto/GigStreamHeader.pb.h"
 #include "aios/network/gig/multi_call/service/CallBack.h"

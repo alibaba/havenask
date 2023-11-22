@@ -50,11 +50,11 @@ public:
     void Init(const std::shared_ptr<SegmentPostingVector>& segPostings);
 
 public:
-    virtual bool DecodeDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                 ttf_t& currentTTF);
+    virtual bool DecodeDocBuffer(docid64_t startDocId, docid32_t* docBuffer, docid64_t& firstDocId,
+                                 docid64_t& lastDocId, ttf_t& currentTTF);
 
-    virtual bool DecodeDocBufferMayCopy(docid_t startDocId, docid_t*& docBuffer, docid_t& firstDocId,
-                                        docid_t& lastDocId, ttf_t& currentTTF);
+    virtual bool DecodeDocBufferMayCopy(docid64_t startDocId, docid32_t*& docBuffer, docid64_t& firstDocId,
+                                        docid64_t& lastDocId, ttf_t& currentTTF);
 
     virtual bool DecodeCurrentTFBuffer(tf_t* tfBuffer);
     virtual void DecodeCurrentDocPayloadBuffer(docpayload_t* docPayloadBuffer);
@@ -67,19 +67,19 @@ public:
     NormalInDocPositionIterator* GetPositionIterator();
 
     const PostingFormatOption& GetPostingFormatOption() const { return mCurSegPostingFormatOption; }
-    docid_t GetCurrentSegmentBaseDocId() { return _baseDocId; }
+    docid64_t GetCurrentSegmentBaseDocId() { return _baseDocId; }
 
 private:
-    bool DecodeDocBufferInOneSegment(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                     ttf_t& currentTTF);
-    bool DecodeDocBufferInOneSegmentMayCopy(docid_t startDocId, docid_t*& docBuffer, docid_t& firstDocId,
-                                            docid_t& lastDocId, ttf_t& currentTTF);
+    bool DecodeDocBufferInOneSegment(docid64_t startDocId, docid32_t* docBuffer, docid64_t& firstDocId,
+                                     docid64_t& lastDocId, ttf_t& currentTTF);
+    bool DecodeDocBufferInOneSegmentMayCopy(docid64_t startDocId, docid32_t*& docBuffer, docid64_t& firstDocId,
+                                            docid64_t& lastDocId, ttf_t& currentTTF);
 
-    bool DecodeShortListDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                  ttf_t& currentTTF);
+    bool DecodeShortListDocBuffer(docid64_t startDocId, docid32_t* docBuffer, docid64_t& firstDocId,
+                                  docid64_t& lastDocId, ttf_t& currentTTF);
 
-    bool DecodeNormalListDocBuffer(docid_t startDocId, docid_t* docBuffer, docid_t& firstDocId, docid_t& lastDocId,
-                                   ttf_t& currentTTF);
+    bool DecodeNormalListDocBuffer(docid64_t startDocId, docid32_t* docBuffer, docid64_t& firstDocId,
+                                   docid64_t& lastDocId, ttf_t& currentTTF);
 
 private:
     // virtual for test
@@ -87,15 +87,15 @@ private:
                                                                     bool enableShortListVbyteCompress);
 
 private:
-    bool MoveToSegment(docid_t startDocId);
-    docid_t GetSegmentBaseDocId(uint32_t segCursor);
-    uint32_t LocateSegment(uint32_t startSegCursor, docid_t startDocId);
+    bool MoveToSegment(docid64_t startDocId);
+    docid64_t GetSegmentBaseDocId(uint32_t segCursor);
+    uint32_t LocateSegment(uint32_t startSegCursor, docid64_t startDocId);
 
 protected:
     PostingFormatOption mCurSegPostingFormatOption;
 
 private:
-    docid_t _baseDocId;
+    docid64_t _baseDocId;
 
     bool _needDecodeTF;
     bool _needDecodeDocPayload;
@@ -128,7 +128,7 @@ inline void BufferedIndexDecoder::MoveToCurrentDocPosition(ttf_t currentTTF)
 
 inline NormalInDocPositionIterator* BufferedIndexDecoder::GetPositionIterator() { return _inDocPositionIterator; }
 
-inline docid_t BufferedIndexDecoder::GetSegmentBaseDocId(uint32_t segCursor)
+inline docid64_t BufferedIndexDecoder::GetSegmentBaseDocId(uint32_t segCursor)
 {
     if (segCursor >= _segmentCount) {
         return INVALID_DOCID;
@@ -138,15 +138,15 @@ inline docid_t BufferedIndexDecoder::GetSegmentBaseDocId(uint32_t segCursor)
     return curSegPosting.GetBaseDocId();
 }
 
-inline uint32_t BufferedIndexDecoder::LocateSegment(uint32_t startSegCursor, docid_t startDocId)
+inline uint32_t BufferedIndexDecoder::LocateSegment(uint32_t startSegCursor, docid64_t startDocId)
 {
-    docid_t curSegBaseDocId = GetSegmentBaseDocId(startSegCursor);
+    docid64_t curSegBaseDocId = GetSegmentBaseDocId(startSegCursor);
     if (curSegBaseDocId == INVALID_DOCID) {
         return startSegCursor;
     }
 
     uint32_t curSegCursor = startSegCursor;
-    docid_t nextSegBaseDocId = GetSegmentBaseDocId(curSegCursor + 1);
+    docid64_t nextSegBaseDocId = GetSegmentBaseDocId(curSegCursor + 1);
     while (nextSegBaseDocId != INVALID_DOCID && startDocId >= nextSegBaseDocId) {
         ++curSegCursor;
         nextSegBaseDocId = GetSegmentBaseDocId(curSegCursor + 1);

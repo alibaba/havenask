@@ -75,7 +75,6 @@ public:
     void SetMaxSwapMmapFileSize(int64_t maxSwapMmapFileSize);
     int64_t GetMaxSwapMmapFileSize() const;
 
-    void SetRegionInfo(index::regionid_t regionId, size_t regionCount);
     bool UseNumberHash() const;
     void SetUseNumberHash(bool useNumberHash);
     bool IsCompactHashKey() const;

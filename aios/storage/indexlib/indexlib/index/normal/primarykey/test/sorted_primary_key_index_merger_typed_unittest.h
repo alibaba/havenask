@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SORTED_PRIMARY_KEY_INDEX_MERGER_TYPED_UNITTEST_H
-#define __INDEXLIB_SORTED_PRIMARY_KEY_INDEX_MERGER_TYPED_UNITTEST_H
+#pragma once
 
 #include "indexlib/index/normal/primarykey/test/primary_key_index_merger_typed_unittest.h"
 
@@ -33,5 +32,3 @@ INDEXLIB_UNIT_TEST_CASE(SortedPrimaryKeyIndexMergerTypedTest, TestMergeToSegment
 
 INDEXLIB_UNIT_TEST_CASE(SortedPrimaryKeyIndexMergerTypedTest, TestCaseForSortedMerge);
 }} // namespace indexlib::index
-
-#endif // __INDEXLIB_SORTED_PRIMARY_KEY_INDEX_MERGER_TYPED_UNITTEST_H

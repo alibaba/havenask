@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_FAKEBROKERTOPICACCESSOR_H
-#define ISEARCH_BS_FAKEBROKERTOPICACCESSOR_H
+#pragma once
 
 #include "build_service/common/BrokerTopicAccessor.h"
 #include "build_service/common/test/FakeBrokerTopicKeeper.h"
@@ -62,5 +61,3 @@ private:
 BS_TYPEDEF_PTR(FakeBrokerTopicAccessor);
 
 }} // namespace build_service::common
-
-#endif // ISEARCH_BS_FAKEBROKERTOPICACCESSOR_H

@@ -15,6 +15,14 @@
  */
 #include "build_service/admin/controlflow/FlowSerializer.h"
 
+#include <iosfwd>
+#include <map>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
 #include "build_service/admin/controlflow/ControlDefine.h"
 #include "build_service/admin/controlflow/TaskContainer.h"
 #include "build_service/admin/controlflow/TaskFlow.h"

@@ -36,12 +36,28 @@ NaviLogger::NaviLogger(size_t maxMessageLength,
 {
 }
 
+NaviLogger::NaviLogger(const NaviLogger &other)
+    : _id(other._id)
+    , _name(other._name)
+    , _level(other._level)
+    , _stopped(false)
+    , _maxMessageLength(other._maxMessageLength)
+    , _appenders(other._appenders)
+    , _ownAppenders(other._ownAppenders)
+    , _traceAppender(nullptr)
+    , _logManager(other._logManager)
+    , _hasError(false)
+{
+    if (other._traceAppender) {
+        auto traceAppender =
+            std::make_shared<TraceAppender>(*other._traceAppender);
+        setTraceAppender(traceAppender);
+    }
+}
+
 NaviLogger::~NaviLogger() {
     auto _logger = this;
     NAVI_LOG(SCHEDULE2, "destruct: %p", this);
-    for (auto appender : _ownAppenders) {
-        delete appender;
-    }
 }
 
 void NaviLogger::init(SessionId id, const std::vector<FileAppender *> &appenders) {
@@ -76,8 +92,11 @@ const std::string &NaviLogger::getName() const {
     return _name;
 }
 
-void NaviLogger::addAppender(Appender *appender) {
-    _appenders.push_back(appender);
+void NaviLogger::addAppender(const std::shared_ptr<Appender> &appender) {
+    if (!appender) {
+        return;
+    }
+    _appenders.push_back(appender.get());
     _ownAppenders.push_back(appender);
     updateLogLevel();
 }
@@ -90,8 +109,11 @@ bool NaviLogger::hasTraceAppender() const {
     return _traceAppender != nullptr;
 }
 
-void NaviLogger::setTraceAppender(TraceAppender *appender) {
-    _traceAppender = appender;
+void NaviLogger::setTraceAppender(const std::shared_ptr<TraceAppender> &appender) {
+    if (!appender) {
+        return;
+    }
+    _traceAppender = appender.get();
     _traceAppender->setLogManager(_logManager.get());
     addAppender(appender);
 }
@@ -118,7 +140,7 @@ void NaviLogger::updateTraceLevel(const std::string &levelStr) {
 }
 
 void NaviLogger::updateName() {
-    _name = CommonUtil::formatSessionId(_id, _logManager->getInstanceId());
+    _name = CommonUtil::formatSessionId(_id);
 }
 
 void NaviLogger::log(LogLevel level,
@@ -133,31 +155,15 @@ void NaviLogger::log(LogLevel level,
     if (__builtin_expect(stopped(), 0)) {
         return;
     }
-    char buffer[_maxMessageLength];
-    vsnprintf(buffer, _maxMessageLength, fmt, ap);
-    LoggingEvent event(_name, object, prefix, buffer, level, file, line, func);
-    _log(event);
-}
-
-void NaviLogger::log(LogLevel level,
-                     void *object,
-                     const std::string &prefix,
-                     const char *fmt,
-                     va_list ap)
-{
-    if (__builtin_expect(stopped(), 0)) {
-        return;
-    }
     static thread_local size_t bufferSize = _maxMessageLength;
     static thread_local std::unique_ptr<char[]> bufferStorage(new char[bufferSize]);
     if (unlikely(bufferSize != _maxMessageLength)) {
         bufferSize = _maxMessageLength;
         bufferStorage.reset(new char[bufferSize]);
     }
-
     char *buffer = bufferStorage.get();
     vsnprintf(buffer, _maxMessageLength, fmt, ap);
-    LoggingEvent event(_name, object, prefix, buffer, level, "", 0, "");
+    LoggingEvent event(_name, object, prefix, buffer, level, file, line, func);
     _log(event);
 }
 
@@ -171,12 +177,9 @@ void NaviLogger::_log(LoggingEvent& event)
         autil::ScopedLock lock(_lock);
         if (!_hasError) {
             _hasError = true;
-            _firstErrorEvent = event;
-            _firstErrorBackTrace = std::move(btStr);
+            _firstErrorEvent = std::make_shared<LoggingEvent>(event);
+            _firstErrorEvent->bt = std::move(btStr);
         }
-    }
-    if (event.name.empty()) {
-        event.name = _name;
     }
     {
         for (const auto &appender : _appenders) {
@@ -187,14 +190,9 @@ void NaviLogger::_log(LoggingEvent& event)
     }
 }
 
-LoggingEvent NaviLogger::firstErrorEvent() {
+LoggingEventPtr NaviLogger::firstErrorEvent() {
     autil::ScopedLock lock(_lock);
     return _firstErrorEvent;
-}
-
-std::string NaviLogger::firstErrorBackTrace() {
-    autil::ScopedLock lock(_lock);
-    return _firstErrorBackTrace;
 }
 
 std::string NaviLogger::getCurrentBtString() const {

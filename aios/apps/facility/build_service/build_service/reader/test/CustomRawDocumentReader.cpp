@@ -1,7 +1,10 @@
 #include "build_service/reader/test/CustomRawDocumentReader.h"
 
-#include "autil/StringUtil.h"
-#include "build_service/config/ResourceReader.h"
+#include <cstddef>
+#include <memory>
+
+#include "autil/Span.h"
+#include "build_service/document/DocumentDefine.h"
 
 using namespace std;
 using namespace autil;

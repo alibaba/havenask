@@ -1,0 +1,12 @@
+#import(Tool)
+#import(Log)
+
+function graphDef()
+   local param = Tool.copyMap(Graph.parameter)
+   local clusterName = param["clusterName"]
+   local incFlowTag = clusterName..":IncBuild"
+   local incBuildFlow = Graph.loadFlow("IncBuildV2.flow", param)
+   incBuildFlow:addTag(incFlowTag)
+   incBuildFlow:addTag("BSBuildV2")
+   return true
+end

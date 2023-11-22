@@ -15,14 +15,25 @@
  */
 #include "build_service/builder/AsyncBuilderV2.h"
 
+#include <cstdint>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <string>
+#include <unistd.h>
+#include <utility>
+
+#include "autil/Log.h"
 #include "build_service/builder/BuilderV2Impl.h"
-#include "build_service/proto/ProtoUtil.h"
 #include "build_service/util/Monitor.h"
-#include "indexlib/base/Status.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/document/DocumentIterator.h"
+#include "indexlib/document/ElementaryDocumentBatch.h"
+#include "indexlib/document/IDocument.h"
 #include "indexlib/document/IDocumentBatch.h"
 #include "indexlib/framework/ITablet.h"
 #include "indexlib/indexlib.h"
+#include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricType.h"
 
 namespace build_service::builder {
 
@@ -30,16 +41,19 @@ namespace build_service::builder {
 
 BS_LOG_SETUP(builder, AsyncBuilderV2);
 
-AsyncBuilderV2::AsyncBuilderV2(std::shared_ptr<indexlibv2::framework::ITablet> tablet, const proto::BuildId& buildId)
-    : AsyncBuilderV2(std::make_unique<BuilderV2Impl>(tablet, buildId))
+AsyncBuilderV2::AsyncBuilderV2(std::shared_ptr<indexlibv2::framework::ITablet> tablet, const proto::BuildId& buildId,
+                               bool regroup)
+    : AsyncBuilderV2(std::make_unique<BuilderV2Impl>(tablet, buildId), regroup)
 {
 }
 
-AsyncBuilderV2::AsyncBuilderV2(std::unique_ptr<BuilderV2> impl)
+AsyncBuilderV2::AsyncBuilderV2(std::unique_ptr<BuilderV2> impl, bool regroup)
     : BuilderV2(impl->getBuildId())
     , _impl(std::move(impl))
     , _running(false)
     , _needStop(false)
+    , _regroup(regroup)
+    , _inputCheckDone(false)
 {
 }
 
@@ -52,16 +66,18 @@ bool AsyncBuilderV2::init(const config::BuilderConfig& builderConfig, indexlib::
     }
     // assert(builderConfig.asyncBuild);
     _docQueue.reset(new DocQueue(builderConfig.asyncQueueSize, builderConfig.asyncQueueMem * 1024 * 1024));
-    _batchBuildSize = builderConfig.batchBuildSize;
 
-    // (+ _batchBuildSize + 2) to avoid block build thread
-    _releaseDocQueue.reset(new Queue(builderConfig.asyncQueueSize + _batchBuildSize + 2));
-
+    if (_regroup) {
+        _regroupBatchSize = builderConfig.batchBuildSize;
+    }
+    // (+ _regroupBatchSize + 2) to avoid block build thread
+    _releaseDocQueue.reset(new Queue(builderConfig.asyncQueueSize + _regroupBatchSize + 2));
     _asyncQueueSizeMetric = DECLARE_METRIC(metricProvider, "perf/asyncQueueSize", kmonitor::STATUS, "count");
     _asyncQueueMemMetric = DECLARE_METRIC(metricProvider, "perf/asyncQueueMemUse", kmonitor::STATUS, "MB");
     _releaseQueueSizeMetric = DECLARE_METRIC(metricProvider, "perf/releaseQueueSize", kmonitor::STATUS, "count");
 
     _running = true;
+    _inputCheckDone = false;
     _asyncBuildThreadPtr = autil::Thread::createThread(std::bind(&AsyncBuilderV2::buildThread, this), "BsAsyncBuilder");
 
     if (!_asyncBuildThreadPtr) {
@@ -75,8 +91,8 @@ bool AsyncBuilderV2::init(const config::BuilderConfig& builderConfig, indexlib::
 
 void AsyncBuilderV2::clearQueue()
 {
+    std::shared_ptr<indexlibv2::document::IDocumentBatch> batch;
     while (!_docQueue->empty()) {
-        std::shared_ptr<indexlibv2::document::IDocumentBatch> batch;
         _docQueue->pop(batch);
         batch.reset();
     }
@@ -85,7 +101,7 @@ void AsyncBuilderV2::clearQueue()
 void AsyncBuilderV2::fillDocBatches(std::vector<std::shared_ptr<indexlibv2::document::IDocumentBatch>>& docBatches)
 {
     std::shared_ptr<indexlibv2::document::IDocumentBatch> batch;
-    for (size_t i = 0; i < _batchBuildSize; i++) {
+    for (size_t i = 0; i < _regroupBatchSize; i++) {
         if (i > 0 && _docQueue->empty()) {
             return;
         }
@@ -102,20 +118,10 @@ void AsyncBuilderV2::fillDocBatches(std::vector<std::shared_ptr<indexlibv2::docu
 
 void AsyncBuilderV2::buildThread()
 {
-    std::vector<std::shared_ptr<indexlibv2::document::IDocumentBatch>> docBatches;
-    // docBatches.reserve(_batchBuildSize);
     while (_running) {
-        fillDocBatches(docBatches);
-        if (docBatches.size() <= 0) {
+        auto batch = popFromCollectingQueue();
+        if (batch == nullptr) {
             continue;
-        }
-        auto batch = docBatches[0];
-        for (size_t idx = 1; idx < docBatches.size(); idx++) {
-            auto iter =
-                indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(docBatches[idx].get());
-            while (iter->HasNext()) {
-                batch->AddDocument(iter->Next());
-            }
         }
         bool consumed = false;
         while (_running) {
@@ -125,17 +131,16 @@ void AsyncBuilderV2::buildThread()
             }
             if (hasFatalError() || needReconstruct() || isSealed() || _needStop.load()) {
                 clearQueue();
-                docBatches.clear();
+                _regroupedBatch.clear();
                 _running = false;
+                batch.reset();
                 break;
             }
         }
         _ongoingDocSize = 0;
-        //_docQueue->pop(batch);
-        for (auto docBatch : docBatches) {
-            _releaseDocQueue->push(docBatch);
+        if (batch != nullptr) {
+            pushToReleaseQueue(batch);
         }
-        docBatches.clear();
     }
     TABLET_LOG(INFO, "async builder thread exit");
 }
@@ -163,12 +168,77 @@ bool AsyncBuilderV2::build(const std::shared_ptr<indexlibv2::document::IDocument
     if (hasFatalError()) {
         return false;
     }
+    if (_inputCheckDone == false) {
+        if (!checkInputDocType(batch)) {
+            TABLET_LOG(INFO, "%s", "Invalid input doc type");
+            setFatalError();
+            _running = false;
+            _inputCheckDone = true;
+            return false;
+        }
+        _inputCheckDone = true;
+    }
     releaseDocs();
     _docQueue->push(batch, batch->EstimateMemory());
     REPORT_METRIC(_asyncQueueSizeMetric, _docQueue->size());
     REPORT_METRIC(_asyncQueueMemMetric, _docQueue->memoryUse() / 1024.0 / 1024.0);
     REPORT_METRIC(_releaseQueueSizeMetric, _releaseDocQueue->size());
     return true;
+}
+
+bool AsyncBuilderV2::checkInputDocType(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& batch) const
+{
+    if (_regroup && std::dynamic_pointer_cast<indexlibv2::document::ElementaryDocumentBatch>(batch) != nullptr) {
+        return false;
+    }
+    return true;
+}
+
+std::shared_ptr<indexlibv2::document::IDocumentBatch> AsyncBuilderV2::popFromCollectingQueue()
+{
+    std::shared_ptr<indexlibv2::document::IDocumentBatch> batch;
+    if (_regroup == false) {
+        if (_docQueue->empty()) {
+            return nullptr;
+        }
+        if (!_docQueue->top(batch)) {
+            TABLET_LOG(TRACE1, "doc queue get doc return false");
+            return nullptr;
+        }
+        _ongoingDocSize++;
+        _docQueue->pop(batch);
+        return batch;
+    }
+    return popAndRegroupToNewBatch();
+}
+
+std::shared_ptr<indexlibv2::document::IDocumentBatch> AsyncBuilderV2::popAndRegroupToNewBatch()
+{
+    _regroupedBatch.clear();
+    fillDocBatches(_regroupedBatch);
+    if (_regroupedBatch.size() <= 0) {
+        return nullptr;
+    }
+    auto& batch = _regroupedBatch[0];
+    for (size_t idx = 1; idx < _regroupedBatch.size(); idx++) {
+        auto iter =
+            indexlibv2::document::DocumentIterator<indexlibv2::document::IDocument>::Create(_regroupedBatch[idx].get());
+        while (iter->HasNext()) {
+            batch->AddDocument(iter->Next());
+        }
+    }
+    return batch;
+}
+
+void AsyncBuilderV2::pushToReleaseQueue(const std::shared_ptr<indexlibv2::document::IDocumentBatch>& inBatch)
+{
+    if (_regroup == false) {
+        _releaseDocQueue->push(inBatch);
+        return;
+    }
+    for (auto docBatch : _regroupedBatch) {
+        _releaseDocQueue->push(docBatch);
+    }
 }
 
 bool AsyncBuilderV2::merge() { return _impl->merge(); };

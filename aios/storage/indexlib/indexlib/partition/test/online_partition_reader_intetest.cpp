@@ -4,6 +4,8 @@
 #include "indexlib/common/field_format/pack_attribute/attribute_reference_typed.h"
 #include "indexlib/config/customized_index_config.h"
 #include "indexlib/config/disable_fields_config.h"
+#include "indexlib/config/test/modify_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/document/index_document/normal_document/search_summary_document.h"
 #include "indexlib/index/inverted_index/InDocSectionMeta.h"
 #include "indexlib/index/inverted_index/SectionAttributeReader.h"
@@ -12,8 +14,6 @@
 #include "indexlib/index/normal/summary/summary_reader_impl.h"
 #include "indexlib/index/partition_info.h"
 #include "indexlib/index_base/schema_adapter.h"
-#include "indexlib/test/modify_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/test/build_test_util.h"
 
 using namespace std;

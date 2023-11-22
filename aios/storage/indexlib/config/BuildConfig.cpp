@@ -15,6 +15,9 @@
  */
 #include "indexlib/config/BuildConfig.h"
 
+#include <cstdint>
+#include <limits>
+
 #include "autil/EnvUtil.h"
 #include "autil/legacy/exception.h"
 
@@ -32,6 +35,7 @@ struct BuildConfig::Impl {
     int32_t maxCommitRetryCount = 5;
     bool enablePackageFile = true; // DEFAULT: true for offline, false for online
     uint32_t dumpThreadCount = 4;  // used for offline build
+    bool tolerateDocError = true;
 };
 
 void BuildConfig::InitForOnline() { _impl->enablePackageFile = false; }
@@ -46,6 +50,7 @@ void BuildConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
     json.Jsonize("max_doc_count", _impl->maxDocCount, _impl->maxDocCount);
     json.Jsonize("building_memory_limit_mb", _impl->buildingMemoryLimitMB, _impl->buildingMemoryLimitMB);
     json.Jsonize("dump_thread_count", _impl->dumpThreadCount, _impl->dumpThreadCount);
+    json.Jsonize("tolerate_doc_error", _impl->tolerateDocError, _impl->tolerateDocError);
     Check();
 }
 
@@ -90,6 +95,7 @@ uint32_t BuildConfig::GetKeepVersionHour() const { return _impl->keepVersionHour
 int64_t BuildConfig::GetFenceTsTolerantDeviation() const { return _impl->fenceTsTolerantDeviation; }
 int32_t BuildConfig::GetMaxCommitRetryCount() const { return _impl->maxCommitRetryCount; }
 bool BuildConfig::GetIsEnablePackageFile() const { return _impl->enablePackageFile; }
+bool BuildConfig::GetIsTolerateDocError() const { return _impl->tolerateDocError; }
 uint32_t BuildConfig::GetDumpThreadCount() const { return _impl->dumpThreadCount; }
 
 void BuildConfig::TEST_SetBuildingMemoryLimit(int64_t limit) { _impl->buildingMemoryLimitMB = limit / 1024 / 1024; }

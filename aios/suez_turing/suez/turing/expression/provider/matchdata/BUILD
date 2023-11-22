@@ -3,12 +3,12 @@ cc_library(
     name='matchdata',
     srcs=glob(['*.cpp']),
     hdrs=glob(['*.h']),
+    include_prefix='suez/turing/expression/provider',
+    visibility=['//visibility:public'],
     deps=[
+        '//aios/apps/facility/build_service:bs_analyzer',
         '//aios/storage/indexlib/indexlib:indexlib_h',
         '//aios/storage/indexlib/indexlib/partition:reader_sdk',
-        '//aios/apps/facility/build_service:bs_analyzer',
-        '//aios/suez_turing/suez/turing/expression/util/index_info:index_info'
-    ],
-    include_prefix='suez/turing/expression/provider',
-    visibility=['//visibility:public']
+        '//aios/suez_turing/suez/turing/expression/util/index_info'
+    ]
 )

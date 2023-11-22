@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_SLOW_DUMP_SEGMENT_CONTAINER_H
-#define __INDEXLIB_SLOW_DUMP_SEGMENT_CONTAINER_H
+#pragma once
 
 #include <memory>
 #include <unistd.h>
@@ -95,5 +94,3 @@ private:
 
 DEFINE_SHARED_PTR(SlowDumpSegmentContainer);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_SLOW_DUMP_SEGMENT_CONTAINER_H

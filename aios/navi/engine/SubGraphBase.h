@@ -69,13 +69,15 @@ public:
     virtual ErrorCode init() = 0;
     virtual ErrorCode run() = 0;
     // graph specialized terminate logic
+    virtual void collectMetric(GraphMetric *graphMetric) {
+    }
+    virtual void collectForkGraphMetric() {
+    }
     virtual void terminate(ErrorCode ec) = 0;
 public:
     void terminateThis(ErrorCode ec);
     GraphId getGraphId() const;
     void setErrorCode(ErrorCode ec);
-    ErrorCode getErrorCode() const;
-    NaviResultPtr getResult();
     Graph *getGraph() const;
     GraphParam *getParam() const;
     NaviWorkerBase *getWorker() const;

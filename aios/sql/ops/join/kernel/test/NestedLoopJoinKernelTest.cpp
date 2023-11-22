@@ -275,17 +275,17 @@ TEST_F(NestedLoopJoinKernelTest, testJoinTable) {
     ASSERT_NO_FATAL_FAILURE(buildTester(KernelTesterBuilder()));
     auto kernel = dynamic_cast<NestedLoopJoinKernel *>(_testerPtr->getKernel());
     vector<MatchDoc> leftDocs = _matchDocUtil.createMatchDocs(_allocator, 2);
-    table::TablePtr leftTable(new table::Table(leftDocs, _allocator));
+    table::TablePtr leftTable = table::Table::fromMatchDocs(leftDocs, _allocator);
     vector<MatchDoc> rightDocs = _matchDocUtil.createMatchDocs(_allocator, 3);
-    table::TablePtr rightTable(new table::Table(rightDocs, _allocator));
-    ASSERT_EQ(0, kernel->_tableAIndexes.size());
-    ASSERT_EQ(0, kernel->_tableBIndexes.size());
+    table::TablePtr rightTable = table::Table::fromMatchDocs(rightDocs, _allocator);
+    ASSERT_EQ(0, kernel->_joinParamR->_tableAIndexes.size());
+    ASSERT_EQ(0, kernel->_joinParamR->_tableBIndexes.size());
     size_t joinedRowCount = kernel->joinTable(leftTable, rightTable);
     ASSERT_EQ(2, joinedRowCount);
     vector<size_t> expectA = {0, 0, 0, 1, 1, 1};
     vector<size_t> expectB = {0, 1, 2, 0, 1, 2};
-    ASSERT_EQ(expectA, kernel->_tableAIndexes);
-    ASSERT_EQ(expectB, kernel->_tableBIndexes);
+    ASSERT_EQ(expectA, kernel->_joinParamR->_tableAIndexes);
+    ASSERT_EQ(expectB, kernel->_joinParamR->_tableBIndexes);
 }
 
 TEST_F(NestedLoopJoinKernelTest, testSimpleProcess) {

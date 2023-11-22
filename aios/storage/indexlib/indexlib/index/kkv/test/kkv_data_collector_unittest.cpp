@@ -1,8 +1,8 @@
 #include "indexlib/index/kkv/test/kkv_data_collector_unittest.h"
 
 #include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/test/region_schema_maker.h"
 #include "indexlib/index/kkv/kkv_define.h"
-#include "indexlib/test/region_schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

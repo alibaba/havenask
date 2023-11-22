@@ -15,11 +15,15 @@
  */
 #pragma once
 
+#include <memory>
+#include <stddef.h>
+
 #include "autil/Log.h"
 #include "indexlib/document/normal/tokenize/AnalyzerToken.h"
 
 namespace autil { namespace codec {
 class Normalizer;
+
 typedef std::shared_ptr<Normalizer> NormalizerPtr;
 }} // namespace autil::codec
 
@@ -27,8 +31,8 @@ namespace indexlibv2 { namespace analyzer {
 
 class TextBuffer;
 class ITokenizer;
-
 class StopWordFilter;
+
 using StopWordFilterPtr = std::shared_ptr<StopWordFilter>;
 class TraditionalTable;
 class AnalyzerInfo;

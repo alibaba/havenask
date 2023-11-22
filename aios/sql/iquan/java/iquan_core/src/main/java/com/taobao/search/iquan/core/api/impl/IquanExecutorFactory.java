@@ -1,9 +1,20 @@
 package com.taobao.search.iquan.core.api.impl;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import com.taobao.search.iquan.core.api.exception.IquanNotValidateException;
-import com.taobao.search.iquan.core.calcite.IquanSimpleCalciteSchema;
-import com.taobao.search.iquan.core.catalog.*;
 import com.taobao.search.iquan.core.api.schema.IquanSimpleSchema;
+import com.taobao.search.iquan.core.calcite.IquanSimpleCalciteSchema;
+import com.taobao.search.iquan.core.catalog.GlobalCatalog;
+import com.taobao.search.iquan.core.catalog.GlobalCatalogManager;
+import com.taobao.search.iquan.core.catalog.IquanCalciteCatalogReader;
+import com.taobao.search.iquan.core.catalog.IquanDatabase;
 import com.taobao.search.iquan.core.catalog.function.IquanStdOperatorTable;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.IquanRelBuilder;
@@ -12,12 +23,18 @@ import com.taobao.search.iquan.core.rel.metadata.IquanDefaultRelMetadataProvider
 import com.taobao.search.iquan.core.sql2rel.IquanSqlToRelConverter;
 import org.apache.calcite.DataContext;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
-import org.apache.calcite.config.*;
+import org.apache.calcite.config.CalciteConnectionConfig;
+import org.apache.calcite.config.CalciteConnectionConfigImpl;
+import org.apache.calcite.config.CalciteConnectionProperty;
+import org.apache.calcite.config.Lex;
+import org.apache.calcite.config.NullCollation;
 import org.apache.calcite.jdbc.CalciteSchema;
-import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
-import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 import org.apache.calcite.linq4j.QueryProvider;
-import org.apache.calcite.plan.*;
+import org.apache.calcite.plan.Context;
+import org.apache.calcite.plan.Contexts;
+import org.apache.calcite.plan.ConventionTraitDef;
+import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelTraitDef;
 import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.prepare.CalciteCatalogReader;
 import org.apache.calcite.prepare.Prepare;
@@ -31,10 +48,12 @@ import org.apache.calcite.rex.RexExecutor;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaPlus;
-import org.apache.calcite.sql.*;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.SqlOperatorTable;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 import org.apache.calcite.sql.util.SqlOperatorTables;
 import org.apache.calcite.sql.validate.SqlNameMatchers;
 import org.apache.calcite.sql.validate.SqlValidator;
@@ -42,12 +61,8 @@ import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.tools.FrameworkConfig;
 import org.apache.calcite.tools.Frameworks;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 public class IquanExecutorFactory {
-//    private static final RelDataTypeFactory typeFactory = new JavaTypeFactoryImpl();
+    //    private static final RelDataTypeFactory typeFactory = new JavaTypeFactoryImpl();
     public static final RelDataTypeFactory typeFactory = new SqlTypeFactoryImpl(RelDataTypeSystem.DEFAULT);
     public static final RexBuilder rexBuilder = new RexBuilder(typeFactory);
     private static final CalciteConnectionConfig calciteConnectionConfig = genConnectionConfig();
@@ -92,13 +107,11 @@ public class IquanExecutorFactory {
 
     private static final RexExecutor rexExecutor = new RexExecutorImpl(dataContext);
     private static final List<RelTraitDef> traitDefs = Arrays.asList(ConventionTraitDef.INSTANCE, RelCollationTraitDef.INSTANCE);
-
-    private FrameworkConfig frameworkConfig;
     private final GlobalCatalogManager catalogManager;
     private final Map<String, Prepare.CatalogReader> catalogReaderMap;
+    private FrameworkConfig frameworkConfig;
 
-    public IquanExecutorFactory(GlobalCatalogManager catalogManager)
-    {
+    public IquanExecutorFactory(GlobalCatalogManager catalogManager) {
         this.catalogManager = catalogManager;
         frameworkConfig = Frameworks.newConfigBuilder()
                 .parserConfig(parserConfig)
@@ -136,7 +149,7 @@ public class IquanExecutorFactory {
         Map<String, Prepare.CatalogReader> readerMap = new HashMap<>();
         for (Map.Entry<String, GlobalCatalog> catalogEntry : catalogManager.getCatalogMap().entrySet()) {
             String catalogName = catalogEntry.getKey();
-            for (Map.Entry<String, IquanDataBase> dbEntry : catalogEntry.getValue().getDatabases().entrySet()) {
+            for (Map.Entry<String, IquanDatabase> dbEntry : catalogEntry.getValue().getDatabases().entrySet()) {
                 String dbName = dbEntry.getKey();
                 readerMap.put(catalogName + ConstantDefine.PATH_SEPARATOR + dbName, genCatalogReader(catalogManager, catalogName, dbName));
             }
@@ -152,7 +165,7 @@ public class IquanExecutorFactory {
 
     private static Schema genCatalogSchema(GlobalCatalog catalog) {
         IquanSimpleSchema schema = new IquanSimpleSchema();
-        for (Map.Entry<String, IquanDataBase> dbEntry : catalog.getDatabases().entrySet()) {
+        for (Map.Entry<String, IquanDatabase> dbEntry : catalog.getDatabases().entrySet()) {
             schema.addSubSchema(dbEntry.getKey(), genDataBaseSchema(dbEntry.getValue()));
         }
         IquanSimpleSchema catalogSchema = new IquanSimpleSchema();
@@ -160,7 +173,7 @@ public class IquanExecutorFactory {
         return catalogSchema;
     }
 
-    private static Schema genDataBaseSchema(IquanDataBase dataBase) {
+    private static Schema genDataBaseSchema(IquanDatabase dataBase) {
         IquanSimpleSchema schema = new IquanSimpleSchema();
         schema.setDataBase(dataBase);
         return schema;
@@ -176,12 +189,12 @@ public class IquanExecutorFactory {
 
     public class Executor {
 
+        private final String defaultCatalogName;
+        private final String defaultDbName;
         private Prepare.CatalogReader catalogReader;
         private SqlParser parser;
         private SqlValidator validator;
         private SqlToRelConverter converter;
-        private final String defaultCatalogName;
-        private final String defaultDbName;
         private Context context;
         private RelOptCluster relOptCluster;
 
@@ -201,7 +214,7 @@ public class IquanExecutorFactory {
         }
 
         public SqlNode validate(SqlNode node) {
-            final SqlOperatorTable opTab = SqlOperatorTables.chain(SqlStdOperatorTable.instance(), IquanStdOperatorTable.instance() , catalogReader);
+            final SqlOperatorTable opTab = SqlOperatorTables.chain(SqlStdOperatorTable.instance(), IquanStdOperatorTable.instance(), catalogReader);
             validator = new IquanSqlValidatorImpl(opTab, catalogReader, typeFactory, frameworkConfig.getSqlValidatorConfig());
             return validator.validate(node);
         }

@@ -183,6 +183,13 @@ PackAttributeFormatter::CreateStringAttributeReference(size_t offset,
 autil::StringView PackAttributeFormatter::Format(const std::vector<autil::StringView>& fields,
                                                  autil::mem_pool::Pool* pool)
 {
+    // convertor convert buf
+    return _dataConvertor->Encode(FormatAttrField(fields, pool), pool);
+}
+
+autil::StringView PackAttributeFormatter::FormatAttrField(const std::vector<autil::StringView>& fields,
+                                                          autil::mem_pool::Pool* pool)
+{
     assert(_packAttrConfig);
     assert(pool);
 
@@ -223,8 +230,7 @@ autil::StringView PackAttributeFormatter::Format(const std::vector<autil::String
     if (!MergePackAttributeFields(attrFieldData, offsetUnitSize, buf)) {
         return autil::StringView::empty_instance();
     }
-    // convertor convert buf
-    return _dataConvertor->Encode(buf, pool);
+    return buf;
 }
 
 std::string PackAttributeFormatter::GetFieldStringValueFromPackedValue(const autil::StringView& packValue,
@@ -272,8 +278,7 @@ autil::StringView PackAttributeFormatter::MergeAndFormatUpdateFields(const char*
     size_t offsetUnitSize = 0;
     size_t dataLen = CalculatePackDataSize(attrFieldData, offsetUnitSize);
     size_t encodeCountLen = MultiValueAttributeFormatter::GetEncodedCountLength(dataLen);
-    if (indexlib::util::DefragSliceArray::IsOverLength(dataLen + encodeCountLen,
-                                                       MultiValueAttributeFormatter::MULTI_VALUE_ATTRIBUTE_SLICE_LEN)) {
+    if (indexlib::util::DefragSliceArray::IsOverLength(dataLen + encodeCountLen, index::ATTRIBUTE_DEFAULT_SLICE_LEN)) {
         AUTIL_LOG(WARN, "updated pack attribute data is overlength, ignore");
         ERROR_COLLECTOR_LOG(WARN, "updated pack attribute data is overlength, ignore");
         return autil::StringView::empty_instance();

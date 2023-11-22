@@ -29,11 +29,11 @@ public:
 
 public:
     std::shared_ptr<IDiskIndexer> CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override;
+                                                    const DiskIndexerParameter& indexerParam) const override;
     std::shared_ptr<IMemIndexer> CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                  const IndexerParameter& indexerParam) const override;
+                                                  const MemIndexerParameter& indexerParam) const override;
     std::unique_ptr<IIndexReader> CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                                    const IndexerParameter& indexerParam) const override;
+                                                    const IndexReaderParameter&) const override;
     std::unique_ptr<IIndexMerger>
     CreateIndexMerger(const std::shared_ptr<config::IIndexConfig>& indexConfig) const override;
     std::unique_ptr<config::IIndexConfig> CreateIndexConfig(const autil::legacy::Any& any) const override;
@@ -42,7 +42,7 @@ public:
 
 private:
     void CalculateMemIndexerSKeyMemRatio(double& skeyMemRatio, const KKVSegmentStatistics& stat) const;
-    int64_t GetMaxBuildMemoryUse(const IndexerParameter& indexerParam) const;
+    int64_t GetMaxBuildMemoryUse(const MemIndexerParameter& indexerParam) const;
 
 private:
     uint32_t _memoryFactor = 2;

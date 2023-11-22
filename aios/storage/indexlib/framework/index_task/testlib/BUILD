@@ -1,8 +1,8 @@
 load('//aios/storage:defs.bzl', 'strict_cc_library')
 strict_cc_library(
-    name='trivial_task',
-    srcs=['TrivialTask.cpp'],
-    hdrs=['TrivialTask.h'],
+    name='fake_task',
+    srcs=['FakeTask.cpp'],
+    hdrs=['FakeTask.h'],
     implementation_deps=[
         '//aios/storage/indexlib/framework:DiskSegment',
         '//aios/storage/indexlib/framework:MemSegment',
@@ -13,7 +13,9 @@ strict_cc_library(
         '//aios/storage/indexlib/framework/index_task:IIndexTaskResourceCreator',
         '//aios/storage/indexlib/framework:ITabletExporter',
         '//aios/storage/indexlib/framework:ITabletImporter',
-        '//aios/storage/indexlib/framework:ITabletValidator'
+        '//aios/storage/indexlib/framework:ITabletValidator',
+        '//aios/storage/indexlib/framework:IMemoryControlStrategy',
+        '//aios/storage/indexlib/framework:EnvironmentVariablesProvider'
     ],
     visibility=[
         '//aios/apps/facility/build_service:__subpackages__',

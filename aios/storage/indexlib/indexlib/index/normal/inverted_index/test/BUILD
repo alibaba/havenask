@@ -11,7 +11,7 @@ cc_fast_test(
     srcs=['section_attribute_writer_unittest.cpp'],
     copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
-    shard_count=50,
+    shard_count=5,
     deps=[
         ':indexlib_inverted_index_test_helper', ':test-lib',
         '//aios/storage/indexlib/indexlib:indexlib_testbase',
@@ -42,18 +42,18 @@ cc_fast_test(
     ],
     copts=['-Werror', '-fno-access-control'],
     data=(['//aios/storage/indexlib:testdata'] + glob(['testdata/**'])),
-    shard_count=50,
+    shard_count=5,
     deps=[
         ':indexlib_inverted_index_test_helper', ':test-lib',
+        '//aios/storage/indexlib/index/inverted_index:DocidRangePostingExecutor',
+        '//aios/storage/indexlib/index/inverted_index:OrPostingExecutor',
         '//aios/storage/indexlib/indexlib:indexlib_testbase',
-        '//aios/storage/indexlib/indexlib/config/test:indexlib_config_test_helper',
         '//aios/storage/indexlib/indexlib:indexlib_testlib',
+        '//aios/storage/indexlib/indexlib/config/test:indexlib_config_test_helper',
         '//aios/storage/indexlib/indexlib/index/normal/attribute/test:indexlib_attribute_test_helper',
         '//aios/storage/indexlib/indexlib/index/normal/inverted_index/builtin_index/pack/test:indexlib_pack_test_helper',
         '//aios/storage/indexlib/indexlib/index/test:indexlib_index_test_helper',
-        '//aios/storage/indexlib/indexlib/util/test:indexlib_util_test_helper',
-        '//aios/storage/indexlib/index/inverted_index:DocidRangePostingExecutor',
-        '//aios/storage/indexlib/index/inverted_index:OrPostingExecutor'
+        '//aios/storage/indexlib/indexlib/util/test:indexlib_util_test_helper'
     ]
 )
 cc_library(
@@ -63,32 +63,31 @@ cc_library(
         'index_term_extender_mock.cpp', 'normal_index_reader_helper.cpp',
         'segment_term_info_queue_mock.cpp'
     ],
-    visibility=['//aios/storage/indexlib/index/inverted_index/test:__pkg__'],
     copts=['-Werror'],
     deps=[
         ':indexlib_inverted_index_test_helper',
+        '//aios/storage/indexlib/index/inverted_index:IndexTermExtender',
+        '//aios/storage/indexlib/index/inverted_index:PostingWriterImpl',
+        '//aios/storage/indexlib/index/inverted_index/patch:IndexUpdateTermIterator',
+        '//aios/storage/indexlib/index/inverted_index/test:IndexIteratorMock',
         '//aios/storage/indexlib/indexlib:indexlib_testbase',
         '//aios/storage/indexlib/indexlib/index/normal/attribute/test:indexlib_attribute_test_helper',
         '//aios/storage/indexlib/indexlib/index/normal/inverted_index/builtin_index/pack/test:indexlib_pack_test_helper',
-        '//aios/storage/indexlib/indexlib/index/test:indexlib_index_test_helper',
-        '//aios/storage/indexlib/index/inverted_index:PostingWriterImpl',
-        '//aios/storage/indexlib/index/inverted_index/test:IndexIteratorMock',
-        '//aios/storage/indexlib/index/inverted_index/patch:IndexUpdateTermIterator',
-        '//aios/storage/indexlib/index/inverted_index:IndexTermExtender'
+        '//aios/storage/indexlib/indexlib/index/test:indexlib_index_test_helper'
     ]
 )
 cc_fast_test(
     name='inverted_index_intetest',
     srcs=['index_merger_intetest.cpp'],
-    copts=['-Werror'],
+    copts=['-Werror', '-fno-access-control'],
     data=['//aios/storage/indexlib:testdata'],
-    shard_count=10,
+    shard_count=2,
     deps=[
         ':indexlib_inverted_index_test_helper',
+        '//aios/storage/indexlib/index/inverted_index/test:IndexIteratorMock',
         '//aios/storage/indexlib/indexlib:indexlib_testbase',
         '//aios/storage/indexlib/indexlib/index/normal/attribute/test:indexlib_attribute_test_helper',
         '//aios/storage/indexlib/indexlib/index/normal/inverted_index/builtin_index/pack/test:indexlib_pack_test_helper',
-        '//aios/storage/indexlib/indexlib/index/test:indexlib_index_test_helper',
-        '//aios/storage/indexlib/index/inverted_index/test:IndexIteratorMock'
+        '//aios/storage/indexlib/indexlib/index/test:indexlib_index_test_helper'
     ]
 )

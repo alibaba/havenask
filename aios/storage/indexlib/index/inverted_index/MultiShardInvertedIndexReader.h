@@ -19,7 +19,7 @@
 #include "future_lite/Executor.h"
 #include "future_lite/coro/Lazy.h"
 #include "indexlib/index/IIndexReader.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
 #include "indexlib/index/inverted_index/InvertedIndexReader.h"
 #include "indexlib/index/inverted_index/InvertedIndexReaderImpl.h"
 #include "indexlib/index/inverted_index/format/ShardingIndexHasher.h"
@@ -39,7 +39,7 @@ class MultiShardInvertedIndexReader : public InvertedIndexReader
 public:
     constexpr static uint32_t DEFAULT_STATE_POOL_SIZE = 1000;
 
-    explicit MultiShardInvertedIndexReader(const indexlibv2::index::IndexerParameter& indexerParam);
+    explicit MultiShardInvertedIndexReader(const indexlibv2::index::IndexReaderParameter& indexReaderParam);
     ~MultiShardInvertedIndexReader() = default;
 
     Status Open(const std::shared_ptr<indexlibv2::config::IIndexConfig>& indexConfig,
@@ -82,7 +82,7 @@ private:
                   const indexlibv2::framework::TabletData* tabletData);
 
 private:
-    indexlibv2::index::IndexerParameter _indexerParam;
+    indexlibv2::index::IndexReaderParameter _indexReaderParam;
     std::vector<std::shared_ptr<InvertedIndexReaderImpl>> _indexReaders;
     std::unique_ptr<ShardingIndexHasher> _indexHasher;
     std::shared_ptr<IndexAccessoryReader> _accessoryReader;

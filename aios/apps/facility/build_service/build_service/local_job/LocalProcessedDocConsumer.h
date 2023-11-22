@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_LOCALPROCESSEDDOCCONSUMER_H
-#define ISEARCH_BS_LOCALPROCESSEDDOCCONSUMER_H
+#pragma once
 
-#include "build_service/common_define.h"
+#include <stdint.h>
+#include <vector>
+
+#include "build_service/common/Locator.h"
 #include "build_service/local_job/ReduceDocumentQueue.h"
 #include "build_service/util/Log.h"
 #include "build_service/workflow/Consumer.h"
+#include "build_service/workflow/FlowError.h"
+#include "build_service/workflow/StopOption.h"
 
 namespace build_service { namespace local_job {
 
@@ -47,5 +51,3 @@ private:
 };
 
 }} // namespace build_service::local_job
-
-#endif // ISEARCH_BS_LOCALPROCESSEDDOCCONSUMER_H

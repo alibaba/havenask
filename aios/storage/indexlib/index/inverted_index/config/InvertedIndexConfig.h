@@ -145,6 +145,7 @@ public:
     const std::shared_ptr<FileCompressConfigV2>& GetFileCompressConfigV2() const;
 
     format_versionid_t GetIndexFormatVersionId() const;
+    format_versionid_t GetMaxSupportedIndexFormatVersionId() const;
     Status SetIndexFormatVersionId(format_versionid_t id);
     Status SetMaxSupportedIndexFormatVersionId(format_versionid_t id);
 

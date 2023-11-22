@@ -40,6 +40,7 @@ public:
         SUMMARY = 6,
         SOURCE = 7,
         AITHETA = 8,
+        FIELD_META = 9,
     };
 
 public:

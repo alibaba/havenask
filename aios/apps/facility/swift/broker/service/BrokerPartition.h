@@ -149,6 +149,7 @@ public:
     void recycleFile();
     void recycleObsoleteReader();
     void delExpiredFile();
+    void syncDfsUsedSize();
     bool needCommitMessage();
     bool isCommitting() { return _isCommitting; }
     void setCommitting(bool flag) { _isCommitting = flag; }

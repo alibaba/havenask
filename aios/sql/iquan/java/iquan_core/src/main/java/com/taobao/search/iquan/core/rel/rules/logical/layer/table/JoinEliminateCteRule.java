@@ -1,7 +1,7 @@
 package com.taobao.search.iquan.core.rel.rules.logical.layer.table;
 
-import com.taobao.search.iquan.core.rel.ops.logical.CTEConsumer;
-import com.taobao.search.iquan.core.rel.ops.logical.CTEProducer;
+import java.util.Arrays;
+
 import com.taobao.search.iquan.core.utils.IquanRelOptUtils;
 import com.taobao.search.iquan.core.utils.LayerTableUtils;
 import org.apache.calcite.plan.RelOptRuleCall;
@@ -10,8 +10,6 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.logical.LogicalJoin;
 import org.apache.calcite.rel.rules.TransformationRule;
 import org.immutables.value.Value;
-
-import java.util.Arrays;
 
 @Value.Enclosing
 public class JoinEliminateCteRule extends RelRule<RelRule.Config> implements TransformationRule {

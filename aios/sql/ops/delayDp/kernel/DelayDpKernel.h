@@ -25,6 +25,8 @@
 #include "navi/resource/GigClientR.h"
 #include "navi/resource/GraphMemoryPoolR.h"
 #include "sql/common/TableDistribution.h"
+#include "sql/common/common.h"
+#include "sql/data/SqlQueryConfigData.h"
 #include "sql/ops/tableSplit/TableSplit.h"
 #include "sql/proto/SqlSearchInfoCollectorR.h"
 #include "sql/resource/HashFunctionCacheR.h"
@@ -38,6 +40,7 @@ class KernelComputeContext;
 class KernelDefBuilder;
 class KernelInitContext;
 struct OverrideData;
+struct ForkGraphParam;
 } // namespace navi
 
 namespace sql {
@@ -71,12 +74,14 @@ private:
     bool redirectGraphInput(std::vector<navi::OverrideData> &overrideDatas);
     bool partHasData(int partId);
     void addOverrideDatas(int partId, std::vector<navi::OverrideData> &overrideDatas);
+    void addSqlQueryConfigData(navi::ForkGraphParam &param) const;
     navi::ErrorCode forkGraph(navi::KernelComputeContext &runContext);
 
 private:
     KERNEL_DEPEND_DECLARE();
 
 private:
+    KERNEL_NAMED_DATA(SqlQueryConfigData, _queryConfigData, SQL_QUERY_CONFIG_NAME);
     KERNEL_DEPEND_ON(navi::GraphMemoryPoolR, _graphMemoryPoolR);
     KERNEL_DEPEND_ON_FALSE(navi::GigClientR, _gigClientR);
     KERNEL_DEPEND_ON_FALSE(HashFunctionCacheR, _hashFunctionCacheR);

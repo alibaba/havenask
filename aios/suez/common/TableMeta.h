@@ -39,7 +39,7 @@
 
 namespace suez {
 
-typedef schemavid_t SchemaVersion;
+typedef schemaid_t SchemaVersion;
 
 // tableIndexPath/TableA/generation_0/partition_0_1/version.0
 
@@ -229,7 +229,7 @@ private:
 struct PartitionMeta : public autil::legacy::Jsonizable {
 public:
     PartitionMeta()
-        : incVersion(INVALID_VERSION)
+        : incVersion(indexlib::INVALID_VERSIONID)
         , schemaVersion(0)
         , rollbackTimestamp(0)
         , branchId(0)

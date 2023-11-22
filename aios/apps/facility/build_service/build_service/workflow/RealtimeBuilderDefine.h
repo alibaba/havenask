@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_REALTIMEBUILDERDEFINE_H
-#define ISEARCH_BS_REALTIMEBUILDERDEFINE_H
+#pragma once
+
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <utility>
 
 #include "autil/StringUtil.h"
 #include "build_service/common_define.h"
 #include "build_service/config/CLIOptionNames.h"
-#include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/proto/Heartbeat.pb.h"
-#include "build_service/proto/ProtoComparator.h"
 #include "build_service/util/Log.h"
 #include "build_service/workflow/WorkflowThreadPool.h"
 #include "indexlib/document/index_locator.h"
 #include "indexlib/util/TaskScheduler.h"
 #include "indexlib/util/metrics/MetricProvider.h"
+#include "kmonitor/client/MetricsReporter.h"
 
 namespace future_lite {
 class Executor;
@@ -34,7 +37,6 @@ class TaskScheduler;
 } // namespace future_lite
 
 namespace indexlib { namespace util {
-class MetricProvider;
 typedef std::shared_ptr<MetricProvider> MetricProviderPtr;
 }} // namespace indexlib::util
 
@@ -42,6 +44,7 @@ namespace build_service {
 
 namespace util {
 class SwiftClientCreator;
+
 typedef std::shared_ptr<SwiftClientCreator> SwiftClientCreatorPtr;
 } // namespace util
 
@@ -83,6 +86,8 @@ public:
 
     bool needReadRawDoc() const;
     std::string getBsServerAddress() const;
+    std::string getAppName() const;
+    std::string getDataTable() const;
 
 private:
     KeyValueMap _kvMap;
@@ -97,6 +102,7 @@ public:
     indexlib::util::MetricProviderPtr metricProvider;
     indexlib::util::TaskSchedulerPtr taskScheduler;
     util::SwiftClientCreatorPtr swiftClientCreator;
+    std::string rawIndexRoot;
     BuildFlowThreadResource buildFlowThreadResource;
     RealtimeInfoWrapper realtimeInfo;
     future_lite::Executor* executor;
@@ -104,11 +110,12 @@ public:
 
 public:
     RealtimeBuilderResource(kmonitor::MetricsReporterPtr reporter_, indexlib::util::TaskSchedulerPtr taskScheduler_,
-                            util::SwiftClientCreatorPtr swiftClientCreator_,
+                            util::SwiftClientCreatorPtr swiftClientCreator_, const std::string& rawIndexRoot_,
                             const BuildFlowThreadResource& buildFlowThreadResource_ = BuildFlowThreadResource(),
                             const RealtimeInfoWrapper& realtimeInfo_ = RealtimeInfoWrapper())
         : taskScheduler(taskScheduler_)
         , swiftClientCreator(swiftClientCreator_)
+        , rawIndexRoot(rawIndexRoot_)
         , buildFlowThreadResource(buildFlowThreadResource_)
         , realtimeInfo(realtimeInfo_)
         , executor(nullptr)
@@ -119,12 +126,13 @@ public:
 
     RealtimeBuilderResource(indexlib::util::MetricProviderPtr metricProvider_,
                             indexlib::util::TaskSchedulerPtr taskScheduler_,
-                            util::SwiftClientCreatorPtr swiftClientCreator_,
+                            util::SwiftClientCreatorPtr swiftClientCreator_, const std::string& rawIndexRoot_,
                             const BuildFlowThreadResource& buildFlowThreadResource_ = BuildFlowThreadResource(),
                             const RealtimeInfoWrapper& realtimeInfo_ = RealtimeInfoWrapper())
         : metricProvider(metricProvider_)
         , taskScheduler(taskScheduler_)
         , swiftClientCreator(swiftClientCreator_)
+        , rawIndexRoot(rawIndexRoot_)
         , buildFlowThreadResource(buildFlowThreadResource_)
         , realtimeInfo(realtimeInfo_)
         , executor(nullptr)
@@ -135,5 +143,3 @@ public:
 
 } // namespace workflow
 } // namespace build_service
-
-#endif // ISEARCH_BS_REALTIMEBUILDERDEFINE_H

@@ -15,7 +15,12 @@
  */
 #include "build_service/admin/taskcontroller/PeriodMergeTrigger.h"
 
+#include <iosfwd>
+
+#include "alog/Logger.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/jsonizable.h"
 
 using namespace std;
 using namespace autil;

@@ -3,6 +3,7 @@
 #include "indexlib/config/IndexTaskConfig.h"
 #include "indexlib/config/OfflineConfig.h"
 #include "indexlib/config/TabletOptions.h"
+#include "indexlib/framework/IndexTaskQueue.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/Version.h"
 #include "indexlib/framework/index_task/IIndexOperationCreator.h"
@@ -20,8 +21,9 @@ namespace indexlibv2 { namespace table {
 class FakeSimpleTaskPlanCreator : public SimpleIndexTaskPlanCreator
 {
 public:
-    FakeSimpleTaskPlanCreator(const std::string& taskName, const std::map<std::string, std::string>& params)
-        : SimpleIndexTaskPlanCreator(taskName, params)
+    FakeSimpleTaskPlanCreator(const std::string& taskName, const std::string& taskTraceId,
+                              const std::map<std::string, std::string>& params)
+        : SimpleIndexTaskPlanCreator(taskName, taskTraceId, params)
     {
     }
 
@@ -51,26 +53,12 @@ public:
     Status Execute(const framework::IndexTaskContext& context) override { return Status::OK(); }
 };
 
-class FakeIndexOperationCreator : public framework::IIndexOperationCreator
-{
-    std::unique_ptr<framework::IndexOperation>
-    CreateOperation(const framework::IndexOperationDescription& opDesc) override
-    {
-        return std::make_unique<FakeIndexOperation>();
-    }
-};
-
 const std::string FakeSimpleTaskPlanCreator::TASK_TYPE = "fake";
 
 class FakeComplexTaskPlanCreator : public ComplexIndexTaskPlanCreator
 {
 public:
     FakeComplexTaskPlanCreator() { RegisterSimpleCreator<FakeSimpleTaskPlanCreator>(); }
-    std::shared_ptr<framework::IIndexOperationCreator>
-    CreateIndexOperationCreator(const std::shared_ptr<config::ITabletSchema>& tabletSchema) override
-    {
-        return std::make_shared<FakeIndexOperationCreator>();
-    }
 };
 
 class ComplexIndexTaskPlanCreatorTest : public TESTBASE
@@ -89,6 +77,8 @@ private:
                                                                 const std::string& logInfoStr);
 
 private:
+    framework::IndexTaskMetaCreator _creator;
+
     AUTIL_LOG_DECLARE();
 };
 
@@ -262,24 +252,26 @@ TEST_F(ComplexIndexTaskPlanCreatorTest, TestIndexTaskQueueSchedule)
     auto version = context->GetTabletData()->GetOnDiskVersion();
     std::map<std::string, std::string> params1;
     params1["key1"] = "value1";
-    version.AddIndexTask("type1", "name1", params1);
+    auto meta1 = _creator.TaskType("type1").TaskTraceId("name1").Params(params1).Create();
+    version.GetIndexTaskQueue()->Add(meta1);
     std::map<std::string, std::string> params2;
     params2["key2"] = "value2";
-    version.AddIndexTask("type2", "name2", params2);
+    auto meta2 = _creator.TaskType("type2").TaskTraceId("name2").Params(params2).Create();
+    version.GetIndexTaskQueue()->Add(meta2);
 
     context->GetTabletData()->TEST_SetOnDiskVersion(version);
     std::vector<ComplexIndexTaskPlanCreator::SimpleTaskItem> task;
     ASSERT_TRUE(creator.ScheduleSimpleTask(context.get(), &task).IsOK());
     ASSERT_EQ(task.size(), 1);
     ASSERT_EQ(task[0].taskType, "type1");
-    ASSERT_EQ(task[0].taskName, "name1");
+    ASSERT_EQ(task[0].taskTraceId, "name1");
     ASSERT_EQ(task[0].params, params1);
-    version.UpdateIndexTaskState("type1", "name1", framework::IndexTaskMeta::DONE);
+    ASSERT_TRUE(version.GetIndexTaskQueue()->Done("type1", "name1"));
     context->GetTabletData()->TEST_SetOnDiskVersion(version);
     ASSERT_TRUE(creator.ScheduleSimpleTask(context.get(), &task).IsOK());
     ASSERT_EQ(task.size(), 1);
     ASSERT_EQ(task[0].taskType, "type2");
-    ASSERT_EQ(task[0].taskName, "name2");
+    ASSERT_EQ(task[0].taskTraceId, "name2");
     ASSERT_EQ(task[0].params, params2);
 }
 
@@ -299,19 +291,22 @@ TEST_F(ComplexIndexTaskPlanCreatorTest, TestFailedIndexTaskInQueueSchedule)
     auto version = context->GetTabletData()->GetOnDiskVersion();
     std::map<std::string, std::string> params1;
     params1["key1"] = "value1";
-    version.AddIndexTask("type1", "name1", params1);
+
+    auto meta1 = _creator.TaskType("type1").TaskTraceId("name1").Params(params1).Create();
+    version.GetIndexTaskQueue()->Add(meta1);
     std::map<std::string, std::string> params2;
     params2["key2"] = "value2";
-    version.AddIndexTask("type2", "name2", params2);
+    auto meta2 = _creator.TaskType("type2").TaskTraceId("name2").Params(params2).Create();
+    version.GetIndexTaskQueue()->Add(meta2);
 
     context->GetTabletData()->TEST_SetOnDiskVersion(version);
     std::vector<ComplexIndexTaskPlanCreator::SimpleTaskItem> task;
     ASSERT_TRUE(creator.ScheduleSimpleTask(context.get(), &task).IsOK());
     ASSERT_EQ(task.size(), 1);
     ASSERT_EQ(task[0].taskType, "type1");
-    ASSERT_EQ(task[0].taskName, "name1");
+    ASSERT_EQ(task[0].taskTraceId, "name1");
     ASSERT_EQ(task[0].params, params1);
-    version.UpdateIndexTaskState("type1", "name1", framework::IndexTaskMeta::SUSPENDED);
+    ASSERT_TRUE(version.GetIndexTaskQueue()->Suspend("type1", "name1"));
     context->GetTabletData()->TEST_SetOnDiskVersion(version);
     ASSERT_TRUE(creator.ScheduleSimpleTask(context.get(), &task).IsOK());
     ASSERT_EQ(task.size(), 4);

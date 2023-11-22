@@ -1,11 +1,11 @@
 package com.taobao.search.iquan.core.utils;
 
+import java.util.List;
+
 import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.util.NlsString;
-
-import java.util.List;
 
 public class IquanMiscUtils {
     public static Integer getTopKFromSortTvf(RexCall sortTvf) {

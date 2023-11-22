@@ -1,10 +1,9 @@
 
-#include "fslib/fslib.h"
-#include "unittest/unittest.h"
-
-#define protected public
-#include "indexlib/index/ann/aitheta2/CommonDefine.h"
 #include "indexlib/index/ann/aitheta2/util/params_initializer/ParamsInitializer.h"
+
+#include "fslib/fslib.h"
+#include "indexlib/index/ann/aitheta2/CommonDefine.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace aitheta2;
@@ -39,7 +38,7 @@ TEST_F(ParamsInitializerTest, testInitBuilderIndexParams)
     AithetaIndexConfig indexConfig(parameters);
     ParamsInitializer initializer;
     AiThetaParams indexParams;
-    ASSERT_TRUE(initializer.InitBuildParams(indexConfig, indexParams));
+    ASSERT_TRUE(initializer.InitNormalBuildParams(indexConfig, indexParams));
     ASSERT_TRUE(indexParams.get_as_bool("bool"));
     ASSERT_EQ(1024, indexParams.get_as_int32("integer"));
     EXPECT_FLOAT_EQ(102.4, indexParams.get_as_float("float"));
@@ -61,7 +60,7 @@ TEST_F(ParamsInitializerTest, testInitBuilderIndexParams_parseFailed)
     AithetaIndexConfig indexConfig(parameters);
     ParamsInitializer initializer;
     AiThetaParams indexParams;
-    ASSERT_FALSE(initializer.InitBuildParams(indexConfig, indexParams));
+    ASSERT_FALSE(initializer.InitNormalBuildParams(indexConfig, indexParams));
 }
 
 TEST_F(ParamsInitializerTest, testInitSearcherIndexParams)
@@ -82,7 +81,7 @@ TEST_F(ParamsInitializerTest, testInitSearcherIndexParams)
     AithetaIndexConfig indexConfig(parameters);
     ParamsInitializer initializer;
     AiThetaParams indexParams;
-    ASSERT_TRUE(initializer.InitBuildParams(indexConfig, indexParams));
+    ASSERT_TRUE(initializer.InitNormalBuildParams(indexConfig, indexParams));
     ASSERT_TRUE(indexParams.get_as_bool("bool"));
     ASSERT_EQ(1024, indexParams.get_as_int32("integer"));
     EXPECT_FLOAT_EQ(102.4, indexParams.get_as_float("float"));
@@ -104,7 +103,7 @@ TEST_F(ParamsInitializerTest, testInitSearcherIndexParams_parseFailed)
     AithetaIndexConfig indexConfig(parameters);
     ParamsInitializer initializer;
     AiThetaParams indexParams;
-    ASSERT_FALSE(initializer.InitBuildParams(indexConfig, indexParams));
+    ASSERT_FALSE(initializer.InitNormalBuildParams(indexConfig, indexParams));
 }
 
 TEST_F(ParamsInitializerTest, testInitMeta)
@@ -159,75 +158,18 @@ TEST_F(ParamsInitializerTest, testInitMeta_InitDistanceTypeFailed)
     ASSERT_FALSE(initializer.InitAiThetaMeta(indexConfig, aiTheta2IndexMeta));
 }
 
-TEST_F(ParamsInitializerTest, testCalcCentriodCount_Default)
+TEST_F(ParamsInitializerTest, testInitMeta_Hamming)
 {
-    size_t count = 0;
-    ASSERT_EQ("0", ParamsInitializer::CalcCentriodCount(AiThetaParams(), count));
-    count = 200;
-    ASSERT_EQ("1", ParamsInitializer::CalcCentriodCount(AiThetaParams(), count));
-    count = 200 * 2500;
-    ASSERT_EQ("2500", ParamsInitializer::CalcCentriodCount(AiThetaParams(), count));
-    count = 200 * (16000);
-    ASSERT_EQ("400*40", ParamsInitializer::CalcCentriodCount(AiThetaParams(), count));
-}
-
-TEST_F(ParamsInitializerTest, testCalcCentriodCount_LegacyUserDefineParams)
-{
-    string paramsContent = R"({
-        "stratified.doc_count_threshold" : 100000,
-        "proxima.general.cluster.per_centroid_doc_count" : 500,
-        "stratified.centroid_count_scaling_factor" : 5
-     })";
-
-    AiThetaParams params;
-    ASSERT_TRUE(AiThetaParams::ParseFromBuffer(paramsContent, &params));
-
-    size_t count = 0;
-    ASSERT_EQ("0", ParamsInitializer::CalcCentriodCount(params, count));
-    count = 100000;
-    ASSERT_EQ("200", ParamsInitializer::CalcCentriodCount(params, count));
-    count = 100001;
-    ASSERT_EQ("35*7", ParamsInitializer::CalcCentriodCount(params, count));
-}
-
-TEST_F(ParamsInitializerTest, testCalcCentriodCount_UserDefineParams)
-{
-    string paramsContent = R"({
-        "stratified.doc_count_threshold" : 100000,
-        "stratified.per_centroid_doc_count" : 500,
-        "stratified.centroid_count_scaling_factor" : 5
-     })";
-
-    AiThetaParams params;
-    ASSERT_TRUE(AiThetaParams::ParseFromBuffer(paramsContent, &params));
-
-    size_t count = 0;
-    ASSERT_EQ("0", ParamsInitializer::CalcCentriodCount(params, count));
-    count = 100000;
-    ASSERT_EQ("200", ParamsInitializer::CalcCentriodCount(params, count));
-    count = 100001;
-    ASSERT_EQ("35*7", ParamsInitializer::CalcCentriodCount(params, count));
-}
-
-TEST_F(ParamsInitializerTest, testCalcCentriodCount_UserDefineParams_InvalidValue)
-{
-    string paramsContent = R"({
-        "stratified.doc_count_threshold" : -1,
-        "proxima.general.cluster.per_centroid_doc_count" : -1,
-        "stratified.centroid_count_scaling_factor" : -1,
-     })";
-
-    AiThetaParams params;
-    ASSERT_TRUE(AiThetaParams::ParseFromBuffer(paramsContent, &params));
-
-    size_t count = 0;
-    ASSERT_EQ("0", ParamsInitializer::CalcCentriodCount(AiThetaParams(), count));
-    count = 200;
-    ASSERT_EQ("1", ParamsInitializer::CalcCentriodCount(AiThetaParams(), count));
-    count = 200 * 2500;
-    ASSERT_EQ("2500", ParamsInitializer::CalcCentriodCount(AiThetaParams(), count));
-    count = 200 * (16000);
-    ASSERT_EQ("400*40", ParamsInitializer::CalcCentriodCount(AiThetaParams(), count));
+    indexlib::util::KeyValueMap parameters = {{DISTANCE_TYPE, HAMMING}, {DIMENSION, "127"}};
+    AithetaIndexConfig indexConfig(parameters);
+    ParamsInitializer initializer;
+    AiThetaMeta aiTheta2IndexMeta;
+    ASSERT_TRUE(initializer.InitAiThetaMeta(indexConfig, aiTheta2IndexMeta));
+    ASSERT_EQ(128, aiTheta2IndexMeta.dimension());
+    ASSERT_EQ(MajorOrder::MO_UNDEFINED, aiTheta2IndexMeta.major_order());
+    ASSERT_EQ(FeatureType::FT_BINARY32, aiTheta2IndexMeta.type());
+    ASSERT_EQ(HAMMING, aiTheta2IndexMeta.measure_name());
+    ASSERT_EQ(16, aiTheta2IndexMeta.element_size());
 }
 
 TEST_F(ParamsInitializerTest, testUpdateScanRatio)

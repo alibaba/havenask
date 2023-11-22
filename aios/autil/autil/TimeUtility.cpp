@@ -80,4 +80,13 @@ string TimeUtility::currentTimeString(const std::string &format) {
     return string(str);
 }
 
+string TimeUtility::usFormat(int64_t us, const std::string &format) {
+    struct tm tim;
+    time_t lt = us2sec(us);
+    localtime_r(&lt, &tim);
+    char str[200];
+    strftime(str, sizeof(str), format.c_str(), &tim);
+    return string(str);
+}
+
 } // namespace autil

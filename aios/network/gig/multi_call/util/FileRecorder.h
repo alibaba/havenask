@@ -45,7 +45,7 @@ private:
     static bool writeFile(const std::string &srcFileName, const std::string &content);
     static bool getCurrentPath(std::string &path);
     static bool checkAndCreateDir(const std::string &dir);
-
+    static std::string getFileName(const std::string &suffix);
 private:
     AUTIL_LOG_DECLARE();
 };

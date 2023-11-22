@@ -31,6 +31,7 @@
 #include "sql/data/TableType.h"
 #include "sql/ops/util/KernelUtil.h"
 #include "table/Row.h"
+#include "table/TableUtil.h"
 
 namespace navi {
 class KernelInitContext;
@@ -74,6 +75,7 @@ navi::ErrorCode SinkKernel::compute(navi::KernelComputeContext &runContext) {
             return navi::EC_ABORT;
         }
         navi::PortIndex outputIndex(0, navi::INVALID_INDEX);
+        SQL_LOG(TRACE2, "sink output table: [%s]", TableUtil::toString(inputTable, 10).c_str());
         TableDataPtr tableData(new TableData(inputTable));
         runContext.setOutput(outputIndex, tableData, eof);
         return navi::EC_NONE;

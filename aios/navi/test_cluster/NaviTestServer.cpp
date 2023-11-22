@@ -164,6 +164,7 @@ bool NaviTestServer::startNavi(
         const std::shared_ptr<ModuleManager> &moduleManager)
 {
     NaviPtr navi(new Navi(_name));
+    navi->setWaitNoQuery(false);
     if (!navi->init("", _gigServer.get())) {
         std::cout << "navi init failed, server: " << _name << std::endl;
         return false;
@@ -180,8 +181,8 @@ bool NaviTestServer::startNavi(
     auto instanceId = navi->getInstanceId();
     SessionId id;
     id.instance = instanceId;
-    std::cout << "start server " << _name
-              << " navi success, instance: " << CommonUtil::formatSessionId(id, instanceId)
+    id.currentInstance = instanceId;
+    std::cout << "start server " << _name << " navi success, instance: " << CommonUtil::formatSessionId(id)
               << std::endl;
     _navi = navi;
     return true;

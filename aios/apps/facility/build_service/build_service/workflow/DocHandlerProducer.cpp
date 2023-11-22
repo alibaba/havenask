@@ -15,7 +15,16 @@
  */
 #include "build_service/workflow/DocHandlerProducer.h"
 
+#include <iosfwd>
+#include <memory>
+#include <stdint.h>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Progress.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 

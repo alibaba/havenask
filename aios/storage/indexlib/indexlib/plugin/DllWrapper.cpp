@@ -15,7 +15,11 @@
  */
 #include "indexlib/plugin/DllWrapper.h"
 
-#include "autil/StringUtil.h"
+#include <cstddef>
+#include <dlfcn.h>
+
+#include "alog/Logger.h"
+#include "autil/TimeUtility.h"
 
 using namespace std;
 using namespace autil;

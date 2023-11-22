@@ -15,18 +15,38 @@
  */
 #include "build_service/task_base/BuildTask.h"
 
-#include "autil/legacy/jsonizable.h"
+#include <iosfwd>
+#include <map>
+#include <memory>
+
+#include "alog/Logger.h"
+#include "autil/legacy/any.h"
+#include "build_service/builder/BuildSpeedLimiter.h"
+#include "build_service/builder/Builder.h"
+#include "build_service/builder/BuilderV2.h"
 #include "build_service/builder/LineDataBuilder.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
 #include "build_service/config/ConfigDefine.h"
-#include "build_service/config/ResourceReaderManager.h"
 #include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/task_base/JobConfig.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/IndexPathConstructor.h"
+#include "build_service/workflow/AsyncStarter.h"
+#include "build_service/workflow/RealtimeBuilderDefine.h"
+#include "build_service/workflow/WorkflowItem.h"
+#include "fslib/common/common_type.h"
+#include "fslib/fs/FileLock.h"
+#include "fslib/fs/FileSystem.h"
 #include "fslib/util/FileUtil.h"
-#include "indexlib/config/index_partition_options.h"
-#include "indexlib/file_system/fslib/FslibWrapper.h"
-#include "indexlib/index_base/schema_adapter.h"
+#include "indexlib/config/ITabletSchema.h"
+#include "indexlib/config/TabletOptions.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/file_system/fslib/FenceContext.h"
+#include "indexlib/index_base/branch_fs.h"
 #include "indexlib/table/BuiltinDefine.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/JsonMap.h"
 
 using namespace std;
 using namespace fslib;
@@ -128,7 +148,7 @@ BuildFlow* BuildTask::createBuildFlow(bool isTablet) const
 {
     if (isTablet) {
         std::shared_ptr<indexlibv2::config::ITabletSchema> tabletSchema;
-        return new BuildFlow(nullptr, tabletSchema, workflow::BuildFlowThreadResource());
+        return new BuildFlow(tabletSchema, workflow::BuildFlowThreadResource());
     }
     return new BuildFlow();
 }

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MOCK_PARTITION_MODIFIER_H
-#define __INDEXLIB_MOCK_PARTITION_MODIFIER_H
+#pragma once
 
 #include <memory>
 
@@ -45,5 +44,3 @@ private:
 
 DEFINE_SHARED_PTR(MockPartitionModifier);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MOCK_PARTITION_MODIFIER_H

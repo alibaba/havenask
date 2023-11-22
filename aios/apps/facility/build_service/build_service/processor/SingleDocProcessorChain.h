@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SINGLEDOCPROCESSORCHAIN_H
-#define ISEARCH_BS_SINGLEDOCPROCESSORCHAIN_H
+#pragma once
+
+#include <memory>
+#include <vector>
 
 #include "build_service/analyzer/AnalyzerFactory.h"
 #include "build_service/common_define.h"
+#include "build_service/document/ExtendDocument.h"
 #include "build_service/plugin/PlugInManager.h"
 #include "build_service/processor/DocumentProcessorChain.h"
 #include "build_service/util/Log.h"
+#include "indexlib/document/document_parser.h"
 
 namespace build_service { namespace processor {
 
 class DocumentProcessor;
+
 class SingleDocProcessorChain : public DocumentProcessorChain
 {
 public:
@@ -62,5 +67,3 @@ private:
 BS_TYPEDEF_PTR(SingleDocProcessorChain);
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_SINGLEDOCPROCESSORCHAIN_H

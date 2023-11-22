@@ -15,10 +15,20 @@
  */
 #include "build_service/admin/ScheduleMetricReporter.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <utility>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "beeper/beeper.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/proto/ProtoUtil.h"
+#include "build_service/util/ErrorLogCollector.h"
 #include "build_service/util/Monitor.h"
+#include "kmonitor/client/MetricLevel.h"
 
 using namespace std;
 using namespace hippo;

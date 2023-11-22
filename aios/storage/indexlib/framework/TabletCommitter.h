@@ -15,20 +15,32 @@
  */
 #pragma once
 
+#include <assert.h>
 #include <deque>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "autil/Log.h"
+#include "autil/NoCopyable.h"
+#include "autil/TimeUtility.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/framework/Fence.h"
 #include "indexlib/framework/ITabletImporter.h"
 #include "indexlib/framework/ImportOptions.h"
+#include "indexlib/framework/IndexTaskQueue.h"
 #include "indexlib/framework/SegmentMeta.h"
 #include "indexlib/framework/TabletData.h"
 #include "indexlib/framework/Version.h"
 #include "indexlib/framework/VersionMerger.h"
+#include "indexlib/framework/index_task/MergeTaskDefine.h"
 
 namespace indexlibv2::framework {
 
@@ -57,12 +69,10 @@ private:
             return op;
         }
 
-        static Operation IndexTaskOp(const std::string& taskType, const std::string& taskName,
-                                     const std::map<std::string, std::string>& params, Action action,
-                                     const std::string& comment)
+        static Operation IndexTaskOp(const IndexTaskMeta& meta, Action action)
         {
             Operation op(INVALID_SEGMENTID, /*seal=*/false);
-            op.SetIndexTask(taskType, taskName, params, action, comment);
+            op.SetIndexTask(meta, action);
             return op;
         }
 
@@ -88,11 +98,8 @@ private:
             return _versions;
         }
         // index task op
-        std::string GetTaskType() const { return _taskType; }
-        std::string GetTaskName() const { return _taskName; }
-        std::map<std::string, std::string> GetParams() const { return _params; }
+        IndexTaskMeta GetIndexTaskMeta() const { return _indexTaskMeta; }
         Action GetAction() const { return _action; }
-        std::string GetComment() const { return _comment; }
 
         std::shared_ptr<ITabletImporter> GetImporter() const { return _importer; }
         const ImportOptions& GetImportOptions() const { return _importOptions; }
@@ -108,14 +115,10 @@ private:
             _importOptions = options;
         }
 
-        void SetIndexTask(const std::string& taskType, const std::string& taskName,
-                          const std::map<std::string, std::string>& params, Action action, const std::string& comment)
+        void SetIndexTask(const IndexTaskMeta& meta, Action action)
         {
-            _taskType = taskType;
-            _taskName = taskName;
-            _params = params;
+            _indexTaskMeta = meta;
             _action = action;
-            _comment = comment;
             _isIndexTaskOp = true;
         }
 
@@ -127,11 +130,8 @@ private:
         std::shared_ptr<ITabletImporter> _importer;
         ImportOptions _importOptions;
         // index task
-        std::string _taskType;
-        std::string _taskName;
-        std::map<std::string, std::string> _params;
+        IndexTaskMeta _indexTaskMeta;
         Action _action;
-        std::string _comment;
         bool _isIndexTaskOp = false;
     };
 
@@ -146,24 +146,21 @@ public:
     void AlterTable(schemaid_t schemaId);
     void Import(const std::vector<Version>& versions, const std::shared_ptr<ITabletImporter>& importer,
                 const ImportOptions& options);
-    void HandleIndexTask(const std::string& taskType, const std::string& taskName,
-                         const std::map<std::string, std::string>& params, Action action, const std::string& comment);
+    void HandleIndexTask(const IndexTaskMeta& meta, Action action);
     void SetLastPublicVersion(const Version& version);
     void SetDumpError(Status status);
     Status GetDumpError() const;
     std::pair<Status, Version> Commit(const std::shared_ptr<TabletData>& tabletData, const Fence& fence,
                                       int32_t commitRetryCount, IdGenerator* idGenerator,
                                       const CommitOptions& commitOptions);
+    // check index task op exist in commit queue.
+    bool HasIndexTask(const std::string& taskType, const std::string& taskTraceId) const;
 
 private:
     std::pair<Status, Version>
     GenerateVersionWithoutId(const std::shared_ptr<TabletData>& tabletData, const Fence& fence,
                              std::shared_ptr<VersionMerger::MergedVersionInfo> mergedVersionInfo,
                              std::vector<std::string>& filteredDirs);
-    std::vector<std::shared_ptr<IndexTaskMeta>>
-    CalculateIndexTasks(const std::vector<std::shared_ptr<IndexTaskMeta>>& onDiskIndexTasks,
-                        const std::vector<std::shared_ptr<IndexTaskMeta>>& mergeVersionIndexTasks,
-                        int64_t currentTimeInSec = autil::TimeUtility::currentTimeInSeconds()) const;
 
 private:
     mutable std::mutex _mutex;

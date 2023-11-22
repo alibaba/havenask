@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_MERGER_MULTI_PART_SEGMENT_DIRECTORY_H
-#define __INDEXLIB_MERGER_MULTI_PART_SEGMENT_DIRECTORY_H
+#pragma once
 
-#include <map>
-#include <memory>
+#include <algorithm>
+#include <assert.h>
+#include <stdint.h>
 #include <string>
+#include <vector>
 
-#include "indexlib/common_define.h"
-#include "indexlib/config/index_partition_options.h"
-#include "indexlib/file_system/Directory.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
 #include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/merger/segment_directory.h"
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace merger {
 
@@ -93,5 +95,3 @@ inline const std::vector<segmentid_t>& MultiPartSegmentDirectory::GetSegIdsByPar
     return mPartSegIds[partId];
 }
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_MERGER_MULTI_PART_SEGMENT_DIRECTORY_H

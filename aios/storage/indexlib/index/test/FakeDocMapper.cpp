@@ -278,7 +278,7 @@ void FakeDocMapper::CalcNewDocCount(const std::vector<SrcSegmentInfo>& srcSegInf
     }
 }
 
-std::pair<segmentid_t, docid_t> FakeDocMapper::Map(docid_t oldDocId) const
+std::pair<segmentid_t, docid32_t> FakeDocMapper::Map(docid64_t oldDocId) const
 {
     auto iter = _oldToNew.find(oldDocId);
     if (iter != _oldToNew.end()) {
@@ -286,7 +286,7 @@ std::pair<segmentid_t, docid_t> FakeDocMapper::Map(docid_t oldDocId) const
     }
     return std::make_pair(INVALID_SEGMENTID, INVALID_DOCID);
 }
-std::pair<segmentid_t, docid_t> FakeDocMapper::ReverseMap(docid_t newDocId) const
+std::pair<segmentid_t, docid32_t> FakeDocMapper::ReverseMap(docid64_t newDocId) const
 {
     auto iter = _newToOld.find(newDocId);
     if (iter != _newToOld.end()) {
@@ -295,7 +295,7 @@ std::pair<segmentid_t, docid_t> FakeDocMapper::ReverseMap(docid_t newDocId) cons
     return std::make_pair(INVALID_SEGMENTID, INVALID_DOCID);
 }
 
-docid_t FakeDocMapper::GetNewId(docid_t oldId) const
+docid64_t FakeDocMapper::GetNewId(docid64_t oldId) const
 {
     assert(oldId >= 0);
     assert(oldId < _oldDocIdToNew.size());

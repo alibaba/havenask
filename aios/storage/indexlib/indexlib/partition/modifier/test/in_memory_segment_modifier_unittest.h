@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMORYSEGMENTMODIFIERTEST_H
-#define __INDEXLIB_INMEMORYSEGMENTMODIFIERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_schema.h"
@@ -37,5 +36,3 @@ INDEXLIB_UNIT_TEST_CASE(InMemorySegmentModifierTest, TestUpdateDocument);
 INDEXLIB_UNIT_TEST_CASE(InMemorySegmentModifierTest, TestUpdateEncodedFieldValue);
 INDEXLIB_UNIT_TEST_CASE(InMemorySegmentModifierTest, TestRemoveDocument);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INMEMORYSEGMENTMODIFIERTEST_H

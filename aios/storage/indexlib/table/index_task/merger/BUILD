@@ -50,8 +50,7 @@ strict_cc_library(
         '//aios/storage/indexlib/config:TabletOptions',
         '//aios/storage/indexlib/framework:Segment',
         '//aios/storage/indexlib/framework:TabletData',
-        '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
-        '//aios/storage/indexlib/index/deletionmap:constants'
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext'
     ]
 )
 strict_cc_library(
@@ -82,8 +81,7 @@ strict_cc_library(
         '//aios/storage/indexlib/framework:Segment',
         '//aios/storage/indexlib/framework:TabletData',
         '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
-        '//aios/storage/indexlib/index:IIndexMerger',
-        '//aios/storage/indexlib/index/deletionmap:constants'
+        '//aios/storage/indexlib/index:IIndexMerger'
     ]
 )
 strict_cc_library(
@@ -96,8 +94,7 @@ strict_cc_library(
         '//aios/storage/indexlib/framework:Segment',
         '//aios/storage/indexlib/framework:TabletData',
         '//aios/storage/indexlib/framework/index_task:IndexTaskContext',
-        '//aios/storage/indexlib/index:IIndexMerger',
-        '//aios/storage/indexlib/index/deletionmap:constants'
+        '//aios/storage/indexlib/index:IIndexMerger'
     ]
 )
 strict_cc_library(
@@ -177,6 +174,16 @@ strict_cc_library(
         '//aios/autil:log', '//aios/storage/indexlib/file_system',
         '//aios/storage/indexlib/framework/index_task:IndexOperation',
         '//aios/storage/indexlib/framework/index_task:IndexOperationDescription',
+        '//aios/storage/indexlib/framework/index_task:IndexTaskContext'
+    ]
+)
+strict_cc_library(
+    name='OptimizeMergeStrategy',
+    deps=[
+        ':MergePlan', ':MergeStrategy', ':MergeStrategyDefine',
+        '//aios/autil:log', '//aios/storage/indexlib/config:MergeConfig',
+        '//aios/storage/indexlib/framework:Segment',
+        '//aios/storage/indexlib/framework:TabletData',
         '//aios/storage/indexlib/framework/index_task:IndexTaskContext'
     ]
 )

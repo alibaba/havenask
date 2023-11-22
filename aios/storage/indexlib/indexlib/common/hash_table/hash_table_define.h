@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_HASH_TABLE_DEFINE_H
-#define __INDEXLIB_HASH_TABLE_DEFINE_H
+#pragma once
 
 #include <memory>
 
@@ -25,5 +24,3 @@ namespace indexlib { namespace common {
 
 enum HashTableType { HTT_DENSE_HASH, HTT_CUCKOO_HASH, HTT_UNKOWN };
 }} // namespace indexlib::common
-
-#endif //__INDEXLIB_HASH_TABLE_DEFINE_H

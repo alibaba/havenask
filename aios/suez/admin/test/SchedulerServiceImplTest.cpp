@@ -80,6 +80,7 @@ TEST_F(SchedulerServiceImplTest, testExtractStatusInfo) {
         replicaNode->set_userdefversion("123");
         replicaNode->set_serviceinfo(serviceInfoStr);
         replicaNode->set_ip("127.0.0.1");
+        replicaNode->set_readyforcurversion(true);
     }
     {
         auto replicaNode = nextRoleInfo->add_replicanodes();

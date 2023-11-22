@@ -130,7 +130,7 @@ public:
     util::BlockCache* GetBlockCache() const noexcept { return _blockCache; }
 
     FSResult<size_t> Read(void* buffer, size_t length, size_t offset, ReadOption option) noexcept;
-    Future<size_t> ReadAsync(void* buffer, size_t length, size_t offset, ReadOption option) noexcept(false);
+    Future<FSResult<size_t>> ReadAsync(void* buffer, size_t length, size_t offset, ReadOption option) noexcept;
     FL_LAZY(FSResult<size_t>)
     ReadAsyncCoro(void* buffer, size_t length, size_t offset, ReadOption option) noexcept;
 
@@ -143,16 +143,16 @@ public:
                                                                   int advice, int64_t timeout) noexcept;
 
     FSResult<size_t> Prefetch(size_t length, size_t offset, ReadOption option) noexcept;
-    future_lite::Future<size_t> PrefetchAsync(size_t length, size_t offset, ReadOption option) noexcept(false);
+    future_lite::Future<FSResult<size_t>> PrefetchAsync(size_t length, size_t offset, ReadOption option) noexcept;
     FL_LAZY(FSResult<size_t>) PrefetchAsyncCoro(size_t length, size_t offset, ReadOption option) noexcept;
 
     // TryRead return length if cache hit. return 0 if any cacheline miss
     size_t TryRead(void* buffer, size_t length, size_t offset) noexcept(false);
     std::vector<std::unique_ptr<util::BlockHandle>> TryGetBlockHandles(size_t offset, size_t length) noexcept(false);
 
-    Future<util::BlockHandle> GetBlockAsync(size_t offset, ReadOption option) noexcept(false);
+    Future<FSResult<util::BlockHandle>> GetBlockAsync(size_t offset, ReadOption option) noexcept;
     FL_LAZY(FSResult<util::BlockHandle>) GetBlockAsyncCoro(size_t offset, ReadOption option) noexcept;
-    bool GetBlock(size_t offset, util::BlockHandle& handle, ReadOption* option = nullptr) noexcept(false);
+    FSResult<void> GetBlock(size_t offset, util::BlockHandle& handle, ReadOption* option = nullptr) noexcept;
     bool GetBlockMeta(size_t offset, FileBlockMeta& meta) noexcept;
 
     size_t GetBlockCount(size_t offset, size_t length) const noexcept
@@ -174,34 +174,26 @@ public:
 
 private:
     FSResult<size_t> DoRead(void* buffer, size_t length, size_t offset, const ReadOption& option) noexcept;
-    Future<std::pair<util::Block*, autil::CacheBase::Handle*>>
-    DoGetBlock(const util::blockid_t& blockID, uint64_t offset, ReadOption option) noexcept(false);
+    Future<FSResult<std::pair<util::Block*, autil::CacheBase::Handle*>>>
+    DoGetBlock(const util::blockid_t& blockID, uint64_t offset, ReadOption option) noexcept;
     FL_LAZY(FSResult<std::pair<util::Block*, autil::CacheBase::Handle*>>)
     DoGetBlockCoro(const util::blockid_t& blockID, uint64_t offset, ReadOption option) noexcept;
 
-    Future<util::BlockHandle> DoGetBlock(size_t offset, ReadOption option) noexcept(false);
+    Future<FSResult<util::BlockHandle>> DoGetBlock(size_t offset, ReadOption option) noexcept;
     FL_LAZY(FSResult<util::BlockHandle>) DoGetBlockCoro(size_t offset, ReadOption option) noexcept;
 
-    Future<std::vector<util::BlockHandle>> DoGetBlocks(size_t blockIdx, size_t endBlockIdx,
-                                                       std::vector<util::BlockHandle>&& handles,
-                                                       ReadOption option) noexcept(false);
-    Future<std::vector<util::BlockHandle>> DoGetBlocksCallback(size_t startMissBlock, size_t endMissBlock,
-                                                               size_t endBlockIdx, util::Block* block,
-                                                               autil::CacheBase::Handle* cacheHandle,
-                                                               std::vector<util::BlockHandle>&& handles,
-                                                               ReadOption option) noexcept(false);
-    Future<std::vector<util::BlockHandle>> GetBlockHandles(size_t blockInFileIdx, size_t blockCount,
-                                                           ReadOption option) noexcept(false);
+    Future<std::vector<FSResult<util::BlockHandle>>> GetBlockHandles(size_t blockInFileIdx, size_t blockCount,
+                                                                     ReadOption option) noexcept;
 
     void FillBuffer(const util::BlockHandle& handle, ReadContext* ctx) noexcept;
-    Future<future_lite::Unit> FillBuffer(size_t startBlockIdx, size_t cnt, const ReadContextPtr& ctx,
-                                         ReadOption option) noexcept(false);
+    Future<FSResult<void>> FillBuffer(size_t startBlockIdx, size_t cnt, const ReadContextPtr& ctx,
+                                      ReadOption option) noexcept;
 
-    Future<size_t> ReadFromBlock(const ReadContextPtr& ctx, ReadOption option) noexcept(false);
+    Future<FSResult<size_t>> ReadFromBlock(const ReadContextPtr& ctx, ReadOption option) noexcept;
     FL_LAZY(FSResult<size_t>) ReadFromBlockCoro(const ReadContextPtr& ctx, ReadOption option) noexcept;
 
-    Future<autil::CacheBase::Handle*> ReadBlockFromFileToCache(util::Block* block, uint64_t blockOffset,
-                                                               ReadOption option) noexcept(false);
+    Future<FSResult<autil::CacheBase::Handle*>> ReadBlockFromFileToCache(util::Block* block, uint64_t blockOffset,
+                                                                         ReadOption option) noexcept;
     size_t FillOneBlock(const SingleIO& io, util::Block* block, size_t blockId) const noexcept;
     future_lite::coro::Lazy<std::vector<FSResult<util::BlockHandle>>>
     BatchReadBlocksFromFile(const std::vector<size_t>& blockIds, ReadOption option) noexcept;

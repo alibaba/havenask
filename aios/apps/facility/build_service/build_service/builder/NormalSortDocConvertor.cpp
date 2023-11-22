@@ -15,7 +15,18 @@
  */
 #include "build_service/builder/NormalSortDocConvertor.h"
 
-#include <limits>
+#include <cstddef>
+#include <ext/alloc_traits.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
+#include "autil/LongHashValue.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/field_config.h"
+#include "indexlib/config/schema_modify_operation.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/index/inverted_index/config/AdaptiveDictionaryConfig.h"
+#include "indexlib/index_base/index_meta/partition_meta.h"
 
 using namespace std;
 using namespace autil;

@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_INMEMORYINDEXCLEANERTEST_H
-#define __INDEXLIB_INMEMORYINDEXCLEANERTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/config/index_partition_options.h"
@@ -57,5 +56,3 @@ INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(InMemoryIndexCleanerTest, TestCleanWithEmptyD
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(InMemoryIndexCleanerTest, TestCleanWithSegmentNotInVersion);
 INDEXLIB_UNIT_TEST_CASE_WITH_PARAM(InMemoryIndexCleanerTest, TestCleanWithNoSegmentRemoved);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_INMEMORYINDEXCLEANERTEST_H

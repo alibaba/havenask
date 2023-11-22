@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_TASKSTATUSMETRICREPORTER_H
-#define ISEARCH_BS_TASKSTATUSMETRICREPORTER_H
+#pragma once
+
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "build_service/admin/MetricEventLogger.h"
 #include "build_service/common_define.h"
-#include "build_service/proto/WorkerNode.h"
+#include "build_service/proto/BasicDefs.pb.h"
 #include "build_service/util/Log.h"
+#include "kmonitor/client/core/MetricsTags.h"
+#include "kmonitor_adapter/Metric.h"
 #include "kmonitor_adapter/Monitor.h"
 
 namespace build_service { namespace admin {
@@ -49,6 +56,8 @@ public:
 
     void reportTaskStatus(int64_t status, const kmonitor::MetricsTags& tags);
 
+    void reportScheduleLatency(int64_t value, const kmonitor::MetricsTags& tags);
+
     void reportTaskRunningTime(int64_t time, const kmonitor::MetricsTags& tags);
 
     void fillTaskLogInfo(std::vector<TaskLogItem>& logInfo);
@@ -64,6 +73,7 @@ private:
     kmonitor_adapter::MetricPtr _runningTaskNodeCountMetric;
     kmonitor_adapter::MetricPtr _taskStatusMetric;
     kmonitor_adapter::MetricPtr _taskRunningTimeMetric;
+    kmonitor_adapter::MetricPtr _taskScheduleLatencyMetric;
 
     std::unordered_map<std::string, std::shared_ptr<MetricEventLogger>> _loggerMap;
 
@@ -74,5 +84,3 @@ private:
 BS_TYPEDEF_PTR(TaskStatusMetricReporter);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_TASKSTATUSMETRICREPORTER_H

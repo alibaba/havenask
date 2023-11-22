@@ -151,18 +151,18 @@ Status VarLenDataMerger::ConstructSegmentOffsetMap(const IIndexMerger::SourceSeg
     docid_t baseDocId = sourceSegmentInfo.baseDocid;
     for (docid_t oldDocId = 0; oldDocId < (int64_t)docCount; oldDocId++) {
         docid_t globalDocId = baseDocId + oldDocId;
-        auto newDocId = docMapper->GetNewId(globalDocId);
-        if (newDocId == INVALID_DOCID || _patchDocIdSet.count(globalDocId)) {
+        auto [newSegId, newLocalDocId] = docMapper->Map(globalDocId);
+
+        if (newLocalDocId == INVALID_DOCID || _patchDocIdSet.count(globalDocId)) {
             continue;
         }
-        auto newLocalInfo = docMapper->Map(globalDocId);
-        auto output = _segOutputMapper.GetOutputBySegId(newLocalInfo.first);
+        auto output = _segOutputMapper.GetOutputBySegId(newSegId);
         if (!output) {
             continue;
         }
         auto [status, oldOffset] = segReader->GetOffset(oldDocId);
         RETURN_IF_STATUS_ERROR(status, "get data offset fail for doc [%d]", oldDocId);
-        segmentOffsetMap.push_back(OffsetPair(oldOffset, uint64_t(-1), oldDocId, newLocalInfo.first));
+        segmentOffsetMap.push_back(OffsetPair(oldOffset, uint64_t(-1), oldDocId, newSegId));
     }
     std::sort(segmentOffsetMap.begin(), segmentOffsetMap.end());
     segmentOffsetMap.assign(segmentOffsetMap.begin(), std::unique(segmentOffsetMap.begin(), segmentOffsetMap.end()));

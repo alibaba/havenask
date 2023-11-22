@@ -95,7 +95,7 @@ SubGraphBase::SubGraphBase(SubGraphDef *subGraphDef,
                            const GraphDomainPtr &domain,
                            const SubGraphBorderMapPtr &borderMap,
                            Graph *graph)
-    : _logger(this, "SubGraph", param->logger)
+    : _logger(this, "SubGraph", domain->getLogger().logger)
     , _subGraphDef(subGraphDef)
     , _param(param)
     , _domain(domain)
@@ -140,11 +140,7 @@ const SubGraphDef &SubGraphBase::getSubGraphDef() const {
 }
 
 void SubGraphBase::setErrorCode(ErrorCode ec) {
-    _param->worker->setErrorCode(ec);
-}
-
-ErrorCode SubGraphBase::getErrorCode() const {
-    return _param->worker->getErrorCode();
+    _param->graphResult->setError(_logger.logger, ec);
 }
 
 const std::string &SubGraphBase::getBizName() const {

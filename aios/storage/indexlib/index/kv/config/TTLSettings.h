@@ -17,6 +17,8 @@
 
 #include <string>
 
+#include "indexlib/base/Constant.h"
+
 namespace indexlibv2::config {
 
 struct TTLSettings {
@@ -25,6 +27,7 @@ struct TTLSettings {
     bool enabled = false;
     bool ttlFromDoc = false;
     std::string ttlField;
+    int64_t defaultTTL = indexlib::INVALID_TTL;
 };
 
 } // namespace indexlibv2::config

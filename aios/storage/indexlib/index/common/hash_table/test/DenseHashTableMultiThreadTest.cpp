@@ -25,7 +25,7 @@ private:
 
 AUTIL_LOG_SETUP(indexlib.index, DenseHashTableMultiThreadTest);
 
-volatile static bool DHTIsDone;
+volatile static atomic_bool DHTIsDone;
 volatile static int64_t DHTCurKey = 0;
 static const int32_t maxKeyCount = 999;
 

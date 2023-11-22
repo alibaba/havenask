@@ -16,13 +16,15 @@
 #pragma once
 
 #include <functional>
+
 #include "indexlib/index/ann/Common.h"
-#include "indexlib/index/deletionmap/DeletionMapIndexReader.h"
 #include "indexlib/index/ann/aitheta2/AithetaAuxSearchInfo.h"
+#include "indexlib/index/deletionmap/DeletionMapIndexReader.h"
 
 namespace indexlibv2::index::ann {
 
-class AithetaFilterCreatorBase {
+class AithetaFilterCreatorBase
+{
 public:
     typedef std::function<bool(docid_t)> AithetaFilterFunc;
 
@@ -31,16 +33,19 @@ public:
     virtual ~AithetaFilterCreatorBase() = default;
 
 public:
-    virtual bool Create(docid_t segmentBaseDocId, std::shared_ptr<AithetaFilterBase> filter, AithetaFilterFunc& func) = 0;
+    virtual bool Create(docid_t segmentBaseDocId, std::shared_ptr<AithetaFilterBase> filter,
+                        AithetaFilterFunc& func) = 0;
 };
 
-class AithetaFilterCreator: public AithetaFilterCreatorBase {
+class AithetaFilterCreator : public AithetaFilterCreatorBase
+{
 public:
-    AithetaFilterCreator(const std::shared_ptr<index::DeletionMapIndexReader>& reader): _deletionMapReader(reader) {}
+    AithetaFilterCreator(const std::shared_ptr<index::DeletionMapIndexReader>& reader) : _deletionMapReader(reader) {}
     ~AithetaFilterCreator() = default;
 
 public:
-    bool Create(docid_t segmentBaseDocId, std::shared_ptr<AithetaFilterBase> filter, AithetaFilterFunc& func) override {
+    bool Create(docid_t segmentBaseDocId, std::shared_ptr<AithetaFilterBase> filter, AithetaFilterFunc& func) override
+    {
         if (nullptr == _deletionMapReader && nullptr == filter) {
             return false;
         }
@@ -54,9 +59,7 @@ public:
                 return reader->IsDeleted(segmentBaseDocId + docId);
             };
         } else if (nullptr != filter) {
-            func = [segmentBaseDocId, filter](docid_t docId) {
-                return (*filter)(segmentBaseDocId + docId);
-            };
+            func = [segmentBaseDocId, filter](docid_t docId) { return (*filter)(segmentBaseDocId + docId); };
         }
         return true;
     }

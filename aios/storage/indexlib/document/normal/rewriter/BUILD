@@ -32,6 +32,7 @@ strict_cc_library(
         '//aios/storage/indexlib/index/inverted_index/config:TruncateIndexConfig',
         '//aios/storage/indexlib/index/inverted_index/config:TruncateOptionConfig',
         '//aios/storage/indexlib/index/inverted_index/config:TruncateStrategy',
+        '//aios/storage/indexlib/index/source:config',
         '//aios/storage/indexlib/index/summary/config:SummaryIndexConfig',
         '//aios/storage/indexlib/util:Bitmap',
         '//aios/storage/indexlib/util:ErrorLogCollector'

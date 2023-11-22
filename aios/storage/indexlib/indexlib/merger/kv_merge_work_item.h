@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_KV_MERGE_WORK_ITEM_H
-#define __INDEXLIB_KV_MERGE_WORK_ITEM_H
+#pragma once
 
 #include <memory>
 
@@ -134,5 +133,3 @@ void KVMergeWorkItem<MergerPtr>::SetMergeItemMetrics(const util::ProgressMetrics
     mMerger->SetMergeItemMetrics(itemMetrics);
 }
 }} // namespace indexlib::merger
-
-#endif //__INDEXLIB_KV_MERGE_WORK_ITEM_H

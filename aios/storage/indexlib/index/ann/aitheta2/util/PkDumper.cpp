@@ -17,7 +17,7 @@
 
 namespace indexlibv2::index::ann {
 
-bool PkDumper::Dump(const PkDataHolder& pkDataHolder, Segment& segment)
+bool PkDumper::Dump(const PkDataHolder& pkHolder, Segment& segment)
 {
     auto segDataWriter = segment.GetSegmentDataWriter();
     ANN_CHECK(segDataWriter, "get segment data pkWriter failed");
@@ -25,7 +25,7 @@ bool PkDumper::Dump(const PkDataHolder& pkDataHolder, Segment& segment)
     ANN_CHECK(pkWriter, "get primary key pkWriter failed");
 
     AUTIL_LOG(INFO, "dumping primary key");
-    const auto& pkDataMap = pkDataHolder.GetPkDataMap();
+    const auto& pkDataMap = pkHolder.GetPkDataMap();
     for (auto& [indexId, pkData] : pkDataMap) {
         uint64_t count = pkData.Size();
         if (count == 0) {

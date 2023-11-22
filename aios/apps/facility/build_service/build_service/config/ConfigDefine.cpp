@@ -56,6 +56,7 @@ const std::string BS_TASK_RUN_SCRIPT = "run_script";
 const std::string BS_SNAPSHOT_VERSION = "snapshot_version";
 const std::string BS_DROP_BUILDING_INDEX = "drop_building_index";
 const std::string BS_BUILDER_TASK_V2 = "builderV2";
+const std::string BS_TASK_RESET_VERSION = "reset_version_task";
 
 const std::string BS_ENDBUILD_VERSION = "endbuild_version";
 const std::string BS_ENDBUILD_PARTITION_COUNT = "endbuild_partition_count";

@@ -67,12 +67,13 @@ public:
     virtual size_t GetLogicLength() const noexcept { return GetLength(); }
 
     // future_lite
-    virtual future_lite::Future<size_t> ReadAsync(void* buffer, size_t length, size_t offset,
-                                                  ReadOption option) noexcept(false);
-    virtual future_lite::Future<uint32_t> ReadUInt32Async(size_t offset, ReadOption option) noexcept(false);
-    virtual future_lite::Future<uint32_t> ReadVUInt32Async(ReadOption option) noexcept(false);
-    virtual future_lite::Future<uint32_t> ReadVUInt32Async(size_t offset, ReadOption option) noexcept(false);
-    virtual future_lite::Future<size_t> PrefetchAsync(size_t length, size_t offset, ReadOption option) noexcept(false);
+    virtual future_lite::Future<FSResult<size_t>> ReadAsync(void* buffer, size_t length, size_t offset,
+                                                            ReadOption option) noexcept;
+    virtual future_lite::Future<FSResult<uint32_t>> ReadUInt32Async(size_t offset, ReadOption option) noexcept;
+    virtual future_lite::Future<FSResult<uint32_t>> ReadVUInt32Async(ReadOption option) noexcept;
+    virtual future_lite::Future<FSResult<uint32_t>> ReadVUInt32Async(size_t offset, ReadOption option) noexcept;
+    virtual future_lite::Future<FSResult<size_t>> PrefetchAsync(size_t length, size_t offset,
+                                                                ReadOption option) noexcept;
 
     // FL_LAZY
     virtual FL_LAZY(FSResult<size_t>)
@@ -160,10 +161,10 @@ inline future_lite::coro::Lazy<std::vector<FSResult<size_t>>> FileReader::BatchR
     co_return result;
 }
 
-inline future_lite::Future<size_t> FileReader::ReadAsync(void* buffer, size_t length, size_t offset,
-                                                         ReadOption option) noexcept(false)
+inline future_lite::Future<FSResult<size_t>> FileReader::ReadAsync(void* buffer, size_t length, size_t offset,
+                                                                   ReadOption option) noexcept
 {
-    return future_lite::makeReadyFuture(Read(buffer, length, offset, option).GetOrThrow());
+    return future_lite::makeReadyFuture(Read(buffer, length, offset, option));
 }
 
 inline FL_LAZY(FSResult<size_t>) FileReader::ReadAsyncCoro(void* buffer, size_t length, size_t offset,
@@ -172,13 +173,12 @@ inline FL_LAZY(FSResult<size_t>) FileReader::ReadAsyncCoro(void* buffer, size_t 
     FL_CORETURN Read(buffer, length, offset, option);
 }
 
-inline future_lite::Future<uint32_t> FileReader::ReadUInt32Async(size_t offset, ReadOption option) noexcept(false)
+inline future_lite::Future<FSResult<uint32_t>> FileReader::ReadUInt32Async(size_t offset, ReadOption option) noexcept
 {
     uint32_t buffer;
-    auto readSize = Read(static_cast<void*>(&buffer), sizeof(buffer), offset, option).GetOrThrow();
-    assert(readSize == sizeof(buffer));
-    (void)readSize;
-    return future_lite::makeReadyFuture<uint32_t>(buffer);
+    auto result = Read(static_cast<void*>(&buffer), sizeof(buffer), offset, option);
+    assert(result.GetOrThrow() == sizeof(buffer));
+    return future_lite::makeReadyFuture<FSResult<uint32_t>>({result.Code(), buffer});
 }
 
 inline FSResult<uint32_t> FileReader::ReadVUInt32(ReadOption option) noexcept
@@ -211,20 +211,20 @@ inline FSResult<uint32_t> FileReader::ReadVUInt32(size_t offset, ReadOption opti
     return {FSEC_OK, value};
 }
 
-inline future_lite::Future<uint32_t> FileReader::ReadVUInt32Async(ReadOption option) noexcept(false)
+inline future_lite::Future<FSResult<uint32_t>> FileReader::ReadVUInt32Async(ReadOption option) noexcept
 {
-    return future_lite::makeReadyFuture(ReadVUInt32(option).GetOrThrow());
+    return future_lite::makeReadyFuture(ReadVUInt32(option));
 }
 
-inline future_lite::Future<uint32_t> FileReader::ReadVUInt32Async(size_t offset, ReadOption option) noexcept(false)
+inline future_lite::Future<FSResult<uint32_t>> FileReader::ReadVUInt32Async(size_t offset, ReadOption option) noexcept
 {
-    return future_lite::makeReadyFuture(ReadVUInt32(offset, option).GetOrThrow());
+    return future_lite::makeReadyFuture(ReadVUInt32(offset, option));
 }
 
-inline future_lite::Future<size_t> FileReader::PrefetchAsync(size_t length, size_t offset,
-                                                             ReadOption option) noexcept(false)
+inline future_lite::Future<FSResult<size_t>> FileReader::PrefetchAsync(size_t length, size_t offset,
+                                                                       ReadOption option) noexcept
 {
-    return future_lite::makeReadyFuture<size_t>(0);
+    return future_lite::makeReadyFuture<FSResult<size_t>>({FSEC_OK, 0ul});
 }
 
 inline FL_LAZY(FSResult<size_t>) FileReader::PrefetchAsyncCoro(size_t length, size_t offset, ReadOption option) noexcept

@@ -1,17 +1,17 @@
 package com.taobao.search.iquan.core.rel.hint;
 
-import com.google.common.collect.ImmutableList;
-import com.taobao.search.iquan.core.common.ConstantDefine;
-import org.javatuples.Pair;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.hint.Hintable;
-import org.apache.calcite.rel.hint.RelHint;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.google.common.collect.ImmutableList;
+import com.taobao.search.iquan.core.common.ConstantDefine;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.hint.Hintable;
+import org.apache.calcite.rel.hint.RelHint;
+import org.javatuples.Pair;
 
 public class IquanHintOptUtils {
     public static Pair<RelHint, Boolean> resolveHints(RelNode node1, RelNode node2, IquanHintCategory catetory) {
@@ -55,9 +55,8 @@ public class IquanHintOptUtils {
 
     public static Pair<RelHint, Boolean> resolveHints(RelHint hint1, RelHint hint2) {
         if (hint1.hintName.equals(hint2.hintName)
-            && hint1.listOptions.equals(hint2.listOptions)
-            && hint1.kvOptions.equals(hint2.kvOptions))
-        {
+                && hint1.listOptions.equals(hint2.listOptions)
+                && hint1.kvOptions.equals(hint2.kvOptions)) {
             return new Pair<>(hint1, true);
         }
         return new Pair<>(null, true);

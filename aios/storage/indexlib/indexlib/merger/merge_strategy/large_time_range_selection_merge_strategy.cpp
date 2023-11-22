@@ -15,8 +15,18 @@
  */
 #include "indexlib/merger/merge_strategy/large_time_range_selection_merge_strategy.h"
 
+#include <map>
+#include <memory>
+
+#include "autil/CommonMacros.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/attribute_schema.h"
+#include "indexlib/config/field_type_traits.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/index_base/index_meta/version.h"
 #include "indexlib/merger/merge_strategy/optimize_merge_strategy.h"
-#include "indexlib/merger/merge_strategy/time_series_segment_merge_info_creator.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace indexlib::config;

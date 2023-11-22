@@ -26,6 +26,7 @@ IndexTaskMetrics::IndexTaskMetrics(const std::string& tabletName,
     : _tabletName(indexlib::util::KmonitorTagvNormalizer::GetInstance()->Normalize(tabletName))
     , _metricsReporter(metricsReporter)
     , _lastTaskFinishedTimestamp(autil::TimeUtility::currentTimeInSeconds())
+    , _mergeCommittedVersionDelay(-1)
 {
 }
 
@@ -66,6 +67,10 @@ void IndexTaskMetrics::ReportMetrics()
     INDEXLIB_FM_REPORT_METRIC(runningMergeBaseVersionId);
     INDEXLIB_FM_REPORT_METRIC(runningMergeLeftOps);
     INDEXLIB_FM_REPORT_METRIC(runningMergeTotalOps);
+
+    if (_mergeCommittedVersionDelay > 0) {
+        INDEXLIB_FM_REPORT_METRIC(mergeCommittedVersionDelay);
+    }
 
     std::string runningTaskType;
     std::string runningTaskName;
@@ -119,6 +124,7 @@ void IndexTaskMetrics::RegisterMetrics()
     REGISTER_TABLET_MERGE_METRIC(mergeBaseVersionId, kmonitor::GAUGE);
     REGISTER_TABLET_MERGE_METRIC(mergeTargetVersionId, kmonitor::GAUGE);
     REGISTER_TABLET_MERGE_METRIC(mergeCommittedVersionId, kmonitor::GAUGE);
+    REGISTER_TABLET_MERGE_METRIC(mergeCommittedVersionDelay, kmonitor::GAUGE);
     REGISTER_TABLET_MERGE_METRIC(runningMergeBaseVersionId, kmonitor::GAUGE);
     REGISTER_TABLET_MERGE_METRIC(runningMergeLeftOps, kmonitor::GAUGE);
     REGISTER_TABLET_MERGE_METRIC(runningMergeTotalOps, kmonitor::GAUGE);
@@ -140,6 +146,7 @@ void IndexTaskMetrics::FillMetricsInfo(std::map<std::string, std::string>& infoM
     infoMap["mergeBaseVersionId"] = autil::StringUtil::toString(_mergeBaseVersionId);
     infoMap["mergeTargetVersionId"] = autil::StringUtil::toString(_mergeTargetVersionId);
     infoMap["mergeCommittedVersionId"] = autil::StringUtil::toString(_mergeCommittedVersionId);
+    infoMap["mergeCommittedVersionDelay"] = autil::StringUtil::toString(_mergeCommittedVersionDelay);
     infoMap["runningMergeBaseVersionId"] = autil::StringUtil::toString(_runningMergeBaseVersionId);
     infoMap["runningMergeLeftOps"] = autil::StringUtil::toString(_runningMergeLeftOps);
     infoMap["runningMergeTotalOps"] = autil::StringUtil::toString(_runningMergeTotalOps);

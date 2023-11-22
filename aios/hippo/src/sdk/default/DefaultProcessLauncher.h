@@ -57,7 +57,7 @@ private:
                             const hippo::ProcessContext &context);
     bool getLaunchSignature(const hippo::SlotId &slotId,
                             int64_t &signature);
-    bool needLaunch(const hippo::SlotId &slotId);
+    bool needLaunch(const hippo::SlotId &slotId, const ProcessStartWorkItem *workItem);
     void getReleasedSlots(
             const std::map<std::string, std::set<hippo::SlotId> > &slotIds,
             std::map<std::string, std::set<hippo::SlotId> > &releasedSlots);
@@ -69,6 +69,7 @@ private:
                   ProcessError ret,
                   const std::string& errorMsg);
     bool getSlotResource(const hippo::SlotId &slotId, hippo::SlotResource &slotResource);
+    bool isSlotRunning(const ProcessStartWorkItem *workItem);
 private:
     std::string _homeDir;
     ProcessController _controller;

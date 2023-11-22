@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_DOCUMENTPROCESSOR_H
-#define ISEARCH_BS_DOCUMENTPROCESSOR_H
+#pragma once
 
 #include "build_service/common_define.h"
 #include "build_service/document/ExtendDocument.h"
@@ -118,5 +117,3 @@ typedef std::shared_ptr<DocumentProcessor> DocumentProcessorPtr;
 typedef plugin::PooledObject<DocumentProcessor> PooledDocumentProcessor;
 
 }} // namespace build_service::processor
-
-#endif // ISEARCH_BS_DOCUMENTPROCESSOR_H

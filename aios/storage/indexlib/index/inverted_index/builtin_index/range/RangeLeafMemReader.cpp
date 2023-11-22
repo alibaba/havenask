@@ -35,7 +35,7 @@ RangeLeafMemReader::RangeLeafMemReader(const std::shared_ptr<InvertedLeafMemRead
 RangeLeafMemReader::~RangeLeafMemReader() {}
 
 void RangeLeafMemReader::FillSegmentPostings(const std::shared_ptr<InvertedLeafMemReader>& reader,
-                                             RangeFieldEncoder::Ranges& levelRanges, docid_t baseDocId,
+                                             RangeFieldEncoder::Ranges& levelRanges, docid64_t baseDocId,
                                              std::shared_ptr<SegmentPostings> segPostings,
                                              autil::mem_pool::Pool* sessionPool,
                                              indexlib::index::InvertedIndexSearchTracer* tracer) const
@@ -57,7 +57,7 @@ void RangeLeafMemReader::FillSegmentPostings(const std::shared_ptr<InvertedLeafM
     }
 }
 
-bool RangeLeafMemReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid_t baseDocId,
+bool RangeLeafMemReader::Lookup(uint64_t leftTerm, uint64_t rightTerm, docid64_t baseDocId,
                                 const std::shared_ptr<SegmentPostings>& segPostings, autil::mem_pool::Pool* sessionPool,
                                 indexlib::index::InvertedIndexSearchTracer* tracer) const
 {

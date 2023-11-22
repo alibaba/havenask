@@ -25,8 +25,8 @@
 #include "indexlib/config/IIndexConfig.h"
 #include "indexlib/framework/Segment.h"
 #include "indexlib/framework/SegmentMeta.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IIndexMerger.h"
-#include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/attribute/Common.h"
 #include "indexlib/index/attribute/config/AttributeConfig.h"
 #include "indexlib/index/common/patch/PatchFileInfos.h"
@@ -64,6 +64,15 @@ public:
     virtual std::string GetIdentifier() const = 0;
     virtual Status DoMerge(const SegmentMergeInfos& segMergeInfos, std::shared_ptr<DocMapper>& docMapper) = 0;
     std::shared_ptr<AttributeConfig> GetAttributeConfig() const { return _attributeConfig; }
+
+    virtual std::pair<Status, std::shared_ptr<indexlib::file_system::IDirectory>>
+    GetOutputDirectory(const std::shared_ptr<indexlib::file_system::IDirectory>& segDir) = 0;
+
+public:
+    static Status CreatePatchReader(const std::vector<IIndexMerger::SourceSegment>& srcMergeSegments,
+                                    const PatchInfos& allPatchInfos,
+                                    const std::shared_ptr<AttributeConfig>& attributeConfig,
+                                    std::map<segmentid_t, std::shared_ptr<AttributePatchReader>>& segId2PatchReader);
 
 protected:
     std::string GetAttributePath(const std::string& dir) const;
@@ -113,8 +122,6 @@ protected:
     }
 
     virtual Status LoadPatchReader(const std::vector<IIndexMerger::SourceSegment>& srcMergeSegments);
-    Status CreatePatchReader(const std::vector<IIndexMerger::SourceSegment>& srcMergeSegments,
-                             std::map<segmentid_t, std::shared_ptr<AttributePatchReader>>& segId2PatchReader);
 
 protected:
     struct SortMergeItem {

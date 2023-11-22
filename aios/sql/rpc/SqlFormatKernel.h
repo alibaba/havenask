@@ -29,11 +29,11 @@
 #include "navi/engine/KernelConfigContext.h"
 #include "navi/engine/ScopeTerminatorKernel.h"
 #include "navi/resource/GraphMemoryPoolR.h"
-#include "navi/resource/NaviResultR.h"
 #include "navi/resource/QuerySessionR.h"
 #include "navi/rpc_server/NaviArpcRequestData.h" // IWYU pragma: keep
 #include "sql/framework/QrsSessionSqlResult.h"
 #include "sql/proto/SqlSearchInfoCollectorR.h"
+#include "sql/resource/QueryMetricReporterR.h"
 #include "sql/rpc/SqlRpcR.h"
 
 namespace isearch {
@@ -75,7 +75,7 @@ private:
                        navi::KernelComputeContext &ctx,
                        QrsSessionSqlResult &result) const;
     void fillMetaData(const navi::DataPtr &metaData,
-                      int64_t runGraphBeginTime,
+                      navi::KernelComputeContext &ctx,
                       QrsSessionSqlResult &result);
     void formatSqlResult(SqlQueryRequest *sqlQueryRequest,
                          const SqlAccessLogFormatHelper *accessLogHelper,
@@ -87,12 +87,11 @@ private:
                       const autil::mem_pool::PoolPtr &pool,
                       isearch::proto::QrsResponse *response);
     bool isOutputSqlPlan(sql::SqlQueryRequest *sqlQueryRequest) const;
-    void initFormatType(const sql::SqlQueryRequest *sqlQueryRequest);
+    void initFormatType(const std::string &format);
     QrsSessionSqlResult::SearchInfoLevel
     parseSearchInfoLevel(sql::SqlQueryRequest *sqlQueryRequest) const;
     isearch::proto::FormatType
     convertFormatType(QrsSessionSqlResult::SqlResultFormatType formatType);
-    bool disableSoftFailure(sql::SqlQueryRequest *sqlQueryRequest) const;
     void endGigTrace(size_t responseSize, QrsSessionSqlResult &result);
 
 public:
@@ -107,12 +106,11 @@ private:
 private:
     KERNEL_NAMED_DATA(navi::NaviArpcRequestData, _requestData, SqlRpcR::SQL_REQUEST_NAME);
     KERNEL_DEPEND_ON(navi::GraphMemoryPoolR, _graphMemoryPoolR);
-    KERNEL_DEPEND_ON(navi::NaviResultR, _naviResultR);
     KERNEL_DEPEND_ON(navi::QuerySessionR, _querySessionR);
     KERNEL_DEPEND_ON(SqlSearchInfoCollectorR, _sqlSearchInfoCollectorR);
+    KERNEL_DEPEND_ON(QueryMetricReporterR, _queryMetricReporterR);
     QrsSessionSqlResult::SqlResultFormatType _formatType = QrsSessionSqlResult::SQL_RF_STRING;
     std::unique_ptr<sql::SqlAccessLog> _accessLog;
-    bool _disableSoftFailure = false;
 };
 
 } // namespace sql

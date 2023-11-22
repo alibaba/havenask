@@ -2,8 +2,10 @@
 
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/framework/MetricsManager.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IIndexMerger.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/operation_log/Common.h"
 #include "indexlib/index/operation_log/CompressOperationLogMemIndexer.h"
 #include "indexlib/index/operation_log/OperationLogConfig.h"
@@ -68,11 +70,13 @@ void OperationLogIndexFactoryTest::TestSimpleProcess()
     std::shared_ptr<OperationLogConfig> opConfig(new OperationLogConfig(2, false));
     opConfig->AddIndexConfigs(indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR, {pkConfig});
     indexlibv2::framework::MetricsManager metricsManager("", nullptr);
-    indexlibv2::index::IndexerParameter indexerParam;
+    indexlibv2::index::DiskIndexerParameter indexerParam;
+    indexlibv2::index::MemIndexerParameter memIndexerParam;
+    indexlibv2::index::IndexReaderParameter indexReaderParam;
     indexerParam.metricsManager = &metricsManager;
     ASSERT_TRUE(indexFactory->CreateDiskIndexer(opConfig, indexerParam));
-    ASSERT_TRUE(indexFactory->CreateMemIndexer(opConfig, indexerParam));
-    ASSERT_TRUE(indexFactory->CreateIndexReader(opConfig, indexerParam));
+    ASSERT_TRUE(indexFactory->CreateMemIndexer(opConfig, memIndexerParam));
+    ASSERT_TRUE(indexFactory->CreateIndexReader(opConfig, indexReaderParam));
     ASSERT_TRUE(indexFactory->CreateIndexMerger(opConfig));
 }
 
@@ -87,7 +91,7 @@ void OperationLogIndexFactoryTest::TestCompress()
     std::shared_ptr<OperationLogConfig> opConfig(new OperationLogConfig(2, true));
     opConfig->AddIndexConfigs(indexlibv2::index::PRIMARY_KEY_INDEX_TYPE_STR, {pkConfig});
     indexlibv2::framework::MetricsManager metricsManager("", nullptr);
-    indexlibv2::index::IndexerParameter indexerParam;
+    indexlibv2::index::MemIndexerParameter indexerParam;
     indexerParam.metricsManager = &metricsManager;
     auto memIndexer = indexFactory->CreateMemIndexer(opConfig, indexerParam);
     ASSERT_TRUE(memIndexer);

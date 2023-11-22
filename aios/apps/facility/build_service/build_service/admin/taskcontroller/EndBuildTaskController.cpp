@@ -15,12 +15,32 @@
  */
 #include "build_service/admin/taskcontroller/EndBuildTaskController.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
 #include "build_service/admin/CheckpointCreator.h"
 #include "build_service/common/BeeperCollectorDefine.h"
+#include "build_service/common/IndexCheckpointAccessor.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/config/ConfigReaderAccessor.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/TaskConfig.h"
+#include "build_service/config/TaskTarget.h"
 
 using namespace std;
 using namespace autil::legacy;
@@ -33,7 +53,7 @@ BS_LOG_SETUP(taskcontroller, EndBuildTaskController);
 EndBuildTaskController::EndBuildTaskController(const string& taskId, const string& taskName,
                                                const TaskResourceManagerPtr& resMgr)
     : DefaultTaskController(taskId, taskName, resMgr)
-    , _buildVersion(INVALID_VERSION)
+    , _buildVersion(indexlib::INVALID_VERSIONID)
     , _workerPathVersion(-1)
     , _schemaId(config::INVALID_SCHEMAVERSION)
     , _buildParallelNum(1)
@@ -157,14 +177,14 @@ bool EndBuildTaskController::getBuildVersion(TaskController::Node& node)
                              "endBuild Task[%s] is reach target, but lack of builderVersion", node.roleName.c_str());
         return false;
     }
-    versionid_t targetVersion = INVALID_VERSION;
+    versionid_t targetVersion = indexlib::INVALID_VERSIONID;
     if (!StringUtil::fromString(iter->second, targetVersion)) {
         BS_LOG(ERROR, "endbuild failed, invalid builderVersion[%s]", iter->second.c_str());
         BEEPER_FORMAT_REPORT(GENERATION_STATUS_COLLECTOR_NAME, *_beeperTags,
                              "endbuild failed, invalid builderVersion[%s]", iter->second.c_str());
         return false;
     }
-    if (_buildVersion != INVALID_VERSION && _buildVersion != targetVersion) {
+    if (_buildVersion != indexlib::INVALID_VERSIONID && _buildVersion != targetVersion) {
         BS_LOG(ERROR, "endBuild Task[%s][%u], builder version[%d] not aligned, other endBuild version[%d]",
                node.roleName.c_str(), node.nodeId, targetVersion, _buildVersion);
         BEEPER_FORMAT_REPORT(GENERATION_STATUS_COLLECTOR_NAME, *_beeperTags,
@@ -176,12 +196,13 @@ bool EndBuildTaskController::getBuildVersion(TaskController::Node& node)
         }
     }
 
-    assert(targetVersion != INVALID_VERSION);
+    assert(targetVersion != indexlib::INVALID_VERSIONID);
 
     if (_needAlignedBuildVersion) {
         _buildVersion = targetVersion;
     } else {
-        _buildVersion = (_buildVersion == INVALID_VERSION) ? targetVersion : std::min(_buildVersion, targetVersion);
+        _buildVersion =
+            (_buildVersion == indexlib::INVALID_VERSIONID) ? targetVersion : std::min(_buildVersion, targetVersion);
     }
     return true;
 }
@@ -265,7 +286,7 @@ bool EndBuildTaskController::start(const KeyValueMap& kvMap)
     }
 
     // operation ids
-    _buildVersion = INVALID_VERSION;
+    _buildVersion = indexlib::INVALID_VERSIONID;
 
     // for ImportBuild: imported index may not have aligned buildVersion, turn this switch off to bypass version
     // alignment check

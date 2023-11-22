@@ -64,8 +64,7 @@ TablePtr TaobaoSpRerankTvfFuncTest::fakeTable() {
     //     allocator, docs, "score", {1.1, 0.9, 0.7, 0.5, 1.3, 0.3, 0.2, 1.2, 0.4});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(
         allocator, docs, "score", {4, 3, 2, 1, 3, 2, 1, 2, 1});
-    TablePtr input(new Table(docs, allocator));
-    return input;
+    return Table::fromMatchDocs(docs, allocator);
 }
 
 TablePtr TaobaoSpRerankTvfFuncTest::fakeTable1() {
@@ -83,8 +82,7 @@ TablePtr TaobaoSpRerankTvfFuncTest::fakeTable1() {
     //     allocator, docs, "score", {1.1, 0.9, 0.7, 0.5, 1.3, 0.3, 0.2, 1.2, 0.4});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(
         allocator, docs, "score", {4, 3, 2, 1, 3, 2, 1, 2, 1});
-    TablePtr input(new Table(docs, allocator));
-    return input;
+    return Table::fromMatchDocs(docs, allocator);
 }
 
 TablePtr TaobaoSpRerankTvfFuncTest::fakeTable2() {
@@ -112,8 +110,7 @@ TablePtr TaobaoSpRerankTvfFuncTest::fakeTable2() {
     //     allocator, docs, "score", {1.1, 0.9, 0.7, 0.5, 1.3, 0.3, 0.2, 1.2, 0.4});
     _matchDocUtil.extendMatchDocAllocator<int32_t>(
         allocator, docs, "score", {4, 3, 2, 1, 3, 2, 1, 2, 1});
-    TablePtr input(new Table(docs, allocator));
-    return input;
+    return Table::fromMatchDocs(docs, allocator);
 }
 
 void TaobaoSpRerankTvfFuncTest::testSimpleSuccess(const vector<string> &params,

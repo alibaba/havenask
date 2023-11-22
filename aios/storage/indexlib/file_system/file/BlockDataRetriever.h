@@ -19,6 +19,7 @@
 
 #include "future_lite/coro/Lazy.h"
 #include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/file_system/FSResult.h"
 #include "indexlib/file_system/file/DecompressMetricsReporter.h"
 
 namespace indexlib { namespace file_system {
@@ -38,8 +39,8 @@ public:
     BlockDataRetriever& operator=(BlockDataRetriever&&) = delete;
 
 public:
-    virtual uint8_t* RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
-                                       size_t& blockDataLength) noexcept(false) = 0;
+    virtual FSResult<uint8_t*> RetrieveBlockData(size_t fileOffset, size_t& blockDataBeginOffset,
+                                                 size_t& blockDataLength) noexcept = 0;
 
     virtual future_lite::coro::Lazy<ErrorCode> Prefetch(size_t fileOffset, size_t length) noexcept = 0;
 

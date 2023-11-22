@@ -1,7 +1,7 @@
 #include "indexlib/index/kv/test/kv_ttl_decider_unittest.h"
 
-#include "indexlib/test/region_schema_maker.h"
-#include "indexlib/test/schema_maker.h"
+#include "indexlib/config/test/region_schema_maker.h"
+#include "indexlib/config/test/schema_maker.h"
 
 using namespace std;
 using namespace indexlib::test;

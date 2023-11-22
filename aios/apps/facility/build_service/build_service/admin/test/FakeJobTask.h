@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_FAKEJOBTASK_H
-#define ISEARCH_BS_FAKEJOBTASK_H
+#pragma once
 
 #include "build_service/admin/JobTask.h"
 #include "build_service/admin/test/FakeBuildServiceTaskFactory.h"
@@ -45,5 +44,3 @@ private:
 BS_TYPEDEF_PTR(FakeJobTask);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_FAKEGENERATIONTASK_H

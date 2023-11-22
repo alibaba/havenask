@@ -126,7 +126,7 @@ SectionAttributeReaderTest::BuildOneSegmentData(const std::shared_ptr<file_syste
     assert(packIndexConfig != nullptr);
 
     autil::mem_pool::Pool pool(SectionAttributeFormatter::DATA_SLICE_LEN * 16);
-    indexlibv2::index::IndexerParameter emptyIndexerParam;
+    indexlibv2::index::MemIndexerParameter emptyIndexerParam;
     SectionAttributeMemIndexer writer(emptyIndexerParam);
     auto status = writer.Init(packIndexConfig, _docInfoExtractorFactory.get());
     if (!status.IsOK()) {
@@ -201,7 +201,7 @@ SectionAttributeReaderTest::BuildOneSegmentData(const std::shared_ptr<file_syste
     }
     invertedIndexDirectory->Sync(true);
 
-    indexlibv2::index::IndexerParameter indexerParam;
+    indexlibv2::index::DiskIndexerParameter indexerParam;
     indexerParam.docCount = docCount;
     indexerParam.segmentInfo = segMeta.segmentInfo;
     indexerParam.metricsManager = _metricsManager.get();

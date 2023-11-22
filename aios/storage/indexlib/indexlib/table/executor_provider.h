@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_EXECUTOR_PROVIDER_H
-#define __INDEXLIB_EXECUTOR_PROVIDER_H
+#pragma once
 
-#include <memory>
+#include <string>
 
-#include "indexlib/common_define.h"
+#include "future_lite/Executor.h"
 #include "indexlib/config/index_partition_options.h"
-#include "indexlib/config/index_partition_schema.h"
-
-namespace future_lite {
-class Executor;
-}
+#include "indexlib/misc/common.h"
+#include "indexlib/misc/log.h"
 
 namespace indexlib { namespace table {
 
@@ -55,5 +51,3 @@ private:
 
 DEFINE_SHARED_PTR(ExecutorProvider);
 }} // namespace indexlib::table
-
-#endif //__INDEXLIB_EXECUTOR_PROVIDER_H

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_CODE_FACTORY_H
-#define __INDEXLIB_CODE_FACTORY_H
+#pragma once
 
 #include <memory>
 
@@ -30,5 +29,3 @@ public:
 
 typedef std::shared_ptr<CodeFactory> CodeFactoryPtr;
 }} // namespace indexlib::codegen
-
-#endif //__INDEXLIB_CODE_FACTORY_H

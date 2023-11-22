@@ -32,7 +32,7 @@ cc_library(
     deps=([
         ':control_service_cc_proto', ':table_service_cc_proto',
         '//aios/autil:closure_guard', '//aios/autil:log',
-        '//aios/storage/indexlib/legacy/tools:index_partition_querier_lib',
+        '//aios/storage/indexlib/indexlib/tools:index_partition_querier_lib',
         '//aios/storage/indexlib/table:builtin_define', '//aios/suez/common',
         '//aios/suez/sdk', '//aios/suez/sdk:remote_table_writer',
         '//aios/suez/sdk:table_writer', '//aios/table',

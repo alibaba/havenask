@@ -15,6 +15,8 @@
  */
 #include "indexlib/config/SchemaResolver.h"
 
+#include <memory>
+
 #include "indexlib/config/TabletSchema.h"
 
 namespace indexlibv2::config {

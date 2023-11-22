@@ -22,7 +22,7 @@ using namespace autil::legacy;
 using namespace autil::legacy::json;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, MergeConfig);
+AUTIL_LOG_SETUP(indexlib.config, MergeConfig);
 
 MergeConfig::MergeConfig() { mImpl.reset(new MergeConfigImpl); }
 

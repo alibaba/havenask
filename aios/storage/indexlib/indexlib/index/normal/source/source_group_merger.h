@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SOURCE_GROUP_MERGER_H
-#define __INDEXLIB_SOURCE_GROUP_MERGER_H
+#pragma once
 
 #include <memory>
 
@@ -35,15 +34,15 @@ public:
     virtual void EndParallelMerge(const index_base::OutputSegmentMergeInfos& outputSegMergeInfos,
                                   int32_t totalParallelCount,
                                   const std::vector<index_base::MergeTaskResourceVector>& instResourceVec) override;
-    static std::string GetMergeTaskName(groupid_t groupId)
+    static std::string GetMergeTaskName(sourcegroupid_t groupId)
     {
         return MERGE_TASK_NAME_PREFIX + autil::StringUtil::toString(groupId);
     }
 
-    static groupid_t GetGroupIdByMergeTaskName(const std::string& taskName)
+    static sourcegroupid_t GetGroupIdByMergeTaskName(const std::string& taskName)
     {
         std::string groupIdStr = taskName.substr(MERGE_TASK_NAME_PREFIX.size());
-        groupid_t groupId = -1;
+        sourcegroupid_t groupId = -1;
         autil::StringUtil::fromString(groupIdStr, groupId);
         return groupId;
     }
@@ -67,5 +66,3 @@ private:
 
 DEFINE_SHARED_PTR(SourceGroupMerger);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SOURCE_GROUP_MERGER_H

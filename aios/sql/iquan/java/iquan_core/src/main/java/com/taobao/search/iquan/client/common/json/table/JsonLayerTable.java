@@ -1,56 +1,21 @@
 package com.taobao.search.iquan.client.common.json.table;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.taobao.search.iquan.core.common.ConstantDefine;
+import lombok.Getter;
 
-import java.util.List;
-import java.util.Map;
-
+@Getter
 public class JsonLayerTable {
-    private static final Logger logger = LoggerFactory.getLogger(JsonLayerTable.class);
+    @JsonProperty(value = ConstantDefine.LAYER_TABLE_NAME, required = true)
+    String layerTableName;
+    @JsonProperty(value = ConstantDefine.CONTENT, required = true)
+    JsonLayerTableContent jsonLayerTableContent;
 
-    @JsonProperty(value = "layer_table_name", required = true)
-    private String layerTableName;
-
-    @JsonProperty(value = "layer_format", required = true)
-    private List<JsonLayerFormat> layerFormats;
-
-    @JsonProperty(value = "layers", required = true)
-    private List<JsonLayer> layers;
-
-    @JsonProperty(value = "properties", required = false)
-    private Map<String, Object> properties;
-
-    public String getLayerTableName() {
-        return layerTableName;
-    }
-
-    public void setLayerTableName(String layerTableName) {
-        this.layerTableName = layerTableName;
-    }
-
-    public List<JsonLayer> getLayers() {
-        return layers;
-    }
-
-    public void setLayers(List<JsonLayer> layers) {
-        this.layers = layers;
-    }
-
-    public List<JsonLayerFormat> getLayerFormats() {
-        return layerFormats;
-    }
-
-    public void setLayerFormats(List<JsonLayerFormat> layerFormats) {
-        this.layerFormats = layerFormats;
-    }
-
-    public Map<String, Object> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Map<String, Object> properties) {
-        this.properties = properties;
+    public String getDigest(String catalogName, String dbName) {
+        return String.format("%s:%s %s:%s %s:%s %s:%s",
+                ConstantDefine.CATALOG_NAME, catalogName,
+                ConstantDefine.DATABASE_NAME, dbName,
+                ConstantDefine.LAYER_TABLE_NAME, layerTableName,
+                ConstantDefine.CONTENT, jsonLayerTableContent);
     }
 }

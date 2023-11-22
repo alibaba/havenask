@@ -1,8 +1,16 @@
 #include "build_service/config/BuilderClusterConfig.h"
 
+#include <iosfwd>
+#include <stdint.h>
+#include <string>
+
+#include "build_service/config/ResourceReader.h"
 #include "build_service/config/ResourceReaderManager.h"
 #include "build_service/test/unittest.h"
-#include "fslib/util/FileUtil.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/config/index_partition_options.h"
+#include "indexlib/config/merge_config.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace build_service::util;

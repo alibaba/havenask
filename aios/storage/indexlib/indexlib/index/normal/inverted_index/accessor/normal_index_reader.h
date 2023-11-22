@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_NORMAL_INDEX_READER_H
-#define __INDEXLIB_NORMAL_INDEX_READER_H
+#pragma once
 
 #include <memory>
 
@@ -271,5 +270,3 @@ DEFINE_SHARED_PTR(NumberUInt32IndexReader);
 DEFINE_SHARED_PTR(NumberInt64IndexReader);
 DEFINE_SHARED_PTR(NumberUInt64IndexReader);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_NORMAL_INDEX_READER_H

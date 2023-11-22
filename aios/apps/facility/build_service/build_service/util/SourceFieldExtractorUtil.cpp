@@ -15,7 +15,15 @@
  */
 #include "build_service/util/SourceFieldExtractorUtil.h"
 
+#include <vector>
+
+#include "alog/Logger.h"
 #include "autil/StringTokenizer.h"
+#include "autil/StringUtil.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/json.h"
+#include "build_service/util/Log.h"
 #include "indexlib/base/Constant.h"
 
 namespace build_service::util {

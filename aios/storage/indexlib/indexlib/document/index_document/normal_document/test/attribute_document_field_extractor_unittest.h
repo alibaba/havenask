@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_ATTRIBUTEDOCUMENTFIELDEXTRACTORTEST_H
-#define __INDEXLIB_ATTRIBUTEDOCUMENTFIELDEXTRACTORTEST_H
+#pragma once
 
 #include "autil/mem_pool/Pool.h"
 #include "indexlib/common_define.h"
@@ -38,5 +37,3 @@ private:
 INDEXLIB_UNIT_TEST_CASE(AttributeDocumentFieldExtractorTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(AttributeDocumentFieldExtractorTest, TestExceptionCase);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_ATTRIBUTEDOCUMENTFIELDEXTRACTORTEST_H

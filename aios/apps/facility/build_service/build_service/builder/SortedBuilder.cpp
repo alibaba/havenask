@@ -15,10 +15,25 @@
  */
 #include "build_service/builder/SortedBuilder.h"
 
+#include <cstddef>
+#include <functional>
+#include <unistd.h>
+
+#include "autil/TimeUtility.h"
 #include "autil/legacy/exception.h"
 #include "beeper/beeper.h"
+#include "build_service/common/Locator.h"
+#include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/util/Monitor.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/index_base/branch_fs.h"
+#include "indexlib/partition/builder_branch_hinter.h"
 #include "indexlib/partition/index_partition.h"
+#include "indexlib/util/memory_control/QuotaControl.h"
+#include "kmonitor/client/MetricType.h"
+
 using namespace std;
 using namespace autil;
 using namespace autil::legacy;
@@ -145,7 +160,7 @@ bool SortedBuilder::build(const DocumentPtr& doc)
                "sortQueueMemory[%lu] quota[%lu], queueDocCount[%lu] queueSize[%u].",
                sortQueueMem, _sortQueueMem, _collectContainer.allDocCount(), _sortQueueSize);
         _collectContainer.printMemoryInfo();
-        BEEPER_FORMAT_REPORT_WITHOUT_TAGS(INDEXLIB_BUILD_INFO_COLLECTOR_NAME,
+        BEEPER_FORMAT_REPORT_WITHOUT_TAGS(indexlib::INDEXLIB_BUILD_INFO_COLLECTOR_NAME,
                                           "SortedBuilder need auto flush sortQueue :"
                                           "sortQueueMemory[%lu] quota[%lu], queueDocCount[%lu] queueSize[%u].",
                                           sortQueueMem, _sortQueueMem, _collectContainer.allDocCount(), _sortQueueSize);
@@ -162,7 +177,7 @@ void SortedBuilder::stop(int64_t stopTimestamp)
     }
 
     BS_PREFIX_LOG(INFO, "flush all collected docs to build container");
-    BEEPER_REPORT(INDEXLIB_BUILD_INFO_COLLECTOR_NAME, "SortedBuilder flush sortQueue before stop.");
+    BEEPER_REPORT(indexlib::INDEXLIB_BUILD_INFO_COLLECTOR_NAME, "SortedBuilder flush sortQueue before stop.");
     flush();
 
     BS_PREFIX_LOG(INFO, "wait all docs in build container built");
@@ -199,7 +214,7 @@ void SortedBuilder::flushUnsafe()
     _collectContainer.sortDocument();
     REPORT_METRIC(_sortThreadStatusMetric, WaitingBuildDone);
     int64_t endSortTs = TimeUtility::currentTimeInSeconds();
-    BEEPER_FORMAT_REPORT_WITHOUT_TAGS(INDEXLIB_BUILD_INFO_COLLECTOR_NAME,
+    BEEPER_FORMAT_REPORT_WITHOUT_TAGS(indexlib::INDEXLIB_BUILD_INFO_COLLECTOR_NAME,
                                       "SortedBuilder sortDocument cost [%ld] seconds, "
                                       "docCount [%ld] memoryUse [%ld]",
                                       endSortTs - beginSortTs, _collectContainer.allDocCount(),
@@ -254,7 +269,7 @@ void SortedBuilder::buildAll()
         }
     }
     int64_t endBuildTs = TimeUtility::currentTimeInSeconds();
-    BEEPER_FORMAT_REPORT_WITHOUT_TAGS(INDEXLIB_BUILD_INFO_COLLECTOR_NAME,
+    BEEPER_FORMAT_REPORT_WITHOUT_TAGS(indexlib::INDEXLIB_BUILD_INFO_COLLECTOR_NAME,
                                       "SortedBuilder buildAll sortDocuments: sortedDocCount [%ld], cost [%ld] seconds.",
                                       _buildContainer.sortedDocCount(), endBuildTs - beginBuildTs);
 }
@@ -267,7 +282,7 @@ void SortedBuilder::dumpAll()
         usleep(10000); // wait 10ms
     }
 
-    BEEPER_REPORT(INDEXLIB_BUILD_INFO_COLLECTOR_NAME, "SortedBuilder dump new sort segment.");
+    BEEPER_REPORT(indexlib::INDEXLIB_BUILD_INFO_COLLECTOR_NAME, "SortedBuilder dump new sort segment.");
     try {
         _indexBuilder->DumpSegment();
     } catch (const ExceptionBase& e) {
@@ -332,9 +347,10 @@ bool SortedBuilder::tryDump()
         return false;
     }
 
-    BEEPER_REPORT(INDEXLIB_BUILD_INFO_COLLECTOR_NAME, "SortedBuilder tryDump sortQueue: "
-                                                      "memory_prefer processor needUpdateCommitedCheckpoint, "
-                                                      "but builder read no more msg over no_more_msg_period.");
+    BEEPER_REPORT(indexlib::INDEXLIB_BUILD_INFO_COLLECTOR_NAME,
+                  "SortedBuilder tryDump sortQueue: "
+                  "memory_prefer processor needUpdateCommitedCheckpoint, "
+                  "but builder read no more msg over no_more_msg_period.");
     flush();
     return true;
 }

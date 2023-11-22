@@ -37,7 +37,7 @@ AttributeIndexFactory::~AttributeIndexFactory() {}
 
 std::shared_ptr<IDiskIndexer>
 AttributeIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                         const IndexerParameter& indexerParam) const
+                                         const DiskIndexerParameter& indexerParam) const
 {
     AttributeDiskIndexerCreator* creator =
         AttributeFactory<AttributeDiskIndexer, AttributeDiskIndexerCreator>::GetInstance()->GetAttributeInstanceCreator(
@@ -59,7 +59,7 @@ AttributeIndexFactory::CreateDiskIndexer(const std::shared_ptr<config::IIndexCon
 
 std::shared_ptr<IMemIndexer>
 AttributeIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                        const IndexerParameter& indexerParam) const
+                                        const MemIndexerParameter& indexerParam) const
 {
     AttributeMemIndexerCreator* creator =
         AttributeFactory<AttributeMemIndexer, AttributeMemIndexerCreator>::GetInstance()->GetAttributeInstanceCreator(
@@ -72,7 +72,7 @@ AttributeIndexFactory::CreateMemIndexer(const std::shared_ptr<config::IIndexConf
 }
 std::unique_ptr<IIndexReader>
 AttributeIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexConfig>& indexConfig,
-                                         const IndexerParameter& indexerParam) const
+                                         const IndexReaderParameter& indexReaderParam) const
 {
     AttributeReaderCreator* creator =
         AttributeFactory<AttributeReader, AttributeReaderCreator>::GetInstance()->GetAttributeInstanceCreator(
@@ -81,7 +81,7 @@ AttributeIndexFactory::CreateIndexReader(const std::shared_ptr<config::IIndexCon
         AUTIL_LOG(ERROR, "get attribute creator failed, indexName[%s]", indexConfig->GetIndexName().c_str());
         return nullptr;
     }
-    return creator->Create(indexConfig, indexerParam);
+    return creator->Create(indexConfig, indexReaderParam);
 }
 std::unique_ptr<IIndexMerger>
 AttributeIndexFactory::CreateIndexMerger(const std::shared_ptr<config::IIndexConfig>& indexConfig) const

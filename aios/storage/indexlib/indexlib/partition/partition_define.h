@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PARTITION_DEFINE_H
-#define __INDEXLIB_PARTITION_DEFINE_H
+#pragma once
 
 #include <map>
 #include <unordered_map>
@@ -72,14 +71,10 @@ struct AttributeReaderInfoV2 {
 };
 
 struct PackAttributeReaderInfo {
-    index::PackAttributeReaderPtr packAttrReader;
-    IndexPartitionReaderPtr indexPartReader;
-    IndexPartitionReaderType indexPartReaderType;
-};
-
-struct PackAttributeReaderInfoV2 {
-    std::shared_ptr<indexlibv2::index::PackAttributeReader> packAttrReader;
-    std::shared_ptr<indexlibv2::framework::ITabletReader> tabletReader;
+    index::PackAttributeReaderPtr packAttrReader;                             // for v1
+    IndexPartitionReaderPtr indexPartReader;                                  // for v1
+    std::shared_ptr<indexlibv2::index::PackAttributeReader> packAttrReaderV2; // for v2
+    std::shared_ptr<indexlibv2::framework::ITabletReader> tabletReader;       // for v2
     IndexPartitionReaderType indexPartReaderType;
 };
 
@@ -147,5 +142,3 @@ private:
 
 typedef std::unordered_map<std::string, uint32_t> Name2IdMap;
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_PARTITION_DEFINE_H

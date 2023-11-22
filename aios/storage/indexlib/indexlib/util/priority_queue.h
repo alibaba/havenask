@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_PRIORITY_QUEUE_H
-#define __INDEXLIB_PRIORITY_QUEUE_H
+#pragma once
 
 #include <assert.h>
 #include <memory>
@@ -263,5 +262,3 @@ const T& PriorityQueue<T, Comparator>::operator[](size_t index) const
     return mHeap[index + 1];
 }
 }} // namespace indexlib::util
-
-#endif //__INDEXLIB_PRIORITY_QUEUE_H

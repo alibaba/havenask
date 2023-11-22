@@ -5,7 +5,7 @@ cc_library(
     hdrs=glob(['*h']),
     copts=['-Werror'],
     include_prefix='indexlib/partition/segment/test',
-    visibility=['//aios/storage/indexlib:__subpackages__'],
+    visibility=['//aios/storage/indexlib/indexlib:__subpackages__'],
     deps=[
         '//aios/storage/indexlib/indexlib',
         '//aios/storage/indexlib/indexlib/index/test:indexlib_index_test_helper'

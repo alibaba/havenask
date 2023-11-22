@@ -15,18 +15,35 @@
  */
 #include "build_service_tasks/batch_control/BatchControlWorker.h"
 
+#include <algorithm>
+#include <assert.h>
 #include <beeper/beeper.h>
+#include <cstddef>
+#include <functional>
+#include <unistd.h>
 
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
 #include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/PathDefine.h"
+#include "build_service/config/AgentGroupConfig.h"
 #include "build_service/config/BuildServiceConfig.h"
-#include "build_service/config/ConfigDefine.h"
+#include "build_service/config/ResourceReader.h"
 #include "build_service_tasks/batch_control/BatchReporter.h"
+#include "indexlib/config/TabletOptions.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
+#include "swift/client/SwiftPartitionStatus.h"
+#include "swift/protocol/Common.pb.h"
+#include "swift/protocol/ErrCode.pb.h"
 #include "swift/protocol/SwiftMessage.pb.h"
+#include "worker_framework/WorkerState.h"
 #include "worker_framework/ZkState.h"
 
 using namespace std;

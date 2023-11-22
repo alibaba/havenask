@@ -20,13 +20,18 @@
 #include <string.h>
 #include <string>
 
+#include "indexlib/util/DeVirtual.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/IoExceptionController.h"
 #include "indexlib/util/byte_slice_list/ByteSliceList.h"
 
 using namespace std;
 using namespace indexlib::util;
 
 namespace indexlib { namespace file_system {
+
+////////////////////////////////////////////////////
+AUTIL_LOG_SETUP(indexlib.file_system, ByteSliceReader);
 
 ByteSliceReader::ByteSliceReader()
     : _currentSlice(NULL)
@@ -38,9 +43,7 @@ ByteSliceReader::ByteSliceReader()
 {
 }
 
-ByteSliceReader::ByteSliceReader(ByteSliceList* sliceList) : ByteSliceReader() { Open(sliceList); }
-
-void ByteSliceReader::Open(ByteSliceList* sliceList)
+FSResult<void> ByteSliceReader::Open(ByteSliceList* sliceList)
 {
     Close();
     _sliceList = sliceList;
@@ -49,7 +52,9 @@ void ByteSliceReader::Open(ByteSliceList* sliceList)
     auto headSlice = _sliceList->GetHead();
     if (sliceList->getObjectType() == IE_SUB_CLASS_TYPE_NAME(ByteSliceList, BlockByteSliceList)) {
         _isBlockByteSliceList = true;
-        headSlice = PrepareSlice(headSlice);
+        auto ret = PrepareSlice(headSlice);
+        RETURN_IF_FS_ERROR(ret.Code(), "PrepareSlice failed");
+        headSlice = ret.Value();
     }
 
     _currentSlice = headSlice;
@@ -57,11 +62,12 @@ void ByteSliceReader::Open(ByteSliceList* sliceList)
     _currentSliceOffset = 0;
 
     if (_currentSlice == NULL) {
-        HandleError("Read past EOF.");
+        return {FSEC_ERROR};
     }
+    return {FSEC_OK};
 }
 
-void ByteSliceReader::Open(ByteSlice* slice)
+FSResult<void> ByteSliceReader::Open(ByteSlice* slice)
 {
     Close();
     _currentSlice = slice;
@@ -69,8 +75,9 @@ void ByteSliceReader::Open(ByteSlice* slice)
     _currentSliceOffset = 0;
 
     if (_currentSlice == NULL) {
-        HandleError("Read past EOF.");
+        return {FSEC_ERROR};
     }
+    return {FSEC_OK};
 }
 
 void ByteSliceReader::Close()
@@ -85,17 +92,17 @@ void ByteSliceReader::Close()
     }
 }
 
-size_t ByteSliceReader::Read(void* value, size_t len)
+FSResult<size_t> ByteSliceReader::Read(void* value, size_t len)
 {
     if (_currentSlice == NULL || len == 0) {
-        return 0;
+        return {FSEC_OK, 0};
     }
 
     if (_currentSliceOffset + len <= GetSliceDataSize(_currentSlice)) {
         memcpy(value, _currentSlice->data + _currentSliceOffset, len);
         _currentSliceOffset += len;
         _globalOffset += len;
-        return len;
+        return {FSEC_OK, len};
     }
     // current byteslice is not long enough, read next byteslices
     char* dest = (char*)value;
@@ -110,7 +117,9 @@ size_t ByteSliceReader::Read(void* value, size_t len)
             dest += leftLen;
 
             offset = 0;
-            _currentSlice = NextSlice(_currentSlice);
+            auto ret = NextSlice(_currentSlice);
+            RETURN2_IF_FS_ERROR(ret.Code(), 0, "NextSlice failed");
+            _currentSlice = ret.Value();
             if (!_currentSlice) {
                 break;
             }
@@ -125,40 +134,39 @@ size_t ByteSliceReader::Read(void* value, size_t len)
     _currentSliceOffset = offset;
     size_t readLen = (size_t)(len - totalLen);
     _globalOffset += readLen;
-    return readLen;
+    return {FSEC_OK, readLen};
 }
 
-size_t ByteSliceReader::ReadMayCopy(void*& value, size_t len)
+FSResult<size_t> ByteSliceReader::ReadMayCopy(void*& value, size_t len)
 {
-    if (_currentSlice == NULL || len == 0)
-        return 0;
+    if (_currentSlice == NULL || len == 0) {
+        return {FSEC_OK, 0};
+    }
 
     if (_currentSliceOffset + len <= GetSliceDataSize(_currentSlice)) {
         value = _currentSlice->data + _currentSliceOffset;
         _currentSliceOffset += len;
         _globalOffset += len;
-        return len;
+        return {FSEC_OK, len};
     }
     return Read(value, len);
 }
 
-size_t ByteSliceReader::Seek(size_t offset)
+FSResult<size_t> ByteSliceReader::Seek(size_t offset)
 {
     if (offset < _globalOffset) {
-        stringstream ss;
-        ss << "Invalid offset value: seek offset = " << offset;
-        HandleError(ss.str());
+        RETURN2_IF_FS_ERROR(FSEC_ERROR, 0, "Invalid offset value: seek offset = %zu", offset);
     }
 
     size_t len = offset - _globalOffset;
     if (_currentSlice == NULL || len == 0) {
-        return _globalOffset;
+        return {FSEC_OK, _globalOffset};
     }
 
     if (_currentSliceOffset + len < GetSliceDataSize(_currentSlice)) {
         _currentSliceOffset += len;
         _globalOffset += len;
-        return _globalOffset;
+        return {FSEC_OK, _globalOffset};
     } else {
         // current byteslice is not long enough, seek to next byteslices
         int64_t totalLen = len;
@@ -174,7 +182,7 @@ size_t ByteSliceReader::Seek(size_t offset)
                     if (_globalOffset == GetSize()) {
                         _globalOffset = BYTE_SLICE_EOF;
                     }
-                    return BYTE_SLICE_EOF;
+                    return {FSEC_OK, size_t(BYTE_SLICE_EOF)};
                 }
             } else {
                 _globalOffset += totalLen;
@@ -187,16 +195,12 @@ size_t ByteSliceReader::Seek(size_t offset)
             _currentSlice = ByteSlice::GetImmutableEmptyObject();
             _currentSliceOffset = 0;
         } else {
-            _currentSlice = PrepareSlice(_currentSlice);
+            auto ret = PrepareSlice(_currentSlice);
+            RETURN2_IF_FS_ERROR(ret.Code(), 0, "PrepareSlice failed");
+            _currentSlice = ret.Value();
         }
-        return _globalOffset;
+        return {FSEC_OK, _globalOffset};
     }
 }
 
-void ByteSliceReader::HandleError(const std::string& msg) const
-{
-    stringstream ss;
-    ss << msg << ", State: list length = " << GetSize() << ", offset = " << _globalOffset;
-    INDEXLIB_THROW(OutOfRangeException, "%s", ss.str().c_str());
-}
 }} // namespace indexlib::file_system

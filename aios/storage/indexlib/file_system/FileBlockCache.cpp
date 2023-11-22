@@ -19,14 +19,19 @@
 #include <cstddef>
 #include <ext/alloc_traits.h>
 #include <memory>
+#include <set>
+#include <utility>
 #include <vector>
 
-#include "alog/Logger.h"
-#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
 #include "autil/MurmurHash.h"
 #include "autil/StringUtil.h"
+#include "autil/TimeUtility.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/MemoryQuotaController.h"
 #include "indexlib/file_system/FileBlockCacheTaskItem.h"
+#include "indexlib/util/KeyValueMap.h"
 #include "indexlib/util/TaskItem.h"
 #include "indexlib/util/TaskScheduler.h"
 #include "indexlib/util/cache/BlockCache.h"

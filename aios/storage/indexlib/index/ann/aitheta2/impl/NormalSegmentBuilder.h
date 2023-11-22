@@ -15,47 +15,48 @@
  */
 #pragma once
 #include "indexlib/index/ann/aitheta2/impl/NormalSegment.h"
+#include "indexlib/index/ann/aitheta2/impl/NormalSegmentBuildResource.h"
 #include "indexlib/index/ann/aitheta2/impl/SegmentBuilder.h"
 #include "indexlib/index/ann/aitheta2/impl/SegmentMeta.h"
-#include "indexlib/index/ann/aitheta2/util/EmbeddingDataHolder.h"
+#include "indexlib/index/ann/aitheta2/util/CustomizedCkptManager.h"
+#include "indexlib/index/ann/aitheta2/util/EmbeddingHolder.h"
 namespace indexlibv2::index::ann {
 
 class NormalSegmentBuilder : public SegmentBuilder
 {
 public:
     NormalSegmentBuilder(const AithetaIndexConfig& indexConfig, const std::string& indexName, bool isMergeBuild,
-                         const MetricReporterPtr& metricReporter)
-        : SegmentBuilder(indexConfig, indexName, metricReporter)
-        , _currentMemoryUse(0ul)
-        , _isMergeBuild(isMergeBuild)
-    {
-    }
-    ~NormalSegmentBuilder() {}
+                         const MetricReporterPtr& metricReporter);
+    ~NormalSegmentBuilder();
 
 public:
     bool Init(const SegmentBuildResourcePtr&) override;
-    bool Build(const EmbeddingFieldData& data) override;
+    bool Build(const IndexFields& data) override;
     bool Dump(const indexlib::file_system::DirectoryPtr& directory,
               const std::vector<docid_t>* old2NewDocId = nullptr) override;
 
 public:
-    bool BuildAndDump(const PkDataHolder& pkDataHolder, const EmbeddingDataHolder& embDataHolder,
+    bool BuildAndDump(PkDataHolder& pkDataHolder, const std::shared_ptr<EmbeddingHolder>& embeddingHolder,
+                      const std::shared_ptr<EmbeddingHolder>& trainEmbeddingHolder,
                       const indexlib::file_system::DirectoryPtr& directory);
 
-public:
     size_t EstimateCurrentMemoryUse() override { return _currentMemoryUse * kBuildMemoryScalingFactor; }
     size_t EstimateTempMemoryUseInDump() override { return _currentMemoryUse * kBuildMemoryScalingFactor; }
     size_t EstimateDumpFileSize() override { return _currentMemoryUse * kBuildMemoryScalingFactor; }
 
 private:
     void IncCurrentMemoryUse(size_t count) { _currentMemoryUse += count; }
-    bool BuildAndDumpIndex(const EmbeddingDataHolder& embDataHolder, NormalSegment& segment);
-    bool DumpEmbeddingData(const EmbeddingDataHolder& embDataHolder, NormalSegment& segment);
+    bool DumpEmbedding(const std::shared_ptr<EmbeddingHolder>& embeddingHolder, NormalSegment& segment);
+    std::shared_ptr<aitheta2::CustomizedCkptManager> CreateIndexCkptManager(int64_t indexId);
+    bool BuildAndDumpIndex(const std::shared_ptr<EmbeddingHolder>& embeddingHolder,
+                           const std::shared_ptr<EmbeddingHolder>& trainEmbeddingHolder, NormalSegment& segment);
 
 protected:
-    EmbeddingDataHolderPtr _embDataHolder;
+    std::shared_ptr<EmbeddingHolder> _embeddingHolder;
+    std::shared_ptr<NormalSegmentBuildResource> _buildResource;
     size_t _currentMemoryUse;
     bool _isMergeBuild;
+    std::vector<std::shared_ptr<aitheta2::CustomizedCkptManager>> _ckptManagers;
     AUTIL_LOG_DECLARE();
 };
 typedef std::shared_ptr<NormalSegmentBuilder> NormalSegmentBuilderPtr;

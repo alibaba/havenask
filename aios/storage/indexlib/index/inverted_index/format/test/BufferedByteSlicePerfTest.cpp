@@ -10,7 +10,7 @@
 
 namespace indexlib::index {
 
-volatile bool isDone;
+std::atomic_bool isDone;
 autil::ThreadMutex mutex;
 
 class BufferedByteSlicePerfTest : public TESTBASE

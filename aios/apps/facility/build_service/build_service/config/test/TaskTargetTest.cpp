@@ -1,6 +1,13 @@
 #include "build_service/config/TaskTarget.h"
 
+#include <iosfwd>
+#include <string>
+
+#include "autil/legacy/any.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

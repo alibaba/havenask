@@ -33,7 +33,7 @@ template <typename T>
 class UpdateFieldOperation : public OperationBase
 {
 public:
-    UpdateFieldOperation(const indexlibv2::document::IDocument::DocInfo& docInfo);
+    UpdateFieldOperation(const indexlibv2::framework::Locator::DocInfo& docInfo);
     ~UpdateFieldOperation() = default;
 
 public:
@@ -66,7 +66,7 @@ private:
 AUTIL_LOG_SETUP_TEMPLATE(indexlib.index, UpdateFieldOperation, T);
 
 template <typename T>
-UpdateFieldOperation<T>::UpdateFieldOperation(const indexlibv2::document::IDocument::DocInfo& docInfo)
+UpdateFieldOperation<T>::UpdateFieldOperation(const indexlibv2::framework::Locator::DocInfo& docInfo)
     : OperationBase(docInfo)
     , _pkHash(T())
     , _items(nullptr)

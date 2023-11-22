@@ -9,7 +9,8 @@
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/MetricsManager.h"
 #include "indexlib/framework/SegmentMetrics.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
+#include "indexlib/index/MemIndexerParameter.h"
 #include "indexlib/index/inverted_index/InvertedDiskIndexer.h"
 #include "indexlib/index/inverted_index/InvertedIndexReaderImpl.h"
 #include "indexlib/index/inverted_index/InvertedMemIndexer.h"
@@ -23,7 +24,7 @@ using indexlibv2::framework::MetricsManager;
 using indexlibv2::framework::Segment;
 using indexlibv2::framework::SegmentInfo;
 using indexlibv2::framework::Version;
-using indexlibv2::index::IndexerParameter;
+using indexlibv2::index::DiskIndexerParameter;
 } // namespace
 
 std::shared_ptr<InvertedIndexReaderImpl>
@@ -53,7 +54,7 @@ InvertedTestUtil::CreateIndexWriter(const std::shared_ptr<indexlibv2::config::In
 {
     std::shared_ptr<framework::SegmentMetrics> metrics(new framework::SegmentMetrics);
     metrics->SetDistinctTermCount(indexConfig->GetIndexName(), HASHMAP_INIT_SIZE);
-    IndexerParameter param;
+    indexlibv2::index::MemIndexerParameter param;
     auto writer = std::make_shared<InvertedMemIndexer>(param, nullptr);
     auto extractorFactory = std::make_shared<indexlibv2::plain::DocumentInfoExtractorFactory>();
     auto s = writer->Init(indexConfig, extractorFactory.get());
@@ -111,7 +112,7 @@ Status InvertedTestUtil::GetIndexers(const std::shared_ptr<file_system::Director
                                      const std::shared_ptr<indexlibv2::config::InvertedIndexConfig>& indexConfig,
                                      const Version& version, Indexers& indexers)
 {
-    docid_t baseDocId = 0;
+    docid64_t baseDocId = 0;
     for (auto iter = version.begin(); iter != version.end(); ++iter) {
         auto segId = iter->segmentId;
         std::string segDirName = version.GetSegmentDirName(segId);
@@ -138,7 +139,8 @@ Status InvertedTestUtil::GetIndexers(const std::shared_ptr<file_system::Director
         auto segStatus = Segment::SegmentStatus::ST_BUILT;
         std::shared_ptr<kmonitor::MetricsReporter> metricsReporter;
         std::shared_ptr<MetricsManager> metricsManager(new MetricsManager("", metricsReporter));
-        IndexerParameter indexerParam;
+        DiskIndexerParameter indexerParam;
+        indexerParam.segmentId = segId;
         indexerParam.metricsManager = metricsManager.get();
         indexerParam.docCount = docCount;
         indexerParam.segmentInfo = segInfo;

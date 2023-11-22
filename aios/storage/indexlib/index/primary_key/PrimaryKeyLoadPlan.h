@@ -20,10 +20,10 @@
 #include "indexlib/base/Status.h"
 #include "indexlib/file_system/IDirectory.h"
 #include "indexlib/framework/Segment.h"
+#include "indexlib/index/DiskIndexerParameter.h"
 #include "indexlib/index/IDiskIndexer.h"
 #include "indexlib/index/IIndexFactory.h"
 #include "indexlib/index/IndexFactoryCreator.h"
-#include "indexlib/index/IndexerParameter.h"
 #include "indexlib/index/common/Constant.h"
 #include "indexlib/index/inverted_index/config/InvertedIndexConfig.h"
 #include "indexlib/index/primary_key/Constant.h"
@@ -35,13 +35,13 @@ namespace indexlibv2::index {
 class PrimaryKeyLoadPlan : public autil::NoCopyable
 {
 public:
-    PrimaryKeyLoadPlan() : _baseDocid(INVALID_DOCID), _docCount(0) {}
+    PrimaryKeyLoadPlan() {}
     ~PrimaryKeyLoadPlan() {}
 
 public:
-    void Init(docid_t baseDocid) { _baseDocid = baseDocid; }
+    void Init(docid64_t baseDocid) { _baseDocid = baseDocid; }
     inline void AddSegmentData(const SegmentDataAdapter::SegmentDataType& segmentData);
-    inline docid_t GetBaseDocId() const { return _baseDocid; }
+    inline docid64_t GetBaseDocId() const { return _baseDocid; }
     inline size_t GetDocCount() const { return _docCount; }
     inline size_t GetLastSegmentDocCount() const
     {
@@ -89,7 +89,7 @@ public:
             decltype(indexer) newIndexer = indexer;
             if (i != _segments.size() - 1) {
                 // add for pk attribute need a plain disk indexer
-                IndexerParameter indexerParam;
+                DiskIndexerParameter indexerParam;
                 indexerParam.docCount = segment->GetSegmentInfo()->GetDocCount();
                 newIndexer = std::dynamic_pointer_cast<PrimaryKeyDiskIndexer<Key>>(
                     indexFactory->CreateDiskIndexer(indexConfig, indexerParam));
@@ -116,8 +116,8 @@ public:
 
 private:
     std::vector<SegmentDataAdapter::SegmentDataType> _segments;
-    docid_t _baseDocid;
-    size_t _docCount;
+    docid64_t _baseDocid = INVALID_DOCID;
+    size_t _docCount = 0;
 
 private:
     AUTIL_LOG_DECLARE();
@@ -148,10 +148,7 @@ PrimaryKeyLoadPlan::GetPrimaryKeyDirectory(const std::shared_ptr<config::Inverte
     assert(segmentDirectory);
     auto segIDir = segmentDirectory->GetIDirectory();
     assert(segIDir);
-    auto [status, indexDirectory] = segIDir->GetDirectory(INDEX_DIR_NAME).StatusWith();
-    RETURN2_IF_STATUS_ERROR(status, nullptr, "get pk directory fail");
-    assert(indexDirectory);
-    return indexDirectory->GetDirectory(indexConfig->GetIndexName()).StatusWith();
+    return segIDir->GetDirectory(INDEX_DIR_NAME).StatusWith();
 }
 
 } // namespace indexlibv2::index

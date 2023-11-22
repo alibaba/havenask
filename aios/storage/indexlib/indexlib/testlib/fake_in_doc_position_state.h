@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_FAKE_IN_DOC_POSITION_STATE_H
-#define __INDEXLIB_FAKE_IN_DOC_POSITION_STATE_H
+#pragma once
 
 #include <memory>
 
@@ -50,5 +49,3 @@ private:
 
 DEFINE_SHARED_PTR(FakeInDocPositionState);
 }} // namespace indexlib::testlib
-
-#endif //__INDEXLIB_FAKE_IN_DOC_POSITION_STATE_H

@@ -1,8 +1,6 @@
 {
   "functions": [
     {
-      "catalog_name": "default",
-      "database_name": "mainsch",
       "function_version": 300,
       "function_name": "printTableTvf",
       "function_type": "TVF",
@@ -50,8 +48,6 @@
       }
     },
     {
-      "catalog_name": "default",
-      "database_name": "mainsch",
       "function_version": 300,
       "function_name": "rankTvf",
       "function_type": "TVF",
@@ -105,8 +101,6 @@
       }
     },
     {
-      "catalog_name": "default",
-      "database_name": "mainsch",
       "function_version": 300,
       "function_name": "one_part_tvf_enable_shuffle",
       "function_type": "TVF",
@@ -183,8 +177,6 @@
       }
     },
     {
-      "catalog_name": "default",
-      "database_name": "mainsch",
       "function_version": 300,
       "function_name": "multi_part_tvf",
       "function_type": "TVF",
@@ -261,8 +253,6 @@
       }
     },
     {
-      "catalog_name": "default",
-      "database_name": "mainsch",
       "function_version": 300,
       "function_name": "multi_part_tvf_two_phase",
       "function_type": "TVF",

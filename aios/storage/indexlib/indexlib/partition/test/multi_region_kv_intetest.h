@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTIREGIONKVINTETEST_H
-#define __INDEXLIB_MULTIREGIONKVINTETEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/test/kv_table_intetest.h"
@@ -50,5 +49,3 @@ private:
     IE_LOG_DECLARE();
 };
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MULTIREGIONKVINTETEST_H

@@ -13,28 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_PROCESSORTASK_H
-#define ISEARCH_BS_PROCESSORTASK_H
+#pragma once
 
+#include <map>
+#include <memory>
+#include <optional>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "autil/legacy/legacy_jsonizable_dec.h"
 #include "build_service/admin/AdminTaskBase.h"
-#include "build_service/admin/CheckpointMetricReporter.h"
+#include "build_service/admin/CounterCollector.h"
 #include "build_service/admin/FatalErrorDiscoverer.h"
 #include "build_service/admin/ProcessorCheckpointAccessor.h"
+#include "build_service/admin/controlflow/TaskResourceManager.h"
 #include "build_service/admin/taskcontroller/ProcessorAdaptiveScaling.h"
+#include "build_service/admin/taskcontroller/ProcessorInput.h"
 #include "build_service/admin/taskcontroller/ProcessorParamParser.h"
 #include "build_service/admin/taskcontroller/ProcessorTargetInfos.h"
 #include "build_service/admin/taskcontroller/ProcessorWriterVersion.h"
+#include "build_service/common/Locator.h"
+#include "build_service/common/ProcessorOutput.h"
+#include "build_service/common/ResourceContainer.h"
+#include "build_service/common/ResourceKeeperGuard.h"
 #include "build_service/common/SwiftAdminFacade.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ProcessorRuleConfig.h"
-#include "build_service/config/SchemaUpdatableClusterConfig.h"
+#include "build_service/config/ResourceReader.h"
+#include "build_service/config/SlowNodeDetectConfig.h"
 #include "build_service/proto/Admin.pb.h"
 #include "build_service/proto/BasicDefs.pb.h"
+#include "build_service/proto/ErrorCollector.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/proto/WorkerNode.h"
-#include "build_service/util/Log.h"
 
 namespace build_service { namespace admin {
 class ProcessorNodesUpdater;
+
 BS_TYPEDEF_PTR(ProcessorNodesUpdater);
 
 class ProcessorTask : public AdminTaskBase
@@ -215,5 +233,3 @@ private:
 BS_TYPEDEF_PTR(ProcessorTask);
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_PROCESSORTASK_H

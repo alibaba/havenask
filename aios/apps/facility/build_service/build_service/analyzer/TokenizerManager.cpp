@@ -15,12 +15,21 @@
  */
 #include "build_service/analyzer/TokenizerManager.h"
 
+#include <assert.h>
+#include <cstddef>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "build_service/analyzer/BuildInTokenizerFactory.h"
 #include "build_service/analyzer/Tokenizer.h"
 #include "build_service/analyzer/TokenizerModuleFactory.h"
 #include "build_service/config/ResourceReader.h"
 #include "build_service/plugin/Module.h"
+#include "build_service/plugin/ModuleFactory.h"
+#include "build_service/plugin/ModuleInfo.h"
 #include "build_service/plugin/PlugInManager.h"
+#include "indexlib/analyzer/ITokenizer.h"
 
 using namespace std;
 using namespace build_service::config;

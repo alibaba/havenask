@@ -15,9 +15,20 @@
  */
 #include "indexlib/framework/TabletSchemaLoader.h"
 
+#include <algorithm>
+#include <limits>
+#include <vector>
+
 #include "autil/StringUtil.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "indexlib/base/Constant.h"
 #include "indexlib/config/SchemaResolver.h"
 #include "indexlib/config/TabletOptions.h"
+#include "indexlib/file_system/DirectoryOption.h"
+#include "indexlib/file_system/FSResult.h"
+#include "indexlib/file_system/FileSystemDefine.h"
+#include "indexlib/file_system/ListOption.h"
+#include "indexlib/file_system/ReaderOption.h"
 #include "indexlib/file_system/fslib/FslibWrapper.h"
 #include "indexlib/framework/ITabletFactory.h"
 #include "indexlib/framework/TabletFactoryCreator.h"

@@ -15,12 +15,18 @@
  */
 #include "indexlib/merger/merge_strategy/merge_strategy_factory.h"
 
+#include <assert.h>
 #include <sstream>
+#include <stddef.h>
+#include <utility>
 
+#include "autil/legacy/exception.h"
+#include "indexlib/config/FileCompressSchema.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/index/segment_metrics_updater/max_min_segment_metrics_updater.h"
 #include "indexlib/merger/merge_strategy/align_version_merge_strategy.h"
 #include "indexlib/merger/merge_strategy/balance_tree_merge_strategy.h"
 #include "indexlib/merger/merge_strategy/large_time_range_selection_merge_strategy.h"
-#include "indexlib/merger/merge_strategy/optimize_merge_strategy.h"
 #include "indexlib/merger/merge_strategy/optimize_merge_strategy_creator.h"
 #include "indexlib/merger/merge_strategy/priority_queue_merge_strategy.h"
 #include "indexlib/merger/merge_strategy/realtime_merge_strategy.h"

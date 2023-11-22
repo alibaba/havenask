@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_READER_H
-#define __INDEXLIB_SINGLE_VALUE_ATTRIBUTE_READER_H
+#pragma once
 
 #include <iomanip>
 #include <memory>
@@ -525,5 +524,3 @@ std::string SingleValueAttributeReader<T>::GetAttributeName() const
 }
 
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_SINGLE_VALUE_ATTRIBUTE_READER_H

@@ -43,10 +43,10 @@ private:
     class NextResult
     {
     public:
-        NextResult(docid_t docId, bool isEof) : _docId(docId), _isEof(isEof) {}
+        NextResult(docid32_t docId, bool isEof) : _docId(docId), _isEof(isEof) {}
         NextResult() : _docId(0), _isEof(true) {}
 
-        docid_t DocId() const { return _docId; }
+        docid32_t DocId() const { return _docId; }
         bool IsEof() const { return _isEof; }
 
         bool operator<(const NextResult& other) const
@@ -62,7 +62,7 @@ private:
         bool operator>(const NextResult& other) const { return other < *this; }
 
     private:
-        docid_t _docId;
+        docid32_t _docId;
         bool _isEof;
     };
 
@@ -72,14 +72,14 @@ public:
     ~OneDocMerger();
 
 public:
-    // docid_t NextDoc();
-    void Merge(docid_t newDocId, PostingWriterImpl* postingWriter);
+    // docid32_t NextDoc();
+    void Merge(docid32_t newDocId, PostingWriterImpl* postingWriter);
 
-    docid_t CurrentDoc() const;
+    docid32_t CurrentDoc() const;
     bool Next();
 
 private:
-    tf_t MergePosition(docid_t newDocId, PostingWriterImpl* postingWriter);
+    tf_t MergePosition(docid32_t newDocId, PostingWriterImpl* postingWriter);
 
     NextResult PatchCurrent() const;
     bool PatchEnd() const;
@@ -90,7 +90,7 @@ private:
     bool BookkeepReadFrom(const NextResult& postingResult, const NextResult& patchResult, LastReadFrom* lastReadFrom);
 
 private:
-    docid_t _docIdBuf[MAX_DOC_PER_RECORD];
+    docid32_t _docIdBuf[MAX_DOC_PER_RECORD];
     tf_t _tfListBuf[MAX_DOC_PER_RECORD];
     docpayload_t _docPayloadBuf[MAX_DOC_PER_RECORD];
     fieldmap_t _fieldMapBuffer[MAX_DOC_PER_RECORD];
@@ -100,7 +100,7 @@ private:
     uint32_t _docCountInBuf;
     uint32_t _docBufCursor;
     uint32_t _lastDocBufCursor;
-    docid_t _docId;
+    docid32_t _docId;
 
     uint32_t _posCountInBuf;
     uint32_t _posBufCursor;

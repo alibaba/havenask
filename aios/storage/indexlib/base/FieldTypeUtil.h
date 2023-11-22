@@ -15,10 +15,17 @@
  */
 #pragma once
 
+#include <stdint.h>
+
+#include "autil/LongHashValue.h"
 #include "autil/MultiValueType.h"
 #include "indexlib/base/FieldType.h"
 
 namespace indexlib {
+template <indexlib::global_enum_namespace::FieldType ft, bool isMulti>
+struct IndexlibFieldType2CppType;
+template <typename T>
+struct CppType2IndexlibFieldType;
 
 extern bool IsIntegerField(FieldType ft);
 extern bool IsNumericField(FieldType ft);

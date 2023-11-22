@@ -30,6 +30,7 @@
 #include "swift/common/Common.h"
 #include "swift/common/FileMessageMeta.h"
 #include "swift/common/FilePair.h"
+#include "swift/monitor/BrokerMetricsReporter.h"
 #include "swift/protocol/ErrCode.pb.h"
 #include "swift/util/FileManagerUtil.h"
 #include "swift/util/PanguInlineFileUtil.h"
@@ -39,6 +40,7 @@ using namespace std;
 using namespace autil;
 using namespace fslib::fs;
 using namespace swift::common;
+using namespace swift::monitor;
 using namespace swift::protocol;
 using namespace swift::util;
 using namespace testing;
@@ -649,7 +651,9 @@ TEST_F(FileManagerTest, testGetObsoleteFilePos) {
     obsoleteFileCriterion.reservedFileCount = 1;
     obsoleteFileCriterion.obsoleteFileTimeInterval = 1000 * 1000; // 1s
     EXPECT_EQ(ERROR_NONE, manager.init(dataRoot, obsoleteFileCriterion));
-    manager.delExpiredFile();
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     int64_t currTime = TimeUtility::currentTime();
     int64_t fileCreateTime = currTime - (int64_t)4000 * 1000 * 1000;
     FilePairPtr filePairPtr = manager.createNewFilePair(100, fileCreateTime);
@@ -658,9 +662,9 @@ TEST_F(FileManagerTest, testGetObsoleteFilePos) {
     EXPECT_TRUE(filePairPtr->isAppending());
 
     sleep(2);
-    EXPECT_EQ((int32_t)1, manager.getObsoleteFilePos(0));
-    EXPECT_EQ((int32_t)0, manager.getObsoleteFilePos(1));
-    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(2));
+    EXPECT_EQ((int32_t)1, manager.getObsoleteFilePos(0, FileManager::COMMITTED_TIMESTAMP_INVALID));
+    EXPECT_EQ((int32_t)0, manager.getObsoleteFilePos(1, FileManager::COMMITTED_TIMESTAMP_INVALID));
+    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(2, FileManager::COMMITTED_TIMESTAMP_INVALID));
 
     // test obsolete use commitedTs
     EXPECT_EQ((int32_t)1, manager.getObsoleteFilePos(0, currTime));
@@ -673,15 +677,15 @@ TEST_F(FileManagerTest, testGetObsoleteFilePos) {
     EXPECT_FALSE(filePairPtr->isAppending());
     touchFile(filePairPtr2->metaFileName, 100);
     touchFile(filePairPtr2->dataFileName, 100);
-    EXPECT_EQ((int32_t)1, manager.getObsoleteFilePos(0));
-    EXPECT_EQ((int32_t)1, manager.getObsoleteFilePos(1));
-    EXPECT_EQ((int32_t)0, manager.getObsoleteFilePos(2));
-    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(3));
+    EXPECT_EQ((int32_t)1, manager.getObsoleteFilePos(0, FileManager::COMMITTED_TIMESTAMP_INVALID));
+    EXPECT_EQ((int32_t)1, manager.getObsoleteFilePos(1, FileManager::COMMITTED_TIMESTAMP_INVALID));
+    EXPECT_EQ((int32_t)0, manager.getObsoleteFilePos(2, FileManager::COMMITTED_TIMESTAMP_INVALID));
+    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(3, FileManager::COMMITTED_TIMESTAMP_INVALID));
     manager._obsoleteFileCriterion.obsoleteFileTimeInterval = (int64_t)200 * 1000 * 1000;
-    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(0));
-    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(1));
-    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(2));
-    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(3));
+    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(0, FileManager::COMMITTED_TIMESTAMP_INVALID));
+    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(1, FileManager::COMMITTED_TIMESTAMP_INVALID));
+    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(2, FileManager::COMMITTED_TIMESTAMP_INVALID));
+    EXPECT_EQ((int32_t)-1, manager.getObsoleteFilePos(3, FileManager::COMMITTED_TIMESTAMP_INVALID));
 
     // test commitedTs
     EXPECT_EQ((int32_t)1, manager.getObsoleteFilePos(0, currTime));
@@ -709,23 +713,27 @@ TEST_F(FileManagerTest, testDoDeleteObsoleteFile) {
     FileManager manager;
     ObsoleteFileCriterion obsoleteFileCriterion;
     EXPECT_EQ(ERROR_NONE, manager.init(dataRoot, obsoleteFileCriterion));
-    manager.delExpiredFile();
-    int64_t currTime = TimeUtility::currentTime();
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
 
+    int64_t currTime = TimeUtility::currentTime();
     FilePairPtr filePairPtr = createFilePair(dataRoot + "metafile1", dataRoot + "datafile1", 100, 100, currTime);
     manager._obsoleteFilePairVec.push_back(filePairPtr);
     filePairPtr = createFilePair(dataRoot + "metafile2", dataRoot + "datafile2", 200, 100, currTime);
     manager._obsoleteFilePairVec.push_back(filePairPtr);
     filePairPtr.reset();
 
-    manager.doDeleteObsoleteFile();
+    manager.doDeleteObsoleteFile(deletedFileCount);
+    EXPECT_EQ((uint32_t)2, deletedFileCount);
     EXPECT_EQ((size_t)0, manager._obsoleteFilePairVec.size());
 
     fslib::FileList fileList;
     EXPECT_EQ(fslib::EC_OK, FileSystem::listDir(dataRoot, fileList));
     EXPECT_EQ((size_t)0, fileList.size());
 
-    manager.doDeleteObsoleteFile();
+    manager.doDeleteObsoleteFile(deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     EXPECT_EQ((size_t)0, manager._obsoleteFilePairVec.size());
     EXPECT_EQ(fslib::EC_OK, FileSystem::listDir(dataRoot, fileList));
     EXPECT_EQ((size_t)0, fileList.size());
@@ -738,13 +746,16 @@ TEST_F(FileManagerTest, testDoDeleteObsoleteFileWithFilePairUseCount) {
     FileManager manager;
     ObsoleteFileCriterion obsoleteFileCriterion;
     EXPECT_EQ(ERROR_NONE, manager.init(dataRoot, obsoleteFileCriterion));
-    manager.delExpiredFile();
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
 
     int64_t currTime = TimeUtility::currentTime();
     FilePairPtr filePairPtr = createFilePair(dataRoot + "metafile1", dataRoot + "datafile1", 100, 100, currTime);
     manager._obsoleteFilePairVec.push_back(filePairPtr);
 
-    manager.doDeleteObsoleteFile();
+    manager.doDeleteObsoleteFile(deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     EXPECT_EQ((size_t)1, manager._obsoleteFilePairVec.size());
     fslib::FileList fileList;
     EXPECT_EQ(fslib::EC_OK, FileSystem::listDir(dataRoot, fileList));
@@ -754,7 +765,8 @@ TEST_F(FileManagerTest, testDoDeleteObsoleteFileWithFilePairUseCount) {
     EXPECT_EQ(string("metafile1"), fileList[1]);
 
     filePairPtr.reset();
-    manager.doDeleteObsoleteFile();
+    manager.doDeleteObsoleteFile(deletedFileCount);
+    EXPECT_EQ((uint32_t)1, deletedFileCount);
     EXPECT_EQ((size_t)0, manager._obsoleteFilePairVec.size());
     EXPECT_EQ(fslib::EC_OK, FileSystem::listDir(dataRoot, fileList));
     EXPECT_EQ((size_t)0, fileList.size());
@@ -767,7 +779,9 @@ TEST_F(FileManagerTest, testDoDeleteObsoleteFileWithRemoveException) {
     FileManager manager;
     ObsoleteFileCriterion obsoleteFileCriterion;
     EXPECT_EQ(ERROR_NONE, manager.init(dataRoot, obsoleteFileCriterion));
-    manager.delExpiredFile();
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     string dataFilePrefix1 = dataRoot + "/data1/";
     string dataFilePrefix2 = dataRoot + "/data2/";
     string metaFilePrefix1 = dataRoot + "/meta1/";
@@ -796,20 +810,23 @@ TEST_F(FileManagerTest, testDoDeleteObsoleteFileWithRemoveException) {
     // cmd = "chmod u-w " + dataFilePrefix2;
     // system(cmd.c_str());
 
-    manager.doDeleteObsoleteFile();
+    manager.doDeleteObsoleteFile(deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     EXPECT_EQ((size_t)2, manager._obsoleteFilePairVec.size());
     EXPECT_EQ(fslib::EC_TRUE, FileSystem::isExist(metaFilePrefix1 + "metafile1"));
     EXPECT_EQ(fslib::EC_FALSE, FileSystem::isExist(dataFilePrefix1 + "datafile1"));
     EXPECT_EQ(fslib::EC_FALSE, FileSystem::isExist(metaFilePrefix2 + "metafile2"));
     EXPECT_EQ(fslib::EC_TRUE, FileSystem::isExist(dataFilePrefix2 + "datafile2"));
-    manager.doDeleteObsoleteFile();
+    manager.doDeleteObsoleteFile(deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     EXPECT_EQ((size_t)2, manager._obsoleteFilePairVec.size());
 
     // cmd = "chmod u+w " + dataFilePrefix2;
     // system(cmd.c_str());
     manager._obsoleteFilePairVec[1] = filePairPtr2;
     filePairPtr2.reset();
-    manager.doDeleteObsoleteFile();
+    manager.doDeleteObsoleteFile(deletedFileCount);
+    EXPECT_EQ((uint32_t)1, deletedFileCount);
     EXPECT_EQ((size_t)1, manager._obsoleteFilePairVec.size());
     EXPECT_EQ(fslib::EC_TRUE, FileSystem::isExist(metaFilePrefix1 + "metafile1"));
     EXPECT_EQ(fslib::EC_FALSE, FileSystem::isExist(dataFilePrefix2 + "datafile2"));
@@ -818,7 +835,8 @@ TEST_F(FileManagerTest, testDoDeleteObsoleteFileWithRemoveException) {
     // system(cmd.c_str());
     manager._obsoleteFilePairVec[0] = filePairPtr1;
     filePairPtr1.reset();
-    manager.doDeleteObsoleteFile();
+    manager.doDeleteObsoleteFile(deletedFileCount);
+    EXPECT_EQ((uint32_t)1, deletedFileCount);
     EXPECT_EQ((size_t)0, manager._obsoleteFilePairVec.size());
     EXPECT_EQ(fslib::EC_FALSE, FileSystem::isExist(metaFilePrefix1 + "metafile1"));
 }
@@ -846,24 +864,86 @@ TEST_F(FileManagerTest, testDeleteObsoleteFile) {
     fslib::FileList fileList;
     obsoleteFileCriterion.obsoleteFileTimeInterval = 500 * 1000;
     EXPECT_EQ(ERROR_NONE, manager.init(dataRoot, obsoleteFileCriterion));
-    manager.delExpiredFile();
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     sleep(2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 4, 0, 8);
 
     manager._obsoleteFileCriterion.reservedFileCount = 4;
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 4, 0, 8);
 
     manager._obsoleteFileCriterion.reservedFileCount = 2;
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)2, deletedFileCount);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 2, 0, 4);
+
     manager._obsoleteFileCriterion.reservedFileCount = 0;
-
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)1, deletedFileCount);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 1, 0, 2);
 
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 1, 0, 2);
+}
+
+TEST_F(FileManagerTest, testGetUsedDfsSize) {
+    string dataRoot = GET_TEMPLATE_DATA_PATH() + "testGetUsedDfsSize/";
+    FileSystem::remove(dataRoot);
+    FileSystem::mkDir(dataRoot);
+
+    touchFile(dataRoot + "1970-01-01-08-00-00.000050.0000000000000000.meta", 100);
+    touchFile(dataRoot + "1970-01-01-08-00-00.000050.0000000000000000.data", 100);
+    touchFile(dataRoot + "1970-01-01-09-00-00.000050.0000000000000100.meta", 100);
+    touchFile(dataRoot + "1970-01-01-09-00-00.000050.0000000000000100.data", 100);
+    touchFile(dataRoot + "1970-01-01-10-00-00.000050.0000000000000200.meta", 100);
+    touchFile(dataRoot + "1970-01-01-10-00-00.000050.0000000000000200.data", 100);
+    touchFile(dataRoot + "1970-01-01-11-00-00.000050.0000000000000300.meta", 100);
+    touchFile(dataRoot + "1970-01-01-11-00-00.000050.0000000000000300.data", 100);
+
+    FileManager manager;
+    ObsoleteFileCriterion obsoleteFileCriterion;
+    fslib::FileList fileList;
+    obsoleteFileCriterion.obsoleteFileTimeInterval = 500 * 1000;
+    obsoleteFileCriterion.delObsoleteFileInterval = 1000 * 1000;
+    EXPECT_EQ(protocol::ERROR_NONE, manager.init(dataRoot, obsoleteFileCriterion));
+    EXPECT_EQ((int64_t)0, manager.getUsedDfsSize()); // local file system cannot get path meta
+
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
+    sleep(2);
+    CHECK_DELETE_OBSOLETE_FILE(dataRoot, 4, 0, 8);
+    EXPECT_EQ((int64_t)0, manager.getUsedDfsSize());
+
+    manager._obsoleteFileCriterion.reservedFileCount = 4;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
+    sleep(2);
+    CHECK_DELETE_OBSOLETE_FILE(dataRoot, 4, 0, 8);
+    EXPECT_EQ((int64_t)0, manager.getUsedDfsSize());
+
+    manager._obsoleteFileCriterion.reservedFileCount = 2;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)2, deletedFileCount);
+    sleep(2);
+    CHECK_DELETE_OBSOLETE_FILE(dataRoot, 2, 0, 4);
+    EXPECT_EQ((int64_t)(-400 * FILE_MESSAGE_META_SIZE), manager.getUsedDfsSize());
+
+    manager._obsoleteFileCriterion.reservedFileCount = 0;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)1, deletedFileCount);
+    sleep(2);
+    CHECK_DELETE_OBSOLETE_FILE(dataRoot, 1, 0, 2);
+    EXPECT_EQ((int64_t)(-600 * FILE_MESSAGE_META_SIZE), manager.getUsedDfsSize());
+
+    manager.addUsedDfsSize(10000);
+    EXPECT_EQ((int64_t)(10000 - 600 * FILE_MESSAGE_META_SIZE), manager.getUsedDfsSize());
+
+    FileSystem::remove(dataRoot);
 }
 
 TEST_F(FileManagerTest, testDelExpiredFile) {
@@ -884,26 +964,32 @@ TEST_F(FileManagerTest, testDelExpiredFile) {
     obsoleteFileCriterion.obsoleteFileTimeInterval = 500 * 1000;
     obsoleteFileCriterion.delObsoleteFileInterval = 1000 * 1000;
     EXPECT_EQ(ERROR_NONE, manager.init(dataRoot, obsoleteFileCriterion));
-    manager.delExpiredFile();
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     sleep(2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 4, 0, 8);
 
     manager._obsoleteFileCriterion.reservedFileCount = 4;
-    manager.delExpiredFile();
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     sleep(2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 4, 0, 8);
 
     manager._obsoleteFileCriterion.reservedFileCount = 2;
-    manager.delExpiredFile();
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)2, deletedFileCount);
     sleep(2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 2, 0, 4);
-    manager._obsoleteFileCriterion.reservedFileCount = 0;
 
-    manager.delExpiredFile();
+    manager._obsoleteFileCriterion.reservedFileCount = 0;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)1, deletedFileCount);
     sleep(2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 1, 0, 2);
 
-    manager.delExpiredFile();
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     sleep(2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot, 1, 0, 2);
 }
@@ -936,31 +1022,37 @@ TEST_F(FileManagerTest, testDeleteObsoleteFileMultiDfsRoot) {
     oldDfsRootVec.push_back(dataRoot2);
     util::InlineVersion inlineVersion;
     EXPECT_EQ(ERROR_NONE, manager.init(dataRoot3, oldDfsRootVec, obsoleteFileCriterion, inlineVersion));
-    manager.delExpiredFile();
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     sleep(2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot1, 4, 0, 2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot2, 4, 0, 4);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot3, 4, 0, 2);
 
     manager._obsoleteFileCriterion.reservedFileCount = 4;
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot1, 4, 0, 2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot2, 4, 0, 4);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot3, 4, 0, 2);
 
     manager._obsoleteFileCriterion.reservedFileCount = 2;
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)2, deletedFileCount);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot1, 2, 0, 0);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot2, 2, 0, 2);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot3, 2, 0, 2);
 
     manager._obsoleteFileCriterion.reservedFileCount = 0;
 
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)1, deletedFileCount);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot1, 1, 0, 0);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot2, 1, 0, 0);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot3, 1, 0, 2);
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot1, 1, 0, 0);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot2, 1, 0, 0);
     CHECK_DELETE_OBSOLETE_FILE(dataRoot3, 1, 0, 2);
@@ -986,16 +1078,21 @@ TEST_F(FileManagerTest, testSyncFilePair) {
     FileManager manager;
     ObsoleteFileCriterion obsoleteFileCriterion;
     EXPECT_EQ(ERROR_NONE, manager.init(dataRoot, obsoleteFileCriterion));
-    manager.delExpiredFile();
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
 
     EXPECT_EQ(int64_t(0), manager.getFilePairById(10)->beginMessageId);
     EXPECT_EQ(int64_t(50), manager.getFilePairById(60)->beginMessageId);
 
     FileSystem::remove(dataRoot + "1970-01-01-08-00-00.000050.0000000000000000.meta");
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     EXPECT_EQ(int64_t(50), manager.getFilePairById(60)->beginMessageId);
+
     FileSystem::remove(dataRoot + "1970-01-01-08-00-00.000100.0000000000000050.meta");
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     EXPECT_EQ(int64_t(150), manager.getFilePairById(60)->beginMessageId);
 
     EXPECT_TRUE(manager.createNewFilePair(450, 400));
@@ -1035,15 +1132,19 @@ TEST_F(FileManagerTest, testSyncFilePairMultiDfsRoot) {
     oldDfsRootVec.push_back(dataRoot2);
     util::InlineVersion inlineVersion;
     EXPECT_EQ(ERROR_NONE, manager.init(dataRoot3, oldDfsRootVec, obsoleteFileCriterion, inlineVersion));
-    manager.delExpiredFile();
+    uint32_t deletedFileCount;
+    manager.delExpiredFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     EXPECT_EQ(int64_t(0), manager.getFilePairById(10)->beginMessageId);
     EXPECT_EQ(int64_t(50), manager.getFilePairById(60)->beginMessageId);
 
     FileSystem::remove(dataRoot1 + "1970-01-01-08-00-00.000050.0000000000000000.meta");
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     EXPECT_EQ(int64_t(50), manager.getFilePairById(60)->beginMessageId);
     FileSystem::remove(dataRoot2 + "1970-01-01-08-00-00.000100.0000000000000050.meta");
-    manager.deleteObsoleteFile();
+    manager.deleteObsoleteFile(FileManager::COMMITTED_TIMESTAMP_INVALID, deletedFileCount);
+    EXPECT_EQ((uint32_t)0, deletedFileCount);
     EXPECT_EQ(int64_t(150), manager.getFilePairById(60)->beginMessageId);
 
     EXPECT_TRUE(manager.createNewFilePair(450, 400));

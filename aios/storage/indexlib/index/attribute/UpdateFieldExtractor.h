@@ -139,8 +139,7 @@ inline bool UpdateFieldExtractor::IsFieldIgnore(const std::shared_ptr<config::Fi
     }
 
     // TODO: remove when defrag slice array support length over 64MB
-    if (indexlib::util::DefragSliceArray::IsOverLength(fieldValue.size(),
-                                                       MultiValueAttributeFormatter::MULTI_VALUE_ATTRIBUTE_SLICE_LEN)) {
+    if (indexlib::util::DefragSliceArray::IsOverLength(fieldValue.size(), index::ATTRIBUTE_DEFAULT_SLICE_LEN)) {
         AUTIL_LOG(DEBUG, "attribute for field[%s] is overlength, ignore", fieldName.c_str());
         ERROR_COLLECTOR_LOG(WARN, "attribute for field[%s] is overlength, ignore", fieldName.c_str());
         return true;

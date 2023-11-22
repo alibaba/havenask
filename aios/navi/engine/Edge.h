@@ -97,7 +97,7 @@ public:
 private:
     bool checkDataType(const DataPtr &data) const;
     bool doSetData(const Node *callNode, const DataPtr &data, bool eof);
-    void doGetData(DataPtr &data, bool &eof);
+    void doGetData(DataPtr &data, bool &eof) const;
     bool getDataEof() const;
     bool clearData(const Node *callNode);
     bool flushOverrideData();

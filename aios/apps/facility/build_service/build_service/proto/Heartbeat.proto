@@ -303,6 +303,17 @@ message MergerTarget {
     optional string reservedVersions = 12;
 }
 
+message IndexTaskMeta {
+    required string taskType = 1;
+    required string taskName = 2;
+    required string state = 3;
+    optional int64 beginTimeInSecs = 4 [default = -1];
+    optional int64 endTimeInSecs = 5 [default = -1];
+    optional int64 eventTimeInSecs = 6 [default = -1];
+    optional string comment = 7 [default = ""];
+    optional string taskTraceId = 8;
+}
+
 message IndexInfo {
     optional string clusterName = 1;
     optional Range range = 2;
@@ -317,6 +328,7 @@ message IndexInfo {
     optional int64 totalRemainIndexSize = 11 [default = -1];
     optional int64 processorDataSourceIdx = 12 [default = 0];
     optional string ongoingModifyOpIds = 13 [default = ""];
+    repeated IndexTaskMeta indexTaskMetas = 14;
 }
 
 message BuilderCheckpoint {

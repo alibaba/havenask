@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OPEN_EXECUTOR_UTIL_H
-#define __INDEXLIB_OPEN_EXECUTOR_UTIL_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index_base/partition_data.h"
@@ -62,5 +61,3 @@ private:
 
 DEFINE_SHARED_PTR(OpenExecutorUtil);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_OPEN_EXECUTOR_UTIL_H

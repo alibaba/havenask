@@ -15,9 +15,23 @@
  */
 #include "build_service/processor/RegionDocumentProcessor.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <map>
+#include <memory>
+#include <stdint.h>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "build_service/config/CLIOptionNames.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/RawDocument.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/legacy_schema_adapter.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/index/kv/Constant.h"
 #include "indexlib/indexlib.h"
 
 using namespace std;

@@ -15,11 +15,28 @@
  */
 #include "build_service/processor/DocTTLProcessor.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <utility>
+
+#include "alog/Logger.h"
+#include "autil/Span.h"
 #include "autil/StringUtil.h"
 #include "autil/TimeUtility.h"
+#include "autil/legacy/exception.h"
+#include "autil/legacy/legacy_jsonizable.h"
+#include "build_service/document/ClassifiedDocument.h"
+#include "build_service/document/RawDocument.h"
+#include "indexlib/base/Constant.h"
+#include "indexlib/base/Status.h"
+#include "indexlib/base/Types.h"
 #include "indexlib/config/ITabletSchema.h"
 #include "indexlib/config/MutableJson.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/config/legacy_schema_adapter.h"
+#include "indexlib/document/RawDocument.h"
+#include "indexlib/indexlib.h"
 
 using namespace std;
 using namespace autil;

@@ -15,7 +15,13 @@
  */
 #include "build_service/worker/RpcWorkerHeartbeat.h"
 
+#include <arpc/ThreadPoolDescriptor.h>
+#include <cstddef>
+
+#include "alog/Logger.h"
 #include "autil/ClosureGuard.h"
+#include "autil/TimeUtility.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/proto/ProtoUtil.h"
 
 using namespace std;
@@ -65,7 +71,7 @@ void RpcWorkerHeartbeat::heartbeat(::google::protobuf::RpcController* controller
     string roleId;
     ProtoUtil::partitionIdToRoleId(_partitionId, roleId);
     response->set_identifier(_identifier);
-    response->set_starttimestamp(_startTimestamp);    
+    response->set_starttimestamp(_startTimestamp);
     response->set_roleid(roleId);
     *response->mutable_partitionid() = _partitionId;
 

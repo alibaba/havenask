@@ -101,6 +101,7 @@ void ANetRPCChannel::CallMethod(const RPCMethodDescriptor *method,
 
     Packet *packet = _messageCodec->EncodeRequest(context, version);
     tracer.EndEncodeRequest();
+    tracer.SetClientRequestSize(packet->getDataLen());
 
     if (packet == NULL) {
         SetError(pController, ARPC_ERROR_ENCODE_PACKET);

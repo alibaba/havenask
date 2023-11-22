@@ -12,15 +12,10 @@ public enum HashType {
     HF_SMARTWAVE_HASH(Constant.SMARTWAVE_HASH),
     HF_INVALID_HASH(Constant.INVALID);
 
-    public interface Constant {
-        String HASH = "HASH";
-        String HASH64 = "HASH64";
-        String GALAXY_HASH = "GALAXY_HASH";
-        String KINGSO_HASH = "KINGSO_HASH";
-        String NUMBER_HASH = "NUMBER_HASH";
-        String ROUTING_HASH = "ROUTING_HASH";
-        String SMARTWAVE_HASH = "SMARTWAVE_HASH";
-        String INVALID = "INVALID";
+    private final String name;
+
+    HashType(String name) {
+        this.name = name;
     }
 
     public static HashType from(String name) {
@@ -39,16 +34,11 @@ public enum HashType {
             return HF_HASH;
         } else if (name.startsWith(Constant.ROUTING_HASH)) {
             return HF_ROUTING_HASH;
-        } else if (name.startsWith(Constant.SMARTWAVE_HASH)){
+        } else if (name.startsWith(Constant.SMARTWAVE_HASH)) {
             return HF_SMARTWAVE_HASH;
         } else {
             return HF_INVALID_HASH;
         }
-    }
-
-
-    HashType(String name) {
-        this.name = name;
     }
 
     @Override
@@ -64,5 +54,14 @@ public enum HashType {
         return this != HF_INVALID_HASH;
     }
 
-    private final String name;
+    public interface Constant {
+        String HASH = "HASH";
+        String HASH64 = "HASH64";
+        String GALAXY_HASH = "GALAXY_HASH";
+        String KINGSO_HASH = "KINGSO_HASH";
+        String NUMBER_HASH = "NUMBER_HASH";
+        String ROUTING_HASH = "ROUTING_HASH";
+        String SMARTWAVE_HASH = "SMARTWAVE_HASH";
+        String INVALID = "INVALID";
+    }
 }

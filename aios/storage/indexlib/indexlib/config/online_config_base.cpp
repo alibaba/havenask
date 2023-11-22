@@ -23,7 +23,7 @@ using namespace std;
 using namespace autil::legacy;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, OnlineConfigBase);
+AUTIL_LOG_SETUP(indexlib.config, OnlineConfigBase);
 
 namespace {
 
@@ -36,7 +36,7 @@ static const bool DEFAULT_ENABLE_ASYNC_DUMP_SEGMENT = []() {
 } // namespace
 
 OnlineConfigBase::OnlineConfigBase()
-    : maxOperationQueueBlockSize(DEFAULT_MAX_OPERATION_BLOCK_SIZE)
+    : maxOperationQueueBlockSize(index::DEFAULT_MAX_OPERATION_BLOCK_SIZE)
     , maxCurReaderReclaimableMem(DEFAULT_MAX_CUR_READER_RECLAIMABLE_MEM)
     , maxRealtimeMemSize(DEFAULT_MAX_REALTIME_MEMORY_SIZE)
     , maxRealtimeDumpInterval(DEFAULT_MAX_REALTIME_DUMP_INTERVAL)
@@ -123,9 +123,9 @@ void OnlineConfigBase::Jsonize(Jsonizable::JsonWrapper& json)
         bool disabled = false;
         if (autil::StringUtil::parseTrueFalse(disableLoadCustomizedIndexStr, disabled)) {
             if (disabled) {
-                IE_LOG(WARN, "disable load customized index by env, so disable_load_customized_index must be true");
+                AUTIL_LOG(WARN, "disable load customized index by env, so disable_load_customized_index must be true");
                 if (!disableLoadCustomizedIndex) {
-                    IE_LOG(WARN, "set disable_load_customized_index as true");
+                    AUTIL_LOG(WARN, "set disable_load_customized_index as true");
                     disableLoadCustomizedIndex = true;
                 }
             }
@@ -142,7 +142,7 @@ void OnlineConfigBase::Jsonize(Jsonizable::JsonWrapper& json)
         if (!needDeployIndex) {
             loadConfigList.SetLoadMode(LoadConfig::LoadMode::REMOTE_ONLY);
             if (!needReadRemoteIndex) {
-                IE_LOG(WARN, "needDeployIndex is false, so needReadRemoteIndex must be true, rewrite it");
+                AUTIL_LOG(WARN, "needDeployIndex is false, so needReadRemoteIndex must be true, rewrite it");
                 needReadRemoteIndex = true;
             }
         } else {
@@ -157,12 +157,12 @@ void OnlineConfigBase::Jsonize(Jsonizable::JsonWrapper& json)
             bool disabled = false;
             if (autil::StringUtil::parseTrueFalse(disableSeparationStr, disabled)) {
                 if (disabled) {
-                    IE_LOG(WARN, "disable s/c sepration by env, set cache load config as LOCAL_ONLY");
+                    AUTIL_LOG(WARN, "disable s/c sepration by env, set cache load config as LOCAL_ONLY");
                     for (auto& loadConfig : loadConfigList.GetLoadConfigs()) {
                         if (file_system::READ_MODE_GLOBAL_CACHE == loadConfig.GetLoadStrategyName() ||
                             file_system::READ_MODE_CACHE == loadConfig.GetLoadStrategyName()) {
                             loadConfig.SetLoadMode(LoadConfig::LoadMode::LOCAL_ONLY);
-                            IE_LOG(WARN, "set cache load config [%s] as LOCAL_ONLY", loadConfig.GetName().c_str());
+                            AUTIL_LOG(WARN, "set cache load config [%s] as LOCAL_ONLY", loadConfig.GetName().c_str());
                         }
                     }
                 }

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_NORMAL_DOCUMENT_H
-#define __INDEXLIB_NORMAL_DOCUMENT_H
+#pragma once
 
 #include <memory>
 
@@ -144,8 +143,8 @@ public:
     void SetRegionId(regionid_t id) { mRegionId = id; }
     regionid_t GetRegionId() const { return mRegionId; }
 
-    void SetSchemaVersionId(schemavid_t id) { mSchemaId = id; }
-    schemavid_t GetSchemaVersionId() const { return mSchemaId; }
+    void SetSchemaVersionId(schemaid_t id) { mSchemaId = id; }
+    schemaid_t GetSchemaVersionId() const { return mSchemaId; }
 
 protected:
     void DoSerialize(autil::DataBuffer& dataBuffer, uint32_t serializedVersion) const override;
@@ -250,7 +249,7 @@ private:
     FieldIdVector mSubModifiedFields;
     int64_t mUserTimestamp;
     regionid_t mRegionId;
-    schemavid_t mSchemaId;
+    schemaid_t mSchemaId;
     PoolPtr mPool;
 
     segmentid_t mSegmentIdBeforeModified;
@@ -265,5 +264,3 @@ private:
 
 DEFINE_SHARED_PTR(NormalDocument);
 }} // namespace indexlib::document
-
-#endif //__INDEXLIB_NORMAL_DOCUMENT_H

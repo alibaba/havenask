@@ -106,7 +106,8 @@ strict_cc_library(
         '//aios/storage/indexlib/index:interface',
         '//aios/storage/indexlib/index/attribute:reader',
         '//aios/storage/indexlib/index/pack_attribute:reader',
-        '//aios/storage/indexlib/index/primary_key:reader'
+        '//aios/storage/indexlib/index/primary_key:reader',
+        '//aios/storage/indexlib/index/source:reader'
     ]
 )
 strict_cc_library(
@@ -129,7 +130,7 @@ strict_cc_library(
         '//aios/storage/indexlib/document/normal:SearchSummaryDocument',
         '//aios/storage/indexlib/document/normal:SummaryGroupFormatter',
         '//aios/storage/indexlib/file_system',
-        '//aios/storage/indexlib/index:IndexerParameter',
+        '//aios/storage/indexlib/index:DiskIndexerParameter',
         '//aios/storage/indexlib/index/common/data_structure:VarLenDataParamHelper',
         '//aios/storage/indexlib/index/common/data_structure:VarLenDataReader',
         '//aios/storage/indexlib/index/summary/config:SummaryIndexConfig'

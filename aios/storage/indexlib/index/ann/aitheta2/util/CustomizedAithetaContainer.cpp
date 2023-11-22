@@ -15,74 +15,98 @@
  */
 #include "indexlib/index/ann/aitheta2/util/CustomizedAithetaContainer.h"
 
+#include "indexlib/index/ann/aitheta2/util/BufferedAithetaSegment.h"
+#include "indexlib/index/ann/aitheta2/util/InMemoryAithetaSegment.h"
+
 using namespace std;
 namespace aitheta2 {
 
 int CustomizedAiThetaContainer::load()
 {
-    auto read_data = [this](size_t offset, const void** data, size_t len) {
-        return this->data_reader_->Read(const_cast<void**>(data), len, offset);
+    auto readData = [this](size_t offset, const void** data, size_t len) {
+        buffer_.resize(len);
+        *data = buffer_.data();
+        return _reader->Read((void*)buffer_.data(), len, offset);
     };
 
     IndexUnpacker unpacker;
-    if (!unpacker.unpack(read_data, data_reader_->GetLength(), checksum_validation_)) {
+    if (!unpacker.unpack(readData, _reader->GetLength(), _checksumValidation)) {
         LOG_ERROR("Failed to unpack file");
         return IndexError_UnpackIndex;
     }
-    segments_ = std::move(*unpacker.mutable_segments());
-    magic_ = unpacker.magic();
+
+    _segments = std::move(*unpacker.mutable_segments());
+    _magic = unpacker.magic();
     return 0;
 }
 
 IndexContainer::Segment::Pointer CustomizedAiThetaContainer::get(const string& id) const
 {
-    if (!data_reader_) {
+    if (_reader == nullptr) {
         return IndexContainer::Segment::Pointer();
     }
 
-    auto it = segments_.find(id);
-    if (it == segments_.end()) {
+    auto it = _segments.find(id);
+    if (it == _segments.end()) {
         return IndexContainer::Segment::Pointer();
     }
-    return std::make_shared<Segment>(data_reader_, it->second);
+    if (_reader->GetBaseAddress()) {
+        return std::make_shared<InMemoryAiThetaSegment>(_reader, it->second);
+    } else {
+        return std::make_shared<BufferedAiThetaSegment>(_reader, it->second);
+    }
 }
 
 //! Retrieve all segments
 map<string, IndexContainer::Segment::Pointer> CustomizedAiThetaContainer::get_all(void) const
 {
-    if (!data_reader_) {
+    if (_reader == nullptr) {
         return {};
     }
 
     map<string, IndexContainer::Segment::Pointer> result;
-    for (const auto& it : segments_) {
-        result.emplace(it.first, make_shared<Segment>(data_reader_, it.second));
+    for (const auto& it : _segments) {
+        if (_reader->GetBaseAddress()) {
+            result.emplace(it.first, make_shared<InMemoryAiThetaSegment>(_reader, it.second));
+        } else {
+            result.emplace(it.first, make_shared<BufferedAiThetaSegment>(_reader, it.second));
+        }
     }
     return result;
 }
 
-aitheta2::IndexContainer::Segment::Pointer CustomizedAiThetaContainer::fetch(const std::string& id, int level) const
+IndexContainer::Segment::Pointer CustomizedAiThetaContainer::fetch(const std::string& id,
+                                                                   aitheta2::IndexContainer::FetchLevel level) const
 {
     auto segment = get(id);
-    if (level > 0 || segment == nullptr) {
+
+    if (segment == nullptr) {
+        return nullptr;
+    }
+    if (level != aitheta2::IndexContainer::FetchLevel::HIGH) {
         return segment;
     }
 
-    size_t region_size = segment->data_size() + segment->padding_size();
-    assert(region_size > 0);
-    shared_ptr<uint8_t> data(new (std::nothrow) uint8_t[region_size], [](uint8_t* p) { delete[] p; });
+    size_t regionSize = segment->data_size() + segment->padding_size();
+    if (regionSize == 0) {
+        LOG_WARN("segment[%s] is empty", id.c_str());
+        return segment;
+    }
+
+    std::shared_ptr<char> data(new (std::nothrow) char[regionSize], [](char* p) { delete[] p; });
     if (data == nullptr) {
-        LOG_ERROR("malloc [%lu]bytes failed", region_size);
-        return aitheta2::IndexContainer::Segment::Pointer();
+        LOG_ERROR("malloc [%lu]bytes failed", regionSize);
+        return IndexContainer::Segment::Pointer();
     }
 
-    size_t size = segment->fetch(/*offset*/ 0ul, data.get(), region_size);
-    if (size != region_size) {
-        LOG_ERROR("fetch data failed, expected[%lu] vs actual size[%lu]", region_size, size);
-        return aitheta2::IndexContainer::Segment::Pointer();
+    size_t size = segment->fetch(/*offset*/ 0ul, data.get(), regionSize);
+    if (size != regionSize) {
+        LOG_ERROR("fetch data failed, expected[%lu] vs actual size[%lu]", regionSize, size);
+        return IndexContainer::Segment::Pointer();
     }
 
-    return Segment::Pointer(new Segment(data, segment->data_size(), segment->padding_size(), segment->data_crc()));
+    return Segment::Pointer(
+        new InMemoryAiThetaSegment(data, segment->data_size(), segment->padding_size(), segment->data_crc()));
 }
 
 INDEX_FACTORY_REGISTER_CONTAINER(CustomizedAiThetaContainer);

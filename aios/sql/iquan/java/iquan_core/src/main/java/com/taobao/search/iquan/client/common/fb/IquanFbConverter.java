@@ -1,16 +1,16 @@
 package com.taobao.search.iquan.client.common.fb;
 
-import com.google.flatbuffers.FlatBufferBuilder;
-import com.taobao.search.iquan.client.common.response.SqlResponse;
-import com.taobao.search.iquan.core.api.common.IquanErrorCode;
-import com.taobao.search.iquan.core.api.exception.SqlQueryException;
-import com.taobao.search.iquan.core.common.ConstantDefine;
-
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.google.flatbuffers.FlatBufferBuilder;
+import com.taobao.search.iquan.client.common.response.SqlResponse;
+import com.taobao.search.iquan.core.api.common.IquanErrorCode;
+import com.taobao.search.iquan.core.api.exception.SqlQueryException;
+import com.taobao.search.iquan.core.common.ConstantDefine;
 
 public class IquanFbConverter {
     @SuppressWarnings("unchecked")

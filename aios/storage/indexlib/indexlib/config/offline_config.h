@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __INDEXLIB_OFFLINE_CONFIG_H
-#define __INDEXLIB_OFFLINE_CONFIG_H
+#pragma once
 
 #include <memory>
 
-#include "indexlib/common_define.h"
+#include "autil/Log.h"
 #include "indexlib/config/load_config_list.h"
 #include "indexlib/config/module_info.h"
 #include "indexlib/config/offline_config_base.h"
-#include "indexlib/indexlib.h"
+#include "indexlib/legacy/indexlib.h"
 
-DECLARE_REFERENCE_CLASS(config, OfflineConfigImpl);
+namespace indexlib::config {
+class OfflineConfigImpl;
+typedef std::shared_ptr<OfflineConfigImpl> OfflineConfigImplPtr;
+} // namespace indexlib::config
 namespace indexlib { namespace config {
 
 class OfflineConfig : public OfflineConfigBase
@@ -54,10 +56,8 @@ private:
     OfflineConfigImplPtr mImpl;
 
 private:
-    IE_LOG_DECLARE();
+    AUTIL_LOG_DECLARE();
 };
 
-DEFINE_SHARED_PTR(OfflineConfig);
+typedef std::shared_ptr<OfflineConfig> OfflineConfigPtr;
 }} // namespace indexlib::config
-
-#endif //__INDEXLIB_OFFLINE_CONFIG_H

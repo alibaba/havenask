@@ -42,6 +42,7 @@ struct SummaryIndexConfig::Impl {
     FieldId2SummaryVec fieldId2GroupIdVec;
     bool needStoreSummary = true; // true: if all fields in attributes
     bool isAllFieldsDisabled = false;
+    std::unordered_set<fieldid_t> needStoreFields;
 };
 
 SummaryIndexConfig::SummaryIndexConfig() : _impl(std::make_unique<Impl>())
@@ -176,6 +177,15 @@ void SummaryIndexConfig::SetNeedStoreSummary(bool needStoreSummary)
     for (size_t i = 0; i < _impl->summaryGroups.size(); ++i) {
         _impl->summaryGroups[i]->SetNeedStoreSummary(needStoreSummary);
     }
+    auto fieldConfigs = GetFieldConfigs();
+    if (!needStoreSummary) {
+        _impl->needStoreFields.clear();
+    } else {
+        for (const auto& fieldConfig : fieldConfigs) {
+            auto fieldId = fieldConfig->GetFieldId();
+            SetNeedStoreSummary(fieldId);
+        }
+    }
 }
 void SummaryIndexConfig::SetNeedStoreSummary(fieldid_t fieldId)
 {
@@ -187,6 +197,7 @@ void SummaryIndexConfig::SetNeedStoreSummary(fieldid_t fieldId)
     indexlib::index::summarygroupid_t groupId = FieldIdToSummaryGroupId(fieldId);
     assert(groupId >= 0 && groupId < _impl->summaryGroups.size());
     _impl->summaryGroups[groupId]->SetNeedStoreSummary(true);
+    _impl->needStoreFields.insert(fieldId);
 }
 
 std::pair<Status, indexlib::index::summarygroupid_t>
@@ -388,4 +399,9 @@ Status SummaryIndexConfig::CheckCompatible(const IIndexConfig* other) const
     return Status::OK();
 }
 bool SummaryIndexConfig::IsDisabled() const { return IsAllFieldsDisabled(); }
+
+bool SummaryIndexConfig::NeedStoreSummary(fieldid_t fieldId) const
+{
+    return _impl->needStoreFields.find(fieldId) != _impl->needStoreFields.end();
+}
 } // namespace indexlibv2::config

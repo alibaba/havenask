@@ -47,9 +47,14 @@ bool SourceFieldExtractorDocIterator::HasNext() const { return _docIter->HasNext
 indexlib::Status SourceFieldExtractorDocIterator::Init(
     const std::shared_ptr<indexlibv2::framework::TabletData>& tabletData, std::pair<uint32_t, uint32_t> rangeInRatio,
     const std::shared_ptr<indexlibv2::framework::MetricsManager>& metricsManager,
-    const std::vector<std::string>& requiredFields, const std::map<std::string, std::string>& params)
+    const std::optional<std::vector<std::string>>& requiredFields, const std::map<std::string, std::string>& params)
 {
-    std::vector<std::string> fieldNames = requiredFields;
+    if (requiredFields == std::nullopt) {
+        assert(false);
+        RETURN_STATUS_ERROR(InvalidArgs, "SourceFieldExtractorDocIterator not support nullopt of requiredFields");
+    }
+
+    std::vector<std::string> fieldNames = requiredFields.value();
     _requiredFields = std::set<std::string>(fieldNames.begin(), fieldNames.end());
     auto readSchema = tabletData->GetOnDiskVersionReadSchema();
     std::vector<std::string> sourceFieldNames;
@@ -77,13 +82,13 @@ indexlib::Status SourceFieldExtractorDocIterator::Init(
     }
 
     BS_LOG(INFO, "source required fields [%s], after extractor required fields [%s]",
-           autil::legacy::ToJsonString(requiredFields).c_str(), autil::legacy::ToJsonString(sourceFieldNames).c_str());
+           autil::legacy::ToJsonString(fieldNames).c_str(), autil::legacy::ToJsonString(sourceFieldNames).c_str());
     return _docIter->Init(tabletData, rangeInRatio, metricsManager, sourceFieldNames, params);
 }
 
 indexlib::Status SourceFieldExtractorDocIterator::Next(indexlibv2::document::RawDocument* rawDocument,
                                                        std::string* checkpoint,
-                                                       indexlibv2::document::IDocument::DocInfo* docInfo)
+                                                       indexlibv2::framework::Locator::DocInfo* docInfo)
 {
     auto status = _docIter->Next(rawDocument, checkpoint, docInfo);
     RETURN_IF_STATUS_ERROR(status, "get next doc failed");

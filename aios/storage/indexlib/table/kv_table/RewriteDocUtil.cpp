@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 #include "indexlib/table/kv_table/RewriteDocUtil.h"
+
 #include "indexlib/index/common/field_format/attribute/AttributeConvertor.h"
 
 namespace indexlibv2::table {
 AUTIL_LOG_SETUP(indexlib.table, RewriteDocUtil);
 
-Status RewriteDocUtil::RewriteMergeValue(const autil::StringView &currentValue,
-                                         const autil::StringView &newValue,
-                                         std::shared_ptr<indexlibv2::index::PackAttributeFormatter> &formatter,
-                                         indexlib::util::MemBufferPtr &memBuffer,
-                                         document::KVDocument* doc) {
+Status RewriteDocUtil::RewriteMergeValue(const autil::StringView& currentValue, const autil::StringView& newValue,
+                                         std::shared_ptr<indexlibv2::index::PackAttributeFormatter>& formatter,
+                                         indexlib::util::MemBufferPtr& memBuffer, document::KVDocument* doc)
+{
     if (formatter) {
         indexlibv2::index::PackAttributeFormatter::PackAttributeFields updateFields;
         auto ret = formatter->DecodePatchValues((uint8_t*)newValue.data(), newValue.size(), updateFields);
@@ -39,15 +39,16 @@ Status RewriteDocUtil::RewriteMergeValue(const autil::StringView &currentValue,
         doc->SetDocOperateType(ADD_DOC);
     } else {
         auto status = Status::InternalError("formatter init failed key = [%s], pkeyHash = [%ld], skeyHash = [%ld]",
-                                                doc->GetPkFieldValue(), doc->GetPKeyHash(), doc->GetSKeyHash());
+                                            doc->GetPkFieldValue(), doc->GetPKeyHash(), doc->GetSKeyHash());
         AUTIL_LOG(WARN, "%s", status.ToString().c_str());
         return status;
     }
     return Status::OK();
 }
 
-void RewriteDocUtil::RewriteValue(std::shared_ptr<indexlibv2::index::AttributeConvertor> &attrConvertor,
-                                  autil::StringView &value) {
+void RewriteDocUtil::RewriteValue(std::shared_ptr<indexlibv2::index::AttributeConvertor>& attrConvertor,
+                                  autil::StringView& value)
+{
     auto meta = attrConvertor->Decode(value);
     value = meta.data;
     size_t encodeCountLen = 0;

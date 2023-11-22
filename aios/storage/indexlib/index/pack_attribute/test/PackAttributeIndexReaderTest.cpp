@@ -1,5 +1,6 @@
 #include "indexlib/framework/MetricsManager.h"
-#include "indexlib/index/IndexerParameter.h"
+#include "indexlib/index/DiskIndexerParameter.h"
+#include "indexlib/index/IndexReaderParameter.h"
 #include "indexlib/index/pack_attribute/PackAttributeConfig.h"
 #include "indexlib/index/pack_attribute/test/PackAttributeTestHelper.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
@@ -26,6 +27,7 @@ TEST_F(PackAttributeIndexReaderTest, testAccessCounter)
 
     auto metricsManager = std::make_shared<framework::MetricsManager>(helper.GetTableName(), nullptr);
     helper.MutableIndexerParameter()->metricsManager = metricsManager.get();
+    helper.GetIndexReaderParameter()->metricsManager = metricsManager.get();
     std::string rootPath = GET_TEMP_DATA_PATH();
     ASSERT_TRUE(helper.Open(rootPath, rootPath).IsOK());
 

@@ -17,8 +17,7 @@
 
 namespace indexlibv2::index {
 
-KKVIterator::KKVIterator(autil::mem_pool::Pool* pool) 
-    : _pool(pool), _resultBuffer(0, 0, pool), _isValid(false) {}
+KKVIterator::KKVIterator(autil::mem_pool::Pool* pool) : _pool(pool), _resultBuffer(0, 0, pool), _isValid(false) {}
 
 KKVIterator::KKVIterator(autil::mem_pool::Pool* pool, KKVIteratorImplBase* iter, config::KKVIndexConfig* kkvConfig,
                          PlainFormatEncoder* plainFormatEncoder, bool sorted, KKVMetricsCollector* metricsCollector,

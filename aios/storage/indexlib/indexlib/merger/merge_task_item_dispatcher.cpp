@@ -15,12 +15,46 @@
  */
 #include "indexlib/merger/merge_task_item_dispatcher.h"
 
+#include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <queue>
+#include <type_traits>
+
+#include "alog/Logger.h"
+#include "fslib/common/common_type.h"
+#include "indexlib/base/FieldType.h"
+#include "indexlib/config/CompressTypeOption.h"
 #include "indexlib/config/attribute_config.h"
+#include "indexlib/config/attribute_schema.h"
 #include "indexlib/config/field_type_traits.h"
+#include "indexlib/config/index_config.h"
 #include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/index_schema.h"
+#include "indexlib/config/pack_attribute_config.h"
+#include "indexlib/config/package_index_config.h"
+#include "indexlib/config/schema_modify_operation.h"
 #include "indexlib/config/section_attribute_config.h"
+#include "indexlib/config/truncate_index_config.h"
 #include "indexlib/file_system/Directory.h"
+#include "indexlib/file_system/ErrorCode.h"
+#include "indexlib/framework/VersionMeta.h"
+#include "indexlib/index/attribute/Constant.h"
+#include "indexlib/index/common/Constant.h"
+#include "indexlib/index/common/Types.h"
+#include "indexlib/index/inverted_index/config/AdaptiveDictionaryConfig.h"
+#include "indexlib/index/summary/Constant.h"
+#include "indexlib/index/util/reclaim_map.h"
+#include "indexlib/index/util/segment_directory_base.h"
+#include "indexlib/index_base/index_meta/parallel_merge_item.h"
+#include "indexlib/index_base/index_meta/segment_info.h"
+#include "indexlib/index_base/index_meta/segment_merge_info.h"
 #include "indexlib/index_base/segment/segment_data.h"
+#include "indexlib/index_define.h"
+#include "indexlib/util/Exception.h"
 
 using namespace std;
 using namespace indexlib::config;

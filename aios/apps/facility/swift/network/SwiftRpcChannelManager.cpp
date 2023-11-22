@@ -32,12 +32,12 @@ namespace swift {
 namespace network {
 AUTIL_LOG_SETUP(swift, SwiftRpcChannelManager);
 
-SwiftRpcChannelManager::SwiftRpcChannelManager(uint32_t ioThreadName, uint32_t rpcSendQueueSize, uint32_t rpcTimeout)
+SwiftRpcChannelManager::SwiftRpcChannelManager(uint32_t ioThreadNum, uint32_t rpcSendQueueSize, uint32_t rpcTimeout)
     : _ownChannelManager(false)
     , _channelManager(NULL)
     , _transport(NULL)
     , _reserveTime(60 * 10 * 1000 * 1000) // 600s
-    , _ioThreadNum(ioThreadName)
+    , _ioThreadNum(ioThreadNum)
     , _rpcSendQueueSize(rpcSendQueueSize)
     , _rpcTimeout(rpcTimeout) {}
 

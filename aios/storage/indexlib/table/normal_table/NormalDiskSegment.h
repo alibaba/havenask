@@ -29,7 +29,7 @@ public:
     ~NormalDiskSegment();
 
 public:
-    size_t EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
+    std::pair<Status, size_t> EstimateMemUsed(const std::shared_ptr<config::ITabletSchema>& schema) override;
 
 private:
     std::pair<Status, std::vector<plain::DiskIndexerItem>>

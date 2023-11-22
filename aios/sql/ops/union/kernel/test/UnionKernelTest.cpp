@@ -63,7 +63,7 @@ private:
             _matchDocUtil.extendMatchDocAllocator(_allocator, docs, "b", {"b1", "b2", "b3", "b4"}));
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<char>(
             _allocator, docs, "c", {{'c', '1'}, {'2'}, {'3'}, {'4'}}));
-        _table.reset(new Table(docs, _allocator));
+        _table = Table::fromMatchDocs(docs, _allocator);
     }
 
     void prepareTableOther() {
@@ -76,7 +76,7 @@ private:
             _allocatorOther, docs, "b", {"b1", "b2", "b3", "b4"}));
         ASSERT_NO_FATAL_FAILURE(_matchDocUtil.extendMultiValueMatchDocAllocator<char>(
             _allocatorOther, docs, "c", {{'c', '1'}, {'2'}, {'3'}, {'4'}}));
-        _tableOther.reset(new Table(docs, _allocatorOther));
+        _tableOther = Table::fromMatchDocs(docs, _allocatorOther);
     }
 
     KernelTesterPtr buildTester(KernelTesterBuilder &builder) {

@@ -20,7 +20,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "indexlib/file_system/ErrorCode.h"
 #include "indexlib/util/Exception.h"
+#include "indexlib/util/IoExceptionController.h"
 
 using namespace std;
 using namespace autil::mem_pool;

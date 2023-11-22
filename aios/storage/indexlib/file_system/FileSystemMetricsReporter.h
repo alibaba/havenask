@@ -15,15 +15,24 @@
  */
 #pragma once
 
+#include <map>
+#include <memory>
 #include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <utility>
 #include <vector>
 
+#include "autil/Lock.h"
 #include "autil/Log.h"
+#include "autil/TimeUtility.h"
 #include "indexlib/file_system/FileSystemDefine.h"
 #include "indexlib/util/metrics/Metric.h"
 #include "indexlib/util/metrics/MetricProvider.h"
+#include "indexlib/util/metrics/MetricReporter.h"
 #include "indexlib/util/metrics/Monitor.h"
 #include "indexlib/util/metrics/TaggedMetricReporterGroup.h"
+#include "kmonitor/client/core/MetricsTags.h"
 
 namespace indexlib { namespace file_system {
 class FileSystemMetrics;

@@ -1,13 +1,21 @@
 package com.taobao.search.iquan.core.rel.ops.physical;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
 import com.google.common.collect.ImmutableList;
 import com.taobao.search.iquan.core.api.common.IquanErrorCode;
 import com.taobao.search.iquan.core.api.config.IquanConfigManager;
 import com.taobao.search.iquan.core.api.exception.SqlQueryException;
 import com.taobao.search.iquan.core.api.schema.Distribution;
 import com.taobao.search.iquan.core.api.schema.HashValues;
+import com.taobao.search.iquan.core.api.schema.IquanTable;
 import com.taobao.search.iquan.core.api.schema.Location;
-import com.taobao.search.iquan.core.api.schema.Table;
 import com.taobao.search.iquan.core.catalog.GlobalCatalog;
 import com.taobao.search.iquan.core.common.ConstantDefine;
 import com.taobao.search.iquan.core.rel.plan.PlanWriteUtils;
@@ -33,31 +41,24 @@ import org.apache.commons.lang3.tuple.MutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
 public interface IquanRelNode extends RelNode {
-
     String getName();
 
     default Location getLocation() {
         return null;
     }
 
-    default void setLocation(Location location) {}
+    default void setLocation(Location location) {
+    }
 
     default Distribution getOutputDistribution() {
         return null;
     }
 
-    default void setOutputDistribution(Distribution distribution) {}
+    default void setOutputDistribution(Distribution distribution) {
+    }
 
-    default IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, String dbName, IquanConfigManager config) {
+    default IquanRelNode deriveDistribution(List<RelNode> inputs, GlobalCatalog catalog, IquanConfigManager config) {
         return null;
     }
 
@@ -86,6 +87,7 @@ public interface IquanRelNode extends RelNode {
 
     /**
      * only for collect desired information
+     *
      * @param shuttle
      */
     default void acceptForTraverse(RexShuttle shuttle) {
@@ -117,7 +119,7 @@ public interface IquanRelNode extends RelNode {
             Location location = iquanRelNode.getLocation();
             if (location != null) {
                 Map<String, Object> locationMeta = new TreeMap<>();
-                locationMeta.put(ConstantDefine.TABLE_GROUP_NAME, location.getTableGroupName());
+                locationMeta.put(ConstantDefine.NODE_NAME, location.getNodeName());
                 locationMeta.put(ConstantDefine.PARTITION_CNT, location.getPartitionCnt());
                 map.put(ConstantDefine.LOCATION, locationMeta);
             }
@@ -232,7 +234,7 @@ public interface IquanRelNode extends RelNode {
             }
         }
         for (int i = 0; i < projectList.size(); i++) {
-            RexLocalRef projectRef =  projectList.get(i);
+            RexLocalRef projectRef = projectList.get(i);
             if (exprList.get(projectRef.getIndex()) instanceof RexInputRef) {
                 RelDataType srcType = fields.get(projectRef.getIndex()).getType();
                 if (!srcType.equals(projectRef.getType())) {
@@ -260,7 +262,7 @@ public interface IquanRelNode extends RelNode {
                 mergedProgram);
     }
 
-    default IquanRelNode derivePendingUnion(IquanUnionOp pendingUnion, GlobalCatalog globalCatalog, String dbName, IquanConfigManager config) {
+    default IquanRelNode derivePendingUnion(IquanUnionOp pendingUnion, GlobalCatalog globalCatalog, IquanConfigManager config) {
         List<Triple<Location, Distribution, List<RelNode>>> locationList = pendingUnion.getLocationList();
         List<RelNode> newInputs = new ArrayList<>(locationList.size());
         IquanRelNode iquanRelNode;
@@ -290,7 +292,7 @@ public interface IquanRelNode extends RelNode {
                 }
             }
             iquanRelNode = (IquanRelNode) this.copy(getTraitSet(), inputs);
-            newInputs.add(iquanRelNode.deriveDistribution(inputs, globalCatalog, dbName, config));
+            newInputs.add(iquanRelNode.deriveDistribution(inputs, globalCatalog, config));
         }
         List<Triple<Location, Distribution, List<RelNode>>> outputLocationList = new ArrayList<>(locationList.size());
         IquanUnionOp finalUnion = new IquanUnionOp(
@@ -300,25 +302,25 @@ public interface IquanRelNode extends RelNode {
                 pendingUnion.all,
                 outputLocationList
         );
-        return finalUnion.deriveDistribution(newInputs, globalCatalog, dbName, config);
+        return finalUnion.deriveDistribution(newInputs, globalCatalog, config);
     }
 
     default int getLocationIndex(IquanRelNode iquanRelNode,
-                                            Pair<Table, HashValues> tableAndHashValues,
-                                            List<Triple<Location, Distribution, List<RelNode>>> locationList,
-                                            List<String> locationPartitionIdsList,
-                                            List<Map<Table, HashValues>> locationTableHashValuesList) {
+                                 Pair<IquanTable, HashValues> tableAndHashValues,
+                                 List<Triple<Location, Distribution, List<RelNode>>> locationList,
+                                 List<String> locationPartitionIdsList,
+                                 List<Map<IquanTable, HashValues>> locationTableHashValuesList) {
         String curAssignedPartitionIds = null;
-        Table curTable = null;
+        IquanTable curIquanTable = null;
         if (tableAndHashValues != null) {
             curAssignedPartitionIds = tableAndHashValues.getRight().getAssignedPartitionIds();
-            curTable = tableAndHashValues.getLeft();
+            curIquanTable = tableAndHashValues.getLeft();
         }
         TreeMap<Integer, Integer> priorityIndexMap = new TreeMap<>();
         int priority1 = 1, priority2 = 2, priority3 = 3, priority4 = 4;
         for (int index = 0; index < locationList.size(); index++) {
             Triple<Location, Distribution, List<RelNode>> triple = locationList.get(index);
-            Map<Table, HashValues> tableHashValuesMap = locationTableHashValuesList.get(index);
+            Map<IquanTable, HashValues> tableHashValuesMap = locationTableHashValuesList.get(index);
             String partitionIds = locationPartitionIdsList.get(index);
             if (!triple.getLeft().equals(iquanRelNode.getLocation())) {
                 continue;
@@ -327,7 +329,7 @@ public interface IquanRelNode extends RelNode {
                 priorityIndexMap.put(priority1, index);
                 continue;
             }
-            if ((curTable != null) && tableHashValuesMap.containsKey(curTable)) {
+            if ((curIquanTable != null) && tableHashValuesMap.containsKey(curIquanTable)) {
                 priorityIndexMap.put(priority2, index);
                 continue;
             }
@@ -345,7 +347,7 @@ public interface IquanRelNode extends RelNode {
 
     default int analyzeInputs(List<Triple<Location, Distribution, List<RelNode>>> locationList, List<RelNode> inputs) {
         locationList.clear();
-        List<Map<Table, HashValues>> locationTableHashValuesList = new ArrayList<>();
+        List<Map<IquanTable, HashValues>> locationTableHashValuesList = new ArrayList<>();
         List<String> locationPartitionIdsList = new ArrayList<>();
         List<RelNode> pendingUnionInputs = new ArrayList<>();
         for (RelNode input : inputs) {
@@ -373,8 +375,8 @@ public interface IquanRelNode extends RelNode {
     default void processInput(IquanRelNode iquanRelNode,
                               List<Triple<Location, Distribution, List<RelNode>>> locationList,
                               List<String> locationPartitionIdsList,
-                              List<Map<Table, HashValues>> locationTableHashValuesList) {
-        Pair<Table, HashValues> tableAndHashValues = getTableAndHashValues(iquanRelNode);
+                              List<Map<IquanTable, HashValues>> locationTableHashValuesList) {
+        Pair<IquanTable, HashValues> tableAndHashValues = getTableAndHashValues(iquanRelNode);
         int index = getLocationIndex(iquanRelNode, tableAndHashValues,
                 locationList, locationPartitionIdsList, locationTableHashValuesList);
         if (index == -1) {
@@ -384,7 +386,7 @@ public interface IquanRelNode extends RelNode {
                     (MutableTriple<Location, Distribution, List<RelNode>>) locationList.get(index);
             Distribution comDistribution = new Distribution.Builder(RelDistribution.Type.ANY, Distribution.EMPTY).build();
             String partitionIds = locationPartitionIdsList.get(index);
-            Map<Table, HashValues> tableHashValuesMap = locationTableHashValuesList.get(index);
+            Map<IquanTable, HashValues> tableHashValuesMap = locationTableHashValuesList.get(index);
             if (canShareOld(iquanRelNode, tableAndHashValues, oldLocationTriple.middle, comDistribution, partitionIds, tableHashValuesMap)) {
                 oldLocationTriple.middle = comDistribution;
                 oldLocationTriple.right.add(iquanRelNode);
@@ -395,15 +397,15 @@ public interface IquanRelNode extends RelNode {
     }
 
     default void addNewLocationTriple(IquanRelNode iquanRelNode,
-                                      Pair<Table, HashValues> tableAndHashValues,
+                                      Pair<IquanTable, HashValues> tableAndHashValues,
                                       List<Triple<Location, Distribution, List<RelNode>>> locationList,
                                       List<String> locationPartitionIdsList,
-                                      List<Map<Table, HashValues>> locationTableHashValuesList) {
+                                      List<Map<IquanTable, HashValues>> locationTableHashValuesList) {
         List<RelNode> inputList = new ArrayList<>();
         inputList.add(iquanRelNode);
         locationList.add(MutableTriple.of(iquanRelNode.getLocation(), iquanRelNode.getOutputDistribution(), inputList));
         String partitionIds = null;
-        Map<Table, HashValues> tableHashValuesMap = new HashMap<>();
+        Map<IquanTable, HashValues> tableHashValuesMap = new HashMap<>();
         if ((tableAndHashValues != null)) {
             HashValues hashValues = tableAndHashValues.getRight();
             tableHashValuesMap.put(tableAndHashValues.getLeft(), hashValues.copy());
@@ -413,21 +415,21 @@ public interface IquanRelNode extends RelNode {
         locationTableHashValuesList.add(tableHashValuesMap);
     }
 
-    default Pair<Table, HashValues> getTableAndHashValues(IquanRelNode iquanRelNode) {
+    default Pair<IquanTable, HashValues> getTableAndHashValues(IquanRelNode iquanRelNode) {
         TableScan tableScan = RelDistributionUtil.getBottomScan(iquanRelNode);
         if (!(tableScan instanceof IquanTableScanBase)) {
             return null;
         }
         IquanTableScanBase scanBase = (IquanTableScanBase) tableScan;
-        Table table = IquanRelOptUtils.getIquanTable(scanBase.getTable());
+        IquanTable iquanTable = IquanRelOptUtils.getIquanTable(scanBase.getTable());
         RexProgram rexProgram = scanBase.getNearestRexProgram();
-        PlanWriteUtils.getTableScanHashValues(table.getDistribution(), scanBase, rexProgram);
-        return Pair.of(table, scanBase.getHashValues());
+        PlanWriteUtils.getTableScanHashValues(iquanTable.getDistribution(), scanBase, rexProgram);
+        return Pair.of(iquanTable, scanBase.getHashValues());
     }
 
-    default boolean canShareOld(IquanRelNode iquanRelNode, Pair<Table, HashValues> tableAndHashValues,
+    default boolean canShareOld(IquanRelNode iquanRelNode, Pair<IquanTable, HashValues> tableAndHashValues,
                                 Distribution oldDistribution, Distribution comDistribution,
-                                String partitionIds, Map<Table, HashValues> tableHashValuesMap) {
+                                String partitionIds, Map<IquanTable, HashValues> tableHashValuesMap) {
         if (!canMergeHashValues(tableAndHashValues, partitionIds, tableHashValuesMap)) {
             return false;
         }
@@ -476,7 +478,7 @@ public interface IquanRelNode extends RelNode {
         return true;
     }
 
-    default boolean canMergeHashValues(Pair<Table, HashValues> tableAndHashValues, String partitionIds, Map<Table, HashValues> tableHashValuesMap) {
+    default boolean canMergeHashValues(Pair<IquanTable, HashValues> tableAndHashValues, String partitionIds, Map<IquanTable, HashValues> tableHashValuesMap) {
         if ((tableAndHashValues == null) || tableHashValuesMap.isEmpty()) {
             return true;
         }

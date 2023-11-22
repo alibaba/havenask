@@ -26,6 +26,7 @@ class VersionSynchronizer;
 class RollbackVersionSelector {
 public:
     RollbackVersionSelector(VersionSynchronizer *versionSynchronizer,
+                            const std::string &remoteConfigPath,
                             const std::string &rawIndexRoot,
                             const PartitionId &pid);
     ~RollbackVersionSelector();
@@ -46,5 +47,6 @@ private:
     VersionSynchronizer *_versionSynchronizer;
     std::string _partitionRoot;
     PartitionId _pid;
+    std::string _remoteConfigPath;
 };
 } // namespace suez

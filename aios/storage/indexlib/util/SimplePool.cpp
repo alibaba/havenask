@@ -15,6 +15,9 @@
  */
 #include "indexlib/util/SimplePool.h"
 
+#include <cstddef>
+#include <new>
+
 using namespace std;
 
 namespace indexlib { namespace util {

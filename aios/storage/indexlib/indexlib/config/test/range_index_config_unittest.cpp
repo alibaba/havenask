@@ -10,7 +10,7 @@ using namespace autil::legacy::json;
 using namespace indexlib::util;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, RangeIndexConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, RangeIndexConfigTest);
 
 RangeIndexConfigTest::RangeIndexConfigTest() {}
 
@@ -25,7 +25,7 @@ void RangeIndexConfigTest::TestSimpleProcess()
     mSchema = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "range_index_schema.json");
     IndexConfigPtr indexConfig = mSchema->GetIndexSchema()->GetIndexConfig("range_index");
     ASSERT_TRUE(indexConfig);
-    RangeIndexConfigPtr rangeConfig = DYNAMIC_POINTER_CAST(RangeIndexConfig, indexConfig);
+    RangeIndexConfigPtr rangeConfig = std::dynamic_pointer_cast<RangeIndexConfig>(indexConfig);
     ASSERT_EQ(of_none, rangeConfig->GetOptionFlag());
     string strSchema = ToJsonString(mSchema);
     Any any = ParseJson(strSchema);
@@ -36,7 +36,7 @@ void RangeIndexConfigTest::TestSimpleProcess()
     mSchema = SchemaLoader::LoadSchema(GET_PRIVATE_TEST_DATA_PATH(), "range_index_multi_value_schema.json");
     indexConfig = mSchema->GetIndexSchema()->GetIndexConfig("range_index");
     ASSERT_TRUE(indexConfig);
-    rangeConfig = DYNAMIC_POINTER_CAST(RangeIndexConfig, indexConfig);
+    rangeConfig = std::dynamic_pointer_cast<RangeIndexConfig>(indexConfig);
     ASSERT_EQ(of_none, rangeConfig->GetOptionFlag());
 
     FieldConfigPtr fieldConfig = rangeConfig->GetFieldConfig();

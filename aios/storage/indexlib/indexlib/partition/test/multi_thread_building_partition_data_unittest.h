@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_MULTITHREADBUILDINGPARTITIONDATATEST_H
-#define __INDEXLIB_MULTITHREADBUILDINGPARTITIONDATATEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/partition/building_partition_data.h"
@@ -36,5 +35,3 @@ private:
 // TODO:
 // INDEXLIB_UNIT_TEST_CASE(MultiThreadBuildingPartitionDataTest, TestSimpleProcess);
 }} // namespace indexlib::partition
-
-#endif //__INDEXLIB_MULTITHREADBUILDINGPARTITIONDATATEST_H

@@ -129,7 +129,7 @@ QueryPtr QueryParser::DoParse(const std::string& queryString, IndexPartitionRead
 QueryPtr QueryParser::CreateSourceQuery(const string& groupIdString, const string& indexName, const string& termString,
                                         InvertedIndexReaderPtr reader, mem_pool::Pool* pool)
 {
-    groupid_t groupId;
+    sourcegroupid_t groupId;
     if (!StringUtil::fromString(groupIdString, groupId)) {
         IE_LOG(ERROR, "given groupId[%s] should be int32 number", groupIdString.c_str());
         return QueryPtr();

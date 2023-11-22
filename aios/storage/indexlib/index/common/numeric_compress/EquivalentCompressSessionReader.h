@@ -126,7 +126,7 @@ private:
     inline future_lite::Future<std::pair<Status, int32_t>>
     PrepareSlotItems(int32_t beginPos, int32_t endPos, indexlib::file_system::ReadOption readOption) __ALWAYS_INLINE;
     inline bool AppendToCurrentReadBatch(int32_t pos) __ALWAYS_INLINE;
-    inline future_lite::Future<size_t>
+    inline future_lite::Future<std::pair<Status, size_t>>
     FetchCurrentReadBatch(indexlib::file_system::ReadOption readOption) __ALWAYS_INLINE;
 
     T GetValueFromBuffer(size_t rowId) __ALWAYS_INLINE;
@@ -336,9 +336,10 @@ EquivalentCompressSessionReader<T>::PrepareSlotItems(int32_t beginPos, int32_t e
     return _slotFileStream
         ->ReadAsync(GetSlotBuffer(), sizeof(SlotType) * bufferedSlotItemCount,
                     _fileContent.slotBaseOffset + _beginSlotId * sizeof(SlotType), readOption)
-        .thenValue([this](size_t) mutable {
+        .thenValue([this](file_system::FSResult<size_t>&& ret) mutable {
+            RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), int32_t(0)), "ReadAsync failed");
             _lastReadRange = {-1, -1};
-            return future_lite::makeReadyFuture(std::make_pair(Status::OK(), int32_t(_endSlotId)));
+            return std::make_pair(Status::OK(), int32_t(_endSlotId));
         });
 }
 template <typename T>
@@ -362,8 +363,8 @@ inline std::pair<Status, T> EquivalentCompressSessionReader<T>::operator[](size_
         return std::make_pair(Status::Corruption("append to current batch failed"), T());
     }
 
-    size_t readSize = FetchCurrentReadBatch(readOption).get();
-    if (readSize < 0) {
+    auto [status, readSize] = FetchCurrentReadBatch(readOption).get();
+    if (!status.IsOK()) {
         AUTIL_LOG(ERROR, "Bad read rowId [%zu] for file with itemCount[%u]", rowId, _fileContent.itemCount);
         return std::make_pair(Status::Corruption("fetch current batch failed"), T());
     }
@@ -493,7 +494,9 @@ EquivalentCompressSessionReader<T>::BatchReadDeltaArray(const std::vector<int32_
             }
             return FetchCurrentReadBatch(readOption)
                 .thenValue([this, &indiceVec, beginIndice, nextBeginIndice, endIndice, depth, &resultBuffer,
-                            readOption](size_t readSize) mutable {
+                            readOption](std::pair<Status, size_t>&& ret) mutable {
+                    // FIXME: 不应抛异常；暂保持行为一致
+                    THROW_IF_STATUS_ERROR(ret.first);
                     for (auto i = beginIndice; i < nextBeginIndice; i++) {
                         if (indiceVec[i] == -1) {
                             continue;
@@ -904,7 +907,7 @@ inline future_lite::coro::Lazy<indexlib::index::ErrorCodeVec> EquivalentCompress
 }
 
 template <typename T>
-inline future_lite::Future<size_t>
+inline future_lite::Future<std::pair<Status, size_t>>
 EquivalentCompressSessionReader<T>::FetchCurrentReadBatch(indexlib::file_system::ReadOption readOption)
 {
     // precondition, deltaArrayBuffer has already been allocated
@@ -917,19 +920,20 @@ EquivalentCompressSessionReader<T>::FetchCurrentReadBatch(indexlib::file_system:
                 std::min((int64_t)_fileContent.itemCount, GetBeginRowIdInSlot(_currentBatch.lastSlotId + 1));
         }
         _currentBatch.Reset();
-        return future_lite::makeReadyFuture(size_t(0));
+        return future_lite::makeReadyFuture(std::make_pair(Status::OK(), size_t(0)));
     }
 
     return _fileStream
         ->ReadAsync(GetDeltaArrayBuffer(), _currentBatch.end - _currentBatch.begin,
                     _fileContent.valueBaseOffset + _currentBatch.begin, readOption)
-        .thenValue([this](size_t readSize) {
+        .thenValue([this](file_system::FSResult<size_t>&& ret) {
+            RETURN_RESULT_IF_FS_ERROR(ret.Code(), std::make_pair(ret.Status(), size_t(0)), "ReadAsync failed");
             _ioBufferOffset = _currentBatch.begin;
             _lastReadRange.first = GetBeginRowIdInSlot(_currentBatch.beginSlotId);
             _lastReadRange.second =
                 std::min((int64_t)(_fileContent.itemCount), GetBeginRowIdInSlot(_currentBatch.lastSlotId + 1));
             _currentBatch.Reset();
-            return future_lite::makeReadyFuture(size_t(readSize));
+            return std::make_pair(Status::OK(), size_t(ret.Value()));
         });
 }
 

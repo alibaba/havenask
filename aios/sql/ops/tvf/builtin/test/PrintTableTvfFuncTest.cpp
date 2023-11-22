@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "iquan/common/catalog/TvfFunctionModel.h"
+#include "iquan/common/catalog/FunctionModel.h"
 #include "matchdoc/MatchDoc.h"
 #include "matchdoc/MatchDocAllocator.h"
 #include "matchdoc/VectorDocStorage.h"
@@ -40,9 +40,7 @@ TablePtr PrintTableTvfFuncTest::prepareInputTable(vector<int32_t> value) {
     MatchDocAllocatorPtr allocator(new matchdoc::MatchDocAllocator(_poolPtr));
     vector<MatchDoc> docs = allocator->batchAllocate(value);
     _matchDocUtil.extendMatchDocAllocator<int32_t>(allocator, docs, "id", value);
-    TablePtr table;
-    table.reset(new Table(docs, allocator));
-    return table;
+    return Table::fromMatchDocs(docs, allocator);
 }
 
 TEST_F(PrintTableTvfFuncTest, testInit) {
@@ -83,9 +81,9 @@ TEST_F(PrintTableTvfFuncTest, testCompute) {
 
 TEST_F(PrintTableTvfFuncTest, testRegTvfModels) {
     PrintTableTvfFuncCreator creator;
-    iquan::TvfModels tvfModels;
+    std::vector<iquan::FunctionModel> tvfModels;
     ASSERT_TRUE(creator.regTvfModels(tvfModels));
-    ASSERT_EQ(1, tvfModels.functions.size());
+    ASSERT_EQ(1, tvfModels.size());
 }
 
 } // namespace sql

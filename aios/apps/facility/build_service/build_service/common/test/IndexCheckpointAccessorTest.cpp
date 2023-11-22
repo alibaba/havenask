@@ -1,7 +1,11 @@
 #include "build_service/common/IndexCheckpointAccessor.h"
 
+#include <iosfwd>
+
 #include "build_service/common/CheckpointAccessor.h"
+#include "build_service/proto/Heartbeat.pb.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace std;
 using namespace testing;

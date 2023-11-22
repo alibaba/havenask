@@ -44,7 +44,7 @@ bool LineDataDocumentParser::DoInit()
 
 DocumentPtr LineDataDocumentParser::Parse(const IndexlibExtendDocumentPtr& extendDoc)
 {
-    const RawDocumentPtr& rawDoc = extendDoc->getRawDocument();
+    const RawDocumentPtr& rawDoc = extendDoc->GetRawDocument();
     if (!rawDoc) {
         IE_LOG(ERROR, "empty raw document!");
         return DocumentPtr();
@@ -67,7 +67,7 @@ DocumentPtr LineDataDocumentParser::Parse(const IndexlibExtendDocumentPtr& exten
     // attention: make binary_version=8 document not used for docTrace,
     // atomicly serialize to version6, to make online compitable
     // remove this code when binary version 6 is useless
-    if (!extendDoc->getRawDocument()->NeedTrace() && indexDoc->GetSerializedVersion() == 8) {
+    if (!extendDoc->GetRawDocument()->NeedTrace() && indexDoc->GetSerializedVersion() == 8) {
         indexDoc->SetSerializedVersion(6);
     }
     return indexDoc;

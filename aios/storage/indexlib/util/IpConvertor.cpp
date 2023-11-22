@@ -15,6 +15,10 @@
  */
 #include "indexlib/util/IpConvertor.h"
 
+#include <memory>
+#include <stdio.h>
+#include <vector>
+
 #include "autil/StringUtil.h"
 
 namespace indexlibv2::util {

@@ -14,8 +14,10 @@ namespace indexlibv2::document {
 class IDocumentBatch;
 }
 namespace indexlibv2::index {
-struct IndexerParameter;
-}
+struct DiskIndexerParameter;
+struct MemIndexerParameter;
+struct IndexReaderParameter;
+} // namespace indexlibv2::index
 
 namespace indexlibv2::framework {
 class TabletData;
@@ -65,13 +67,15 @@ public:
     std::vector<std::shared_ptr<indexlibv2::config::IIndexConfig>> GetIndexConfigs() const;
     std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>> GetFieldConfigs() const;
     const indexlibv2::config::MutableJson& GetRuntimeSettings() const;
-    const std::shared_ptr<indexlibv2::index::IndexerParameter>& GetIndexerParameter() const;
+    const std::shared_ptr<indexlibv2::index::MemIndexerParameter>& GetMemIndexerParameter() const;
+    const std::shared_ptr<indexlibv2::index::DiskIndexerParameter>& GetIndexerParameter() const;
+    const std::shared_ptr<indexlibv2::index::IndexReaderParameter>& GetIndexReaderParameter() const;
 
     std::vector<std::shared_ptr<indexlibv2::config::IIndexConfig>>& MutableIndexConfigs();
     std::vector<std::shared_ptr<indexlibv2::config::FieldConfig>>& MutableFieldConfigs();
     indexlib::util::JsonMap& MutableSettings();
     indexlibv2::config::MutableJson& MutableRuntimeSettings();
-    const std::shared_ptr<indexlibv2::index::IndexerParameter>& MutableIndexerParameter();
+    const std::shared_ptr<indexlibv2::index::DiskIndexerParameter>& MutableIndexerParameter();
 
 protected:
     virtual void DoInit() = 0;

@@ -1,5 +1,4 @@
-#ifndef ISEARCH_BS_MOCKWORKERNODE_H
-#define ISEARCH_BS_MOCKWORKERNODE_H
+#pragma once
 
 #include "build_service/config/ConfigDefine.h"
 #include "build_service/proto/WorkerNode.h"
@@ -34,11 +33,13 @@ public:
     MOCK_CONST_METHOD0(getCurrentStatusStr, std::string());
     // MOCK_CONST_METHOD0(getWorkerProtocolVersion, int32_t);
     MOCK_METHOD1(setSlotInfo, void(const PBSlotInfos&));
+    MOCK_CONST_METHOD1(getSlotInfo, void(PBSlotInfos&));
     MOCK_METHOD0(changeSlots, void());
     MOCK_METHOD1(getToReleaseSlots, bool(PBSlotInfos&));
     MOCK_CONST_METHOD0(getCurrentIdentifier, std::string());
     MOCK_CONST_METHOD0(getTargetStatusJsonStr, std::string());
     MOCK_CONST_METHOD0(getCurrentStatusJsonStr, std::string());
+    MOCK_CONST_METHOD0(getWorkerStatus, std::string());
 
     int32_t getWorkerProtocolVersion() const override { return UNKNOWN_WORKER_PROTOCOL_VERSION; }
     std::string getWorkerConfigPath() const override { return ""; }
@@ -60,5 +61,3 @@ typedef ::testing::StrictMock<MockWorkerNode> StrictMockWorkerNode;
 typedef ::testing::NiceMock<MockWorkerNode> NiceMockWorkerNode;
 
 }} // namespace build_service::admin
-
-#endif // ISEARCH_BS_MOCKWORKERNODE_H

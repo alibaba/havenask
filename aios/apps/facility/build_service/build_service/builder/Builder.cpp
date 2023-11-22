@@ -15,15 +15,38 @@
  */
 #include "build_service/builder/Builder.h"
 
+#include <assert.h>
+#include <iosfwd>
+#include <stdio.h>
+
+#include "alog/Logger.h"
+#include "autil/CommonMacros.h"
 #include "autil/EnvUtil.h"
+#include "autil/Span.h"
+#include "autil/TimeUtility.h"
+#include "beeper/beeper.h"
+#include "beeper/common/common_type.h"
+#include "build_service/common/BeeperCollectorDefine.h"
 #include "build_service/common/PeriodDocCounter.h"
 #include "build_service/common/PkTracer.h"
-#include "build_service/proto/ProtoUtil.h"
-#include "build_service/util/Monitor.h"
+#include "build_service/proto/Heartbeat.pb.h"
+#include "build_service/util/ErrorLogCollector.h"
+#include "indexlib/config/attribute_config.h"
+#include "indexlib/config/attribute_schema.h"
 #include "indexlib/config/build_config.h"
+#include "indexlib/config/build_config_base.h"
+#include "indexlib/config/index_partition_schema.h"
+#include "indexlib/config/load_config_list.h"
+#include "indexlib/document/index_document/normal_document/attribute_document.h"
 #include "indexlib/document/index_document/normal_document/normal_document.h"
+#include "indexlib/document/index_locator.h"
+#include "indexlib/document/normal/AttributeDocument.h"
+#include "indexlib/index_base/branch_fs.h"
 #include "indexlib/misc/doc_tracer.h"
+#include "indexlib/partition/builder_branch_hinter.h"
 #include "indexlib/partition/index_partition.h"
+#include "indexlib/util/ErrorLogCollector.h"
+#include "indexlib/util/Exception.h"
 #include "indexlib/util/counter/AccumulativeCounter.h"
 #include "indexlib/util/counter/CounterMap.h"
 #include "indexlib/util/counter/StateCounter.h"
@@ -234,7 +257,7 @@ bool Builder::tryDump()
             return false;
         }
 
-        BEEPER_REPORT(INDEXLIB_BUILD_INFO_COLLECTOR_NAME,
+        BEEPER_REPORT(indexlib::INDEXLIB_BUILD_INFO_COLLECTOR_NAME,
                       "Builder tryDump: memory_prefer processor needUpdateCommitedCheckpoint, "
                       "but builder read no more msg over no_more_msg_period.");
 

@@ -15,8 +15,13 @@
  */
 #include "build_service/admin/AdminMetricsReporter.h"
 
+#include <cstddef>
+#include <memory>
+#include <string>
+
 #include "autil/EnvUtil.h"
 #include "build_service/util/Monitor.h"
+#include "kmonitor/client/MetricLevel.h"
 
 using namespace std;
 

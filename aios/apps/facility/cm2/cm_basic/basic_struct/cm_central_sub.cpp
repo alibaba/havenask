@@ -49,33 +49,6 @@ int32_t CMCentralSub::updateClusterNodeStatus(const std::string& cluster_name, N
     return 0;
 }
 
-int32_t CMCentralSub::updateClusterNodeLBInfo(const std::string& cluster_name, NodeLBInfoVec* lb_info_vec)
-{
-    if (unlikely(NULL == lb_info_vec)) {
-        return -1;
-    }
-    auto cluster_wrapper = getClusterWrapper(cluster_name);
-    if (unlikely(cluster_wrapper == nullptr)) {
-        return -1;
-    }
-    // 集群内部节点数量 与 更新信息的节点数量不相等
-    auto node_list = cluster_wrapper->getNodeList();
-    if (node_list.size() != lb_info_vec->lb_info_vec_size()) {
-        return -1;
-    }
-    for (uint32_t i = 0; i < node_list.size(); i++) {
-        node_list[i]->setLBInfo(lb_info_vec->lb_info_vec(i));
-    }
-
-    if (node_list.size() != lb_info_vec->meta_info_vec_size()) {
-        return 0;
-    }
-    for (uint32_t i = 0; i < node_list.size(); i++) {
-        node_list[i]->setMetaInfo(lb_info_vec->meta_info_vec(i));
-    }
-    return 0;
-}
-
 RespStatus CMCentralSub::updateCluster(CMCluster* p_cm_cluster)
 {
     if (unlikely(NULL == p_cm_cluster)) {
@@ -114,31 +87,6 @@ int32_t CMCentralSub::getClusterNodeStatus(const std::string& cluster_name, Node
             status_vec->add_node_status_vec(NS_UNVALID);
         }
         status_vec->add_node_online_status(node->getOnlineStatus());
-    }
-    return 0;
-}
-
-int32_t CMCentralSub::getClusterNodeLBInfo(const std::string& cluster_name, NodeLBInfoVec*& lb_info_vec)
-{
-    auto cluster_wrapper = getClusterWrapper(cluster_name);
-    if (unlikely(cluster_wrapper == nullptr)) {
-        return -1;
-    }
-    lb_info_vec = new NodeLBInfoVec();
-    assert(lb_info_vec != NULL);
-
-    auto node_list = cluster_wrapper->getNodeList();
-    for (auto& node : node_list) {
-        if (node->hasLBInfo() == true) {
-            lb_info_vec->add_lb_info_vec()->CopyFrom(node->getLBInfo());
-        } else {
-            lb_info_vec->add_lb_info_vec();
-        }
-        if (node->hasMetaInfo() == true) {
-            lb_info_vec->add_meta_info_vec()->CopyFrom(node->getMetaInfo());
-        } else {
-            lb_info_vec->add_meta_info_vec();
-        }
     }
     return 0;
 }

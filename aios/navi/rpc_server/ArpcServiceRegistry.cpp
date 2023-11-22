@@ -70,7 +70,16 @@ bool ArpcServiceRegistry::init(const ArpcRegistryParam &param) {
         return false;
     }
     _param = param;
+    initHttpAliasMap();
     return true;
+}
+
+void ArpcServiceRegistry::initHttpAliasMap() {
+    const auto &arpcParam = _param.arpcParam;
+    auto httpPath = "/" + GetDescriptor()->name() + "/" + arpcParam.method;
+    for (const auto &alias : arpcParam.httpAliasVec) {
+        _httpAliasMap[alias] = httpPath;
+    }
 }
 
 const google::protobuf::ServiceDescriptor *ArpcServiceRegistry::GetDescriptor() {
@@ -113,7 +122,16 @@ void ArpcServiceRegistry::runGraph(
 {
     const auto &methodName = _param.arpcParam.method;
     const auto &graphParam = _param.graphParam;
-    auto requestData = std::make_shared<NaviArpcRequestData>(controller, request, done, methodName);
+    std::string clientIp;
+    auto gigController =
+        dynamic_cast<multi_call::GigRpcController *>(controller);
+    if (gigController) {
+        clientIp = gigController->getClientIp();
+    } else {
+        clientIp = "unknown";
+    }
+    auto requestData =
+        std::make_shared<NaviArpcRequestData>(request, nullptr, methodName, clientIp);
     RunGraphParams runGraphParams = graphParam.params;
     NamedData namedRequest;
     namedRequest.name = graphParam.requestDataName;
@@ -127,6 +145,13 @@ void ArpcServiceRegistry::runGraph(
     auto graphDef = new GraphDef();
     graphDef->CopyFrom(graphParam.graph);
     auto closure = new ArpcGraphClosure(methodName, controller, response, done);
+    std::string debugParamStr;
+    closure->init(debugParamStr);
+    if (!debugParamStr.empty()) {
+        runGraphParams.setDebugParamStr(debugParamStr);
+        closure->setNeedDebug(true);
+        requestData->setAiosDebug(true);
+    }
     _snapshot->runGraphAsync(graphDef, runGraphParams, nullptr, closure);
 }
 

@@ -21,7 +21,9 @@
 #include "autil/Lock.h"
 #include "autil/LockFreeQueue.h"
 
-using RawDocQueue = std::shared_ptr<autil::LockFreeQueue<std::string>>;
+using RawDoc = std::pair<int64_t, std::string>;
+using RawDocQueue = std::shared_ptr<autil::LockFreeQueue<RawDoc>>;
+
 namespace suez {
 
 class GlobalQueueManager {

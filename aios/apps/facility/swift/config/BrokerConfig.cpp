@@ -179,8 +179,8 @@ void BrokerConfig::setTotalBufferSize(double value) {
         _totalBufferSize = int64_t(value * 1024 * 1024);
     }
 }
-int64_t BrokerConfig::getTotalBufferSize() { return _totalBufferSize; }
-int64_t BrokerConfig::getTotalFileBufferSize() { return (int64_t)(_totalBufferSize * fileBufferUseRatio); }
+int64_t BrokerConfig::getTotalBufferSize() const { return _totalBufferSize; }
+int64_t BrokerConfig::getTotalFileBufferSize() const { return (int64_t)(_totalBufferSize * fileBufferUseRatio); }
 
 int64_t BrokerConfig::getBrokerFileBufferSize() const {
     return (int64_t)((_totalBufferSize * fileBufferUseRatio) * (1 - fileMetaBufferUseRatio));

@@ -1,5 +1,13 @@
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "build_service/admin/taskcontroller/BuildinTaskControllerFactory.h"
+#include "build_service/admin/taskcontroller/TaskController.h"
+#include "build_service/config/AgentGroupConfig.h"
+#include "build_service/config/ConfigDefine.h"
 #include "build_service/test/unittest.h"
+#include "unittest/unittest.h"
 
 using namespace build_service::config;
 

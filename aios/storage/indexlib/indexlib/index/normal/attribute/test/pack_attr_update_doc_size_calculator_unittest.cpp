@@ -1,9 +1,9 @@
 #include "indexlib/index/normal/attribute/test/pack_attr_update_doc_size_calculator_unittest.h"
 
+#include "indexlib/config/test/schema_maker.h"
 #include "indexlib/index/normal/attribute/test/attribute_test_util.h"
 #include "indexlib/partition/partition_data_creator.h"
 #include "indexlib/test/partition_state_machine.h"
-#include "indexlib/test/schema_maker.h"
 #include "indexlib/util/test/build_test_util.h"
 
 using namespace std;
@@ -58,7 +58,7 @@ void PackAttrUpdateDocSizeCalculatorTest::TestEstimateUpdateDocSize()
     GET_FILE_SYSTEM()->TEST_MountLastVersion();
     OnDiskPartitionDataPtr partData = OnDiskPartitionData::CreateOnDiskPartitionData(GET_FILE_SYSTEM(), mSchema);
     PackAttrUpdateDocSizeCalculator calculator(partData, mSchema);
-    ASSERT_EQ(expectUpdateDocSize, calculator.EstimateUpdateDocSize(index_base::Version(INVALID_VERSION)));
+    ASSERT_EQ(expectUpdateDocSize, calculator.EstimateUpdateDocSize(index_base::Version(INVALID_VERSIONID)));
 
     // inc2 : update pk3, pk2/spk22
     string inc2Doc = "cmd=update_field,pk=pk2,id=22,sub_pk=spk22,sub_price=32,ts=3;"
@@ -74,7 +74,7 @@ void PackAttrUpdateDocSizeCalculatorTest::TestEstimateUpdateDocSize()
     ASSERT_EQ(expectUpdateDocSize, inc2Calculator.EstimateUpdateDocSize(lastLoadVersion));
 
     expectUpdateDocSize = 9 * 3 + 13 * 2;
-    ASSERT_EQ(expectUpdateDocSize, inc2Calculator.EstimateUpdateDocSize(index_base::Version(INVALID_VERSION)));
+    ASSERT_EQ(expectUpdateDocSize, inc2Calculator.EstimateUpdateDocSize(index_base::Version(INVALID_VERSIONID)));
 }
 
 void PackAttrUpdateDocSizeCalculatorTest::TestEstimateUpdateDocSizeInUnobseleteRtSeg()

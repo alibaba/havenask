@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_HASHPRIMARYKEYPERFTEST_H
-#define __INDEXLIB_HASHPRIMARYKEYPERFTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/index/normal/primarykey/hash_primary_key_formatter.h"
@@ -44,5 +43,3 @@ private:
 
 INDEXLIB_UNIT_TEST_CASE(HashPrimaryKeyPerfTest, TestSimpleProcess);
 }} // namespace indexlib::index
-
-#endif //__INDEXLIB_HASHPRIMARYKEYPERFTEST_H

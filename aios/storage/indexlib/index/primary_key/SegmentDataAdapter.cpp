@@ -25,7 +25,7 @@ namespace indexlibv2::index {
 void SegmentDataAdapter::Transform(const std::vector<framework::Segment*>& segments,
                                    std::vector<SegmentDataType>& segmentDatas)
 {
-    docid_t currentDocCount = 0;
+    docid64_t currentDocCount = 0;
     for (auto segment : segments) {
         if (0 == segment->GetSegmentInfo()->docCount) {
             continue;

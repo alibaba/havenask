@@ -60,7 +60,7 @@ class MultiValueAttributeDiskIndexer : public AttributeDiskIndexer
 {
 public:
     MultiValueAttributeDiskIndexer(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                                   const IndexerParameter& indexerParameter);
+                                   const DiskIndexerParameter& indexerParameter);
 
     ~MultiValueAttributeDiskIndexer() = default;
 
@@ -71,7 +71,7 @@ public:
         FieldType GetAttributeType() const override { return TypeInfo<T>::GetFieldType(); }
 
         std::unique_ptr<AttributeDiskIndexer> Create(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                                                     const IndexerParameter& indexerParam) const override
+                                                     const DiskIndexerParameter& indexerParam) const override
         {
             return std::make_unique<MultiValueAttributeDiskIndexer<T>>(attributeMetrics, indexerParam);
         }
@@ -114,6 +114,7 @@ public:
         return std::shared_ptr<ReadContextBase>(new ReadContext(CreateReadContext(pool)));
     }
     bool Read(docid_t docId, std::string* value, autil::mem_pool::Pool* pool) override;
+    bool ReadBinaryValue(docid_t docId, autil::StringView* value, autil::mem_pool::Pool* pool) override;
 
 public:
     inline bool Read(docid_t docId, autil::MultiValueType<T>& value, bool& isNull,
@@ -160,6 +161,7 @@ private:
     future_lite::coro::Lazy<std::vector<indexlib::index::Result<uint8_t*>>>
     BatchReadData(const std::vector<docid_t>& docIds, ReadContext& ctx,
                   indexlib::file_system::ReadOption readOption) const;
+    bool InnerRead(docid_t docId, autil::MultiValueType<T>* value, autil::mem_pool::Pool* pool, bool& isNull);
 
 public:
     uint32_t TEST_GetDataLength(docid_t docId, autil::mem_pool::Pool* pool) const override;
@@ -191,23 +193,56 @@ bool MultiValueAttributeDiskIndexer<T>::Read(docid_t docId, std::string* value, 
 {
     bool isNull = false;
     autil::MultiValueType<T> attrValue;
-    auto globalCtx = (ReadContext*)GetGlobalReadContext();
-    if (globalCtx) {
-        if (!Read(docId, attrValue, isNull, *globalCtx)) {
-            return false;
-        }
-    } else {
-        auto ctx = CreateReadContext(pool);
-        if (!Read(docId, attrValue, isNull, ctx)) {
-            return false;
-        }
+    if (!InnerRead(docId, &attrValue, pool, isNull)) {
+        return false;
     }
     return _fieldPrinter->Print(isNull, attrValue, value);
 }
 
 template <typename T>
+bool MultiValueAttributeDiskIndexer<T>::ReadBinaryValue(docid_t docId, autil::StringView* value,
+                                                        autil::mem_pool::Pool* pool)
+{
+    if (!pool) {
+        return false;
+    }
+    autil::MultiValueType<T> attrValue;
+    bool isNull = false;
+    if (!InnerRead(docId, &attrValue, pool, isNull)) {
+        return false;
+    }
+    uint32_t dataSize = attrValue.getDataSize();
+    if (dataSize == 0) {
+        *value = autil::StringView();
+        return true;
+    }
+    char* buf = (char*)pool->allocate(dataSize);
+    memcpy(buf, attrValue.getData(), dataSize);
+    *value = autil::StringView((const char*)buf, dataSize);
+    return true;
+}
+
+template <typename T>
+bool MultiValueAttributeDiskIndexer<T>::InnerRead(docid_t docId, autil::MultiValueType<T>* value,
+                                                  autil::mem_pool::Pool* pool, bool& isNull)
+{
+    auto globalCtx = (ReadContext*)GetGlobalReadContext();
+    if (globalCtx) {
+        if (!Read(docId, *value, isNull, *globalCtx)) {
+            return false;
+        }
+    } else {
+        auto ctx = CreateReadContext(pool);
+        if (!Read(docId, *value, isNull, ctx)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <typename T>
 MultiValueAttributeDiskIndexer<T>::MultiValueAttributeDiskIndexer(std::shared_ptr<AttributeMetrics> attributeMetrics,
-                                                                  const IndexerParameter& indexerParameter)
+                                                                  const DiskIndexerParameter& indexerParameter)
     : AttributeDiskIndexer(attributeMetrics, indexerParameter)
     , _docCount(0)
     , _data(nullptr)
@@ -255,7 +290,7 @@ Status MultiValueAttributeDiskIndexer<T>::Open(const std::shared_ptr<config::IIn
     SliceInfo sliceInfo(_attrConfig->GetSliceCount(), _attrConfig->GetSliceIdx());
     _docCount = sliceInfo.GetSliceDocCount(_indexerParam.docCount);
     if (!isExist) {
-        if (_indexerParam.readerOpenType == index::IndexerParameter::READER_DEFAULT_VALUE) {
+        if (_indexerParam.readerOpenType == index::DiskIndexerParameter::READER_DEFAULT_VALUE) {
             auto defaultValuePatch = std::make_shared<DefaultValueAttributePatch>();
             auto status = defaultValuePatch->Open(_attrConfig);
             RETURN_IF_STATUS_ERROR(status, "open defaultValuePatch [%s] failed", attrName.c_str());
@@ -286,13 +321,12 @@ Status MultiValueAttributeDiskIndexer<T>::Open(const std::shared_ptr<config::IIn
                                 ATTRIBUTE_DATA_FILE_NAME.c_str(), attrPath.c_str());
         }
 
-        status = _offsetReader.Init(_attrConfig, fieldDir, _docCount, _indexerParam.disableUpdate);
+        status = _offsetReader.Init(_attrConfig, fieldDir, _docCount, false);
         RETURN_IF_STATUS_ERROR(status, "init offset reader failed, segId[%d]", _indexerParam.segmentId);
 
         _offsetFormatter.Init(_fileStream->GetStreamLength());
         _dataFormatter.Init(_attrConfig);
-        if (!_indexerParam.disableUpdate && _attrConfig->IsAttributeUpdatable() && _data &&
-            _offsetReader.IsSupportUpdate()) {
+        if (_attrConfig->IsAttributeUpdatable() && _data && _offsetReader.IsSupportUpdate()) {
             status = InitSliceFileReader(&_offsetReader, fieldDir);
             RETURN_IF_STATUS_ERROR(status, "");
             _updatable = true;
@@ -319,13 +353,11 @@ Status MultiValueAttributeDiskIndexer<T>::InitSliceFileReader(
         return status;
     }
     if (sliceFile == nullptr) {
-        auto [stWriter, fileWriter] =
-            attrDirectory
-                ->CreateFileWriter(
-                    ATTRIBUTE_DATA_EXTEND_SLICE_FILE_NAME,
-                    indexlib::file_system::WriterOption::Slice(
-                        MultiValueAttributeFormatter::MULTI_VALUE_ATTRIBUTE_SLICE_LEN, RESERVE_SLICE_NUM))
-                .StatusWith();
+        auto [stWriter, fileWriter] = attrDirectory
+                                          ->CreateFileWriter(ATTRIBUTE_DATA_EXTEND_SLICE_FILE_NAME,
+                                                             indexlib::file_system::WriterOption::Slice(
+                                                                 _attrConfig->GetSliceLen(), RESERVE_SLICE_NUM))
+                                          .StatusWith();
         if (!stWriter.IsOK()) {
             AUTIL_LOG(ERROR, "create extend file writer failed");
             return stWriter;

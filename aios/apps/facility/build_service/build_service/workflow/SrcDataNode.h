@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ISEARCH_BS_SRCDATANODE_H
-#define ISEARCH_BS_SRCDATANODE_H
+#pragma once
 
 #include <set>
+#include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
+#include "autil/Lock.h"
 #include "autil/LoopThread.h"
+#include "autil/mem_pool/Pool.h"
 #include "build_service/common/Locator.h"
+#include "build_service/common/ResourceContainer.h"
 #include "build_service/common/ResourceKeeper.h"
 #include "build_service/common_define.h"
 #include "build_service/config/ProcessorConfigReader.h"
@@ -27,12 +33,18 @@
 #include "build_service/config/SrcNodeConfig.h"
 #include "build_service/document/RawDocument.h"
 #include "build_service/proto/BasicDefs.pb.h"
-#include "build_service/util/Log.h"
+#include "indexlib/base/FieldType.h"
+#include "indexlib/base/Types.h"
+#include "indexlib/config/field_schema.h"
+#include "indexlib/config/index_partition_schema.h"
 #include "indexlib/document/index_document/normal_document/serialized_source_document.h"
 #include "indexlib/document/index_document/normal_document/source_document.h"
+#include "indexlib/document/normal/SourceDocument.h"
 #include "indexlib/indexlib.h"
 #include "indexlib/partition/index_builder.h"
 #include "indexlib/partition/index_partition.h"
+#include "indexlib/partition/partition_group_resource.h"
+#include "indexlib/util/metrics/Metric.h"
 
 namespace build_service { namespace workflow {
 
@@ -130,5 +142,3 @@ private:
 BS_TYPEDEF_PTR(SrcDataNode);
 
 }} // namespace build_service::workflow
-
-#endif // ISEARCH_BS_SRCDATANODE_H

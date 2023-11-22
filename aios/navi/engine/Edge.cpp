@@ -230,20 +230,27 @@ void Edge::setEof(const Node *callNode) {
     setData(callNode, nullptr, true);
 }
 
-void Edge::setForceEofFlag() {
+void Edge::forceEof() {
     _forceEof = true;
     auto slotCount = _outputSlots.size();
     for (size_t i = 0; i < slotCount; i++) {
+        if (isSlotFinished(i)) {
+            continue;
+        }
         const auto &slot = _outputSlots[i];
         if (slot.downStream) {
-            slot.downStream->setForceEofFlag();
+            slot.downStream->forceEof();
+        }
+        if (slot.outputReadyMap) {
+            slot.outputReadyMap->setFinish(slot.outputIndex.index, true);
+            NAVI_LOG(SCHEDULE2, "force eof idx[%ld,%s] readyMap[%s]", i,
+                     autil::StringUtil::toString(slot.outputIndex).c_str(),
+                     autil::StringUtil::toString(slot.outputReadyMap).c_str());
+            auto outputNode = slot.outputNode;
+            outputNode->incNodeSnapshot();
+            outputNode->schedule(outputNode);
         }
     }
-}
-
-void Edge::forceEof() {
-    setForceEofFlag();
-    notifyData(true, nullptr);
 }
 
 bool Edge::setData(const Node *callNode, const DataPtr &data, bool eof) {
@@ -271,7 +278,10 @@ bool Edge::doSetData(const Node *callNode, const DataPtr &data, bool eof) {
              data.get(), eof, callNode,
              callNode ? callNode->getName().c_str() : "",
              callNode ? callNode->getKernelName().c_str() : "");
-    _data = data;
+    {
+        autil::ScopedLock lock(_lock);
+        _data = data;
+    }
     if (eof) {
         _eof = true;
     }
@@ -332,7 +342,7 @@ bool Edge::getData(IndexType index, DataPtr &data, bool &eof,
     }
     const auto &slot = _outputSlots[index];
     if (!slot.downStream && slot.outputReadyMap) {
-        if (!slot.outputReadyMap->isReady(slot.outputIndex.index)) {
+        if (!slot.outputReadyMap->isReady(slot.outputIndex.index) && !_forceEof) {
             NAVI_LOG(SCHEDULE1,
                      "get data failed, data not ready, index [%d], output [%s]",
                      index, getOutputName(index).c_str());
@@ -350,9 +360,12 @@ bool Edge::getData(IndexType index, DataPtr &data, bool &eof,
     return true;
 }
 
-void Edge::doGetData(DataPtr &data, bool &eof) {
+void Edge::doGetData(DataPtr &data, bool &eof) const {
     if (!_upStream) {
-        data = _data;
+        {
+            autil::ScopedLock lock(_lock);
+            data = _data;
+        }
         eof = getDataEof();
     } else {
         _upStream->doGetData(data, eof);
@@ -374,7 +387,7 @@ void Edge::setOutputSlotEof(IndexType slotId, const Node *callNode) {
 
 void Edge::clearSlot(IndexType slotId, bool setFinish, const Node *callNode) {
     bool allDataClear = false;
-    bool allSlotFinish =  false;
+    bool allSlotFinish = false;
     {
         autil::ScopedLock lock(_lock);
         auto oldDataClear = allSlotEmpty();
@@ -410,7 +423,10 @@ bool Edge::clearData(const Node *callNode) {
     NAVI_LOG(SCHEDULE1, "clear data, call node: [%p, node %s kernel %s]", callNode,
              callNode ? callNode->getName().c_str() : "",
              callNode ? callNode->getKernelName().c_str() : "");
-    _data.reset();
+    {
+        autil::ScopedLock lock(_lock);
+        _data.reset();
+    }
     if (!isOverride()) {
         _inputReadyMap->setReady(_inputIndex.index, true);
         NAVI_LOG(SCHEDULE1, "schedule call by node [%s] getData",

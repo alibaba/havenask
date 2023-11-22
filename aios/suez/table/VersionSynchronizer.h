@@ -51,12 +51,25 @@ public:
     // if not support sync from psersist, inc version target will be controller by suez admin
     virtual bool supportSyncFromPersist(const PartitionMeta &target) const = 0;
     // called by follower: sync version from leader
-    virtual bool syncFromPersist(const PartitionId &pid, const std::string &configPath, TableVersion &version) = 0;
+    virtual bool syncFromPersist(const PartitionId &pid,
+                                 const std::string &appName,
+                                 const std::string &dataTable,
+                                 const std::string &remoteConfigPath,
+                                 TableVersion &version) = 0;
     // called by leader: persist version to zookeeper or something else
-    virtual bool
-    persistVersion(const PartitionId &pid, const std::string &localConfigPath, const TableVersion &version) = 0;
-    virtual bool getVersionList(const PartitionId &pid, std::vector<TableVersion> &versions) = 0;
-    virtual bool updateVersionList(const PartitionId &pid, const std::vector<TableVersion> &versions) = 0;
+    virtual bool persistVersion(const PartitionId &pid,
+                                const std::string &appName,
+                                const std::string &dataTable,
+                                const std::string &remoteConfigPath,
+                                const TableVersion &version) = 0;
+    virtual bool getVersionList(const PartitionId &pid,
+                                const std::string &appName,
+                                const std::string &dataTable,
+                                std::vector<TableVersion> &versions) = 0;
+    virtual bool updateVersionList(const PartitionId &pid,
+                                   const std::string &appName,
+                                   const std::string &dataTable,
+                                   const std::vector<TableVersion> &versions) = 0;
 
 public:
     static VersionSynchronizer *create();

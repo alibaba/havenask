@@ -5,7 +5,7 @@ using namespace std;
 using namespace indexlib::util;
 
 namespace indexlib { namespace config {
-IE_LOG_SETUP(config, PrimaryKeyIndexConfigTest);
+AUTIL_LOG_SETUP(indexlib.config, PrimaryKeyIndexConfigTest);
 
 PrimaryKeyIndexConfigTest::PrimaryKeyIndexConfigTest() {}
 

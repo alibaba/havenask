@@ -1,3 +1,4 @@
+#pragma once
 #include "aios/apps/facility/cm2/cm_basic/util/zk_wrapper.h"
 #include "build_service_tasks/batch_control/BatchControlTask.h"
 #include "build_service_tasks/batch_control/BatchControlWorker.h"

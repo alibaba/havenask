@@ -1,5 +1,4 @@
-#ifndef __INDEXLIB_DOCUMENTCREATORTEST_H
-#define __INDEXLIB_DOCUMENTCREATORTEST_H
+#pragma once
 
 #include "indexlib/common_define.h"
 #include "indexlib/test/document_creator.h"
@@ -31,5 +30,3 @@ INDEXLIB_UNIT_TEST_CASE(DocumentCreatorTest, TestSimpleProcess);
 INDEXLIB_UNIT_TEST_CASE(DocumentCreatorTest, TestCreateSection);
 INDEXLIB_UNIT_TEST_CASE(DocumentCreatorTest, TestCreateKKVDocument);
 }} // namespace indexlib::test
-
-#endif //__INDEXLIB_DOCUMENTCREATORTEST_H

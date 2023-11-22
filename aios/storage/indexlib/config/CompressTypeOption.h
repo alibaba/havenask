@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
 #include <string>
 
 #include "autil/Log.h"

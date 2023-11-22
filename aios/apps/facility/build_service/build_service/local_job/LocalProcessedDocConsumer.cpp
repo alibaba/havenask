@@ -15,6 +15,12 @@
  */
 #include "build_service/local_job/LocalProcessedDocConsumer.h"
 
+#include <assert.h>
+#include <cstdint>
+#include <iosfwd>
+#include <memory>
+
+#include "build_service/document/DocumentDefine.h"
 #include "build_service/document/ProcessedDocument.h"
 
 using namespace std;
