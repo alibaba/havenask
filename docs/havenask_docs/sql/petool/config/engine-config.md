@@ -18,12 +18,12 @@ order: 1
             <ul>
             <li>havenask (havenask引擎进程配置)
                 <ul><li>direct_tables（直写表模板）/offline_tables（全量表模板）
-                </li></ul>
                 <ul><li>clusters <ul><li>...</li></ul>
                 </li></ul>
                 <ul><li>data_tables <ul><li>...</li></ul>
                 </li></ul>
                 <ul><li>analyzer.json</li></ul></ul></li>
+                </li></ul>
             </li>
             <li>swift
                 <ul><li>...</li></ul>

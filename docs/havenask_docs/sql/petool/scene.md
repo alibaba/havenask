@@ -86,6 +86,35 @@ hape get default-hippo-config -r qrs
 * 一般最后都要用hape gs命令确定havenask集群状态READY
 
 
+
+## sql预热
+* 当引擎拉起初次查询时由于框架需要对query进行预热，因此比较慢。后面查询会快很多。为了避免这个问题，可以配置sql预热。
+* 具体可以在hape模板的cluster_templates/havenask/direct_table/biz_config/sql.json中添加以下字段
+```
+"iquan_warmup_config": {
+     "thread_number" : 2,  // warmup线程数，默认值为2个线程，建议设大些,
+     "warmup_file_path": "warmup_sql.txt" // 业务预热SQL文件，放到sql.json同级目录
+}
+```
+* warmup_sql.txt的格式如下，可以填写业务上需要预热的query语句
+```
+{
+    "sqls":[
+        "SELECT i1, min(i2) FROM t1 GROUP BY i1"
+    ]
+}
+```
+
+## 指标监控
+* 想要打开havenask集群的监控，可以在hape/hape_conf/default/cluster_templates/havenask/hippo/qrs_hippo.json和hape/hape_conf/default/cluster_templates/havenask/hippo/searcher_hippo.json中把以下环境变量从false改为true
+
+```
+{
+    "key": "--env",
+    "value": "kmonitorEnableLogFileSink=true"
+},
+```
+
 ## 修改分词器
 * 直写表分词器定义：
     * cluster_templates/havenask/direct_table/analyzer.json
@@ -96,4 +125,10 @@ hape get default-hippo-config -r qrs
 ```
 hape update template
 ```
+
+## 高可用
+* 参考[hape-config](./config/hape-config.md)中的havenask进程调度配置的count与minHealthCapacity两个参数
+* count表示一个数据分片的replica数
+* minHealthCapacity表示发生变更rolling时保持可用的服务的replica比例
+
 

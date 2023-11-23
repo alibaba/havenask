@@ -9,7 +9,7 @@ havenask镜像托管在Docker Hub，如果Docker Hub访问不稳定，推荐阿�
 * 开发镜像：registry.cn-hangzhou.aliyuncs.com/havenask/ha3_dev:latest
 
 ## 启动服务
-Havenask引擎提供了可以直接运行的镜像，无需重新编译即可快速构建搜索服务。通过下面的一系列命令可以快速拉起一个单机版havenask服务。如果需要导入全量数据或者需要创建分布式集群，请参考[havenask运维管理工具](../petool/intro.md)的详细介绍
+Havenask引擎提供了可以直接运行的镜像，无需重新编译即可快速构建搜索服务。通过下面的一系列命令可以快速拉起一个单机版havenask服务。更详细的介绍见[hape介绍](../petool/intro.md)和[hape单机模式](../petool/localmode.md)
 
 通过镜像启动引擎的步骤如下：
 * 创建容器
@@ -33,7 +33,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
 * 创建表
 ```
-/ha3_install/hape create table -t in0 -s /ha3_install/hape_conf/example/cases/normal/in0_schema.json -p 1
+/ha3_install/hape create table -t in0 -s /ha3_install/example/cases/normal/in0_schema.json -p 1
 ```
 
 * 写入数据
