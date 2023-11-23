@@ -12,7 +12,7 @@ order: 2
 #### 准备环境
 
 * 准备多台物理机
-* 最新的镜像为registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest，不同版本的镜像不同，可以参考[release页面](https://github.com/alibaba/havenask/releases)获取镜像版本，需要确保每台物理机已经用docker拉取对应版本的镜像。
+* 最新的镜像为registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest，不同版本的镜像不同，可以参考[release页面](../guide/releasepages)获取镜像版本，需要确保每台物理机已经用docker拉取对应版本的镜像。
 * 要求所有的机器上都有与hape执行时相同的用户，用户对于自己的home有充分的权限。不建议使用root用户
 * 确保机器之间已经ssh免密打通，机器也能免密ssh登录自己，如果没有打通可以通过下面的步骤打通：
   * 检查每个机器用户目录下是否有.ssh/id_rsa.pub文件，如果没有可以通过ssh-keygen生成
@@ -29,7 +29,7 @@ order: 2
     * global.conf文件的javaHome：指向对应java路径，需要能被容器访问，因此java目录需要在容器挂载的/home/\<user\>下的某个路径上。如果不在，可以使用软链接地址
     * global.conf文件的hadoopHome：指向对应hadoop路径，需要能被容器访问，因此hadoop目录需要在容器挂载的/home/\<user\>下的某个路径上。如果不在，可以使用软链接地址
     * global.conf文件的dataStoreRoot，对应上述的hdfs://xxx/havenask地址
-    * cluster_templates/swift/config/swift.conf文件的data_root_path，对应上述的hdfs/xxx/swift地址
+    * cluster_templates/swift/config/swift.conf文件的data_root_path，对应上述的hdfs://xxx/swift地址
 * 多机模式下的hdfs遇到问题可以进一步参考[多机模式下hdfs配置不成功](problem.md#多机模式下hdfs配置不成功)
 
 ##### 可调度机器列表
