@@ -49,7 +49,8 @@ order: 0
     * binaryPath：表示容器进程从哪里找到havenask binary包，一般默认为/ha3_install
     * dataStoreRoot: 表示havenask集群运行中产生的索引、配置、元信息文件地址。支持相对于hapeRoot的相对路径。多机模式下时必须为hdfs路径
     * hadoopHome：表示hadoop路径，地址必须在/home/\<user\>下（可以设置软链接），且必须在所有机器上都有对应hadoop。存在默认值/usr/local/hadoop/hadoop指向容器内默认路径
-    * javaHome: 表示java路径，地址必须在/home/\<user\>下（可以设置软链接），，且必须在所有机器上都有对应java。javaHome必须和hadoopHome匹配。存在默认值/opt/taobao/java指向容器内默认路径
+    * javaHome: 表示java路径，地址必须在/home/\<user\>下（可以设置软链接），且必须在所有机器上都有对应java。javaHome必须和hadoopHome匹配。存在默认值/opt/taobao/java指向容器内默认路径
+    * processorMode: 默认情况单机模式下hape拉起单机多容器的集群。当额外设置该字段设为local的时候，hape拉起单机单容器多进程的集群，更方便调试和开发
 
 
 ### global.conf.swift
@@ -62,6 +63,8 @@ order: 0
     * adminMem：admin 内存用量，单位MB
     * adminIpList：admin机器ip，分号分隔。当不指定时会用本机ip。多台admin会选举一个leader
     * workerIpList：worker机器ip列表，分号分隔。当不指定时会用本机ip
+    * extraArgs：添加该选项，可以向admin追加启动参数。多个参数用英文分号分割
+    * extraEnvs: 添加该选项，可以向admin追加环境变量，多个变量用英文分号分隔
 
 ### global.conf.havenask
 * 作用：在线集群参数
@@ -74,6 +77,8 @@ order: 0
     * qrsIpList：qrs机器ip列表，分号分隔。当不指定时会用本机ip。多台admin会选举一个leader
     * searcherIpList：searcher机器ip列表，分号分隔。当不指定时会用本机ip
     * adminHttpPort：havenask admin http服务端口，不指定时使用值为45800
+    * extraArgs：添加该选项，可以向admin追加启动参数。多个参数用英文分号分割
+    * extraEnvs: 添加该选项，可以向admin追加环境变量，多个变量用英文分号分隔
 
 ### global.conf.bs
 * 作用：全量表构建集群参数
@@ -84,6 +89,8 @@ order: 0
     * adminMem：admin 内存用量，单位MB
     * adminIpList：admin机器ip，分号分隔。当不指定时会用本机ip。多台admin会选举一个leader
     * workerIpList：worker机器ip列表，分号分隔。当不指定时会用本机ip
+    * extraArgs：添加该选项，可以向admin追加启动参数。多个参数用英文分号分割
+    * extraEnvs: 添加该选项，可以向admin追加环境变量，多个变量用英文分号分隔
 
 
 

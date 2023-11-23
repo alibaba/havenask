@@ -9,6 +9,7 @@ cluster配置中同时包含在线部分（havenask）配置和离线 (build_ser
 
 离线配置中包含了对builder和merger的各种配置，与build_service的builder和merger相关的cluster 配置主要有：
 - build_option_config，索引排序相关配置。
+- online_index_config，主要用于控制在线加载索引的行为
 - offline_index_config，build相关配置，缺省merge配置。定期 merge 及全量 merge 策略配置，截断配置。
 - swift_config，processed doc swift 配置，以及 builder 的 swift reader 配置。
 - cluster_config, cluster相关配置。
@@ -32,6 +33,49 @@ cluster配置中同时包含在线部分（havenask）配置和离线 (build_ser
         "sort_queue_mem" : 4096,
         "sort_queue_size" : 10000000
     },
+    "online_index_config": {
+		"online_keep_version_count": 3,
+		"build_config": {
+			"build_total_memory": 4096
+		},
+		"max_realtime_memory_use": 10240,
+		"load_config": [
+			{
+				"warmup_strategy": "sequential",
+				"file_patterns": [
+					"_INDEX_"
+				],
+				"load_strategy": "mmap",
+				"name": "_INDEX_",
+				"load_strategy_param": {
+					"lock": false
+				}
+			},
+			{
+				"warmup_strategy": "none",
+				"file_patterns": [
+					"_SUMMARY_"
+				],
+				"load_strategy": "mmap",
+				"name": "_SUMMARY_",
+				"load_strategy_param": {
+					"lock": false
+				}
+			},
+			{
+				"warmup_strategy": "sequential",
+				"file_patterns": [
+					"_ATTRIBUTE_"
+				],
+				"load_strategy": "cache",
+				"name": "_ATTRIBUTE_",
+				"load_strategy_param":{
+                    "global_cache" : false,
+                    "direct_io" : false
+                }
+			}
+		]
+	},
     "offline_index_config" : {
         "build_config" : {
             "build_total_memory" : 5120,
@@ -157,8 +201,39 @@ cluster配置中同时包含在线部分（havenask）配置和离线 (build_ser
 - recover_delay_tolerance_ms：单位毫秒，全量加载索引后追实时消息，当swift最新消息locator和目前引擎中最新locator相差小于此时间时，视为追上实时，默认值为1000ms。
 - build_qps_limit: 单位为qps，Realtime Build 限速。
 
-### offline_index_options
-offline_index_options的配置分为build_config， merge_config 和 customized_merge_config 三部分：
+### online_index_config
+online_index_config主要用于控制在线加载索引的行为
+* max_realtime_memory_use：实时可使用的内存的最大值，实时使用的内存包括正在 building 的 segment 使用的内存，operation queue 使用的内存和已经 dump 到内存的实时 segment 使用的内存，单位：MB，默认值为 8*1024，即 8GB。注意，该值要大于 online_index_config.build_config.build_total_memory 
+* build_config：同offline_index_config.build_config
+* online_keep_version_count：在线服务保存增量索引的 version 数，当在线服务增量索引的 version 数超过此值时，会删除老的增量索引，直到增量索引的 version 数不大于此值，默认值为 10 
+* load_config
+  * name: 可选项，用于 block cache 非全局模式下，Metrics 汇报命名，如果不配置，系统会按顺序分配一个ID。
+  * file_patterns: 索引匹配模式，使用正则表达式，默认匹配全部，即 ".*"
+    * 内置宏定义: _ATTRIBUTE_, _INDEX_, _SUMMARY_。具体定义如下：
+      * _ATTRIBUTE_ = "^segment_[0-9]+(_level_[0-9]+)?(/sub_segment)?/attribute/"
+      *  _INDEX_ = "^segment_[0-9]+(_level_[0-9]+)?(/sub_segment)?/index/"
+      *  _SUMMARY_ = "^segment_[0-9]+(_level_[0-9]+)?(/sub_segment)?/summary/"
+    * 匹配规则：打开索引文件时，按顺序进行正则匹配，使用第一个匹配成功的规则加载，如果均不匹配，会以 mmap 非 lock 方式加载。
+  * load_strategy: 索引加载策略，支持：mmap, cache，默认使用 mmap
+  * load_strategy_param: 相应策略的参数
+  * mmap
+    * lock: 如果为 true，会全部load进内存并lock住，不允许系统换出，且会进行预热，默认 false
+  * cache: 
+      * global_cache: 是否使用全局的 BlockCache，默认 false。
+      * 对于 global_cache，cache_size 目前是通过环境变量 RS_BLOCK_CACHE 配置，RS_BLOCK_CACHE=cache_size=1，相关配置
+      *  direct_io: 是否使用 DirectIO 方式读取文件，默认 false
+      * cache_size: 非 global_cache 时有效，配置 BlockCache 总大小，单位：MB，默认 1MB
+      * block_size: 配置 Block 大小，单位：B，默认 4096B
+      * cache_decompress_file: 如果 true, 缓存解压后数据；如果 false，缓存压缩数据，默认 false
+  * warmup_strategy: 预热策略，目前仅对 mmap 加载策略有效
+    * lifecycle:updater生成segment的lifecycle标识，与updater配合使用，具体生成方法见：5.2.1 离线build
+    * none：不预热，默认
+    * sequential：顺序读取预热
+
+
+
+### offline_index_config
+offline_index_config的配置分为build_config， merge_config 和 customized_merge_config 三部分：
 
 - build_config: 离线build配置。
     - build_total_memory :  build索引时所使用的总内存。单位是M。默认是 6GB。build_total_memory支持通过环境变量"BUILD_TOTAL_MEM"赋值，优先级顺序为：用户配置>环境变量>本身默认值

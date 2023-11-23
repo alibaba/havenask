@@ -12,7 +12,7 @@ order: 0
 ###  一. 准备环境和配置
 
 #### 准备环境
-* 最新的镜像为registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest，不同版本的镜像不同，可以参考[release页面](https://github.com/alibaba/havenask/releases)获取镜像版本，需要确保已经用docker拉取对应版本的镜像。
+* 最新的镜像为registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest，不同版本的镜像不同，可以参考[release页面](../guide/releasepages)获取镜像版本，需要确保已经用docker拉取对应版本的镜像。
 * 确保本机能免密ssh登录自己，以下命令打通免密登录自己:
 ```
 ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
@@ -40,6 +40,11 @@ hape validate
 * 创建havenask集群。所有后续进程的容器都在当前机器被拉起
 ```
 hape start havenask
+```
+
+* 此时查看集群状态，发现还没有ready，是因为只有至少创建一张表以后集群才会ready
+```
+hape gs havenask
 ```
 
 ### 三. 表管理
