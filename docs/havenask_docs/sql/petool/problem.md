@@ -5,10 +5,6 @@ order: 8
 
 # Hape常见问题与排查
 
-## hape工作原理
-* hape做的所有操作都是基于havenask/swift/bs admin的
-* admin基于hape给出可调度的机器列表和集群目标对于worker进行调整。hape不直接控制worker
-
 ## Hape运维命令报错排查方法
 ### 1. Hape可以用于debug的命令
 * 可以使用hape validate命令进行简单校验
@@ -16,16 +12,16 @@ order: 8
 * 例子：发现加上-v后显示的Hape行为中涉及创建容器失败，可以复制日志中显示的创建容器命令，自己手动执行来定位问题
   
 ### 2. 启动进程错误排查
-* 如果是Hape start命令拉起进程有问题，可能是admin容器创建异常或者admin进程启动异常。
+* 如果是Hape start命令拉起进程有问题，一般可能是admin容器创建异常或者admin进程启动异常。
 * 如果admin创建容器异常的报错，可以用-v选项来排查具体是哪条命令行异常
-* 如果是admin不ready的报错，说明是admin进程启动异常，可以使用hape gs子命令查看admin具体在哪一台机器上，查看日志最近的ERROR信息，查看日志方法见下一节引擎报错排查方法
+* 如果是admin不ready的报错，说明是admin进程启动异常而非容器异常，可以使用hape gs子命令查看admin具体在哪一台机器上，查看日志最近的ERROR信息，查看日志方法见下一节引擎报错排查方法
 
 
 ### 3. 表运维命令错误排查
 * 如果Hape的表运维命令报错，可能是表相关配置有问题。可以使用hape gs havenask子命令查看qrs和searcher在哪一台机器上，查看日志最近的ERROR信息，查看日志方法见下一节引擎报错排查方法
 
 
-## 引擎报错排查方法
+## 引擎日志排查方法
 * 引擎admin、worker的报错都需要查看对应的引擎日志，查看方法如下
     1. 使用hape gs命令查看对应进程所在机器
     2. havenask集群默认在/home/\<user\>下创建所有进程的工作目录。可以在某一台机器下使用 ls ~ | grep havenask | grep \<serviceName\>（serviceName代表集群配置里面global.conf设定的服务名）。其中appmaster也即admin
@@ -42,6 +38,8 @@ order: 8
               * 集群目标日志 \<workdir\>/logs/swift/swift.log
           * swift broker的主要日志：
               * broker工作日志 \<workdir\>/logs/swift/swift.log
+
+## 引擎容器运维方法
 * 登录容器方法：
 
 ```
@@ -65,7 +63,12 @@ bash <path-to>/process_starter.sh &
 
 
 
-## 常见问题
+## 其他常见问题
+
+### hape工作原理
+* hape做的所有操作都是基于havenask/swift/bs admin的
+* admin基于hape给出可调度的机器列表和集群目标对于worker进行调整。hape不直接控制worker
+
 
 ### 创建进程不成功
 * 容器创建不成功，Hape命令加上-v选项后发现一些权限问题
@@ -96,10 +99,6 @@ JAVA_HOME=<JAVA_HOME> HADOOP_HOME=<HADOOP_HOME> /ha3_install/usr/local/bin/fs_ut
 ```
 
 * 如果报出权限问题，则需要用hdfs工具对于目录授予777权限
-
-
-### 如何查看引擎里面的表信息
-* 访问qrs的/sqlClientInfo接口
 
 
 ### 如何判断进程在哪里

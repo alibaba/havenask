@@ -49,4 +49,7 @@ Havenask PE tools，简称hape，是havenask的简易分布式运维工具。用
 * 在全量表下，用户通过buildservice构建全量索引，并用过订阅swift构建实时索引
 
 
-![基本原理](../../_resources/hape.jpg)
+<center>
+<img src="../../_resources/hape.jpg" width="600">
+</center>
+

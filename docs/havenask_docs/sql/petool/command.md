@@ -187,17 +187,17 @@ hape validate
     * load-strategy 更新索引加载策略，在线索引配置
     * table-schema 更新表的schema，自动全量并切换
 
+#### 更新可用于调度的机器列表
 ```
 ## 更新可用于调度的机器ip列表
 hape update candidate
+```
+
+
+#### 更新表模板
+```
 ## 重启havenask admin以加载最新模板
 hape update template
-# 更新集群的启动参数，binary等
-hape update hippo-config
-# 更新索引加载策略，在线索引配置
-hape update load-strategy
-# 更新表的schema，自动全量并切换
-hape update table-schema
 ```
 
 #### 更新全量表schema

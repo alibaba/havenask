@@ -5,91 +5,161 @@ order: 2
 # schema配置
 ## 结构
 
-一个完整的schema.json文件通常包括table_name、dictionaries、fields、indexs、attributes、summarys和source。
+一个完整的schema.json文件通常包括columns和indexes
 一个schema.json的例子：
 ```
 {
-    "table_name": "sample",                                    (1)
-    "fields":                                                  (2)
-    [
-        {"field_name":"title",        "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
-        {"field_name":"user_name",    "field_type":"STRING" },
-        {"field_name":"user_id",      "field_type":"INTEGER"},
-        {"field_name":"price",        "field_type":"INTEGER" },
-        {"field_name":"category",     "field_type":"INTEGER",  "multi_value":true },
-        {"field_name":"product_id",   "field_type":"LONG" },
-        {"field_name":"body",         "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
-        {"field_name":"b2b_body",     "field_type":"TEXT",    "analyzer":"b2b_analyzer"},
-        {"field_name":"taobao_body1",  "field_type":"TEXT",    "analyzer":"taobao_analyzer"},
-        {"field_name":"taobao_body2",  "field_type":"TEXT",    "analyzer":"taobao_analyzer"}
+    "columns": [                                        (1)
+        {
+            "name": "title",
+            "type": "TEXT",
+            "analyzer": "simple_analyzer"
+        },
+        {
+            "name": "subject",
+            "type": "TEXT",
+            "analyzer": "simple_analyzer"
+        },
+        {
+            "name": "id",
+            "type": "UINT32"
+        },
+        {
+            "name": "hits",
+            "type": "UINT32"
+        },
+        {
+            "name": "createtime",
+            "type": "UINT64"
+        }
     ],
-    "indexs":                                                  (3)
-    [
+    "indexes": [                                       (2)
         {
-            "index_name": "pack_index",
-            "index_type" : "PACK",
-            "term_payload_flag" : 1,
-            "doc_payload_flag" : 1,
-            "position_payload_flag" : 1,
-            "position_list_flag" : 1,
-            "high_frequency_dictionary" : "top10",
-            "high_frequency_term_posting_type" : "both",
-            "index_fields":
-            [
-                {"field_name":"title", "boost":1000},
-                {"field_name":"body", "boost":10}
-            ]
+            "name": "id",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "id"
+                    }
+                ]
+            },
+            "index_type": "PRIMARY_KEY64"               (3)
         },
         {
-            "index_name": "text_index",
-            "index_type": "TEXT",
-            "term_payload_flag" :  1 ,
-            "doc_payload_flag" :  1 ,
-            "position_payload_flag" : 1,
-            "position_list_flag" : 1,
-            "index_fields": "title"
+            "name": "id",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "id"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"                   (4)
         },
         {
-            "index_name": "string_index",
-            "index_type": "STRING",
-            "index_fields": "user_name",
-            "term_payload_flag" :  1 ,
-            "doc_payload_flag" :  1
+            "name": "hits",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "hits"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
         },
         {
-            "index_name": "primary_key_index",
-            "index_type" : "PRIMARYKEY64",
-            "index_fields": "product_id",
-            "has_primary_key_attribute": true
+            "name": "createtime",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "createtime"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
         },
-    ],
-     "attributes": [ "id", "company_id", "cat_id" ],                               (4)
-     "summarys":{                                                                  (5)
-         "summary_fields": ["id", "company_id", "subject", "cat_id"],
-         "compress":false
-     },
-     "src":{                                                                       (6)
-                 "group_configs": {"field_mode":"all_field"}
-     },
-     "enable_ttl" : true,                                                          (7)
+        {
+            "name": "title",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "title"
+                    }
+                ]
+            },
+            "index_type": "TEXT"
+        },
+        {
+            "name": "subject",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "subject"
+                    }
+                ]
+            },
+            "index_type": "TEXT"                        (5)
+        },
+        {
+            "name": "default",
+            "index_type": "PACK",
+            "index_config": {
+                "index_fields": [
+                    {
+                        "field_name": "title",
+                        "boost": 100
+                    },
+                    {
+                        "field_name": "subject",
+                        "boost": 200
+                    }
+                ]
+            }
+        },
+        {
+            "name": "summary",
+            "index_type": "SUMMARY",                     (6)
+            "index_config": {
+                "index_fields": [
+                    {
+                        "field_name": "title"
+                    },
+
+                    {
+                        "field_name": "subject"
+                    },
+                    {
+                        "field_name": "id"
+                    },
+                    {
+                        "field_name": "hits"
+                    },
+                    {
+                        "field_name": "createtime"
+                    }
+                ]
+            }
+        }
+    ]
 }
+    
+
 ```
 
 以上各段说明如下：
 
-<1> table名称，在cluster.json中的table_name就是指定这里的table_name；
+<1> columns，指定表的字段信息
 
-<2> fields域，指定了数据的fields信息；
+<2> indexes，指定索引配置
 
-<3> indexs，倒排索引配置；
+<3> PRIMARY_KEY64，指定表的主键
 
-<4> attributes，指定做正排表的fields；
+<4> ATTRIBUTE, 指定attribute的fields
 
-<5> summarys，指定summary的fields。
+<5> TEXT，指定text类型的倒排索引的fields
 
-<6> source, 制定source的fields、modules。
+<6> SUMMARY，指定summary的fields。
 
-<7> enable_ttl, 是否开启文档过期自动删除功能，如果开启的话，会自动添加doc_time_to_live_in_seconds到attribute中, 该字段为uint32类型。
 
 
 ## 其他
