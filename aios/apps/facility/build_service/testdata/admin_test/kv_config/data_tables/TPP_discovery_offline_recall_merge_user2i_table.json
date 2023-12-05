@@ -1,16 +1,16 @@
 {
     "data_descriptions": [
                 {
-            "access_id": "123456", 
-            "access_key": "123456", 
-            "account_type": "aliyun", 
-            "odps_endpoint": "http://service.odps.aliyun-inc.com/api", 
-            "module_name": "OdpsRawDocumentReader", 
+            "access_id": "123456",
+            "access_key": "123456",
+            "account_type": "aliyun",
+            "odps_endpoint": "http://service.odps.aliyun-inc.com/api",
+            "module_name": "OdpsRawDocumentReader",
             "module_path": "libbasic_bs_plugins.so",
             "partition_name": "ds=20190426",
-            "project_name": "ytrec", 
-            "src": "odps", 
-            "table_name": "discovery_offline_recall_merge_user2i_kv", 
+            "project_name": "ytrec",
+            "src": "odps",
+            "table_name": "discovery_offline_recall_merge_user2i_kv",
             "type": "plugin",
 	    "ignore_empty_field": "true"
         }
@@ -30,23 +30,23 @@
                 }
             },
             {
-                "class_name": "MultiValueSeperatorProcessor", 
-                "module_name": "BasicBSPlugins", 
+                "class_name": "MultiValueSeperatorProcessor",
+                "module_name": "BasicBSPlugins",
                 "parameters": {}
             },
             {
                 "class_name": "HashDocumentProcessor"
             }
-        ], 
+        ],
         "modules": [
             {
-                "module_name": "BasicBSPlugins", 
-                "module_path": "libbasic_bs_plugins.so", 
+                "module_name": "BasicBSPlugins",
+                "module_path": "libbasic_bs_plugins.so",
                 "parameters": {}
-            }, 
+            },
             {
-                "module_name": "IGraphBuildPlugins", 
-                "module_path": "libbasic_bs_plugins.so", 
+                "module_name": "IGraphBuildPlugins",
+                "module_path": "libbasic_bs_plugins.so",
                 "parameters": {}
             }
         ],
@@ -54,7 +54,7 @@
     }
 ],
     "processor_config": {
-        "processor_queue_size": 1000, 
+        "processor_queue_size": 1000,
         "processor_thread_num": 4
     },
     "processor_rule_config": {
