@@ -77,7 +77,7 @@ bool AttributeExpressionCreatorR::initExpressionCreator() {
         = isearch::search::IndexPartitionReaderUtil::createIndexPartitionReaderWrapper(
             _scanR->partitionReaderSnapshot.get(), _scanInitParamR->tableName);
     if(!_indexPartitionReaderWrapper){
-        SQL_LOG(ERROR, "initExpressionCreator _indexPartitionReaderWrapper is null");
+        SQL_LOG(ERROR, "initExpressionCreator _indexPartitionReaderWrapper is null table is %s",_scanInitParamR->tableName.c_str() );
         return false;
     }
     _indexPartitionReaderWrapper->setSessionPool(_queryMemPoolR->getPool().get());

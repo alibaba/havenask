@@ -86,7 +86,7 @@ bool MultiTableWrapper::init(const suez::MultiTableReader &multiTableReader,
     for (const auto &iter : _id2IndexAppMap) {
         partIds += StringUtil::toString(iter.first) + ", ";
     }
-    AUTIL_LOG(INFO, "parition count [%lu], ids:[%s]", _id2IndexAppMap.size(), partIds.c_str());
+    AUTIL_LOG(INFO, "parition count [%lu], ids:[%s] for table %s", _id2IndexAppMap.size(), partIds.c_str(), itemTableName.c_str());
     return true;
 }
 
