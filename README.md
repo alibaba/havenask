@@ -47,10 +47,10 @@ Havenask delivers the following benefits:
 CONTAINER_NAME specifies the name of the container.
 ```
 cd ~
-git clone git@github.com:alibaba/havenask.git
+git clone git@github.com:alibaba/havenask.git -b 1.1.0
 cd ~/havenask/docker/havenask
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.1.0
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.1.0
 ```
 
 * Log on to the container
@@ -124,10 +124,10 @@ Havenask 的核心能力与优势，有以下几点：
 其中CONTAINER_NAME为指定的容器名
 ```
 cd ~
-git clone git@github.com:alibaba/havenask.git
+git clone git@github.com:alibaba/havenask.git -b 1.1.0
 cd ~/havenask/docker/havenask
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.1.0
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.1.0
 ```
 
 * 登陆容器

@@ -5,8 +5,8 @@ order: 0
 
 # get-started-with-pipeline-of-new-version
 The havenask image is hosted in Docker Hub. If the access to Docker Hub is unstable, recommend an Alibaba Cloud image. The image platform is amd64.
-* Running Image: registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
-* Development image: registry.cn-hangzhou.aliyuncs.com/havenask/ha3_dev:latest
+* Running Image: registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.1.0
+* Development image: registry.cn-hangzhou.aliyuncs.com/havenask/ha3_dev:1.1.0
 
 ## enable the service
 The Havenask engine provides images that can be run directly. You can quickly build a search service without recompiling. You can run the following commands to create a HAVENASK service of the unit price. To import full data or create a distributed cluster, see [HAVENASK](../petool/).
@@ -16,10 +16,10 @@ To start the engine by using an image, perform the following steps:
    CONTAINER_NAME is the name of the specified container.
 ```
 cd ~
-git clone git@github.com:alibaba/havenask.git
+git clone git@github.com:alibaba/havenask.git -b 1.1.0
 cd ~/havenask/docker/havenask
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.1.0
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:1.1.0
 ```
 
 * Log on to the container
@@ -54,18 +54,18 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ### Obtain a development image
 
 ```
-docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_dev:latest
+docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_dev:1.1.0
 ```
 ### Download code
 ```
 cd ~
-git clone git@github.com:alibaba/havenask.git
+git clone git@github.com:alibaba/havenask.git -b 1.1.0
 ```
 
 ### Start containers
 ```
 cd ~/havenask/docker/havenask
-./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_dev:latest
+./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_dev:1.1.0
 ```
 ### Log on to the container by using ssh
 ```
