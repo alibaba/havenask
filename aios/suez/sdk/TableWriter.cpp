@@ -152,6 +152,7 @@ bool TableWriter::init(const build_service::proto::PartitionId &pid,
     _reporter = reporter;
     _walConfig = std::make_unique<WALConfig>(walConfig);
     _walConfig->desc = _pid->range().ShortDebugString();
+    _walConfig->range = std::make_pair(_pid->range().from(), _pid->range().to());
     _swiftClientCreator = swiftClientCreator;
 
     auto resourceReader = std::make_shared<build_service::config::ResourceReader>(configPath);
