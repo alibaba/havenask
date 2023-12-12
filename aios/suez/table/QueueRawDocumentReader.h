@@ -39,7 +39,7 @@ public:
     virtual bool isEof() const;
 
 private:
-    bool initQueue(const build_service::KeyValueMap &kvMap);
+    bool initQueue(const build_service::reader::ReaderInitParam &params);
 
 private:
     const static std::string QUEUE_NAME;

@@ -33,6 +33,7 @@ public:
     std::map<std::string, std::string> sinkDescription;
     int64_t timeoutMs = 2 * 1000; // 2s
     std::string desc;
+    std::pair<uint32_t, uint32_t> range; // no need jsonize
 };
 
 } // namespace suez
