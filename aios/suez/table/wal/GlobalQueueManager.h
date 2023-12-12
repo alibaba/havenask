@@ -37,6 +37,9 @@ private:
 
 public:
     static GlobalQueueManager *getInstance();
+    static std::string generateQueueName(const std::string &queueName,
+            uint32_t from, uint32_t to);
+
     RawDocQueue createQueue(const std::string &queueName);
     void releaseQueue(const std::string &queueName);
 

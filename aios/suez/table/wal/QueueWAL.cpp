@@ -38,11 +38,13 @@ QueueWAL::~QueueWAL() {}
 
 bool QueueWAL::init(const WALConfig &config) {
     const auto &kvMap = config.sinkDescription;
-    _queueName = build_service::getValueFromKeyValueMap(kvMap, QUEUE_NAME);
-    if (_queueName.empty()) {
+    string queueName = build_service::getValueFromKeyValueMap(kvMap, QUEUE_NAME);
+    if (queueName.empty()) {
         AUTIL_LOG(ERROR, "queue name is empty for queue_wal.");
         return false;
     }
+    _queueName = GlobalQueueManager::generateQueueName(queueName,
+            config.range.first, config.range.second);
     _docQueuePtr = GlobalQueueManager::getInstance()->createQueue(_queueName);
     if (_docQueuePtr == nullptr) {
         AUTIL_LOG(ERROR, "get queue failed, queue_name[%s]", _queueName.c_str());

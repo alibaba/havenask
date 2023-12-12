@@ -21,18 +21,21 @@ void QueueRawDocumentReaderTest::tearDown() {}
 
 TEST_F(QueueRawDocumentReaderTest, testInitQueue) {
     {
-        KeyValueMap kvMap;
+        ReaderInitParam params;
         QueueRawDocumentReader reader;
-        EXPECT_TRUE(!reader.initQueue(kvMap));
+        EXPECT_TRUE(!reader.initQueue(params));
         EXPECT_TRUE(reader._docQueuePtr == nullptr);
     }
     {
-        KeyValueMap kvMap;
+        ReaderInitParam params;
+        params.range.set_from(0);
+        params.range.set_to(32767);
+        auto& kvMap = params.kvMap;
         kvMap[QueueRawDocumentReader::QUEUE_NAME] = "test";
         QueueRawDocumentReader reader;
-        EXPECT_TRUE(reader.initQueue(kvMap));
+        EXPECT_TRUE(reader.initQueue(params));
         EXPECT_TRUE(reader._docQueuePtr != nullptr);
-        EXPECT_EQ(string("test"), reader._queueName);
+        EXPECT_EQ(string("test_0_32767"), reader._queueName);
     }
 }
 
@@ -45,10 +48,13 @@ TEST_F(QueueRawDocumentReaderTest, testReadDocStrFailed) {
         EXPECT_EQ(RawDocumentReader::ERROR_EXCEPTION, ec);
     }
     {
-        KeyValueMap kvMap;
+        ReaderInitParam params;
+        params.range.set_from(0);
+        params.range.set_to(32767);
+        auto& kvMap = params.kvMap;
         kvMap[QueueRawDocumentReader::QUEUE_NAME] = "test";
         QueueRawDocumentReader reader;
-        EXPECT_TRUE(reader.initQueue(kvMap));
+        EXPECT_TRUE(reader.initQueue(params));
         string docStr;
         DocInfo docInfo;
         auto ec = reader.readDocStr(docStr, nullptr, docInfo);
@@ -57,10 +63,13 @@ TEST_F(QueueRawDocumentReaderTest, testReadDocStrFailed) {
 }
 
 TEST_F(QueueRawDocumentReaderTest, testReadDocStrSuccess) {
-    KeyValueMap kvMap;
+    ReaderInitParam params;
+    params.range.set_from(0);
+    params.range.set_to(32767);
+    auto& kvMap = params.kvMap;
     kvMap[QueueRawDocumentReader::QUEUE_NAME] = "test1";
     QueueRawDocumentReader reader;
-    EXPECT_TRUE(reader.initQueue(kvMap));
+    EXPECT_TRUE(reader.initQueue(params));
     reader._docQueuePtr->Push({0, string("abc")});
     string docStr;
     DocInfo docInfo;
