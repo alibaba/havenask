@@ -125,11 +125,13 @@ void DefaultProcessLauncher::asyncLaunchOneSlot(
         HIPPO_LOG(WARN, "get slot resource failed, slot role:%s, "
                   "slot address:%s slot id:%d",
                   role.c_str(), slotId.slaveAddress.c_str(), slotId.id);
+        delete workItem;
         return;
     }
     if (!needLaunch(slotId, workItem)) {
         HIPPO_LOG(DEBUG, "no need launch, slot role:%s, slot address:%s slot id:%d",
                   role.c_str(), slotId.slaveAddress.c_str(), slotId.id);
+        delete workItem;
         return;
     }
     HIPPO_LOG(INFO, "start process for role:[%s], slaveAddr:[%s], slot:[%d], declareTime:%ld",
