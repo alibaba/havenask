@@ -169,7 +169,7 @@ class HapeCluster(object):
                 Logger.warning("{} type table may takes long time to build, will not be checked ready".format(build_type))
                 return True
 
-    def update_table_schema(self, table, partition, schema, full_data_path):
+    def update_offline_table(self, table, partition, schema, full_data_path, swift_start_timestamp):
         is_direct_table = (full_data_path == None)
         if is_direct_table:
             Logger.error("Only support update table structure for offline mode, data_full_path should be specified")
@@ -186,8 +186,8 @@ class HapeCluster(object):
             Logger.error("Please add bs config and execute subcommand: restart havenask")
             return False
         else:
-            succ = catalog_manager.update_table_schema(table, partition, schema, full_data_path,
-                                                       self.bs_appmaster.service_zk_full_path())
+            succ = catalog_manager.update_offline_table(table, partition, schema, full_data_path, swift_start_timestamp, 
+                                                        self.bs_appmaster.service_zk_full_path())
             if not succ:
                 return False
         return True

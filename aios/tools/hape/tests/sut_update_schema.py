@@ -83,7 +83,7 @@ class HapePackTextIndexTest(unittest.TestCase, HapeTestBase):
         self.assertTrue(self.hape_cluster.wait_havenask_ready())
 
     def _update_offline_table_schema(self, table):
-        self.assertTrue(self.hape_cluster.update_table_schema(table, 1, self.testdata_root + "/pack_schema2.json", self.testdata_root + "/pack2.data"))
+        self.assertTrue(self.hape_cluster.update_offline_table(table, 1, self.testdata_root + "/pack_schema2.json", self.testdata_root + "/pack2.data", 0))
         self.assertTrue(self.hape_cluster.wait_new_generation_ready())
         def check_offline_table_ready():
             table_status = self.hape_cluster.get_table_status(specify_table_name=table)
