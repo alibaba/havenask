@@ -24,15 +24,27 @@ def candidate(**kwargs):
     hape_cluster = command_init(kwargs)
     hape_cluster.update_candidate_ips()
 
+@update.command(short_help='Update offline table index')
+@common_params
+@click.option('-t', '--table',  required=True, help="Table name")
+@click.option('-p', '--partition', help="Partition count of table", default=1)
+@click.option('-s', '--schema',  required=True, help="Schema file path of table")
+@click.option('-f', '--full',  required=True, help="Full data path for offline table")
+@click.option('--timestamp',  required=True, help="After full index loaded, havenask will consume this realtime message from this timestamp", type=int)
+def offline_table_index(**kwargs):
+    hape_cluster = command_init(kwargs)
+    hape_cluster.update_offline_table(kwargs["table"], kwargs["partition"], kwargs["schema"], kwargs["full"], kwargs["timestamp"])
+    
 @update.command(short_help='Update table schema')
 @common_params
 @click.option('-t', '--table',  required=True, help="Table name")
 @click.option('-p', '--partition', help="Partition count of table", default=1)
 @click.option('-s', '--schema',  required=True, help="Schema file path of table")
 @click.option('-f', '--full',  required=True, help="Full data path for offline table")
+@click.option('--timestamp',  required=True, help="After full index loaded, havenask will consume this realtime message from this timestamp", type=int)
 def table_schema(**kwargs):
     hape_cluster = command_init(kwargs)
-    hape_cluster.update_table_schema(kwargs["table"], kwargs["partition"], kwargs["schema"], kwargs["full"])
+    hape_cluster.update_offline_table(kwargs["table"], kwargs["partition"], kwargs["schema"], kwargs["full"], kwargs["timestamp"])
 
 @update.command(short_help='Update load config')
 @common_params

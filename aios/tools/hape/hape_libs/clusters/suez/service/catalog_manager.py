@@ -76,7 +76,6 @@ class CatalogManager:
             swift_data_description.src = "swift"
             swift_data_description.swift_root = self._swift_zk_path
             swift_data_description.swift_topic_name = name
-            # data_descriptions[0]["swift_start_timestamp"] = str(int(time.time()) * 1000 * 1000 - 60 * 1000 * 1000)
 
             custom_metas = {
                 "swift_root": self._swift_zk_path,
@@ -116,8 +115,8 @@ class CatalogManager:
             Logger.error("Failed to create table, detail:{}".format(traceback.format_exc()))
             return False
 
-    def update_table_schema(self, name, partition_count, schema_path, data_full_path, bs_zfs_path = None):
-        if not self.update_partition(name, partition_count, schema_path, data_full_path, bs_zfs_path):
+    def update_offline_table(self, name, partition_count, schema_path, data_full_path, swift_start_timestamp, bs_zfs_path = None):
+        if not self.update_partition(name, partition_count, schema_path, data_full_path, swift_start_timestamp, bs_zfs_path):
             return False
         return True
 
@@ -166,7 +165,7 @@ class CatalogManager:
             Logger.error("Failed to update partition table structure, detail:{}".format(traceback.format_exc()))
             return False
 
-    def update_partition(self, table_name, partition_count, schema_path, data_full_path, bs_zfs_path = None):
+    def update_partition(self, table_name, partition_count, schema_path, data_full_path, swift_start_timestamp, bs_zfs_path = None):
         catalogname = HapeCommon.DEFAULT_CATALOG
         databasename = HapeCommon.DEFAULT_DATABASE
         if data_full_path == None:
@@ -196,6 +195,7 @@ class CatalogManager:
             swift_data_description.src = "swift"
             swift_data_description.swift_root = self._swift_zk_path
             swift_data_description.swift_topic_name = table_name
+            swift_data_description.swift_start_timestamp = str(swift_start_timestamp)
             file_data_description = DataSource.DataVersion.DataDescription()
             file_data_description.src = "file"
             if data_full_path.startswith("/") or data_full_path.find("://")!=-1:
