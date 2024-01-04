@@ -30,10 +30,10 @@ def candidate(**kwargs):
 @click.option('-p', '--partition', help="Partition count of table", default=1)
 @click.option('-s', '--schema',  required=True, help="Schema file path of table")
 @click.option('-f', '--full',  required=True, help="Full data path for offline table")
-@click.option('-ss', '--swift_start_timestamp',  required=True, help="After full index loaded, havenask will consume this swift realtime message from this timestamp", type=int)
+@click.option('--timestamp',  required=True, help="After full index loaded, havenask will consume this realtime message from this timestamp", type=int)
 def offline_table_index(**kwargs):
     hape_cluster = command_init(kwargs)
-    hape_cluster.update_offline_table(kwargs["table"], kwargs["partition"], kwargs["schema"], kwargs["full"], kwargs["swift_start_timestamp"])
+    hape_cluster.update_offline_table(kwargs["table"], kwargs["partition"], kwargs["schema"], kwargs["full"], kwargs["timestamp"])
     
 @update.command(short_help='Update table schema')
 @common_params
@@ -41,10 +41,10 @@ def offline_table_index(**kwargs):
 @click.option('-p', '--partition', help="Partition count of table", default=1)
 @click.option('-s', '--schema',  required=True, help="Schema file path of table")
 @click.option('-f', '--full',  required=True, help="Full data path for offline table")
-@click.option('-ss', '--swift_start_timestamp',  required=True, help="After full index loaded, havenask will consume this swift realtime message from this timestamp", type=int)
+@click.option('--timestamp',  required=True, help="After full index loaded, havenask will consume this realtime message from this timestamp", type=int)
 def table_schema(**kwargs):
     hape_cluster = command_init(kwargs)
-    hape_cluster.update_offline_table(kwargs["table"], kwargs["partition"], kwargs["schema"], kwargs["full"], kwargs["swift_start_timestamp"])
+    hape_cluster.update_offline_table(kwargs["table"], kwargs["partition"], kwargs["schema"], kwargs["full"], kwargs["timestamp"])
 
 @update.command(short_help='Update load config')
 @common_params
