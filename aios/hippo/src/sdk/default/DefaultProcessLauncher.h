@@ -21,6 +21,8 @@
 #include "sdk/ProcessLauncherBase.h"
 #include "sdk/default/ProcessController.h"
 #include "hippo/proto/Slave.pb.h"
+#include "hippo/LeaderSerializer.h"
+#include "rapidjson/document.h"
 
 BEGIN_HIPPO_NAMESPACE(sdk);
 
@@ -49,6 +51,9 @@ public:
     }
     virtual void setApplicationId(const std::string &appId);
 
+    void setLaunchedMetasSerializer(LeaderSerializer* launchedMetasSerializer) {
+        _launchedMetasSerializer = launchedMetasSerializer;
+    }
 private:
     void asyncLaunch(const std::map<std::string, std::set<hippo::SlotId> > &slotIds);
     void asyncLaunchOneRole(const std::string &role, const std::set<hippo::SlotId> &slotIds);
@@ -70,6 +75,18 @@ private:
                   const std::string& errorMsg);
     bool getSlotResource(const hippo::SlotId &slotId, hippo::SlotResource &slotResource);
     bool isSlotRunning(const ProcessStartWorkItem *workItem);
+    bool recoverLaunchedMetas();
+    void backupLaunchedMetas();
+    void serializeLaunchedMetas(const std::map<hippo::SlotId, std::pair<int64_t, int64_t> > &launchedMetaMap,
+                                std::string &content);
+    void serailizeSlotLaunchedMeta(const hippo::SlotId &slotId,
+                                   const std::pair<int64_t, int64_t>& meta,
+                                   rapidjson::MemoryPoolAllocator<> &allocator,
+                                   rapidjson::Value &slotInfo);
+    void deserializeLaunchedMetas(const std::string& content,
+                                  std::map<hippo::SlotId, std::pair<int64_t, int64_t> > &launchedMetaMap);
+    void deserailizeSlotLaunchedMeta(rapidjson::Value &slotLaunchedMeta,
+            hippo::SlotId &slotId, std::pair<int64_t, int64_t> &launchMeta);
 private:
     std::string _homeDir;
     ProcessController _controller;
@@ -79,6 +96,8 @@ private:
     //slotId to signature and timestamp
     std::map<hippo::SlotId, std::pair<int64_t, int64_t> > _launchedMetas;
     int64_t _processCheckInterval; //us
+    LeaderSerializer* _launchedMetasSerializer;
+    bool _reboot;
     HIPPO_LOG_DECLARE();
 };
 
