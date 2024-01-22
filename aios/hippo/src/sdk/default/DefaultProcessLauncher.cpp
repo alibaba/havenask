@@ -17,6 +17,7 @@
 #include "sdk/default/ProcessStartWorkItem.h"
 #include "hippo/ProtoWrapper.h"
 #include "util/SignatureUtil.h"
+#include "util/JsonUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -29,6 +30,8 @@ HIPPO_LOG_SETUP(sdk, DefaultProcessLauncher);
 DefaultProcessLauncher::DefaultProcessLauncher()
     : ProcessLauncherBase()
     , _processCheckInterval(30000000)
+    , _launchedMetasSerializer(nullptr)
+    , _reboot(true)
 {
     auto charPtr = std::getenv("HOME");
     if (charPtr) {
@@ -57,6 +60,10 @@ bool DefaultProcessLauncher::isDataReady(const SlotInfo &slotInfo,
 void DefaultProcessLauncher::launch(const map<string, std::set<SlotId> > &slotIds)
 {
     HIPPO_LOG(INFO, "begin launch");
+    if (!recoverLaunchedMetas()) {
+        HIPPO_LOG(ERROR, "recover launced metas failed");
+        return;
+    }
     if (!_controller.started()) {
         _controller.start();
     }
@@ -69,6 +76,7 @@ void DefaultProcessLauncher::launch(const map<string, std::set<SlotId> > &slotId
     asyncLaunch(slotIds);
     HIPPO_LOG(DEBUG, "after async launch, counter:%d", _counter.peek());
     _counter.wait();
+    backupLaunchedMetas();
     HIPPO_LOG(INFO, "end launch");
 }
 
@@ -328,6 +336,143 @@ std::map<hippo::SlotId, LaunchMeta> DefaultProcessLauncher::getLaunchedMetas() {
         launchedMetaMap[it.first].launchSignature = it.second.first;
     }
     return launchedMetaMap;
+}
+
+void DefaultProcessLauncher::backupLaunchedMetas() {
+    if (!_launchedMetasSerializer) {
+        return;
+    }
+    map<hippo::SlotId, std::pair<int64_t, int64_t> > launchedMetaMap;
+    {
+        ScopedLock lock(_mutex);
+        launchedMetaMap = _launchedMetas;
+    }
+    string content;
+    serializeLaunchedMetas(launchedMetaMap, content);
+    HIPPO_LOG(INFO, "serialize launced metas:%s", content.c_str());
+    _launchedMetasSerializer->write(content);
+}
+
+bool DefaultProcessLauncher::recoverLaunchedMetas() {
+    if (!_reboot || !_launchedMetasSerializer || !_launchedMetas.empty()) {
+        return true;
+    }
+    bool bExist = false;
+    if (!_launchedMetasSerializer->checkExist(bExist)) {
+        HIPPO_LOG(ERROR, "check backup launced metas exist failed.");
+        return false;
+    }
+    if (!bExist) {
+        HIPPO_LOG(INFO, "backup launced metas is not exist, no need recover.");
+        return true;
+    }
+    string content;
+    if (_launchedMetasSerializer->read(content)) {
+        HIPPO_LOG(INFO, "deserialize launced metas:%s", content.c_str());
+        map<hippo::SlotId, std::pair<int64_t, int64_t> > launchedMetaMap;
+        deserializeLaunchedMetas(content, launchedMetaMap);
+        ScopedLock lock(_mutex);
+        _launchedMetas.swap(launchedMetaMap);
+        _reboot = false;
+        return true;
+    }
+    return false;
+}
+
+void DefaultProcessLauncher::serializeLaunchedMetas(
+        const map<hippo::SlotId, pair<int64_t, int64_t> > &launchedMetaMap,
+        string &content)
+{
+    rapidjson::Document doc;
+    doc.SetObject();
+    auto& allocator = doc.GetAllocator();
+    rapidjson::Value slotInfos;
+    slotInfos.SetArray();
+    for (auto it = launchedMetaMap.begin(); it != launchedMetaMap.end(); ++it) {
+        rapidjson::Value slotInfo;
+        slotInfo.SetObject();
+        serailizeSlotLaunchedMeta(it->first, it->second, allocator, slotInfo);
+        slotInfos.PushBack(slotInfo, allocator);
+    }
+    string nameStr = "launched_metas";
+    rapidjson::Value name(nameStr.c_str(), nameStr.size(), allocator);
+    doc.AddMember(name, slotInfos, allocator);
+    JsonUtil::toJson(doc, content);
+}
+
+void DefaultProcessLauncher::serailizeSlotLaunchedMeta(const hippo::SlotId &slotId,
+        const pair<int64_t, int64_t>& meta, rapidjson::MemoryPoolAllocator<> &allocator, rapidjson::Value &slotInfo)
+{
+    map<string, string> kvMap;
+    kvMap["address"] = slotId.slaveAddress;
+    kvMap["slot_id"] = StringUtil::toString(slotId.id);
+    kvMap["declare_time"] = StringUtil::toString(slotId.declareTime);
+    kvMap["launch_signature"] = StringUtil::toString(meta.first);
+    kvMap["launch_time"] = StringUtil::toString(meta.second);
+    for (auto &kv : kvMap) {
+        rapidjson::Value name(kv.first.c_str(), kv.first.size(), allocator);
+        rapidjson::Value value(kv.second.c_str(), kv.second.size(), allocator);
+        slotInfo.AddMember(name, value, allocator);
+    }
+}
+
+void DefaultProcessLauncher::deserializeLaunchedMetas(const string& content,
+        map<hippo::SlotId, std::pair<int64_t, int64_t> > &launchedMetaMap)
+{
+    if (content.empty()) {
+        return;
+    }
+    HIPPO_LOG(INFO, "deserialize launched metas:%s", content.c_str());
+    rapidjson::Document doc;
+    if (!JsonUtil::fromJson(content, doc)) {
+        HIPPO_LOG(ERROR, "deserialize launched metas failed, invalid json[%s]",
+                  content.c_str());
+        return;
+    }
+    if (!doc.IsObject()) {
+        HIPPO_LOG(ERROR, "deserialize launched metas failed, [%s] is not object",
+                  content.c_str());
+    }
+    for (auto it = doc.MemberBegin(); it != doc.MemberEnd(); ++it) {
+        string role = it->name.GetString();
+        auto &slotLaunchedMetas = it->value;
+        if (!slotLaunchedMetas.IsArray()) {
+            continue;
+        }
+        for (auto iter = slotLaunchedMetas.Begin(); iter != slotLaunchedMetas.End(); ++iter) {
+            hippo::SlotId slotId;
+            std::pair<int64_t, int64_t> launchMeta;
+            deserailizeSlotLaunchedMeta(*iter, slotId, launchMeta);
+            launchedMetaMap[slotId] = launchMeta;
+        }
+    }
+}
+
+void DefaultProcessLauncher::deserailizeSlotLaunchedMeta(
+        rapidjson::Value &slotLaunchedMeta,
+        hippo::SlotId &slotId,
+        std::pair<int64_t, int64_t> &launchMeta)
+{
+    if (!slotLaunchedMeta.IsObject()) {
+        HIPPO_LOG(ERROR, "deserialize slot launched meta failed, "
+                  "which is not object");
+        return;
+    }
+    for (auto it = slotLaunchedMeta.MemberBegin(); it != slotLaunchedMeta.MemberEnd(); it++) {
+        string key(it->name.GetString());
+        string value(it->value.GetString());
+        if (key == "address") {
+            slotId.slaveAddress = value;
+        } else if (key == "slot_id") {
+            slotId.id = StringUtil::fromString<int32_t>(value);
+        } else if (key == "declare_time") {
+            slotId.declareTime = StringUtil::fromString<int64_t>(value);
+        } else if (key == "launch_signature") {
+            launchMeta.first = StringUtil::fromString<int64_t>(value);
+        } else if (key == "launch_time") {
+            launchMeta.second = StringUtil::fromString<int64_t>(value);
+        }
+    }
 }
 
 void DefaultProcessLauncher::setApplicationId(const string &appId) {

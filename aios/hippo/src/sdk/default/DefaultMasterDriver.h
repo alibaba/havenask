@@ -62,11 +62,13 @@ private:
 private:
     const static std::string ASSIGNED_SLOTS_FILE;
     const static std::string CANDIDATE_IPS_FILE;
+    const static std::string SLOT_LAUNCHED_METAS_FILE;
 private:
     std::string _homeDir;
     DefaultSlotAssigner* _slotAssigner;
     LeaderSerializer* _assignedSlotsSerializer;
     LeaderSerializer* _ipListReader;
+    LeaderSerializer* _launchedMetasSerializer;
     std::string _ipInfoStr;
     bool _isFirstStart;
     HIPPO_LOG_DECLARE();
