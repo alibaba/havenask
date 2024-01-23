@@ -79,6 +79,9 @@ void CatalogServiceKeeper::catalogLoop()
         activeGenerationKeepers = _activeGenerationKeepers;
     }
     for (const auto& [buildId, generationKeeper] : activeGenerationKeepers) {
+        if (generationKeeper->getGenerationTaskType() == GenerationTaskBase::TT_GENERAL) {
+            continue;
+        }
         if (buildIdMap.count(buildId) == 0) {
             BS_LOG(INFO, "[%s] is removed from catalog, stop build", buildId.ShortDebugString().c_str());
             stopBuild(buildId);

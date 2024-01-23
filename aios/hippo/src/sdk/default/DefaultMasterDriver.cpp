@@ -23,22 +23,22 @@ BEGIN_HIPPO_NAMESPACE(sdk);
 
 const string DefaultMasterDriver::ASSIGNED_SLOTS_FILE = "assigned_slots_info";
 const string DefaultMasterDriver::CANDIDATE_IPS_FILE = "candidate_ips";
+const string DefaultMasterDriver::SLOT_LAUNCHED_METAS_FILE = "slot_launched_metas";
 
 HIPPO_LOG_SETUP(sdk, DefaultMasterDriver);
 
 DefaultMasterDriver::DefaultMasterDriver()
     : BasicMasterDriver()
+    , _slotAssigner(nullptr)
     , _assignedSlotsSerializer(nullptr)
     , _ipListReader(nullptr)
+    , _launchedMetasSerializer(nullptr)
     , _isFirstStart(true)
 {
     auto charPtr = std::getenv("HOME");
     if (charPtr) {
         _homeDir = string(charPtr);
     }
-    _slotAssigner = new DefaultSlotAssigner();
-    _slotAllocator = new DefaultSlotAllocator(_eventTrigger, _slotAssigner);
-    _processLauncher = new DefaultProcessLauncher();
 }
 
 DefaultMasterDriver::~DefaultMasterDriver() {
@@ -47,6 +47,9 @@ DefaultMasterDriver::~DefaultMasterDriver() {
     DELETE_AND_SET_NULL_HIPPO(_processLauncher);
     DELETE_AND_SET_NULL_HIPPO(_slotAllocator);
     DELETE_AND_SET_NULL_HIPPO(_slotAssigner);
+    DELETE_AND_SET_NULL_HIPPO(_assignedSlotsSerializer);
+    DELETE_AND_SET_NULL_HIPPO(_ipListReader);
+    DELETE_AND_SET_NULL_HIPPO(_launchedMetasSerializer);
 }
 
 bool DefaultMasterDriver::init(const string &masterZkRoot,
@@ -63,12 +66,17 @@ bool DefaultMasterDriver::init(const string &masterZkRoot,
                                worker_framework::LeaderChecker * leaderChecker,
                                const string &applicationId)
 {
+    _slotAssigner = new DefaultSlotAssigner();
+    _slotAllocator = new DefaultSlotAllocator(_eventTrigger, _slotAssigner);
+    DefaultProcessLauncher *defalutLauncher = new DefaultProcessLauncher();
+    _processLauncher = defalutLauncher;
+
     if (!BasicMasterDriver::init(masterZkRoot, leaderChecker, applicationId)) {
         return false;
     }
-
     if (!createSerializer(masterZkRoot, ASSIGNED_SLOTS_FILE, &_assignedSlotsSerializer)
-        || !createSerializer(masterZkRoot, CANDIDATE_IPS_FILE, &_ipListReader))
+        || !createSerializer(masterZkRoot, CANDIDATE_IPS_FILE, &_ipListReader)
+        || !createSerializer(masterZkRoot, SLOT_LAUNCHED_METAS_FILE, &_launchedMetasSerializer))
     {
         return false;
     }
@@ -76,6 +84,7 @@ bool DefaultMasterDriver::init(const string &masterZkRoot,
     {
         return false;
     }
+    defalutLauncher->setLaunchedMetasSerializer(_launchedMetasSerializer);
     HIPPO_LOG(INFO, "default master driver init success. "
               "masterZkRoot:[%s], appId:[%s]",
               masterZkRoot.c_str(), applicationId.c_str());

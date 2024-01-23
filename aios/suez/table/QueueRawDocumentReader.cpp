@@ -37,19 +37,22 @@ bool QueueRawDocumentReader::initialize(const ReaderInitParam &params) {
     if (!RawDocumentReader::initialize(params)) {
         return false;
     }
-    if (!initQueue(params.kvMap)) {
+    if (!initQueue(params)) {
         return false;
     }
     AUTIL_LOG(INFO, "create queue raw document reader success, queue_name[%s]", _queueName.c_str());
     return true;
 }
 
-bool QueueRawDocumentReader::initQueue(const KeyValueMap &kvMap) {
-    _queueName = getValueFromKeyValueMap(kvMap, QUEUE_NAME);
-    if (_queueName.empty()) {
+bool QueueRawDocumentReader::initQueue(const ReaderInitParam &params) {
+    string queueName = getValueFromKeyValueMap(params.kvMap, QUEUE_NAME);
+    if (queueName.empty()) {
         AUTIL_LOG(ERROR, "queue name is empty for queue_wal.");
         return false;
     }
+    _queueName = GlobalQueueManager::generateQueueName(queueName,
+            params.range.from(), params.range.to());
+
     _docQueuePtr = GlobalQueueManager::getInstance()->createQueue(_queueName);
     if (_docQueuePtr == nullptr) {
         AUTIL_LOG(ERROR, "get queue failed, queue_name[%s]", _queueName.c_str());

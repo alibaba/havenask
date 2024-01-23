@@ -18,6 +18,7 @@
 #include <autil/Log.h>
 
 #include "autil/LockFreeQueue.h"
+#include "autil/StringUtil.h"
 
 using namespace std;
 using namespace autil;
@@ -52,6 +53,16 @@ void GlobalQueueManager::releaseQueue(const std::string &queueName) {
     }
 }
 
-GlobalQueueManager *GlobalQueueManager::getInstance() { return &queueManager; }
+GlobalQueueManager *GlobalQueueManager::getInstance() {
+    return &queueManager;
+}
+
+string GlobalQueueManager::generateQueueName(const std::string &queueName,
+        uint32_t from, uint32_t to)
+{
+    string newName = queueName + "_" + StringUtil::toString(from)
+                     + "_" + StringUtil::toString(to);
+    return newName;
+}
 
 } // namespace suez

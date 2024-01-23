@@ -228,7 +228,7 @@ void CatalogController::syncLoop() {
             dropBuild(partitionId);
             continue;
         }
-        if (isSchemaChanged(partition, iter->second)) {
+        if (iter != _lastPartitions.end() && isSchemaChanged(partition, iter->second)) {
             createBuild(partition, getStoreRoot(curCatalog, partitionId));
             continue;
         }

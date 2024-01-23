@@ -63,7 +63,7 @@ bool HippoAdapter::start() {
 
 bool HippoAdapter::stop() {
     ScopedLock lock(_lock);
-    if (!_masterDriver->stop()) {
+    if (_masterDriver && !_masterDriver->stop()) {
         return false;
     }
     return true;
