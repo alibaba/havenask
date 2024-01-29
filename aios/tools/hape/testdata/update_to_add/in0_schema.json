@@ -27,8 +27,8 @@
         {
             "name": "_SOURCE_",
             "index_config": {
-                'index_params': {
-                    'field_mode': 'all_field'
+                "index_params": {
+                    "field_mode": "all_field"
                 }
             },
             "index_type": "SOURCE"
