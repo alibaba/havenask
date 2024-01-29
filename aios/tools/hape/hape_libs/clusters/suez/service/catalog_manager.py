@@ -301,7 +301,7 @@ class CatalogManager:
 
         Logger.info("Raw schema {}".format(json.dumps(schema_dict, indent=4)))
         ha_schema = HavenaskSchema(schema_dict)
-        ha_schema.parse()
+        ha_schema.parse(enable_parse_types=False)
         Logger.info("Processed schema {}".format(json.dumps(ha_schema.schema, indent=4)))
         return ha_schema.shard_field, schema_dict
 

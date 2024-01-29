@@ -86,3 +86,11 @@ py_test(
     timeout='long',
     tags=['hape-test', 'manual']
 )
+py_test(
+    name = 'sut_update_to_add',
+    srcs = ['sut_update_to_add.py'],
+    deps = [':test_base'],
+    data = ['//aios/tools/hape:testdata_sut'],
+    timeout = 'long',
+    tags = ['hape-test', 'manual']
+)
