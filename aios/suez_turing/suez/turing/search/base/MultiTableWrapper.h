@@ -94,7 +94,7 @@ private:
                                       const indexlib::partition::JoinRelationMap &joinRelationMap);
     bool createMultiIndexApplication(const suez::SingleTableReaderMapMap &singleTableReaderMapMap,
                                      const indexlib::partition::JoinRelationMap &joinRelationMap,
-                                     const std::vector<int32_t> &partPos);
+                                     const int32_t maxPartCount);
 
     indexlib::partition::IndexApplicationPtr
     createIndexApplication(const suez::IndexPartitionMap &indexPartitionMap,
