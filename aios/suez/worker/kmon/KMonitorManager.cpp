@@ -96,6 +96,7 @@ bool KMonitorManager::initMetricsFactory(const EnvParam &param) {
     metricsConfig.set_service_name(kmonMetaInfo.serviceName);
     metricsConfig.set_sink_address((param.kmonitorSinkAddress + ":" + param.kmonitorPort).c_str());
     metricsConfig.set_enable_log_file_sink((param.kmonitorEnableLogFileSink));
+    metricsConfig.set_enable_prometheus_sink((param.kmonitorEnablePrometheusSink));
     metricsConfig.set_manually_mode(param.kmonitorManuallyMode);
     metricsConfig.set_inited(true);
     metricsConfig.AddGlobalTag("hippo_slave_ip", param.hippoSlaveIp);

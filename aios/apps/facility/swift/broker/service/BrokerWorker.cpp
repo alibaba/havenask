@@ -159,6 +159,12 @@ bool BrokerWorker::initMonitor() {
     metricsConfig.AddGlobalTag("host", host);
     metricsConfig.AddGlobalTag("hippo", hippoName);
 
+    bool enableKmonLogFileSink = false, enableKmonPromSink = false;
+    enableKmonLogFileSink = autil::EnvUtil::getEnv("kmonitorEnableLogFileSink", enableKmonLogFileSink);
+    enableKmonPromSink = autil::EnvUtil::getEnv("kmonitorEnablePrometheusSink", enableKmonPromSink);
+    metricsConfig.set_enable_log_file_sink(enableKmonLogFileSink);
+    metricsConfig.set_enable_prometheus_sink(enableKmonPromSink);
+
     string groupName, brokerName;
     if (!PathDefine::parseRoleGroup(_roleName, groupName, brokerName)) {
         fprintf(stderr, "parse role name failed");
