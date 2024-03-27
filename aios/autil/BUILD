@@ -879,6 +879,14 @@ cc_library(
     alwayslink=True
 )
 cc_library(
+    name='resource_pool',
+    hdrs=['autil/ResourcePool.h'],
+    include_prefix='autil',
+    strip_include_prefix='autil',
+    visibility=['//visibility:public'],
+    alwayslink=True
+)
+cc_library(
     name='resource_container',
     hdrs=['autil/ResourceContainer.h'],
     include_prefix='autil',
