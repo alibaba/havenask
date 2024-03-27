@@ -28,6 +28,12 @@ copy_target_to(
     visibility=['//visibility:public']
 )
 copy_target_to(
+    name='fslib_plugin_oss',
+    copy_name='libfslib_plugin_oss.so',
+    to_copy='//aios/filesystem/fslib/fslib/fs/oss:fslib_plugin_oss',
+    visibility=['//visibility:public']
+)
+copy_target_to(
     name='fslib_plugin_mock',
     testonly=True,
     copy_name='libfslib_plugin_mock.so',
