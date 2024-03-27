@@ -120,6 +120,11 @@ bool AdminWorker::initMonitor() {
     metricsConfig.set_inited(true);
     metricsConfig.AddGlobalTag("instance", instance);
     metricsConfig.AddGlobalTag("host", host);
+    bool enableKmonLogFileSink = false, enableKmonPromSink = false;
+    enableKmonLogFileSink = autil::EnvUtil::getEnv("kmonitorEnableLogFileSink", enableKmonLogFileSink);
+    enableKmonPromSink = autil::EnvUtil::getEnv("kmonitorEnablePrometheusSink", enableKmonPromSink);
+    metricsConfig.set_enable_log_file_sink(enableKmonLogFileSink);
+    metricsConfig.set_enable_prometheus_sink(enableKmonPromSink);
 
     // alog has not init yet
     cout << "init kmonitor with[" << ToJsonString(metricsConfig, true) << "]" << endl;

@@ -40,6 +40,8 @@ public:
     void set_sink_address(const std::string &sink_address);
     void set_enable_log_file_sink(bool local_path);
     bool enable_log_file_sink() const;
+    void set_enable_prometheus_sink(bool local_path);
+    bool enable_prometheus_sink() const;
     void set_manually_mode(bool mode);
     bool manually_mode() const;
     bool use_common_tag() const;
@@ -60,6 +62,7 @@ private:
     int sink_queue_capacity_;
     std::string sink_address_;
     bool enable_log_file_sink_ = false;
+    bool enable_prometheus_sink_ = false;
     bool manually_mode_ = false;
     bool use_common_tag_ = true;
     MetricsTags *global_tags_;

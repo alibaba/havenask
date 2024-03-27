@@ -53,6 +53,12 @@ void MonitorFactory::init() {
     }
     metricsConfig.set_sink_address(sinkAddress.c_str());
 
+    bool enableKmonLogFileSink = false, enableKmonPromSink = false;
+    enableKmonLogFileSink = autil::EnvUtil::getEnv("kmonitorEnableLogFileSink", enableKmonLogFileSink);
+    enableKmonPromSink = autil::EnvUtil::getEnv("kmonitorEnablePrometheusSink", enableKmonPromSink);
+    metricsConfig.set_enable_log_file_sink(enableKmonLogFileSink);
+    metricsConfig.set_enable_prometheus_sink(enableKmonPromSink);
+
     string app = autil::EnvUtil::getEnv("KMONITOR_ADAPTER_APP");
     if (app.empty()) {
         AUTIL_LOG(WARN, "not report monitor for no KMONITOR_ADAPTER_APP");
