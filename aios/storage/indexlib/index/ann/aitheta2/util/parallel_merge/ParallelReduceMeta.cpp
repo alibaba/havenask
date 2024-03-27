@@ -42,11 +42,12 @@ bool ParallelReduceMeta::Load(const DirectoryPtr& directory)
             return false;
         }
         directory->Load(fileName, content);
+        FromJsonString(*this, content);
     } catch (...) {
         AUTIL_LOG(WARN, "load parallel meta from [%s] failed.", directory->DebugString().c_str());
         return false;
     }
-    FromJsonString(*this, content);
+
     return true;
 }
 

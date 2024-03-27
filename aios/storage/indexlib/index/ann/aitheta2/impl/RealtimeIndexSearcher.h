@@ -35,9 +35,7 @@ public:
     }
     ~RealtimeIndexSearcher()
     {
-        if (_indexStreamer) {
-            _indexStreamer->cleanup();
-        }
+        // not close streamer here
     }
 
 public:

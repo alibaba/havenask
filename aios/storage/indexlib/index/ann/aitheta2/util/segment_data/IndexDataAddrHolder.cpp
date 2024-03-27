@@ -34,12 +34,18 @@ bool IndexDataAddrHolder::Dump(const indexlib::file_system::DirectoryPtr& direct
         return false;
     }
 
-    auto removeOption = indexlib::file_system::RemoveOption::MayNonExist();
-    directory->RemoveFile(INDEX_ADDR_FILE, removeOption);
-    auto writer = directory->CreateFileWriter(INDEX_ADDR_FILE);
-    ANN_CHECK(writer != nullptr, "create failed");
-    writer->Write(content.data(), content.size()).GetOrThrow();
-    writer->Close().GetOrThrow();
+    try {
+        auto removeOption = indexlib::file_system::RemoveOption::MayNonExist();
+        directory->RemoveFile(INDEX_ADDR_FILE, removeOption);
+        auto writer = directory->CreateFileWriter(INDEX_ADDR_FILE);
+        ANN_CHECK(writer != nullptr, "create failed");
+        writer->Write(content.data(), content.size()).GetOrThrow();
+        writer->Close().GetOrThrow();
+    } catch (const autil::legacy::ExceptionBase& e) {
+        AUTIL_LOG(ERROR, "dump failed, error[%s]", e.what());
+        return false;
+    }
+
     return true;
 }
 
@@ -47,18 +53,17 @@ bool IndexDataAddrHolder::Load(const indexlib::file_system::DirectoryPtr& direct
 {
     indexlib::file_system::ReaderOption readerOption(FSOT_MMAP);
     readerOption.mayNonExist = true;
-    auto reader = directory->CreateFileReader(INDEX_ADDR_FILE, readerOption);
-    ANN_CHECK(reader != nullptr, "create file reader failed");
 
-    string content((char*)reader->GetBaseAddress(), reader->GetLength());
     try {
+        auto reader = directory->CreateFileReader(INDEX_ADDR_FILE, readerOption);
+        ANN_CHECK(reader != nullptr, "create file reader failed");
+        string content((char*)reader->GetBaseAddress(), reader->GetLength());
         autil::legacy::FromJsonString(*this, content);
-    } catch (const autil::legacy::ExceptionBase& e) {
-        AUTIL_LOG(ERROR, "jsonize meta[%s] failed, error[%s]", content.c_str(), e.what());
         reader->Close().GetOrThrow();
+    } catch (const autil::legacy::ExceptionBase& e) {
+        AUTIL_LOG(ERROR, "load failed, error[%s]", e.what());
         return false;
     }
-    reader->Close().GetOrThrow();
     return true;
 }
 

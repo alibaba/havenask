@@ -92,14 +92,19 @@ bool SegmentMeta::Load(const indexlib::file_system::DirectoryPtr& directory)
 
 bool SegmentMeta::DoLoad(const indexlib::file_system::DirectoryPtr& directory)
 {
-    indexlib::file_system::ReaderOption readerOption(FSOT_MMAP);
-    readerOption.mayNonExist = true;
-    auto reader = directory->CreateFileReader(SEGMENT_META_FILE, readerOption);
-    ANN_CHECK(reader, "create failed");
-    string content((char*)reader->GetBaseAddress(), reader->GetLength());
-    FromJsonString(*this, content);
-    reader->Close().GetOrThrow();
-    AUTIL_LOG(INFO, "segment meta load from[%s]", reader->DebugString().c_str());
+    try {
+        indexlib::file_system::ReaderOption readerOption(FSOT_MMAP);
+        readerOption.mayNonExist = true;
+        auto reader = directory->CreateFileReader(SEGMENT_META_FILE, readerOption);
+        ANN_CHECK(reader, "create failed");
+        string content((char*)reader->GetBaseAddress(), reader->GetLength());
+        FromJsonString(*this, content);
+        reader->Close().GetOrThrow();
+        AUTIL_LOG(INFO, "segment meta load from[%s]", reader->DebugString().c_str());
+    } catch (const autil::legacy::ExceptionBase& e) {
+        AUTIL_LOG(ERROR, "load failed, error[%s]", e.what());
+        return false;
+    }
     return true;
 }
 
@@ -116,13 +121,19 @@ bool SegmentMeta::Merge(const SegmentMeta& segmentMeta)
 
 bool SegmentMeta::Dump(const indexlib::file_system::DirectoryPtr& directory)
 {
-    directory->RemoveFile(SEGMENT_META_FILE, RemoveOption::MayNonExist());
-    auto writer = directory->CreateFileWriter(SEGMENT_META_FILE);
-    ANN_CHECK(writer, "create writer failed");
-    string content = ToJsonString(*this);
-    writer->Write(content.data(), content.size()).GetOrThrow();
-    writer->Close().GetOrThrow();
-    AUTIL_LOG(INFO, "segment meta dump to[%s]", writer->DebugString().c_str());
+    try {
+        directory->RemoveFile(SEGMENT_META_FILE, RemoveOption::MayNonExist());
+        auto writer = directory->CreateFileWriter(SEGMENT_META_FILE);
+        ANN_CHECK(writer, "create writer failed");
+        string content = ToJsonString(*this);
+        writer->Write(content.data(), content.size()).GetOrThrow();
+        writer->Close().GetOrThrow();
+        AUTIL_LOG(INFO, "segment meta dump to[%s]", writer->DebugString().c_str());
+    } catch (const autil::legacy::ExceptionBase& e) {
+        AUTIL_LOG(ERROR, "dump failed, error[%s]", e.what());
+        return false;
+    }
+
     return true;
 }
 
