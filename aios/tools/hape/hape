@@ -10,7 +10,7 @@ sys.path = [os.path.join(HERE, "usr/local/lib/python/site-packages")] + sys.path
 import click
 
 from hape_libs.utils.logger import Logger
-from hape_libs.commands import start_cmd, restart_cmd, stop_cmd, delete_cmd, status_cmd, validate_cmd, update_cmd, get_cmd
+from hape_libs.commands import start_cmd, restart_cmd, stop_cmd, delete_cmd, status_cmd, validate_cmd, update_cmd, get_cmd, customize_cmd, prepare_cmd
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -28,6 +28,8 @@ cli.add_command(status_cmd.gs)
 cli.add_command(validate_cmd.validate)
 cli.add_command(update_cmd.update)
 cli.add_command(get_cmd.get)
+cli.add_command(customize_cmd.customize)
+cli.add_command(prepare_cmd.prepare)
 
 
 if __name__ == "__main__":

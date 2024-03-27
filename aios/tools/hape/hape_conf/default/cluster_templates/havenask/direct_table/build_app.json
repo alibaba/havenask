@@ -1,9 +1,0 @@
-{
-    "amonitor_port": 10086,
-    "service_name": "havenask",
-    "user_name": "havenask",
-    "index_root": "${index_root}",
-    "swift_root": "${swift_root}",
-    "hippo_root": "${hippo_root}",
-    "zookeeper_root": "${zookeeper_root}"
-}

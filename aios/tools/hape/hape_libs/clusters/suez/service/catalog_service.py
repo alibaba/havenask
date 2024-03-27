@@ -11,7 +11,8 @@ from aios.suez.python.catalog_builder import *
 class CatalogService(object):
     def __init__(self, address):
         self._http_address = address
-        Logger.info("Visit catalog service in address {}".format(self._http_address))
+        if address != None:
+            Logger.info("Visit catalog service in address {}".format(self._http_address))
 
     def create_catalog(self, catalog_json):
         Logger.debug("create catalog request {}".format(catalog_json))
@@ -224,6 +225,16 @@ class CatalogService(object):
         Logger.debug(str(data))
         if len(data["status"]) == 0 and 'builds' in data:
             return data["builds"]
+        else:
+            raise RuntimeError("Failed to get build, response:{}".format(data))
+        
+    def list_build(self, catalog_name):
+        Logger.debug("list build task")
+        response = requests.post(self._http_address + "/CatalogService/listBuild", json={"catalog_name": catalog_name})
+        data = response.json()
+        Logger.debug(str(data))
+        if len(data["status"]) == 0 and 'buildIds' in data:
+            return data["buildIds"]
         else:
             raise RuntimeError("Failed to get build, response:{}".format(data))
 

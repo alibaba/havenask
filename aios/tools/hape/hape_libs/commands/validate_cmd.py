@@ -1,53 +1,38 @@
 # -*- coding: utf-8 -*-
 
+from platform import processor
 from .common import *
 import traceback
 import click
 import getpass
+import re
 
-from hape_libs.common import *
 from hape_libs.utils.logger import Logger
-from hape_libs.utils.fs_wrapper import FsWrapper
 from hape_libs.utils.shell import SSHShell
-from hape_libs.container import *
+from hape_libs.common import HapeCommon
+from hape_libs.appmaster.k8s.k8s_client import *
+from hape_libs.appmaster.docker.docker_util import *
 
 
 @click.command(short_help='Validate hape env and domain conf')
 @common_params
 def validate(**kwargs):
     try:
-        hape_cluster = command_init(kwargs)
+        havenask_domain = command_init(kwargs)
     except Exception as e:
         Logger.error(traceback.format_exc())
         raise RuntimeError("Failed to init hape config, maybe has wrong domain config argument or failed to access zfs/hdfs/local path")
     
-    validate_user()
     
-    cluster_config = hape_cluster.cluster_config
-    ipset = set()
-    for key in [HapeCommon.SWIFT_KEY, HapeCommon.HAVENASK_KEY, HapeCommon.BS_KEY]:
-        admin_iplist = cluster_config.get_admin_ip_list(key)
-        worker_iplist = cluster_config.get_worker_ip_list(key)
-        for ip in admin_iplist + worker_iplist:
-            if ip in ipset:
-                continue
-            ipset.add(ip)
-            validate_single(key, ip, cluster_config)
-
-    ipset = {}
-    for key in [HapeCommon.SWIFT_KEY, HapeCommon.HAVENASK_KEY, HapeCommon.BS_KEY]:
-        admin_iplist = cluster_config.get_admin_ip_list(key)
-        worker_iplist = cluster_config.get_worker_ip_list(key)
-        for admin_ip in admin_iplist:
-            if admin_ip not in ipset:
-                ipset[admin_ip] = set()
-            for worker_ip in worker_iplist:
-                if worker_ip in ipset[admin_ip]:
-                    continue
-                ipset[admin_ip].add(worker_ip)
-                validate_schedule(key, admin_ip, worker_ip, cluster_config)
+    processorMode = havenask_domain.global_config.common.processorMode
+    if processorMode == "docker":
+        validate_docker_mode(havenask_domain.domain_config)
+        
+    if processorMode == "k8s":
+        validate_k8s_mode(havenask_domain.domain_config)
+        
                 
-    # validate_port(cluster_config)
+    # validate_port(domain_config)
     Logger.info("Succeed to validate basic hape enviroment")
 
 def validate_user():
@@ -60,58 +45,36 @@ def validate_user():
     if not home.startswith("/home"):
         raise RuntimeError("please make sure account:{} has home directory".format(user))
     
-## check every machine 
-def validate_single(key, ip, cluster_config):
+def validate_single(key, ip, domain_config):
     Logger.info("Begin to validate single container")
     
+    global_config = domain_config.global_config
     ## check if image exists and container can be created
-    image = cluster_config.get_domain_config_param(key, "image")
-    container_service= RemoteDockerContainerService(cluster_config)
+    image = global_config.get_appmaster_base_config(key, "image")
     container_name = "havenask-validate-single"
-    container_meta = ContainerMeta(container_name, ip)
-    container_spec = ContainerSpec(image, 100, 5124)
     
     shell = SSHShell(ip)
     out, succ = shell.execute_command("docker images | grep {}".format(".*".join(image.split(":"))), grep_text=image.split(":")[0])
     if not succ:
         raise RuntimeError("Image {} not found in ip {}".format(image, ip))
     
-    succ = container_service.create_container(container_meta, container_spec)
+    user, homedir = global_config.default_variables.user_home, global_config.default_variables.user
+    workdir = os.path.join(homedir, container_name)
+    succ = DockerContainerUtil.create_container(ip=ip, name=container_name, workdir= workdir, homedir = homedir, user=user, cpu=100, mem=5120, image=image)
     if not succ:
         raise RuntimeError("Failed to create container")
     
-    container_service.stop_container(container_meta, container_spec)
-
-    # check path in global.conf is accessable
-    # binary = cluster_config.get_domain_config_param(HapeCommon.COMMON_CONF_KEY, "binaryPath")
-    # out, fail = container_service.execute_command(container_meta, ProcessorSpec({}, {}, "ls {}".format(binary)), grep_text="No such")
-    # if fail:
-    #     raise RuntimeError("No binary path:[{}] in container [{}], ip:[{}]".format(binary, container_name, ip))    
-    
-    # dataStoreRoot = cluster_config.get_domain_config_param(HapeCommon.COMMON_CONF_KEY, "dataStoreRoot")
-    # container_service.execute_command(container_meta, ProcessorSpec({}, {}, "{}/usr/local/bin/fs_util mkdir -p {}".format(binary, dataStoreRoot)))
-    # check_paths = [
-    #     cluster_config.get_domain_config_param(HapeCommon.COMMON_CONF_KEY, "domainZkRoot"),
-    #     cluster_config.get_domain_config_param(HapeCommon.COMMON_CONF_KEY, "binaryPath"),
-    #     dataStoreRoot,
-    #     cluster_config.get_domain_config_param(HapeCommon.SWIFT_KEY, "swiftZkRoot")
-    # ]
-    # for check_path in check_paths:
-    #     container_service.execute_command(container_meta, ProcessorSpec({}, {}, "{} {}/usr/local/bin/fs_util mkdir -p {}".format(binary, check_path)))
-    #     out = container_service.execute_command(container_meta, ProcessorSpec({}, {}, "{} {}/usr/local/bin/fs_util ls {}".format(binary, check_path)))
-    #     if out.find("parse file protocol fail!") != -1 or out.find("path does not exist") != -1 or out.find("unknown error!") != -1: 
-    #         raise RuntimeError("Failed to create or access path:[{}] in container [{}], ip:[{}]".format(check_path, container_name, ip))
-
+    DockerContainerUtil.stop_container(ip=ip, name=container_name)
     Logger.info("Succeed to validate single container")
     
     
 ## check each admin can schedule workers
-def validate_schedule(key, admin_ip, worker_ip, cluster_config):
+def validate_schedule(key, admin_ip, worker_ip, domain_config):
     Logger.info("Begin to schedule from {} to {}".format(admin_ip, worker_ip))
     container_name = "havenask-validate-schedule"
     shell = SSHShell(admin_ip)
-    user_home = cluster_config.get_default_var("userHome")
-    image = cluster_config.get_domain_config_param(key, "image")
+    user_home = domain_config.get_default_var("user_home")
+    image = domain_config.get_domain_config_param(key, "image")
     run_cmd = "docker run --workdir {} --volume=\"/etc/group:/etc/group:ro\" --volume=\"/etc/passwd:/etc/passwd:ro\"  --volume=\"/etc/shadow:/etc/shadow:ro\" -v {}:{} --ulimit nofile=655350:655350  \
 --ulimit memlock=-1 --ulimit core=-1 --network=host --privileged -d  --cpu-quota=500000 \
 --cpu-period=100000 --memory=5124m -v /etc/passwd:/home/.passwd -v /etc/group:/home/.group --name {} {} /sbin/init".format(user_home, user_home, user_home, container_name, image)
@@ -128,25 +91,54 @@ def validate_schedule(key, admin_ip, worker_ip, cluster_config):
 
     Logger.info("Succeed to schedule from {} to {}".format(admin_ip, worker_ip))
 
+    
+def validate_docker_mode(domain_config):
+    validate_user()
+    
+    global_config = domain_config.global_config
+    ipset = set()
+    for key in [HapeCommon.SWIFT_KEY, HapeCommon.HAVENASK_KEY, HapeCommon.BS_KEY]:
+        admin_iplist = global_config.get_admin_candidate_ips(key)
+        worker_iplist = []
+        for role, iplist in global_config.get_worker_candidate_maps(key).items():
+            worker_iplist.extend(iplist)
+        for ip in admin_iplist + worker_iplist:
+            if ip in ipset:
+                continue
+            ipset.add(ip)
+            validate_single(key, ip, domain_config)
 
-## check port is not occupied
-# def validate_port(cluster_config):
-#     Logger.info("Begin to validate port")
-#     qrs_iplist = cluster_config.get_domain_config_param(HapeCommon.HAVENASK_KEY, "qrsIpList").split(";")
-#     searcher_iplist =  cluster_config.get_domain_config_param(HapeCommon.HAVENASK_KEY, "searcherIpList").split(";")
-#     admin_iplist = cluster_config.get_domain_config_param(HapeCommon.HAVENASK_KEY, "adminIpList").split(";")
-#     admin_port = cluster_config.get_domain_config_param(HapeCommon.HAVENASK_KEY, "adminHttpPort").split(";")
-#     checks = []
-#     checks += [(ip, "45800") for ip in qrs_iplist]
-#     checks += [(ip, "45900") for ip in searcher_iplist]
-#     checks += [(ip, admin_port) for ip in admin_iplist]
-#     for ip, port in checks:
-#         shell = SSHShell(ip)
-#         cmd = "netstat -nlp | grep {}".format(port)
-#         out, flag = shell.execute_command(cmd, grep_text="LISTEN")
-#         if flag:
-#             raise RuntimeError("Port {} is occupied in ip:{}. This error can be ignored if it belongs to already existing havenask cluster.\
-# Otherwise you need to free it".format(port, ip))
-#     Logger.info("Succeed to validate port")
+    ipset = {}
+    for key in [HapeCommon.SWIFT_KEY, HapeCommon.HAVENASK_KEY, HapeCommon.BS_KEY]:
+        admin_iplist = domain_config.get_admin_ip_list(key)
+        worker_iplist = domain_config.get_worker_ip_list(key)
+        for admin_ip in admin_iplist:
+            if admin_ip not in ipset:
+                ipset[admin_ip] = set()
+            for worker_ip in worker_iplist:
+                if worker_ip in ipset[admin_ip]:
+                    continue
+                ipset[admin_ip].add(worker_ip)
+                validate_schedule(key, admin_ip, worker_ip, domain_config)
+                
+def validate_k8s_service_name(domain_config):
+    pattern = re.compile(r'^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')
+    for key in [HapeCommon.HAVENASK_KEY, HapeCommon.SWIFT_KEY, HapeCommon.BS_KEY]:
+        name = domain_config.global_config.get_appmaster_service_name(key)
+        if len(name) < 1 or len(name) > 253:
+            raise RuntimeError("Length ({}) of service name [{}] is not allowed in k8s"%(len(name), name))
+
+        if not pattern.match(name):
+            raise RuntimeError("Service name [{}] is not allowed in k8s, supported pattern: {}"%(name, pattern))
+
+                
+def validate_k8s_mode(domain_config):
+    global_config = domain_config.global_config
     
+    binarypath, kubeconfig = global_config.common.binaryPath, global_config.common.kubeConfigPath
+    client = K8sClient(binarypath, kubeconfig)
+    if not client.check_connections():
+        msg = "Failed to connect to k8s cluster in this machine, maybe you should check kube config in [{}]".format(kubeconfig)
+        raise RuntimeError(msg)
     
+    validate_k8s_service_name(domain_config)

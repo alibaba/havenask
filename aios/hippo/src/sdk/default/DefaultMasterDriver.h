@@ -29,7 +29,7 @@ class DefaultSlotAssigner;
 class DefaultMasterDriver : public BasicMasterDriver {
 public:
     DefaultMasterDriver();
-    ~DefaultMasterDriver();
+    virtual ~DefaultMasterDriver();
 private:
     DefaultMasterDriver(const DefaultMasterDriver &);
     DefaultMasterDriver& operator=(const DefaultMasterDriver &);
@@ -45,13 +45,7 @@ public:
     /* override */ std::string getProcessWorkDir(const std::string &procName) const;
     /* override */ std::string getProcessWorkDir(const std::string &workDirTag,
             const std::string &procName) const;
-    /*override*/ void setSlotPodDesc(const std::vector<SlotInfo> &slotVec,
-            const std::string &podDesc) {}
 protected:
-    /* override */ bool initSlotAllocator(const std::string &masterZkRoot,
-            const std::string &applicationId);
-    /* override */ bool initPorcessLauncher(const std::string &masterZkRoot,
-            const std::string &applicationId);
     virtual void beforeLoop();
     virtual void afterLoop();
 

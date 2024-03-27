@@ -3,8 +3,8 @@ import functools
 import logging
 
 from hape_libs.utils.logger import Logger
-from hape_libs.config import ClusterConfig
-from hape_libs.clusters import HapeCluster
+from hape_libs.config import DomainConfig
+from hape_libs.domain import HavenaskDomain
 
 def common_params(func):
     @click.option("-c", "--config", help="Path of hape config. Will use default if not specified", required=False)
@@ -14,7 +14,7 @@ def common_params(func):
         return func(*args, **kwargs)
     return wrapper
 
-def command_init(kwargs, logging_level = None):
+def command_init(kwargs, logging_level = None): #type: (dict, int)->HavenaskDomain
     if kwargs['verbose'] == True:
         Logger.init_stdout_logger(logging.DEBUG)
     else:
@@ -23,7 +23,6 @@ def command_init(kwargs, logging_level = None):
         else:
             Logger.init_stdout_logger(logging_level)
         
-    cluster_config = ClusterConfig(kwargs['config'])
-    cluster_config.init()
-    hape_cluster = HapeCluster(cluster_config)
-    return hape_cluster
+    domain_config = DomainConfig(kwargs['config'])
+    havenask_domain = HavenaskDomain(domain_config)
+    return havenask_domain

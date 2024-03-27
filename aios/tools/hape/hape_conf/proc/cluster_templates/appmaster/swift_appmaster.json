@@ -1,0 +1,89 @@
+{
+    "resources": [
+        {
+            "amount": {{ swift.adminCpu }},
+            "name": "cpu",
+            "type": "SCALAR"
+        },
+        {
+            "amount": {{ swift.adminMem }},
+            "name": "mem",
+            "type": "SCALAR"
+        }
+    ],
+    "processLaunchContext":{
+        "requiredPackages":[
+            {
+                "packageURI": "{{ swift.image }}",
+                "type": "IMAGE"
+            }
+        ],
+        "processes": [
+            {
+                "args": [
+                    {
+                        "key":"-l",
+                        "value": "{{ common.binaryPath }}/usr/local/etc/swift/swift_alog.conf"
+                    },
+                    {
+                        "key": "-w",
+                        "value": "."
+                    },
+                    {
+                        "key": "-d",
+                        "value": ""
+                    }
+                ],
+                "cmd": "swift_admin",
+                "isDaemon": true,
+                "processName": "swift_admin",
+                "envs": [
+                    {
+                        "key":"PATH",
+                        "value": "{{ common.binaryPath }}/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+                    },
+                    {
+                        "key":"LD_LIBRARY_PATH",
+                        "value": "{{ common.binaryPath }}/usr/local/lib:{{ common.binaryPath }}/usr/local/lib64:/usr/local/lib64/ssl/lib64:/usr/lib:/usr/lib64:/opt/taobao/java/jre/lib/amd64/server"
+                    },
+                    {
+                        "key":"HADOOP_HOME",
+                        "value": "{{ common.hadoopHome }}"
+                    },
+                    {
+                        "key":"JAVA_HOME",
+                        "value": "{{ common.javaHome }}"
+                    },
+                    {
+                        "key":"USER",
+                        "value": "{{ default_variables.user }}"
+                    },
+                    {
+                        "key":"HOME",
+                        "value": "{{ default_variables.user_home }}"
+                    },
+                    {
+                        "key":"CUSTOM_CONTAINER_PARAMS",
+                        "value": "LS12b2x1bWU9Ii9ldGMvaG9zdHM6L2V0Yy9ob3N0czpybyIgLS11bGltaXQgbm9maWxlPTY1NTM1MDo2NTUzNTAgIC0tdWxpbWl0IG1lbWxvY2s9LTEgLS11bGltaXQgY29yZT0tMSAtLW5ldHdvcms9aG9zdCAtLXByaXZpbGVnZWQgLWQg"
+                    },
+                    { 
+                        "key":"MULTI_SLOTS_IN_ONE_NODE",
+                        "value": "{{ havenask.allowMultiSlotInOne }}"
+                    },
+                    {
+                        "key": "HIPPO_LOCAL_SCHEDULE_MODE",
+                        "value": "true"
+                    },
+                    {
+                        "key": "CMD_LOCAL_MODE",
+                        "value": "true"
+                    },
+                    {
+                        "key": "CMD_ONE_CONTAINER",
+                        "value": "true"
+                    }
+                ]
+            }
+        ]
+    }
+}

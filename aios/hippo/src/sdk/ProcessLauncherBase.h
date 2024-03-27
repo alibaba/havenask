@@ -69,12 +69,12 @@ public:
     virtual bool updateDatas(const SlotInfo &slotInfo,
                              const std::vector<hippo::DataInfo> &datas,
                              bool force);
-    virtual bool isPackageReady(const SlotInfo &slotInfo) const = 0;
+    virtual bool isPackageReady(const SlotInfo &slotInfo) const;
 
-    virtual bool isPreDeployPackageReady(const SlotInfo &slotInfo) const = 0;
+    virtual bool isPreDeployPackageReady(const SlotInfo &slotInfo) const;
 
     virtual bool isDataReady(const SlotInfo &slotInfo,
-                     const std::vector<std::string> &dataNames) const = 0;
+                     const std::vector<std::string> &dataNames) const;
 
     virtual void launch(const std::map<std::string, std::set<hippo::SlotId> > &slotIds) = 0;
     virtual bool resetSlot(const hippo::SlotId &slotId) = 0;
@@ -104,7 +104,6 @@ protected:
                                  hippo::ProcessContext *context,
                                  const std::string &scope = "") const;
 
-protected:
     bool getProcessContext(const ScopeProcessContextMap &contextMap,
                            const std::string &scope,
                            hippo::ProcessContext *context) const;
@@ -120,6 +119,16 @@ protected:
                                hippo::ProcessContext *context) const;
     void mergeScopeProcessContext(const ScopeProcessContextMap &slotContextMap,
                                   hippo::ProcessContext *context) const;
+    void asyncLaunch(const std::map<std::string, std::set<hippo::SlotId> > &slotIds);
+    void asyncLaunchOneRole(const std::string &role, const std::set<hippo::SlotId> &slotIds);
+    virtual void asyncLaunchOneSlot(const std::string& role,
+                                    const hippo::SlotId &slotId,
+                                    const hippo::ProcessContext &context) = 0;
+private:
+    hippo::DataInfo* getDataInfo(
+            hippo::ProcessContext &processContext,
+            const std::string &dataName) const;
+    std::string generatePackageChecksum(const std::vector<hippo::PackageInfo> &packages) const;
 
 protected:
     mutable autil::ThreadMutex _mutex;

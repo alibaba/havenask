@@ -1,0 +1,545 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: admins.carbon.taobao.com
+spec:
+  group: carbon.taobao.com
+  version: 
+    - name: v1
+      schema:
+        openAPIV3Schema:
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}
+  names:
+    kind: Admin
+    plural: admins
+    singular: admin
+  scope: Namespaced
+  subresources:
+    status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: controllersmanagers.carbon.taobao.com
+spec:
+  group: carbon.taobao.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+  names:
+    kind: ControllersManager
+    plural: controllersmanagers
+    singular: controllersmanager
+  scope: Namespaced
+  subresources:
+    status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: resourceplans.carbon.taobao.com
+spec:
+  group: carbon.taobao.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+  names:
+    kind: ResourcePlan
+    plural: resourceplans
+    singular: resourceplan
+  scope: Namespaced
+  subresources:
+    status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: carbonjobs.carbon.taobao.com
+spec:
+  group: carbon.taobao.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+  names:
+    kind: CarbonJob
+    plural: carbonjobs
+    singular: carbonjob
+  scope: Namespaced
+  subresources:
+    status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: rollingsets.carbon.taobao.com
+spec:
+  group: carbon.taobao.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+  names:
+    kind: RollingSet
+    plural: rollingsets
+    singular: rollingset
+  scope: Namespaced
+---
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: shardgroups.carbon.taobao.com
+spec:
+  group: carbon.taobao.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+  names:
+    kind: ShardGroup
+    plural: shardgroups
+    singular: shardgroup
+  scope: Namespaced
+---
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: servicepublishers.carbon.taobao.com
+spec:
+  group: carbon.taobao.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+  names:
+    kind: ServicePublisher
+    plural: servicepublishers
+    singular: servicepublisher
+  scope: Namespaced
+---
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: workernodes.carbon.taobao.com
+spec:
+  group: carbon.taobao.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+  names:
+    kind: WorkerNode
+    plural: workernodes
+    singular: workernode
+  scope: Namespaced
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Namespace","metadata":{"annotations":{},"name":"{{common.c2K8sNamespace}}"}}
+  name: {{common.c2K8sNamespace}}
+spec:
+  finalizers:
+  - kubernetes
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Namespace","metadata":{"annotations":{},"name":"{{common.k8sNamespace}}"}}
+  name: {{common.k8sNamespace}}
+spec:
+  finalizers:
+  - kubernetes
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: c2-proxy-admin
+  namespace: {{common.c2K8sNamespace}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: c2-admin
+  namespace: {{common.c2K8sNamespace}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: c2-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: c2-admin-proxy
+  namespace: {{common.c2K8sNamespace}}
+- kind: ServiceAccount
+  name: c2-admin
+  namespace: {{common.c2K8sNamespace}}
+---
+apiVersion: v1
+data:
+  kubeconfig: {{read_file_as_base64(common.kubeConfigPath)}}
+
+kind: Secret
+metadata:
+  name: c2kubeconfig
+  namespace: {{common.c2K8sNamespace}}
+type: Opaque
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: c2
+  name: c2
+  namespace: {{ common.c2K8sNamespace }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: c2
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: c2
+    spec:
+      containers:
+        - args:
+            - '--kubeconfig=/etc/kubeconfig/kubeconfig'
+            - >-
+              --controllers=shardgroup,rollingset,worker,publisher,healthcheck,adminmanager,carbonjob
+            - '--port=9092'
+            - '--namespace={{common.k8sNamespace}}'
+            - '--cluster={{common.c2ClusterName}}'
+            - '--log_dir=/home/admin/c2/logs'
+            - '--leader-elect-lease-duration=30s'
+            - '--leader-elect-renew-deadline=25s'
+            - '--spec:scheduler-name=ack'
+            - >-
+              --feature-gates=AdminClearPrivateResources=true,UsePriorityClassName=true,HashLabelValue=true
+            - '--leader-elect-resource-lock=leases'
+          command:
+            - /home/admin/c2/bin/c2-linux-amd64
+          env:
+            - name: BUILD_APP_NAME
+              value: c2
+            - name: APP_DIR
+              value: /home/admin/c2
+          image: 'registry.cn-hangzhou.aliyuncs.com/havenask/kubeshard:v0.0.4'
+          imagePullPolicy: Always
+          lifecycle: {}
+          name: c2
+          resources:
+            requests:
+              cpu: '2'
+              ephemeral-storage: 12Gi
+              memory: 4Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /home/admin/c2/logs
+              name: volume-logs
+            - mountPath: /home/admin/c2/data
+              name: volume-data
+            - mountPath: /etc/localtime
+              name: volume-localtime
+            - mountPath: /etc/kubeconfig
+              name: volume-kubeconfig
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: c2-admin
+      serviceAccountName: c2-admin
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - hostPath:
+            path: /tmp/logs
+            type: ''
+          name: volume-logs
+        - hostPath:
+            path: /tmp/data
+            type: ''
+          name: volume-data
+        - hostPath:
+            path: /etc/localtime
+            type: ''
+          name: volume-localtime
+        - name: volume-kubeconfig
+          secret:
+            defaultMode: 420
+            secretName: c2kubeconfig
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: carbon-proxy
+    c2-system-app-name: carbon-proxy
+  name: c2-proxy
+  namespace: {{common.c2K8sNamespace}}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: c2-proxy
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: c2-proxy
+    spec:
+      containers:
+        - args:
+            - '--kubeconfig=/etc/kubeconfig/kubeconfig'
+            - '--cluster={{common.c2ClusterName}}'
+            - '--port=:8989'
+            - '--platform=havenask'
+            - '--ns-route-strategy=config'
+            - '--ns-route-conf={{common.c2K8sNamespace}}/carbon-proxy-ack-route'
+            - '--system-namespace={{common.c2K8sNamespace}}'
+            - '--log_dir=/home/admin/c2/logs'
+            - '--log_file_backups=20'
+            - '--log_file_max_size=300'
+            - '--log-config=/home/admin/c2/etc/access_log.json'
+            - '--spec:pod-version=v3.0'
+            - '--spec:scheduler-name=ack'
+            - '--feature-gates=HashLabelValue=true'
+            - '--v=5'
+            - '--log-config=/home/admin/c2/conf/log-config'
+          command:
+            - /home/admin/c2/bin/carbon-proxy-linux-amd64
+          env:
+            - name: BUILD_APP_NAME
+              value: c2
+            - name: APP_DIR
+              value: /home/admin/c2
+          image: 'registry.cn-hangzhou.aliyuncs.com/havenask/kubeshard:v0.0.4'
+          imagePullPolicy: Always
+          lifecycle: {}
+          name: c2
+          resources:
+            requests:
+              cpu: '2'
+              ephemeral-storage: 12Gi
+              memory: 4Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /home/admin/c2/logs
+              name: volume-1705477084173
+            - mountPath: /home/admin/c2/data
+              name: volume-1705477109458
+            - mountPath: /etc/localtime
+              name: volume-localtime
+            - mountPath: /etc/kubeconfig
+              name: volume-kubeconfig
+            - mountPath: /home/admin/c2/conf
+              name: volume-c2proxyconfig
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - hostPath:
+            path: /tmp/logs
+            type: ''
+          name: volume-1705477084173
+        - hostPath:
+            path: /tmp/data
+            type: ''
+          name: volume-1705477109458
+        - hostPath:
+            path: /etc/localtime
+            type: ''
+          name: volume-localtime
+        - name: volume-kubeconfig
+          secret:
+            defaultMode: 420
+            secretName: c2kubeconfig
+        - configMap:
+            defaultMode: 420
+            name: c2proxy-config
+          name: volume-c2proxyconfig
+---
+apiVersion: v1
+data:
+  log-config: |
+    {
+        "access": {
+            "filename": "./logs/access.log",
+            "maxsize": 300,
+            "maxbackups": 20
+        }
+    }
+kind: ConfigMap
+metadata:
+  name: c2proxy-config
+  namespace: {{common.c2K8sNamespace}}
+---
+apiVersion: v1
+data:
+  namespace-router: '{"defaults": ["{{common.k8sNamespace}}"]}'
+kind: ConfigMap
+metadata:
+  labels:
+    app.c2.io/configs: proxy
+  name: carbon-proxy-ack-route
+  namespace: {{common.c2K8sNamespace}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: c2proxy-service
+  namespace: {{common.c2K8sNamespace}}
+spec:
+  clusterIP: None
+  clusterIPs:
+    - None
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: c2proxy-port
+      port: 8989
+      protocol: TCP
+      targetPort: 8989
+  selector:
+    app: c2-proxy
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: hippo-priority-100
+value: 100
+description: "hippo-priority-100"
+
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: hippo-priority-0
+value: 0
+description: "hippo-priority-0"

@@ -1,0 +1,10 @@
+class HapeCommon:
+    SWIFT_KEY = "swift"
+    HAVENASK_KEY = "havenask"
+    BS_KEY = "bs"
+    DEFAULT_CATALOG = "catalog"
+    DEFAULT_DATABASE = "database"
+    DEFAULT_TABLEGROUP = "tablegroup"
+    DEFAULT_DEPLOYMENT = "deployment"
+    DEFAULT_QRS_CLUSTERNAME = "qrs"
+    DEFAULT_SEARCHER_CLUSTERNAME = "database"

@@ -35,31 +35,29 @@ private:
     DefaultProcessLauncher(const DefaultProcessLauncher &);
     DefaultProcessLauncher& operator=(const DefaultProcessLauncher &);
 public:
-    bool isPackageReady(const SlotInfo &slotInfo) const;
+    bool isPackageReady(const SlotInfo &slotInfo) const override;
 
-    bool isPreDeployPackageReady(const SlotInfo &slotInfo) const;
+    bool isPreDeployPackageReady(const SlotInfo &slotInfo) const override;
 
     bool isDataReady(const SlotInfo &slotInfo,
-                     const std::vector<std::string> &dataNames) const;
-    void launch(const std::map<std::string, std::set<hippo::SlotId> > &slotIds);
-    bool resetSlot(const hippo::SlotId &slotId);
-    void setLaunchMetas(const std::map<hippo::SlotId, LaunchMeta> &launchMetas);
+                     const std::vector<std::string> &dataNames) const override;
+    void launch(const std::map<std::string, std::set<hippo::SlotId> > &slotIds) override;
+    bool resetSlot(const hippo::SlotId &slotId) override;
+    void setLaunchMetas(const std::map<hippo::SlotId, LaunchMeta> &launchMetas) override;
     std::map<hippo::SlotId, LaunchMeta> getLaunchedMetas();
     void setSlotResources(std::map<hippo::SlotId, hippo::SlotResource> &slotResources)
     {
         _slotResources = slotResources;
     }
-    virtual void setApplicationId(const std::string &appId);
-
+    void setApplicationId(const std::string &appId) override;
     void setLaunchedMetasSerializer(LeaderSerializer* launchedMetasSerializer) {
         _launchedMetasSerializer = launchedMetasSerializer;
     }
-private:
-    void asyncLaunch(const std::map<std::string, std::set<hippo::SlotId> > &slotIds);
-    void asyncLaunchOneRole(const std::string &role, const std::set<hippo::SlotId> &slotIds);
+protected:
     void asyncLaunchOneSlot(const std::string& role,
                             const hippo::SlotId &slotId,
-                            const hippo::ProcessContext &context);
+                            const hippo::ProcessContext &context) override;
+private:
     bool getLaunchSignature(const hippo::SlotId &slotId,
                             int64_t &signature);
     bool needLaunch(const hippo::SlotId &slotId, const ProcessStartWorkItem *workItem);
@@ -90,9 +88,9 @@ private:
 private:
     std::string _homeDir;
     ProcessController _controller;
+    autil::TerminateNotifier _counter;
     std::map<hippo::SlotId, hippo::SlotResource> _slotResources;
     std::map<std::string, std::set<hippo::SlotId> > _role2SlotIds;
-    autil::TerminateNotifier _counter;
     //slotId to signature and timestamp
     std::map<hippo::SlotId, std::pair<int64_t, int64_t> > _launchedMetas;
     int64_t _processCheckInterval; //us

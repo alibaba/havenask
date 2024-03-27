@@ -1,0 +1,140 @@
+{
+    "packages" : [
+	    {
+            "packageURI": "{{ bs.image }}",
+            "type": "IMAGE"
+        }
+    ],
+    "role_default" : {
+        "count" : 1,
+        "processInfos" : [
+            {
+                "args" : [
+                    [
+                        "-l",
+                        "{{ common.binaryPath }}/usr/local/etc/bs/bs_alog.conf"
+                    ],
+                    [
+                        "-w",
+                        "/home/admin"
+                    ]
+                ],
+                "envs" : [
+                    [
+                        "LD_LIBRARY_PATH",
+                        "{{ common.binaryPath }}/usr/local/lib:{{ common.binaryPath }}/usr/local/lib64:/usr/local/lib64/ssl/lib64:/usr/lib:/usr/lib64:/opt/taobao/java/jre/lib/amd64/server"
+                    ],
+                    [
+                        "PATH",
+                        "{{ common.binaryPath }}/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+                    ],
+                    [
+                        "JAVA_HOME", 
+                        "{{ common.javaHome }}"
+                    ],
+                    [
+                        "HADOOP_HOME", 
+                       "{{ common.hadoopHome }}"
+                    ],
+                    [
+                        "CLASSPATH", 
+                        "/usr/local/hadoop/hadoop/etc/hadoop:/usr/local/hadoop/hadoop/share/hadoop/common/lib/*:/usr/local/hadoop/hadoop/share/hadoop/common/*:/usr/local/hadoop/hadoop/share/hadoop/hdfs:/usr/local/hadoop/hadoop/share/hadoop/hdfs/lib/*:/usr/local/hadoop/hadoop/share/hadoop/hdfs/*:/usr/local/hadoop/hadoop/share/hadoop/yarn/lib/*:/usr/local/hadoop/hadoop/share/hadoop/yarn/*:/usr/local/hadoop/hadoop/share/hadoop/mapreduce/lib/*:/usr/local/hadoop/hadoop/share/hadoop/mapreduce/*:/usr/local/hadoop/hadoop/contrib/capacity-scheduler/*.jar"
+                    ],
+                    [
+                        "KMONITOR_ADAPTER_APP",
+                        "build_service"
+                    ],
+                    [
+                        "kmonitorEnableLogFileSink",
+                        "true"
+                    ],
+                    [
+                        "kmonitorEnablePrometheusSink",
+                        "{{ common.enableKmonitorPrometheusSink }}"
+                    ],
+                    [
+                        "KMONITOR_ADAPTER_SINK_ADDRESS",
+                        "{{ common.kmonitorSinkAddress }}"
+                    ]
+                ],
+                "isDaemon" : true,
+                "restartCountLimit" : 30,
+                "stopTimeout" : 360
+            }
+        ]
+    },
+    "role_customize": [
+        {
+            "_bs_role": "processor.*",
+            "priority": {
+                "minor_priority": 0,
+                "major_priority": 64
+            },
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 200,
+                            "name": "cpu"
+                        },
+                        {
+                            "amount": 8192,
+                            "name": "mem"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_bs_role": "builder.*",
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 200,
+                            "name": "cpu"
+                        },
+                        {
+                            "amount": 10240,
+                            "name": "mem"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_bs_role": "merger.*",
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 200,
+                            "name": "cpu"
+                        },
+                        {
+                            "amount": 10240,
+                            "name": "mem"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "_bs_role": ".*taskName=.*",
+            "slotResources": [
+                {
+                    "slotResources": [
+                        {
+                            "amount": 200,
+                            "name": "cpu"
+                        },
+                        {
+                            "amount": 10240,
+                            "name": "mem"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

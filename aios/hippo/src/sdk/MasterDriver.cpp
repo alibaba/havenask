@@ -18,6 +18,8 @@
 #include "autil/StringUtil.h"
 #include "common/common.h"
 #include "sdk/default/DefaultMasterDriver.h"
+#include "sdk/kubernetes/KubernetesMasterDriver.h"
+
 using namespace std;
 
 USE_HIPPO_NAMESPACE(sdk);
@@ -29,6 +31,10 @@ MasterDriver::MasterDriver() { }
 MasterDriver::~MasterDriver() { }
 
 MasterDriver* MasterDriver::createDriver(const std::string &driverName) {
+    string scheduleMode = autil::EnvUtil::getEnv("HIPPO_SCHEDULE_MODE", "");
+    if (scheduleMode == "kubernetes") {
+        return new KubernetesMasterDriver();
+    }
     return new DefaultMasterDriver();
 }
 

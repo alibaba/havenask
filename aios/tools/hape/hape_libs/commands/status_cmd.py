@@ -4,7 +4,7 @@ import click
 import logging
 
 from .common import *
-from hape_libs.common import *
+from hape_libs.common import HapeCommon
 
 @click.group()
 def gs():
@@ -15,27 +15,28 @@ def gs():
     
 @gs.command()
 @common_params
-@click.option("-d", "--detail", help="Detail havenask cluster status", default=False, is_flag=1, required=False)
 def havenask(**kwargs):
-    hape_cluster = command_init(kwargs, logging_level=logging.ERROR)
-    hape_cluster.get_sql_cluster_status(kwargs["detail"])
+    havenask_domain = command_init(kwargs, logging_level=logging.ERROR)
+    havenask_domain.get_cluster_status(HapeCommon.HAVENASK_KEY)
     
 @gs.command()
 @common_params
 @click.option("-t", "--table", help="specify table name")
+@click.option("-d", "--detail", help="Detail havenask cluster status", default=False, is_flag=1, required=False)
 def table(**kwargs):
-    hape_cluster = command_init(kwargs, logging_level=logging.ERROR)
-    hape_cluster.get_table_status(kwargs['table'])
+    havenask_domain = command_init(kwargs, logging_level=logging.ERROR)
+    havenask_domain.get_table_status(kwargs['table'], kwargs["detail"])
     
 @gs.command()
 @common_params
 def swift(**kwargs):
-    hape_cluster = command_init(kwargs, logging_level=logging.ERROR)
-    hape_cluster.get_swift_cluster_status()
+    havenask_domain = command_init(kwargs, logging_level=logging.ERROR)
+    havenask_domain.get_cluster_status(HapeCommon.SWIFT_KEY)
     
 
 @gs.command()
 @common_params
+@click.option("-t", "--table", help="specify table name")
 def bs(**kwargs):
-    hape_cluster = command_init(kwargs, logging_level=logging.ERROR)
-    hape_cluster.get_bs_cluster_status()
+    havenask_domain = command_init(kwargs, logging_level=logging.ERROR)
+    havenask_domain.get_cluster_status(HapeCommon.BS_KEY, table=kwargs["table"])

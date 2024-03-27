@@ -1,69 +1,68 @@
 import os
-import base64
 import json
+import requests
 
-from hape_libs.clusters.hippo_appmaster import *
+from hape_libs.clusters.cluster_base import *
+from .bs_util import BsAdminService
+from hape_libs.utils.logger import Logger
 
-class BsAdmin(HippoAppMasterBase):
-    def __init__(self, conf_key, cluster_config, catalog_root_zk):
-        super(BsAdmin, self).__init__(conf_key, cluster_config)
-        self._catalog_root_zk = catalog_root_zk
+class BsCluster(ClusterBase):
+    def __init__(self, key, domain_config):
+        super(BsCluster, self).__init__(key, domain_config)
     
-    def admin_process_name(self):
-        return "bs_admin_worker"
+    def get_leader_ip_address(self):
+        Logger.debug("Try to parse bs admin leader from zk")
+        try:
+            data = self._master.admin_zk_fs_wrapper.get("admin/LeaderElection/leader_election0000000000")
+            return json.loads(data)["httpAddress"]
+        except:
+            Logger.info("Bs admin is not started by now")
+        return None
     
-    def worker_process_name(self):
-        return "build_service_worker"
+    def is_ready(self):
+        address = self.get_leader_http_address()
+        if address == None:
+            return False
+        try:
+            response = requests.get("{}/__method__".format(address))
+            return response.text.find("AdminService") != -1
+        except:
+            return False
     
-    def processor_spec(self):
-
-        binaryPath = self._cluster_config.get_domain_config_param(HapeCommon.COMMON_CONF_KEY, "binaryPath")
-        envs = [
-                "USER={}".format(self._user),
-                "HOME={}".format(self._process_workdir_root),
-                "/bin/env PATH={}/usr/local/bin:$PATH".format(binaryPath),
-                "LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/opt/taobao/java/jre/lib/amd64/server:{}/usr/local/lib:{}/usr/local/lib64".format(binaryPath, binaryPath),
-                "HADOOP_HOME={}".format(self._hadoop_home),
-                "JAVA_HOME={}".format(self._java_home),
-                "control_flow_config_path={}/usr/local/etc/bs/lua/lua.conf".format(binaryPath),
-                "MULTI_SLOTS_IN_ONE_NODE=true",
-                "CUSTOM_CONTAINER_PARAMS={}".format(base64.b64encode(self.worker_docker_options().encode("utf-8")).decode("utf-8")),
-        ]
+    def get_admin_service(self):
+        leader_http_address = self.get_leader_http_address()
+        if leader_http_address != None:
+            admin_service = BsAdminService(leader_http_address)
+            return admin_service
+        else:
+            return None
         
-        if self.processor_local_mode:
-            envs += [
-                "CMD_LOCAL_MODE=true",
-                "CMD_ONE_CONTAINER=true"
-            ]
-
-        args = ["--app_name {}".format(self.service_name()),
-                "--zookeeper {}".format(self.service_zk_full_path()),
-                "--amonitor_port 10086",
-                "--hippo {}".format(self.hippo_zk_full_path()), 
-                "-l {}/usr/local/etc/bs/bs_admin_alog.conf".format(binaryPath),
-                "-w .",
-                "-d",
-                "--catalog_address {} --catalog_name {}".format(self._catalog_root_zk, HapeCommon.DEFAULT_CATALOG)
-            ]
-        
-        extra_envs, extra_args = self._cluster_config.get_extra_envs_and_args(self._conf_key)
-        envs += extra_envs
-        args += extra_args
-        return ProcessorSpec(envs, args, self.admin_process_name())
-        
-    def hippo_cmd(self):
-        return "bs_admin_worker"
-    
-    def get_admin_leader_address(self):
-        path = os.path.join(self.service_zk_path(), "admin/LeaderElection/leader_election0000000000")
-        Logger.debug("Try to parse admin leader from path {}".format(os.path.join(self._proc_zfs_wrapper.root_address, path)))
-        data = self._proc_zfs_wrapper.get(path)
-        return json.loads(data)["address"]
-    
-    def hippo_candidate_ips(self):
-        return {"default": self._cluster_config.get_domain_config_param(HapeCommon.BS_KEY, "workerIpList").split(";")}
-    
-    def get_worker_process_status(self):
-        result = super().get_worker_process_status()
-        
-        
+    def get_status(self, table = None):
+        if not self.is_ready():
+            Logger.error("Bs admin not ready")
+            return None  
+        admin_service =  self.get_admin_service()      
+        processors_status_map = admin_service.get_processors_status()
+        workers_status_map = self._master.get_containers_status()
+        status_list = []
+        for key, worker_status_list in workers_status_map.items():
+            for worker_status in worker_status_list:
+                processor_status = ClusterProcessorStatus.from_hippo_worker_info(worker_status)
+                if key == "admin":
+                    processor_status.processorName = self._global_config.get_master_command(self._key)
+                    processor_status.processorStatus = ProcessorStatusType.RUNNING
+                    status_list.append(processor_status)
+                else:
+                    if table != None and worker_status.role.find(table) == -1:
+                        continue
+                    processor_status  = ClusterProcessorStatus.from_hippo_worker_info(worker_status)
+                    processor_status.processorName = self._global_config.get_worker_command(self._key)
+                    processor_status.processorStatus = ProcessorStatusType.RUNNING
+                    status_list.append(processor_status)
+        cluster_status = ClusterStatus(
+            serviceZk = self._global_config.get_service_appmaster_zk_address(self._key),
+            hippoZk = self._global_config.get_service_hippo_zk_address(self._key),
+            processors = status_list
+        )
+        return attr.asdict(cluster_status)
+            
