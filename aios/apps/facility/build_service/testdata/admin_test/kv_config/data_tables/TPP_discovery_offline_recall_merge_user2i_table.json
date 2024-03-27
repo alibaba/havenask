@@ -8,9 +8,9 @@
             "module_name": "OdpsRawDocumentReader",
             "module_path": "libbasic_bs_plugins.so",
             "partition_name": "ds=20190426",
-            "project_name": "ytrec",
+            "project_name": "xxxx",
             "src": "odps",
-            "table_name": "discovery_offline_recall_merge_user2i_kv",
+            "table_name": "abcdefg",
             "type": "plugin",
 	    "ignore_empty_field": "true"
         }
