@@ -31,7 +31,7 @@ CONTAINER_NAME=$1
 SCRIPT_PATH=$(realpath "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 IMAGE_REPO="registry.cn-hangzhou.aliyuncs.com/havenask"
-IMAGE_VERSION="1.1.0"
+IMAGE_VERSION="1.2.0"
 IMAGE="$IMAGE_REPO/ha3_runtime:$IMAGE_VERSION"
 if [ $# -eq 2 ]; then
     IMAGE=$2
@@ -51,12 +51,13 @@ cat >  $CONTAINER_DIR/initContainer.sh  << EOF
 ##!/bin/bash
 groupadd havenask
 useradd -l -u $USERID -G havenask -md /home/$USER -s /bin/bash $USER
+usermod -u $USERID $USER
 echo -e "\n$USER ALL=(ALL) NOPASSWD:ALL\n" >> /etc/sudoers
 echo "PS1='[\u@havenask \w]\\$'" > /etc/profile
 echo "export TERM='xterm-256color'" >> /etc/profile
 mkdir -p /mnt/ram
 mount -t ramfs -o size=20g ramfs /mnt/ram
-sudo chmod a+rw /mnt/ram
+chmod a+rw /mnt/ram
 EOF
 
 
@@ -65,7 +66,7 @@ chmod a+x $CONTAINER_DIR/initContainer.sh
 
 echo "Begin pull image: ${IMAGE}"
 
-docker pull $IMAGE
+# docker pull $IMAGE
 
 docker run --ulimit nofile=655350:655350 --privileged --cap-add SYS_ADMIN --device /dev/fuse --ulimit memlock=-1 --cpu-shares=15360 --cpu-quota=9600000 --cpu-period=100000 --memory=500000m -d --net=host --name $CONTAINER_NAME -v $HOME:/home/$USER -v $CONTAINER_DIR/initContainer.sh:$CONTAINER_DIR/initContainer.sh $IMAGE /sbin/init 1> /dev/null
 
