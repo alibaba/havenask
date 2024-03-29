@@ -2,7 +2,7 @@ import urllib
 import time
 import sys
 import os
-import json
+import json_wrapper
 
 kmon_url = 'http://metric.alibaba-inc.com/api/query?token=c5a2a17e'
 metrics = ['swift.partition.read.request.readRequestQps', 'swift.partition.write.request.writeRequestQps','swift.partition.other.maxMsgId']
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         f = urllib.urlopen(kmon_url, params)
         resStr = f.read()
         #print resStr
-        resJson = json.read(resStr)
+        resJson = json_wrapper.read(resStr)
         #print resJson
         for i in range(0,len(resJson)):
             metrics = resJson[i]['metric']
