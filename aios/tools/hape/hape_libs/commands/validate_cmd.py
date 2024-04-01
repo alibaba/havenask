@@ -58,7 +58,7 @@ def validate_single(key, ip, domain_config):
     if not succ:
         raise RuntimeError("Image {} not found in ip {}".format(image, ip))
     
-    user, homedir = global_config.default_variables.user_home, global_config.default_variables.user
+    homedir, user = global_config.default_variables.user_home, global_config.default_variables.user
     workdir = os.path.join(homedir, container_name)
     succ = DockerContainerUtil.create_container(ip=ip, name=container_name, workdir= workdir, homedir = homedir, user=user, cpu=100, mem=5120, image=image)
     if not succ:
@@ -73,8 +73,9 @@ def validate_schedule(key, admin_ip, worker_ip, domain_config):
     Logger.info("Begin to schedule from {} to {}".format(admin_ip, worker_ip))
     container_name = "havenask-validate-schedule"
     shell = SSHShell(admin_ip)
-    user_home = domain_config.get_default_var("user_home")
-    image = domain_config.get_domain_config_param(key, "image")
+    global_config = domain_config.global_config
+    user_home = global_config.default_variables.user_home
+    image = global_config.get_appmaster_base_config(key, "image")
     run_cmd = "docker run --workdir {} --volume=\"/etc/group:/etc/group:ro\" --volume=\"/etc/passwd:/etc/passwd:ro\"  --volume=\"/etc/shadow:/etc/shadow:ro\" -v {}:{} --ulimit nofile=655350:655350  \
 --ulimit memlock=-1 --ulimit core=-1 --network=host --privileged -d  --cpu-quota=500000 \
 --cpu-period=100000 --memory=5124m -v /etc/passwd:/home/.passwd -v /etc/group:/home/.group --name {} {} /sbin/init".format(user_home, user_home, user_home, container_name, image)
@@ -110,17 +111,17 @@ def validate_docker_mode(domain_config):
 
     ipset = {}
     for key in [HapeCommon.SWIFT_KEY, HapeCommon.HAVENASK_KEY, HapeCommon.BS_KEY]:
-        admin_iplist = domain_config.get_admin_ip_list(key)
-        worker_iplist = domain_config.get_worker_ip_list(key)
+        admin_iplist = global_config.get_admin_candidate_ips(key)
         for admin_ip in admin_iplist:
             if admin_ip not in ipset:
                 ipset[admin_ip] = set()
-            for worker_ip in worker_iplist:
-                if worker_ip in ipset[admin_ip]:
-                    continue
-                ipset[admin_ip].add(worker_ip)
-                validate_schedule(key, admin_ip, worker_ip, domain_config)
-                
+            for role, iplist in global_config.get_worker_candidate_maps(key).items():
+                for worker_ip in iplist:
+                    if worker_ip in ipset[admin_ip]:
+                        continue
+                    ipset[admin_ip].add(worker_ip)
+                    validate_schedule(key, admin_ip, worker_ip, domain_config)
+                    
 def validate_k8s_service_name(domain_config):
     pattern = re.compile(r'^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')
     for key in [HapeCommon.HAVENASK_KEY, HapeCommon.SWIFT_KEY, HapeCommon.BS_KEY]:

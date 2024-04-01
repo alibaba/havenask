@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from platform import processor
 from .common import *
 import traceback
 import click
@@ -24,45 +23,11 @@ def prepare(**kwargs):
     
     
     processorMode = havenask_domain.global_config.common.processorMode
-    if processorMode == "docker":
-        prepare_docker_mode(havenask_domain.domain_config)
         
     if processorMode == "k8s":
         prepare_k8s_mode(havenask_domain.domain_config)
         
-                
-    # validate_port(domain_config)
     Logger.info("Succeed to prepare hape necessary resources")
-    
-    
-def prepare_docker_mode(domain_config):    
-    global_config = domain_config.global_config
-    
-    for key in [HapeCommon.SWIFT_KEY, HapeCommon.HAVENASK_KEY, HapeCommon.BS_KEY]:
-        image = global_config.get_appmaster_base_config(key, "image")
-        admin_iplist = global_config.get_admin_candidate_ips(key)
-        worker_iplist = []
-        for role, iplist in global_config.get_worker_candidate_maps(key).items():
-            worker_iplist.extend(iplist)
-        
-        ip_pull_result = {}
-        threads = []
-        for ip in admin_iplist + worker_iplist:
-            
-            def pull_image():
-                shell = SSHShell(ip=ip)
-                shell.execute_command("docker pull {}".format(image))
-                out, succ = shell.execute_command("docker ps | grep {}".format(image), grep_text=image)
-                ip_pull_result[ip] = succ
-            
-            th = threading.Thread(pull_image)
-            threads.append(th)
-
-        for ip, succ in ip_pull_result.items():
-            if not succ:
-                raise RuntimeError("Failed to prepare image {} in ip {}".format(image, ip))
-            
-        Logger.info("Succeed to papre image in machines")
                 
 
 def prepare_k8s_mode(domain_config):
@@ -81,7 +46,25 @@ def prepare_k8s_mode(domain_config):
         
     
     kind = "DaemonSet"
-    namespace = global_config.common.k8sNamespace
+    namespace = global_config.common.c2K8sNamespace
+    if client.read_resource(kind = "Namespace", name = namespace, namespace = None) == None:
+        Logger.info("Namespace {} is not found, will create".format(namespace))
+        doc = {
+            "apiVersion": "v1",
+            "kind": "Namespace",
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration":{
+                        
+                },
+                "name": global_config.common.k8sNamespace
+            },
+            "spec": {"finalizers": "kubernetes"}
+            }
+        }
+        client.create_resource(doc)
+        
+    
     for idx, image in enumerate(images):
         name = "havenask-image-preparer-{}".format(idx)
         daemon_set_plan = {

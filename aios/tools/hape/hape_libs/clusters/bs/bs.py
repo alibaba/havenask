@@ -42,7 +42,7 @@ class BsCluster(ClusterBase):
             Logger.error("Bs admin not ready")
             return None  
         admin_service =  self.get_admin_service()      
-        processors_status_map = admin_service.get_processors_status()
+        # processors_status_map = admin_service.get_processors_status()
         workers_status_map = self._master.get_containers_status()
         status_list = []
         for key, worker_status_list in workers_status_map.items():

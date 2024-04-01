@@ -1,3 +1,4 @@
+import traceback
 from .logger import Logger
 from kazoo.client import KazooClient
 
@@ -149,8 +150,10 @@ class ZfsClient(FsClientBase):
         if not self.exists(zfs_path):
             Logger.warning("{} not exists, no need to remove".format(zfs_path))
             return 
-        
-        self._client.delete(zfs_path, recursive=True)
+        try:
+            self._client.delete(zfs_path, recursive=True)
+        except:
+            Logger.debug(traceback.format_exc())
     
     def write(self, content, zfs_path):
         Logger.debug("write zk path {} with content {}".format(zfs_path, content))

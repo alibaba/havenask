@@ -32,6 +32,7 @@ py_library(
         '@pyyaml//:pyyaml',
         requirement('rsa'),
         requirement('oauthlib'),
+        requirement('requests_oauthlib'),
         requirement('cachetools'),
         requirement('kazoo'),
         requirement('requests'),

@@ -224,7 +224,7 @@ class K8sClient():
         
     def check_connections(self):
         try:
-            api_versions = self._core_api.get_api_versions()
+            nodes = self._core_v1.list_nodes()
             Logger.info("Connected to Kubernetes cluster")
             return True
         except Exception as e:

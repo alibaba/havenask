@@ -45,7 +45,7 @@ class AppMasterOnK8s(HippoAppMasterBase):
                 
                 return len(pods) == 0
                 
-            succ = Retry.retry(is_all_pods_over, check_msg="All pods over {} cluster is stopped".format(self._key), 
+            succ = Retry.retry(is_all_pods_over, check_msg="All pods over, {} cluster is stopped".format(self._key), 
                         limit = self._global_config.common.retryCommonWaitTimes)
             if not succ:
                 Logger.error("You should delete theses resource by hand, otherwise c2 deployment will not be deleted by hape")
@@ -72,8 +72,31 @@ class AppMasterOnK8s(HippoAppMasterBase):
                 for kind, name, namespace in metas:
                     if not self._k8s_client.delete_resource(kind=kind, name=name, namespace=namespace):
                         return False
+                    
+            if self._check_namespace_crd_empty():
+                succ = self._k8s_client.delete_resource(kind="Namespace", name=self._global_config.common.c2K8sNamespace)
+                if not succ:
+                    Logger.error("Failed to delete namespace {}".format(self._global_config.common.c2K8sNamespace))
+                    return False
+                succ = self._k8s_client.delete_resource(kind="Namespace", name=self._global_config.common.k8sNamespace)
+                if not succ:
+                    Logger.error("Failed to delete namespace {}".format(self._global_config.common.k8sNamespace))
+                    return False
+            else:
+                Logger.debug("Namespace is not empty, will not delete")
                 
         return True
+    
+    def _check_namespace_crd_empty(self):
+        crd_maps = self._global_config.get_k8s_workers_crds()
+        for key, crds in crd_maps.items():
+            for kind, namespace, name in crds:
+                if self._k8s_client.read_resource(kind=kind, name=name, namespace=namespace):
+                    Logger.debug("K8s resource [kind:{} namespace:{} name:{}] is not delete by now".format(kind, namespace, name))
+                    return False
+        return True
+                
+            
     
     def _stop_appmasters(self):
         name = self._global_config.get_appmaster_service_name(self._key)
@@ -90,19 +113,19 @@ class AppMasterOnK8s(HippoAppMasterBase):
     
     def _stop_workers(self):
         namespace = self._global_config.common.k8sNamespace
-        metas = self._global_config.get_k8s_workers_metas(self._key)
-        for kind, namespace, name in metas:
+        crds = self._global_config.get_k8s_workers_crds(self._key)
+        for kind, namespace, name in crds:
             if not self._k8s_client.delete_resource(kind=kind, name=name, namespace=namespace):
                 return False
         return True
     
-    def _list_worker_nodes(self):
-        label_key = "app.c2.io/app-name-hash"
-        label_value = self._global_config.get_k8s_workers_apphash(self._key)
-        workernodes = self._k8s_client.list_resources(kind="WorkerNode", 
-                                                      namespace=self._global_config.common.k8sNamespace, 
-                                                      label_selector=label_key+"="+label_value)
-        return workernodes
+    # def _list_worker_nodes(self):
+    #     label_key = "app.c2.io/app-name-hash"
+    #     label_value = self._global_config.get_k8s_workers_apphash(self._key)
+    #     workernodes = self._k8s_client.list_resources(kind="WorkerNode", 
+    #                                                   namespace=self._global_config.common.k8sNamespace, 
+    #                                                   label_selector=label_key+"="+label_value)
+    #     return workernodes
         
     def get_containers_status(self): #type:() -> dict[HippoAppContainerInfo]
         annotation_key = "app.hippo.io/role-name"

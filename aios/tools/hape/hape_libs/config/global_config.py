@@ -107,8 +107,8 @@ class CommonConfig(object):
     k8sNamespace = attr.ib(default="havenask-worker")
     catalogName = attr.ib(default="catalog")
     retryCommonWaitTimes = attr.ib(default = 40)
-    enableKmonitorPrometheusSink = attr.ib(default = "true")
-    kmonitorSinkAddress = attr.ib(default = "127.0.0.1:9091")
+    enableKmonitorPrometheusSink = attr.ib(default = "false")
+    kmonitorSinkAddress = attr.ib(default = None)
     kmonitorSinkHost = attr.ib(default="127.0.0.1")
     kmonitorSinkPort = attr.ib(default="9091")
     
@@ -121,10 +121,12 @@ class CommonConfig(object):
         if self.processorMode == "k8s":
             self.retryCommonWaitTimes *= 4
             
-        splits = self.kmonitorSinkAddress.split(":")
-        if len(splits) != 2:
-            raise ArgumentError("kmonitorSinkAddress address requires format: <host>:<port>")
-        self.kmonitorSinkHost, self.kmonitorSinkPort = splits
+        if self.kmonitorSinkAddress != None:
+            self.enableKmonitorPrometheusSink = 'true'
+            splits = self.kmonitorSinkAddress.split(":")
+            if len(splits) != 2:
+                raise ArgumentError("kmonitorSinkAddress address requires format: <host>:<port>")
+            self.kmonitorSinkHost, self.kmonitorSinkPort = splits
         
             
 class DefaultVaribles:
@@ -211,20 +213,23 @@ class GlobalConfig(object):
     def get_admin_candidate_ips(self, key):
         return self.get_appmaster_base_config(key, "adminIpList")
     
-    def get_k8s_workers_metas(self, key):
+    def get_k8s_workers_crds(self, key = None):
         map = {
             "swift": [
-                ["CarbonJob", self.common.k8sNamespace, self.default_variables.user + "-" + self.get_appmaster_service_name(key)]
+                ["CarbonJob", self.common.k8sNamespace, self.default_variables.user + "-" + self.get_appmaster_service_name("swift")]
             ],
             "bs": [
-                ["CarbonJob", self.common.k8sNamespace, self.get_appmaster_service_name(key)]
+                ["CarbonJob", self.common.k8sNamespace, self.get_appmaster_service_name("bs")]
             ],
             "havenask": [
                 ["ShardGroup", self.common.k8sNamespace, "qrs"],
                 ["ShardGroup", self.common.k8sNamespace, "database"]
             ]
         }
-        return map[key]
+        if key != None:
+            return map[key]
+        else:
+            return map
             
     def get_k8s_workers_apphash(self, key):
         map = {
@@ -253,7 +258,7 @@ class GlobalConfig(object):
     
     
     def get_docker_container_prefix(self, key):
-        service_name = self._global_config.get_appmaster_service_name(key)
+        service_name = self.get_appmaster_service_name(key)
         container_name = "havenask_container" + (("_" + self._global_config.default_variables.user) if key == "swift" else "") + "_" + service_name
         return container_name
 
