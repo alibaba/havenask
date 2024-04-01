@@ -94,3 +94,12 @@ py_test(
     python_version='PY2',
     tags=['hape-test']
 )
+py_test(
+    name='sut_update_to_add',
+    srcs=['sut_update_to_add.py'],
+    deps=[':test_base'],
+    data=['//aios/tools/hape:testdata_sut'],
+    timeout='long',
+    python_version='PY2',
+    tags=['hape-test']
+)
