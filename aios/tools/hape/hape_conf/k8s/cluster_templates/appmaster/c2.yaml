@@ -4,7 +4,7 @@ metadata:
   name: admins.carbon.taobao.com
 spec:
   group: carbon.taobao.com
-  version: 
+  versions: 
     - name: v1
       schema:
         openAPIV3Schema:

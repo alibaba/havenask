@@ -46,7 +46,7 @@
                     ],
                     [
                         "kmonitorEnableLogFileSink",
-                        "true"
+                        "false"
                     ],
                     [
                         "kmonitorEnablePrometheusSink",

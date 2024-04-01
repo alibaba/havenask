@@ -43,6 +43,11 @@
                         "amount": 0,
                         "name": "qrs",
                         "type": "TEXT"
+                    },
+                    {
+                        "amount": 0,
+                        "name": "{{ havenask.serviceName }}:qrs",
+                        "type": "EXCLUSIVE"
                     }
                 ]
             }

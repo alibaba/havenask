@@ -43,6 +43,11 @@
                         "amount": 0,
                         "name": "searcher",
                         "type": "TEXT"
+                    },
+                    {
+                        "amount": 0,
+                        "name": "{{ havenask.serviceName }}:searcher",
+                        "type": "EXCLUSIVE"
                     }
                 ]
             }
