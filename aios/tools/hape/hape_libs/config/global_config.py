@@ -62,6 +62,7 @@ class SwiftConfig(MasterConfigBase):
         self.workerCandidateMap = {
             "default": self.workerIpList
         }
+        self.brokerCount = int(self.brokerCount)
 
 @attr.s
 class BSConfig(MasterConfigBase):
@@ -88,6 +89,7 @@ class HavenaskConfig(MasterConfigBase):
             "qrs": self.qrsIpList,
             "searcher": self.searcherIpList
         }
+        self.qrsReplicaCount = int(self.qrsReplicaCount)
         
         # if isinstance(self.enableVirtualIp, unicode):
         #     self.enableVirtualIp = self.enableVirtualIp == "true"
@@ -119,7 +121,7 @@ class CommonConfig(object):
         else:
             self.isDomainZkSet = True
         if self.processorMode == "k8s":
-            self.retryCommonWaitTimes *= 4
+            self.retryCommonWaitTimes = int(self.retryCommonWaitTimes) * 4
             
         if self.kmonitorSinkAddress != None:
             self.enableKmonitorPrometheusSink = 'true'
@@ -259,7 +261,7 @@ class GlobalConfig(object):
     
     def get_docker_container_prefix(self, key):
         service_name = self.get_appmaster_service_name(key)
-        container_name = "havenask_container" + (("_" + self._global_config.default_variables.user) if key == "swift" else "") + "_" + service_name
+        container_name = "havenask_container" + (("_" + self.default_variables.user) if key == "swift" else "") + "_" + service_name
         return container_name
 
         

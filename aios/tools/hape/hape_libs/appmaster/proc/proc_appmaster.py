@@ -31,7 +31,7 @@ class AppMasterOnLocalProcessor(HippoAppMasterBase):
         succ = LocalProcUtil.start_process(workdir, envs, args, command)
         return succ
 
-    def stop(self, is_delete = False):
+    def stop(self, is_delete = False, only_admin=False):
         raw_hippo_plan = self._domain_config.template_config.get_rendered_appmaster_plan(self._key)
         hippo_plan = HippoMasterPlan(**raw_hippo_plan)
         process = hippo_plan.processLaunchContext.processes[0]
@@ -39,12 +39,13 @@ class AppMasterOnLocalProcessor(HippoAppMasterBase):
         ## stop appmaster
         LocalProcUtil.stop_process(process.cmd)
                 
-        container_map = self.get_containers_status()
-        ## stop workers
-        for key in container_map:
-            if key != "admin":
-                ## temporary solve havenask role
-                LocalProcUtil.stop_process(key.split(".")[0])
+        if not only_admin:
+            container_map = self.get_containers_status()
+            ## stop workers
+            for key in container_map:
+                if key != "admin":
+                    ## temporary solve havenask role
+                    LocalProcUtil.stop_process(key.split(".")[0])
 
         if is_delete :
             fs_wrapper = FsWrapper(self._global_config.get_service_zk_address(self._key))

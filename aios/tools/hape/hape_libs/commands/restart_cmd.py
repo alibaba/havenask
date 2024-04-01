@@ -18,13 +18,3 @@ def swift(**kwargs):
 def havenask(**kwargs):
     havenask_domain = command_init(kwargs)
     havenask_domain.start(HapeCommon.HAVENASK_KEY, allow_restart=True)
-    
-    
-@restart.command()
-@common_params
-@click.option("-i", "--ip", help="Ip of container", required=True)
-@click.option("-n", "--name", help="Name of container", required=True)
-def container(**kwargs):
-    havenask_domain = command_init(kwargs)
-    havenask_domain.restart_container(kwargs["ip"], kwargs["name"])
-    

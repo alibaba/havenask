@@ -25,10 +25,7 @@ class HavenaskDomain(object):
         self.suez_cluster = SuezCluster(HapeCommon.HAVENASK_KEY, self.domain_config)
         self.swift_tool_wrapper = self.swift_cluster.swift_tool_wrapper
 
-        if self.global_config.bs != None:
-            self.bs_cluster = BsCluster(HapeCommon.BS_KEY, self.domain_config)
-        else:
-            self.bs_cluster = None
+        self.bs_cluster = BsCluster(HapeCommon.BS_KEY, self.domain_config)
 
         self.cluster_dict = {
             HapeCommon.SWIFT_KEY: self.swift_cluster,
@@ -36,13 +33,13 @@ class HavenaskDomain(object):
             HapeCommon.HAVENASK_KEY: self.suez_cluster,
         }
 
-    def start(self, key, allow_restart=False):
+    def start(self, key, allow_restart=False, only_admin=False):
         start_havenask = (key == HapeCommon.HAVENASK_KEY)
         if start_havenask and (not self.keep_swift_master()):
             return False
             
         cluster = self.cluster_dict[key]
-        succ = cluster.start(allow_restart=allow_restart)
+        succ = cluster.start(allow_restart=allow_restart, only_admin=only_admin)
         if not succ:
             Logger.error("Failed to start {} cluster".format(key))
             return False
@@ -80,7 +77,7 @@ class HavenaskDomain(object):
     def stop(self, key, is_delete=False):
         if is_delete and key == HapeCommon.HAVENASK_KEY:
             try:
-                catalog_manager = self.get_suez_catalog_manager()
+                catalog_manager = self.suez_cluster.get_catalog_manager()
                 if catalog_manager != None:
                     table_infos = catalog_manager.list_table()
                     for table in table_infos:
@@ -288,16 +285,12 @@ class HavenaskDomain(object):
         if table not in catalog_manager.list_table_names():
             Logger.error("Table {} not created, create first".format(table))
             return False
-        if self.bs_cluster == None:
-            Logger.error("Bs config is not in global.conf and bs admin is not started, "
-                         "cannot create offline type table")
-            Logger.error("Please add bs config and execute subcommand: restart havenask")
+
+        succ = catalog_manager.update_offline_table(table, partition, schema, full_data_path, swift_start_timestamp, 
+                                                    self.domain_config.global_config.get_service_appmaster_zk_address(HapeCommon.BS_KEY))
+        if not succ:
+            Logger.error("Failed to update offline table")
             return False
-        else:
-            succ = catalog_manager.update_offline_table(table, partition, schema, full_data_path, swift_start_timestamp, 
-                                                        self.domain_config.global_config.get_service_appmaster_zk_address(HapeCommon.BS_KEY))
-            if not succ:
-                return False
         return True
     
     def check_new_generation_ready(self):
@@ -327,8 +320,9 @@ class HavenaskDomain(object):
         return buildinfos
 
     def drop_build(self, name, generation_id):
-        catalog_manager = self.get_suez_catalog_manager()
+        catalog_manager = self.suez_cluster.get_catalog_manager()
         try:
             catalog_manager.drop_build(name, generation_id)
         except:
             raise RuntimeError("Failed to drop build, table[{}], generation_id[{}]".format(name, generation_id))
+

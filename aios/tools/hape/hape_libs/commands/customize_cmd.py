@@ -30,7 +30,7 @@ class CustomizeContext(object):
 _customize_ctxs = [
     CustomizeContext("proc", "proc", "proc", False, False),
     CustomizeContext("default", "local", "docker", False, False),
-    CustomizeContext("vector", "vector", "docker",  True, False),
+    CustomizeContext("vector", "local", "docker",  True, False),
     CustomizeContext("vector-proc", "vector-proc", "proc",  True, False),
     CustomizeContext("remote", "remote", "docker", False, True),
     CustomizeContext("k8s", "k8s", "k8s", False, True)

@@ -80,8 +80,8 @@ class SwiftCluster(ClusterBase):
         
         return True
     
-    def stop(self, is_delete=False):
-        super(SwiftCluster, self).stop(is_delete=is_delete)
+    def stop(self, is_delete=False, only_admin = False):
+        super(SwiftCluster, self).stop(is_delete=is_delete, only_admin = only_admin)
         if is_delete:
             hadoop_home = self._global_config.common.hadoopHome
             binary_path = self._global_config.common.binaryPath
@@ -125,7 +125,7 @@ class SwiftCluster(ClusterBase):
             Logger.warning("Failed to check is swift admin ready")
         return False
     
-    def get_status(self):
+    def get_status(self, **kwargs):
         if not self.is_ready():
             Logger.error("Swift admin not ready")
             return None
@@ -153,6 +153,7 @@ class SwiftCluster(ClusterBase):
                     status_list.append(ClusterProcessorStatus.from_hippo_worker_info(worker_status))
             
         cluster_status = ClusterStatus(
+            leaderAddress = self.get_leader_http_address(),
             serviceZk = self._global_config.get_service_appmaster_zk_address(self._key),
             hippoZk = self._global_config.get_service_hippo_zk_address(self._key),
             processors = status_list

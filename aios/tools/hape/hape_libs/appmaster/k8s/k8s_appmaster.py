@@ -29,12 +29,13 @@ class AppMasterOnK8s(HippoAppMasterBase):
         )
         return self._k8s_client.create_resource(k8splan)
     
-    def stop(self, is_delete=False):
+    def stop(self, is_delete=False, only_admin=False):
         if not self._stop_appmasters():
             return False
         
-        if not self._stop_workers():
-            return False
+        if not only_admin:
+            if not self._stop_workers():
+                return False
         
         if is_delete:
             def is_all_pods_over():

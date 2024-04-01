@@ -38,6 +38,7 @@ class ClusterProcessorStatus(object):
 
 @attr.s
 class ClusterStatus(object):
+    leaderAddress = attr.ib(default="UNKNOWN")
     processors = attr.ib(default = [])
     serviceZk = attr.ib(default="UNKNOWN")
     hippoZk = attr.ib(default="UNKNOWN")
@@ -45,7 +46,7 @@ class ClusterStatus(object):
     
 @attr.s
 class ShardGroupProcessorStatus(ClusterProcessorStatus):
-    replia_id = attr.ib(default="UNKNOWN")
+    replicaId = attr.ib(default="UNKNOWN")
     workerStatus = attr.ib(default="UNKNOWN")
     signature = attr.ib(default="UNKNOWN")
     targetSignature = attr.ib(default="UNKNOWN")
@@ -68,6 +69,8 @@ class ShardGroupProcessorStatus(ClusterProcessorStatus):
     
 @attr.s
 class ShardGroupClusterStatus(object):
+    leaderAddress = attr.ib(default="UNKNOWN")
+    serviceZk = attr.ib(default="UNKNOWN")
     serviceZk = attr.ib(default="UNKNOWN")
     hippoZk = attr.ib(default="UNKNOWN")
     clusterStatus = attr.ib(default="UNKNOWN")
@@ -81,7 +84,7 @@ class ClusterBase(object):
         self._global_config = domain_config.global_config
         self._master = HippoAppMasterBase.create(key, domain_config)
         
-    def start(self, allow_restart=False):
+    def start(self, allow_restart=False, only_admin=False):
         ## before start master
         Logger.info("Begin to start {} admin".format(self._key))
         is_ready = self.is_ready()
@@ -91,7 +94,7 @@ class ClusterBase(object):
         
         if is_ready and allow_restart:
             Logger.info("{} admin already exists, will restart".format(self._key))
-            self.stop()
+            self.stop(only_admin=only_admin)
         
         raw_hippo_plan = self._domain_config.template_config.get_rendered_appmaster_plan(self._key)
         hippo_plan = HippoMasterPlan(**raw_hippo_plan)
@@ -119,8 +122,8 @@ class ClusterBase(object):
     def after_master_start(self):
         return True
     
-    def stop(self, is_delete=False):
-        self._master.stop(is_delete=is_delete)
+    def stop(self, is_delete=False, only_admin=False):
+        self._master.stop(is_delete=is_delete, only_admin=only_admin)
     
     def is_ready(self):
         raise NotImplementedError

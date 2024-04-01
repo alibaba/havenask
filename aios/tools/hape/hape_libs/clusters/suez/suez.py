@@ -99,8 +99,8 @@ class SuezCluster(ClusterBase):
         self.suez_cluster_manager = self.get_suez_cluster_manager()
         self.suez_cluster_manager.create_or_update_default_clusters()
         
-    def stop(self, is_delete=False):
-        super(SuezCluster, self).stop(is_delete=is_delete)
+    def stop(self, is_delete=False, only_admin = False):
+        super(SuezCluster, self).stop(is_delete=is_delete, only_admin = only_admin)
         hadoop_home = self._global_config.common.hadoopHome
         binary_path = self._global_config.common.binaryPath
         extend_attrs = {
@@ -138,7 +138,7 @@ class SuezCluster(ClusterBase):
         processors_status_map = scheduler_service.get_processors_status()
         workers_status_map = self._master.get_containers_status()
         
-        status_map = {"admin": []}
+        status_map = {"admin": [], "database": {}, "qrs": {}}
         role_ready_count = {"admin": 0}
         if len(processors_status_map) != 0:
             for key, worker_status_list in workers_status_map.items():
@@ -152,14 +152,14 @@ class SuezCluster(ClusterBase):
                     else:
                         is_find = False
                         group, role = worker_status.role.split(".")
-                        if group in processors_status_map and role in processors_status_map[group]:
-                        
-                            if group not in status_map:
+                        if group not in status_map:
                                 status_map[group] = {}
                                 
-                            if role not in status_map[group]:
-                                status_map[group][role] = []
-                                role_ready_count[role] = 0
+                        if role not in status_map[group]:
+                            status_map[group][role] = []
+                            role_ready_count[role] = 0
+                            
+                        if group in processors_status_map and role in processors_status_map[group]:
                             
                             for processor_status in processors_status_map[group][role]:
                                 if processor_status.ip == worker_status.ip and processor_status.role == role:
@@ -186,6 +186,7 @@ class SuezCluster(ClusterBase):
             serviceZk = self._global_config.get_service_appmaster_zk_address(self._key),
             hippoZk = self._global_config.get_service_hippo_zk_address(self._key),
             sqlClusterInfo = status_map,
+            leaderAddress = self.get_leader_http_address(),
             hint = hint,
             clusterStatus = "READY" if is_cluster_ready else "NOT_READY"
         )

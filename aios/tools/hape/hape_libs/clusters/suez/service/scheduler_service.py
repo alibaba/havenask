@@ -30,7 +30,7 @@ class SchedulerService(object):
                 role_statuses = system_info_dict[group]['roleStatuses']
                 status_map[group] = {}
                 for role in role_statuses:
-                    replica_nodes_status = role_statuses[role]['nextInstanceInfo']['replicaNodes']
+                    replica_nodes_status = role_statuses[role]['nextInstanceInfo'].get('replicaNodes', [])
                     role_status_list = self.extract_replica_nodes_status(role, replica_nodes_status)
                     status_map[group][role] = role_status_list
                     
@@ -46,7 +46,7 @@ class SchedulerService(object):
             processor_status.workerStatus = node_status["workerStatus"]
             if len(node_status["processStatus"]) == 1:
                 processor_status.processorStatus = ProcessorStatusType.RUNNING if node_status["processStatus"][0]["status"] == "PS_RUNNING" else ProcessorStatusType.NOT_RUNNING
-            processor_status.replia_id = node_status["replicaNodeId"]
+            processor_status.replicaId = node_status["replicaNodeId"]
             processor_status.signature = node_status["signature"]
             processor_status.targetSignature = node_status["targetSignature"]
             processor_status.readyForCurVersion = node_status["readyForCurVersion"]

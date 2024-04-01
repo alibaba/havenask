@@ -57,14 +57,15 @@ class AppMasterOnDocker(HippoAppMasterBase):
         return True
 
 
-    def stop(self, is_delete):
+    def stop(self, is_delete = False, only_admin = False):
         Logger.info("Starts to stop appmaster")
         if not self._stop_appmasters():
             return False
         
-        Logger.info("Starts to stop worker")
-        if not self._stop_workers():
-            return False
+        if not only_admin:
+            Logger.info("Starts to stop worker")
+            if not self._stop_workers():
+                return False
         
         if is_delete:
             fs_wrapper = FsWrapper(self._global_config.get_service_zk_address(self._key))

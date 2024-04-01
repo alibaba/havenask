@@ -2,6 +2,7 @@
 
 from .common import *
 import click
+from hape_libs.common import HapeCommon
 
 @click.group(short_help='Update some hape config')
 def update():
@@ -13,14 +14,13 @@ def update():
 def template(**kwargs):
     havenask_domain = command_init(kwargs)
     Logger.info("Restart havenask admin to reload template")
-    havenask_domain.domain_config.template_config.upload()
-    havenask_domain.restart_havenask_admin()
+    havenask_domain.start(key= HapeCommon.HAVENASK_KEY, allow_restart=True, only_admin=True)
 
 @update.command(short_help='Update hape candidate iplist')
 @common_params
 def candidate(**kwargs):
     havenask_domain = command_init(kwargs)
-    havenask_domain.update_candidate_ips()
+    havenask_domain.start(key=HapeCommon.HAVENASK_KEY, allow_restart=True, only_admin=True)
 
 @update.command(short_help='Update offline table index')
 @common_params

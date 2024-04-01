@@ -60,6 +60,7 @@ class BsCluster(ClusterBase):
                     processor_status.processorStatus = ProcessorStatusType.RUNNING
                     status_list.append(processor_status)
         cluster_status = ClusterStatus(
+            leaderAddress = self.get_leader_http_address(),
             serviceZk = self._global_config.get_service_appmaster_zk_address(self._key),
             hippoZk = self._global_config.get_service_hippo_zk_address(self._key),
             processors = status_list

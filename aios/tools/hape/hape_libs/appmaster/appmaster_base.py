@@ -33,7 +33,7 @@ class HippoAppMasterBase(object):
     def start(self, master_plan): #type:(HippoMasterPlan) -> bool
         raise NotImplementedError
     
-    def stop(self, is_delete = False):
+    def stop(self, is_delete = False, only_admin=False):
         raise NotImplementedError
     
     def get_containers_status(self): #type:() -> dict[HippoAppContainerInfo]
