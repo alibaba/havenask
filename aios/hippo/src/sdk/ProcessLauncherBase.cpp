@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 #include "sdk/ProcessLauncherBase.h"
+#include "hippo/ProtoWrapper.h"
+#include "util/PackageUtil.h"
 
 using namespace std;
 using namespace autil;
 using namespace hippo;
+USE_HIPPO_NAMESPACE(util);
 BEGIN_HIPPO_NAMESPACE(sdk);
 
 HIPPO_LOG_SETUP(sdk, ProcessLauncherBase);
 
-ProcessLauncherBase::ProcessLauncherBase() {
+ProcessLauncherBase::ProcessLauncherBase()
+    : _appChecksum(0)
+{
 }
 
 ProcessLauncherBase::~ProcessLauncherBase() {
@@ -441,6 +446,161 @@ void ProcessLauncherBase::clearUselessContexts(
             }
         }
         it++;
+    }
+}
+
+string ProcessLauncherBase::generatePackageChecksum(
+        const vector<hippo::PackageInfo> &packages) const
+{
+    vector<proto::PackageInfo> protoPackages;
+    ProtoWrapper::convert(packages, &protoPackages);
+    return PackageUtil::getPackageChecksum(protoPackages);
+}
+
+bool ProcessLauncherBase::isPackageReady(const SlotInfo &slotInfo) const {
+    const string &role = slotInfo.role;
+    const hippo::SlotId &slotId = slotInfo.slotId;
+    hippo::ProcessContext slotProcessContext;
+    if (!getSlotProcessContext(role, slotId, &slotProcessContext)) {
+        HIPPO_LOG(WARN, "check is package ready failed, "
+                  "get slot process context failed. "
+                  "role:%s", role.c_str());
+        return false;
+    }
+
+    if (slotInfo.packageStatus.status !=
+        hippo::PackageStatus::IS_INSTALLED)
+    {
+        return false;
+    }
+
+    string localPackageChecksum = generatePackageChecksum(
+            slotProcessContext.pkgs);
+    return localPackageChecksum == slotInfo.packageChecksum;
+}
+
+bool ProcessLauncherBase::isPreDeployPackageReady(const SlotInfo &slotInfo) const {
+    const string &role = slotInfo.role;
+    const hippo::SlotId &slotId = slotInfo.slotId;
+    hippo::ProcessContext slotProcessContext;
+    if (!getSlotProcessContext(role, slotId, &slotProcessContext)) {
+        HIPPO_LOG(WARN, "check is pre-deploy package ready failed, "
+                  "get slot process context failed. "
+                  "role:%s", role.c_str());
+        return false;
+    }
+
+    if (slotInfo.preDeployPackageStatus.status !=
+        hippo::PackageStatus::IS_INSTALLED)
+    {
+        return false;
+    }
+
+    string localPackageChecksum = generatePackageChecksum(
+            slotProcessContext.preDeployPkgs);
+    return localPackageChecksum == slotInfo.preDeployPackageChecksum;
+}
+
+bool ProcessLauncherBase::isDataReady(
+        const SlotInfo &slotInfo, const vector<string> &dataNames) const
+{
+    const string &role = slotInfo.role;
+    const hippo::SlotId &slotId = slotInfo.slotId;
+    hippo::ProcessContext slotProcessContext;
+    if (!getSlotProcessContext(role, slotId, &slotProcessContext)) {
+        HIPPO_LOG(WARN, "check is process ready fail, "
+                  "get slot process context failed. "
+                  "role:%s", role.c_str());
+        return false;
+    }
+
+    for (size_t i = 0; i < dataNames.size(); ++i) {
+        const string &dataName = dataNames[i];
+        hippo::DataInfo *dataInfo = getDataInfo(
+                slotProcessContext, dataName);
+        if (!dataInfo) {
+            HIPPO_LOG(WARN, "check is dataready fail,"
+                      " can not find data[%s]",
+                      dataName.c_str());
+            return false;
+        }
+
+        bool dataReported = false;
+        int64_t reportedAttemptId = -1;
+        int64_t reportedTargetVersion = -1;
+        int64_t reportedCurVersion = -1;
+
+        for (size_t j = 0; j < slotInfo.dataStatus.size(); j++) {
+            if (slotInfo.dataStatus[j].name == dataName) {
+                reportedAttemptId = slotInfo.dataStatus[j].attemptId;
+                reportedTargetVersion = slotInfo.dataStatus[j].targetVersion;
+                reportedCurVersion = slotInfo.dataStatus[j].curVersion;
+                dataReported = true;
+                break;
+            }
+        }
+
+        if (!dataReported) {
+            return false;
+        }
+
+        if (reportedAttemptId < dataInfo->attemptId) {
+            return false;
+        }
+
+        if (reportedTargetVersion < dataInfo->version) {
+            return false;
+        }
+
+        if (reportedTargetVersion != reportedCurVersion) {
+            return false;
+        }
+
+    }
+    return true;
+}
+
+hippo::DataInfo* ProcessLauncherBase::getDataInfo(
+        hippo::ProcessContext &processContext,
+        const string &dataName) const
+{
+    vector<hippo::DataInfo> &dataInfos = processContext.datas;
+    for (size_t i = 0; i < dataInfos.size(); ++i) {
+        if (dataInfos[i].name == dataName) {
+            return &dataInfos[i];
+        }
+    }
+    return NULL;
+}
+
+void ProcessLauncherBase::asyncLaunch(const map<string, set<hippo::SlotId> > &slotIds) {
+    for (map<string, set<hippo::SlotId> >::const_iterator it = slotIds.begin();
+         it != slotIds.end(); ++it)
+    {
+        const string &role = it->first;
+        HIPPO_LOG(DEBUG, "begin launch role:%s, slot count:%ld",
+                  role.c_str(), it->second.size());
+        asyncLaunchOneRole(role, it->second);
+    }
+}
+
+void ProcessLauncherBase::asyncLaunchOneRole(const string &role,
+        const set<hippo::SlotId> &slotIds)
+{
+    for (set<hippo::SlotId>::const_iterator it = slotIds.begin();
+         it != slotIds.end(); ++it)
+    {
+        const hippo::SlotId &slotId = *it;
+        hippo::ProcessContext context;
+        HIPPO_LOG(DEBUG, "begin launch slot, slot address:%s, id:%d",
+                  slotId.slaveAddress.c_str(), slotId.id);
+        if (!getSlotProcessContext(role, slotId, &context)) {
+            HIPPO_LOG(WARN, "get slot process context failed, "
+                      "role:%s, slot address:%s, id:%d",role.c_str(),
+                      slotId.slaveAddress.c_str(), slotId.id);
+            continue;
+        }
+        asyncLaunchOneSlot(role, slotId, context);
     }
 }
 

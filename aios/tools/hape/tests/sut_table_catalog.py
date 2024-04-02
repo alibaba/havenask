@@ -16,24 +16,24 @@ class HapeTableCatalogTest(unittest.TestCase, HapeTestBase):
 
     def test_table_catalog(self):
         ## start
-        self.assertTrue(self.hape_cluster.start_hippo_appmaster(HapeCommon.HAVENASK_KEY))
+        self.assertTrue(self.hape_domain.start(HapeCommon.HAVENASK_KEY))
         
         ## table rw
         self._run_direct_tables_case("in0")
         self._run_direct_tables_case("in1")
         self._run_direct_table_delete("in0")
         self._run_direct_table_rw("in1")
-        catalog_manager = self.hape_cluster.get_suez_catalog_manager()
+        catalog_manager = self.hape_domain.suez_cluster.get_catalog_manager()
         tables = list(catalog_manager.list_table().keys())
         self.assertTrue("in1" in tables)
         self.assertFalse("in2" in tables)
         
         
-        self.assertTrue(self.hape_cluster.stop_hippo_appmaster(HapeCommon.HAVENASK_KEY))
-        self.assertTrue(self.hape_cluster.stop_hippo_appmaster(HapeCommon.SWIFT_KEY))
+        self.assertTrue(self.hape_domain.stop(HapeCommon.HAVENASK_KEY))
+        self.assertTrue(self.hape_domain.stop(HapeCommon.SWIFT_KEY))
             
-        self.assertTrue(self.zk_wrapper.check_zk(path=self.hape_cluster.suez_appmaster.hippo_zk_full_path()))
-        self.assertTrue(self.zk_wrapper.check_zk(path=self.hape_cluster.suez_appmaster.service_zk_full_path()))
+        self.assertTrue(self.zk_wrapper.check_zk(path=self.domain_config.global_config.get_service_hippo_zk_address(HapeCommon.HAVENASK_KEY)))
+        self.assertTrue(self.zk_wrapper.check_zk(path=self.domain_config.global_config.get_service_appmaster_zk_address(HapeCommon.HAVENASK_KEY)))
     
     def _run_direct_tables_case(self, table):
         self._run_direct_table_create(table)
@@ -48,7 +48,7 @@ class HapeTableCatalogTest(unittest.TestCase, HapeTestBase):
             [random.randint(0, 10000), random.randint(0, 10000)]
         ]
         fields_str = ','.join(column_names)
-        address = self.hape_cluster.suez_appmaster.get_qrs_ips()[0] + ":" + self.hape_cluster.suez_appmaster.get_qrs_httpport()
+        address = self.hape_domain.suez_cluster.get_qrs_ips()[0] + ":" + self.domain_config.global_config.havenask.qrsHttpPort
         values_str = ','.join(['?' for i in range(len(column_names))])
         for i in range(len(datas)):
             dynamic_params = ','.join(['\\"{}\\"'.format(d) for d in datas[i]])
@@ -65,10 +65,10 @@ class HapeTableCatalogTest(unittest.TestCase, HapeTestBase):
             self.assert_result(data, column_names, column_types, [datas[i]])
     
     def _run_direct_table_delete(self, table):
-        self.assertTrue(self.hape_cluster.delete_table(table))
+        self.assertTrue(self.hape_domain.delete_table(table))
     
     def _run_direct_table_create(self, table):
-        self.assertTrue(self.hape_cluster.create_table(table, 1, self.testdata_root + "/in0_schema.json", None))
+        self.assertTrue(self.hape_domain.create_table(table, 1, self.testdata_root + "/in0_schema.json", None))
     
         
                  

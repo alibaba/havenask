@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-import json
+import json_wrapper
 from base_cmd import BaseCmd
 from tools_config import ToolsConfig
 from process import Process

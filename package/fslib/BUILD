@@ -5,10 +5,16 @@ bundle_files(
     srcs=[
         '//aios/filesystem/fslib:fslib_plugin_zfs',
         '//aios/filesystem/fslib:fslib_plugin_hdfs',
-        '//aios/filesystem/fslib:fslib_plugin_http', '@boringssl//:ssl',
+        '//aios/filesystem/fslib:fslib_plugin_http',
+        '//aios/filesystem/fslib:fslib_plugin_oss', '@boringssl//:ssl',
         '@boringssl//:crypto'
     ],
-    deps=[':curl_package', ':dfs_lib_package']
+    deps=[':curl_package', ':dfs_lib_package', ':oss_lib_package']
+)
+bundle_files(
+    name='oss_lib_package',
+    srcs=['@oss-sdk//:shared_files'],
+    visibility=['//visibility:public']
 )
 bundle_files(
     name='curl_package',

@@ -38,6 +38,7 @@ void MetricsConfig::Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) {
     json.Jsonize("tenant_name", tenant_name_);
     json.Jsonize("service_name", service_name_);
     json.Jsonize("enable_log_file_sink", enable_log_file_sink_, enable_log_file_sink_);
+    json.Jsonize("enable_prometheus_sink", enable_prometheus_sink_, enable_prometheus_sink_);
     json.Jsonize("manually_mode", manually_mode_, manually_mode_);
     json.Jsonize("use_common_tag", use_common_tag_, use_common_tag_);
     if (json.GetMode() == FROM_JSON) {
@@ -69,6 +70,7 @@ MetricsConfig &MetricsConfig::operator=(const MetricsConfig &config) {
         service_name_ = config.service_name();
         sink_address_ = config.sink_address();
         enable_log_file_sink_ = config.enable_log_file_sink();
+        enable_prometheus_sink_ = config.enable_prometheus_sink();
         manually_mode_ = config.manually_mode();
         *global_tags_ = *config.global_tags();
         use_common_tag_ = config.use_common_tag();
@@ -92,11 +94,19 @@ const string &MetricsConfig::sink_address() const { return sink_address_; }
 
 void MetricsConfig::set_sink_address(const string &sink_address) { sink_address_ = sink_address; }
 
+
 bool MetricsConfig::enable_log_file_sink() const { return enable_log_file_sink_; }
 
 void MetricsConfig::set_enable_log_file_sink(bool enable_log_file_sink) {
     enable_log_file_sink_ = enable_log_file_sink;
 }
+
+bool MetricsConfig::enable_prometheus_sink() const { return enable_prometheus_sink_; }
+
+void MetricsConfig::set_enable_prometheus_sink(bool enable_prometheus_sink) {
+    enable_prometheus_sink_ = enable_prometheus_sink;
+}
+
 
 bool MetricsConfig::manually_mode() const { return manually_mode_; }
 

@@ -56,11 +56,11 @@
                 "tokenizer_type": "jieba", 
                 "module_name": "analyzer_plugin", 
                 "parameters": {
-                    "dict_path": "${common.binaryPath}/usr/local/share/jieba_dict/jieba.dict.utf8",
-                    "hmm_path": "${common.binaryPath}/usr/local/share/jieba_dict/hmm_model.utf8",
-                    "user_dict_path": "${common.binaryPath}/usr/local/share/jieba_dict/user.dict.utf8",
-                    "idf_path": "${common.binaryPath}/usr/local/share/jieba_dict/idf.utf8",
-                    "stop_word_path": "${common.binaryPath}/usr/local/share/jieba_dict/stop_words.utf8"
+                    "dict_path": "{{global.common.binaryPath}}/usr/local/share/jieba_dict/jieba.dict.utf8",
+                    "hmm_path": "{{global.common.binaryPath}}/usr/local/share/jieba_dict/hmm_model.utf8",
+                    "user_dict_path": "{{global.common.binaryPath}}/usr/local/share/jieba_dict/user.dict.utf8",
+                    "idf_path": "{{global.common.binaryPath}}/usr/local/share/jieba_dict/idf.utf8",
+                    "stop_word_path": "{{global.common.binaryPath}}/usr/local/share/jieba_dict/stop_words.utf8"
                 }
             }
         ]

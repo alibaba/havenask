@@ -1,77 +1,60 @@
 import sys
 import os
 import requests
+import traceback
 import json
+import attr
+
+
 from hape_libs.utils.logger import Logger
+from hape_libs.clusters.cluster_base import *
 
 class SchedulerService(object):
     def __init__(self, address):
         self._http_address = address
         Logger.info("visit scheduler service in address {}".format(self._http_address))
 
-    def get_status(self, detail=False):
-        Logger.debug("get status")
+    def get_processors_status(self):
+        Logger.debug("get scheduler status of havenask admin")
         response = requests.post(self._http_address + "/SchedulerService/getSystemInfo")
         Logger.debug(response.text)
         sys_info_str = response.json()["systemInfoStr"]
-        result = {}
-        simple_status = self.extract_simple_status(sys_info_str)
-        generation_ids = self.extract_generation_ids(sys_info_str)
-        if not detail:
-            result = simple_status
-        else:
-            result = json.loads(sys_info_str)
-            result["clusterStatus"] = simple_status["clusterStatus"]
-            result["GenerationIds"] = generation_ids
+        result = self.extract_processors_status(sys_info_str)
         return result
 
-    def extract_simple_status(self, system_info_str):
-        simple_status = {}
+    def extract_processors_status(self, system_info_str):
+        status_map = {}
         try:
             system_info_dict = json.loads(system_info_str)
-            all_ready = True
-            qrs_role_statuses = system_info_dict['qrs']['roleStatuses']['qrs_partition_0']['nextInstanceInfo']['replicaNodes']
-            is_all_qrs_ready, status = self.extract_replica_nodes_status(qrs_role_statuses)
-            all_ready = all_ready and is_all_qrs_ready
-            simple_status["qrs"] = status
-
-            simple_status["database"] = {}
-            db_role_statuses = system_info_dict['database']['roleStatuses']
-            for db_role in db_role_statuses:
-                replica_nodes_status = db_role_statuses[db_role]['nextInstanceInfo']['replicaNodes']
-                is_all_searcher_ready, status = self.extract_replica_nodes_status(replica_nodes_status)
-                simple_status["database"][db_role] = status
-                all_ready = all_ready and is_all_searcher_ready
-            simple_status["clusterStatus"] =  "READY" if all_ready else "NOT_READY"
+            for group in system_info_dict:
+                role_statuses = system_info_dict[group]['roleStatuses']
+                status_map[group] = {}
+                for role in role_statuses:
+                    replica_nodes_status = role_statuses[role]['nextInstanceInfo'].get('replicaNodes', [])
+                    node_status_list = self.extract_replica_nodes_status(role, replica_nodes_status)
+                    status = ShardGroupRoleStatus(processorList = node_status_list, readyForCurVersion=role_statuses[role]['readyForCurVersion'])
+                    status_map[group][role] = status
+                    
         except:
-            simple_status["clusterStatus"] = "UNKNOWN"
-        return simple_status
+            Logger.error("Failed to extract processors status")
+            Logger.error(traceback.format_exc())
+        return status_map
 
-    def extract_replica_nodes_status(self, replica_nodes_status):
-        status = []
-        is_all_ready = (len(replica_nodes_status) > 0)
+    def extract_replica_nodes_status(self, role, replica_nodes_status):
+        status_list = []
         for node_status in replica_nodes_status:
-            simple_node_status =  {}
-            simple_node_status["serviceStatus"] = node_status["serviceStatus"]
-            simple_node_status["healthStatus"] = node_status["healthStatus"]
-            simple_node_status["workerStatus"] = node_status["workerStatus"]
-            simple_node_status["slotId"] = node_status["slotId"]
-            simple_node_status["replicaNodeId"] = node_status["replicaNodeId"]
-            status.append(simple_node_status)
-            is_all_ready = (simple_node_status["serviceStatus"] == "SVT_AVAILABLE") and (simple_node_status["healthStatus"] == "HT_ALIVE") and (simple_node_status["workerStatus"] == "WS_READY")
-        return is_all_ready, status
-
-    def extract_generation_ids(self, system_info_str):
-        generation_ids = set()
-        try:
-            system_info_dict = json.loads(system_info_str)
-            all_ready = True
-            searcher_role_statuses = system_info_dict['database']['roleStatuses']
-            for searcher_role in searcher_role_statuses:
-                replica_nodes_status = searcher_role_statuses[searcher_role]['nextInstanceInfo']['replicaNodes']
-                for node_status in replica_nodes_status:
-                    generation_id = node_status['signature'].split('.')[1]
-                    generation_ids.add(int(generation_id))
-        except:
-            generation_ids = set()
-        return list(generation_ids)
+            processor_status = ShardGroupProcessorStatus()
+            processor_status.workerStatus = node_status["workerStatus"]
+            if len(node_status["processStatus"]) == 1:
+                processor_status.processorStatus = ProcessorStatusType.RUNNING if node_status["processStatus"][0]["status"] == "PS_RUNNING" else ProcessorStatusType.NOT_RUNNING
+            processor_status.replicaId = node_status["replicaNodeId"]
+            processor_status.signature = node_status["signature"]
+            processor_status.targetSignature = node_status["targetSignature"]
+            processor_status.readyForCurVersion = node_status["readyForCurVersion"]
+            processor_status.ip = node_status["ip"]
+            processor_status.role = role
+            status_list.append(processor_status)
+            
+        if len(replica_nodes_status) == 0:
+            status_list.append(ShardGroupProcessorStatus())
+        return status_list

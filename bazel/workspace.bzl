@@ -107,6 +107,7 @@ def aios_workspace():
     native.local_repository(
         name='mongo-cxx-driver', path=(EXTERNAL_DIR + 'mongo-cxx-driver')
     )
+    native.local_repository(name='oss-sdk', path=(EXTERNAL_DIR + 'oss-sdk'))
     native.local_repository(
         name='zookeeper-package', path=(EXTERNAL_DIR + 'zookeeper-package')
     )
@@ -183,6 +184,7 @@ def aios_workspace():
     native.local_repository(
         name='com_google_absl', path=(EXTERNAL_DIR + 'com_google_absl')
     )
+    native.local_repository(name='pyyaml', path=(EXTERNAL_DIR + 'pyyaml'))
     mjbots_deps_commit = 'dea4292627409f102a6314fce231ade4a0c342d2'
     native.local_repository(name='fmt', path=(EXTERNAL_DIR + 'fmt'))
     native.bind(name='grpc_cpp_plugin', actual='@grpc//:grpc_cpp_plugin')

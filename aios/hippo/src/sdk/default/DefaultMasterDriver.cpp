@@ -74,6 +74,7 @@ bool DefaultMasterDriver::init(const string &masterZkRoot,
     if (!BasicMasterDriver::init(masterZkRoot, leaderChecker, applicationId)) {
         return false;
     }
+
     if (!createSerializer(masterZkRoot, ASSIGNED_SLOTS_FILE, &_assignedSlotsSerializer)
         || !createSerializer(masterZkRoot, CANDIDATE_IPS_FILE, &_ipListReader)
         || !createSerializer(masterZkRoot, SLOT_LAUNCHED_METAS_FILE, &_launchedMetasSerializer))
@@ -107,21 +108,6 @@ bool DefaultMasterDriver::createSerializer(const string &zookeeperRoot,
         return false;
     }
     *serializer = tmp;
-    return true;
-}
-
-bool DefaultMasterDriver::initSlotAllocator(const std::string &masterZkRoot,
-        const std::string &applicationId)
-{
-    _slotAllocator->setApplicationId(applicationId);
-    return true;
-}
-
-bool DefaultMasterDriver::initPorcessLauncher(const std::string &masterZkRoot,
-        const std::string &applicationId)
-{
-    _processLauncher->setApplicationId(applicationId);
-    _processLauncher->setAppChecksum(getAppChecksum());
     return true;
 }
 

@@ -1,0 +1,105 @@
+{
+    "resources": [
+        {
+            "amount": {{ havenask.adminCpu }},
+            "name": "cpu",
+            "type": "SCALAR"
+        },
+        {
+            "amount": {{ havenask.adminMem }},
+            "name": "mem",
+            "type": "SCALAR"
+        }
+    ],
+    "processLaunchContext": {
+        "requiredPackages": [
+            {
+                "packageURI": "{{ havenask.image }}",
+                "type": "IMAGE"
+            }
+        ],
+        "processes": [
+            {
+                "args": [
+                    {
+                        "key": "-a",
+                        "value": "{{ havenask.serviceName }}"
+                    },
+                    {
+                        "key":"-z",
+                        "value": "{{ havenask.serviceMasterZkAddr }}"
+                    },
+                    {
+                        "key": "-b",
+                        "value": "{{ havenask.serviceHippoZkAddr }}"
+                    },
+                    {
+                        "key":"-l",
+                        "value": "{{ common.binaryPath }}/usr/local/etc/suez/suez_alog.conf"
+                    },
+                    {
+                        "key":"--httpPort",
+                        "value": "{{ havenask.adminHttpPort }}"
+                    },
+                    {
+                        "key": "--opsMode",
+                        "value": ""
+                    },
+                    {
+                        "key": "--localCm2Mode",
+                        "value": ""
+                    },
+                    {
+                        "key": "-c",
+                        "value": "{{ common.binaryPath }}/usr/local/etc/suez/server.cfg"
+                    },
+                    {
+                        "key": "--storeUri",
+                        "value": "{{ havenask.serviceMasterZkAddr }}"
+                    },
+                    {
+                        "key": "-w",
+                        "value": "."
+                    },
+                    {
+                        "key": "-n",
+                        "value": ""
+                    }
+                ],
+                "cmd": "suez_admin_worker",
+                "isDaemon": true,
+                "processName": "suez_admin_worker",
+                "envs": [
+                    {
+                        "key":"PATH",
+                        "value": "{{ common.binaryPath }}/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+                    },
+                    {
+                        "key":"LD_LIBRARY_PATH",
+                        "value": "/usr/local/lib64/ssl/lib64:{{ common.binaryPath }}/usr/local/lib:{{ common.binaryPath }}/usr/local/lib64:/usr/lib:/usr/lib64:/opt/taobao/java/jre/lib/amd64/server"
+                    },
+                    {
+                        "key":"HADOOP_HOME",
+                        "value": "{{ common.hadoopHome }}"
+                    },
+                    {
+                        "key":"JAVA_HOME",
+                        "value": "{{ common.javaHome }}"
+                    },
+                    {
+                        "key": "HIPPO_SCHEDULE_MODE",
+                        "value": "kubernetes"
+                    },
+                    {
+                        "key": "CARBON_ROUTER_CONF",
+                        "value": "tcp:c2proxy-service:8989,false"
+                    },
+                    {
+                        "key": "CARBON_ROUTER_ALL_K8S",
+                        "value": "true"
+                    }
+                ]
+            }
+        ]
+    }
+}

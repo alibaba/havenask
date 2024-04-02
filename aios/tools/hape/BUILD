@@ -14,7 +14,11 @@ bundle_tar(
 )
 filegroup(
     name='hape_conf',
-    srcs=glob(['hape_conf/default/**', 'hape_conf/remote/**'])
+    srcs=glob([
+        'hape_conf/default/**', 'hape_conf/remote/**', 'hape_conf/proc/**',
+        'hape_conf/.template/**', 'hape_conf/k8s/**', 'hape_conf/vector/**',
+        'hape_conf/vector-proc/**'
+    ])
 )
 filegroup(name='sql_query', srcs=['hape_libs/utils/sql_query.py'])
 filegroup(name='swift_writer', srcs=['hape_libs/utils/swift_writer.py'])
@@ -25,11 +29,22 @@ py_library(
     srcs=glob(['hape_libs/**/*.py', 'hape_libs/testlib/*.py']),
     imports=['../../../aios/network/arpc'],
     deps=[
+        '@pyyaml//:pyyaml',
+        requirement('rsa'),
+        requirement('oauthlib'),
+        requirement('requests_oauthlib'),
+        requirement('cachetools'),
         requirement('kazoo'),
-        requirement('snakebite'),
         requirement('requests'),
         requirement('selectors2'),
-        requirement('click'), '//aios/suez/python:builder',
+        requirement('websocket-client'),
+        requirement('click'),
+        requirement('jinja2'),
+        requirement('kubernetes'),
+        requirement('markupsafe'),
+        requirement('attrs'),
+        requirement('google_auth'),
+        requirement('setuptools'), '//aios/suez/python:builder',
         '//aios/network/arpc:arpc_python'
     ]
 )
@@ -75,6 +90,12 @@ bundle_files(
     prefix='usr/local/lib/python/site-packages/aios/suez/python'
 )
 bundle_files(
+    name='pyyaml_init',
+    srcs=[':py_init_file'],
+    strip_prefix='hape_libs',
+    prefix='usr/local/lib/python/site-packages/lib/'
+)
+bundle_files(
     name='suez_sdk_py2_init',
     srcs=[],
     deps=[':suez_py2_init', ':catalog_proto_init_py', ':suez_admin_init_py']
@@ -106,7 +127,8 @@ bundle_files(
     srcs=[':hape_conf', ':hape_bin', ':hape_example'],
     deps=[
         '//aios/suez/python:suez_py_files', ':suez_sdk_py2_init',
-        ':zookeeper_server_package', ':hape_libs_py_package_files',
+        ':pyyaml_init', ':zookeeper_server_package',
+        ':hape_libs_py_package_files',
         '//package/havenask/sql:aios_open_source_sql', ':sql_query_file',
         ':swift_writer_file'
     ],

@@ -1,22 +1,29 @@
+#!/usr/bin/python2.7
 
 import sys
 import os
-sys.path = [os.path.dirname(os.path.dirname(os.path.realpath(__file__)))] + sys.path
+hape_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path = [hape_root] + sys.path
+workdir = os.path.join(os.getcwd()) + "/aios/tools/hape/tests/"
+python_package = os.path.join(workdir, "install_root/usr/local/lib/python/site-packages")
+sys.path = [python_package] + sys.path
 
 import socket
 import requests
 import json
 
+
 from hape_libs.testlib.module_base import ModuleBase
 from hape_libs.testlib.zk_wrapper import ZkWrapper
-from hape_libs.config import ClusterConfig
+from hape_libs.config import DomainConfig
 from hape_libs.utils.logger import Logger
-from hape_libs.common import HapeCommon
-from hape_libs.testlib.hippo_plan_rewrite import HippoPlanRewrite
-from hape_libs.clusters.hape_cluster import HapeCluster
+from hape_libs.utils.carbon_plan import *
+from hape_libs.domain import HavenaskDomain
+from hape_libs.config.global_config import default_variables
 
 import shutil
 import time
+
 
 
 class HapeTestBase(ModuleBase):
@@ -32,28 +39,26 @@ class HapeTestBase(ModuleBase):
         self.zk_wrapper = ZkWrapper(path_root=self.workdir)
         self.assertTrue(self.zk_wrapper.start_zk())
         if test_conf_dir != None:
-            self.cluster_config = ClusterConfig(self.testdata_root + "/" + test_conf_dir)
+            self.domain_config = DomainConfig(self.testdata_root + "/" + "../" + test_conf_dir, render_template= False)
         else:
-            self.cluster_config = ClusterConfig()
-        self.cluster_config.set_domain_zk_root(self.zk_wrapper.host+"/havenask")
-        self.cluster_config.set_processor_mode('local')
-        self.cluster_config.set_default_var("hapeRoot", os.path.join(os.getcwd()) + "/aios/tools/hape")
-        self.cluster_config.set_binary_path(self.workdir + "/install_root")
-        self.cluster_config.set_default_var("userHome", self.workdir)
-        self.cluster_config.set_processor_workdir(self.workdir)
-        self.cluster_config.set_domain_config_param(HapeCommon.HAVENASK_KEY,  "allowMultiSlotInOne", "true")
-        self.cluster_config.set_data_store_root(os.path.join(self.workdir, "havenask_data_store"))
-        self.cluster_config.set_default_var("processorTag", self._testMethodName)
-        self.cluster_config.init()
+            self.domain_config = DomainConfig(self.workdir + "../../../hape_conf/proc", render_template = False)
+        default_variables.user_home = self.workdir
+        global_config = self.domain_config.global_config
+        global_config.common.domainZkRoot = self.zk_wrapper.host+"/havenask"
+        global_config.common.binaryPath = self.workdir + "/install_root"
+        global_config.common.dataStoreRoot = os.path.join(self.workdir, "havenask_data_store")
+        print("make test", global_config.common.dataStoreRoot)
+        global_config.fill()
         
         cmds = [
             "suez_admin_worker", "ha_sql", "swift_admin", "swift_broker"   
         ]
         for cmd in cmds:
             self._pkill(cmd, extra=self._testMethodName)
-        self.cluster_config.set_admin_http_port(str(self.get_free_port()))
-        self.hape_cluster = HapeCluster(self.cluster_config)
-        self.allocate_havenask_worker_resources(self.hape_cluster)
+        global_config.havenask.adminHttpPort = str(self.get_free_port())
+        self.hape_domain = HavenaskDomain(self.domain_config)
+        self.domain_config.template_config.render()
+        self.rewrite_ports(self.domain_config)
         
     def destory(self):
         self.zk_wrapper.stop()
@@ -83,21 +88,21 @@ class HapeTestBase(ModuleBase):
         if os.path.exists(workdir):
             shutil.rmtree(workdir)
     
-    def allocate_havenask_worker_resources(self, hape_cluster): #type: (HapeCluster) -> None
-        ori_func = hape_cluster.cluster_config.template_config.get_local_template_content
-        qrs_ports = [self.get_free_port(),self.get_free_port(),self.get_free_port(),self.get_free_port()]
-        searcher_ports = [self.get_free_port(),self.get_free_port(),self.get_free_port(),self.get_free_port()]
-        def mock_local_template_content(path):
-            if path == "havenask/hippo/qrs_hippo.json" or path == "havenask/hippo/searcher_hippo.json":
-                hippo_plan = ori_func(path)
-                hippo_plan = json.loads(hippo_plan)
-                ports = qrs_ports if path == "havenask/hippo/qrs_hippo.json" else searcher_ports
-                HippoPlanRewrite(hippo_plan).rewrite_ports(ports)
-                return json.dumps(hippo_plan)
-            else:
-                return ori_func(path)
-
-        hape_cluster.cluster_config.template_config.get_local_template_content = mock_local_template_content
+    def rewrite_ports(self, domain_config): #type: (DomainConfig) -> None
+        qrs_plan_path = "hippo/qrs_hippo.json"
+        searcher_plan_path = "hippo/searcher_hippo.json"
+        for path in [qrs_plan_path, searcher_plan_path]:
+            ports = [self.get_free_port(),self.get_free_port(),self.get_free_port(),self.get_free_port(), self.get_free_port()]
+            raw_plan = domain_config.template_config.rel_path_to_content[path]
+            raw_plan = json.loads(raw_plan)
+            plan = CarbonPlan(**raw_plan)
+            kkey_seps = [("--port", "arpc", ":"), ("--port", "http", ":"), ("--env", "httpPort", "="), ("--env", "gigGrpcPort", "="), ("--env", "port", "=")]
+            for index, (key, subkey, subkey_sep) in enumerate(kkey_seps):
+                plan.rewrite_kkv_args(key, subkey, subkey_sep, str(ports[index]))
+            plan.rewrite_health_config("PORT", str(ports[2]))
+            domain_config.template_config.rel_path_to_content[path] = json.dumps(attr.asdict(plan), indent=4)
+            if path == qrs_plan_path:
+                domain_config.global_config.havenask.qrsHttpPort = str(ports[2])
 
     def get_free_port(self):
         limit = 50

@@ -80,37 +80,6 @@ void DefaultProcessLauncher::launch(const map<string, std::set<SlotId> > &slotId
     HIPPO_LOG(INFO, "end launch");
 }
 
-void DefaultProcessLauncher::asyncLaunch(const map<string, set<hippo::SlotId> > &slotIds) {
-    for (map<string, set<hippo::SlotId> >::const_iterator it = slotIds.begin();
-         it != slotIds.end(); ++it)
-    {
-        const string &role = it->first;
-        HIPPO_LOG(DEBUG, "begin launch role:%s, slot count:%ld",
-                  role.c_str(), it->second.size());
-        asyncLaunchOneRole(role, it->second);
-    }
-}
-
-void DefaultProcessLauncher::asyncLaunchOneRole(const string &role,
-        const set<hippo::SlotId> &slotIds)
-{
-    for (set<hippo::SlotId>::const_iterator it = slotIds.begin();
-         it != slotIds.end(); ++it)
-    {
-        const hippo::SlotId &slotId = *it;
-        hippo::ProcessContext slotContext;
-        HIPPO_LOG(DEBUG, "begin launch slot, slot address:%s, id:%d",
-                  slotId.slaveAddress.c_str(), slotId.id);
-        if (!getSlotProcessContext(role, slotId, &slotContext)) {
-            HIPPO_LOG(WARN, "get slot process context failed, "
-                      "role:%s, slot address:%s, id:%d",role.c_str(),
-                      slotId.slaveAddress.c_str(), slotId.id);
-            continue;
-        }
-        asyncLaunchOneSlot(role, slotId, slotContext);
-    }
-}
-
 void DefaultProcessLauncher::asyncLaunchOneSlot(
         const string& role,
         const hippo::SlotId &slotId,
@@ -357,6 +326,7 @@ bool DefaultProcessLauncher::recoverLaunchedMetas() {
     if (!_reboot || !_launchedMetasSerializer || !_launchedMetas.empty()) {
         return true;
     }
+    string content;
     bool bExist = false;
     if (!_launchedMetasSerializer->checkExist(bExist)) {
         HIPPO_LOG(ERROR, "check backup launced metas exist failed.");
@@ -366,7 +336,6 @@ bool DefaultProcessLauncher::recoverLaunchedMetas() {
         HIPPO_LOG(INFO, "backup launced metas is not exist, no need recover.");
         return true;
     }
-    string content;
     if (_launchedMetasSerializer->read(content)) {
         HIPPO_LOG(INFO, "deserialize launced metas:%s", content.c_str());
         map<hippo::SlotId, std::pair<int64_t, int64_t> > launchedMetaMap;

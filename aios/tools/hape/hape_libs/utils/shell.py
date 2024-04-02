@@ -55,12 +55,13 @@ class LocalShell:
             out, error = out.decode(), error.decode()
         except:
             pass
-        full_out = out + "\n" + error
+        out, error = out.strip(), error.strip()
+        full_out = out + "\n" if len(out) !=0 else '' + error
         response_message = "Local shell command response: [{}]".format(full_out)
         Logger.debug(response_message)
         if grep_text != None:
             succ = (out.find(grep_text) != -1)
-            return out, succ
+            return full_out, succ
                 
         else:
             return out

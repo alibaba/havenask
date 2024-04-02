@@ -1,36 +1,61 @@
 {
     "packages" : [
         {
-            "packageURI" : "${swift.image}",
+            "packageURI" : "{{ swift.image }}",
             "type" : "IMAGE"
         }
     ],
     "role_default" : {
-        "count" : 1,
+        "count" : {{ swift.brokerCount }},
         "processInfos" : [
             {
                 "args" : [
                     [
                         "-l",
-                        "${common.binaryPath}/usr/local/etc/swift/swift_alog.conf"
+                        "{{ common.binaryPath }}/usr/local/etc/swift/swift_alog.conf"
+                    ],
+                    [
+                        "-w",
+                        "."
                     ]
+                    
                 ],
                 "envs" : [
                     [
                         "LD_LIBRARY_PATH",
-                        "/opt/taobao/java/jre/lib/amd64/server:${common.binaryPath}/usr/local/lib64:${common.binaryPath}/usr/lib:${common.binaryPath}/usr/lib64:${common.binaryPath}/usr/local/lib:$LD_LIBRARY_PATH"
+                        "{{ common.binaryPath }}/usr/local/lib:{{ common.binaryPath }}/usr/local/lib64:/usr/local/lib64/ssl/lib64:/usr/lib:/usr/lib64:/opt/taobao/java/jre/lib/amd64/server"
                     ],
                     [
                         "PATH",
-                        "${common.binaryPath}/usr/local/bin:$PATH"
+                        "{{ common.binaryPath }}/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
                     ],
                     [
                         "JAVA_HOME",
-                        "${common.javaHome}"
+                        "{{ common.javaHome }}"
                     ],
                     [
                         "HADOOP_HOME",
-                        "${common.hadoopHome}"
+                        "{{ common.hadoopHome }}"
+                    ],
+                    [
+                        "KMONITOR_ADAPTER_APP",
+                        "swift"
+                    ],
+                    [
+                        "kmonitorEnableLogFileSink",
+                        "false"
+                    ],
+                    [
+                        "kmonitorEnablePrometheusSink",
+                        "{{ common.enableKmonitorPrometheusSink }}"
+                    ],
+                    [
+                        "kmonitorSinkAddress",
+                        "{{ common.kmonitorSinkHost }}"
+                    ],
+                    [
+                        "kmonitorPort",
+                        "{{ common.kmonitorSinkPort }}"
                     ]
                 ],
                 "isDaemon" : true,
@@ -42,7 +67,7 @@
     "role_resource" : {
         "admin" : [
             {
-                "amount" : 500,
+                "amount" : 200,
                 "name" : "cpu"
             },
             {
@@ -52,7 +77,7 @@
         ],
         "broker" : [
             {
-                "amount" : 500,
+                "amount" : 200,
                 "name" : "cpu"
             },
             {

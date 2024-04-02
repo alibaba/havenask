@@ -134,9 +134,9 @@ public:
     virtual bool isProcessReady(const hippo::SlotId &slotId,
             const std::vector<std::string> &processNames);
 
-    virtual std::string getProcessWorkDir(const std::string &procName) const = 0;
+    virtual std::string getProcessWorkDir(const std::string &procName) const;
     virtual std::string getProcessWorkDir(const std::string &workDirTag,
-            const std::string &procName) const  = 0;
+            const std::string &procName) const;
 
     virtual LeaderSerializer* createLeaderSerializer(
             const std::string &zookeeperRoot, const std::string &fileName,
@@ -152,6 +152,9 @@ public:
     virtual void setSlotProcess(
             const std::vector<std::pair<std::vector<SlotInfo>, hippo::ProcessContext> > &slotLaunchPlans,
             const std::string &scope = "");
+
+    virtual void setSlotPodDesc(const std::vector<SlotInfo> &slotVec,
+                                const std::string &podDesc) {}
 
     virtual void getRoleNames(std::set<std::string> *roleNames) const;
 
@@ -185,9 +188,9 @@ public: //for test
 
 protected:
     virtual bool initSlotAllocator(const std::string &masterZkRoot,
-                                   const std::string &applicationId) = 0;
+                                   const std::string &applicationId);
     virtual bool initPorcessLauncher(const std::string &masterZkRoot,
-            const std::string &applicationId) = 0;
+            const std::string &applicationId);
     virtual bool initAmLeaderChecker(const std::string &leaderElectRoot,
             const std::string &appMasterAddr);
     virtual bool initAmLeaderChecker(worker_framework::LeaderChecker * leaderChecker);

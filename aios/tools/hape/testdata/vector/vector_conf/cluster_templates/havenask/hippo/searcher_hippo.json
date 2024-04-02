@@ -42,7 +42,7 @@
                     },
                     {
                         "amount": 0,
-                        "name": "${havenask.serviceName}:searcher",
+                        "name": "{{global.havenask.serviceName}}:searcher",
                         "type": "EXCLUSIVE"
                     }
                 ]
@@ -59,7 +59,7 @@
                 "args": [
                     {
                         "key": "-r",
-                        "value": "${common.binaryPath}"
+                        "value": "{{global.common.binaryPath}}"
                     },
                     {
                         "key": "--port",
@@ -83,19 +83,19 @@
                     },
                     {
                         "key": "-l",
-                        "value": "${common.binaryPath}/usr/local/etc/sql/sql_alog.conf"
+                        "value": "{{global.common.binaryPath}}/usr/local/etc/sql/sql_alog.conf"
                     },
                     {
                         "key": "-c",
-                        "value": "${common.binaryPath}/usr/local/etc/sql/search_server.cfg"
+                        "value": "{{global.common.binaryPath}}/usr/local/etc/sql/search_server.cfg"
                     },
                     {
                         "key": "--env",
-                        "value": "serviceName=${havenask.serviceName}"
+                        "value": "serviceName={{global.havenask.serviceName}}"
                     },
                     {
                         "key": "--env",
-                        "value": "amonitorPath=${havenask.serviceName}/searcher"
+                        "value": "amonitorPath={{global.havenask.serviceName}}/searcher"
                     },
                     {
                         "key": "--env",
@@ -131,7 +131,7 @@
                     },
                     {
                         "key": "--env",
-                        "value": "binaryPath=${common.binaryPath}"
+                        "value": "binaryPath={{global.common.binaryPath}}"
                     },
                     {
                         "key": "--env",
@@ -199,7 +199,7 @@
                     },
                     {
                         "key": "--env",
-                        "value": "navi_config_loader=${common.binaryPath}/usr/local/lib/python/site-packages/sql/sql_config_loader.py"
+                        "value": "navi_config_loader={{global.common.binaryPath}}/usr/local/lib/python/site-packages/sql/sql_config_loader.py"
                     },
                     {
                         "key": "--env",
@@ -207,7 +207,7 @@
                     },
                     {
                         "key": "--env",
-                        "value": "zk_root=${common.domainZkRoot}/${havenask.serviceName}"
+                        "value": "zk_root={{global.common.domainZkRoot}}/{{global.havenask.serviceName}}"
                     },
                     {
                         "key": "--env",
@@ -236,11 +236,11 @@
                 "envs": [
                     {
                         "key": "LD_LIBRARY_PATH",
-                        "value": "/opt/taobao/java/jre/lib/amd64/server:${common.binaryPath}/usr/local/lib64:${common.binaryPath}/usr/lib:${common.binaryPath}/usr/lib64:${common.binaryPath}/usr/local/lib:$LD_LIBRARY_PATH"
+                        "value": "/opt/taobao/java/jre/lib/amd64/server:{{global.common.binaryPath}}/usr/local/lib64:{{global.common.binaryPath}}/usr/lib:{{global.common.binaryPath}}/usr/lib64:{{global.common.binaryPath}}/usr/local/lib:$LD_LIBRARY_PATH"
                     },
                     {
                         "key": "PATH",
-                        "value": "${common.binaryPath}/usr/local/bin:$PATH"
+                        "value": "{{global.common.binaryPath}}/usr/local/bin:$PATH"
                     },
                     {
                         "key": "JAVA_HOME",
@@ -264,11 +264,11 @@
                     },
                     {
                         "key": "leader_election_config",
-                        "value": "'\"'\"'{ \\\"zk_root\\\" : \\\"${common.domainZkRoot}/${havenask.serviceName}/searcher\\\",  \\\"lease_in_ms\\\" : 2000, \\\"loop_interval_in_ms\\\" : 400, \\\"zk_timeout_in_ms\\\" : 300, \\\"strategy_type\\\":\\\"worker\\\", \\\"campaign_now\\\": false}'\"'\"'"
+                        "value": "'\"'\"'{ \\\"zk_root\\\" : \\\"{{global.common.domainZkRoot}}/{{global.havenask.serviceName}}/searcher\\\",  \\\"lease_in_ms\\\" : 2000, \\\"loop_interval_in_ms\\\" : 400, \\\"zk_timeout_in_ms\\\" : 300, \\\"strategy_type\\\":\\\"worker\\\", \\\"campaign_now\\\": false}'\"'\"'"
                     },
                     {
                         "key": "version_sync_config",
-                        "value": "'\"'\"'{\\\"zk_root\\\" : \\\"${common.domainZkRoot}/${havenask.serviceName}/searcher\\\",  \\\"zk_timeout_in_ms\\\" : 7000 }'\"'\"'"
+                        "value": "'\"'\"'{\\\"zk_root\\\" : \\\"{{global.common.domainZkRoot}}/{{global.havenask.serviceName}}/searcher\\\",  \\\"zk_timeout_in_ms\\\" : 7000 }'\"'\"'"
                     }
 
                 ]

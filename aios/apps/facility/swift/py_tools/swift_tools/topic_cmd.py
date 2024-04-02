@@ -12,7 +12,7 @@ import time
 import swift_broker_delegate
 import local_file_util
 import zlib
-import json
+import json_wrapper
 
 
 class TopicAddCmd(base_cmd.BaseCmd):
@@ -1964,7 +1964,7 @@ Example:
                 meta.dfsRoot = dfsRoot
         retMap = self.generateMap(topicMetas)
         print "export topic count ", len(retMap)
-        retJson = json.write(retMap, format=True)
+        retJson = json_wrapper.write(retMap, format=True)
         self.localFileUtil.write(retJson, self.fileName, 'w')
         return "", "", 0
 
@@ -2064,7 +2064,7 @@ Example:
 
     def run(self):
         content = self.localFileUtil.cat(self.fileName)
-        topicMap = json.read(content)
+        topicMap = json_wrapper.read(content)
         topicName = None
         failTopicList = {}
         hasError = False
@@ -2215,7 +2215,7 @@ Example:
         return "", "", 0
 
     def addFailTopic(self, failTopicList):
-        failTopic = json.write(failTopicList, format=True)
+        failTopic = json_wrapper.write(failTopicList, format=True)
         return self.localFileUtil.write(failTopic, self.failTopicFile, 'w')
 
     def _waitTopicReady(self, timeout, topicName):
@@ -2290,7 +2290,7 @@ Example:
 
     def run(self):
         content = self.localFileUtil.cat(self.fileName)
-        topicMap = json.read(content)
+        topicMap = json_wrapper.read(content)
         topics = sorted(topicMap.items(), key=lambda x: x[1])
         for (topic, topicDescription) in topics:
             if topic != topicDescription["topicName"]:

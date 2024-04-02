@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from .common import *
-from hape_libs.common import *
+from hape_libs.clusters import *
+from hape_libs.common import HapeCommon
 import click
 
 @click.group(short_help='Start cluster')
@@ -15,14 +16,14 @@ def create():
 @start.command()
 @common_params
 def swift(**kwargs):
-    hape_cluster = command_init(kwargs)
-    hape_cluster.start_hippo_appmaster(HapeCommon.SWIFT_KEY)
+    havenask_domain = command_init(kwargs)
+    havenask_domain.start(HapeCommon.SWIFT_KEY)
     
 @start.command()
 @common_params
 def havenask(**kwargs):
-    hape_cluster = command_init(kwargs)
-    hape_cluster.start_hippo_appmaster(HapeCommon.HAVENASK_KEY)
+    havenask_domain = command_init(kwargs)
+    havenask_domain.start(HapeCommon.HAVENASK_KEY)
     
 @create.command()
 @common_params
@@ -31,6 +32,6 @@ def havenask(**kwargs):
 @click.option('-s', '--schema',  required=True, help="Schema file path of table")
 @click.option('-f', '--full',  required=False, help="Full data path for offline table (not needed by direct table)")
 def table(**kwargs):
-    hape_cluster = command_init(kwargs)
-    hape_cluster.create_table(kwargs["table"], kwargs["partition"], kwargs["schema"], kwargs["full"])
+    havenask_domain = command_init(kwargs)
+    havenask_domain.create_table(kwargs["table"], kwargs["partition"], kwargs["schema"], kwargs["full"])
 

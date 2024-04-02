@@ -23,6 +23,8 @@ using namespace autil;
 using namespace aitheta2;
 namespace indexlibv2::index::ann {
 
+autil::SpinLock AiThetaFactoryWrapper::lock;
+
 bool AiThetaFactoryWrapper::CreateBuilder(const AithetaIndexConfig& config, size_t docCount, AiThetaBuilderPtr& builder)
 {
     string builderName = config.buildConfig.builderName;
@@ -158,6 +160,7 @@ bool AiThetaFactoryWrapper::CreateStorage(const std::string& name, const AiTheta
     ANN_CHECK(storage != nullptr, "create[%s] storage failed", name.c_str());
     ANN_CHECK_OK(storage->init(params), "init failed");
     do {
+        autil::ScopedSpinLock lock(AiThetaFactoryWrapper::lock);
         string path = StringUtil::toString(TimeUtility::currentTime());
         auto instance = aitheta2::IndexMemory::Instance();
         ANN_CHECK(instance != nullptr, "get index memory instance failed");

@@ -28,7 +28,7 @@ def sql_query(address, query):
     return response
 
 @click.command()
-@click.option("--address", required=False, help="address of qrs (ip:port)", default="http://127.0.0.1:45800")
+@click.option("--address", required=False, help="address of qrs (http://ip:port)", default="http://127.0.0.1:45800")
 @click.option("--query", required=True, help="sql query")
 def cli(address, query):
     response = sql_query(address, query)

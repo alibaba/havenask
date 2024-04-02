@@ -23,6 +23,7 @@
 #include "kmonitor/client/core/MetricsTags.h"
 #include "kmonitor/client/net/BatchFlumeEvent.h"
 #include "kmonitor/client/sink/FlumeSink.h"
+#include "kmonitor/client/sink/PrometheusSink.h"
 
 BEGIN_KMONITOR_NAMESPACE(kmonitor);
 AUTIL_LOG_SETUP(kmonitor, MetricsSystem);
@@ -66,8 +67,20 @@ void MetricsSystem::Init(MetricsConfig *config) {
 }
 
 bool MetricsSystem::initSink(MetricsConfig *config) {
-    auto sink =
-        std::make_shared<FlumeSink>(config->tenant_name(), config->sink_address(), config->enable_log_file_sink());
+    std::shared_ptr<Sink> sink;
+    bool enablePrometheusSink = config->enable_prometheus_sink(), enableLogFileSink = config->enable_log_file_sink();
+    if(enablePrometheusSink && enableLogFileSink) {
+        AUTIL_LOG(ERROR, "you can only choose one between prometheus sink or logfile sink. Prometheus sink will be given priority");
+        enableLogFileSink = false;
+    }
+    if(enablePrometheusSink) {
+        AUTIL_LOG(INFO, "enable prometheus sink");
+        sink = std::make_shared<PrometheusSink>(config->sink_address());
+    }
+    else {
+        AUTIL_LOG(INFO, "enable flume sink");
+        sink = std::make_shared<FlumeSink>(config->tenant_name(), config->sink_address(), enableLogFileSink);
+    }
     if (!sink->Init()) {
         AUTIL_LOG(ERROR, "Add and init sink %s failed", sink->GetName().c_str());
         return false;

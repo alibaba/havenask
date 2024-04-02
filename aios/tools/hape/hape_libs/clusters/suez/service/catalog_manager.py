@@ -1,6 +1,7 @@
 import sys
 import os
 from google.protobuf.json_format import ParseDict
+from hape_libs.common import HapeCommon
 import json
 import time
 
@@ -10,17 +11,20 @@ from aios.catalog.proto.CatalogEntity_pb2 import *
 from .catalog_service import CatalogService
 from hape_libs.utils.logger import Logger
 from hape_libs.utils.havenask_schema import HavenaskSchema
-from hape_libs.common import *
 from hape_libs.config import *
 import copy
 import traceback
 
 
 class CatalogManager:
-    def __init__(self, address, swift_zfs_path, cluster_config): #type: (str, str, ClusterConfig)->None
-        self._swift_zk_path = swift_zfs_path
+    def __init__(self, address, domain_config): #type: (str, str, DomainConfig)->None
+        self._address = address
         self._catalog_service = CatalogService(address)
-        self._cluster_config = cluster_config
+        self._domain_config = domain_config
+        self._swift_zk_path = domain_config.global_config.get_service_appmaster_zk_address(HapeCommon.SWIFT_KEY)
+        
+    def is_ready(self):
+        return self._address != None
 
 
     def create_default_catalog(self):
@@ -28,12 +32,12 @@ class CatalogManager:
         catalog = CatalogBuilder().set_catalog_name(HapeCommon.DEFAULT_CATALOG)
         self._catalog_service.create_catalog(catalog_json=catalog.to_json())
         Logger.info("Succeed to create default catalog")
-        self.create_default_database()
+        self._create_default_database()
 
-    def create_default_database(self):
+    def _create_default_database(self):
         Logger.info("Start to create default database")
 
-        storeRoot = self._cluster_config.get_db_store_root()
+        storeRoot = self._domain_config.global_config.havenask.dbStoreRoot
         if not storeRoot.startswith("hdfs://"):
             storeRoot = "LOCAL:/" + storeRoot
 
@@ -66,7 +70,7 @@ class CatalogManager:
             indexes = [ParseDict(index, TableStructure.Index()) for index in schema["indexes"]]
 
             table_meta_option = ParseDict({"enable_all_text_field_meta": True}, TableStructureConfig.TableMetaOption())
-                        
+
             table_structure_config = TableStructureConfigBuilder().set_shard_info(shard_info).set_build_type(build_type).set_table_type(TableType.NORMAL).set_table_meta(table_meta_option)
             table_structure = TableStructureBuilder().set_table_name(name).set_database_name(databasename).set_catalog_name(catalogname).\
                 set_table_structure_config(table_structure_config.build()).set_columns(columns).set_indexes(indexes)
@@ -79,7 +83,7 @@ class CatalogManager:
 
             custom_metas = {
                 "swift_root": self._swift_zk_path,
-                "template_md5": self._cluster_config.template_config.md5
+                "template_md5": self._domain_config.template_config.md5_signature
             }
 
             if not is_direct_table:
@@ -120,7 +124,7 @@ class CatalogManager:
             return False
         return True
 
-    def update_table_structure(self, name, partition_count, schema_path, data_full_path, bs_zfs_path = None):
+    def update_table_structure(self, name, partition_count, schema_path, data_full_path, swift_start_timestamp, bs_zfs_path = None):
         catalogname = HapeCommon.DEFAULT_CATALOG
         databasename = HapeCommon.DEFAULT_DATABASE
         is_direct_table = (data_full_path == None)
@@ -211,7 +215,7 @@ class CatalogManager:
             # partition config
             custom_metas = {
                 "swift_root": self._swift_zk_path,
-                "template_md5": self._cluster_config.template_config.md5,
+                "template_md5": self._domain_config.template_config.md5_signature,
                 "zookeeper_root": bs_zfs_path
             }
             partition_config = PartitionConfigBuilder().set_custom_metas(custom_metas)
@@ -313,6 +317,18 @@ class CatalogManager:
             table_info = self._catalog_service.get_table(HapeCommon.DEFAULT_CATALOG, HapeCommon.DEFAULT_DATABASE, name)
             result[name] = table_info["tableStructure"]
         return result
+    
+    
+    def get_table_shard_count(self, table_name):
+        table_info = self._catalog_service.get_table(HapeCommon.DEFAULT_CATALOG, HapeCommon.DEFAULT_DATABASE, table_name)
+        parts = table_info.get("partitions", [])
+        if len(parts) != 1:
+            raise RuntimeError("Failed to get partitions of table {}".format(table_name))
+        
+        count = parts[0].get('tableStructure', {}).get('tableStructureConfig', {}).get('shardInfo', {}).get('shardCount', -1)
+        if count < 1:
+            raise RuntimeError("Failed to get shard count of table {}".format(table_name))
+        return count
 
     def list_table_names(self):
         names = self._catalog_service.list_table(HapeCommon.DEFAULT_CATALOG, HapeCommon.DEFAULT_DATABASE)
@@ -321,6 +337,9 @@ class CatalogManager:
 
     def get_build(self, name):
         return self._catalog_service.get_build(HapeCommon.DEFAULT_CATALOG, HapeCommon.DEFAULT_DATABASE, name)
+    
+    def list_build(self):
+        return self._catalog_service.list_build(HapeCommon.DEFAULT_CATALOG)
 
     def drop_build(self, name, generation_id):
         partition_name = name + "_part"
@@ -329,3 +348,8 @@ class CatalogManager:
                                                 name,
                                                 partition_name,
                                                 generation_id)
+    
+    def update_table_schema(self, name, partition_count, schema_path, data_full_path, bs_zfs_path = None):
+        if not self.update_partition(name, partition_count, schema_path, data_full_path, bs_zfs_path):
+            return False
+        return True

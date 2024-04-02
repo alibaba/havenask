@@ -1,0 +1,135 @@
+{
+    "columns": [
+        {
+            "name": "title",
+            "type": "TEXT",
+            "analyzer": "simple_analyzer"
+        },
+        {
+            "name": "subject",
+            "type": "TEXT",
+            "analyzer": "simple_analyzer"
+        },
+        {
+            "name": "id",
+            "type": "UINT32"
+        },
+        {
+            "name": "hits2",
+            "type": "UINT32"
+        },
+        {
+            "name": "createtime",
+            "type": "UINT64"
+        }
+    ],
+    "indexes": [
+        {
+            "name": "id",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "id"
+                    }
+                ]
+            },
+            "index_type": "PRIMARY_KEY64"
+        },
+        {
+            "name": "id",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "id"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "hits2",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "hits2"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "createtime",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "createtime"
+                    }
+                ]
+            },
+            "index_type": "ATTRIBUTE"
+        },
+        {
+            "name": "title",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "title"
+                    }
+                ]
+            },
+            "index_type": "TEXT"
+        },
+        {
+            "name": "subject",
+            "index_config" : {
+                "index_fields": [
+                    {
+                        "field_name": "subject"
+                    }
+                ]
+            },
+            "index_type": "TEXT"
+        },
+        {
+            "name": "default",
+            "index_type": "PACK",
+            "index_config": {
+                "index_fields": [
+                    {
+                        "field_name": "title",
+                        "boost": 100
+                    },
+                    {
+                        "field_name": "subject",
+                        "boost": 200
+                    }
+                ]
+            }
+        },
+        {
+            "name": "summary",
+            "index_type": "SUMMARY",
+            "index_config": {
+                "index_fields": [
+                    {
+                        "field_name": "title"
+                    },
+
+                    {
+                        "field_name": "subject"
+                    },
+                    {
+                        "field_name": "id"
+                    },
+                    {
+                        "field_name": "hits2"
+                    },
+                    {
+                        "field_name": "createtime"
+                    }
+                ]
+            }
+        }
+    ]
+}
+    

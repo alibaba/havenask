@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include "autil/Lock.h"
 #include "autil/Log.h"
 #include "indexlib/index/ann/aitheta2/CommonDefine.h"
 #include "indexlib/index/ann/aitheta2/impl/RealtimeSegmentBuildResource.h"
@@ -39,6 +40,9 @@ public:
 
 private:
     static bool CreateStorage(const std::string& name, const AiThetaParams& params, AiThetaStoragePtr& storage);
+
+private:
+    static autil::SpinLock lock;
 
 private:
     AUTIL_LOG_DECLARE();

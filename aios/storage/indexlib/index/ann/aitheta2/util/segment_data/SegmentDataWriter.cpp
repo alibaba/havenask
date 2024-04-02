@@ -34,10 +34,15 @@ SegmentDataWriter::~SegmentDataWriter()
 
 bool SegmentDataWriter::Init(const indexlib::file_system::DirectoryPtr& directory)
 {
-    _directory = directory;
-    _directory->RemoveFile(INDEX_FILE, RemoveOption::MayNonExist());
-    _indexFileWriter = _directory->CreateFileWriter(INDEX_FILE);
-    return _indexFileWriter != nullptr;
+    try {
+        _directory = directory;
+        _directory->RemoveFile(INDEX_FILE, RemoveOption::MayNonExist());
+        _indexFileWriter = _directory->CreateFileWriter(INDEX_FILE);
+        return _indexFileWriter != nullptr;
+    } catch (const autil::legacy::ExceptionBase& e) {
+        AUTIL_LOG(ERROR, "init failed, error[%s]", e.what());
+    }
+    return false;
 }
 
 IndexDataWriterPtr SegmentDataWriter::GetIndexDataWriter(index_id_t indexId)

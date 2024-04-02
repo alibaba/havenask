@@ -28,6 +28,7 @@ cc_library(
     deps=[
         '//aios/alog', '//aios/autil:data_buffer', '//aios/autil:env_util',
         '//aios/autil:json', '//aios/autil:metric', '//aios/autil:thread',
+        '//aios/network/curl_client:curl_client_lib',
         '@com_google_googletest//:gtest_prod'
     ],
     alwayslink=1

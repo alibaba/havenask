@@ -81,6 +81,21 @@ bool BasicMasterDriver::init(
     return true;
 }
 
+bool BasicMasterDriver::initSlotAllocator(const std::string &masterZkRoot,
+        const std::string &applicationId)
+{
+    _slotAllocator->setApplicationId(applicationId);
+    return true;
+}
+
+bool BasicMasterDriver::initPorcessLauncher(const std::string &masterZkRoot,
+        const std::string &applicationId)
+{
+    _processLauncher->setApplicationId(applicationId);
+    _processLauncher->setAppChecksum(getAppChecksum());
+    return true;
+}
+
 bool BasicMasterDriver::initAmLeaderChecker(const std::string &leaderElectRoot,
                          const std::string &appMasterAddr)
 {
@@ -376,6 +391,40 @@ bool BasicMasterDriver::isProcessReady(
         return false;
     }
     return _processLauncher->isProcessReady(slotInfo, processNames);
+}
+
+// some rule as slave/SlotPlan.cpp:workDirBaseName()
+string BasicMasterDriver::getProcessWorkDir(const string &procName) const {
+    string slaveWorkDir;
+    if (!autil::EnvUtil::getEnvWithoutDefault(HIPPO_ENV_SLAVE_WORKDIR, slaveWorkDir)) {
+        HIPPO_LOG(ERROR, "env $HIPPO_ENV_SLAVE_WORKDIR not exist");
+        return "";
+    }
+    if (slaveWorkDir.empty()) {
+        HIPPO_LOG(ERROR, "slaveWorkDir is empty");
+        return "";
+    }
+    string appWorkDir = PathUtil::joinPath(slaveWorkDir, getApplicationId());
+    return PathUtil::joinPath(appWorkDir, procName);
+}
+
+// some rule as slave/SlotPlan.cpp:workDirBaseName()
+string BasicMasterDriver::getProcessWorkDir(const string &workDirTag,
+        const string &procName) const
+{
+    string slaveWorkDir;
+    if (!autil::EnvUtil::getEnvWithoutDefault(HIPPO_ENV_SLAVE_WORKDIR, slaveWorkDir)) {
+        HIPPO_LOG(ERROR, "env $HIPPO_ENV_SLAVE_WORKDIR not exist");
+        return "";
+    }
+    if (slaveWorkDir.empty()) {
+        HIPPO_LOG(ERROR, "slaveWorkDir is empty");
+        return "";
+    }
+    string appId = getApplicationId();
+    string baseName = CommonUtil::uniqString(appId, workDirTag);
+    string appWorkDir = PathUtil::joinPath(slaveWorkDir, baseName);
+    return PathUtil::joinPath(appWorkDir, procName);
 }
 
 LeaderSerializer* BasicMasterDriver::createLeaderSerializer(
