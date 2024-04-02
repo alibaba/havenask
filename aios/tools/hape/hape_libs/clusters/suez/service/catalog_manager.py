@@ -317,6 +317,18 @@ class CatalogManager:
             table_info = self._catalog_service.get_table(HapeCommon.DEFAULT_CATALOG, HapeCommon.DEFAULT_DATABASE, name)
             result[name] = table_info["tableStructure"]
         return result
+    
+    
+    def get_table_shard_count(self, table_name):
+        table_info = self._catalog_service.get_table(HapeCommon.DEFAULT_CATALOG, HapeCommon.DEFAULT_DATABASE, table_name)
+        parts = table_info.get("partitions", [])
+        if len(parts) != 1:
+            raise RuntimeError("Failed to get partitions of table {}".format(table_name))
+        
+        count = parts[0].get('tableStructure', {}).get('tableStructureConfig', {}).get('shardInfo', {}).get('shardCount', -1)
+        if count < 1:
+            raise RuntimeError("Failed to get shard count of table {}".format(table_name))
+        return count
 
     def list_table_names(self):
         names = self._catalog_service.list_table(HapeCommon.DEFAULT_CATALOG, HapeCommon.DEFAULT_DATABASE)

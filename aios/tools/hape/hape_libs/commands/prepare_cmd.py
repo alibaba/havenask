@@ -46,21 +46,18 @@ def prepare_k8s_mode(domain_config):
         
     
     kind = "DaemonSet"
-    namespace = global_config.common.c2K8sNamespace
+    namespace = global_config.common.k8sNamespace
     if client.read_resource(kind = "Namespace", name = namespace, namespace = None) == None:
         Logger.info("Namespace {} is not found, will create".format(namespace))
         doc = {
             "apiVersion": "v1",
             "kind": "Namespace",
             "metadata": {
-                "annotations": {
-                    "kubectl.kubernetes.io/last-applied-configuration":{
-                        
-                },
+                "annotations": {"kubectl.kubernetes.io/last-applied-configuration": 
+                    '{"apiVersion":"v1","kind":"Namespace","metadata":{"annotations":{},"name":"'+ global_config.common.k8sNamespace +'"}}'},
                 "name": global_config.common.k8sNamespace
             },
-            "spec": {"finalizers": "kubernetes"}
-            }
+            "spec": {"finalizers": ["kubernetes"]}
         }
         client.create_resource(doc)
         
@@ -93,7 +90,7 @@ def prepare_k8s_mode(domain_config):
                         "image": image,
                         "command": ["/bin/sh"],
                         "args": ["-c", "tail -f /dev/null"],
-                        "imagePullPolicy": "IfNotPresent"
+                        "imagePullPolicy": "Always"
                     }
                     ]
                 }

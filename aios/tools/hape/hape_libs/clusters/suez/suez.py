@@ -139,8 +139,12 @@ class SuezCluster(ClusterBase):
         workers_status_map = self._master.get_containers_status()
         
         status_map = {"admin": [], "database": {}, "qrs": {}}
-        role_ready_count = {"admin": 0}
         if len(processors_status_map) != 0:
+            for group, role_map in processors_status_map.items():
+                for role, role_status in role_map.items():
+                    if role not in status_map:
+                        status_map[group][role] = []
+            
             for key, worker_status_list in workers_status_map.items():
                 for worker_status in worker_status_list:
                     if worker_status.role == "admin":
@@ -148,39 +152,41 @@ class SuezCluster(ClusterBase):
                         processor_status.processorName = self._global_config.get_master_command(self._key)
                         processor_status.processorStatus = ProcessorStatusType.RUNNING
                         status_map["admin"].append(processor_status)
-                        role_ready_count["admin"] += 1
                     else:
                         is_find = False
                         group, role = worker_status.role.split(".")
-                        if group not in status_map:
-                                status_map[group] = {}
-                                
-                        if role not in status_map[group]:
-                            status_map[group][role] = []
-                            role_ready_count[role] = 0
-                            
-                        if group in processors_status_map and role in processors_status_map[group]:
-                            
-                            for processor_status in processors_status_map[group][role]:
-                                if processor_status.ip == worker_status.ip and processor_status.role == role:
-                                    processor_status.merge_from_hippo_worker_info(worker_status)
-                                    processor_status.processorName = self._global_config.get_worker_command(HapeCommon.HAVENASK_KEY)
-                                    if processor_status.workerStatus == "WS_READY":
-                                        role_ready_count[role] += 1
-                                    is_find = True
-                                    status_map[group][role].append(processor_status)
-                                    break
+                        role_status = processors_status_map[group][role]
+                        for processor_status in role_status.processorList:
+                            if processor_status.ip == worker_status.ip and processor_status.role == role:
+                                processor_status.merge_from_hippo_worker_info(worker_status)
+                                processor_status.processorName = self._global_config.get_worker_command(HapeCommon.HAVENASK_KEY)
+                                is_find = True
+                                status_map[group][role].append(processor_status)
+                                break
                         if not is_find:
                             processor_status = ShardGroupProcessorStatus.from_hippo_worker_info(worker_status)
                             status_map[group][role].append(processor_status)
-        
-        
-        hint = ""
+            
         is_cluster_ready = True
-        for role in role_ready_count:
-            if role_ready_count[role] == 0:
+        hint = ""
+        for group, role_map in status_map.items():
+            if group == "admin":
+                continue
+            if len(role_map) == 0:
                 is_cluster_ready = False
-                hint = "Role of havenask [{}] is not all ready".format(role)
+                hint = "Group {} has no containers, maybe lack of candidate nodes".format(group)
+                break
+            for role, node_list in role_map.items():
+                if len(node_list) == 0:
+                    is_cluster_ready = False
+                    hint = "Group {} Role {} has no containers, maybe lack of candidate nodes".format(group, role)
+                    break
+                
+                if processors_status_map[group][role].readyForCurVersion == False:
+                    is_cluster_ready = False
+                    hint = "Group {} Role {} has unready containers, or mabye lack of candidate nodes".format(group, role)
+                    break
+            
         
         cluster_status = ShardGroupClusterStatus(
             serviceZk = self._global_config.get_service_appmaster_zk_address(self._key),
@@ -205,14 +211,17 @@ class SuezCluster(ClusterBase):
         result = []
         status = self.get_status()["sqlClusterInfo"]
         for table in ready_tables:
-            is_table_all_ready = True
+            expect_searcher_shard_count = self.catalog_manager.get_table_shard_count(table)
+            expect_searcher_counts = self._global_config.havenask.searcherReplicaCount * expect_searcher_shard_count
+            ready_counts = 0
             for role, processor_status_list in status["database"].items():
                 for processor_status in processor_status_list:
-                    if processor_status['signature'].find(table+".") == -1:
-                        is_table_all_ready = False
-                        break
-            if is_table_all_ready:
+                    if processor_status['signature'].find(table+".") != -1:
+                        ready_counts += 1
+            if ready_counts == expect_searcher_counts:
                 result.append(table)
+            else:
+                Logger.debug("Table {} expect ready searcher count {}, real ready searcher count {}".format(table, expect_searcher_counts, ready_counts))
                         
         return result
     
@@ -233,6 +242,8 @@ class SuezCluster(ClusterBase):
                 data = response.json()
                 tables = data['result']["default"][HapeCommon.DEFAULT_DATABASE]['tables']
                 for table in tables:
+                    if table.endswith("summary_"):
+                        continue
                     if table not in tables_collect:
                         tables_collect[table] = []
                     tables_collect[table].append(ip)  

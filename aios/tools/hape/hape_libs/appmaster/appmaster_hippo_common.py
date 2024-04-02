@@ -63,7 +63,4 @@ class HippoAppContainerInfo(object):
 def prepare_candidate_ips(hippo_zk_address, candidate_ips): 
     candidate_path = "candidate_ips"
     hippo_zk_fs_wrapper = FsWrapper(hippo_zk_address)
-    if hippo_zk_fs_wrapper.exists(candidate_path):
-        Logger.info("Candidate ips zk path {} already exists, will not recreate it".format(hippo_zk_fs_wrapper.complete_path(candidate_path)))
-        return 
     hippo_zk_fs_wrapper.write(json.dumps(candidate_ips), candidate_path)

@@ -5,7 +5,7 @@
             "WORKING_DIRS=(ha_sql:/home/admin/)"
         ],
         "minHealthCapacity": 0,
-        "count": 1,
+        "count": {{ havenask.searcherReplicaCount }},
         "healthCheckerConfig":
           {
           "args":

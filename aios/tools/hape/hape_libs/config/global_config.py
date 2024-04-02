@@ -80,6 +80,7 @@ class HavenaskConfig(MasterConfigBase):
     adminHttpPort = attr.ib(default=45700)
     qrsHttpPort = attr.ib(default=45800)
     qrsReplicaCount = attr.ib(default=1)
+    searcherReplicaCount = attr.ib(default=1)
     dbStoreRoot = attr.ib(init=False)
     # enableVirtualIp = attr.ib(default=False)
     suezClusterStoreRoot = attr.ib(init=False)
@@ -90,6 +91,7 @@ class HavenaskConfig(MasterConfigBase):
             "searcher": self.searcherIpList
         }
         self.qrsReplicaCount = int(self.qrsReplicaCount)
+        self.searcherReplicaCount = int(self.searcherReplicaCount)
         
         # if isinstance(self.enableVirtualIp, unicode):
         #     self.enableVirtualIp = self.enableVirtualIp == "true"

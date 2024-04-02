@@ -32,6 +32,7 @@ class K8sClient():
         self._apiextensions_v1 = self.k8s.client.ApiextensionsV1Api(api_client)
         self._custom_objects_api = self.k8s.client.CustomObjectsApi(api_client)
         self._priorityclass_api = self.k8s.client.SchedulingV1Api(api_client)
+        self._version_api = self.k8s.client.VersionApi(api_client)
 
         self._resources_api_map = {
             "CustomResourceDefinition": {
@@ -224,7 +225,7 @@ class K8sClient():
         
     def check_connections(self):
         try:
-            nodes = self._core_v1.list_nodes()
+            version_info = self._version_api.get_code()
             Logger.info("Connected to Kubernetes cluster")
             return True
         except Exception as e:

@@ -50,7 +50,7 @@ class ShardGroupProcessorStatus(ClusterProcessorStatus):
     workerStatus = attr.ib(default="UNKNOWN")
     signature = attr.ib(default="UNKNOWN")
     targetSignature = attr.ib(default="UNKNOWN")
-    readyForCurVersion = attr.ib(default=True)
+    readyForCurVersion = attr.ib(default=False)
     
     @staticmethod
     def from_hippo_worker_info(hippo_worker_info):
@@ -65,7 +65,11 @@ class ShardGroupProcessorStatus(ClusterProcessorStatus):
         self.role = hippo_worker_info.role
         self.containerName = hippo_worker_info.containerName
         self.containerStatus = hippo_worker_info.containerStatus
-        
+
+@attr.s
+class ShardGroupRoleStatus(object):
+    processorList = attr.ib(default = [])
+    readyForCurVersion = attr.ib(default=False)
     
 @attr.s
 class ShardGroupClusterStatus(object):

@@ -123,14 +123,15 @@ def validate_docker_mode(domain_config):
                     validate_schedule(key, admin_ip, worker_ip, domain_config)
                     
 def validate_k8s_service_name(domain_config):
-    pattern = re.compile(r'^[a-z0-9]([-a-z0-9]*[a-z0-9])?$')
+    pattern_str = r'^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+    pattern = re.compile(pattern_str)
     for key in [HapeCommon.HAVENASK_KEY, HapeCommon.SWIFT_KEY, HapeCommon.BS_KEY]:
         name = domain_config.global_config.get_appmaster_service_name(key)
         if len(name) < 1 or len(name) > 253:
             raise RuntimeError("Length ({}) of service name [{}] is not allowed in k8s"%(len(name), name))
 
         if not pattern.match(name):
-            raise RuntimeError("Service name [{}] is not allowed in k8s, supported pattern: {}"%(name, pattern))
+            raise RuntimeError("Service name [{}] is not allowed in k8s, supported pattern: {}".format(name, pattern_str))
 
                 
 def validate_k8s_mode(domain_config):

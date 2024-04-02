@@ -128,9 +128,15 @@ class HavenaskDomain(object):
             Logger.debug("Table request is already sent, you can wait or use gs subcommand to check table status")
 
             def check_table_ready():
-                return table in self.suez_cluster.get_ready_tables()
+                tables = self.suez_cluster.get_ready_tables()
+                succ = table in tables
+                if not succ:
+                    Logger.info("Table not ready in all qrs or searchers by now")
+                    Logger.info("If it takes long, you can execute `gs havenask` to find the reason")
+                return succ
+                    
 
-            msg = "Table {} ready in all qrs".format(table)
+            msg = "Table {} ready".format(table)
             succ = Retry.retry(check_table_ready, msg, limit=50)
             if succ:
                 Logger.info("Table {} is ready".format(table))
@@ -201,6 +207,7 @@ class HavenaskDomain(object):
             return result
 
         else:
+            Logger.error("Failed to get table status, Suez admin maybe not ready")
             return None
         
         

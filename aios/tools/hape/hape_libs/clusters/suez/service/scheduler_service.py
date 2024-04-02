@@ -7,7 +7,7 @@ import attr
 
 
 from hape_libs.utils.logger import Logger
-from hape_libs.clusters.cluster_base import ShardGroupProcessorStatus, ProcessorStatusType
+from hape_libs.clusters.cluster_base import *
 
 class SchedulerService(object):
     def __init__(self, address):
@@ -31,8 +31,9 @@ class SchedulerService(object):
                 status_map[group] = {}
                 for role in role_statuses:
                     replica_nodes_status = role_statuses[role]['nextInstanceInfo'].get('replicaNodes', [])
-                    role_status_list = self.extract_replica_nodes_status(role, replica_nodes_status)
-                    status_map[group][role] = role_status_list
+                    node_status_list = self.extract_replica_nodes_status(role, replica_nodes_status)
+                    status = ShardGroupRoleStatus(processorList = node_status_list, readyForCurVersion=role_statuses[role]['readyForCurVersion'])
+                    status_map[group][role] = status
                     
         except:
             Logger.error("Failed to extract processors status")
@@ -53,4 +54,7 @@ class SchedulerService(object):
             processor_status.ip = node_status["ip"]
             processor_status.role = role
             status_list.append(processor_status)
+            
+        if len(replica_nodes_status) == 0:
+            status_list.append(ShardGroupProcessorStatus())
         return status_list
