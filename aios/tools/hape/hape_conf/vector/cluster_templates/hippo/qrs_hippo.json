@@ -95,7 +95,7 @@
                     },
                     {
                         "key": "--env",
-                        "value": "serviceName={{ havenask.serviceName }}"
+                        "value": "serviceName=havenask.{{ havenask.serviceName }}.env^online"
                     },
                     {
                         "key": "--env",

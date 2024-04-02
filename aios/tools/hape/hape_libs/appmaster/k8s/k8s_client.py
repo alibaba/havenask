@@ -215,7 +215,7 @@ class K8sClient():
             
             def check_resource_deleted():
                 return self.read_resource(kind=kind, name=name, namespace=namespace) == None
-            succ = Retry.retry(check_resource_deleted, check_msg="K8s resource deleted, {}".format(metainfo), limit=20)
+            succ = Retry.retry(check_resource_deleted, check_msg="K8s resource deleted, {}".format(metainfo), limit=100)
             return succ
         except Exception as e:
             Logger.error("Failed to delete k8s resource, {}".format(metainfo))
