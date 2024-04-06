@@ -1,0 +1,89 @@
+{
+    "packages" : [
+        {
+            "packageURI" : "{{ swift.image }}",
+            "type" : "IMAGE"
+        }
+    ],
+    "role_default" : {
+        "count" : {{ swift.brokerCount }},
+        "processInfos" : [
+            {
+                "args" : [
+                    [
+                        "-l",
+                        "{{ common.binaryPath }}/usr/local/etc/swift/swift_alog.conf"
+                    ],
+                    [
+                        "-w",
+                        "."
+                    ]
+                    
+                ],
+                "envs" : [
+                    [
+                        "LD_LIBRARY_PATH",
+                        "{{ common.binaryPath }}/usr/local/lib:{{ common.binaryPath }}/usr/local/lib64:/usr/local/lib64/ssl/lib64:/usr/lib:/usr/lib64:/opt/taobao/java/jre/lib/amd64/server"
+                    ],
+                    [
+                        "PATH",
+                        "{{ common.binaryPath }}/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+                    ],
+                    [
+                        "JAVA_HOME",
+                        "{{ common.javaHome }}"
+                    ],
+                    [
+                        "HADOOP_HOME",
+                        "{{ common.hadoopHome }}"
+                    ],
+                    [
+                        "KMONITOR_ADAPTER_APP",
+                        "swift"
+                    ],
+                    [
+                        "kmonitorEnableLogFileSink",
+                        "false"
+                    ],
+                    [
+                        "kmonitorEnablePrometheusSink",
+                        "{{ common.enableKmonitorPrometheusSink }}"
+                    ],
+                    [
+                        "kmonitorSinkAddress",
+                        "{{ common.kmonitorSinkHost }}"
+                    ],
+                    [
+                        "kmonitorPort",
+                        "{{ common.kmonitorSinkPort }}"
+                    ]
+                ],
+                "isDaemon" : true,
+                "restartCountLimit" : 30,
+                "stopTimeout" : 360
+            }
+        ]
+    },
+    "role_resource" : {
+        "admin" : [
+            {
+                "amount" : 200,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 10240,
+                "name" : "mem"
+            }
+        ],
+        "broker" : [
+            {
+                "amount" : 200,
+                "name" : "cpu"
+            },
+            {
+                "amount" : 10240,
+                "name" : "mem"
+            }
+        ]
+    }
+}

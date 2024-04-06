@@ -12,4 +12,5 @@ class CaseConfig:
         self.schema = os.path.join(HERE, "in0_schema.json")
         self.queries = [
         ]
-        self.hape_conf = os.path.join(HERE, "llm_conf")
+        
+        self.hape_conf = os.path.join(HERE, "../../../hape_conf/llm")

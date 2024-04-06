@@ -6,6 +6,9 @@
         }
     ],
     "role_default" : {
+        "containerConfigs": [
+            "WORKING_DIRS=(swift_broker:/home/admin/)"
+        ],
         "count" : {{ swift.brokerCount }},
         "processInfos" : [
             {

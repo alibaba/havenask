@@ -6,7 +6,6 @@
                 "${table_name}"
             ],
             "document_processor_chain": [
-                
                 {
                     "class_name": "DupFieldProcessor",
                     "module_name": "",
@@ -15,7 +14,6 @@
                         "DUP_vector": "vector"
                     }
                 },
-                
                 {
                     "class_name": "TokenizeDocumentProcessor",
                     "module_name": "",

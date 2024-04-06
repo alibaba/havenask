@@ -15,9 +15,7 @@ bundle_tar(
 filegroup(
     name='hape_conf',
     srcs=glob([
-        'hape_conf/default/**', 'hape_conf/remote/**', 'hape_conf/proc/**',
-        'hape_conf/.template/**', 'hape_conf/k8s/**', 'hape_conf/vector/**',
-        'hape_conf/vector-proc/**'
+        'hape_conf/**/**'
     ])
 )
 filegroup(name='sql_query', srcs=['hape_libs/utils/sql_query.py'])

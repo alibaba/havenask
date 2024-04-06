@@ -6,6 +6,9 @@
         }
     ],
     "role_default" : {
+        "containerConfigs": [
+            "WORKING_DIRS=(build_service_worker:/home/admin/)"
+        ],
         "count" : 1,
         "processInfos" : [
             {
