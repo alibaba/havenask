@@ -342,6 +342,10 @@ spec:
               cpu: '2'
               ephemeral-storage: 12Gi
               memory: 4Gi
+            limits:
+              cpu: '2'
+              ephemeral-storage: 12Gi
+              memory: 4Gi
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
@@ -360,6 +364,8 @@ spec:
       serviceAccount: c2-admin
       serviceAccountName: c2-admin
       terminationGracePeriodSeconds: 30
+      priority: 100
+      priorityClassName: hippo-priority-100
       volumes:
         - hostPath:
             path: /tmp/logs
@@ -438,6 +444,10 @@ spec:
               cpu: '2'
               ephemeral-storage: 12Gi
               memory: 4Gi
+            limits:
+              cpu: '2'
+              ephemeral-storage: 12Gi
+              memory: 4Gi
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
@@ -456,6 +466,8 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      priority: 100
+      priorityClassName: hippo-priority-100
       volumes:
         - hostPath:
             path: /tmp/logs

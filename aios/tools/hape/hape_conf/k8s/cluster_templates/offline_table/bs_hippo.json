@@ -6,23 +6,24 @@
         }
     ],
     "role_default" : {
+        "count" : 1,
         "containerConfigs": [
             "WORKING_DIRS=(build_service_worker:/home/admin/)"
         ],
-        "count" : 1,
         "processInfos" : [
             {
                 "args" : [
                     [
                         "-l",
                         "{{ common.binaryPath }}/usr/local/etc/bs/bs_alog.conf"
-                    ],
-                    [
-                        "-w",
-                        "/home/admin"
                     ]
                 ],
                 "envs" : [
+                    
+                    [
+                        "HIPPO_PROC_WORKDIR",
+                        "/home/admin"
+                    ],
                     [
                         "LD_LIBRARY_PATH",
                         "{{ common.binaryPath }}/usr/local/lib:{{ common.binaryPath }}/usr/local/lib64:/usr/local/lib64/ssl/lib64:/usr/lib:/usr/lib64:/opt/taobao/java/jre/lib/amd64/server"
