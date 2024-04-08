@@ -98,7 +98,7 @@
         },
         {
             "name": "embedding_index",
-            "index_type": "CUSTOMIZED",
+            "index_type": "ANN",
             "index_config": {
                 "index_fields": [
                     {

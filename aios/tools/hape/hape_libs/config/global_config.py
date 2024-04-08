@@ -115,6 +115,7 @@ class CommonConfig(object):
     kmonitorSinkAddress = attr.ib(default = None)
     kmonitorSinkHost = attr.ib(default="127.0.0.1")
     kmonitorSinkPort = attr.ib(default="9091")
+    kubeShardImage = attr.ib(default="registry.cn-hangzhou.aliyuncs.com/havenask/kubeshard:v0.0.4")
     
     def __attrs_post_init__(self):
         if self.domainZkRoot == None:

@@ -135,7 +135,7 @@ void PrometheusSink::Flush() {
                               response.httpCode);
                 }
                 else {
-                    AUTIL_LOG(INFO, "succeed to send sample %s", sample.c_str());
+                    AUTIL_LOG(DEBUG, "succeed to send sample %s", sample.c_str());
                 }
             });
 

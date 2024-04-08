@@ -203,25 +203,27 @@ class SuezCluster(ClusterBase):
         ## collect tables ready in qrs
         qrs_worker_ips, tables_collect = self.collect_qrs_tables()
         ready_tables = set()
+        max_shard = 1
         for table in tables_collect:
             if len(tables_collect[table]) == len(qrs_worker_ips):
-                ready_tables.add(table)
+                shard = self.catalog_manager.get_table_shard_count(table)
+                ready_tables.add((shard, table))
+                max_shard = max(max_shard, shard)
                 
         ## check tables all ready in database
         result = []
         status = self.get_status()["sqlClusterInfo"]
-        for table in ready_tables:
-            expect_searcher_shard_count = self.catalog_manager.get_table_shard_count(table)
-            expect_searcher_counts = self._global_config.havenask.searcherReplicaCount * expect_searcher_shard_count
+        for shard, table in ready_tables:
+            replica = self._global_config.havenask.searcherReplicaCount
             ready_counts = 0
             for role, processor_status_list in status["database"].items():
                 for processor_status in processor_status_list:
                     if processor_status['signature'].find(table+".") != -1:
                         ready_counts += 1
-            if ready_counts == expect_searcher_counts:
+            if ready_counts == max_shard * replica:
                 result.append(table)
             else:
-                Logger.debug("Table {} expect ready searcher count {}, real ready searcher count {}".format(table, expect_searcher_counts, ready_counts))
+                Logger.debug("Table {} not ready in all searchers and qrs, you can use `gs havenask` to find reason".format(table))
                         
         return result
     

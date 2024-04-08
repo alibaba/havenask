@@ -64,6 +64,7 @@ def prepare_k8s_mode(domain_config):
     
     for idx, image in enumerate(images):
         name = "havenask-image-preparer-{}".format(idx)
+        namec2 = "c2-image-preparer-{}".format(idx)
         daemon_set_plan = {
             "apiVersion": "apps/v1",
             "kind": kind,
@@ -88,6 +89,13 @@ def prepare_k8s_mode(domain_config):
                     {
                         "name": name,
                         "image": image,
+                        "command": ["/bin/sh"],
+                        "args": ["-c", "tail -f /dev/null"],
+                        "imagePullPolicy": "Always"
+                    },
+                    {
+                        "name": namec2,
+                        "image": global_config.common.kubeShardImage,
                         "command": ["/bin/sh"],
                         "args": ["-c", "tail -f /dev/null"],
                         "imagePullPolicy": "Always"

@@ -45,7 +45,7 @@ class SchedulerService(object):
         for node_status in replica_nodes_status:
             processor_status = ShardGroupProcessorStatus()
             processor_status.workerStatus = node_status["workerStatus"]
-            if len(node_status["processStatus"]) == 1:
+            if len(node_status.get("processStatus", [])) == 1:
                 processor_status.processorStatus = ProcessorStatusType.RUNNING if node_status["processStatus"][0]["status"] == "PS_RUNNING" else ProcessorStatusType.NOT_RUNNING
             processor_status.replicaId = node_status["replicaNodeId"]
             processor_status.signature = node_status["signature"]

@@ -6,6 +6,9 @@
         }
     ],
     "role_default" : {
+        "containerConfigs": [
+            "WORKING_DIRS=(swift_broker:/home/admin/)"
+        ],
         "count" : {{ swift.brokerCount }},
         "processInfos" : [
             {
@@ -21,6 +24,7 @@
                     
                 ],
                 "envs" : [
+                    
                     [
                         "LD_LIBRARY_PATH",
                         "{{ common.binaryPath }}/usr/local/lib:{{ common.binaryPath }}/usr/local/lib64:/usr/local/lib64/ssl/lib64:/usr/lib:/usr/lib64:/opt/taobao/java/jre/lib/amd64/server"
