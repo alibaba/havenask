@@ -46,9 +46,7 @@ Havenask delivers the following benefits:
 * Create the container
 CONTAINER_NAME specifies the name of the container.
 ```
-cd ~
-git clone git@github.com:alibaba/havenask.git
-cd ~/havenask/docker/havenask
+wget https://github.com/alibaba/havenask/releases/download/latest/create_container.sh
 docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
@@ -123,9 +121,7 @@ Havenask 的核心能力与优势，有以下几点：
 * 创建容器
 其中CONTAINER_NAME为指定的容器名
 ```
-cd ~
-git clone git@github.com:alibaba/havenask.git
-cd ~/havenask/docker/havenask
+wget https://github.com/alibaba/havenask/releases/download/latest/create_container.sh
 docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
