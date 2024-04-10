@@ -1,5 +1,6 @@
 ## Note
 > old version:
+> [1.1.0](https://github.com/alibaba/havenask/tree/1.1.0),
 > [1.0.0](https://github.com/alibaba/havenask/tree/1.0.0),
 > [1.0.0-beta](https://github.com/alibaba/havenask/tree/1.0.0-beta),
 > [main-stable-0.4](https://github.com/alibaba/havenask/tree/main-stable-0.4)<br>
@@ -46,7 +47,7 @@ Havenask delivers the following benefits:
 * Create the container
 CONTAINER_NAME specifies the name of the container.
 ```
-wget https://github.com/alibaba/havenask/releases/download/latest/create_container.sh
+wget https://github.com/alibaba/havenask/releases/download/v1.2.0/create_container.sh
 docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
@@ -121,7 +122,7 @@ Havenask 的核心能力与优势，有以下几点：
 * 创建容器
 其中CONTAINER_NAME为指定的容器名
 ```
-wget https://github.com/alibaba/havenask/releases/download/latest/create_container.sh
+wget https://github.com/alibaba/havenask/releases/download/v1.2.0/create_container.sh
 docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ./create_container.sh <CONTAINER_NAME> registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ```
