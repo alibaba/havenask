@@ -79,7 +79,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ## Contact Us
 Havenask DingTalk Group：
 
-![3293821693450208](https://user-images.githubusercontent.com/590717/206684715-5ab1df49-f919-4d8e-85ee-58b364edef31.jpg)
+<img width="300" alt="20240416103737" src="https://github.com/alibaba/havenask/assets/38515034/65c8a041-650c-470c-b173-60d9557bbbc9">
 
 
 
@@ -153,4 +153,5 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ## 联系我们
 官方技术交流钉钉群：
 
-![3293821693450208](https://user-images.githubusercontent.com/590717/206684715-5ab1df49-f919-4d8e-85ee-58b364edef31.jpg)
+<img width="300" alt="20240416103737" src="https://github.com/alibaba/havenask/assets/38515034/448d9c71-4396-4017-81e9-7f538d3940e0">
+
