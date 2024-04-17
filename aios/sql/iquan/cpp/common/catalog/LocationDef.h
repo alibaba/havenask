@@ -31,6 +31,7 @@ struct LocationSign {
     uint32_t partitionCnt = 0;
     std::string nodeName;
     std::string nodeType;
+    std::string tableName;
 };
 
 class LocationDef : public autil::legacy::Jsonizable {
@@ -38,6 +39,7 @@ public:
     void Jsonize(autil::legacy::Jsonizable::JsonWrapper &json) override {
         json.Jsonize("partition_cnt", sign.partitionCnt, sign.partitionCnt);
         json.Jsonize("node_name", sign.nodeName, sign.nodeName);
+        json.Jsonize("location_table_name",sign.tableName,sign.tableName);
         json.Jsonize("node_type", sign.nodeType, sign.nodeType);
         json.Jsonize("tables", tableIdentities, tableIdentities);
         json.Jsonize("equivalent_hash_fields", equilvalentHashFields, equilvalentHashFields);
