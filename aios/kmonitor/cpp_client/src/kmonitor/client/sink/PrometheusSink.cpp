@@ -21,6 +21,7 @@
 
 #include "autil/Log.h"
 #include "autil/StringUtil.h"
+#include "autil/NetUtil.h"
 #include "kmonitor/client/common/Common.h"
 #include "kmonitor/client/core/MetricsTags.h"
 #include "kmonitor/client/core/MetricsValue.h"
@@ -48,7 +49,9 @@ PrometheusSink::PrometheusSink(const std::string &addr) : Sink(PrometheusSink::N
         gatewayAddr_ = getDefaultSinkAddr();
     }
 
-    gatewayAddr_ += "/metrics/job/havenask";
+    std::string ip;
+    autil::NetUtil::GetDefaultIp(ip);
+    gatewayAddr_ += "/metrics/job/havenask/instance/" + ip;
 
     network::Header httpHeader;
     httpClientPtr_ = std::make_unique<network::HttpClient>(HTTP_CLIENT_THREAD_NUM,
