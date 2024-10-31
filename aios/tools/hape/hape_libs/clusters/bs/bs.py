@@ -53,7 +53,7 @@ class BsCluster(ClusterBase):
                     processor_status.processorStatus = ProcessorStatusType.RUNNING
                     status_list.append(processor_status)
                 else:
-                    if table != None and worker_status.role.find(table) == -1:
+                    if table != None and worker_status.role.find("."+table+".") == -1:
                         continue
                     processor_status  = ClusterProcessorStatus.from_hippo_worker_info(worker_status)
                     processor_status.processorName = self._global_config.get_worker_command(self._key)
