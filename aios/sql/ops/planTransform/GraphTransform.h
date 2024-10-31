@@ -211,6 +211,7 @@ public:
 public:
     bool disableWatermark = false;
     bool useQrsTimestamp = true;
+    bool searchNewBiz = true;
 };
 
 class GraphTransform : public plan::NodeVisitor {

@@ -555,15 +555,23 @@ void IndexApplication::GetIndexPartitionReaderInfos(vector<IndexPartitionReaderI
     return;
 }
 
-void IndexApplication::GetTableSchemas(std::vector<std::shared_ptr<indexlibv2::config::ITabletSchema>>& tableSchemas)
+void IndexApplication::GetTableSchemas(std::vector<std::shared_ptr<indexlibv2::config::ITabletSchema>>& tableSchemas, std::set<std::string> &tableNames)
 {
     vector<IndexPartitionReaderPtr> snapshotIndexPartitionReaders;
     mReaderContainer.CreateSnapshot(snapshotIndexPartitionReaders);
     for (size_t i = 0; i < snapshotIndexPartitionReaders.size(); i++) {
-        tableSchemas.push_back(snapshotIndexPartitionReaders[i]->GetTabletSchema());
+        auto schema = snapshotIndexPartitionReaders[i]->GetTabletSchema();
+        if (tableNames.find(schema->GetTableName()) == tableNames.end()) {
+            tableSchemas.push_back(schema);
+            tableNames.insert(schema->GetTableName());
+        }
     }
     for (const auto& tablet : _tablets) {
-        tableSchemas.push_back(tablet->GetTabletSchema());
+        auto schema = tablet->GetTabletSchema();
+        if (tableNames.find(schema->GetTableName()) == tableNames.end()) {
+            tableSchemas.push_back(schema);
+            tableNames.insert(schema->GetTableName());
+        }
     }
 }
 
