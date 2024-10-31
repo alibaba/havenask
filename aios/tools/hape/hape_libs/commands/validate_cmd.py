@@ -81,14 +81,15 @@ def validate_schedule(key, admin_ip, worker_ip, domain_config):
 --cpu-period=100000 --memory=5124m -v /etc/passwd:/home/.passwd -v /etc/group:/home/.group --name {} {} /sbin/init".format(user_home, user_home, user_home, container_name, image)
     cmd = "ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no {} '{}'".format(worker_ip, run_cmd)
     shell.execute_command(cmd)
-    check_cmd = "docker ps | grep {}".format(container_name)
+    check_cmd = "docker ps --format {{{{.Names}}}} | grep ^{}$".format(container_name)
     cmd = "ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no {} '{}'".format(worker_ip, check_cmd)
     out = shell.execute_command(cmd)
     if out.find(container_name) == -1:
         raise RuntimeError("Failed to schedule container from {} to {}".format(admin_ip, worker_ip))
     
     run_cmd = "docker rm -f {}".format(container_name)
-    shell.execute_command(run_cmd)
+    cmd = "ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no {} '{}'".format(worker_ip, run_cmd)
+    shell.execute_command(cmd)
 
     Logger.info("Succeed to schedule from {} to {}".format(admin_ip, worker_ip))
 
