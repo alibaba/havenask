@@ -692,7 +692,8 @@ bool FileUtil::isLocalFile(const std::string &basePath) {
         StringUtil::startsWith(basePath, "pangu2") || StringUtil::startsWith(basePath, "mpangu") ||
         StringUtil::startsWith(basePath, "http") || StringUtil::startsWith(basePath, "oss") ||
         StringUtil::startsWith(basePath, "dfs") || StringUtil::startsWith(basePath, "dcache") ||
-        StringUtil::startsWith(basePath, "hdfs") || StringUtil::startsWith(basePath, "LOCAL")) {
+        StringUtil::startsWith(basePath, "hdfs") || StringUtil::startsWith(basePath, "LOCAL") ||
+		StringUtil::startsWith(basePath, "jfs")) {
         return false;
     }
     return true;
@@ -707,7 +708,7 @@ bool FileUtil::isPanguFile(const std::string &basePath) {
 
 bool FileUtil::isZfsFile(const std::string &basePath) { return StringUtil::startsWith(basePath, "zfs"); }
 
-bool FileUtil::isHdfsFile(const std::string &basePath) { return StringUtil::startsWith(basePath, "hdfs"); }
+bool FileUtil::isHdfsFile(const std::string &basePath) { return StringUtil::startsWith(basePath, "hdfs") || StringUtil::startsWith(basePath, "jfs"); }
 
 bool FileUtil::isOssFile(const std::string &basePath) { return StringUtil::startsWith(basePath, "oss"); }
 

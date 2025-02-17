@@ -973,14 +973,15 @@ ErrorCode FsUtil::runIsExist(const char *pathname) {
 
 ErrorCode FsUtil::runMd5Sum(const char *fileName) {
     FileMeta fileMeta;
-    ErrorCode ret = FileSystem::getFileMeta(fileName, fileMeta);
+    std::string fileNameCopy = std::string(fileName);
+    ErrorCode ret = FileSystem::getFileMeta(fileNameCopy, fileMeta);
     if (ret != EC_OK) {
-        cerr << "fail to get length of file <" << fileName << ">. " << FileSystem::getErrorString(ret) << endl;
+        cerr << "fail to get length of file <" << fileNameCopy << ">. " << FileSystem::getErrorString(ret) << endl;
         return ret;
     }
-    unique_ptr<File> file(FileSystem::openFile(fileName, READ));
+    unique_ptr<File> file(FileSystem::openFile(fileNameCopy, READ));
     if (!file->isOpened()) {
-        cerr << "open file <" << fileName << "> for read fail. " << FileSystem::getErrorString(file->getLastError())
+        cerr << "open file <" << fileNameCopy << "> for read fail. " << FileSystem::getErrorString(file->getLastError())
              << endl;
         return file->getLastError();
     }
@@ -995,7 +996,7 @@ ErrorCode FsUtil::runMd5Sum(const char *fileName) {
     while (true) {
         auto readLen = file->read(buffer.getBuffer(), bufferLen);
         if (readLen < 0) {
-            cerr << "read file <" << fileName << ">  fail. " << FileSystem::getErrorString(file->getLastError())
+            cerr << "read file <" << fileNameCopy << ">  fail. " << FileSystem::getErrorString(file->getLastError())
                  << endl;
             return file->getLastError();
         }
@@ -1013,14 +1014,15 @@ ErrorCode FsUtil::runMd5Sum(const char *fileName) {
 
 ErrorCode FsUtil::runCat(const char *fileName) {
     FileMeta fileMeta;
-    ErrorCode ret = FileSystem::getFileMeta(fileName, fileMeta);
+    std::string fileNameCopy = std::string(fileName);
+    ErrorCode ret = FileSystem::getFileMeta(fileNameCopy, fileMeta);
     if (ret != EC_OK) {
-        cerr << "fail to get length of file <" << fileName << ">. " << FileSystem::getErrorString(ret) << endl;
+        cerr << "fail to get length of file <" << fileNameCopy << ">. " << FileSystem::getErrorString(ret) << endl;
         return ret;
     }
-    unique_ptr<File> file(FileSystem::openFile(fileName, READ));
+    unique_ptr<File> file(FileSystem::openFile(fileNameCopy, READ));
     if (!file->isOpened()) {
-        cerr << "open file <" << fileName << "> for read fail. " << FileSystem::getErrorString(file->getLastError())
+        cerr << "open file <" << fileNameCopy << "> for read fail. " << FileSystem::getErrorString(file->getLastError())
              << endl;
         return file->getLastError();
     }
@@ -1034,7 +1036,7 @@ ErrorCode FsUtil::runCat(const char *fileName) {
     while (true) {
         auto readLen = file->read(buffer.getBuffer(), bufferLen);
         if (readLen < 0) {
-            cerr << "read file <" << fileName << ">  fail. " << FileSystem::getErrorString(file->getLastError())
+            cerr << "read file <" << fileNameCopy << ">  fail. " << FileSystem::getErrorString(file->getLastError())
                  << endl;
             return file->getLastError();
         }
@@ -1051,14 +1053,15 @@ ErrorCode FsUtil::runCat(const char *fileName) {
 
 ErrorCode FsUtil::runZCat(const char *fileName) {
     FileMeta fileMeta;
-    ErrorCode ret = FileSystem::getFileMeta(fileName, fileMeta);
+    std::string fileNameCopy = std::string(fileName);
+    ErrorCode ret = FileSystem::getFileMeta(fileNameCopy, fileMeta);
     if (ret != EC_OK) {
-        cerr << "fail to get length of file <" << fileName << ">. " << FileSystem::getErrorString(ret) << endl;
+        cerr << "fail to get length of file <" << fileNameCopy << ">. " << FileSystem::getErrorString(ret) << endl;
         return ret;
     }
-    unique_ptr<File> file(FileSystem::openFile(fileName, READ));
+    unique_ptr<File> file(FileSystem::openFile(fileNameCopy, READ));
     if (!file->isOpened()) {
-        cerr << "open file <" << fileName << "> for read fail. " << FileSystem::getErrorString(file->getLastError())
+        cerr << "open file <" << fileNameCopy << "> for read fail. " << FileSystem::getErrorString(file->getLastError())
              << endl;
         return file->getLastError();
     }
@@ -1084,7 +1087,7 @@ ErrorCode FsUtil::runZCat(const char *fileName) {
     while (true) {
         auto readLen = file->read(buffer.getBuffer(), bufferLen);
         if (readLen < 0) {
-            cerr << "read file <" << fileName << ">  fail. " << FileSystem::getErrorString(file->getLastError())
+            cerr << "read file <" << fileNameCopy << ">  fail. " << FileSystem::getErrorString(file->getLastError())
                  << endl;
             inflateEnd(&strm);
             return file->getLastError();

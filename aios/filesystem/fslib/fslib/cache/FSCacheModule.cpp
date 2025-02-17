@@ -227,7 +227,7 @@ void FSCacheModule::initCacheSupportFsTypes() {
     if (!tmp.empty()) {
         supportFsType = tmp;
     } else {
-        supportFsType = "hdfs|pangu|dfs";
+        supportFsType = "hdfs|pangu|dfs|jfs";
     }
 
     AUTIL_LOG(INFO, "fslib cache-supporting fsType [%s]", supportFsType.c_str());

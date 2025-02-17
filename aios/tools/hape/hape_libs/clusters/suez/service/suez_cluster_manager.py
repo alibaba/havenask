@@ -42,7 +42,7 @@ class SuezClusterManager(object):
 
 
         biz_config = self._domain_config.global_config.havenask.suezClusterStoreRoot
-        if not biz_config.startswith("hdfs://"):
+        if not biz_config.startswith("hdfs://") and not biz_config.startswith("jfs://"):
             biz_config = "LOCAL:/" + biz_config
 
         cluster = ClusterBuilder()

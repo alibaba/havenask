@@ -170,6 +170,7 @@ class FsWrapper:
     FS_CLS = {
         "zfs": ZfsClient,
         "hdfs": HdfsClient,
+        "jfs": HdfsClient,
         "LOCAL": LocalClient
     }
     def __init__(self, root_address, type = None, extend_attrs = {}):

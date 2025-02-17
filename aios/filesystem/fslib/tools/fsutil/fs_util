@@ -37,7 +37,7 @@ fi
 export LD_LIBRARY_PATH=$fs_util_libpath:$LD_LIBRARY_PATH:$JAVA_HOME/jre/lib/amd64/server/
 
 ### add check for hdfs 
-echo $params | grep -q "hdfs://"
+echo $params | grep -q "jfs://\|hdfs://"
 if [ $? -eq 0 ]; then
     class_path_util=${localPath}/bin/class_path_util
     if [ ! -f $class_path_util ];then

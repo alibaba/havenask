@@ -65,6 +65,7 @@ public:
     static const std::string HADOOP_HOME_ENV;
     static const std::string HDFS_PREFIX;
     static const std::string DFS_PREFIX;
+    static const std::string JFS_PREFIX;
 
     static const std::string KV_SEPARATOR;
     static const std::string KV_PAIR_SEPARATOR;

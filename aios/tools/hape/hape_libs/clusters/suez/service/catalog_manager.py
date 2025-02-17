@@ -38,7 +38,7 @@ class CatalogManager:
         Logger.info("Start to create default database")
 
         storeRoot = self._domain_config.global_config.havenask.dbStoreRoot
-        if not storeRoot.startswith("hdfs://"):
+        if not storeRoot.startswith("hdfs://") and not storeRoot.startswith("jfs://"):
             storeRoot = "LOCAL:/" + storeRoot
 
         database = DatabaseBuilder().set_catalog_name(HapeCommon.DEFAULT_CATALOG)\
