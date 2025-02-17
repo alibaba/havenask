@@ -88,7 +88,7 @@ namespace autil {
                  : "Ir"(i)                                                                                             \
                  : cl);                                                                                                \
                                                                                                                        \
-    return result == 0;
+    return result < 0;
 
 // operations used in 64bit atomic counter in aarch64 architecture
 
@@ -100,8 +100,8 @@ namespace autil {
                  "   prfm    pstl1strm, %2\n"                                                                          \
                  "1: ldxr    %x0, %2\n"                                                                                \
                  "   " #asm_op " %x0, %x0, %x3\n"                                                                      \
-                 "   stxr    %x1, %x0, %2\n"                                                                           \
-                 "   cbnz    %x1, 1b"                                                                                  \
+                 "   stxr    %w1, %x0, %2\n"                                                                           \
+                 "   cbnz    %w1, 1b"                                                                                  \
                  : "=&r"(result), "=&r"(tmp), "+Q"(_counter)                                                           \
                  : "Ir"(i));
 
@@ -114,8 +114,8 @@ namespace autil {
                  "   prfm    pstl1strm, %2\n"                                                                          \
                  "1: ld" #acq "xr    %x0, %2\n"                                                                        \
                  "   " #asm_op " %x0, %x0, %x3\n"                                                                      \
-                 "   st" #rel "xr    %x1, %x0, %2\n"                                                                   \
-                 "   cbnz    %x1, 1b\n"                                                                                \
+                 "   st" #rel "xr    %w1, %x0, %2\n"                                                                   \
+                 "   cbnz    %w1, 1b\n"                                                                                \
                  "   " #mb                                                                                             \
                  : "=&r"(result), "=&r"(tmp), "+Q"(_counter)                                                           \
                  : "Ir"(i)                                                                                             \
@@ -132,8 +132,8 @@ namespace autil {
                  "   prfm    pstl1strm, %2\n"                                                                          \
                  "1: ld" #acq "xr    %x0, %2\n"                                                                        \
                  "   " #asm_op " %x0, %x0, %x3\n"                                                                      \
-                 "   st" #rel "xr    %x1, %x0, %2\n"                                                                   \
-                 "   cbnz    %x1, 1b\n"                                                                                \
+                 "   st" #rel "xr    %w1, %x0, %2\n"                                                                   \
+                 "   cbnz    %w1, 1b\n"                                                                                \
                  "   " #mb                                                                                             \
                  : "=&r"(result), "=&r"(tmp), "+Q"(_counter)                                                           \
                  : "Ir"(i)                                                                                             \
@@ -150,8 +150,8 @@ namespace autil {
                  "   prfm    pstl1strm, %2\n"                                                                          \
                  "1: ld" #acq "xr    %x0, %2\n"                                                                        \
                  "   " #asm_op " %x0, %x0, %x3\n"                                                                      \
-                 "   st" #rel "xr    %x1, %x0, %2\n"                                                                   \
-                 "   cbnz    %x1, 1b\n"                                                                                \
+                 "   st" #rel "xr    %w1, %x0, %2\n"                                                                   \
+                 "   cbnz    %w1, 1b\n"                                                                                \
                  "   " #mb                                                                                             \
                  : "=&r"(result), "=&r"(tmp), "+Q"(_counter)                                                           \
                  : "Ir"(i)                                                                                             \
