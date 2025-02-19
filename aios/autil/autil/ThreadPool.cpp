@@ -197,7 +197,7 @@ ThreadPool::ERROR_TYPE ThreadPool::pushWorkItem(WorkItem *item, bool isBlocked) 
 
     ScopedLock lock(_cond);
     if (!isBlocked && _queue->size() >= _queueSize) {
-        AUTIL_LOG(INFO,
+        AUTIL_LOG(DEBUG,
                   "thread pool [%s] is full, queueSize [%lu], active thread [%d]",
                   _threadName.c_str(),
                   _queueSize,
