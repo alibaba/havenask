@@ -118,6 +118,9 @@ class LocalClient(FsClientBase):
     
     def put(self, src, dest):
         if os.path.isfile(src):
+            dest_dir = os.path.dirname(dest)
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
             shutil.copyfile(src, dest)
         else:
             shutil.copytree(src, dest)

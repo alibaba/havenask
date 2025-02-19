@@ -59,7 +59,7 @@ class HavenaskDataSet:
         raw_doc_dict = {}
         for line in lines:
             index = line.find(self.kv_sep)
-            if line.find(self.kv_sep) != -1:
+            if index != -1:
                 key, value = line[:index], line[index+1:]
                 value = value[:value.find(HavenaskDataSet.field_sep)]
                 raw_doc_dict[key] = value
