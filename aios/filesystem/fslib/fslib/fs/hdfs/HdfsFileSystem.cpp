@@ -36,6 +36,7 @@ const string HdfsFileSystem::CLASSPATH_ENV("CLASSPATH");
 const string HdfsFileSystem::HADOOP_HOME_ENV("HADOOP_HOME");
 const string HdfsFileSystem::HDFS_PREFIX("hdfs://");
 const string HdfsFileSystem::DFS_PREFIX("dfs://");
+const string HdfsFileSystem::JFS_PREFIX("jfs://");
 
 const string HdfsFileSystem::KV_SEPARATOR("=");
 const string HdfsFileSystem::KV_PAIR_SEPARATOR("&");
@@ -92,7 +93,12 @@ bool HdfsFileSystem::parsePath(const string &fullPath, string &filePath, HdfsFsC
     string dfsPrefix = HdfsFileSystem::HDFS_PREFIX;
     string subString = fullPath.substr(0, HdfsFileSystem::HDFS_PREFIX.size());
     if (subString != dfsPrefix) {
-        dfsPrefix = HdfsFileSystem::DFS_PREFIX;
+        string subJfsString = fullPath.substr(0, HdfsFileSystem::JFS_PREFIX.size());
+        if (HdfsFileSystem::JFS_PREFIX == subJfsString) {
+            dfsPrefix = HdfsFileSystem::JFS_PREFIX;
+        } else {
+            dfsPrefix = HdfsFileSystem::DFS_PREFIX;
+        }
     }
     config._prefix = dfsPrefix;
     filePath.reserve(fullPath.size());

@@ -108,7 +108,7 @@ bool FileSystemFactory::isZookeeperFileSystem(const FsType &type) { return FSLIB
 
 bool FileSystemFactory::isHttpFileSystem(const FsType &type) { return FSLIB_FS_HTTP_FILESYSTEM_NAME == type; }
 
-bool FileSystemFactory::isDfsFileSystem(const FsType &type) { return FSLIB_FS_DFS_FILESYSTEM_NAME == type; }
+bool FileSystemFactory::isDfsFileSystem(const FsType &type) { return FSLIB_FS_DFS_FILESYSTEM_NAME == type || FSLIB_FS_JFS_FILESYSTEM_NAME == type; }
 
 bool FileSystemFactory::isFslibPlugin(const string &fileName) {
 
@@ -328,7 +328,7 @@ AbstractFileSystem *FileSystemFactory::createDfsFileSystem() {
     // https://yuque.antfin-inc.com/docs/share/f3ecef36-31c1-49c9-9957-e63c9a8c85a8
     string mode = autil::EnvUtil::getEnv("FSLIB_DFS_STORAGE_MODE");
     if (!mode.empty()) {
-        bool useHdfs = (mode == "hdfs");
+        bool useHdfs = (mode == "hdfs" || mode == "jfs");
         AUTIL_LOG(INFO, "env FSLIB_DFS_STORAGE_MODE set to [%s], useHdfs[%d]", mode.c_str(), useHdfs);
         return doGetFs(useHdfs ? FSLIB_FS_HDFS_FILESYSTEM_NAME : FSLIB_FS_PANGU_FILESYSTEM_NAME);
     }

@@ -12,7 +12,7 @@ class FsUtilDelegate(object):
 
     def getFilePathWithFsConfigStr(self, oriPath):
         oriPath = oriPath.strip()
-        if oriPath.startswith("hdfs://"):
+        if oriPath.startswith("hdfs://") or oriPath.startswith("jfs://"):
             return self.adaptHadoopPath(oriPath, self.hadoopUser, self.hadoopGroup,
                                         self.hadoopReplica)
         else:
