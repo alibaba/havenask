@@ -199,7 +199,7 @@ TEST_F(VersionMergerTest, testRecover)
                             versionid_t expectedRunningVersion) {
         auto controller = std::make_shared<FakeMergeController>(_rootDir);
         auto planCreator = std::make_unique<FakePlanCreator>();
-        VersionMerger merger(/*tabletName*/ "", _indexRoot, controller, std::move(planCreator), nullptr);
+        VersionMerger merger(/*tabletName*/ "", _indexRoot, controller, std::move(planCreator), nullptr, true);
         auto [st, currentVersion] = VersionLoader::GetVersion(_rootDir->GetIDirectory(), currentVersionId);
         ASSERT_TRUE(st.IsOK());
         merger.UpdateVersion(*currentVersion);

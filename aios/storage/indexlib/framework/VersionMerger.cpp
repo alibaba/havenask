@@ -43,7 +43,8 @@ AUTIL_LOG_SETUP(indexlib.framework, VersionMerger);
 
 VersionMerger::VersionMerger(std::string tabletName, std::string indexRoot,
                              std::shared_ptr<ITabletMergeController> controller,
-                             std::unique_ptr<IIndexTaskPlanCreator> planCreator, MetricsManager* manager)
+                             std::unique_ptr<IIndexTaskPlanCreator> planCreator, MetricsManager* manager,
+                             bool isOnline)
     : _tabletName(std::move(tabletName))
     , _indexRoot(std::move(indexRoot))
     , _controller(std::move(controller))
@@ -51,6 +52,7 @@ VersionMerger::VersionMerger(std::string tabletName, std::string indexRoot,
     , _lastProposedVersionId(INVALID_VERSIONID)
     , _recovered(false)
     , _stopped(false)
+    , _isOnline(isOnline)
 {
     RegisterMetrics(manager);
     _skipCleanTask = autil::EnvUtil::getEnv<size_t>("tablet_merge_skip_clean_task", /*defaultValue*/ 0);
@@ -239,7 +241,8 @@ future_lite::coro::Lazy<Status> VersionMerger::EnsureRecovered()
             TABLET_LOG(INFO, "recovered version [%d, %s], current version line [%s]", baseVersion.GetVersionId(),
                        baseVersion.GetFenceName().c_str(),
                        autil::legacy::ToJsonString(_currentBaseVersion.GetVersionLine(), true).c_str());
-            if (!_currentBaseVersion.CanFastFowardFrom(headVersionCoord, /*hasBuildingSegment*/ false)) {
+            TABLET_LOG(INFO, "begin check fast forward, isOnlien[%d]", _isOnline);
+            if (_isOnline && !_currentBaseVersion.CanFastFowardFrom(headVersionCoord, /*hasBuildingSegment*/ false)) {
                 TABLET_LOG(INFO, "running version [%d, %s] can't fastfowd to current version [%d], cancel it",
                            baseVersion.GetVersionId(), baseVersion.GetFenceName().c_str(),
                            _currentBaseVersion.GetVersionId());

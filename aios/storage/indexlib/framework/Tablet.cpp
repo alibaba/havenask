@@ -1214,8 +1214,8 @@ Status Tablet::PrepareResource()
         auto indexRoot = _tabletInfos->GetIndexRoot().GetRemoteRoot();
         _versionMerger =
             std::make_shared<VersionMerger>(_tabletInfos->GetTabletName(), std::move(indexRoot), _mergeController,
-                                            std::move(planCreator), _metricsManager.get());
-        TABLET_LOG(INFO, "version merger created");
+                    std::move(planCreator), _metricsManager.get(), _tabletOptions->IsOnline());
+        TABLET_LOG(INFO, "version merger created, isOnline[%d]", _tabletOptions->IsOnline());
     }
 
     if (_buildMemoryQuotaSynchronizer == nullptr) {
