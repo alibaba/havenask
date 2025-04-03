@@ -50,7 +50,7 @@ public:
 
 public:
     VersionMerger(std::string tabletName, std::string indexRoot, std::shared_ptr<ITabletMergeController> controller,
-                  std::unique_ptr<IIndexTaskPlanCreator> planCreator, MetricsManager* manager);
+                  std::unique_ptr<IIndexTaskPlanCreator> planCreator, MetricsManager* manager, bool isOnline = false);
 
     void UpdateVersion(const Version& version);
     void UpdateCommittedVersionLocator(const Locator& locator);
@@ -96,6 +96,7 @@ private:
     bool _recovered;
     std::atomic<bool> _stopped;
     size_t _skipCleanTask = 0;
+    bool _isOnline;
 
 private:
     AUTIL_LOG_DECLARE();
