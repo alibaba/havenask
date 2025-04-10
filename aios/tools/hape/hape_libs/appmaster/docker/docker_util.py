@@ -7,7 +7,7 @@ class DockerContainerUtil():
     @staticmethod
     def check_container(ip, name):
         shell = SSHShell(ip)
-        check_command = "docker ps --format '{{{{.Names}}}}' | grep -e ^{}$".format(name)
+        check_command = "docker ps --format {{{{.Names}}}} | grep ^{}$".format(name)
         out = shell.execute_command(check_command)
         if len(out.strip()) != 0:
             Logger.info("Container {} is started in {}".format(name, ip))
@@ -45,8 +45,10 @@ class DockerContainerUtil():
         
         command = "docker exec -t {} bash -c \"cp /home/.passwd /etc/passwd && cp /home/.group /etc/group\"".format(name)
         shell.execute_command(command)
-        
-        command = "docker exec -t --user {} {} bash -c \"mkdir {}\"".format(user, name, workdir)
+
+        if isinstance(user, tuple):
+            user = user[0]
+        command = "docker exec -t --user {} {} bash -c \"mkdir -p {}\"".format(user, name, workdir)
         shell.execute_command(command)
         
         if not DockerContainerUtil.check_container(ip, name):
@@ -123,4 +125,4 @@ class DockerContainerUtil():
     def stop_container(ip, name):
         Logger.info("Stop container {} in {}".format(name, ip))
         shell = SSHShell(ip)
-        shell.execute_command("docker ps --all --format {{{{.Names}}}} | grep {} | xargs docker rm -f".format(name))
+        shell.execute_command("docker ps --all --format {{{{.Names}}}} | grep ^{}$ | xargs docker rm -f".format(name))

@@ -105,7 +105,7 @@ bool CmdExecutor::addUser(const string &address,
 bool CmdExecutor::checkContainerExist(const string &address,
                                       const string &containerName)
 {
-    string checkCmd = _dockerExeName + " ps |grep " + containerName;
+    string checkCmd = _dockerExeName + " ps --format {{.Names}} | grep ^" + containerName + "$";
     string cmd;
     generateCmd(address, checkCmd, cmd);
     string msg;
