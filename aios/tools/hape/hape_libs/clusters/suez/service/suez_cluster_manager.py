@@ -24,6 +24,7 @@ class SuezClusterManager(object):
 
         qrs_hippo_config, searcher_hippo_config = self._domain_config.template_config.rel_path_to_content['hippo/qrs_hippo.json'], self._domain_config.template_config.rel_path_to_content['hippo/searcher_hippo.json']
         qrs_hippo_config, searcher_hippo_config = json.loads(qrs_hippo_config), json.loads(searcher_hippo_config)
+
         store_root = self._domain_config.global_config.havenask.suezClusterStoreRoot
 
         cluster_deployment = ClusterDeploymentBuilder()
@@ -87,7 +88,7 @@ class SuezClusterManager(object):
                            .set_config_str(json.dumps({"hippo_config": json.dumps(hippo_config)}))
                            .build())
         self._cluster_service.update_cluster(HapeCommon.DEFAULT_DEPLOYMENT, cluster.to_json())
-        
+
     def delete_default_cluster(self):
         self._cluster_service.delete_cluster(HapeCommon.DEFAULT_DEPLOYMENT)
 
