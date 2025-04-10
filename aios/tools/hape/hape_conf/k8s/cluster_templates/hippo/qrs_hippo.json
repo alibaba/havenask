@@ -172,10 +172,7 @@
                         "key": "--env",
                         "value": "localMode=true"
                     },
-                    {
-                        "key": "--env",
-                        "value": "mode=rw"
-                    },
+                    {{ havenask.searcherMode }}
                     {
                         "key": "--env",
                         "value": "enableLocalCatalog=true"
