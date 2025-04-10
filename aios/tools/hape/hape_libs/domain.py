@@ -14,12 +14,12 @@ class HavenaskDomain(object):
     def __init__(self, domain_config): #type:(DomainConfig)->None
         self.domain_config = domain_config
         self.global_config = domain_config.global_config
-        
+
         ## infra
         self.infra_manager = InfraManager(self.global_config)
         if self.infra_manager.keep() == False:
             raise RuntimeError("Failed to keep infrastructure of havenask")
-        
+
         ## cluster
         self.swift_cluster = SwiftCluster(HapeCommon.SWIFT_KEY, self.domain_config)
         self.suez_cluster = SuezCluster(HapeCommon.HAVENASK_KEY, self.domain_config)
@@ -37,25 +37,25 @@ class HavenaskDomain(object):
         start_havenask = (key == HapeCommon.HAVENASK_KEY)
         if start_havenask and (not self.keep_swift_master()):
             return False
-            
+
         cluster = self.cluster_dict[key]
         succ = cluster.start(allow_restart=allow_restart, only_admin=only_admin)
         if not succ:
             Logger.error("Failed to start {} cluster".format(key))
             return False
-        
+
         if start_havenask and not self.keep_bs_master():
             return False
 
         return True
-    
+
     def get_cluster_status(self, key, detail=False, table=None):
         cluster_status = self.cluster_dict[key].get_status(table=table)
         if cluster_status == None:
             Logger.error("Failed to get {} cluster status".format(key))
         else:
             print(json.dumps(cluster_status, indent=4))
-    
+
     def keep_swift_master(self):
         if not self.swift_cluster.is_ready():
             Logger.info("Swift admin is not ready, begin to start default swift cluster")
@@ -64,7 +64,7 @@ class HavenaskDomain(object):
                 Logger.error("Failed to prepare swift for havenask")
                 return False
         return True
-    
+
     def keep_bs_master(self):
         if not self.bs_cluster.is_ready():
             Logger.info("Bs admin is not ready, begin to start default bs cluster")
@@ -95,12 +95,16 @@ class HavenaskDomain(object):
             self.bs_cluster.stop(is_delete=is_delete)
 
         return True
-    
+
 
     def create_table(self, table, partition, schema, full_data_path):
 
         is_direct_table = (full_data_path == None)
         build_type = "DIRECT" if is_direct_table else "OFFLINE"
+
+        if self.global_config.havenask.offlineTable == 'false' and not is_direct_table:
+            Logger.error("parameter offlineTable must be true for offline table creating")
+            return False
 
         catalog_manager = self.suez_cluster.catalog_manager
         if catalog_manager == None or not catalog_manager.is_ready():
@@ -134,7 +138,7 @@ class HavenaskDomain(object):
                     Logger.info("Table not ready in all qrs or searchers by now")
                     Logger.info("If it takes long, you can execute `gs havenask` to find the reason")
                 return succ
-                    
+
 
             msg = "Table {} ready".format(table)
             succ = Retry.retry(check_table_ready, msg, limit=50)
@@ -159,8 +163,8 @@ class HavenaskDomain(object):
             else:
                 Logger.warning("{} type table may takes long time to build, will not be checked ready".format(build_type))
                 return True
-            
-            
+
+
     def delete_table(self, table, keeptopic=False):
         catalog_manager = self.suez_cluster.get_catalog_manager()
         if catalog_manager == None:
@@ -184,8 +188,8 @@ class HavenaskDomain(object):
             Logger.info("Succeed to delete table")
             Logger.info("Before continue to read & write tables, please confirm havenask cluster ready by using gs havenask subcommand".format(table))
             return True
-        
-        
+
+
     def get_table_status(self, specify_table_name=None, detail = False):
         catalog_manager  = self.suez_cluster.get_catalog_manager()
         if catalog_manager != None:
@@ -209,21 +213,22 @@ class HavenaskDomain(object):
         else:
             Logger.error("Failed to get table status, Suez admin maybe not ready")
             return None
-        
-        
+
+
     def update_default_cluster(self, hippo_config, role_type):
         suez_cluster_manager = self.suez_cluster.get_suez_cluster_manager()
         suez_cluster_manager.update_default_cluster(hippo_config, role_type)
 
     def update_hippo_config(self, hippo_config_path, role_type):
         if not os.path.exists(hippo_config_path):
-            Logger.error("hippo_config_path[{}] not exist", hippo_config_path)
+            Logger.error("hippo_config_path[{}] not exist".format(hippo_config_path))
             return None
+
         with open(hippo_config_path) as f:
             try:
                 hippo_config = json.load(f)
             except Exception as e:
-                Logger.error("hippo_config_path[{}] is not a valid json file", hippo_config_path)
+                Logger.error("hippo_config_path[{}] is not a valid json file".format(hippo_config_path))
                 return None
         self.update_default_cluster(hippo_config, role_type)
 
@@ -231,8 +236,8 @@ class HavenaskDomain(object):
         suez_cluster_manager = self.suez_cluster.get_suez_cluster_manager()
         hippo_config = suez_cluster_manager.get_default_hippo_config(role_type)
         return hippo_config
-    
-    
+
+
     def update_table_schema(self, table, partition, schema, full_data_path):
         is_direct_table = (full_data_path == None)
         if is_direct_table:
@@ -255,7 +260,7 @@ class HavenaskDomain(object):
             if not succ:
                 return False
         return True
-    
+
     def create_or_update_load_strategy(self, table, online_index_config):
         catalog_manager = self.suez_cluster.get_catalog_manager()
         all_load_strategies = catalog_manager.list_load_strategy()
@@ -264,7 +269,7 @@ class HavenaskDomain(object):
             return catalog_manager.create_load_strategy(table, online_index_config)
         else:
             return self.update_load_strategy(table, online_index_config)
-        
+
     def update_load_strategy(self, table, online_index_config):
         catalog_manager = self.suez_cluster.get_catalog_manager()
         if catalog_manager == None:
@@ -279,7 +284,7 @@ class HavenaskDomain(object):
             Logger.error("invalid online index config json str: [{}] ".format(online_index_config))
             return False
         return catalog_manager.update_load_strategy(table, online_index_config)
-    
+
     def update_offline_table(self, table, partition, schema, full_data_path, swift_start_timestamp):
         Logger.info("Begin to update offline table")
         is_direct_table = (full_data_path == None)
@@ -293,13 +298,13 @@ class HavenaskDomain(object):
             Logger.error("Table {} not created, create first".format(table))
             return False
 
-        succ = catalog_manager.update_offline_table(table, partition, schema, full_data_path, swift_start_timestamp, 
+        succ = catalog_manager.update_offline_table(table, partition, schema, full_data_path, swift_start_timestamp,
                                                     self.domain_config.global_config.get_service_appmaster_zk_address(HapeCommon.BS_KEY))
         if not succ:
             Logger.error("Failed to update offline table")
             return False
         return True
-    
+
     def check_new_generation_ready(self):
         generations = []
         for buildinfo in self.list_build():
@@ -308,7 +313,7 @@ class HavenaskDomain(object):
         if len(generations) == 1:
             return False
         new_generaion = generations[-1]
-        
+
         status = self.suez_cluster.get_status()
         group = "database"
         for role, processor_status_list in status['sqlClusterInfo'][group].items():
@@ -316,11 +321,11 @@ class HavenaskDomain(object):
                 if processor_status['signature'].find(".{}.".format(new_generaion)) == -1:
                     return False
         return True
-    
+
     def wait_new_generation_ready(self):
         succ = Retry.retry(self.check_new_generation_ready, "new generation ready", limit=100)
         return succ
-    
+
     def list_build(self):
         catalog_manager = self.suez_cluster.get_catalog_manager()
         buildinfos = catalog_manager.list_build()
@@ -332,4 +337,3 @@ class HavenaskDomain(object):
             catalog_manager.drop_build(name, generation_id)
         except:
             raise RuntimeError("Failed to drop build, table[{}], generation_id[{}]".format(name, generation_id))
-
