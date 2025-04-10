@@ -3,6 +3,7 @@
     {
         "async_build":
         true,
+        "max_recover_time" : 120,
         "async_queue_mem":
             -1,
         "async_queue_size":
@@ -59,18 +60,76 @@
     false,
     "online_index_config":
     {
-        "build_config":
-        {
-            "keep_version_count":
-            2,
-            "max_doc_count":
-            1000000
-        }
+        "build_config": {
+            "keep_version_count": 2,
+            "max_doc_count": 1000000,
+            "build_total_memory": 4096
+        },
+        "max_realtime_memory_use": 10240,
+        "load_config": [
+            {
+                "warmup_strategy": "sequential",
+                "file_patterns": [
+                    "_INDEX_"
+                ],
+                "load_strategy": "mmap",
+                "name": "_INDEX_",
+                "load_strategy_param": {
+                    "lock": false
+                }
+            },
+            {
+                "warmup_strategy": "none",
+                "file_patterns": [
+                    "_SUMMARY_"
+                ],
+                "load_strategy": "mmap",
+                "name": "_SUMMARY_",
+                "load_strategy_param": {
+                    "lock": false
+                }
+            },
+            {
+                "warmup_strategy": "sequential",
+                "file_patterns": [
+                    "_ATTRIBUTE_"
+                ],
+                "load_strategy": "cache",
+                "name": "_ATTRIBUTE_",
+                "load_strategy_param": {
+                    "global_cache": false,
+                    "direct_io": false
+                }
+            }
+        ]
     },
     "offline_index_config" : {
         "build_config" : {
             "build_total_memory" : 9216,
             "keep_version_count" : 10
+        },
+        "customized_merge_config": {
+            "full": {
+                "merge_config": {
+                    "keep_version_count": 10,
+                    "merge_strategy": "optimize",
+                    "merge_strategy_param": "after-merge-max-segment-count=10"
+                },
+                "merge_parallel_num": 6
+            },
+            "inc": {
+                "merge_config": {
+                    "keep_version_count": 10,
+                    "merge_strategy": "priority_queue",
+                    "merge_strategy_params": {
+                        "input_limits": "max-segment-size=60720",
+                        "output_limits": "max-merged-segment-size=10240;max-total-merged-size=20480",
+                        "strategy_conditions": "priority-feature=delete-doc-count#desc;conflict-segment-count=10000;conflict-delete-percent=10"
+                    },
+                    "merge_thread_count": 4
+                },
+                "period": "period=1800"
+            }
         }
     },
     "realtime":
