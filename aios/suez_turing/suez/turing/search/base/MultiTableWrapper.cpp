@@ -86,7 +86,7 @@ bool MultiTableWrapper::init(const suez::MultiTableReader &multiTableReader,
     for (const auto &iter : _id2IndexAppMap) {
         partIds += StringUtil::toString(iter.first) + ", ";
     }
-    AUTIL_LOG(INFO, "parition count [%lu], ids:[%s]", _id2IndexAppMap.size(), partIds.c_str());
+    AUTIL_LOG(INFO, "parition count [%lu], ids:[%s] for table %s", _id2IndexAppMap.size(), partIds.c_str(), itemTableName.c_str());
     return true;
 }
 
@@ -142,6 +142,17 @@ void createMultiMap(const SingleTableReaderMapMap &singleTableReaderMapMap,
             AUTIL_LOG(WARN, "table [%s] partition size is 0.", tableName.c_str());
             continue;
         }
+        for (const auto &entry : singleTableReaderMap) {
+            if (entry.first.index == idx) {
+                auto data = entry.second->get<T>();
+                if (data != nullptr) {
+                    result[tableName] = data;
+                    tableVersionMap[tableName] = entry.first.getFullVersion();
+                }
+                break;
+            }
+        }
+        /*
         if (singleTableReaderMap.size() > idx) {
             auto readerIter = singleTableReaderMap.begin();
             std::advance(readerIter, idx);
@@ -160,6 +171,7 @@ void createMultiMap(const SingleTableReaderMapMap &singleTableReaderMapMap,
                 }
             }
         }
+        */
     }
 }
 
@@ -182,7 +194,7 @@ bool MultiTableWrapper::createIndexApplications(const SingleTableReaderMapMap &s
         // compatiable old, to create single indexApplications
         return createSingleIndexApplication(singleTableReaderMapMap, joinRelationMap);
     } else {
-        return createMultiIndexApplication(singleTableReaderMapMap, joinRelationMap, partPos);
+        return createMultiIndexApplication(singleTableReaderMapMap, joinRelationMap, maxPartCount);
     }
 }
 
@@ -210,8 +222,8 @@ bool MultiTableWrapper::createSingleIndexApplication(const SingleTableReaderMapM
 
 bool MultiTableWrapper::createMultiIndexApplication(const SingleTableReaderMapMap &singleTableReaderMapMap,
                                                     const JoinRelationMap &joinRelationMap,
-                                                    const vector<int32_t> &partPos) {
-    for (size_t i = 0; i < partPos.size(); i++) {
+                                                    const int32_t maxPartCount) {
+    for (int32_t i = 0; i < maxPartCount; i++) {
         suez::IndexPartitionMap indexPartitions;
         TabletMap tablets;
         TableVersionMap tableVersionMap;
@@ -228,7 +240,7 @@ bool MultiTableWrapper::createMultiIndexApplication(const SingleTableReaderMapMa
             return false;
         }
         genTableInfoMap(tableVersionMap, indexPartitions, tablets);
-        _id2IndexAppMap[partPos[i]] = indexApp;
+        _id2IndexAppMap[i] = indexApp;
     }
     return true;
 }
@@ -352,28 +364,33 @@ void MultiTableWrapper::genTableInfoWithRel(const std::string &itemTableName) {
 void MultiTableWrapper::genTableInfoMap(const TableVersionMap &tableVersionMap,
                                         const suez::IndexPartitionMap &indexPartitions,
                                         const TabletMap &tabletMap) {
-    if (_tableInfoMapWithoutRel.empty()) {
-        for (const auto &partitionPair : indexPartitions) {
-            const auto &partition = partitionPair.second;
-            int32_t version = -1;
-            auto it = tableVersionMap.find(partitionPair.first);
-            if (it != tableVersionMap.end()) {
-                version = it->second;
-            }
-            _tableInfoMapWithoutRel[partitionPair.first] =
-                TableInfoConfigurator::createFromSchema(partition->GetSchema(), version);
-        }
 
-        for (const auto &tabletPair : tabletMap) {
-            const auto &tablet = tabletPair.second;
-            int32_t version = -1;
-            auto it = tableVersionMap.find(tabletPair.first);
-            if (it != tableVersionMap.end()) {
-                version = it->second;
-            }
-            _tableInfoMapWithoutRel[tabletPair.first] =
-                TableInfoConfigurator::createFromSchema(tablet->GetTabletSchema(), version);
+    for (const auto &partitionPair : indexPartitions) {
+        if (_tableInfoMapWithoutRel.find(partitionPair.first) != _tableInfoMapWithoutRel.end()) {
+            continue;
         }
+        const auto &partition = partitionPair.second;
+        int32_t version = -1;
+        auto it = tableVersionMap.find(partitionPair.first);
+        if (it != tableVersionMap.end()) {
+            version = it->second;
+        }
+        _tableInfoMapWithoutRel[partitionPair.first] =
+            TableInfoConfigurator::createFromSchema(partition->GetSchema(), version);
+    }
+
+    for (const auto &tabletPair : tabletMap) {
+        if (_tableInfoMapWithoutRel.find(tabletPair.first) != _tableInfoMapWithoutRel.end()) {
+            continue;
+        }
+        const auto &tablet = tabletPair.second;
+        int32_t version = -1;
+        auto it = tableVersionMap.find(tabletPair.first);
+        if (it != tableVersionMap.end()) {
+            version = it->second;
+        }
+        _tableInfoMapWithoutRel[tabletPair.first] =
+            TableInfoConfigurator::createFromSchema(tablet->GetTabletSchema(), version);
     }
 }
 

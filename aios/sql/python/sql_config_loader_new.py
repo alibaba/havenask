@@ -180,6 +180,28 @@ def get_biz_config(biz_metas, param_map):
                             (json.dumps(biz_flow_config_map, indent=4), json.dumps(flow_config_map, indent=4)))
         flow_config_map.update(biz_flow_config_map)
         biz_gig_config_list.append(biz_gig_config)
+    if not is_qrs:
+        for table, table_info in table_part_info.items():
+            biz_param_map = copy.deepcopy(param_map)
+            biz_name = get_table_real_biz_name(zone_name, is_qrs, table)
+            biz_param_map["biz_name"] = biz_name
+            max_part_count=table_part_info[table]["part_count"]
+            max_part_ids=table_part_info[table]["part_ids"]
+            navi_biz_conf = {}
+            biz_gig_config = {}
+            biz_flow_config_map = {}
+            default_script = os.path.join(biz_param_map["install_root"], "sql_default.py")
+            navi_biz_conf, biz_gig_config, biz_flow_config_map = entry_loader.load(
+            config_path, biz_param_map, default_script)
+            navi_biz_conf["config_path"] = config_path
+            navi_biz_conf["part_count"] = max_part_count
+            navi_biz_conf["part_ids"] = max_part_ids
+            biz_config_map[biz_name] = navi_biz_conf
+            if biz_flow_config_map.keys() & flow_config_map.keys():
+                raise Exception("flow control config key conflict, biz map: [%s], all [%s]" %
+                            (json.dumps(biz_flow_config_map, indent=4), json.dumps(flow_config_map, indent=4)))
+            flow_config_map.update(biz_flow_config_map)
+            biz_gig_config_list.append(biz_gig_config)
     return biz_config_map, flow_config_map, biz_gig_config_list
 
 
@@ -221,6 +243,15 @@ def get_real_biz_name(zone_name, is_qrs):
     else:
         return f"{zone_name}.default_sql"
 
+def get_table_real_biz_name(zone_name, is_qrs, table_name):
+    if is_qrs:
+        prefix = os.environ.get(QRS_BIZ_NAME_PREFIX_KEY)
+        if prefix:
+            return f"{prefix}.qrs.default_sql"
+        else:
+            return "qrs.default_sql"
+    else:
+        return zone_name + "."+table_name+".write"
 
 def get_cm2_config_array(service_info):
     cm2_config = []
