@@ -75,7 +75,7 @@ int32_t mz_path_remove_slash(char *path)
 int32_t mz_path_has_slash(const char *path)
 {
     int32_t path_len = (int32_t)strlen(path);
-    if (path[path_len - 1] != '\\' && path[path_len - 1] != '/')
+    if (path_len > 0 && path[path_len - 1] != '\\' && path[path_len - 1] != '/')
         return MZ_EXIST_ERROR;
     return MZ_OK;
 }
