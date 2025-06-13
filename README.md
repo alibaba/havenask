@@ -153,5 +153,4 @@ docker pull registry.cn-hangzhou.aliyuncs.com/havenask/ha3_runtime:latest
 ## 联系我们
 官方技术交流钉钉群：
 
-![20240416170330](https://github.com/alibaba/havenask/assets/38515034/6cec16bf-958c-4932-aa19-ee0e39c7c3d4)
-
+![20250613104024](https://github.com/user-attachments/assets/3f136765-916d-42ac-ac5c-53372c180d53)
