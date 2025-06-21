@@ -60,7 +60,7 @@ public:
     bool operator==(const VersionLine& other) const;
 
 private:
-    static constexpr uint32_t KEY_NODE_COUNT = 10;
+    static constexpr uint32_t KEY_NODE_COUNT = 48;
     VersionCoord _parentVersion;
     //<fence name, version id>
     std::vector<std::pair<std::string, versionid_t>> _keyVersions;
