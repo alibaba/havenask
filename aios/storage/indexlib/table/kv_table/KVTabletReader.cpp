@@ -208,12 +208,21 @@ KVTabletReader::FillRows(const std::shared_ptr<index::KVIndexReader>& kvReader, 
                          base::PartitionResponse& partitionResponse)
 {
     for (int i = 0; i < pkList.size(); ++i) {
-        auto row = partitionResponse.add_rows();
+        base::Row row;
         if constexpr (std::is_integral<T>::value) {
-            RETURN_STATUS_DIRECTLY_IF_ERROR(QueryAttrWithPk(kvReader, pkList[i], attrs, packAttributeFormatter, *row));
+            // Note: If it fails or not found, do not return directly, need process the next pk.
+            auto st = QueryAttrWithPk(kvReader, pkList[i], attrs, packAttributeFormatter, row);
+            if (!st.is_ok()) {
+                continue;
+            }
+            partitionResponse.add_rows()->Swap(&row);
         } else {
             autil::StringView constStr(pkList[i].data(), pkList[i].size());
-            RETURN_STATUS_DIRECTLY_IF_ERROR(QueryAttrWithPk(kvReader, constStr, attrs, packAttributeFormatter, *row));
+            auto st = QueryAttrWithPk(kvReader, constStr, attrs, packAttributeFormatter, row);
+            if (!st.is_ok()) {
+                continue;
+            }
+            partitionResponse.add_rows()->Swap(&row);
         }
     }
     indexlib::index::AttrHelper::FillAttrInfo(attrs, partitionResponse);
