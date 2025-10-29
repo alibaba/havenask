@@ -1,0 +1,234 @@
+import "swift/protocol/Common.proto";
+import "swift/protocol/Heartbeat.proto";
+import "swift/protocol/ErrCode.proto";
+package swift.protocol;
+option java_package="com.alibaba.search.swift.protocol";
+
+
+message EmptyRequest {
+}
+
+message TopicCreationRequest {
+    optional string topicName = 1;
+    optional uint32 partitionCount = 2;
+    optional uint32 partitionBufferSize = 3 ; // [deprecated = true]
+    optional uint32 resource = 4 [default = 1];
+    optional uint32 partitionLimit = 5 [default = 100000];
+    optional TopicMode topicMode = 6 [default = TOPIC_MODE_NORMAL];
+    optional bool needFieldFilter = 7 [default = false];
+    optional int64 obsoleteFileTimeInterval = 8 [default = -1];
+    optional int32 reservedFileCount = 9 [default = -1];
+    optional uint32 partitionFileBufferSize = 10[default = 64]; //[deprecated = true] 
+    optional bool deleteTopicData = 11 [default = false];
+    optional uint32 partitionMinBufferSize = 12 [default = 8]; // 8M
+    optional uint32 partitionMaxBufferSize = 13 [default = 256]; // 256M
+    optional int64 maxWaitTimeForSecurityCommit = 14 [default = 50000]; // 50ms 
+    optional int64 maxDataSizeForSecurityCommit = 15 [default = 1048576]; //1M 
+    optional bool compressMsg = 16 [default = false]; 
+    optional int32 compressThres = 17 [default = 2048];
+    optional int64 createTime = 18 [default = -1];
+    optional string dfsRoot = 19;
+    optional string topicGroup = 20 [default= "default"];
+    repeated string extendDfsRoot = 21;
+    optional int64 topicExpiredTime = 22 [default = -1];
+    optional uint32 rangeCountInPartition = 23 [default = 4]; 
+    optional int64 modifyTime = 24 [default = -1];
+}
+
+message TopicCreationResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message TopicDeletionRequest {
+    optional string topicName = 1;
+}
+
+message TopicDeletionResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message SysInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional string dfsRoot = 2; 
+    optional uint32 minCopy = 3;
+    optional uint32 maxCopy = 4;
+}
+
+message TopicInfoRequest {
+    optional string topicName = 1;
+}
+
+message TopicInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional TopicInfo topicInfo = 2;
+}
+
+message AllTopicInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated TopicInfo allTopicInfo = 2;
+}
+
+message TopicNameResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated string names = 2;
+}
+
+message PartitionInfoRequest {
+    optional string topicName = 1;
+    repeated uint32 partitionIds = 2;
+}
+
+message PartitionInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated PartitionInfo partitionInfos = 2;
+}
+
+message MachineAddressResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated string adminAddressList = 2;
+    repeated string brokerAddressList = 3;
+    repeated string strangeAdminAddressList = 4;
+    repeated string strangeBrokerAddressList = 5;
+}
+
+enum RoleStatus {
+    ROLE_STATUS_NONE = 0;
+    ROLE_STATUS_ALL = 1;
+    ROLE_STATUS_LIVING = 2;
+    ROLE_STATUS_DEAD = 3;
+}
+
+message RoleAddressRequest {
+    optional RoleType role = 1;
+    optional RoleStatus status = 2;
+}
+
+message AddressGroup {
+    optional RoleType role = 1;
+    optional RoleStatus status = 2;
+    repeated string addressList = 3;
+}
+
+message RoleAddressResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated AddressGroup addressGroup = 2;
+}
+
+enum DecisionStatus{
+    ROLE_DS_ALIVE = 1;
+    ROLE_DS_DEAD = 2;
+    ROLE_DS_UNKOWN = 3;
+}
+
+message WorkerStatus {
+    optional HeartbeatInfo current = 1;
+    repeated PartitionId target = 2;
+    optional DecisionStatus decisionStatus = 3;
+    optional uint32 freeResource = 4;
+    optional uint32 maxResource = 5;
+    optional bool isInvalid = 6 [default = false];
+    optional bool isStrange = 7 [default = false];
+}
+
+message WorkerStatusResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated WorkerStatus workers = 2;
+}
+
+message PartitionError {
+    optional PartitionId partitionId = 1;
+    optional ErrorCode errCode = 2;
+    optional int64 errTime = 3;
+    optional string errMsg = 4;
+}
+
+message PartitionErrorResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated PartitionError errors = 2;
+}
+
+message WorkerError {
+    optional string workerAddress = 1;
+    optional RoleType role = 2;
+    optional ErrorCode errCode = 3;
+    optional int64 errTime = 4;
+    optional string errMsg = 5;
+}
+
+message WorkerErrorResponse {
+    optional ErrorInfo errorInfo = 1;
+    repeated WorkerError errors = 2;
+}
+
+message ErrorRequest {
+    optional int64 time = 1;
+    optional uint32 count = 2;
+    optional ErrorLevel level = 3 [default = ERROR_LEVEL_INFO];
+}
+
+// message UpdateConfigRequest {
+//     optional string configPath = 1;
+// }
+
+// message UpdateConfigResponse {
+//     optional ErrorInfo errorInfo = 1;
+// }
+
+message UpdateBrokerConfigRequest {
+    optional string configPath = 1;
+}
+
+message UpdateBrokerConfigResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message RollbackBrokerConfigRequest {
+}
+
+message RollbackBrokerConfigResponse {
+    optional ErrorInfo errorInfo = 1;
+}
+
+message LeaderInfoRequest {
+
+}
+message LeaderInfoResponse {
+    optional ErrorInfo errorInfo = 1;
+    optional LeaderInfo leaderInfo = 2;
+}
+
+// for serialize
+message TopicMetas {
+    repeated TopicCreationRequest topicMetas = 1;
+}
+
+message TopicPartitionInfo {
+    optional string topicName = 1;
+    repeated PartitionInfo partitionInfos = 2;
+}
+
+message TopicPartitionInfos {
+    repeated TopicPartitionInfo topicPartitionInfos = 1;
+}
+
+message PartitionTransfer {
+    required string brokerRoleName = 1;
+    optional float ratio = 2 [default = 0.5];
+}
+
+message PartitionTransferRequest {
+    repeated PartitionTransfer transferInfo = 1;
+    optional string groupName = 2;
+}
+
+message PartitionTransferResponse {
+   optional ErrorInfo errorInfo = 1;
+}
+
+message ChangeSlotRequest {
+    repeated string roleNames = 1;
+}
+
+message ChangeSlotResponse {
+   optional ErrorInfo errorInfo = 1;
+}

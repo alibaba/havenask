@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.alibaba.search.swift</groupId>
+    <artifactId>swift_client</artifactId>
+    <version>1.2.8-5u_1</version>
+    <packaging>jar</packaging>
+    <repositories>
+        <repository>
+            <id>com.alibaba</id>
+            <name>artifactory</name>
+            <url>http://mvnonline.your_address.com/mvn/repository</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <protobufPath>/home/sdd/git/swift/protobuf-2.5_installroot/usr/local/include/</protobufPath>
+        <dependProtoPath>./proto_files</dependProtoPath>
+        <protocBin>/home/sdd/git/swift/protobuf-2.5_installroot/usr/bin/protoc</protocBin>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <tasks>
+                                <mkdir dir="src/main/java" />
+                                <exec executable="${protocBin}">
+                                    <arg value="--java_out=src/main/java" />
+                                    <arg value="--proto_path=${dependProtoPath}" />
+                                    <arg value="${dependProtoPath}/swift/protocol/ErrCode.proto" />
+                                    <arg value="${dependProtoPath}/swift/protocol/Common.proto" />
+                                    <arg value="${dependProtoPath}/swift/protocol/AdminRequestResponse.proto" />
+                                    <arg value="${dependProtoPath}/swift/protocol/SwiftMessage.proto" />
+                                    <arg value="${dependProtoPath}/swift/protocol/Heartbeat.proto" />
+                                </exec>
+                            </tasks>
+                            <sourceRoot>src/main/javaes</sourceRoot>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+
+</project>
