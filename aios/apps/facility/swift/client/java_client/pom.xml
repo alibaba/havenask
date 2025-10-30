@@ -40,37 +40,6 @@
             <version>4.2.1</version>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>generate-sources</id>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <tasks>
-                                <mkdir dir="src/main/java" />
-                                <exec executable="${protocBin}">
-                                    <arg value="--java_out=src/main/java" />
-                                    <arg value="--proto_path=${dependProtoPath}" />
-                                    <arg value="${dependProtoPath}/swift/protocol/ErrCode.proto" />
-                                    <arg value="${dependProtoPath}/swift/protocol/Common.proto" />
-                                    <arg value="${dependProtoPath}/swift/protocol/AdminRequestResponse.proto" />
-                                    <arg value="${dependProtoPath}/swift/protocol/SwiftMessage.proto" />
-                                    <arg value="${dependProtoPath}/swift/protocol/Heartbeat.proto" />
-                                </exec>
-                            </tasks>
-                            <sourceRoot>src/main/javaes</sourceRoot>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 
 
