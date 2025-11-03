@@ -1,0 +1,176 @@
+package swift.protocol;
+option java_package="com.alibaba.search.swift.protocol";
+
+message BrokerInfo {
+    optional string address = 1;
+}
+
+message BrokerVersionInfo {
+    optional string version = 1;
+    optional bool supportFB = 2 [default = false];
+    optional bool supportMergeMsg = 3 [default = false];
+}
+
+enum ClientType {
+    CT_CPP = 0;
+    CT_UNKNOWN = 1;
+}
+
+message ClientVersionInfo {
+    optional string version = 1;
+    optional bool supportFB = 2 [default = false];
+    optional ClientType clientType = 3 [default = CT_UNKNOWN];
+    optional bool supportMergeMsg = 4 [default = false];
+}
+
+enum SysStatus {
+    SYS_STATUS_NONE = 0;
+    SYS_STATUS_STARTING = 1;
+    SYS_STATUS_RUNNING = 2;
+    SYS_STATUS_STOPPING = 3;
+    SYS_STATUS_STOPPED = 4;
+}
+
+enum PartitionStatus {
+    PARTITION_STATUS_NONE = 0;
+    PARTITION_STATUS_WAITING = 1;
+    PARTITION_STATUS_STARTING = 2;
+    PARTITION_STATUS_RUNNING = 3;
+    PARTITION_STATUS_STOPPING = 4;
+}
+
+message PartitionInfo {
+    optional uint32 id = 1;
+    optional string brokerAddress = 2;
+    optional PartitionStatus status = 3;
+    optional string roleName = 4;
+    optional BrokerVersionInfo versionInfo = 5;
+}
+
+enum TopicMode{
+    TOPIC_MODE_NORMAL = 0;
+    TOPIC_MODE_SECURITY = 1;
+    TOPIC_MODE_MEMORY_ONLY = 2;
+    TOPIC_MODE_MEMORY_PREFER = 3;
+}
+
+enum TopicStatus{
+    TOPIC_STATUS_NONE = 0;
+    TOPIC_STATUS_WAITING = 1;
+    TOPIC_STATUS_RUNNING = 2;
+    TOPIC_STATUS_PARTIAL_RUNNING = 3;
+    TOPIC_STATUS_STOPPING = 4;
+    TOPIC_STATUS_STOPPED = 5;
+}
+
+message TopicInfo {
+    optional string name = 1;
+    repeated PartitionInfo partitionInfos = 2;
+    optional TopicStatus status = 3;
+    optional uint32 partitionCount = 4;
+    optional uint32 partitionBufferSize = 5 [deprecated = true];
+    optional uint32 resource = 6;
+    optional uint32 partitionLimit = 7;
+    optional TopicMode topicMode = 8;
+    optional bool needFieldFilter = 9;
+    optional int64 obsoleteFileTimeInterval = 10;
+    optional int32 reservedFileCount = 11;
+    optional uint32 partitionFileBufferSize = 12 [deprecated = true];
+    optional bool deleteTopicData = 13;
+    optional uint32 partitionMinBufferSize = 14;
+    optional uint32 partitionMaxBufferSize = 15;
+    optional int64 maxWaitTimeForSecurityCommit = 16; 
+    optional int64 maxDataSizeForSecurityCommit = 17; 
+    optional bool compressMsg = 18; 
+    optional bool compressThres = 19; 
+    optional int64 createTime = 20;
+    optional string dfsRoot = 21;
+    optional string topicGroup = 22;
+    repeated string extendDfsRoot = 23;
+    optional int64 topicExpiredTime = 24;
+    optional uint32 rangeCountInPartition = 25;
+    optional int64 modifyTime = 26;
+
+}
+
+enum RoleType
+{
+    ROLE_TYPE_NONE = 0;
+    ROLE_TYPE_ALL = 1;
+    ROLE_TYPE_ADMIN = 2;
+    ROLE_TYPE_BROKER = 3;
+}
+
+message PartitionId {
+    optional string topicName = 1;
+    optional uint32 id = 2;
+    optional string topicGroup = 3;
+    optional uint32 from = 4;
+    optional uint32 to = 5;
+    optional uint32 partitionCount = 6;
+    optional uint32 rangeCount = 7;
+    optional int64 version = 8;
+    optional bool forceUnload = 9;
+}
+
+message TaskInfo {
+    optional PartitionId partitionId = 1;
+    optional uint32 bufferSize = 2 ; //[deprecated = true]
+    optional TopicMode topicMode = 3;
+    optional bool needFieldFilter = 4;
+    optional int64 obsoleteFileTimeInterval = 5;
+    optional int32 reservedFileCount = 6;
+    optional int32 fileBufferSize = 7 [deprecated = true];
+    optional uint32 minBufferSize = 8;
+    optional uint32 maxBufferSize = 9;
+    optional uint32 maxWaitTimeForSecurityCommit = 10;
+    optional uint32 maxDataSizeForSecurityCommit = 11;
+    optional bool compressMsg = 12;
+    optional bool compressThres = 13;
+    optional string dfsRoot = 14;
+    repeated string extendDfsRoot = 15;
+}
+
+message DispatchInfo {
+    optional string brokerAddress = 1;
+    repeated TaskInfo taskInfos = 2;
+    optional string roleName = 3;
+}
+message AdminInfo {
+    optional string address = 1;
+    optional bool isPrimary = 2;
+    optional bool isAlive = 3;
+}
+
+message LeaderInfo {
+    optional string address = 1;
+    optional bool sysStop = 2;
+    optional int64 startTimeSec = 3;
+    repeated AdminInfo adminInfos = 4;
+    optional string httpAddress = 5;
+}
+
+message LeaderInfoHistory {
+    repeated LeaderInfo leaderInfos = 1;
+}
+
+message SetLoggerLevelRequest {
+    enum LogLevel {
+        DISABLE = 0;
+        FATAL   = 1;
+        ERROR   = 2;
+        WARN    = 3;
+        INFO    = 4;
+        DEBUG   = 5;
+        TRACE1  = 6;
+        TRACE2  = 7;
+        TRACE3  = 8;
+        NOTSET  = 9;
+    }
+    required string logger = 1;
+    required LogLevel level = 2;
+}
+
+message SetLoggerLevelResponse {
+    optional bytes errorInfo = 1;
+}
