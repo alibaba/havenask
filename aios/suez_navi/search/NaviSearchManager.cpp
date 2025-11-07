@@ -135,6 +135,7 @@ suez::UPDATE_RESULT NaviSearchManager::update(
         AUTIL_LOG(ERROR, "navi is null, search manager might have stopped");
         return suez::UR_ERROR;
     }
+    AUTIL_LOG(DEBUG, "NaviSearchManager::update loadParam is %s _configLoader %s ",loadParam.c_str(),_configLoader.c_str() );
     if (!_navi->update(_configLoader, "", loadParam, rootResourceMap)) {
         AUTIL_LOG(ERROR, "navi update failed");
         return suez::UR_ERROR;

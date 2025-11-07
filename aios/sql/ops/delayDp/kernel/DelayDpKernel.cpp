@@ -288,6 +288,10 @@ bool DelayDpKernel::partHasData(int partId) {
         if (info.partRows.empty()) {
             continue;
         }
+        SQL_LOG(WARN, "partHasData size %ld partId %d", info.partRows.size(), partId);
+        if (partId >= info.partRows.size()){
+            continue;
+        }
         const auto &rows = info.partRows[partId];
         if (rows.empty()) {
             return false;

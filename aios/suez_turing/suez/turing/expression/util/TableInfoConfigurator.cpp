@@ -118,7 +118,8 @@ TableInfoPtr TableInfoConfigurator::createFromSchema(const shared_ptr<indexlibv2
 TableInfoPtr TableInfoConfigurator::createFromIndexApp(const std::string &mainTable,
                                                        const indexlib::partition::IndexApplicationPtr &indexApp) {
     vector<shared_ptr<indexlibv2::config::ITabletSchema>> tableSchemas;
-    indexApp->GetTableSchemas(tableSchemas);
+    std::set<std::string>  tableNames;
+    indexApp->GetTableSchemas(tableSchemas, tableNames);
     shared_ptr<indexlibv2::config::ITabletSchema> mainTableSchema;
     for (auto &schema : tableSchemas) {
         if (schema->GetTableName() == mainTable) {

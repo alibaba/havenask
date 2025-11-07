@@ -73,6 +73,7 @@ ResourceInitContext::ResourceInitContext(
     , _namedDataMap(namedDataMap)
     , _requireKernelNode(requireKernelNode)
 {
+    NAVI_KERNEL_LOG(INFO, "ResourceInitContext _partId %d", partId);
 }
 
 ResourceInitContext::~ResourceInitContext() {
