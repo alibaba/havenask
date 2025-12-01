@@ -247,6 +247,10 @@ bool KVScanR::parseQuery() {
         }
         return !_requirePk;
     }
+    
+    bool needFilter = visitor.needFilter();
+    _calcTableR->setFilterFlag(needFilter);
+    
     _rawPks = visitor.stealRawKeyVec();
     SQL_LOG(TRACE3, "before filter rawPks[%s]", autil::StringUtil::toString(_rawPks).c_str());
     ScanUtil::filterPksByParam(_scanR, *_scanInitParamR, _indexInfo, _rawPks);
