@@ -23,7 +23,7 @@ bool DocListFormatOption::operator==(const DocListFormatOption& right) const
 {
     return _hasTf == right._hasTf && _hasTfList == right._hasTfList && _hasTfBitmap == right._hasTfBitmap &&
            _hasDocPayload == right._hasDocPayload && _hasFieldMap == right._hasFieldMap &&
-           _shortListVbyteCompress == right._shortListVbyteCompress;
+           _shortListVbyteCompress == right._shortListVbyteCompress && _hasMultiLevelSkipList == right._hasMultiLevelSkipList;
 }
 
 void JsonizableDocListFormatOption::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
@@ -33,6 +33,7 @@ void JsonizableDocListFormatOption::Jsonize(autil::legacy::Jsonizable::JsonWrapp
     bool hasTfBitmap;
     bool hasDocPayload;
     bool hasFieldMap;
+    bool hasMultiLevelSkipList = false;
     bool shortListVbyteCompress = false;
 
     if (json.GetMode() == FROM_JSON) {
@@ -41,6 +42,8 @@ void JsonizableDocListFormatOption::Jsonize(autil::legacy::Jsonizable::JsonWrapp
         json.Jsonize("has_term_frequency_bitmap", hasTfBitmap);
         json.Jsonize("has_doc_payload", hasDocPayload);
         json.Jsonize("has_field_map", hasFieldMap);
+        // Compatible with previous formats
+        json.Jsonize("has_multi_level_skip_list", hasMultiLevelSkipList, hasMultiLevelSkipList);
         json.Jsonize("is_shortlist_vbyte_compress", shortListVbyteCompress, shortListVbyteCompress);
 
         _docListFormatOption._hasTf = hasTf ? 1 : 0;
@@ -48,6 +51,7 @@ void JsonizableDocListFormatOption::Jsonize(autil::legacy::Jsonizable::JsonWrapp
         _docListFormatOption._hasTfBitmap = hasTfBitmap ? 1 : 0;
         _docListFormatOption._hasDocPayload = hasDocPayload ? 1 : 0;
         _docListFormatOption._hasFieldMap = hasFieldMap ? 1 : 0;
+        _docListFormatOption._hasMultiLevelSkipList = hasMultiLevelSkipList ? 1 : 0;
         _docListFormatOption.SetShortListVbyteCompress(shortListVbyteCompress);
     } else {
         hasTf = _docListFormatOption._hasTf == 1;
@@ -55,6 +59,7 @@ void JsonizableDocListFormatOption::Jsonize(autil::legacy::Jsonizable::JsonWrapp
         hasTfBitmap = _docListFormatOption._hasTfBitmap == 1;
         hasDocPayload = _docListFormatOption._hasDocPayload == 1;
         hasFieldMap = _docListFormatOption._hasFieldMap == 1;
+        hasMultiLevelSkipList = _docListFormatOption._hasMultiLevelSkipList == 1;
         shortListVbyteCompress = _docListFormatOption.IsShortListVbyteCompress();
 
         json.Jsonize("has_term_frequency", hasTf);
@@ -62,6 +67,7 @@ void JsonizableDocListFormatOption::Jsonize(autil::legacy::Jsonizable::JsonWrapp
         json.Jsonize("has_term_frequency_bitmap", hasTfBitmap);
         json.Jsonize("has_doc_payload", hasDocPayload);
         json.Jsonize("has_field_map", hasFieldMap);
+        json.Jsonize("has_multi_level_skip_list", hasMultiLevelSkipList);
         json.Jsonize("is_shortlist_vbyte_compress", shortListVbyteCompress);
     }
 }

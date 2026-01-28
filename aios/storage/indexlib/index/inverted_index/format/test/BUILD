@@ -18,7 +18,7 @@ strict_cc_fast_test(
         'PositionListSegmentDecoderTest.cpp', 'PostingDecoderImplTest.cpp',
         'PostingFormatOptionTest.cpp', 'PostingFormatTest.cpp',
         'ShortListOptimizeUtilTest.cpp', 'TermMetaLoaderTest.cpp',
-        'TermMetaTest.cpp'
+        'TermMetaTest.cpp', 'MultiLevelSkipListTest.cpp'
     ],
     copts=(['-fno-access-control'] + if_clang(['-std=c++20'])),
     data=glob(['testdata/**']),
@@ -65,6 +65,7 @@ strict_cc_fast_test(
         '//aios/storage/indexlib/index/inverted_index/format:TermMeta',
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaDumper',
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaLoader',
+        '//aios/storage/indexlib/index/inverted_index/format/skiplist:lib',
         '//aios/storage/indexlib/table/normal_table:table',
         '//aios/unittest_framework'
     ]

@@ -82,6 +82,7 @@ struct InvertedIndexConfig::Impl {
     bool isPatchCompressed = false;
     bool isVirtual = false;
     bool isShortListVbyteCompress = false;
+    bool isMultiLevelSkipList = false;
     bool hasTruncate = false;
     indexlib::config::PayloadConfig payloadConfig;
 
@@ -115,6 +116,7 @@ struct InvertedIndexConfig::Impl {
         , isPatchCompressed(other.isPatchCompressed)
         , isVirtual(other.isVirtual)
         , isShortListVbyteCompress(other.isShortListVbyteCompress)
+        , isMultiLevelSkipList(other.isMultiLevelSkipList)
         , hasTruncate(other.hasTruncate)
     {
     }
@@ -185,7 +187,9 @@ Status InvertedIndexConfig::CheckEqual(const InvertedIndexConfig& other) const
     CHECK_CONFIG_EQUAL(_impl->formatVersionId, other._impl->formatVersionId, "_impl->formatVersionId not equal");
     CHECK_CONFIG_EQUAL(_impl->isShortListVbyteCompress, other._impl->isShortListVbyteCompress,
                        "_impl->isShortListVbyteCompress not equal");
-
+    CHECK_CONFIG_EQUAL(_impl->isMultiLevelSkipList,
+                       other._impl->isMultiLevelSkipList,
+                       "_impl->isMultiLevelSkipList not equal");
     for (size_t i = 0; i < _impl->shardingIndexConfigs.size(); i++) {
         auto status = _impl->shardingIndexConfigs[i]->CheckEqual(*other._impl->shardingIndexConfigs[i]);
         RETURN_IF_STATUS_ERROR(status, "sharding index config [%s] not equal",
@@ -338,6 +342,16 @@ bool InvertedIndexConfig::IsShortListVbyteCompress() const { return _impl->isSho
 void InvertedIndexConfig::SetShortListVbyteCompress(bool isShortListVbyteCompress)
 {
     _impl->isShortListVbyteCompress = isShortListVbyteCompress;
+}
+
+bool InvertedIndexConfig::IsMultiLevelSkipList() const
+{
+    return _impl->isMultiLevelSkipList;
+}
+
+void InvertedIndexConfig::SetMultiLevelSkipList(bool isMultiLevelSkipList)
+{
+    _impl->isMultiLevelSkipList = isMultiLevelSkipList;
 }
 
 void InvertedIndexConfig::SetIsReferenceCompress(bool isReferenceCompress)

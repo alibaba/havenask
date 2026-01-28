@@ -67,7 +67,7 @@ private:
 
         ASSERT_EQ((nullptr == positionEncoder._posSkipListWriter), skipListWriterIsNull);
         if (!skipListWriterIsNull) {
-            BufferedSkipListWriter* skipListWriter = positionEncoder._posSkipListWriter;
+            BufferedSkipListWriter* skipListWriter = dynamic_cast<BufferedSkipListWriter *>(positionEncoder._posSkipListWriter);
             ASSERT_TRUE(skipListWriter != nullptr);
         }
     }
@@ -147,7 +147,7 @@ TEST_F(PositionListEncoderTest, testAddPositionWithSkipList)
     for (uint32_t i = MAX_POS_PER_RECORD; i < 2 * MAX_POS_PER_RECORD; i++) {
         positionEncoder.AddPosition(2 * i, i);
     }
-    BufferedSkipListWriter* skipListWriter = positionEncoder._posSkipListWriter;
+    BufferedSkipListWriter* skipListWriter = dynamic_cast<BufferedSkipListWriter *>(positionEncoder._posSkipListWriter);
 
     BufferedByteSliceReader reader;
     reader.Open(skipListWriter);

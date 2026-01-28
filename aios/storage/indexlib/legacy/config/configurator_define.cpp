@@ -124,6 +124,7 @@ const std::string PRIMARY_KEY_STORAGE_TYPE = "pk_storage_type";
 const std::string INDEX_UPDATABLE = "index_updatable";
 const std::string PATCH_COMPRESSED = "patch_compressed";
 const std::string SORT_FIELD = "sort_field";
+const std::string MULTI_LEVEL_SKIP_LIST = "multi_level_skip_list";
 
 // customize index
 const std::string CUSTOM_DATA_DIR_NAME = "custom";

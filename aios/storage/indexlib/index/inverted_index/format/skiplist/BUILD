@@ -1,6 +1,11 @@
 load('//aios/storage:defs.bzl', 'strict_cc_library')
 package(default_visibility=['//aios/storage/indexlib:__subpackages__'])
 strict_cc_library(
+    name='SkipListWriter',
+    srcs=[],
+    deps=['//aios/storage/indexlib/file_system:byte_slice_rw']
+)
+strict_cc_library(
     name='SkipListReader',
     deps=['//aios/storage/indexlib/file_system:byte_slice_rw']
 )
@@ -38,8 +43,49 @@ strict_cc_library(
 strict_cc_library(
     name='BufferedSkipListWriter',
     deps=[
+        ':SkipListWriter',
         '//aios/storage/indexlib/file_system:byte_slice_rw',
         '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSlice',
         '//aios/storage/indexlib/index/inverted_index/format:ShortListOptimizeUtil'
+    ]
+)
+strict_cc_library(
+    name='MultiLevelSkipListReader',
+    deps=[
+        ':SkipListReader',
+        '//aios/storage/indexlib/file_system:byte_slice_rw',
+        '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSlice',
+        '//aios/storage/indexlib/index/inverted_index/format:ShortListOptimizeUtil'
+    ]
+)
+
+strict_cc_library(
+    name='MultiLevelSkipListWriter',
+    deps=[
+        ':SkipListReader',
+        ':SkipListWriter',
+        ':MultiLevelSkipListReader',
+        "@com_google_absl//absl/container:inlined_vector",
+        '//aios/storage/indexlib/file_system:byte_slice_rw',
+        '//aios/storage/indexlib/index/inverted_index/format:BufferedByteSlice',
+        '//aios/storage/indexlib/index/inverted_index/format:ShortListOptimizeUtil',
+        '//aios/storage/indexlib/index/common/numeric_compress:VbyteCompressor'
+    ]
+)
+
+strict_cc_library(
+    name='lib',
+    srcs=[],
+    hdrs = [],
+    deps=[
+        ':SkipListReader',
+        ':SkipListWriter',
+        ':MultiLevelSkipListReader',
+        ':MultiLevelSkipListWriter',
+        ':BufferedSkipListWriter',
+        ':InMemPairValueSkipListReader',
+        ':InMemTriValueSkipListReader',
+        ':TriValueSkipListReader',
+        ':PairValueSkipListReader',
     ]
 )

@@ -90,7 +90,7 @@ void SkipListSegmentDecoder<SkipListType>::InitSkipList(uint32_t start, uint32_t
 {
     IE_POOL_COMPATIBLE_DELETE_CLASS(_sessionPool, _skipListReader);
     _skipListReader = IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, SkipListType, compressMode == REFERENCE_COMPRESS_MODE);
-    _skipListReader->Load(postingList, start, end, (df - 1) / MAX_DOC_PER_RECORD + 1);
+    _skipListReader->Load(_sessionPool, postingList, start, end, (df - 1) / MAX_DOC_PER_RECORD + 1);
 }
 
 template <class SkipListType>
@@ -99,7 +99,7 @@ void SkipListSegmentDecoder<SkipListType>::InitSkipList(uint32_t start, uint32_t
 {
     IE_POOL_COMPATIBLE_DELETE_CLASS(_sessionPool, _skipListReader);
     _skipListReader = IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, SkipListType, compressMode == REFERENCE_COMPRESS_MODE);
-    _skipListReader->Load(postingList, start, end, (df - 1) / MAX_DOC_PER_RECORD + 1);
+    _skipListReader->Load(_sessionPool, postingList, start, end, (df - 1) / MAX_DOC_PER_RECORD + 1);
 }
 
 template <class SkipListType>

@@ -30,7 +30,7 @@ InMemPositionListDecoder::InMemPositionListDecoder(const PositionListFormatOptio
 
 InMemPositionListDecoder::~InMemPositionListDecoder() { IE_POOL_COMPATIBLE_DELETE_CLASS(_sessionPool, _posListBuffer); }
 
-void InMemPositionListDecoder::Init(ttf_t totalTF, PairValueSkipListReader* skipListReader,
+void InMemPositionListDecoder::Init(ttf_t totalTF, SkipListReader* skipListReader,
                                     BufferedByteSlice* posListBuffer)
 {
     assert(posListBuffer);
@@ -63,11 +63,9 @@ bool InMemPositionListDecoder::SkipTo(ttf_t currentTTF, NormalInDocState* state)
     }
 
     uint32_t offset, len;
-    auto [status, ret] = _posSkipListReader->SkipTo(currentTTF + 1, _decodedPosCount, offset, len);
+    auto [status, ret] = _posSkipListReader->SkipTo(currentTTF + 1, _decodedPosCount, _preRecordTTF, offset, len);
     THROW_IF_STATUS_ERROR(status);
-    if (ret) {
-        _preRecordTTF = _posSkipListReader->GetPrevKey();
-    } else {
+    if (!ret) {
         offset = _posSkipListReader->GetLastValueInBuffer();
         _preRecordTTF = _posSkipListReader->GetCurrentKey();
         _decodedPosCount = _totalTf;

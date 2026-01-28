@@ -33,18 +33,16 @@ public:
     virtual ~PairValueSkipListReader();
 
 public:
-    virtual void Load(const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
-                      const uint32_t& itemCount);
+    void Load(autil::mem_pool::Pool *pool, const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
+                      const uint32_t& itemCount) override;
 
-    virtual void Load(util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount);
+    void Load(autil::mem_pool::Pool *pool, util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount) override;
 
     std::pair<Status, bool> SkipTo(uint32_t queryKey, uint32_t& key, uint32_t& prevKey, uint32_t& value,
                                    uint32_t& delta) override;
-    inline std::pair<Status, bool> SkipTo(uint32_t queryKey, uint32_t& key, uint32_t& value, uint32_t& delta);
+    uint32_t GetPrevKey() const override { return _prevKey; }
 
-    uint32_t GetPrevKey() const { return _prevKey; }
-
-    uint32_t GetCurrentKey() const { return _currentKey; }
+    uint32_t GetCurrentKey() const override { return _currentKey; }
 
     virtual std::pair<Status, bool> LoadBuffer();
 
@@ -78,10 +76,4 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-///////////////////////////////////////////////
-inline std::pair<Status, bool> PairValueSkipListReader::SkipTo(uint32_t queryKey, uint32_t& key, uint32_t& value,
-                                                               uint32_t& delta)
-{
-    return SkipTo(queryKey, key, _prevKey, value, delta);
-}
 } // namespace indexlib::index

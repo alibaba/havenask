@@ -427,7 +427,7 @@ strict_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:InMemPostingDecoder',
         '//aios/storage/indexlib/index/inverted_index/format:ShortListSegmentDecoder',
         '//aios/storage/indexlib/index/inverted_index/format:SkipListSegmentDecoder',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:TriValueSkipListReader'
+        '//aios/storage/indexlib/index/inverted_index/format/skiplist:lib'
     ]
 )
 strict_cc_library(
@@ -435,7 +435,7 @@ strict_cc_library(
     deps=[
         '//aios/storage/indexlib/index/inverted_index/format:InMemPositionListDecoder',
         '//aios/storage/indexlib/index/inverted_index/format:TermMeta',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:PairValueSkipListReader'
+        '//aios/storage/indexlib/index/inverted_index/format/skiplist:lib'
     ]
 )
 strict_cc_library(
@@ -462,8 +462,7 @@ strict_cc_library(
         '//aios/storage/indexlib/index/inverted_index/format:ShortListSegmentDecoder',
         '//aios/storage/indexlib/index/inverted_index/format:SkipListSegmentDecoder',
         '//aios/storage/indexlib/index/inverted_index/format:TermMetaLoader',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:PairValueSkipListReader',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:TriValueSkipListReader',
+        '//aios/storage/indexlib/index/inverted_index/format/skiplist:lib',
         '//aios/storage/indexlib/util:simple_heap'
     ]
 )

@@ -22,7 +22,7 @@ AUTIL_LOG_SETUP(indexlib.index, PositionListFormatOption);
 bool PositionListFormatOption::operator==(const PositionListFormatOption& right) const
 {
     return _hasPositionList == right._hasPositionList && _hasPositionPayload == right._hasPositionPayload &&
-           _hasTfBitmap == right._hasTfBitmap;
+           _hasTfBitmap == right._hasTfBitmap && _hasMultiLevelSkipList == right._hasMultiLevelSkipList;
 }
 
 void JsonizablePositionListFormatOption::Jsonize(autil::legacy::Jsonizable::JsonWrapper& json)
@@ -30,23 +30,29 @@ void JsonizablePositionListFormatOption::Jsonize(autil::legacy::Jsonizable::Json
     bool hasPositionList;
     bool hasPositionPayload;
     bool hasTfBitmap;
+    bool hasMultiLevelSkipList = false;
 
     if (json.GetMode() == FROM_JSON) {
         json.Jsonize("has_position_list", hasPositionList);
         json.Jsonize("has_position_payload", hasPositionPayload);
         json.Jsonize("has_term_frequency_bitmap", hasTfBitmap);
+        // Compatible with previous formats
+        json.Jsonize("has_multi_level_skip_list", hasMultiLevelSkipList, hasMultiLevelSkipList);
 
         _positionListFormatOption._hasPositionList = hasPositionList ? 1 : 0;
         _positionListFormatOption._hasPositionPayload = hasPositionPayload ? 1 : 0;
         _positionListFormatOption._hasTfBitmap = hasTfBitmap ? 1 : 0;
+        _positionListFormatOption._hasMultiLevelSkipList = hasMultiLevelSkipList ? 1 : 0;
     } else {
         hasPositionList = _positionListFormatOption._hasPositionList == 1;
         hasPositionPayload = _positionListFormatOption._hasPositionPayload == 1;
         hasTfBitmap = _positionListFormatOption._hasTfBitmap == 1;
+        hasMultiLevelSkipList = _positionListFormatOption._hasMultiLevelSkipList == 1;
 
         json.Jsonize("has_position_list", hasPositionList);
         json.Jsonize("has_position_payload", hasPositionPayload);
         json.Jsonize("has_term_frequency_bitmap", hasTfBitmap);
+        json.Jsonize("has_multi_level_skip_list", hasMultiLevelSkipList);
     }
 }
 

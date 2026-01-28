@@ -51,14 +51,14 @@ TriValueSkipListReader::TriValueSkipListReader(const TriValueSkipListReader& oth
 
 TriValueSkipListReader::~TriValueSkipListReader() {}
 
-void TriValueSkipListReader::Load(const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
+void TriValueSkipListReader::Load(autil::mem_pool::Pool *pool, const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
                                   const uint32_t& itemCount)
 {
     SkipListReader::Load(byteSliceList, start, end);
     InnerLoad(start, end, itemCount);
 }
 
-void TriValueSkipListReader::Load(util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount)
+void TriValueSkipListReader::Load(autil::mem_pool::Pool *pool, util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount)
 {
     SkipListReader::Load(byteSlice, start, end);
     InnerLoad(start, end, itemCount);

@@ -54,14 +54,14 @@ PairValueSkipListReader::PairValueSkipListReader(const PairValueSkipListReader& 
 
 PairValueSkipListReader::~PairValueSkipListReader() {}
 
-void PairValueSkipListReader::Load(const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
+void PairValueSkipListReader::Load(autil::mem_pool::Pool *pool, const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
                                    const uint32_t& itemCount)
 {
     SkipListReader::Load(byteSliceList, start, end);
     InnerLoad(start, end, itemCount);
 }
 
-void PairValueSkipListReader::Load(util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount)
+void PairValueSkipListReader::Load(autil::mem_pool::Pool *pool, util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount)
 {
     SkipListReader::Load(byteSlice, start, end);
     InnerLoad(start, end, itemCount);

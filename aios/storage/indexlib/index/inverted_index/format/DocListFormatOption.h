@@ -49,6 +49,7 @@ public:
             _hasTfBitmap = 0;
         }
         _shortListVbyteCompress = 0;
+        _hasMultiLevelSkipList = 0;
         _unused = 0;
     }
 
@@ -60,6 +61,12 @@ public:
     bool operator==(const DocListFormatOption& right) const;
     bool IsShortListVbyteCompress() const { return _shortListVbyteCompress == 1; }
     void SetShortListVbyteCompress(bool flag) { _shortListVbyteCompress = flag ? 1 : 0; }
+    bool HasMultiLevelSkipList() const {
+        return _hasMultiLevelSkipList == 1;
+    }
+    void SetMultiLevelSkipList(bool hasMultiLevelSkipList) {
+        _hasMultiLevelSkipList = hasMultiLevelSkipList;
+    }
 
 private:
     uint8_t _hasTf                  : 1;
@@ -68,7 +75,8 @@ private:
     uint8_t _hasDocPayload          : 1;
     uint8_t _hasFieldMap            : 1;
     uint8_t _shortListVbyteCompress : 1;
-    uint8_t _unused                 : 2;
+    uint8_t _hasMultiLevelSkipList  : 1;
+    uint8_t _unused                 : 1;
 
     friend class DocListEncoderTest;
     friend class DocListMemoryBufferTest;

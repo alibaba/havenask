@@ -17,23 +17,24 @@
 
 #include <memory>
 
+#include "indexlib/index/inverted_index/format/skiplist/SkipListWriter.h"
 #include "indexlib/index/inverted_index/format/BufferedByteSlice.h"
 #include "indexlib/index/inverted_index/format/ShortListOptimizeUtil.h"
 
 namespace indexlib::index {
 
-class BufferedSkipListWriter : public BufferedByteSlice
+class BufferedSkipListWriter : public BufferedByteSlice, public SkipListWriter
 {
 public:
     BufferedSkipListWriter(autil::mem_pool::Pool* byteSlicePool, autil::mem_pool::RecyclePool* bufferPool,
                            index::CompressMode compressMode = index::PFOR_DELTA_COMPRESS_MODE);
     virtual ~BufferedSkipListWriter() = default;
 
-    void AddItem(uint32_t deltaValue1);
-    void AddItem(uint32_t key, uint32_t value1);
-    void AddItem(uint32_t key, uint32_t value1, uint32_t value2);
+    void AddItem(uint32_t deltaValue1) override;
+    void AddItem(uint32_t key, uint32_t value1) override;
+    void AddItem(uint32_t key, uint32_t value1, uint32_t value2) override;
 
-    size_t FinishFlush();
+    size_t FinishFlush() override;
 
     void Dump(const std::shared_ptr<file_system::FileWriter>& file) override;
     size_t EstimateDumpSize() const override;

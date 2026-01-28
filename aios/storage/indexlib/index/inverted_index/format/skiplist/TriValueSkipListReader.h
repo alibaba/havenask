@@ -33,19 +33,16 @@ public:
     ~TriValueSkipListReader();
 
 public:
-    virtual void Load(const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
-                      const uint32_t& itemCount);
+    void Load(autil::mem_pool::Pool *pool, const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
+                      const uint32_t& itemCount) override;
 
-    virtual void Load(util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount);
+    void Load(autil::mem_pool::Pool *pool, util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount) override;
 
     std::pair<Status, bool> SkipTo(uint32_t queryDocId, uint32_t& docId, uint32_t& prevDocId, uint32_t& offset,
                                    uint32_t& delta) override;
+    uint32_t GetPrevKey() const override { return _prevDocId; }
 
-    inline std::pair<Status, bool> SkipTo(uint32_t queryDocId, uint32_t& docId, uint32_t& offset, uint32_t& delta);
-
-    uint32_t GetPrevDocId() const { return _prevDocId; }
-
-    uint32_t GetCurrentDocId() const { return _currentDocId; }
+    uint32_t GetCurrentKey() const override { return _currentDocId; }
 
     uint32_t GetCurrentTTF() const override { return _currentTTF; }
 
@@ -74,10 +71,4 @@ private:
     AUTIL_LOG_DECLARE();
 };
 
-//////////////////////////////////////////////
-inline std::pair<Status, bool> TriValueSkipListReader::SkipTo(uint32_t queryDocId, uint32_t& docId, uint32_t& offset,
-                                                              uint32_t& delta)
-{
-    return SkipTo(queryDocId, docId, _prevDocId, offset, delta);
-}
 } // namespace indexlib::index

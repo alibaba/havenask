@@ -31,7 +31,7 @@ public:
     InMemPositionListDecoder(const PositionListFormatOption& option, autil::mem_pool::Pool* sessionPool);
     ~InMemPositionListDecoder();
 
-    void Init(ttf_t totalTF, PairValueSkipListReader* skipListReader, BufferedByteSlice* posListBuffer);
+    void Init(ttf_t totalTF, SkipListReader* skipListReader, BufferedByteSlice* posListBuffer);
 
     bool SkipTo(ttf_t currentTTF, NormalInDocState* state) override;
 

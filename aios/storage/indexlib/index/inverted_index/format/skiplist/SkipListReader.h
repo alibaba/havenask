@@ -28,15 +28,20 @@ public:
     virtual ~SkipListReader();
 
 public:
-    virtual void Load(const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end);
+    virtual void Load(autil::mem_pool::Pool *pool,
+                        const util::ByteSliceList *byteSliceList, uint32_t start,
+                        uint32_t end, const uint32_t &itemCount) = 0;
 
-    virtual void Load(util::ByteSlice* byteSlice, uint32_t start, uint32_t end);
+    virtual void Load(autil::mem_pool::Pool *pool, util::ByteSlice *byteSlice,
+                        uint32_t start, uint32_t end,
+                        const uint32_t &itemCount) = 0;
 
-    virtual std::pair<Status, bool> SkipTo(uint32_t queryKey, uint32_t& key, uint32_t& prevKey, uint32_t& prevValue,
-                                           uint32_t& valueDelta)
-    {
-        assert(false);
-        return {};
+    virtual std::pair<Status, bool> SkipTo(uint32_t queryKey, uint32_t &key,
+                                           uint32_t &prevKey,
+                                           uint32_t &prevValue,
+                                           uint32_t &valueDelta) {
+      assert(false);
+      return {};
     }
 
     uint32_t GetStart() const { return _start; }
@@ -52,7 +57,15 @@ public:
     virtual uint32_t GetLastValueInBuffer() const { return 0; }
     virtual uint32_t GetLastKeyInBuffer() const { return 0; }
 
-protected:
+    virtual uint32_t GetPrevKey() const { return 0; }
+
+    virtual uint32_t GetCurrentKey() const { return 0; }
+
+  protected:
+    virtual void Load(const util::ByteSliceList *byteSliceList, uint32_t start,
+                      uint32_t end);
+
+    virtual void Load(util::ByteSlice *byteSlice, uint32_t start, uint32_t end);
     uint32_t _start;
     uint32_t _end;
     file_system::ByteSliceReader _byteSliceReader;

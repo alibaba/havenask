@@ -130,6 +130,7 @@ extern const std::string PRIMARY_KEY_STORAGE_TYPE;
 extern const std::string INDEX_UPDATABLE;
 extern const std::string PATCH_COMPRESSED;
 extern const std::string SORT_FIELD;
+extern const std::string MULTI_LEVEL_SKIP_LIST;
 
 // customize index
 extern const std::string CUSTOM_DATA_DIR_NAME;
