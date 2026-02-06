@@ -259,10 +259,9 @@ TEST_F(InMemPositionListDecoderTest, testSkipTo)
         InMemPositionListDecoder decoder(option, &_byteSlicePool);
         // skipListReader call skipTo : return true
         MockSkipListReader* skipListReader = IE_POOL_COMPATIBLE_NEW_CLASS((&_byteSlicePool), MockSkipListReader);
-        skipListReader->SetPrevKey(10);
 
         EXPECT_CALL(*skipListReader, SkipTo(_, _, _, _, _))
-            .WillOnce(DoAll(SetArgReferee<1>(30), SetArgReferee<3>(123), Return(std::make_pair(Status::OK(), true))));
+            .WillOnce(DoAll(SetArgReferee<1>(30), SetArgReferee<2>(10), SetArgReferee<3>(123), Return(std::make_pair(Status::OK(), true))));
 
         decoder.Init(100, skipListReader, posListBuffer);
         ASSERT_TRUE(decoder.SkipTo(20, &state));

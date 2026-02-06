@@ -104,8 +104,14 @@ void PositionListSegmentDecoder::InitPositionSkipList(const ByteSliceList* posLi
         _decodedPosCount = totalTF;
         state->SetRecordOffset(posSkipListEnd);
     } else {
-        _posSkipListReader = IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, PairValueSkipListReader);
-        _posSkipListReader->Load(posList, posSkipListStart, posSkipListEnd, (totalTF - 1) / MAX_POS_PER_RECORD + 1);
+        if (_option.HasMultiLevelSkipList()) {
+            _posSkipListReader =
+                IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, MultiLevelPairValueSkipListReader);
+        } else {
+            _posSkipListReader =
+                IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, PairValueSkipListReader);
+        }
+        _posSkipListReader->Load(_sessionPool, posList, posSkipListStart, posSkipListEnd, (totalTF - 1) / MAX_POS_PER_RECORD + 1);
         _decodedPosCount = 0;
     }
 }
@@ -118,8 +124,14 @@ void PositionListSegmentDecoder::InitPositionSkipList(ByteSlice* posList, tf_t t
         _decodedPosCount = totalTF;
         state->SetRecordOffset(posSkipListEnd);
     } else {
-        _posSkipListReader = IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, PairValueSkipListReader);
-        _posSkipListReader->Load(posList, posSkipListStart, posSkipListEnd, (totalTF - 1) / MAX_POS_PER_RECORD + 1);
+        if (_option.HasMultiLevelSkipList()) {
+            _posSkipListReader =
+                IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, MultiLevelPairValueSkipListReader);
+        } else {
+            _posSkipListReader =
+                IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, PairValueSkipListReader);
+        }
+        _posSkipListReader->Load(_sessionPool, posList, posSkipListStart, posSkipListEnd, (totalTF - 1) / MAX_POS_PER_RECORD + 1);
         _decodedPosCount = 0;
     }
 }
@@ -208,17 +220,17 @@ bool PositionListSegmentDecoder::SkipTo(ttf_t currentTTF, NormalInDocState* stat
         return true;
     }
 
-    uint32_t offset, len;
+    uint32_t prevKey, offset, len;
     if (_posSkipListReader == nullptr) {
         return false;
     }
-    auto [status, ret] = _posSkipListReader->SkipTo(currentTTF + 1, _decodedPosCount, offset, len);
+    auto [status, ret] = _posSkipListReader->SkipTo(currentTTF + 1, _decodedPosCount, prevKey, offset, len);
     THROW_IF_STATUS_ERROR(status);
     if (!ret) {
         return false;
     }
     state->SetRecordOffset(offset + _posListBegin);
-    _preRecordTTF = _posSkipListReader->GetPrevKey();
+    _preRecordTTF = prevKey;
     state->SetOffsetInRecord(currentTTF - _preRecordTTF);
     return true;
 }

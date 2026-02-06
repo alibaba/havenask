@@ -47,19 +47,27 @@ public:
         } else {
             _hasTfBitmap = 0;
         }
+        _hasMultiLevelSkipList = 0;
         _unused = 0;
     }
 
     bool HasPositionList() const { return _hasPositionList == 1; }
     bool HasPositionPayload() const { return _hasPositionPayload == 1; }
     bool HasTfBitmap() const { return _hasTfBitmap == 1; }
+    bool HasMultiLevelSkipList() const {
+        return _hasMultiLevelSkipList == 1;
+    }
+    void SetMultiLevelSkipList(bool hasMultiLevelSkipList) {
+        _hasMultiLevelSkipList = hasMultiLevelSkipList;
+    }
     bool operator==(const PositionListFormatOption& right) const;
 
 private:
-    uint8_t _hasPositionList    : 1;
-    uint8_t _hasPositionPayload : 1;
-    uint8_t _hasTfBitmap        : 1;
-    uint8_t _unused             : 5;
+    uint8_t _hasPositionList       : 1;
+    uint8_t _hasPositionPayload    : 1;
+    uint8_t _hasTfBitmap           : 1;
+    uint8_t _hasMultiLevelSkipList : 1;
+    uint8_t _unused                : 4;
 
     friend class PositionListEncoderTest;
     friend class JsonizablePositionListFormatOption;

@@ -23,6 +23,7 @@
 #include "indexlib/index/inverted_index/format/TermMetaLoader.h"
 #include "indexlib/index/inverted_index/format/skiplist/PairValueSkipListReader.h"
 #include "indexlib/index/inverted_index/format/skiplist/TriValueSkipListReader.h"
+#include "indexlib/index/inverted_index/format/skiplist/MultiLevelSkipListReader.h"
 
 namespace indexlib::index {
 AUTIL_LOG_SETUP(indexlib.index, RangeSegmentPostingsIterator);
@@ -182,12 +183,26 @@ RangeSegmentPostingsIterator::CreateNormalSegmentDecoder(file_system::ByteSliceR
                                             compressMode, curSegPostingFormatOption.IsShortListVbyteCompress());
     }
 
-    if (curSegPostingFormatOption.HasTfList()) {
-        return IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, SkipListSegmentDecoder<TriValueSkipListReader>, _sessionPool,
-                                            docListReader, docListBeginPos, compressMode);
+    if (curSegPostingFormatOption.HasMultiLevelSkipList()) {
+        if (curSegPostingFormatOption.HasTfList()) {
+            return IE_POOL_COMPATIBLE_NEW_CLASS(
+                _sessionPool, SkipListSegmentDecoder<MultiLevelTriValueSkipListReader>,
+                _sessionPool, docListReader, docListBeginPos, compressMode);
+        } else {
+            return IE_POOL_COMPATIBLE_NEW_CLASS(
+                _sessionPool, SkipListSegmentDecoder<MultiLevelPairValueSkipListReader>,
+                _sessionPool, docListReader, docListBeginPos, compressMode);
+        }
     } else {
-        return IE_POOL_COMPATIBLE_NEW_CLASS(_sessionPool, SkipListSegmentDecoder<PairValueSkipListReader>, _sessionPool,
-                                            docListReader, docListBeginPos, compressMode);
+        if (curSegPostingFormatOption.HasTfList()) {
+            return IE_POOL_COMPATIBLE_NEW_CLASS(
+                _sessionPool, SkipListSegmentDecoder<TriValueSkipListReader>, _sessionPool,
+                docListReader, docListBeginPos, compressMode);
+        } else {
+            return IE_POOL_COMPATIBLE_NEW_CLASS(
+                _sessionPool, SkipListSegmentDecoder<PairValueSkipListReader>, _sessionPool,
+                docListReader, docListBeginPos, compressMode);
+        }
     }
 }
 } // namespace indexlib::index

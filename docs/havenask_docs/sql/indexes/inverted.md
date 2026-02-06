@@ -186,6 +186,7 @@ PACK索引是多字段索引。对TEXT类型的字段建立索引。与TEXT索�
             "high_frequency_dictionary": "bitmap1",
             "high_frequency_adaptive_dictionary": "df",
             "high_frequency_term_posting_type": "both",
+            "multi_level_skip_list": "0",
             "index_analyzer": "simple_analyzer",
             "format_version_id": "1"
         },
@@ -207,6 +208,7 @@ PACK索引是多字段索引。对TEXT类型的字段建立索引。与TEXT索�
 - high_frequency_term_posting_type：如果配置了bitmap索引或者自适应bitmap索引，则可以配置bitmap索引的类型（both/bitmap）。如果配置成both，表示既有bitmap，也有倒排索引。否则只有bitmap信息，默认值是bitmap。
 - index_fields：表示需要进入该index的field，field必须为TEXT类型，而且需要使用相同的分析器。
 - boost：配置建立索引的field的名字以及该field在这个索引中的权重（boost的值）。
+- multi_level_skip_list：是否为该索引构建多级跳表，默认不构建。目前 ha3 默认使用单层跳表索引倒排链数据，针对大部分场景单级跳表已经够用，但在某些场景下，比如已知一个 doc 的 docid，想去查询这个文档在某些倒排链中的命中情况，使用多级跳表可以显著提升查询性能。
 - index_analyzer：配置查询过程中的分词器。如果配置了该分词器，查询过程中就采用该分词器进行分词，此时该分词器可以和field中的分词器不一致。如果不配置该项，则采用field中的分词器，此时要求field中分词器保持一致。注意该分词器只能在field类型为text的索引中添加。
 - compress_type：可配置ZSTD,SNAPPY,LZ4,LZ4HC,ZLIB中的一种
 - format_version_id：指定倒排索引的版本id，默认为0（代表indexlib迁移aios基准版本的倒排格式），可选设置为1（支持一系列倒排存储格式优化，包括：短链vByte压缩、newPForDelta压缩算法优化、连续docid区间dictInline存储）
@@ -249,7 +251,7 @@ TEXT索引是单字段索引。用于对TEXT类型的字段建立索引。采用
     }
 }
 ```
-TEXT索引配置中的index_name，index_type，term_payload_flag，doc_payload_flag，position_payload_flag，position_list_flag，term_frequency_flag, compress_type的含义相同，只是index_type必须为TEXT，并且index_fields只支持一个字段。
+TEXT索引配置中的index_name，index_type，term_payload_flag，doc_payload_flag，position_payload_flag，position_list_flag，multi_level_skip_list, term_frequency_flag, compress_type的含义相同，只是index_type必须为TEXT，并且index_fields只支持一个字段。
 #### 注意事项
 
 - index_name 不允许命名为"summary"。

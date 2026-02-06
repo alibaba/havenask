@@ -28,13 +28,13 @@ public:
     explicit InMemTriValueSkipListReader(autil::mem_pool::Pool* sessionPool = nullptr);
     ~InMemTriValueSkipListReader();
 
-    void Load(const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
+    void Load(autil::mem_pool::Pool *pool, const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
               const uint32_t& itemCount) override
     {
         assert(false);
     }
 
-    void Load(util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount) override
+    void Load(autil::mem_pool::Pool *pool, util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount) override
     {
         assert(false);
     }

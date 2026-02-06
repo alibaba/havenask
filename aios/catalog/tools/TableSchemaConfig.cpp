@@ -57,6 +57,7 @@ std::vector<std::string> IndexConfig::intParams = {"term_payload_flag",
                                                    "position_payload_flag",
                                                    "term_frequency_flag",
                                                    "term_frequency_bitmap",
+                                                   "multi_level_skip_list",
                                                    "format_version_id"};
 std::vector<std::string> IndexConfig::boolParams = {"has_primary_key_attribute"};
 

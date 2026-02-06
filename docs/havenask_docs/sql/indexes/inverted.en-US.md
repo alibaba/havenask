@@ -183,6 +183,7 @@ A PACK index is a multi-field index that is created on fields of the TEXT type. 
             "position_payload_flag": "1",
             "term_frequency_flag": "1",
             "term_frequency_bitmap": "1",
+            "multi_level_skip_list": "0",
             "high_frequency_dictionary": "bitmap1",
             "high_frequency_adaptive_dictionary": "df",
             "high_frequency_term_posting_type": "both",
@@ -207,6 +208,7 @@ A PACK index is a multi-field index that is created on fields of the TEXT type. 
 - high_frequency_term_posting_type: the type of the bitmap index. If you set the parameter for creating a bitmap index or an adaptive bitmap index, you can set this parameter to both or bitmap to configure the type of the bitmap index. If you set this parameter to both, a bitmap index and an inverted index are created. If you set this parameter to bitmap, only a bitmap index is created. The default value is bitmap.
 - index_fields: the fields on which you want to create an index. These fields must be of the TEXT type and use the same analyzer.
 - boost: the weight of the field in an index. You can specify the name of the field on which you want to create the index and the boost value.
+- multi_level_skip_list: Whether to build a multi-level skip list for this index. The default is not to build. Currently, ha3 uses a single-level skip list index for the inverted index data by default. For most scenarios, a single-level skip list is sufficient. However, in some scenarios, such as when you know the docid of a document and want to query the hit status of this document in certain inverted chains, using a multi-level skip list can significantly improve query performance.
 - index_analyzer: the analyzer that is used during the query. If you specify an analyzer, the analyzer is used to convert text to terms during the query. In this case, the analyzer can be inconsistent with the analyzers that are used in the fields. If you do not specify this parameter, the analyzers used in the fields are used. In this case, the analyzers that are used in the fields must be consistent. Take note that the analyzer can be only added to an index whose field type is TEXT.
 - compress_type: You can configure one of ZSTD,SNAPPY,LZ4,LZ4HC, and ZLIB.
 - format_version_id: specifies the version ID of the inverted index. The default value is 0, which indicates the inverted format of the AIOS benchmark that is migrated from indexlib. The optional value is 1. The default value is 0. The default value is 1. The default value is 1. The default value is 1. The default value is 1. The default value is 1. The default value is 1. The default value is 1. The default value is 1. The default value is 1.
@@ -238,7 +240,8 @@ A TEXT index is a single-field index that is created on fields of the TEXT type.
             "doc_payload_flag": "1",
             "position_payload_flag": "1",
             "position_list_flag": "1",
-            "term_frequency_flag": "1"
+            "term_frequency_flag": "1",
+            "multi_level_skip_list": "0"
         },
         "index_fields": [
             {
@@ -249,7 +252,7 @@ A TEXT index is a single-field index that is created on fields of the TEXT type.
     }
 }
 ```
-In the text index configuration, index_name,index_type,term_payload_flag,doc_payload_flag,position_payload_flag,position_list_flag,term_frequency_flag, and compress_type have the same meaning, except that index_type must be set to TEXT and index_fields supports only one field.
+In the text index configuration, index_name,index_type,term_payload_flag,doc_payload_flag,position_payload_flag,position_list_flag,multi_level_skip_list,term_frequency_flag, and compress_type have the same meaning, except that index_type must be set to TEXT and index_fields supports only one field.
 #### Limits
 
 - The index_name parameter cannot be set to summary.

@@ -104,7 +104,7 @@ strict_cc_library(
         '//aios/storage/indexlib/index/common/field_format/section_attribute:MultiSectionMeta',
         '//aios/storage/indexlib/index/common/numeric_compress:EncoderProvider',
         '//aios/storage/indexlib/index/inverted_index:InDocPositionState',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:PairValueSkipListReader',
+        '//aios/storage/indexlib/index/inverted_index/format/skiplist:lib',
         '//aios/storage/indexlib/index/inverted_index/section_attribute:SectionAttributeReaderImpl',
         '//aios/storage/indexlib/util:object_pool'
     ]
@@ -155,8 +155,7 @@ strict_cc_library(
         ':BufferedByteSlice', ':InMemPositionListDecoder',
         ':PositionListFormat', '//aios/autil:mem_pool_base',
         '//aios/storage/indexlib/file_system:byte_slice_rw',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:BufferedSkipListWriter',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:InMemPairValueSkipListReader'
+        '//aios/storage/indexlib/index/inverted_index/format/skiplist:lib'
     ]
 )
 strict_cc_library(
@@ -224,9 +223,7 @@ strict_cc_library(
     deps=[
         ':BufferedByteSlice', ':DocListFormat', ':InMemDocListDecoder',
         ':PositionBitmapWriter', '//aios/autil:mem_pool_base',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:BufferedSkipListWriter',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:InMemPairValueSkipListReader',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:InMemTriValueSkipListReader'
+        '//aios/storage/indexlib/index/inverted_index/format/skiplist:lib',
     ]
 )
 strict_cc_library(
@@ -234,9 +231,7 @@ strict_cc_library(
     deps=[
         ':BufferedByteSlice', ':DocListFormat', ':InMemDocListDecoder',
         ':PositionBitmapWriter', '//aios/autil:mem_pool_base',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:BufferedSkipListWriter',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:InMemPairValueSkipListReader',
-        '//aios/storage/indexlib/index/inverted_index/format/skiplist:InMemTriValueSkipListReader'
+        '//aios/storage/indexlib/index/inverted_index/format/skiplist:lib'
     ]
 )
 strict_cc_library(

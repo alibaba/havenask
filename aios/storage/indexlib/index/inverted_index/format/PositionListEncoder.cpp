@@ -85,17 +85,23 @@ uint32_t PositionListEncoder::GetDumpLength() const
 
 void PositionListEncoder::CreatePosSkipListWriter()
 {
-    assert(_posSkipListWriter == nullptr);
-    autil::mem_pool::RecyclePool* bufferPool =
-        dynamic_cast<autil::mem_pool::RecyclePool*>(_posListBuffer.GetBufferPool());
-    assert(bufferPool);
-
-    void* buffer = _byteSlicePool->allocate(sizeof(BufferedSkipListWriter));
-    BufferedSkipListWriter* posSkipListWriter = new (buffer) BufferedSkipListWriter(_byteSlicePool, bufferPool);
-    posSkipListWriter->Init(_posListFormat->GetPositionSkipListFormat());
-
+    assert(_posSkipListWriter == NULL);
     // skip list writer should be atomic created;
-    _posSkipListWriter = posSkipListWriter;
+    if (_posListFormatOption.HasMultiLevelSkipList()) {
+        void *buffer = _byteSlicePool->allocate(sizeof(MultiLevelSkipListWriter));
+        MultiLevelSkipListWriter *posSkipListWriter =
+            new (buffer) MultiLevelSkipListWriter(_byteSlicePool);
+        _posSkipListWriter = posSkipListWriter;
+    } else {
+        autil::mem_pool::RecyclePool *bufferPool = dynamic_cast<autil::mem_pool::RecyclePool *>(_posListBuffer.GetBufferPool());
+        assert(bufferPool);
+
+        void *buffer = _byteSlicePool->allocate(sizeof(BufferedSkipListWriter));
+        BufferedSkipListWriter *posSkipListWriter =
+            new (buffer) BufferedSkipListWriter(_byteSlicePool, bufferPool);
+        posSkipListWriter->Init(_posListFormat->GetPositionSkipListFormat());
+        _posSkipListWriter = posSkipListWriter;
+    }
 }
 
 void PositionListEncoder::AddPosSkipListItem(uint32_t totalPosCount, uint32_t compressedPosSize, bool needFlush)
@@ -131,13 +137,27 @@ InMemPositionListDecoder* PositionListEncoder::GetInMemPositionListDecoder(autil
     ttf_t ttf = _totalPosCount;
 
     // TODO: delete buffer in pool
-    InMemPairValueSkipListReader* inMemSkipListReader = nullptr;
+    SkipListReader *inMemSkipListReader = nullptr;
     if (_posSkipListWriter) {
         // not support tf bitmap in realtime segment
         assert(!_posListFormatOption.HasTfBitmap());
-        inMemSkipListReader =
-            IE_POOL_COMPATIBLE_NEW_CLASS(sessionPool, InMemPairValueSkipListReader, sessionPool, false);
-        inMemSkipListReader->Load(_posSkipListWriter);
+        if (_posListFormatOption.HasMultiLevelSkipList()) {
+            MultiLevelSkipListWriter *skipwriter =
+                dynamic_cast<MultiLevelSkipListWriter *>(_posSkipListWriter);
+            assert(skipwriter != nullptr);
+            MultiLevelPairValueSkipListReader *skipReader =
+                IE_POOL_COMPATIBLE_NEW_CLASS(sessionPool, MultiLevelPairValueSkipListReader);
+            skipwriter->SnapShot(skipReader, sessionPool);
+            inMemSkipListReader = skipReader;
+        } else {
+            BufferedSkipListWriter *bufferedWriter =
+                dynamic_cast<BufferedSkipListWriter *>(_posSkipListWriter);
+            assert(bufferedWriter != nullptr);
+            InMemPairValueSkipListReader *skipReader = IE_POOL_COMPATIBLE_NEW_CLASS(
+                sessionPool, InMemPairValueSkipListReader, sessionPool, false);
+            skipReader->Load(bufferedWriter);
+            inMemSkipListReader = skipReader;
+        }
     }
     BufferedByteSlice* posListBuffer =
         IE_POOL_COMPATIBLE_NEW_CLASS(sessionPool, BufferedByteSlice, sessionPool, sessionPool);
