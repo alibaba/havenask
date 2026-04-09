@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class IquanLocation {
+    @JsonProperty(value = "location_table_name", required = false)
+    private String locationTableName;
     @JsonProperty(value = "node_name", required = true)
     private String nodeName;
     @JsonProperty(value = "partition_cnt", required = true)

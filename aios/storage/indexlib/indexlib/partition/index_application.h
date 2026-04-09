@@ -66,7 +66,7 @@ public:
     bool Init(const std::vector<IndexPartitionPtr>& indexPartitions);
     PartitionReaderSnapshotPtr CreateSnapshot();
     PartitionReaderSnapshotPtr CreateSnapshot(const std::string& leadingTableName, int64_t maxCacheTimeUs = 0);
-    void GetTableSchemas(std::vector<std::shared_ptr<indexlibv2::config::ITabletSchema>>& tableSchemas);
+    void GetTableSchemas(std::vector<std::shared_ptr<indexlibv2::config::ITabletSchema>>& tableSchemas, std::set<std::string> &tableNames);
     std::shared_ptr<indexlibv2::config::ITabletSchema> GetTableSchema(const std::string& tableName) const;
     void GetTableLatestDataTimestamps(std::vector<IndexDataTimestampInfo>& dataTsInfos);
 

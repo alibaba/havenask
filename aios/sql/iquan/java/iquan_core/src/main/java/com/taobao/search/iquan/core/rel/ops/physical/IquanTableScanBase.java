@@ -412,6 +412,7 @@ public class IquanTableScanBase extends TableScan implements IquanRelNode {
         if (isRemoteScan && !Objects.isNull(location)) {
             Map<String, Object> locationMeta = new TreeMap<>();
             locationMeta.put(ConstantDefine.NODE_NAME, location.getNodeName());
+            locationMeta.put("location_table_name", location.getLocationTableName());
             locationMeta.put(ConstantDefine.PARTITION_CNT, location.getPartitionCnt());
             IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.LOCATION, locationMeta);
         }

@@ -53,7 +53,7 @@ IndexPartitionReaderWrapperPtr IndexPartitionReaderUtil::createIndexPartitionRea
     bool usePartial) {
     auto tabletReader = partitionReaderSnapshot->GetTabletReader(mainTableName);
     if (tabletReader) {
-        AUTIL_LOG(DEBUG,
+        AUTIL_LOG(INFO,
                   "create index partition reader wrapper with tabletReader,"
                   " mainTableName[%s], usePartial[%d]",
                   mainTableName.c_str(),
@@ -64,16 +64,20 @@ IndexPartitionReaderWrapperPtr IndexPartitionReaderUtil::createIndexPartitionRea
             return make_shared<IndexPartitionReaderWrapper>(tabletReader);
         }
     } else {
+        AUTIL_LOG(INFO, "createIndexPartitionReaderWrapper for table 1 %s", mainTableName.c_str());
         const auto &tableMainSubIdxMap = partitionReaderSnapshot->getTableMainSubIdxMap();
         auto iter = tableMainSubIdxMap.find(mainTableName);
         if (iter == tableMainSubIdxMap.end()) {
             IndexPartitionReaderPtr mainIndexPartReader
                 = partitionReaderSnapshot->GetIndexPartitionReader(mainTableName);
             if (mainIndexPartReader == NULL) {
+                AUTIL_LOG(INFO, "createIndexPartitionReaderWrapper for table 2 %s", mainTableName.c_str());
                 return IndexPartitionReaderWrapperPtr();
             }
+            AUTIL_LOG(INFO, "createIndexPartitionReaderWrapper for table 3 %s", mainTableName.c_str());
             return createIndexPartitionReaderWrapper(mainIndexPartReader, usePartial);
         } else {
+            AUTIL_LOG(INFO, "createIndexPartitionReaderWrapper for table 4 %s", mainTableName.c_str());
             return createIndexPartitionReaderWrapper(&(iter->second.indexName2IdMap),
                                                      &(iter->second.attrName2IdMap),
                                                      &(iter->second.indexReaderVec),

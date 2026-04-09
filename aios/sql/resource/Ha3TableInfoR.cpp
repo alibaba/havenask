@@ -103,8 +103,12 @@ bool Ha3TableInfoR::getTableSchemas(
         NAVI_KERNEL_LOG(ERROR, "empty index app map");
         return false;
     }
-    auto indexAppPtr = id2IndexAppMap.begin()->second;
-    indexAppPtr->GetTableSchemas(tableSchemas);
+    //auto indexAppPtr = id2IndexAppMap.begin()->second;
+    //indexAppPtr->GetTableSchemas(tableSchemas);
+    std::set<std::string>  tableNames;
+    for (const auto &pair : id2IndexAppMap) {
+        pair.second->GetTableSchemas(tableSchemas, tableNames);
+    }
     return true;
 }
 
@@ -113,7 +117,7 @@ bool Ha3TableInfoR::generateMeta(
     const auto &joinRelations = _tableInfoR->getJoinRelations();
     const std::string &dbName = _zoneName;
     iquan::CatalogDefs catalogDefs;
-    LocationSign locationSign = {_partCount, _zoneName, "searcher"};
+    LocationSign locationSign = {_partCount, _zoneName, "searcher", ""};
     catalogDefs.catalog(SQL_DEFAULT_CATALOG_NAME).location(locationSign);
 
     // merge IndexPartitionSchema from tablet
@@ -125,6 +129,11 @@ bool Ha3TableInfoR::generateMeta(
             addInnerDocId(tableDef);
         }
         const auto &tableName = tableSchema->GetTableName();
+        NAVI_KERNEL_LOG(INFO,
+                            "add locationSign.tableName, zoneName [%s] tableName [%s]",
+                            _zoneName.c_str(),
+                            tableName.c_str());
+        locationSign.tableName=tableName;
         if (!_ha3ClusterDefR->fillTableDef(_zoneName, tableName, tableDef, _tableSortDescMap)) {
             NAVI_KERNEL_LOG(ERROR,
                             "fillTableDef from cluster def failed, zoneName [%s] tableName [%s]",

@@ -66,6 +66,7 @@ public class IquanExchangeOp extends Exchange implements IquanRelNode {
                         ((IquanOptContext) inputRelNode.getCluster().getPlanner().getContext()).getExecutor().getDefaultDbName());
             }
             IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.NODE_NAME, ((IquanRelNode) inputRelNode).getLocation().getNodeName());
+            IquanRelOptUtils.addMapIfNotEmpty(map, "location_table_name", ((IquanRelNode) inputRelNode).getLocation().getLocationTableName());
             IquanRelOptUtils.addMapIfNotEmpty(map, ConstantDefine.TABLE_DISTRIBUTION, RelDistributionUtil.formatDistribution((IquanRelNode) inputRelNode, true));
             map.put(ConstantDefine.OUTPUT_PRUNABLE, outputPrunable);
 

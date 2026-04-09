@@ -120,6 +120,7 @@ public interface IquanRelNode extends RelNode {
             if (location != null) {
                 Map<String, Object> locationMeta = new TreeMap<>();
                 locationMeta.put(ConstantDefine.NODE_NAME, location.getNodeName());
+                locationMeta.put("location_table_name", location.getLocationTableName());
                 locationMeta.put(ConstantDefine.PARTITION_CNT, location.getPartitionCnt());
                 map.put(ConstantDefine.LOCATION, locationMeta);
             }

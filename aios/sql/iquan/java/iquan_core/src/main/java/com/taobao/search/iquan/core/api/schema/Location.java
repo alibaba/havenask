@@ -7,6 +7,7 @@ import lombok.Getter;
 public class Location {
     private final String nodeName;
     private final int partitionCnt;
+    private String locationTableName;
 
     public static final Location DEFAULT_QRS = new Location( "qrs", 1);
     public static final Location UNKNOWN = new Location( "unknown", Integer.MAX_VALUE);
@@ -19,6 +20,7 @@ public class Location {
     public Location(IquanLocation iquanLocation) {
         this.nodeName = iquanLocation.getNodeName();
         this.partitionCnt = iquanLocation.getPartitionCnt();
+        this.locationTableName=iquanLocation.getLocationTableName();
     }
 
     public boolean isSingle() {
