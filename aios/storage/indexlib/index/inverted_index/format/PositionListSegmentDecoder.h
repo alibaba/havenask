@@ -23,6 +23,8 @@
 #include "indexlib/index/inverted_index/format/NormalInDocState.h"
 #include "indexlib/index/inverted_index/format/PositionBitmapReader.h"
 #include "indexlib/index/inverted_index/format/PositionListFormatOption.h"
+#include "indexlib/index/inverted_index/format/skiplist/SkipListReader.h"
+#include "indexlib/index/inverted_index/format/skiplist/MultiLevelSkipListReader.h"
 #include "indexlib/index/inverted_index/format/skiplist/PairValueSkipListReader.h"
 #include "indexlib/util/byte_slice_list/ByteSliceList.h"
 
@@ -74,7 +76,7 @@ private:
                                           uint32_t& recordOffset, int32_t& offsetInRecord);
 
 protected:
-    PairValueSkipListReader* _posSkipListReader;
+    SkipListReader* _posSkipListReader;
     autil::mem_pool::Pool* _sessionPool;
     const Int32Encoder* _posEncoder;
     const Int8Encoder* _posPayloadEncoder;

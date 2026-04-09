@@ -63,7 +63,7 @@ DocListEncoder::DocListEncoder(const DocListFormatOption& docListFormatOption, u
 DocListEncoder::~DocListEncoder()
 {
     if (_docSkipListWriter) {
-        _docSkipListWriter->~BufferedSkipListWriter();
+        _docSkipListWriter->~SkipListWriter();
         _docSkipListWriter = nullptr;
     }
     if (_ownDocListFormat) {
@@ -199,16 +199,21 @@ void DocListEncoder::FlushDocListBuffer(uint8_t compressMode)
 
 void DocListEncoder::CreateDocSkipListWriter()
 {
-    void* buffer = _byteSlicePool->allocate(sizeof(BufferedSkipListWriter));
-    autil::mem_pool::RecyclePool* bufferPool =
-        dynamic_cast<autil::mem_pool::RecyclePool*>(_docListBuffer.GetBufferPool());
-    assert(bufferPool);
-
-    BufferedSkipListWriter* docSkipListWriter =
-        new (buffer) BufferedSkipListWriter(_byteSlicePool, bufferPool, _compressMode);
-    docSkipListWriter->Init(_docListFormat->GetDocListSkipListFormat());
     // skip list writer should be atomic created;
-    _docSkipListWriter = docSkipListWriter;
+    if (_docListFormatOption.HasMultiLevelSkipList()) {
+        void *buffer = _byteSlicePool->allocate(sizeof(MultiLevelSkipListWriter));
+        MultiLevelSkipListWriter *docSkipListWriter =
+            new (buffer) MultiLevelSkipListWriter(_byteSlicePool);
+        _docSkipListWriter = docSkipListWriter;
+    } else {
+        void *buffer = _byteSlicePool->allocate(sizeof(BufferedSkipListWriter));
+        autil::mem_pool::RecyclePool *bufferPool = dynamic_cast<autil::mem_pool::RecyclePool *>(_docListBuffer.GetBufferPool());
+        assert(bufferPool);
+        BufferedSkipListWriter *docSkipListWriter =
+            new (buffer) BufferedSkipListWriter(_byteSlicePool, bufferPool, _compressMode);
+        docSkipListWriter->Init(_docListFormat->GetDocListSkipListFormat());
+        _docSkipListWriter = docSkipListWriter;
+    }
 }
 
 void DocListEncoder::AddSkipListItem(uint32_t itemSize)
@@ -234,17 +239,37 @@ InMemDocListDecoder* DocListEncoder::GetInMemDocListDecoder(autil::mem_pool::Poo
     if (_docSkipListWriter) {
         const DocListSkipListFormat* skipListFormat = _docListFormat->GetDocListSkipListFormat();
         assert(skipListFormat);
-
-        if (skipListFormat->HasTfList()) {
-            InMemTriValueSkipListReader* inMemSkipListReader =
-                IE_POOL_COMPATIBLE_NEW_CLASS(sessionPool, InMemTriValueSkipListReader, sessionPool);
-            inMemSkipListReader->Load(_docSkipListWriter);
-            skipListReader = inMemSkipListReader;
+        if (_docListFormatOption.HasMultiLevelSkipList()) {
+            MultiLevelSkipListWriter *skipwriter =
+                dynamic_cast<MultiLevelSkipListWriter *>(_docSkipListWriter);
+            assert(skipwriter != nullptr);
+            if (skipListFormat->HasTfList()) {
+                MultiLevelTriValueSkipListReader *inMemSkipListReader =
+                    IE_POOL_COMPATIBLE_NEW_CLASS(sessionPool, MultiLevelTriValueSkipListReader);
+                skipwriter->SnapShot(inMemSkipListReader, sessionPool);
+                skipListReader = inMemSkipListReader;
+            } else {
+                MultiLevelPairValueSkipListReader *inMemSkipListReader =
+                    IE_POOL_COMPATIBLE_NEW_CLASS(sessionPool, MultiLevelPairValueSkipListReader);
+                skipwriter->SnapShot(inMemSkipListReader, sessionPool);
+                skipListReader = inMemSkipListReader;
+            }
         } else {
-            InMemPairValueSkipListReader* inMemSkipListReader = IE_POOL_COMPATIBLE_NEW_CLASS(
-                sessionPool, InMemPairValueSkipListReader, sessionPool, _compressMode == REFERENCE_COMPRESS_MODE);
-            inMemSkipListReader->Load(_docSkipListWriter);
-            skipListReader = inMemSkipListReader;
+            BufferedSkipListWriter *bufferedWriter =
+                dynamic_cast<BufferedSkipListWriter *>(_docSkipListWriter);
+            assert(bufferedWriter != nullptr);
+            if (skipListFormat->HasTfList()) {
+                InMemTriValueSkipListReader *inMemSkipListReader = IE_POOL_COMPATIBLE_NEW_CLASS(
+                    sessionPool, InMemTriValueSkipListReader, sessionPool);
+                inMemSkipListReader->Load(bufferedWriter);
+                skipListReader = inMemSkipListReader;
+            } else {
+                InMemPairValueSkipListReader *inMemSkipListReader = IE_POOL_COMPATIBLE_NEW_CLASS(
+                    sessionPool, InMemPairValueSkipListReader, sessionPool,
+                    _compressMode == REFERENCE_COMPRESS_MODE);
+                inMemSkipListReader->Load(bufferedWriter);
+                skipListReader = inMemSkipListReader;
+            }
         }
     }
     BufferedByteSlice* docListBuffer =

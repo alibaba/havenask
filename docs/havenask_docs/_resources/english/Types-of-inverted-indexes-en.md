@@ -192,7 +192,7 @@ You can use truncation and bitmaps and tfbitmaps of high-frequency words to impr
 
 ```
 
-The following parameters have the same meanings in the configurations of TEXT and PACK indexes: index_name, index_type, term_payload_flag, doc_payload_flag, position_payload_flag, position_list_flag, term_frequency_flag, and file_compress. The exception is that index_type must be set to TEXT and the index_fields parameter supports only one field in the configuration of the TEXT index.
+The following parameters have the same meanings in the configurations of TEXT and PACK indexes: index_name, index_type, term_payload_flag, doc_payload_flag, position_payload_flag, position_list_flag,multi_level_skip_list,term_frequency_flag, and file_compress. The exception is that index_type must be set to TEXT and the index_fields parameter supports only one field in the configuration of the TEXT index.
 
 #### Additional considerations
 

@@ -21,7 +21,6 @@
 #include "indexlib/index/inverted_index/format/NormalInDocState.h"
 #include "indexlib/index/inverted_index/format/PositionListSegmentDecoder.h"
 #include "indexlib/index/inverted_index/format/TermMeta.h"
-#include "indexlib/index/inverted_index/format/skiplist/PairValueSkipListReader.h"
 
 namespace indexlib::index {
 

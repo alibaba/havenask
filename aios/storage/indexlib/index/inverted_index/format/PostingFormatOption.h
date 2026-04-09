@@ -43,6 +43,9 @@ public:
     {
         InitOptionFlag(indexConfigPtr->GetOptionFlag());
 
+        _docListFormatOption.SetMultiLevelSkipList(indexConfigPtr->IsMultiLevelSkipList());
+        _posListFormatOption.SetMultiLevelSkipList(indexConfigPtr->IsMultiLevelSkipList());
+
         _dictInlineItemCount = CalculateDictInlineItemCount();
         _docListCompressMode = indexConfigPtr->IsReferenceCompress() ? indexlib::index::REFERENCE_COMPRESS_MODE
                                                                      : indexlib::index::PFOR_DELTA_COMPRESS_MODE;
@@ -58,6 +61,7 @@ public:
     bool HasPositionPayload() const { return _posListFormatOption.HasPositionPayload(); }
     bool HasTermFrequency() const { return _docListFormatOption.HasTermFrequency(); }
     bool HasTermPayload() const { return _hasTermPayload; }
+    bool HasMultiLevelSkipList() const { return _docListFormatOption.HasMultiLevelSkipList(); }
     bool IsShortListVbyteCompress() const { return _docListFormatOption.IsShortListVbyteCompress(); }
     format_versionid_t GetFormatVersion() const { return _formatVersion; }
     void SetFormatVersion(format_versionid_t id) { _formatVersion = id; }

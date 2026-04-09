@@ -52,6 +52,8 @@ constexpr uint8_t MAX_DICT_INLINE_AVAILABLE_SIZE = 7;
 constexpr uint8_t COMPRESS_MODE_SIZE = 4;
 constexpr uint32_t MAX_UNCOMPRESSED_SKIP_LIST_SIZE = 10;
 constexpr uint8_t SKIP_LIST_BUFFER_SIZE = 32;
+constexpr uint8_t SKIP_MULTIPLIER = 8;
+constexpr uint8_t MAX_SKIP_LEVEL = 10;
 
 static constexpr const char* TRUNCATE_ATTRIBUTE_READER_CREATOR = "truncate_attribute_reader_creator";
 static constexpr const char* TRUNCATE_META_FILE_READER_CREATOR = "truncate_meta_file_reader_creator";

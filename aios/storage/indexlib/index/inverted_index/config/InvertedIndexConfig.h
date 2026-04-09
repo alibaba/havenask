@@ -178,6 +178,9 @@ public:
     bool IsShortListVbyteCompress() const;
     void SetShortListVbyteCompress(bool isShortListVbyteCompress);
 
+    bool IsMultiLevelSkipList() const;
+    void SetMultiLevelSkipList(bool isMultiLevelSkipList);
+
     void SetIsReferenceCompress(bool isReferenceCompress);
     bool IsReferenceCompress() const;
 
@@ -272,6 +275,7 @@ protected:
     inline static const std::string DOC_PAYLOAD_FLAG = "doc_payload_flag";
     inline static const std::string POSITION_PAYLOAD_FLAG = "position_payload_flag";
     inline static const std::string POSITION_LIST_FLAG = "position_list_flag";
+    inline static const std::string MULTI_LEVEL_SKIP_LIST = "multi_level_skip_list";
     inline static const std::string TERM_FREQUENCY_FLAG = "term_frequency_flag";
     inline static const std::string TERM_FREQUENCY_BITMAP = "term_frequency_bitmap";
     inline static const std::string HIGH_FEQUENCY_DICTIONARY = "high_frequency_dictionary";

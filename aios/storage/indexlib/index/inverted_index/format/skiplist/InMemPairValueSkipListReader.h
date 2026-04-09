@@ -32,13 +32,13 @@ public:
     InMemPairValueSkipListReader(const InMemPairValueSkipListReader& other) = delete;
 
     // InMemPairValueSkipListReader should not call this method
-    void Load(const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
+    void Load(autil::mem_pool::Pool *pool, const util::ByteSliceList* byteSliceList, uint32_t start, uint32_t end,
               const uint32_t& itemCount) override
     {
         assert(false);
     }
 
-    void Load(util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount) override
+    void Load(autil::mem_pool::Pool *pool, util::ByteSlice* byteSlice, uint32_t start, uint32_t end, const uint32_t& itemCount) override
     {
         assert(false);
     }

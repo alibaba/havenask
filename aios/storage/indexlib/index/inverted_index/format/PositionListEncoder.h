@@ -26,6 +26,8 @@
 #include "indexlib/index/inverted_index/format/PositionListFormat.h"
 #include "indexlib/index/inverted_index/format/PositionListFormatOption.h"
 #include "indexlib/index/inverted_index/format/skiplist/BufferedSkipListWriter.h"
+#include "indexlib/index/inverted_index/format/skiplist/SkipListWriter.h"
+#include "indexlib/index/inverted_index/format/skiplist/MultiLevelSkipListWriter.h"
 
 namespace indexlib::index {
 
@@ -56,7 +58,7 @@ public:
     ~PositionListEncoder()
     {
         if (_posSkipListWriter) {
-            _posSkipListWriter->~BufferedSkipListWriter();
+            _posSkipListWriter->~SkipListWriter();
             _posSkipListWriter = nullptr;
         }
         if (_isOwnFormat) {
@@ -76,7 +78,7 @@ public:
     const util::ByteSliceList* GetPositionList() const { return _posListBuffer.GetByteSliceList(); }
 
     // only for ut
-    void SetDocSkipListWriter(BufferedSkipListWriter* writer) { _posSkipListWriter = writer; }
+    void SetDocSkipListWriter(SkipListWriter* writer) { _posSkipListWriter = writer; }
 
     const PositionListFormat* GetPositionListFormat() const { return _posListFormat; }
 
@@ -91,7 +93,7 @@ private:
     uint32_t _totalPosCount;                       // 4byte
     PositionListFormatOption _posListFormatOption; // 1byte
     bool _isOwnFormat;                             // 1byte
-    BufferedSkipListWriter* _posSkipListWriter;
+    SkipListWriter* _posSkipListWriter;
     const PositionListFormat* _posListFormat;
     autil::mem_pool::Pool* _byteSlicePool;
 

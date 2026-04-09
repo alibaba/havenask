@@ -27,6 +27,8 @@
 #include "indexlib/index/inverted_index/format/InMemDocListDecoder.h"
 #include "indexlib/index/inverted_index/format/PositionBitmapWriter.h"
 #include "indexlib/index/inverted_index/format/skiplist/BufferedSkipListWriter.h"
+#include "indexlib/index/inverted_index/format/skiplist/SkipListWriter.h"
+#include "indexlib/index/inverted_index/format/skiplist/MultiLevelSkipListWriter.h"
 #include "indexlib/util/PoolUtil.h"
 #include "indexlib/util/SimplePool.h"
 
@@ -80,7 +82,7 @@ private:
 private:
     const DocListFormat* TEST_GetDocListFormat() const { return _docListFormat; }
     BufferedByteSlice* TEST_GetDocListBuffer() { return &_docListBuffer; }
-    void TEST_SetDocSkipListWriter(BufferedSkipListWriter* skipListBuffer) { _docSkipListWriter = skipListBuffer; }
+    void TEST_SetDocSkipListWriter(SkipListWriter* skipListBuffer) { _docSkipListWriter = skipListBuffer; }
 
     void TEST_SetPositionBitmapWriter(PositionBitmapWriter* tfBitmapWriter)
     {
@@ -104,7 +106,7 @@ private:
     index::CompressMode _compressMode; // 1byte
     // volatile for realtime
     PositionBitmapWriter* _tfBitmapWriter; // 8byte
-    BufferedSkipListWriter* volatile _docSkipListWriter;
+    SkipListWriter* volatile _docSkipListWriter;
     DocListFormat* _docListFormat;
     autil::mem_pool::Pool* _byteSlicePool;
 

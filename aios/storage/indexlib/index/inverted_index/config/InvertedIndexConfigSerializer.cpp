@@ -164,7 +164,9 @@ void InvertedIndexConfigSerializer::Serialize(const indexlibv2::config::Inverted
         std::string indexCompressMode = indexlibv2::config::InvertedIndexConfig::INDEX_COMPRESS_MODE_REFERENCE;
         json->Jsonize(indexlibv2::config::InvertedIndexConfig::INDEX_COMPRESS_MODE, indexCompressMode);
     }
-
+    if (indexConfig.IsMultiLevelSkipList()) {
+        json->Jsonize(indexlibv2::config::InvertedIndexConfig::MULTI_LEVEL_SKIP_LIST, enableValue);
+    }
     if (indexConfig.IsHashTypedDictionary()) {
         json->Jsonize(indexlibv2::config::InvertedIndexConfig::USE_HASH_DICTIONARY,
                       indexConfig.IsHashTypedDictionary());
@@ -209,6 +211,9 @@ void InvertedIndexConfigSerializer::DeserializeCommonFields(const autil::legacy:
                  indexlibv2::config::InvertedIndexConfig::INDEX_COMPRESS_MODE_PFOR_DELTA);
     indexConfig->SetIsReferenceCompress(
         (compressMode == indexlibv2::config::InvertedIndexConfig::INDEX_COMPRESS_MODE_REFERENCE) ? true : false);
+    int useMultiLevelSkipList = 0;
+    json.Jsonize(indexlibv2::config::InvertedIndexConfig::MULTI_LEVEL_SKIP_LIST, useMultiLevelSkipList, useMultiLevelSkipList);
+    indexConfig->SetMultiLevelSkipList(useMultiLevelSkipList == 1);
     bool isHashTypedDictionary = false;
     json.Jsonize(indexlibv2::config::InvertedIndexConfig::USE_HASH_DICTIONARY, isHashTypedDictionary,
                  isHashTypedDictionary);
